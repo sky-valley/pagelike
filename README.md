@@ -6,6 +6,7 @@ selectors address the data inside it, and plain HTTP reads it, writes it and
 streams its changes. pagelike ships as one Go binary with one data directory
 and no external services.
 
+[![ci](https://github.com/sky-valley/pagelike/actions/workflows/ci.yml/badge.svg)](https://github.com/sky-valley/pagelike/actions/workflows/ci.yml)
 [![release](https://img.shields.io/github/v/release/sky-valley/pagelike)](https://github.com/sky-valley/pagelike/releases)
 [![license](https://img.shields.io/badge/license-Apache--2.0-blue)](LICENSE)
 [![Go Reference](https://pkg.go.dev/badge/github.com/sky-valley/pagelike.svg)](https://pkg.go.dev/github.com/sky-valley/pagelike)
