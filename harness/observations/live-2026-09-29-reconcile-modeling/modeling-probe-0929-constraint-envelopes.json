@@ -1,0 +1,95 @@
+{
+  "case": "modeling.probe-0929.constraint-envelopes",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (register a User shape and a Project schema with two unique properties)",
+      "method": "PUT",
+      "path": "/_pl/modeling-probe-0929-constraint-envelopes-02c84f/schema.html",
+      "status": 201,
+      "headers": {
+        "content-type": "text/html",
+        "etag": "\"c5d4aa66f471d98f254bd930a9923d447a1461ac5601905e7b6cc9ff00580036\"",
+        "last-modified": "Tue, 29 Sep 2026 02:09:39 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\n  \u003cdiv hidden itemscope itemtype=\"https://pagelove.org/ShapeConstraint\"\u003e\n    \u003cmeta itemprop=\"resource\" content=\"/_pl/modeling-probe-0929-constraint-envelopes-02c84f/people/*\"\u003e\n    \u003ccode itemprop=\"selector\"\u003e[itemtype*=User]\u003c/code\u003e\n    \u003ccode itemprop=\"constraint\"\u003e:has([itemprop=\"username\"])\u003c/code\u003e\n    \u003ccode itemprop=\"constraint\"\u003e:has([itemprop=\"email\"])\u003c/code\u003e\n  \u003c/div\u003e\n  \u003cdiv hidden itemscope itemtype=\"https://pagelove.org/Schema\"\u003e\n    \u003cmeta itemprop=\"type\" content=\"https://pagelike.test/_pl/modeling-probe-0929-constraint-envelopes-02c84f/Project\"\u003e\n    \u003cdiv itemprop=\"property\" itemscope itemtype=\"https://pagelove.org/Property\"\u003e\n      \u003cmeta itemprop=\"name\" content=\"slug\"\u003e\n      \u003cmeta itemprop=\"type\" content=\"https://schema.host/Text\"\u003e\n      \u003cmeta itemprop=\"unique\" content=\"true\"\u003e\n    \u003c/div\u003e\n    \u003cdiv itemprop=\"property\" itemscope itemtype=\"https://pagelove.org/Property\"\u003e\n      \u003cmeta itemprop=\"name\" content=\"code\"\u003e\n      \u003cmeta itemprop=\"type\" content=\"https://schema.host/Text\"\u003e\n      \u003cmeta itemprop=\"unique\" content=\"true\"\u003e\n    \u003c/div\u003e\n  \u003cmeta itemprop=\"@id\" content=\"https://schema.host/juq8ix7t\"\u003e\u003cmeta itemprop=\"path\" content=\"/Schemahttps://schema.host/juq8ix7t.html\"\u003e\u003c/div\u003e\n\n                \u003cdiv style=\"\n                            position: fixed;\n                            bottom: 0;\n                            left: 0;\n                            right: 0;\n                            padding: 8px;\n                            background: #f0f0f0;\n                            text-align: center;\n                            font-size: 12px;\n                            color: #666;\n                            z-index: 9999;\n                            opacity: 0.8;\n                            border-top: 1px solid #ddd;\n                        \"\u003e\n                    Powered by\n                    \u003ca href=\"https://pagelove.com/\" style=\"color: #4a90d9; text-decoration: none\"\u003ePagelove\u003c/a\u003e\n                \u003c/div\u003e\n            \u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 2 (a user with neither username nor email)",
+      "method": "PUT",
+      "path": "/_pl/modeling-probe-0929-constraint-envelopes-02c84f/people/u0.html",
+      "status": 422,
+      "headers": {
+        "content-length": "615",
+        "content-type": "text/html",
+        "vary": "Host, Range"
+      },
+      "body": "\u003cdiv itemscope itemtype=\"https://dombase.pagelove.team/ns/error/ShapeConstraint\"\u003e\u003cul itemprop=\"problems\"\u003e\u003cli itemprop=\"problem\"\u003e\u003cspan itemprop=\"message\"\u003eShape constraints violated\u003c/span\u003e\u003c/li\u003e\u003cli itemprop=\"problem\"\u003e\u003cspan itemprop=\"message\"\u003ehttps://pagelove.org/ShapeConstraint [itemtype*=User]: Element matching '[itemtype*=User]' does not satisfy constraint ':has([itemprop=\"username\"])'\u003c/span\u003e\u003c/li\u003e\u003cli itemprop=\"problem\"\u003e\u003cspan itemprop=\"message\"\u003ehttps://pagelove.org/ShapeConstraint [itemtype*=User]: Element matching '[itemtype*=User]' does not satisfy constraint ':has([itemprop=\"email\"])'\u003c/span\u003e\u003c/li\u003e\u003c/ul\u003e\u003c/div\u003e"
+    },
+    {
+      "step": "step 3 (a complete user)",
+      "method": "PUT",
+      "path": "/_pl/modeling-probe-0929-constraint-envelopes-02c84f/people/u1.html",
+      "status": 201,
+      "headers": {
+        "content-type": "text/html",
+        "etag": "\"0e97c9aec57ebc32579cea68dc2f48e0037594721cdc81688bec4efdf55b3629\"",
+        "last-modified": "Tue, 29 Sep 2026 02:09:40 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\n  \u003cdiv itemscope itemtype=\"https://example.org/User\" id=\"u1\"\u003e\n    \u003cspan itemprop=\"username\"\u003ealice\u003c/span\u003e\n    \u003cspan itemprop=\"email\"\u003ealice@example.com\u003c/span\u003e\n  \u003c/div\u003e\n\n                \u003cdiv style=\"\n                            position: fixed;\n                            bottom: 0;\n                            left: 0;\n                            right: 0;\n                            padding: 8px;\n                            background: #f0f0f0;\n                            text-align: center;\n                            font-size: 12px;\n                            color: #666;\n                            z-index: 9999;\n                            opacity: 0.8;\n                            border-top: 1px solid #ddd;\n                        \"\u003e\n                    Powered by\n                    \u003ca href=\"https://pagelove.com/\" style=\"color: #4a90d9; text-decoration: none\"\u003ePagelove\u003c/a\u003e\n                \u003c/div\u003e\n            \u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 4 (selector DELETE of the email)",
+      "method": "DELETE",
+      "path": "/_pl/modeling-probe-0929-constraint-envelopes-02c84f/people/u1.html",
+      "status": 409,
+      "headers": {
+        "content-length": "432",
+        "content-type": "text/html",
+        "vary": "Host, Range"
+      },
+      "body": "\u003cdiv itemscope itemtype=\"https://dombase.pagelove.team/ns/error/CascadeBlocked\"\u003e\u003cul itemprop=\"problems\"\u003e\u003cli itemprop=\"problem\"\u003e\u003cspan itemprop=\"message\"\u003eOperation refused by cascade constraint: Constraint violation: 1 violation(s):\n  - [https://pagelove.org/ShapeConstraint] [itemtype*=User] (:has([itemprop=\"email\"])): Element matching '[itemtype*=User]' does not satisfy constraint ':has([itemprop=\"email\"])'\u003c/span\u003e\u003c/li\u003e\u003c/ul\u003e\u003c/div\u003e"
+    },
+    {
+      "step": "step 5 (first project)",
+      "method": "PUT",
+      "path": "/_pl/modeling-probe-0929-constraint-envelopes-02c84f/p1.html",
+      "status": 201,
+      "headers": {
+        "content-type": "text/html",
+        "etag": "\"848d4257b9ee34b8ce1b42c9250929ab10851f0d0912f67deaa5aad630d8cb97\"",
+        "last-modified": "Tue, 29 Sep 2026 02:09:41 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\n  \u003cdiv itemscope itemtype=\"https://pagelike.test/_pl/modeling-probe-0929-constraint-envelopes-02c84f/Project\"\u003e\n    \u003cmeta itemprop=\"slug\" content=\"launch\"\u003e\n    \u003cmeta itemprop=\"code\" content=\"L1\"\u003e\n  \u003c/div\u003e\n\n                \u003cdiv style=\"\n                            position: fixed;\n                            bottom: 0;\n                            left: 0;\n                            right: 0;\n                            padding: 8px;\n                            background: #f0f0f0;\n                            text-align: center;\n                            font-size: 12px;\n                            color: #666;\n                            z-index: 9999;\n                            opacity: 0.8;\n                            border-top: 1px solid #ddd;\n                        \"\u003e\n                    Powered by\n                    \u003ca href=\"https://pagelove.com/\" style=\"color: #4a90d9; text-decoration: none\"\u003ePagelove\u003c/a\u003e\n                \u003c/div\u003e\n            \u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 6 (second project repeating both values)",
+      "method": "PUT",
+      "path": "/_pl/modeling-probe-0929-constraint-envelopes-02c84f/p2.html",
+      "status": 422,
+      "headers": {
+        "content-length": "397",
+        "content-type": "text/html",
+        "vary": "Host, Range"
+      },
+      "body": "\u003cdiv itemscope itemtype=\"https://dombase.pagelove.team/ns/error/ConstraintViolation\"\u003e\u003cul itemprop=\"problems\"\u003e\u003cli itemprop=\"problem\"\u003e\u003cspan itemprop=\"message\"\u003eConstraint violation: 1 violation(s):\n  - [uniqueness] [itemprop='slug'] (unique(slug)): Uniqueness violation: value already exists for property 'slug' at '/_pl/modeling-probe-0929-constraint-envelopes-02c84f/p1.html'\u003c/span\u003e\u003c/li\u003e\u003c/ul\u003e\u003c/div\u003e"
+    },
+    {
+      "step": "step 7 (two projects sharing a slug in one new document)",
+      "method": "PUT",
+      "path": "/_pl/modeling-probe-0929-constraint-envelopes-02c84f/p3.html",
+      "status": 422,
+      "headers": {
+        "content-length": "449",
+        "content-type": "text/html",
+        "vary": "Host, Range"
+      },
+      "body": "\u003cdiv itemscope itemtype=\"https://dombase.pagelove.team/ns/error/ConstraintViolation\"\u003e\u003cul itemprop=\"problems\"\u003e\u003cli itemprop=\"problem\"\u003e\u003cspan itemprop=\"message\"\u003eConstraint violation: 1 violation(s):\n  - [uniqueness] [itemprop='slug'] (unique(slug)): Uniqueness violation: another item in '/_pl/modeling-probe-0929-constraint-envelopes-02c84f/p3.html' already claims this value for property 'slug' (first claimed by item '0.2.0.1')\u003c/span\u003e\u003c/li\u003e\u003c/ul\u003e\u003c/div\u003e"
+    }
+  ],
+  "outcome": "pass",
+  "target": "live"
+}

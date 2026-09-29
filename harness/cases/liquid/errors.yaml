@@ -1,0 +1,258 @@
+# Error behaviour: local degradation of output expressions vs composition
+# failure. Spec: docs/spec/liquid.md §19 (R-LIQ-200..209).
+defaults:
+  area: liquid
+  requires: [liquid]
+cases:
+  - id: liquid.errors.filter-error-degrades-locally
+    title: "A bad value in one {{ }} renders an inline https://pagelove.org/Error item; the rest of the page composes"
+    feature: error degradation
+    evidence: documented
+    source: "docs languages/liquid/filters §When a filter errors (Published {{ article.date | date: \"%B %d, %Y\" }} example; 'a single bad value never blanks the whole page')"
+    confidence: high
+    live: true
+    notes: R-LIQ-200, R-LIQ-201, R-LIQ-176.
+    site:
+      settings: {default_get: allow}
+      files:
+        - path: "${P}/article.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body><article itemscope itemtype="https://example.test${P}/Article"><meta itemprop="date" content="not a date"><h1 itemprop="title">Still here</h1></article></body></html>
+        - path: "${P}/show.html"
+          body: |
+            <!DOCTYPE html>
+            <html xmlns:p="https://pagelove.org/1.0" xmlns:r="https://pagelove.org/Binding/CSS"><body>
+              <div id="o" r:articles="[itemtype='https://example.test${P}/Article']" p:template="text/liquid">{% assign article = articles | first %}
+            <p id="pub">Published {{ article.date | date: "%B %d, %Y" }}</p>
+            <p id="title">{{ article.title }}</p>
+              </div>
+            </body></html>
+      rules: [{actor: "*", resource: "${P}/*", method: [GET, HEAD], action: Allow}]
+    steps:
+      - name: read
+        as: anonymous
+        request: {method: GET, path: "${P}/show.html"}
+        expect:
+          status: 200
+          body_contains: ['<p id="title">Still here</p>', '<p id="pub">Published ']
+          body_matches: '<p id="pub">Published <[a-z]+ [^>]*itemtype="https?://pagelove.org/(1\.0/)?Error"'
+
+  - id: liquid.errors.attribute-context-renders-empty
+    title: "In an attribute value a failing expression renders empty instead of markup"
+    feature: error degradation
+    evidence: documented
+    source: "docs languages/liquid/filters §When a filter errors ('In an attribute value (e.g. href=\"{{ … }}\"), where markup can't go, the expression renders empty instead')"
+    confidence: high
+    live: true
+    notes: R-LIQ-201.
+    site:
+      settings: {default_get: allow}
+      files:
+        - path: "${P}/attr.html"
+          body: |
+            <!DOCTYPE html>
+            <html xmlns:p="https://pagelove.org/1.0"><body>
+              <p id="o" p:template="text/liquid"><a id="l" href="{{ 'garbage' | date: '%Y' }}">link</a></p>
+            </body></html>
+      rules: [{actor: "*", resource: "${P}/*", method: [GET, HEAD], action: Allow}]
+    steps:
+      - name: read
+        as: anonymous
+        request: {method: GET, path: "${P}/attr.html", headers: {Range: "selector=#o"}}
+        expect:
+          status: 206
+          # An empty attribute is serialized bare (live 2026-09-29, harness/observations/live-2026-09-29-serialize/liquid-errors-attribute-context-renders.json).
+          body_contains: ['<a id="l" href>link</a>']
+          body_not_contains: ["Error"]
+
+  - id: liquid.errors.raw-text-context-renders-empty
+    title: A failing expression inside <title> (raw text) renders empty, not markup
+    feature: error degradation
+    evidence: inferred
+    source: "docs languages/liquid/filters §When a filter errors ('where markup can't go'); pagelike decision R-LIQ-201 (RCDATA/RAWTEXT contexts)"
+    confidence: low
+    live: true
+    notes: P-LIQ-2.
+    site:
+      settings: {default_get: allow}
+      files:
+        - path: "${P}/title.html"
+          body: |
+            <!DOCTYPE html>
+            <html lang="en" xmlns:p="https://pagelove.org/1.0" p:template="text/liquid">
+            <head><title>[{{ "garbage" | date: "%Y" }}]</title></head>
+            <body><p id="b">body</p></body>
+            </html>
+      rules: [{actor: "*", resource: "${P}/*", method: [GET, HEAD], action: Allow}]
+    steps:
+      - name: read
+        as: anonymous
+        request: {method: GET, path: "${P}/title.html"}
+        expect:
+          status: 200
+          body_contains: ["<title>[]</title>", '<p id="b">body</p>']
+
+  - id: liquid.errors.control-flow-fails-composition
+    title: An error in an {% if %} condition is not degraded; the request fails without a partial page
+    feature: error degradation
+    evidence: documented
+    source: "docs languages/liquid/filters §When a filter errors ('An error in a control-flow tag's expression … is not degraded … it surfaces as a composition error')"
+    confidence: medium
+    live: true
+    notes: R-LIQ-202, R-LIQ-206. 500 is a pagelike decision (P-LIQ-4).
+    site:
+      settings: {default_get: allow}
+      files:
+        - path: "${P}/cf.html"
+          body: |
+            <!DOCTYPE html>
+            <html xmlns:p="https://pagelove.org/1.0"><body>
+              <p id="before">BEFORE-MARKER</p>
+              <div p:template="text/liquid">{% if "garbage" | date: "%Y" %}x{% endif %}</div>
+            </body></html>
+      rules: [{actor: "*", resource: "${P}/*", method: [GET, HEAD], action: Allow}]
+    steps:
+      - name: whole document
+        as: anonymous
+        request: {method: GET, path: "${P}/cf.html"}
+        expect:
+          status: 500
+          body_not_contains: ["BEFORE-MARKER"]
+      - name: a selector read of an unaffected element fails too (composition runs first)
+        as: anonymous
+        request: {method: GET, path: "${P}/cf.html", headers: {Range: "selector=#before"}}
+        expect:
+          status: 500
+
+  - id: liquid.errors.for-range-error-fails
+    title: An error in a {% for %} collection expression fails composition
+    feature: error degradation
+    evidence: documented
+    source: "docs languages/liquid/filters §When a filter errors (a {% for %} range is not degraded)"
+    confidence: medium
+    live: true
+    notes: R-LIQ-202.
+    site:
+      settings: {default_get: allow}
+      files:
+        - path: "${P}/forerr.html"
+          body: |
+            <!DOCTYPE html>
+            <html xmlns:p="https://pagelove.org/1.0"><body>
+              <ul p:template="text/liquid">{% for i in "zz" | date: "%Y" %}<li>{{ i }}</li>{% endfor %}</ul>
+            </body></html>
+      rules: [{actor: "*", resource: "${P}/*", method: [GET, HEAD], action: Allow}]
+    steps:
+      - name: read
+        as: anonymous
+        request: {method: GET, path: "${P}/forerr.html"}
+        expect:
+          status: 500
+
+  - id: liquid.errors.assign-error-fails
+    title: A filter error inside {% assign %} stops the render; the page does not appear
+    feature: error degradation
+    evidence: documented
+    source: "docs languages/liquid/filters/expressions ('inside {% assign %} the error stops the render, so the page does not appear at all')"
+    confidence: medium
+    live: true
+    notes: R-LIQ-204, R-LIQ-206.
+    site:
+      settings: {default_get: allow}
+      files:
+        - path: "${P}/assign.html"
+          body: |
+            <!DOCTYPE html>
+            <html xmlns:p="https://pagelove.org/1.0"><body>
+              <p id="before">BEFORE-MARKER</p>
+              <p p:template="text/liquid">{% assign y = "garbage" | date: "%Y" %}{{ y }}</p>
+            </body></html>
+      rules: [{actor: "*", resource: "${P}/*", method: [GET, HEAD], action: Allow}]
+    steps:
+      - name: read
+        as: anonymous
+        request: {method: GET, path: "${P}/assign.html"}
+        expect:
+          status: 500
+          header_matches: {Content-Type: "^text/html"}
+          body_not_contains: ["BEFORE-MARKER"]
+
+  - id: liquid.errors.undefined-renders-empty
+    title: Undefined variables, missing properties and members of nil render empty and are falsy
+    feature: undefined variables
+    evidence: documented
+    source: "docs languages/liquid/filters/array §push (an unassigned variable is nil); languages/sessel/reference/syntax §Authenticated identity in composition (empty, no error)"
+    confidence: medium
+    live: true
+    notes: R-LIQ-203, spec C-2.
+    site:
+      settings: {default_get: allow}
+      files:
+        - path: "${P}/undef.html"
+          body: |
+            <!DOCTYPE html>
+            <html xmlns:p="https://pagelove.org/1.0"><body>
+              <p id="o" p:template="text/liquid">[{{ nosuch }}|{{ nosuch.deep.path }}|{{ request.nosuch }}|{% if nosuch %}T{% else %}F{% endif %}|{{ nosuch | size }}]</p>
+            </body></html>
+      rules: [{actor: "*", resource: "${P}/*", method: [GET, HEAD], action: Allow}]
+    steps:
+      - name: read
+        as: anonymous
+        request: {method: GET, path: "${P}/undef.html", headers: {Range: "selector=#o"}}
+        expect:
+          status: 206
+          body_contains: [">[|||F|0]</p>"]
+
+  - id: liquid.errors.unknown-filter-degrades
+    title: An unknown filter in {{ }} degrades to an inline Error item
+    feature: error degradation
+    evidence: inferred
+    source: "docs languages/liquid/filters §When a filter errors (per-expression degradation); docs/decisions/0002-liquid.md corpus error/undefined-filter"
+    confidence: low
+    live: true
+    notes: R-LIQ-102, R-LIQ-200, P-LIQ-4.
+    site:
+      settings: {default_get: allow}
+      files:
+        - path: "${P}/nofilter.html"
+          body: |
+            <!DOCTYPE html>
+            <html xmlns:p="https://pagelove.org/1.0"><body>
+              <div p:template="text/liquid"><p id="bad">{{ "x" | no_such_filter }}</p><p id="after">after</p></div>
+            </body></html>
+      rules: [{actor: "*", resource: "${P}/*", method: [GET, HEAD], action: Allow}]
+    steps:
+      - name: read
+        as: anonymous
+        request: {method: GET, path: "${P}/nofilter.html"}
+        expect:
+          status: 200
+          body_contains: ['<p id="after">after</p>']
+          body_matches: '<p id="bad"><[a-z]+ [^>]*itemtype="https?://pagelove.org/(1\.0/)?Error"'
+
+  - id: liquid.errors.syntax-error-fails
+    title: An unterminated block is a template syntax error that fails composition
+    feature: error degradation
+    evidence: inferred
+    source: "pagelike decision R-LIQ-205 (by analogy with Method-Elements §Error cases: implementation errors → HTTP 500)"
+    confidence: low
+    live: true
+    notes: P-LIQ-4.
+    site:
+      settings: {default_get: allow}
+      files:
+        - path: "${P}/syntax.html"
+          body: |
+            <!DOCTYPE html>
+            <html xmlns:p="https://pagelove.org/1.0"><body>
+              <p p:template="text/liquid">{% if true %}never closed</p>
+            </body></html>
+      rules: [{actor: "*", resource: "${P}/*", method: [GET, HEAD], action: Allow}]
+    steps:
+      - name: read
+        as: anonymous
+        request: {method: GET, path: "${P}/syntax.html"}
+        expect:
+          status: 500
+          body_not_contains: ["never closed"]

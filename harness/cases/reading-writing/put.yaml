@@ -1,0 +1,520 @@
+# PUT: selector replacement and whole-document create/replace.
+# Spec: docs/spec/reading-writing.md §9 (R-RW-60..69).
+cases:
+  - id: rw.put.selector-replace
+    title: PUT with a selector replaces the matched element and answers 206 with the new element
+    area: reading-writing
+    feature: PUT selector range
+    evidence: documented
+    source: "docs reference/reading-and-writing/PUT-method §Replace a single element (snapshot 2026-09-28)"
+    confidence: high
+    requires: []
+    live: true
+    site:
+      settings: {default_get: allow}
+      files:
+        - path: "${P}/put-replace-test.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <h1>Old Header</h1>
+              <p>Paragraph stays.</p>
+            </body></html>
+      rules:
+        - {actor: "*", resource: "${P}/*", method: [GET, HEAD, PUT], action: Allow}
+    steps:
+      - name: replace the heading
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/put-replace-test.html"
+          headers: {Range: "selector=h1", Content-Type: "text/html"}
+          body: "<h1>New Header</h1>"
+        expect:
+          status: 206
+          body_html: "<h1>New Header</h1>"
+
+  - id: rw.put.selector-persists
+    title: A selector PUT persists and is visible to later reads
+    area: reading-writing
+    feature: PUT selector range
+    evidence: documented
+    source: "docs reference/reading-and-writing/PUT-method §Write persists (snapshot 2026-09-28)"
+    confidence: high
+    requires: []
+    live: true
+    site:
+      settings: {default_get: allow}
+      files:
+        - path: "${P}/put-persist-test.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <h1>Original Title</h1>
+              <p>Paragraph stays.</p>
+            </body></html>
+      rules:
+        - {actor: "*", resource: "${P}/*", method: [GET, HEAD, PUT], action: Allow}
+    steps:
+      - name: replace the heading
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/put-persist-test.html"
+          headers: {Range: "selector=h1", Content-Type: "text/html"}
+          body: "<h1>Updated Title</h1>"
+        expect:
+          status: 206
+          body_html: "<h1>Updated Title</h1>"
+      - name: read the heading back
+        as: anonymous
+        request:
+          method: GET
+          path: "${P}/put-persist-test.html"
+          headers: {Range: "selector=h1"}
+        expect:
+          status: 206
+          body_html: "<h1>Updated Title</h1>"
+      - name: whole document reflects the change
+        as: anonymous
+        request: {method: GET, path: "${P}/put-persist-test.html"}
+        expect:
+          status: 200
+          body_contains: ["<h1>Updated Title</h1>", "Paragraph stays."]
+          body_not_contains: ["Original Title"]
+
+  - id: rw.put.selector-response-headers
+    title: A selector PUT response identifies the element (Content-Range) and carries its new ETag
+    area: reading-writing
+    feature: PUT selector range
+    evidence: client-source
+    source: "docs PUT-method §When to reach for it ('206 Partial Content with a Content-Range header identifying the replaced element'); beta-js/pagelove/primitives.mjs@c204746:296-297 (stores the response ETag and reuses it as If-Match)"
+    confidence: medium
+    requires: []
+    live: true
+    site:
+      settings: {default_get: allow}
+      files:
+        - path: "${P}/hdr.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body><h1 id="t">A</h1></body></html>
+      rules:
+        - {actor: "*", resource: "${P}/*", method: [GET, HEAD, PUT], action: Allow}
+    steps:
+      - name: replace by id
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/hdr.html"
+          headers: {Range: "selector=#t", Content-Type: "text/html"}
+          body: '<h1 id="t">B</h1>'
+        expect:
+          status: 206
+          headers_present: [ETag, Content-Range]
+          header_matches: {Content-Range: "^selector[ =]#t$"}
+        capture: {put_etag: header.ETag}
+      - name: HEAD of the element reports the same ETag
+        as: anonymous
+        request:
+          method: HEAD
+          path: "${P}/hdr.html"
+          headers: {Range: "selector=#t"}
+        expect:
+          status: 206
+          etag_equals: "${put_etag}"
+
+  - id: rw.put.beta-js-request-shape
+    title: The beta-js PUT request shape (Content-Type text/html;charset=UTF-8, generated selector) is accepted
+    area: reading-writing
+    feature: PUT selector range
+    evidence: client-source
+    source: "beta-js/pagelove/primitives.mjs@c204746:8-64 (generateSelector), :258-273 (req headers)"
+    confidence: high
+    requires: []
+    live: true
+    site:
+      settings: {default_get: allow}
+      files:
+        - path: "${P}/list.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <ul id="todo-list"><li><input type="checkbox">Get Milk</li><li><input type="checkbox">Buy Eggs</li></ul>
+            </body></html>
+      rules:
+        - {actor: "*", resource: "${P}/*", method: [GET, HEAD, PUT], action: Allow}
+    steps:
+      - name: PUT the second item via an id-anchored nth-child selector
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/list.html"
+          headers:
+            Range: "selector=#todo-list > li:nth-child(2)"
+            Content-Type: "text/html;charset=UTF-8"
+          body: '<li><input type="checkbox" checked="">Buy Eggs</li>'
+        expect:
+          status: 206
+      - name: the checked attribute persisted on the second item only
+        as: anonymous
+        request:
+          method: GET
+          path: "${P}/list.html"
+          headers: {Range: "selector=#todo-list"}
+        expect:
+          status: 206
+          body_html: '<ul id="todo-list"><li><input type="checkbox">Get Milk</li><li><input type="checkbox" checked="">Buy Eggs</li></ul>'
+
+  - id: rw.put.first-match-only
+    title: A selector PUT matching several elements replaces only the first
+    area: reading-writing
+    feature: PUT selector range
+    evidence: documented
+    source: "docs reference/permissions/AuthorizationRule §Selectors that match several elements ('acts on the first match in document order only') (snapshot 2026-09-28)"
+    confidence: high
+    requires: []
+    live: true
+    site:
+      settings: {default_get: allow}
+      files:
+        - path: "${P}/multi.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body><ul><li>one</li><li>two</li><li>three</li></ul></body></html>
+      rules:
+        - {actor: "*", resource: "${P}/*", method: [GET, HEAD, PUT], action: Allow}
+    steps:
+      - name: PUT to li
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/multi.html"
+          headers: {Range: "selector=li", Content-Type: "text/html"}
+          body: "<li>ONE</li>"
+        expect: {status: 206}
+      - name: only the first li changed
+        as: anonymous
+        request:
+          method: GET
+          path: "${P}/multi.html"
+          headers: {Range: "selector=ul"}
+        expect:
+          status: 206
+          body_html: "<ul><li>ONE</li><li>two</li><li>three</li></ul>"
+
+  - id: rw.put.selector-no-match-416
+    title: A selector PUT that matches nothing is 416 and does not insert (no upsert)
+    area: reading-writing
+    feature: PUT selector range
+    evidence: documented
+    source: "docs reference/reading-and-writing/PUT-method §Error cases (snapshot 2026-09-28); pagelove-kanban/site/app.js@85109ab:50-60 (upsert = PUT, on 416 POST)"
+    confidence: high
+    requires: []
+    live: true
+    site:
+      settings: {default_get: allow}
+      files:
+        - path: "${P}/nomatch.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body><h1>Only h1</h1></body></html>
+      rules:
+        - {actor: "*", resource: "${P}/*", method: [GET, HEAD, PUT], action: Allow}
+    steps:
+      - name: PUT to an absent h2
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/nomatch.html"
+          headers: {Range: "selector=h2", Content-Type: "text/html"}
+          body: "<h2>Should not appear</h2>"
+        expect: {status: 416}
+      - name: document unchanged
+        as: anonymous
+        request: {method: GET, path: "${P}/nomatch.html"}
+        expect:
+          status: 200
+          body_contains: ["<h1>Only h1</h1>"]
+          body_not_contains: ["Should not appear"]
+
+  - id: rw.put.selector-missing-document-404
+    title: A selector PUT to a missing document is 404 and creates nothing
+    area: reading-writing
+    feature: PUT selector range
+    evidence: documented
+    source: "docs reference/reading-and-writing/PUT-method §Error cases ('Document does not exist 404') (snapshot 2026-09-28)"
+    confidence: high
+    requires: []
+    live: true
+    site:
+      settings: {default_get: allow}
+      rules:
+        - {actor: "*", resource: "${P}/*", method: [GET, HEAD, PUT], action: Allow}
+    steps:
+      - name: selector PUT to a missing path
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/missing.html"
+          headers: {Range: "selector=h1", Content-Type: "text/html"}
+          body: "<h1>x</h1>"
+        expect: {status: 404}
+      - name: still missing
+        as: anonymous
+        request: {method: GET, path: "${P}/missing.html"}
+        expect: {status: 404}
+
+  - id: rw.put.whole-create-201
+    title: A whole-document PUT to a new path creates it with 201
+    area: reading-writing
+    feature: PUT whole document
+    evidence: documented
+    source: "docs reference/modeling-data/ShapeConstraint examples (PUT new document -> HTTP/1.1 201 with the document echoed) (snapshot 2026-09-28)"
+    confidence: high
+    requires: []
+    live: true
+    site:
+      settings: {default_get: allow}
+      rules:
+        - {actor: "*", resource: "${P}/*", method: [GET, HEAD, PUT], action: Allow}
+    steps:
+      - name: create
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/created.html"
+          headers: {Content-Type: "text/html"}
+          body: |
+            <!DOCTYPE html>
+            <html><body><h1>Created page</h1></body></html>
+        expect:
+          status: 201
+      - name: read it back
+        as: anonymous
+        request: {method: GET, path: "${P}/created.html"}
+        expect:
+          status: 200
+          header_matches: {Content-Type: "^text/html"}
+          body_contains: ["<h1>Created page</h1>"]
+
+  - id: rw.put.whole-replace
+    title: A whole-document PUT to an existing path replaces it
+    area: reading-writing
+    feature: PUT whole document
+    evidence: inferred
+    source: "docs PUT-method §When to reach for it; RFC 9110 §9.3.4 (status for replacement undocumented, spec R-RW-62)"
+    confidence: medium
+    requires: []
+    live: true
+    notes: "pagelike answers 200; 201/204 accepted until Q-2 is probed."
+    site:
+      settings: {default_get: allow}
+      files:
+        - path: "${P}/replace.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body><h1>Version one</h1></body></html>
+      rules:
+        - {actor: "*", resource: "${P}/*", method: [GET, HEAD, PUT], action: Allow}
+    steps:
+      - name: replace the whole document
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/replace.html"
+          headers: {Content-Type: "text/html; charset=utf-8"}
+          body: |
+            <!DOCTYPE html>
+            <html><body><h1>Version two</h1></body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: read back
+        as: anonymous
+        request: {method: GET, path: "${P}/replace.html"}
+        expect:
+          status: 200
+          body_contains: ["Version two"]
+          body_not_contains: ["Version one"]
+
+  - id: rw.put.nested-path-create
+    title: A whole-document PUT creates intermediate directories implicitly
+    area: reading-writing
+    feature: PUT whole document
+    evidence: demo-source
+    source: "pagelove-kanban/site/app.js@85109ab:1541-1553; pagelove-ats/site/apply.html@8f200fc:622-631; pagelove-shop/site/js/shop.mjs@d887054:493-503"
+    confidence: high
+    requires: []
+    live: true
+    site:
+      settings: {default_get: allow}
+      rules:
+        - {actor: "*", resource: "${P}/*", method: [GET, HEAD, PUT], action: Allow}
+    steps:
+      - name: create a deep path
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/a/b/c.html"
+          headers: {Content-Type: "text/html"}
+          body: |
+            <!DOCTYPE html>
+            <html><body><p>deep</p></body></html>
+        expect: {status: [200, 201]}
+      - name: read it
+        as: anonymous
+        request: {method: GET, path: "${P}/a/b/c.html"}
+        expect:
+          status: 200
+          body_contains: ["deep"]
+
+  - id: rw.put.table-row-context
+    title: A <tr> body replacing a table row is parsed in table context
+    area: reading-writing
+    feature: Fragment parsing context
+    evidence: demo-source
+    source: "pagelove-polls/site/assets/poll.js@c9270e5:56-63,99-108 (PUT a <tr> over #r-xxxx)"
+    confidence: high
+    requires: []
+    live: true
+    site:
+      settings: {default_get: allow}
+      files:
+        - path: "${P}/poll.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body><table id="grid"><tbody id="responses"><tr id="r-1"><th scope="row">Ann</th><td data-vote="yes">yes</td></tr></tbody></table></body></html>
+      rules:
+        - {actor: "*", resource: "${P}/*", method: [GET, HEAD, PUT], action: Allow}
+    steps:
+      - name: edit the row
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/poll.html"
+          headers: {Range: "selector=#r-1", Content-Type: "text/html"}
+          body: '<tr id="r-1"><th scope="row">Ann</th><td data-vote="no">no</td></tr>'
+        expect:
+          status: 206
+          body_contains: ['<tr id="r-1">', '<td data-vote="no">no</td>']
+      - name: the table section still contains a proper row
+        as: anonymous
+        request:
+          method: GET
+          path: "${P}/poll.html"
+          headers: {Range: "selector=#responses"}
+        expect:
+          status: 206
+          body_contains: ['<tr id="r-1">', '<th scope="row">Ann</th>', '<td data-vote="no">no</td>']
+          body_not_contains: ['data-vote="yes"']
+
+  - id: rw.put.percent-encoded-path
+    title: Percent-encoded paths are decoded consistently for write and read
+    area: reading-writing
+    feature: Path resolution
+    evidence: inferred
+    source: "RFC 3986 path semantics; docs reference/composing-pages/Parameterized-Routes (captured segments are percent-decoded)"
+    confidence: medium
+    requires: []
+    live: true
+    site:
+      settings: {default_get: allow}
+      rules:
+        - {actor: "*", resource: "${P}/*", method: [GET, HEAD, PUT], action: Allow}
+    steps:
+      - name: create with an encoded space
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/hello%20world.html"
+          headers: {Content-Type: "text/html"}
+          body: |
+            <!DOCTYPE html>
+            <html><body><p>spaced name</p></body></html>
+        expect: {status: [200, 201]}
+      - name: read with the same encoding
+        as: anonymous
+        request: {method: GET, path: "${P}/hello%20world.html"}
+        expect:
+          status: 200
+          body_contains: ["spaced name"]
+
+  - id: rw.put.visible-on-authoring-plane
+    title: A public selector write is visible in the stored document on the authoring plane
+    area: reading-writing
+    feature: PUT selector range
+    evidence: inferred
+    source: "docs reference/protocol/WebDAV §Live site ('The WebDAV mount represents the live site')"
+    confidence: high
+    requires: [webdav]
+    live: true
+    site:
+      settings: {default_get: allow}
+      files:
+        - path: "${P}/dav.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body><h1>Before</h1></body></html>
+      rules:
+        - {actor: "*", resource: "${P}/*", method: [GET, HEAD, PUT], action: Allow}
+    steps:
+      - name: public selector PUT
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/dav.html"
+          headers: {Range: "selector=h1", Content-Type: "text/html"}
+          body: "<h1>After</h1>"
+        expect: {status: 206}
+      - name: authoring plane sees it
+        as: author
+        plane: dav
+        request: {method: GET, path: "${P}/dav.html"}
+        expect:
+          status: 200
+          body_contains: ["<h1>After</h1>"]
+          body_not_contains: ["Before"]
+
+  - id: rw.put.replacement-need-not-match
+    title: The replacement element need not match the request selector (non-transient elements)
+    area: reading-writing
+    feature: PUT selector range
+    evidence: inferred
+    source: "docs reference/composing-pages/Transient-Elements (identity rule stated only for transient elements); spec R-RW-67"
+    confidence: low
+    requires: []
+    live: true
+    site:
+      settings: {default_get: allow}
+      files:
+        - path: "${P}/swap.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body><h1>Was h1</h1><p>tail</p></body></html>
+      rules:
+        - {actor: "*", resource: "${P}/*", method: [GET, HEAD, PUT], action: Allow}
+    steps:
+      - name: replace h1 with an h2
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/swap.html"
+          headers: {Range: "selector=h1", Content-Type: "text/html"}
+          body: "<h2>Now h2</h2>"
+        expect: {status: 206}
+      - name: the h2 is there
+        as: anonymous
+        request:
+          method: GET
+          path: "${P}/swap.html"
+          headers: {Range: "selector=h2"}
+        expect:
+          status: 206
+          body_html: "<h2>Now h2</h2>"
+      - name: the h1 is gone
+        as: anonymous
+        request:
+          method: GET
+          path: "${P}/swap.html"
+          headers: {Range: "selector=h1"}
+        expect: {status: 416}

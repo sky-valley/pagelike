@@ -1,0 +1,860 @@
+# Reacting: processors (spec R-REACT-10, 15, 26, 32, 43..47).
+# See discovery.yaml for directory conventions.
+anchors:
+  open_rules: &open_rules
+    - {actor: "*", resource: "${P}/*", method: [GET, HEAD, PUT, POST, DELETE], action: Allow}
+  doc_site: &doc_site
+    settings: {default_get: allow}
+    rules: *open_rules
+    files:
+      - path: "${P}/d/doc.html"
+        body: |
+          <!DOCTYPE html>
+          <html><body><h1>Real page</h1></body></html>
+  module_site: &module_site
+    settings: {default_get: allow}
+    rules: *open_rules
+    files:
+      - path: "${P}/lib/mod.mjs"
+        content_type: text/javascript
+        body: "export const f = (a, b) => a && b;"
+defaults:
+  area: reacting
+  site:
+    settings: {default_get: allow}
+    rules: *open_rules
+cases:
+  - id: reacting.processor.custom-404
+    title: "Documented quick example: a processor replaces the body of 404 responses"
+    feature: processor (status filter, body assignment)
+    evidence: documented
+    source: "docs reference/reacting-to-changes/Processor §Quick example (snapshot 2026-09-28)"
+    confidence: high
+    requires: [sessel]
+    live: true
+    notes: "spec: R-REACT-10, R-REACT-15, R-REACT-44. The docs use resource '*'; the case scopes it to ${P}/d/*."
+    site: *doc_site
+    steps:
+      - name: install the documented processor
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/r/processors.html"
+          headers: {Content-Type: text/html}
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+            <div itemscope itemtype="https://pagelove.org/Processor">
+              <meta itemprop="resource" content="${P}/d/*">
+              <meta itemprop="method" content="GET">
+              <meta itemprop="status" content="404">
+              <div itemprop="action" itemscope itemtype="https://pagelove.org/Sessel">
+                <script itemprop="source" type="text/sessel">
+                  @schema Context url("https://pagelove.org/Context");
+                  Context.response.body = "<h1>Page not found</h1><p>Sorry, that page doesn't exist.</p>"
+                </script>
+              </div>
+            </div>
+            </body></html>
+        expect: {status: [200, 201, 204]}
+      - name: a missing page gets the custom body and keeps its status
+        as: anonymous
+        request: {method: GET, path: "${P}/d/missing.html"}
+        expect:
+          status: 404
+          body_contains: ["Page not found", "Sorry, that page"]
+      - name: an existing page is untouched
+        as: anonymous
+        request: {method: GET, path: "${P}/d/doc.html"}
+        expect: {status: 200, body_contains: ["Real page"], body_not_contains: ["Page not found"]}
+
+  - id: reacting.processor.status-class-4xx
+    title: A status class prefix (4xx) matches any client-error status
+    feature: processor (status filter)
+    evidence: documented
+    source: "docs reference/reacting-to-changes/Processor §status ('Class prefix — matches any status 400-499') (snapshot 2026-09-28)"
+    confidence: high
+    requires: [sessel]
+    live: true
+    notes: "spec: R-REACT-15."
+    site: *doc_site
+    steps:
+      - name: install a 4xx processor
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/r/processors.html"
+          headers: {Content-Type: text/html}
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+            <div hidden itemscope itemtype="https://pagelove.org/Processor">
+              <meta itemprop="resource" content="${P}/d/*">
+              <meta itemprop="status" content="4xx">
+              <div itemprop="action" itemscope itemtype="https://pagelove.org/Sessel">
+                <script itemprop="source" type="text/sessel">
+                  @schema Context url("https://pagelove.org/Context");
+                  Context.response.body = "client-error-page"
+                </script>
+              </div>
+            </div>
+            </body></html>
+        expect: {status: [200, 201, 204]}
+      - name: 404 is in the class
+        as: anonymous
+        request: {method: GET, path: "${P}/d/missing.html"}
+        expect: {status: 404, body_contains: ["client-error-page"]}
+      - name: 416 is in the class
+        as: anonymous
+        request: {method: GET, path: "${P}/d/doc.html", headers: {Range: "selector=#nope"}}
+        expect: {status: 416, body_contains: ["client-error-page"]}
+      - name: 200 is not
+        as: anonymous
+        request: {method: GET, path: "${P}/d/doc.html"}
+        expect: {status: 200, body_not_contains: ["client-error-page"]}
+
+  - id: reacting.processor.status-multiple-or
+    title: Several status values are OR-ed
+    feature: processor (status filter)
+    evidence: documented
+    source: "docs reference/reacting-to-changes/Processor §status ('Multiple patterns (OR'd) — use separate elements') (snapshot 2026-09-28)"
+    confidence: high
+    requires: [sessel]
+    live: true
+    notes: "spec: R-REACT-15."
+    steps:
+      - name: install a 410-or-404 processor
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/r/processors.html"
+          headers: {Content-Type: text/html}
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+            <div hidden itemscope itemtype="https://pagelove.org/Processor">
+              <meta itemprop="resource" content="${P}/d/*">
+              <meta itemprop="status" content="410">
+              <meta itemprop="status" content="404">
+              <div itemprop="action" itemscope itemtype="https://pagelove.org/Sessel">
+                <script itemprop="source" type="text/sessel">
+                  @schema Context url("https://pagelove.org/Context");
+                  Context.response.body = "gone-or-missing"
+                </script>
+              </div>
+            </div>
+            </body></html>
+        expect: {status: [200, 201, 204]}
+      - name: 404 matches the second value
+        as: anonymous
+        request: {method: GET, path: "${P}/d/missing.html"}
+        expect: {status: 404, body_contains: ["gone-or-missing"]}
+
+  - id: reacting.processor.status-filter-non-matching-pass-through
+    title: A processor whose status filter does not match leaves the response unchanged
+    feature: processor (status filter)
+    evidence: documented
+    source: "docs reference/reacting-to-changes/Processor §status, §Pass-through (snapshot 2026-09-28)"
+    confidence: high
+    requires: [sessel]
+    live: true
+    notes: "spec: R-REACT-15, R-REACT-43."
+    steps:
+      - name: install a 5xx processor
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/r/processors.html"
+          headers: {Content-Type: text/html}
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+            <div hidden itemscope itemtype="https://pagelove.org/Processor">
+              <meta itemprop="resource" content="${P}/d/*">
+              <meta itemprop="status" content="5xx">
+              <div itemprop="action" itemscope itemtype="https://pagelove.org/Sessel">
+                <script itemprop="source" type="text/sessel">
+                  @schema Context url("https://pagelove.org/Context");
+                  Context.response.body = "server-error-page"
+                </script>
+              </div>
+            </div>
+            </body></html>
+        expect: {status: [200, 201, 204]}
+      - name: a 404 passes through
+        as: anonymous
+        request: {method: GET, path: "${P}/d/missing.html"}
+        expect: {status: 404, body_not_contains: ["server-error-page"]}
+
+  - id: reacting.processor.when-response-status
+    title: "Documented: a Sessel when gate can read Context.response.status"
+    feature: processor (when)
+    evidence: documented
+    source: "docs reference/reacting-to-changes/Processor §when (Sessel example) (snapshot 2026-09-28)"
+    confidence: high
+    requires: [sessel]
+    live: true
+    notes: "spec: R-REACT-17, R-REACT-26."
+    site: *doc_site
+    steps:
+      - name: install a gated processor with no status filter
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/r/processors.html"
+          headers: {Content-Type: text/html}
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+            <div hidden itemscope itemtype="https://pagelove.org/Processor">
+              <meta itemprop="resource" content="${P}/d/*">
+              <meta itemprop="method" content="GET">
+              <div itemprop="when" itemscope itemtype="https://pagelove.org/Sessel">
+                <script itemprop="source" type="text/sessel">
+                  @schema Context url("https://pagelove.org/Context");
+                  Context.response.status == 404
+                </script>
+              </div>
+              <div itemprop="action" itemscope itemtype="https://pagelove.org/Sessel">
+                <script itemprop="source" type="text/sessel">
+                  @schema Context url("https://pagelove.org/Context");
+                  Context.response.body = "gated-404"
+                </script>
+              </div>
+            </div>
+            </body></html>
+        expect: {status: [200, 201, 204]}
+      - {name: missing page, as: anonymous, request: {method: GET, path: "${P}/d/missing.html"}, expect: {status: 404, body_contains: ["gated-404"]}}
+      - {name: existing page, as: anonymous, request: {method: GET, path: "${P}/d/doc.html"}, expect: {status: 200, body_not_contains: ["gated-404"]}}
+
+  - id: reacting.processor.js-when-response-status
+    title: "Documented: a JavaScript when gate reads ctx.response"
+    feature: processor (when, JavaScript)
+    evidence: documented
+    source: "docs reference/reacting-to-changes/Processor §when (JavaScript example) (snapshot 2026-09-28)"
+    confidence: high
+    requires: [server-js, sessel]
+    live: true
+    notes: "spec: R-REACT-17, R-REACT-25."
+    site: *doc_site
+    steps:
+      - name: install
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/r/processors.html"
+          headers: {Content-Type: text/html}
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+            <div hidden itemscope itemtype="https://pagelove.org/Processor">
+              <meta itemprop="resource" content="${P}/d/*">
+              <meta itemprop="method" content="GET">
+              <div itemprop="when" itemscope itemtype="https://pagelove.org/JavaScript/Module">
+                <script type="module" itemprop="source">
+                  export default function(ctx) {
+                    return ctx.response.status === 404;
+                  }
+                </script>
+              </div>
+              <div itemprop="action" itemscope itemtype="https://pagelove.org/Sessel">
+                <script itemprop="source" type="text/sessel">
+                  @schema Context url("https://pagelove.org/Context");
+                  Context.response.body = "js-gated-404"
+                </script>
+              </div>
+            </div>
+            </body></html>
+        expect: {status: [200, 201, 204]}
+      - {name: missing page, as: anonymous, request: {method: GET, path: "${P}/d/missing.html"}, expect: {status: 404, body_contains: ["js-gated-404"]}}
+      - {name: existing page, as: anonymous, request: {method: GET, path: "${P}/d/doc.html"}, expect: {status: 200, body_not_contains: ["js-gated-404"]}}
+
+  - id: reacting.processor.build-a-blog-status-rewrite
+    title: "Tutorial: turn a 200 'Not found' page into a real 404, for GET and HEAD alike"
+    feature: processor (status assignment, HEAD sees body)
+    evidence: documented
+    source: "docs learn/build-a-blog §Making the 404 real (processor, curl -sI results) (snapshot 2026-09-28)"
+    confidence: high
+    requires: [sessel]
+    live: true
+    notes: "spec: R-REACT-13 (GET implies HEAD), R-REACT-26 (HEAD sees the GET body), R-REACT-44. The tutorial checks 'blog.example/Post'; the case uses a ${P}-scoped marker."
+    site:
+      settings: {default_get: allow}
+      rules: *open_rules
+      files:
+        - path: "${P}/posts/hello.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body><article itemscope itemtype="https://pagelike.test/blog/Post"><h1 itemprop="title">Hello</h1></article></body></html>
+        - path: "${P}/posts/nonsense.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body><div class="post-missing"><h1>Not found</h1></div></body></html>
+    steps:
+      - name: install the tutorial processor
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/r/processors.html"
+          headers: {Content-Type: text/html}
+          body: |
+            <!DOCTYPE html>
+            <html lang="en">
+            <head><meta charset="UTF-8"><title>processors</title></head>
+            <body>
+              <div itemscope itemtype="https://pagelove.org/Processor">
+                <meta itemprop="resource" content="${P}/posts/*">
+                <meta itemprop="method" content="GET">
+                <meta itemprop="status" content="200">
+                <div itemprop="when" itemscope itemtype="https://pagelove.org/Sessel">
+                  <script itemprop="source" type="text/sessel">
+            @schema Context url("https://pagelove.org/Context");
+            Context.response.body.contains("pagelike.test/blog/Post") == false
+                  </script>
+                </div>
+                <div itemprop="action" itemscope itemtype="https://pagelove.org/Sessel">
+                  <script itemprop="source" type="text/sessel">
+            @schema Context url("https://pagelove.org/Context");
+            Context.response.status = 404
+                  </script>
+                </div>
+              </div>
+            </body>
+            </html>
+        expect: {status: [200, 201, 204]}
+      - name: the page without a Post becomes 404, body unchanged
+        as: anonymous
+        request: {method: GET, path: "${P}/posts/nonsense.html"}
+        expect: {status: 404, body_contains: ["Not found", "post-missing"]}
+      - name: HEAD gives 404 too (curl -sI)
+        as: anonymous
+        request: {method: HEAD, path: "${P}/posts/nonsense.html"}
+        expect: {status: 404}
+      - name: a real post stays 200 on GET
+        as: anonymous
+        request: {method: GET, path: "${P}/posts/hello.html"}
+        expect: {status: 200}
+      - name: and on HEAD, which proves processors see the body for HEAD
+        as: anonymous
+        request: {method: HEAD, path: "${P}/posts/hello.html"}
+        expect: {status: 200}
+
+  - id: reacting.processor.pass-through
+    title: A processor that writes nothing forwards the original response unchanged, headers included
+    feature: processor (pass-through)
+    evidence: documented
+    source: "docs reference/reacting-to-changes/Processor §Pass-through (snapshot 2026-09-28)"
+    confidence: high
+    requires: [sessel]
+    live: true
+    notes: "spec: R-REACT-43."
+    site: *doc_site
+    steps:
+      - name: install a read-only processor
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/r/processors.html"
+          headers: {Content-Type: text/html}
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+            <div hidden itemscope itemtype="https://pagelove.org/Processor">
+              <meta itemprop="resource" content="${P}/d/*">
+              <div itemprop="action" itemscope itemtype="https://pagelove.org/Sessel">
+                <script itemprop="source" type="text/sessel">
+                  @schema Context url("https://pagelove.org/Context");
+                  Context.response.status == 200
+                </script>
+              </div>
+            </div>
+            </body></html>
+        expect: {status: [200, 201, 204]}
+      - name: response is untouched
+        as: anonymous
+        request: {method: GET, path: "${P}/d/doc.html"}
+        expect:
+          status: 200
+          headers_present: [ETag]
+          header_matches: {Content-Type: "^text/html"}
+          body_contains: ["Real page"]
+
+  - id: reacting.processor.js-mutation-ignored
+    title: Assigning to ctx.response in a JavaScript processor action has no effect
+    feature: processor (response-mutation asymmetry)
+    evidence: documented
+    source: "docs reference/reacting-to-changes/Processor §Response-mutation asymmetry (snapshot 2026-09-28); beta-js/cors.html@c204746:37-39"
+    confidence: high
+    requires: [server-js]
+    live: true
+    notes: "spec: R-REACT-45."
+    site: *doc_site
+    steps:
+      - name: install a mutating JS processor
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/r/processors.html"
+          headers: {Content-Type: text/html}
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+            <div hidden itemscope itemtype="https://pagelove.org/Processor">
+              <meta itemprop="resource" content="${P}/d/*">
+              <meta itemprop="method" content="GET">
+              <div itemprop="action" itemscope itemtype="https://pagelove.org/JavaScript/Module">
+                <script type="module" itemprop="source">
+                  export default function(ctx) {
+                    ctx.response.status = 418;
+                    ctx.response.body = "mutated-by-js";
+                  }
+                </script>
+              </div>
+            </div>
+            </body></html>
+        expect: {status: [200, 201, 204]}
+      - name: the response is unchanged
+        as: anonymous
+        request: {method: GET, path: "${P}/d/doc.html"}
+        expect: {status: 200, body_contains: ["Real page"], body_not_contains: ["mutated-by-js"]}
+
+  - id: reacting.processor.js-throw-adds-headers
+    title: "beta-js CORS processor: re-throw status and body with extra headers; the 2xx filter spares 404s"
+    feature: processor (throw to add headers)
+    evidence: client-source
+    source: "beta-js/cors.html@c204746:50-70; commit 412668a"
+    confidence: high
+    requires: [server-js]
+    live: true
+    notes: "spec: R-REACT-45, R-REACT-47. Content-Type must be set explicitly because the stored type is not carried over."
+    site: *module_site
+    steps:
+      - name: install the CORS processor
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/r/cors.html"
+          headers: {Content-Type: text/html}
+          body: |
+            <!DOCTYPE html>
+            <html><head><title>Response processors</title></head><body>
+            <div itemscope itemtype="https://pagelove.org/Processor">
+              <meta itemprop="resource" content="${P}/lib/*">
+              <meta itemprop="method" content="GET">
+              <meta itemprop="status" content="2xx">
+              <div itemprop="action" itemscope itemtype="https://pagelove.org/JavaScript/Module">
+                <script type="module" itemprop="source">
+                  export default function (ctx) {
+                    throw {
+                      schema_url: "https://pagelove.org/HTTPResponse",
+                      status: ctx.response.status,
+                      body: ctx.response.body,
+                      headers: {
+                        "Access-Control-Allow-Origin": "*",
+                        "Content-Type": "text/javascript"
+                      }
+                    };
+                  }
+                </script>
+              </div>
+            </div>
+            </body></html>
+        expect: {status: [200, 201, 204]}
+      - name: the module is served with the CORS header and its type
+        as: anonymous
+        request: {method: GET, path: "${P}/lib/mod.mjs"}
+        expect:
+          status: 200
+          headers: {Access-Control-Allow-Origin: "*"}
+          header_matches: {Content-Type: "^text/javascript"}
+      - name: a missing module keeps its 404 and gets no CORS header
+        as: anonymous
+        request: {method: GET, path: "${P}/lib/missing.mjs"}
+        expect:
+          status: 404
+          headers_absent: [Access-Control-Allow-Origin]
+
+  - id: reacting.processor.js-throw-preserves-bytes
+    title: A JavaScript-thrown body is sent byte-for-byte (no HTML re-serialization)
+    feature: processor (thrown body)
+    evidence: client-source
+    source: "beta-js/cors.html@c204746:34-35 ('passes the body through as a string, so the bytes survive'); commit 412668a"
+    confidence: high
+    requires: [server-js]
+    live: true
+    notes: "spec: R-REACT-32."
+    site: *module_site
+    steps:
+      - name: install a JS re-throwing processor
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/r/processors.html"
+          headers: {Content-Type: text/html}
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+            <div hidden itemscope itemtype="https://pagelove.org/Processor">
+              <meta itemprop="resource" content="${P}/lib/*">
+              <meta itemprop="method" content="GET">
+              <meta itemprop="status" content="2xx">
+              <div itemprop="action" itemscope itemtype="https://pagelove.org/JavaScript/Module">
+                <script type="module" itemprop="source">
+                  export default function (ctx) {
+                    throw { schema_url: "https://pagelove.org/HTTPResponse", status: ctx.response.status, body: ctx.response.body, headers: { "Content-Type": "text/javascript" } };
+                  }
+                </script>
+              </div>
+            </div>
+            </body></html>
+        expect: {status: [200, 201, 204]}
+      - name: the module text is intact
+        as: anonymous
+        request: {method: GET, path: "${P}/lib/mod.mjs"}
+        expect:
+          status: 200
+          body: "export const f = (a, b) => a && b;"
+
+  - id: reacting.processor.sessel-rethrow-escapes-non-html
+    title: A Sessel-thrown body is re-serialized as HTML, so '=>' and '&&' come back escaped
+    feature: processor (thrown body)
+    evidence: client-source
+    source: "beta-js/cors.html@c204746:27-32; commit 412668a message ('Rethrowing the body through Sessel serialises the string as HTML')"
+    confidence: medium
+    requires: [sessel]
+    live: true
+    notes: "spec: R-REACT-32, decision C8. Competing claim: reacting.processor.sessel-rethrow-keeps-bytes (disputed). Probe P-8."
+    site: *module_site
+    steps:
+      - name: install the pre-fix (Sessel) CORS processor
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/r/cors.html"
+          headers: {Content-Type: text/html}
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+            <div itemscope itemtype="https://pagelove.org/Processor">
+              <meta itemprop="resource" content="${P}/lib/*">
+              <meta itemprop="method" content="GET">
+              <meta itemprop="status" content="2xx">
+              <div itemprop="action" itemscope itemtype="https://pagelove.org/Sessel">
+                <script itemprop="source" type="text/sessel">
+                  @schema Context url("https://pagelove.org/Context");
+                  @schema HTTPResponse url("https://pagelove.org/HTTPResponse");
+                  @schema Pair url("https://pagelove.org/Pair");
+                  throw new HTTPResponse {
+                    status: Context.response.status,
+                    body: Context.response.body,
+                    header: new Pair { key: "Access-Control-Allow-Origin", value: "*" },
+                    header: new Pair { key: "Content-Type", value: "text/javascript" }
+                  }
+                </script>
+              </div>
+            </div>
+            </body></html>
+        expect: {status: [200, 201, 204]}
+      - name: the header is attached but the module text is HTML-escaped
+        as: anonymous
+        request: {method: GET, path: "${P}/lib/mod.mjs"}
+        expect:
+          status: 200
+          headers: {Access-Control-Allow-Origin: "*"}
+          body_contains: ["=&gt;", "&amp;&amp;"]
+
+  - id: reacting.processor.sessel-rethrow-keeps-bytes
+    title: "Competing claim: a Sessel-thrown string body is sent as given"
+    feature: processor (thrown body)
+    evidence: documented
+    source: "docs reference/reacting-to-changes/Trigger §Chain termination (body is a string; no re-serialization mentioned) (snapshot 2026-09-28)"
+    confidence: low
+    status: disputed
+    requires: [sessel]
+    live: true
+    notes: "spec C8. pagelike reproduces the observed escaping (reacting.processor.sessel-rethrow-escapes-non-html)."
+    site: *module_site
+    steps:
+      - name: install a Sessel re-throwing processor
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/r/processors.html"
+          headers: {Content-Type: text/html}
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+            <div hidden itemscope itemtype="https://pagelove.org/Processor">
+              <meta itemprop="resource" content="${P}/lib/*">
+              <meta itemprop="method" content="GET">
+              <meta itemprop="status" content="2xx">
+              <div itemprop="action" itemscope itemtype="https://pagelove.org/Sessel">
+                <script itemprop="source" type="text/sessel">
+                  @schema Context url("https://pagelove.org/Context");
+                  @schema HTTPResponse url("https://pagelove.org/HTTPResponse");
+                  throw new HTTPResponse { status: Context.response.status, body: Context.response.body }
+                </script>
+              </div>
+            </div>
+            </body></html>
+        expect: {status: [200, 201, 204]}
+      - name: the module text is intact
+        as: anonymous
+        request: {method: GET, path: "${P}/lib/mod.mjs"}
+        expect: {status: 200, body: "export const f = (a, b) => a && b;"}
+
+  - id: reacting.processor.chain-termination-order
+    title: Processors run in lexicographic document order; the first throw replaces the response and stops the chain
+    feature: processor (order, chain termination)
+    evidence: documented
+    source: "docs reference/reacting-to-changes/Processor §Chain termination, §Execution order (snapshot 2026-09-28)"
+    confidence: high
+    requires: [sessel]
+    live: true
+    notes: "spec: R-REACT-33, R-REACT-35."
+    site: *doc_site
+    steps:
+      - name: install b.html (would throw 423)
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/r/b.html"
+          headers: {Content-Type: text/html}
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+            <div hidden itemscope itemtype="https://pagelove.org/Processor">
+              <meta itemprop="resource" content="${P}/d/*">
+              <meta itemprop="method" content="GET">
+              <div itemprop="action" itemscope itemtype="https://pagelove.org/Sessel">
+                <script itemprop="source" type="text/sessel">
+                  @schema HTTPResponse url("https://pagelove.org/HTTPResponse");
+                  throw new HTTPResponse { status: 423, message: "from-b" }
+                </script>
+              </div>
+            </div>
+            </body></html>
+        expect: {status: [200, 201, 204]}
+      - name: install a.html (throws 409)
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/r/a.html"
+          headers: {Content-Type: text/html}
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+            <div hidden itemscope itemtype="https://pagelove.org/Processor">
+              <meta itemprop="resource" content="${P}/d/*">
+              <meta itemprop="method" content="GET">
+              <div itemprop="action" itemscope itemtype="https://pagelove.org/Sessel">
+                <script itemprop="source" type="text/sessel">
+                  @schema HTTPResponse url("https://pagelove.org/HTTPResponse");
+                  throw new HTTPResponse { status: 409, message: "from-a" }
+                </script>
+              </div>
+            </div>
+            </body></html>
+        expect: {status: [200, 201, 204]}
+      - name: a.html's processor wins
+        as: anonymous
+        request: {method: GET, path: "${P}/d/doc.html"}
+        expect: {status: 409, body_contains: ["from-a"], body_not_contains: ["from-b", "Real page"]}
+
+  - id: reacting.processor.chain-sees-previous-change
+    title: A later processor's status filter sees the status set by an earlier processor
+    feature: processor (chain)
+    evidence: inferred
+    source: "spec R-REACT-46 (chain semantics inferred from 'execute in order')"
+    confidence: low
+    requires: [sessel]
+    live: true
+    notes: "Probe P-18."
+    site: *doc_site
+    steps:
+      - name: install a.html (200 -> 404)
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/r/a.html"
+          headers: {Content-Type: text/html}
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+            <div hidden itemscope itemtype="https://pagelove.org/Processor">
+              <meta itemprop="resource" content="${P}/d/*">
+              <meta itemprop="method" content="GET">
+              <meta itemprop="status" content="200">
+              <div itemprop="action" itemscope itemtype="https://pagelove.org/Sessel">
+                <script itemprop="source" type="text/sessel">
+                  @schema Context url("https://pagelove.org/Context");
+                  Context.response.status = 404
+                </script>
+              </div>
+            </div>
+            </body></html>
+        expect: {status: [200, 201, 204]}
+      - name: install b.html (404 -> body)
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/r/b.html"
+          headers: {Content-Type: text/html}
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+            <div hidden itemscope itemtype="https://pagelove.org/Processor">
+              <meta itemprop="resource" content="${P}/d/*">
+              <meta itemprop="method" content="GET">
+              <meta itemprop="status" content="404">
+              <div itemprop="action" itemscope itemtype="https://pagelove.org/Sessel">
+                <script itemprop="source" type="text/sessel">
+                  @schema Context url("https://pagelove.org/Context");
+                  Context.response.body = "second-processor-saw-404"
+                </script>
+              </div>
+            </div>
+            </body></html>
+        expect: {status: [200, 201, 204]}
+      - name: both processors applied
+        as: anonymous
+        request: {method: GET, path: "${P}/d/doc.html"}
+        expect: {status: 404, body_contains: ["second-processor-saw-404"]}
+
+  - id: reacting.processor.not-run-after-trigger-throw
+    title: Processors do not run when a trigger throws
+    feature: lifecycle
+    evidence: documented
+    source: "docs reference/reacting-to-changes/Trigger §Request lifecycle ('If a trigger throws an HTTP response, steps 3--4 are skipped') (snapshot 2026-09-28)"
+    confidence: high
+    requires: [sessel]
+    live: true
+    notes: "spec: R-REACT-9."
+    steps:
+      - name: install a throwing trigger and a 4xx processor
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/r/reactions.html"
+          headers: {Content-Type: text/html}
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+            <div hidden itemscope itemtype="https://pagelove.org/Trigger">
+              <meta itemprop="resource" content="${P}/d/*">
+              <meta itemprop="method" content="PUT">
+              <div itemprop="action" itemscope itemtype="https://pagelove.org/Sessel">
+                <script itemprop="source" type="text/sessel">
+                  @schema HTTPResponse url("https://pagelove.org/HTTPResponse");
+                  throw new HTTPResponse { status: 409, message: "from-trigger" }
+                </script>
+              </div>
+            </div>
+            <div hidden itemscope itemtype="https://pagelove.org/Processor">
+              <meta itemprop="resource" content="${P}/d/*">
+              <meta itemprop="status" content="4xx">
+              <div itemprop="action" itemscope itemtype="https://pagelove.org/Sessel">
+                <script itemprop="source" type="text/sessel">
+                  @schema Context url("https://pagelove.org/Context");
+                  Context.response.body = "processor-ran"
+                </script>
+              </div>
+            </div>
+            </body></html>
+        expect: {status: [200, 201, 204]}
+      - name: the trigger's response is sent untouched
+        as: anonymous
+        request: {method: PUT, path: "${P}/d/x.html", headers: {Content-Type: text/html}, body: "<p>x</p>"}
+        expect: {status: 409, body_contains: ["from-trigger"], body_not_contains: ["processor-ran"]}
+
+  - id: reacting.processor.side-effect-audit-log
+    title: "Documented: a processor Sessel action writes an audit document with Pagelove.PUT"
+    feature: processor (writes)
+    evidence: documented
+    source: "docs reference/reacting-to-changes/Processor §Writing from processors (snapshot 2026-09-28)"
+    confidence: high
+    requires: [sessel]
+    live: true
+    notes: "spec: R-REACT-36 (processor writes use the same pipeline). The AuditLog type has no schema, so it is stored as constructed."
+    steps:
+      - name: install the audit processor on successful PUTs
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/r/processors.html"
+          headers: {Content-Type: text/html}
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+            <div hidden itemscope itemtype="https://pagelove.org/Processor">
+              <meta itemprop="resource" content="${P}/d/*">
+              <meta itemprop="method" content="PUT">
+              <meta itemprop="status" content="2xx">
+              <div itemprop="action" itemscope itemtype="https://pagelove.org/Sessel">
+                <script itemprop="source" type="text/sessel">
+                  @schema Context url("https://pagelove.org/Context");
+                  @schema Pagelove url("https://pagelove.org/1.0");
+                  @schema AuditLog url("https://pagelike.test${P}/AuditLog");
+                  let log = new AuditLog { status: Context.response.status };
+                  Pagelove.PUT(log, "${P}/audit/latest.html")
+                </script>
+              </div>
+            </div>
+            </body></html>
+        expect: {status: [200, 201, 204]}
+      - name: a successful write
+        as: anonymous
+        request: {method: PUT, path: "${P}/d/x.html", headers: {Content-Type: text/html}, body: "<p>x</p>"}
+        expect: {status: [200, 201, 204]}
+      - name: the audit record exists
+        as: anonymous
+        request: {method: GET, path: "${P}/audit/latest.html"}
+        expect:
+          status: 200
+          body_contains: ["pagelike.test${P}/AuditLog", 'itemprop="status"']
+
+  - id: reacting.processor.runs-on-authz-denial
+    title: Processors see authorization denials (pagelike order) and can rewrite them
+    feature: lifecycle (processors on denials)
+    evidence: inferred
+    source: "spec R-REACT-8/R-REACT-10, decisions C1 and C14"
+    confidence: low
+    requires: [sessel]
+    live: true
+    notes: "Probe P-1b."
+    site:
+      settings: {default_get: allow}
+      rules:
+        - {actor: "*", resource: "${P}/*", method: [GET, HEAD, PUT, POST, DELETE], action: Allow}
+        - {actor: "*", resource: "${P}/d/secret.html", method: [GET, HEAD], action: Deny}
+      files:
+        - path: "${P}/d/secret.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body><p>classified</p></body></html>
+    steps:
+      - name: install a 401 processor
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/r/processors.html"
+          headers: {Content-Type: text/html}
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+            <div hidden itemscope itemtype="https://pagelove.org/Processor">
+              <meta itemprop="resource" content="${P}/d/*">
+              <meta itemprop="status" content="401">
+              <div itemprop="action" itemscope itemtype="https://pagelove.org/Sessel">
+                <script itemprop="source" type="text/sessel">
+                  @schema Context url("https://pagelove.org/Context");
+                  Context.response.body = "custom-denial-page"
+                </script>
+              </div>
+            </div>
+            </body></html>
+        expect: {status: [200, 201, 204]}
+      - name: the denial is rewritten
+        as: anonymous
+        request: {method: GET, path: "${P}/d/secret.html"}
+        expect: {status: 401, body_contains: ["custom-denial-page"], body_not_contains: ["classified"]}

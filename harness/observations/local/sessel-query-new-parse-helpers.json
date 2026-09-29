@@ -1,0 +1,30 @@
+{
+  "case": "sessel.query.new.parse-helpers",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (parse helpers)",
+      "method": "QUERY",
+      "path": "/_pl/sessel-query-new-parse-helpers-79a1c6/product.html",
+      "status": 200,
+      "headers": {
+        "content-length": "24",
+        "content-type": "application/sessel+json"
+      },
+      "body": "[\"hello\",\"Hello\",\"card\"]"
+    },
+    {
+      "step": "step 2 (empty fromString is a TypeError)",
+      "method": "QUERY",
+      "path": "/_pl/sessel-query-new-parse-helpers-79a1c6/product.html",
+      "status": 200,
+      "headers": {
+        "content-length": "11",
+        "content-type": "application/sessel+json"
+      },
+      "body": "\"TypeError\""
+    }
+  ],
+  "outcome": "pass",
+  "target": "local"
+}

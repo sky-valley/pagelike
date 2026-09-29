@@ -1,0 +1,48 @@
+{
+  "case": "reacting.outbound.dynamic-url-js",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (install)",
+      "method": "PUT",
+      "path": "/_pl/reacting-outbound-dynamic-url-js-18c6e8/r/triggers.html",
+      "status": 201,
+      "headers": {
+        "content-length": "905",
+        "content-type": "text/html",
+        "etag": "\"ccdae55e7a042de28e126af63e2dacd5644b65e5828e671f2ddeafc508a65029\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:48 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\n\u003cdiv hidden itemscope itemtype=\"https://pagelove.org/Trigger\"\u003e\n  \u003cmeta itemprop=\"resource\" content=\"/_pl/reacting-outbound-dynamic-url-js-18c6e8/d/*\"\u003e\n  \u003cmeta itemprop=\"method\" content=\"PUT\"\u003e\n  \u003cdiv itemprop=\"action\" itemscope itemtype=\"https://pagelove.org/HttpRequest\"\u003e\n    \u003cdiv itemprop=\"url\" itemscope itemtype=\"https://pagelove.org/JavaScript/Module\"\u003e\n      \u003cscript type=\"module\" itemprop=\"source\"\u003e\n        export default function(ctx) { return \"http://127.0.0.1:53385/c-988874cb/js\" + ctx.request.path; }\n      \u003c/script\u003e\n    \u003c/div\u003e\n    \u003cdiv itemprop=\"body\" itemscope itemtype=\"https://pagelove.org/Sessel\"\u003e\n      \u003cscript itemprop=\"source\" type=\"text/sessel\"\u003e\n        @schema Context url(\"https://pagelove.org/Context\");\n        \"sessel-body:\" + Context.request.method\n      \u003c/script\u003e\n    \u003c/div\u003e\n    \u003cmeta itemprop=\"method\" content=\"POST\"\u003e\n  \u003c/div\u003e\n\u003c/div\u003e\n\u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 2 (write)",
+      "method": "PUT",
+      "path": "/_pl/reacting-outbound-dynamic-url-js-18c6e8/d/x.html",
+      "status": 201,
+      "headers": {
+        "content-length": "8",
+        "content-type": "text/html",
+        "etag": "\"31d8e07ec305ac4e2515d1f0b1c8c603b3858044eb7d97807d6d0970838cb0be\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:48 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003cp\u003ex\u003c/p\u003e"
+    },
+    {
+      "step": "step 3",
+      "method": "POST",
+      "path": "${SINK}/js/_pl/reacting-outbound-dynamic-url-js-18c6e8/d/x.html",
+      "headers": {
+        "accept-encoding": "gzip",
+        "content-length": "15",
+        "content-type": "text/html",
+        "user-agent": "Go-http-client/1.1"
+      },
+      "body": "sessel-body:PUT"
+    }
+  ],
+  "outcome": "pass",
+  "target": "local"
+}

@@ -1,0 +1,564 @@
+# QUERY, Sessel mode (public plane) and the entries range unit
+# (spec: docs/spec/protocol.md §7-§8, R-PROTO-70..85; contradictions C-7, C-9, C-10, C-11)
+#
+# Sessel selector literals are written ${...}, which collides with the runner's
+# ${name} substitution; the runner's escape $${...} sends a literal ${...}.
+# (The earlier spelling (new Selector { "li" }).execute() is not supported by
+# live PageLove: "unknown function: execute", live run 2026-09-28.)
+cases:
+  - id: protocol.query-sessel.number-result
+    title: A Sessel QUERY whose result is a number answers application/sessel+json
+    area: protocol
+    feature: QUERY sessel result encoding
+    evidence: documented
+    source: "docs reference/protocol/QUERY §Sessel mode, result table (snapshot 2026-09-28)"
+    confidence: medium
+    requires: [sessel]
+    live: true
+    notes: >-
+      R-PROTO-72/73/74. Status 200 for non-element results (the page's count example shows
+      200 with a mismatched text/html body, C-7). Rules grant QUERY explicitly (C-11).
+    site:
+      files:
+        - path: "${P}/list.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body><h1>A</h1><ul><li>a</li><li>b</li><li>c</li></ul></body></html>
+      rules:
+        - {actor: "*", resource: "${P}/*", method: [GET, QUERY], action: Allow}
+    steps:
+      - name: count of list items
+        as: anonymous
+        request:
+          method: QUERY
+          path: "${P}/list.html"
+          headers: {Content-Type: "text/sessel"}
+          body: '($${li} from self).count()'
+        expect:
+          status: 200
+          header_matches: {Content-Type: '^application/sessel\+json'}
+          body_json: 3
+
+  - id: protocol.query-sessel.element-result
+    title: A Sessel QUERY whose result is one element answers text/html with its outer HTML
+    area: protocol
+    feature: QUERY sessel result encoding
+    evidence: documented
+    source: "docs reference/protocol/QUERY §Sessel mode, result table and first example (snapshot 2026-09-28)"
+    confidence: medium
+    requires: [sessel]
+    live: true
+    notes: R-PROTO-72. The example shows 206; pagelike emits 206 but both 200 and 206 are accepted (C-7, P-21).
+    site:
+      files:
+        - path: "${P}/list.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body><h1>A</h1><ul><li>a</li></ul></body></html>
+      rules:
+        - {actor: "*", resource: "${P}/*", method: [GET, QUERY], action: Allow}
+    steps:
+      - name: first h1
+        as: anonymous
+        request:
+          method: QUERY
+          path: "${P}/list.html"
+          headers: {Content-Type: "text/sessel"}
+          body: '($${h1} from self).first()'
+        expect:
+          status: [200, 206]
+          header_matches: {Content-Type: '^text/html'}
+          body_html: "<h1>A</h1>"
+
+  - id: protocol.query-sessel.element-list-tagged
+    title: Elements inside a JSON result are tagged objects with $type and $html (no $source)
+    area: protocol
+    feature: application/sessel+json
+    evidence: live-observed
+    source: "harness/observations/live-2026-09-29-confirm/protocol-query-sessel-element-list-tagged.json (selected elements carry no $source); docs reference/protocol/QUERY §Sessel mode, application/sessel+json (snapshot 2026-09-28)"
+    confidence: high
+    requires: [sessel]
+    live: true
+    notes: "R-PROTO-73's $source (the document an element was selected from) is superseded: live PageLove omits it (docs/compat/decisions.md)."
+    site:
+      files:
+        - path: "${P}/list.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body><ul><li>a</li><li>b</li></ul></body></html>
+      rules:
+        - {actor: "*", resource: "${P}/*", method: [GET, QUERY], action: Allow}
+    steps:
+      - name: list of two elements
+        as: anonymous
+        request:
+          method: QUERY
+          path: "${P}/list.html"
+          headers: {Content-Type: "text/sessel"}
+          body: '$${li} from self'
+        expect:
+          status: 200
+          header_matches: {Content-Type: '^application/sessel\+json'}
+          body_json:
+            - {"$type": "element", "$html": "<li>a</li>"}
+            - {"$type": "element", "$html": "<li>b</li>"}
+
+  - id: protocol.query-sessel.constructed-element-no-source
+    title: A constructed element in a JSON result has no $source
+    area: protocol
+    feature: application/sessel+json
+    evidence: documented
+    source: "docs reference/protocol/QUERY §Sessel mode (\"$source … omitted for an element built with new\") (snapshot 2026-09-28)"
+    confidence: medium
+    requires: [sessel]
+    live: true
+    notes: R-PROTO-73. Wrapped in a list so the result is not a bare element (which would be text/html).
+    site:
+      files:
+        - path: "${P}/doc.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body><h1>A</h1></body></html>
+      rules:
+        - {actor: "*", resource: "${P}/*", method: [GET, QUERY], action: Allow}
+    steps:
+      - name: list containing a constructed paragraph
+        as: anonymous
+        request:
+          method: QUERY
+          path: "${P}/doc.html"
+          headers: {Content-Type: "text/sessel"}
+          body: '[new p { text: "x" }]'
+        expect:
+          status: 200
+          body_json:
+            - {"$type": "element", "$html": "<p>x</p>"}
+
+  - id: protocol.query-sessel.scalar-results
+    title: Strings, booleans, null and dictionaries are returned as application/sessel+json
+    area: protocol
+    feature: QUERY sessel result encoding
+    evidence: documented
+    source: "docs reference/protocol/QUERY §Sessel mode, result table (snapshot 2026-09-28)"
+    confidence: high
+    requires: [sessel]
+    live: true
+    notes: R-PROTO-72/73.
+    site:
+      files:
+        - path: "${P}/doc.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body><h1>A</h1></body></html>
+      rules:
+        - {actor: "*", resource: "${P}/*", method: [GET, QUERY], action: Allow}
+    steps:
+      - name: string
+        as: anonymous
+        request:
+          method: QUERY
+          path: "${P}/doc.html"
+          headers: {Content-Type: "text/sessel"}
+          body: '"hello"'
+        expect:
+          status: 200
+          header_matches: {Content-Type: '^application/sessel\+json'}
+          body_json: "hello"
+      - name: boolean
+        as: anonymous
+        request:
+          method: QUERY
+          path: "${P}/doc.html"
+          headers: {Content-Type: "text/sessel"}
+          body: "1 < 2"
+        expect: {status: 200, body_json: true}
+      - name: null
+        as: anonymous
+        request:
+          method: QUERY
+          path: "${P}/doc.html"
+          headers: {Content-Type: "text/sessel"}
+          body: "null"
+        expect: {status: 200, body_json: null}
+      - name: dictionary with a list
+        as: anonymous
+        request:
+          method: QUERY
+          path: "${P}/doc.html"
+          headers: {Content-Type: "text/sessel"}
+          body: '{ name: "Widget", sizes: [1, 2] }'
+        expect:
+          status: 200
+          body_json: {name: Widget, sizes: [1, 2]}
+
+  - id: protocol.query-sessel.directory-self-unbound
+    title: A Sessel QUERY on a directory URL addresses its index document (404 when there is none)
+    area: protocol
+    feature: QUERY sessel bindings
+    evidence: live-observed
+    source: "harness/observations/live-2026-09-28/protocol-query-sessel-directory-self-unbound.json (404 'Document not found: …/sub/index.html' for both steps); docs reference/protocol/QUERY §Sessel mode and Errors (snapshot 2026-09-28)"
+    confidence: high
+    requires: [sessel]
+    live: true
+    notes: >-
+      The id keeps its original name. P-22 settled: the directory URL means its index document,
+      as for GET, so self is never unbound there and a missing index is 404 before evaluation
+      (R-PROTO-71/75 superseded, docs/compat/decisions.md).
+    site:
+      files:
+        - path: "${P}/sub/a.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body><h1>A</h1></body></html>
+      rules:
+        - {actor: "*", resource: "${P}/*", method: [GET, QUERY], action: Allow}
+        - {actor: "*", resource: "${P}/sub/*", method: [GET, QUERY], action: Allow}
+    steps:
+      - name: self on a directory
+        as: anonymous
+        request:
+          method: QUERY
+          path: "${P}/sub/"
+          headers: {Content-Type: "text/sessel"}
+          body: "self"
+        expect:
+          status: 404
+          header_matches: {Content-Type: "^text/html$"}
+          body_contains: ['<p itemprop="description">Document not found: ${P}/sub/index.html</p>']
+      - name: an expression without self is refused the same way
+        as: anonymous
+        request:
+          method: QUERY
+          path: "${P}/sub/"
+          headers: {Content-Type: "text/sessel"}
+          body: '($${h1} from "${P}/sub/a.html").count()'
+        expect: {status: 404}
+
+  - id: protocol.query-sessel.entries-pagination
+    title: "Range: entries=0-1 on a list result returns the first two entries with Content-Range entries 0-1/5;"
+    area: protocol
+    feature: entries range unit
+    evidence: live-observed
+    source: "harness/observations/live-2026-09-29-confirm/protocol-query-sessel-entries-pagination.json (Content-Range 'entries 0-1/5;' with a trailing semicolon); docs reference/protocol/QUERY §Paginating a list result (snapshot 2026-09-28)"
+    confidence: high
+    requires: [sessel]
+    live: true
+    notes: >-
+      R-PROTO-80..83. Zero-based inclusive indices (P-19) confirmed live. PageLove ends the header
+      with ';', which the documented form lacks; adopted (docs/compat/decisions.md).
+    site:
+      files:
+        - path: "${P}/five.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body><ol><li>1</li><li>2</li><li>3</li><li>4</li><li>5</li></ol></body></html>
+      rules:
+        - {actor: "*", resource: "${P}/*", method: [GET, QUERY], action: Allow}
+    steps:
+      - name: first page
+        as: anonymous
+        request:
+          method: QUERY
+          path: "${P}/five.html"
+          headers: {Content-Type: "text/sessel", Range: "entries=0-1"}
+          body: '($${li} from self).map(el => el.text())'
+        expect:
+          status: [206, 200]
+          headers: {Content-Range: "entries 0-1/5;"}
+          body_json: ["1", "2"]
+      - name: last page is clamped to the list length
+        as: anonymous
+        request:
+          method: QUERY
+          path: "${P}/five.html"
+          headers: {Content-Type: "text/sessel", Range: "entries=3-9"}
+          body: '($${li} from self).map(el => el.text())'
+        expect:
+          status: [206, 200]
+          headers: {Content-Range: "entries 3-4/5;"}
+          body_json: ["4", "5"]
+
+  - id: protocol.query-sessel.entries-format
+    title: The entries Content-Range uses the unit SP start-end/total form, followed by ';'
+    area: protocol
+    feature: entries range unit
+    evidence: live-observed
+    source: "harness/observations/live-2026-09-29-confirm/protocol-query-sessel-entries-format.json ('entries 1-2/5;'); docs reference/protocol/QUERY §Paginating a list result (snapshot 2026-09-28)"
+    confidence: high
+    requires: [sessel]
+    live: true
+    notes: "R-PROTO-81 as observed: a trailing ';' (docs/compat/decisions.md). Independent of the index base."
+    site:
+      files:
+        - path: "${P}/five.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body><ol><li>1</li><li>2</li><li>3</li><li>4</li><li>5</li></ol></body></html>
+      rules:
+        - {actor: "*", resource: "${P}/*", method: [GET, QUERY], action: Allow}
+    steps:
+      - name: any page
+        as: anonymous
+        request:
+          method: QUERY
+          path: "${P}/five.html"
+          headers: {Content-Type: "text/sessel", Range: "entries=1-2"}
+          body: '($${li} from self).map(el => el.text())'
+        expect:
+          header_matches: {Content-Range: '^entries \d+-\d+/5;$'}
+
+  - id: protocol.query-sessel.entries-non-list-416
+    title: "Range: entries= on a non-list result is 416"
+    area: protocol
+    feature: entries range unit
+    evidence: documented
+    source: "docs reference/protocol/QUERY §Sessel mode, Errors (snapshot 2026-09-28)"
+    confidence: high
+    requires: [sessel]
+    live: true
+    notes: R-PROTO-75/83.
+    site:
+      files:
+        - path: "${P}/five.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body><ol><li>1</li><li>2</li></ol></body></html>
+      rules:
+        - {actor: "*", resource: "${P}/*", method: [GET, QUERY], action: Allow}
+    steps:
+      - name: number result with an entries range
+        as: anonymous
+        request:
+          method: QUERY
+          path: "${P}/five.html"
+          headers: {Content-Type: "text/sessel", Range: "entries=0-1"}
+          body: '($${li} from self).count()'
+        expect: {status: 416}
+
+  - id: protocol.query-sessel.400-body-errors
+    title: An empty body is 422; an expression that fails to parse is 400
+    area: protocol
+    feature: QUERY sessel errors
+    evidence: live-observed
+    source: "harness/observations/live-2026-09-28/protocol-query-sessel-400-body-errors.json (empty: 422 'Invalid path: QUERY method requires a body containing the sessel expression'; parse error: 400 'Sessel compilation error: …'); docs reference/protocol/QUERY §Sessel mode, Errors (snapshot 2026-09-28)"
+    confidence: high
+    requires: [sessel]
+    live: true
+    notes: "The id keeps its original name; R-PROTO-75's 400 for an empty body is superseded (docs/compat/decisions.md)."
+    site:
+      files:
+        - path: "${P}/doc.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body><h1>A</h1></body></html>
+      rules:
+        - {actor: "*", resource: "${P}/*", method: [GET, QUERY], action: Allow}
+    steps:
+      - name: empty body
+        as: anonymous
+        request:
+          method: QUERY
+          path: "${P}/doc.html"
+          headers: {Content-Type: "text/sessel"}
+          body: ""
+        expect:
+          status: 422
+          header_matches: {Content-Type: "^text/html$"}
+          body_contains: ['<p itemprop="description">Invalid path: QUERY method requires a body containing the sessel expression</p>']
+      - name: parse error
+        as: anonymous
+        request:
+          method: QUERY
+          path: "${P}/doc.html"
+          headers: {Content-Type: "text/sessel"}
+          body: "((("
+        expect:
+          status: 400
+          body_contains: ["Sessel compilation error: "]
+
+  - id: protocol.query-sessel.500-runtime-error
+    title: An expression that raises a runtime error is 400 (an evaluation error)
+    area: protocol
+    feature: QUERY sessel errors
+    evidence: live-observed
+    source: "harness/observations/live-2026-09-28/protocol-query-sessel-500-runtime-error.json (400 'Sessel evaluation error: thrown value (at bytes 6..12)'); docs reference/protocol/QUERY §Sessel mode, Errors (snapshot 2026-09-28) claims 500"
+    confidence: high
+    requires: [sessel]
+    live: true
+    notes: "The id keeps its original name. P-21 settled for throw: 400 (docs/compat/decisions.md)."
+    site:
+      files:
+        - path: "${P}/doc.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body><h1>A</h1></body></html>
+      rules:
+        - {actor: "*", resource: "${P}/*", method: [GET, QUERY], action: Allow}
+    steps:
+      - name: explicit throw
+        as: anonymous
+        request:
+          method: QUERY
+          path: "${P}/doc.html"
+          headers: {Content-Type: "text/sessel"}
+          body: 'throw "boom"'
+        expect:
+          status: 400
+          body_contains: ["Sessel evaluation error: "]
+
+  - id: protocol.query-sessel.404-missing-document
+    title: A Sessel QUERY on a missing document is 404
+    area: protocol
+    feature: QUERY sessel errors
+    evidence: documented
+    source: "docs reference/protocol/QUERY §Sessel mode, Errors (snapshot 2026-09-28)"
+    confidence: high
+    requires: [sessel]
+    live: true
+    notes: R-PROTO-75.
+    site:
+      rules:
+        - {actor: "*", resource: "${P}/*", method: [GET, QUERY], action: Allow}
+    steps:
+      - name: missing
+        as: anonymous
+        request:
+          method: QUERY
+          path: "${P}/nope.html"
+          headers: {Content-Type: "text/sessel"}
+          body: "1 + 1"
+        expect: {status: 404}
+
+  - id: protocol.query-sessel.415-unsupported-type
+    title: A QUERY with neither query media type is 400 (the Sessel path's error), without Accept-Query
+    area: protocol
+    feature: QUERY errors (public plane)
+    evidence: live-observed
+    source: "harness/observations/live-2026-09-28/protocol-query-sessel-415-unsupported-type.json (400 'QUERY method requires Content-Type: text/sessel'); docs reference/protocol/QUERY intro (snapshot 2026-09-28) claims 415"
+    confidence: high
+    requires: [sessel]
+    live: true
+    notes: >-
+      The id keeps its original name. C-9 reversed by the live run: the Sessel error table's 400
+      (protocol.query-sessel.400-wrong-type-documented, which passed live) wins over the intro's 415
+      (docs/compat/decisions.md).
+    site:
+      files:
+        - path: "${P}/doc.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body><h1>A</h1></body></html>
+      rules:
+        - {actor: "*", resource: "${P}/*", method: [GET, QUERY], action: Allow}
+    steps:
+      - name: application/json body
+        as: anonymous
+        request:
+          method: QUERY
+          path: "${P}/doc.html"
+          headers: {Content-Type: "application/json"}
+          body: "1 + 1"
+        expect:
+          status: 400
+          headers_absent: [Accept-Query]
+          headers: {Vary: "Host, Range"}
+          body_contains: ['<p itemprop="description">QUERY method requires Content-Type: text/sessel</p>']
+
+  - id: protocol.query-sessel.400-wrong-type-documented
+    title: "Documented Sessel error table: a missing or wrong Content-Type is 400"
+    area: protocol
+    feature: QUERY errors (public plane)
+    evidence: live-observed
+    source: "harness/observations/live-2026-09-28/protocol-query-sessel-400-wrong-type-documented.json (400 'QUERY method requires Content-Type: text/sessel'); docs reference/protocol/QUERY §Sessel mode, Errors (snapshot 2026-09-28)"
+    confidence: high
+    requires: [sessel]
+    live: true
+    notes: >-
+      Was the disputed (losing) claim of C-9; it passed against live PageLove on 2026-09-28, so the
+      decision is reversed and this is now the winning claim (docs/compat/decisions.md).
+    site:
+      files:
+        - path: "${P}/doc.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body><h1>A</h1></body></html>
+      rules:
+        - {actor: "*", resource: "${P}/*", method: [GET, QUERY], action: Allow}
+    steps:
+      - name: no Content-Type
+        as: anonymous
+        request:
+          method: QUERY
+          path: "${P}/doc.html"
+          body: "1 + 1"
+        expect: {status: 400}
+
+  - id: protocol.query-sessel.not-granted-by-get
+    title: Read access to the document does not authorize a Sessel QUERY (anonymous gets 401)
+    area: protocol
+    feature: QUERY sessel authorization
+    evidence: live-observed
+    source: "read-probes.json case query-sessel (anonymous 401 on docs.pagelove.com where GET and css QUERY succeed, 2026-09-28)"
+    confidence: medium
+    requires: [sessel]
+    live: true
+    notes: >-
+      R-PROTO-74, C-11. The live probe was on a default-GET allow host with no explicit
+      rules; here an explicit GET rule grants reads and the css QUERY succeeds while the
+      Sessel QUERY is refused.
+    site:
+      files:
+        - path: "${P}/doc.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body><h1>A</h1></body></html>
+      rules:
+        - {actor: "*", resource: "${P}/*", method: [GET], action: Allow}
+    steps:
+      - name: css mode is a read
+        as: anonymous
+        request:
+          method: QUERY
+          path: "${P}/doc.html"
+          headers: {Content-Type: "text/css-selector"}
+          body: "h1"
+        expect: {status: 206}
+      - name: sessel mode is refused
+        as: anonymous
+        request:
+          method: QUERY
+          path: "${P}/doc.html"
+          headers: {Content-Type: "text/sessel"}
+          body: "1 + 1"
+        expect:
+          status: 401
+          header_matches: {Content-Type: '^text/html'}
+
+  - id: protocol.query-sessel.default-get-host-401
+    title: On a default-GET allow host with no rules an anonymous Sessel QUERY is 401
+    area: protocol
+    feature: QUERY sessel authorization
+    evidence: live-observed
+    source: "read-probes.json case query-sessel (docs.pagelove.com, 2026-09-28)"
+    confidence: high
+    requires: [sessel]
+    live: false
+    notes: R-PROTO-74. Reproduces the live observation exactly; local-only because it fixes the host mode.
+    site:
+      settings: {default_get: allow}
+      files:
+        - path: "${P}/doc.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body><h1>A</h1></body></html>
+    steps:
+      - name: anonymous sessel query
+        as: anonymous
+        request:
+          method: QUERY
+          path: "${P}/doc.html"
+          headers: {Content-Type: "text/sessel"}
+          body: "1 + 1"
+        expect:
+          status: 401
+          body_contains: ["pagelove.org/1.0/Error"]

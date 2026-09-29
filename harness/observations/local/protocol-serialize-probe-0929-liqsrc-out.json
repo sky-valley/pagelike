@@ -1,0 +1,49 @@
+{
+  "case": "protocol.serialize.probe-0929.liqsrc-outside-tags",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (put template)",
+      "method": "PUT",
+      "path": "/_pl/protocol-serialize-probe-0929-liqsrc-out-a792e2/tpl2.html",
+      "status": 201,
+      "headers": {
+        "content-length": "220",
+        "content-type": "text/html",
+        "etag": "\"8e0f2d1be8a73a00eb7fa5aabfad2a5eb53d2e3e14903fbb4065105b05b8fc75\""
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml xmlns:p=\"https://pagelove.org/1.0\"\u003e\u003cbody\u003e\u003cdiv id=\"t\" p:template=\"text/liquid\"\u003ex \u0026lt;i\u0026gt;y\u0026lt;/i\u0026gt; a \u0026amp;amp; b {{ 1 }}\u003ca href=\"?a=1\u0026amp;b={{ 2 }}\" title=\"\u0026quot;q\u0026quot;\"\u003el\u003c/a\u003e\u003c/div\u003e\u003c/body\u003e\u003c/html\u003e"
+    },
+    {
+      "step": "step 2 (dav read)",
+      "method": "GET",
+      "path": "/_pl/protocol-serialize-probe-0929-liqsrc-out-a792e2/tpl2.html",
+      "status": 200,
+      "headers": {
+        "accept-ranges": "bytes",
+        "content-length": "220",
+        "content-type": "text/html",
+        "etag": "\"8e0f2d1be8a73a00eb7fa5aabfad2a5eb53d2e3e14903fbb4065105b05b8fc75\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:48 GMT"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml xmlns:p=\"https://pagelove.org/1.0\"\u003e\u003cbody\u003e\u003cdiv id=\"t\" p:template=\"text/liquid\"\u003ex \u0026lt;i\u0026gt;y\u0026lt;/i\u0026gt; a \u0026amp;amp; b {{ 1 }}\u003ca href=\"?a=1\u0026amp;b={{ 2 }}\" title=\"\u0026quot;q\u0026quot;\"\u003el\u003c/a\u003e\u003c/div\u003e\u003c/body\u003e\u003c/html\u003e"
+    },
+    {
+      "step": "step 3 (render)",
+      "method": "GET",
+      "path": "/_pl/protocol-serialize-probe-0929-liqsrc-out-a792e2/tpl2.html",
+      "status": 200,
+      "headers": {
+        "accept-ranges": "selector, bytes",
+        "cache-control": "public, max-age=5",
+        "content-length": "148",
+        "content-type": "text/html",
+        "etag": "W/\"7970616b3d61868c6d0b6a773d79a6b2eeae5586985c5c4867e94e6f712a6b41\"",
+        "vary": "Host, Range, Accept"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\u003cdiv id=\"t\"\u003ex \u0026lt;i\u0026gt;y\u0026lt;/i\u0026gt; a \u0026amp;amp; b 1\u003ca href=\"?a=1\u0026amp;b=2\" title=\"\u0026quot;q\u0026quot;\"\u003el\u003c/a\u003e\u003c/div\u003e\u003c/body\u003e\u003c/html\u003e"
+    }
+  ],
+  "outcome": "pass",
+  "target": "local"
+}

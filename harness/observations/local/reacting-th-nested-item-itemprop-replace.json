@@ -1,0 +1,48 @@
+{
+  "case": "reacting.th.nested-item-itemprop-replaced",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (install a handler (Order.status becomes processing -\u003e POST ${SINK}/payments))",
+      "method": "PUT",
+      "path": "/_pl/reacting-th-nested-item-itemprop-replace-03f5b7/r/handlers.html",
+      "status": 201,
+      "headers": {
+        "content-length": "556",
+        "content-type": "text/html",
+        "etag": "\"4ea29277d4ac0a0ae59d20cb032328dfa090e1f0ec7e668542fdfd430a7f3568\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:50 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\n\u003cdiv itemscope itemtype=\"https://pagelove.org/TransitionHandler\"\u003e\n  \u003cmeta itemprop=\"selector\" content=\"[itemtype='https://pagelike.test/_pl/reacting-th-nested-item-itemprop-replace-03f5b7/Order']\"\u003e\n  \u003cmeta itemprop=\"property\" content=\"status\"\u003e\n  \u003cmeta itemprop=\"becomes\" content=\"processing\"\u003e\n  \u003cdiv itemprop=\"action\" itemscope itemtype=\"https://pagelove.org/HttpRequest\"\u003e\n    \u003cmeta itemprop=\"url\" content=\"http://127.0.0.1:53637/c-3fe15a88/payments\"\u003e\n    \u003cmeta itemprop=\"method\" content=\"POST\"\u003e\n  \u003c/div\u003e\n\u003c/div\u003e\n\u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 2 (create a cart whose order property is an Order at processing)",
+      "method": "PUT",
+      "path": "/_pl/reacting-th-nested-item-itemprop-replace-03f5b7/orders/cart.html",
+      "status": 201,
+      "headers": {
+        "content-length": "361",
+        "content-type": "text/html",
+        "etag": "\"694e615da9b81a9127f440a24ab77c2a0b1e904116b45e0b80a549e6f1aa8be5\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:50 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\n\u003cdiv itemscope itemtype=\"https://pagelike.test/_pl/reacting-th-nested-item-itemprop-replace-03f5b7/Cart\"\u003e\n  \u003cdiv itemprop=\"order\" data-marker=\"nested-order\" itemscope itemtype=\"https://pagelike.test/_pl/reacting-th-nested-item-itemprop-replace-03f5b7/Order\"\u003e\u003cmeta itemprop=\"status\" content=\"processing\"\u003e\u003c/div\u003e\n\u003c/div\u003e\n\u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 3",
+      "method": "POST",
+      "path": "${SINK}/payments",
+      "headers": {
+        "accept-encoding": "gzip",
+        "content-length": "600",
+        "content-type": "text/html",
+        "user-agent": "Go-http-client/1.1"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\n  \u003chead\u003e\u003ctitle\u003eTransition\u003c/title\u003e\u003c/head\u003e\n  \u003cbody itemscope itemtype=\"https://pagelove.org/Transition\"\u003e\n    \u003cmeta itemprop=\"path\" content=\"/_pl/reacting-th-nested-item-itemprop-replace-03f5b7/orders/cart.html\"\u003e\n    \u003cmeta itemprop=\"selector\" content=\"[itemtype=\u0026quot;https://pagelike.test/_pl/reacting-th-nested-item-itemprop-replace-03f5b7/Order\u0026quot;]\"\u003e\n    \u003cdiv itemprop=\"body\" data-marker=\"nested-order\" itemscope itemtype=\"https://pagelike.test/_pl/reacting-th-nested-item-itemprop-replace-03f5b7/Order\"\u003e\u003cmeta itemprop=\"status\" content=\"processing\"\u003e\u003c/div\u003e\n  \u003c/body\u003e\n\u003c/html\u003e\n"
+    }
+  ],
+  "outcome": "pass",
+  "target": "local"
+}

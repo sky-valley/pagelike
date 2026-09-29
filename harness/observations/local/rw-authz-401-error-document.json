@@ -1,0 +1,34 @@
+{
+  "case": "rw.authz.401-error-document",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (unauthorized whole PUT)",
+      "method": "PUT",
+      "path": "/_pl/rw-authz-401-error-document-82ce17/authz-deny-test.html",
+      "status": 401,
+      "headers": {
+        "content-length": "428",
+        "content-type": "text/html; charset=utf-8"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\n\u003chead\u003e\n    \u003cmeta charset=\"UTF-8\"\u003e\n    \u003ctitle\u003e401 Unauthorized\u003c/title\u003e\n\u003c/head\u003e\n\u003cbody itemscope itemtype=\"https://pagelove.org/1.0/Error\"\u003e\n    \u003ch1\u003e401 Unauthorized\u003c/h1\u003e\n    \u003cp itemprop=\"message\"\u003eAuthentication required to access this resource.\u003c/p\u003e\n    \u003cdl\u003e\n        \u003cdt\u003eResource\u003c/dt\u003e\n        \u003cdd itemprop=\"resource\"\u003e/_pl/rw-authz-401-error-document-82ce17/authz-deny-test.html\u003c/dd\u003e\n    \u003c/dl\u003e\n\u003c/body\u003e\n\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 2 (unchanged)",
+      "method": "GET",
+      "path": "/_pl/rw-authz-401-error-document-82ce17/authz-deny-test.html",
+      "status": 200,
+      "headers": {
+        "accept-ranges": "selector, bytes",
+        "content-length": "58",
+        "content-type": "text/html",
+        "etag": "\"c225897f86236e233275bc194c479ec35e2f7ebe7ed2575702985c63a8e7df15\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:55 GMT",
+        "vary": "Host, Range, Accept"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\u003cp\u003eOriginal\u003c/p\u003e\u003c/body\u003e\u003c/html\u003e\n"
+    }
+  ],
+  "outcome": "pass",
+  "target": "local"
+}

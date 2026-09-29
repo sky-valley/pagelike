@@ -1,0 +1,100 @@
+# Budgets: a template runs inside the request budget; exhaustion fails the
+# whole request (never a partial page). Spec: docs/spec/liquid.md §20
+# (R-LIQ-210..216). These cases deliberately burn budget, so they are not run
+# against real PageLove by default (live: false); run them live only by opt-in.
+defaults:
+  area: liquid
+  requires: [liquid, slow]
+  evidence: documented
+  source: "docs languages/liquid/templating §Limits; languages/liquid/filters/array intro (time limit while filters run); reference/permissions/AuthorizationRule (budget failure → 503) (snapshot 2026-09-28)"
+  confidence: medium
+cases:
+  - id: liquid.limits.loop-work-exhausted
+    title: A loop over a huge range exhausts the budget and fails the request with 503
+    feature: budgets
+    live: false
+    notes: "R-LIQ-211, R-LIQ-212, P-LIQ-18. Opt-in live: spends production budget."
+    site:
+      settings: {default_get: allow}
+      files:
+        - path: "${P}/loop.html"
+          body: |
+            <!DOCTYPE html>
+            <html xmlns:p="https://pagelove.org/1.0"><body>
+              <p id="before">BEFORE-MARKER</p>
+              <p p:template="text/liquid">{% for i in (1..100000000) %}{% endfor %}done</p>
+            </body></html>
+      rules: [{actor: "*", resource: "${P}/*", method: [GET, HEAD], action: Allow}]
+    steps:
+      - name: read
+        as: anonymous
+        request: {method: GET, path: "${P}/loop.html"}
+        expect:
+          status: 503
+          body_not_contains: ["BEFORE-MARKER", "done"]
+
+  - id: liquid.limits.output-memory-exhausted
+    title: Writing a very large string is stopped part-way and fails the request (no partial page)
+    feature: budgets
+    live: false
+    notes: R-LIQ-211 (output bytes charged as written), R-LIQ-212.
+    site:
+      settings: {default_get: allow}
+      files:
+        - path: "${P}/big.html"
+          body: |
+            <!DOCTYPE html>
+            <html xmlns:p="https://pagelove.org/1.0"><body>
+              <p p:template="text/liquid">{% for i in (1..2000000) %}0123456789012345678901234567890123456789012345678901234567890123456789{% endfor %}</p>
+            </body></html>
+      rules: [{actor: "*", resource: "${P}/*", method: [GET, HEAD], action: Allow}]
+    steps:
+      - name: read
+        as: anonymous
+        request: {method: GET, path: "${P}/big.html"}
+        expect:
+          status: 503
+
+  - id: liquid.limits.assign-growth-exhausted
+    title: Growing a string with append in a loop is charged to memory and fails the request
+    feature: budgets
+    live: false
+    notes: R-LIQ-211 (assign/capture charged; 'appending in a loop … is stopped part-way').
+    site:
+      settings: {default_get: allow}
+      files:
+        - path: "${P}/grow.html"
+          body: |
+            <!DOCTYPE html>
+            <html xmlns:p="https://pagelove.org/1.0"><body>
+              <p p:template="text/liquid">{% assign s = "0123456789012345678901234567890123456789" %}{% for i in (1..40) %}{% assign s = s | append: s %}{% endfor %}{{ s.size }}</p>
+            </body></html>
+      rules: [{actor: "*", resource: "${P}/*", method: [GET, HEAD], action: Allow}]
+    steps:
+      - name: read
+        as: anonymous
+        request: {method: GET, path: "${P}/grow.html"}
+        expect:
+          status: 503
+
+  - id: liquid.limits.list-filter-time
+    title: A list-walking filter over a huge list is interrupted by the time limit and fails the request
+    feature: budgets
+    live: false
+    notes: R-LIQ-211 ('subject to your request's time limit while they run'), R-LIQ-212. Not degraded inline even inside {{ }}.
+    site:
+      settings: {default_get: allow}
+      files:
+        - path: "${P}/sort.html"
+          body: |
+            <!DOCTYPE html>
+            <html xmlns:p="https://pagelove.org/1.0"><body>
+              <p p:template="text/liquid">{{ (1..50000000) | sort | size }}</p>
+            </body></html>
+      rules: [{actor: "*", resource: "${P}/*", method: [GET, HEAD], action: Allow}]
+    steps:
+      - name: read
+        as: anonymous
+        request: {method: GET, path: "${P}/sort.html"}
+        expect:
+          status: 503

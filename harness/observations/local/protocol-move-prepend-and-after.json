@@ -1,0 +1,45 @@
+{
+  "case": "protocol.move.prepend-and-after",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (prepend card 3 into done)",
+      "method": "MOVE",
+      "path": "/_pl/protocol-move-prepend-and-after-05f044/board.html",
+      "status": 204,
+      "headers": {
+        "etag": "\"28a7a8d5f308dba729edce2a44dc8aa329c6ef22633a55512977dafc5ae08110\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:47 GMT",
+        "vary": "Host, Range"
+      }
+    },
+    {
+      "step": "step 2 (move card 1 after card 4)",
+      "method": "MOVE",
+      "path": "/_pl/protocol-move-prepend-and-after-05f044/board.html",
+      "status": 204,
+      "headers": {
+        "etag": "\"6c689b546a676246d3b29d2ae3c128740e8f72fafdc80752ce8ed568219c7a27\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:47 GMT",
+        "vary": "Host, Range"
+      }
+    },
+    {
+      "step": "step 3 (done lane is 3, 4, 1)",
+      "method": "GET",
+      "path": "/_pl/protocol-move-prepend-and-after-05f044/board.html",
+      "status": 206,
+      "headers": {
+        "accept-ranges": "selector, bytes",
+        "content-length": "191",
+        "content-range": "selector #lane-done",
+        "content-type": "text/html",
+        "etag": "\"e0e26180859ceb323cd76e68c33d0702ccbf9328c3050dca66d0265b1ee8ddb2-e0e26180859ceb323cd76e68c33d0702ccbf9328c3050dca66d0265b1ee8ddb2-3\"",
+        "vary": "Host, Range, Accept"
+      },
+      "body": "\u003csection class=\"lane\" id=\"lane-done\"\u003e\u003carticle class=\"card\" id=\"card-3\"\u003eThree\u003c/article\u003e\u003carticle class=\"card\" id=\"card-4\"\u003eFour\u003c/article\u003e\u003carticle class=\"card\" id=\"card-1\"\u003eOne\u003c/article\u003e\u003c/section\u003e"
+    }
+  ],
+  "outcome": "pass",
+  "target": "local"
+}

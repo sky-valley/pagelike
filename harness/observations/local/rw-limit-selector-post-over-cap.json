@@ -1,0 +1,35 @@
+{
+  "case": "rw.limit.selector-post-over-cap",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (65-byte append)",
+      "method": "POST",
+      "path": "/_pl/rw-limit-selector-post-over-cap-e97731/list.html",
+      "status": 413,
+      "headers": {
+        "content-length": "548",
+        "content-type": "text/html; charset=utf-8",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\n\u003chead\u003e\n\u003cmeta charset=\"UTF-8\"\u003e\n\u003ctitle\u003e413 Content Too Large\u003c/title\u003e\n\u003c/head\u003e\n\u003cbody\u003e\n\u003carticle itemscope itemtype=\"https://pagelove.org/Error\"\u003e\n  \u003cmeta itemprop=\"status\" content=\"413\"\u003e\n  \u003cmeta itemprop=\"kind\" content=\"ContentTooLarge\"\u003e\n  \u003cdiv itemprop=\"type\" itemscope itemtype=\"https://dombase.pagelove.team/ns/error/ContentTooLarge\"\u003e\u003c/div\u003e\n  \u003cp itemprop=\"message\"\u003erequest body exceeds the 64-byte limit\u003c/p\u003e\n  \u003cmeta itemprop=\"resource\" content=\"/_pl/rw-limit-selector-post-over-cap-e97731/list.html\"\u003e\n\u003c/article\u003e\n\u003c/body\u003e\n\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 2 (list still empty)",
+      "method": "GET",
+      "path": "/_pl/rw-limit-selector-post-over-cap-e97731/list.html",
+      "status": 206,
+      "headers": {
+        "accept-ranges": "selector, bytes",
+        "content-length": "16",
+        "content-range": "selector #l",
+        "content-type": "text/html",
+        "etag": "\"36f66ab75aada5247ddbbc4ad31c9649737f48bfdd8ca53c58d61503af84892b-36f66ab75aada5247ddbbc4ad31c9649737f48bfdd8ca53c58d61503af84892b-1\"",
+        "vary": "Host, Range, Accept"
+      },
+      "body": "\u003cul id=\"l\"\u003e\u003c/ul\u003e"
+    }
+  ],
+  "outcome": "pass",
+  "target": "local"
+}

@@ -1,0 +1,36 @@
+{
+  "case": "modeling.discovery.schema-in-template-ignored",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (register declarations through the public plane (takes effect for the next request))",
+      "method": "PUT",
+      "path": "/_pl/modeling-discovery-schema-in-template-ig-be03a7/schema.html",
+      "status": 201,
+      "headers": {
+        "content-length": "527",
+        "content-type": "text/html",
+        "etag": "\"ffabe3aa989c54dc8dcfcad0f1d1ed6cf5769ed1dd28437c1bd39c722934bb39\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:44 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\n  \u003ctemplate\u003e\n    \u003cdiv hidden itemscope itemtype=\"https://pagelove.org/Schema\"\u003e\n      \u003cmeta itemprop=\"type\" content=\"https://pagelike.test/_pl/modeling-discovery-schema-in-template-ig-be03a7/Tag\"\u003e\n      \u003cdiv itemprop=\"property\" itemscope itemtype=\"https://pagelove.org/Property\"\u003e\n        \u003cmeta itemprop=\"name\" content=\"label\"\u003e\n        \u003cmeta itemprop=\"type\" content=\"https://schema.host/Text\"\u003e\n        \u003cmeta itemprop=\"cardinality\" content=\"1..1\"\u003e\n      \u003c/div\u003e\n    \u003c/div\u003e\n  \u003c/template\u003e\n\u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 2 (instance without label is accepted)",
+      "method": "PUT",
+      "path": "/_pl/modeling-discovery-schema-in-template-ig-be03a7/t.html",
+      "status": 201,
+      "headers": {
+        "content-length": "157",
+        "content-type": "text/html",
+        "etag": "\"8cfc49aa31f80d3361c2306235112878510c70c08fbbc07bc19a43b3fad98cab\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:44 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\n  \u003cdiv itemscope itemtype=\"https://pagelike.test/_pl/modeling-discovery-schema-in-template-ig-be03a7/Tag\"\u003e\u003c/div\u003e\n\u003c/body\u003e\u003c/html\u003e\n"
+    }
+  ],
+  "outcome": "pass",
+  "target": "local"
+}

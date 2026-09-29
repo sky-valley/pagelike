@@ -1,0 +1,53 @@
+{
+  "case": "sse.scope.webdav-write-emits",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (sse open s1)",
+      "method": "GET",
+      "path": "/_pl/sse-scope-webdav-write-emits-76d5aa/doc.html",
+      "status": 200,
+      "headers": {
+        "cache-control": "no-cache",
+        "content-type": "text/event-stream"
+      }
+    },
+    {
+      "step": "step 2",
+      "events": [
+        {
+          "event": "pagelove-connection",
+          "data": "973b00f7-5282-4ef5-ae2e-6b72da4e9753"
+        }
+      ]
+    },
+    {
+      "step": "step 3 (author saves the file over WebDAV)",
+      "method": "PUT",
+      "path": "/_pl/sse-scope-webdav-write-emits-76d5aa/doc.html",
+      "status": 200,
+      "headers": {
+        "accept-ranges": "bytes",
+        "content-length": "69",
+        "content-type": "text/html",
+        "etag": "\"bac290e8020eab2425ab46b3c58fea17919f1703c52485956d6d32bc81610395\""
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\u003ch1\u003eAfter author edit\u003c/h1\u003e\u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 5 (the public plane serves the author's edit)",
+      "method": "GET",
+      "path": "/_pl/sse-scope-webdav-write-emits-76d5aa/doc.html",
+      "status": 200,
+      "headers": {
+        "content-type": "text/html",
+        "etag": "\"bac290e8020eab2425ab46b3c58fea17919f1703c52485956d6d32bc81610395\"",
+        "last-modified": "Tue, 29 Sep 2026 00:19:17 GMT",
+        "vary": "Host, Range, Accept"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\u003ch1\u003eAfter author edit\u003c/h1\u003e\n                \u003cdiv style=\"\n                            position: fixed;\n                            bottom: 0;\n                            left: 0;\n                            right: 0;\n                            padding: 8px;\n                            background: #f0f0f0;\n                            text-align: center;\n                            font-size: 12px;\n                            color: #666;\n                            z-index: 9999;\n                            opacity: 0.8;\n                            border-top: 1px solid #ddd;\n                        \"\u003e\n                    Powered by\n                    \u003ca href=\"https://pagelove.com/\" style=\"color: #4a90d9; text-decoration: none\"\u003ePagelove\u003c/a\u003e\n                \u003c/div\u003e\n            \u003c/body\u003e\u003c/html\u003e\n"
+    }
+  ],
+  "outcome": "pass",
+  "target": "live"
+}

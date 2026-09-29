@@ -1,0 +1,45 @@
+{
+  "case": "authz.template.request-method-in-selector",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (PUT on the element labelled PUT)",
+      "method": "PUT",
+      "path": "/_pl/authz-template-request-method-in-selecto-c35d29/doc.html",
+      "status": 206,
+      "headers": {
+        "content-length": "32",
+        "content-range": "selector #p1",
+        "content-type": "text/html",
+        "etag": "\"13447cdf9f24261f5b44faaaeac46021ce3a9a3237ef699eced99284fb5058a1-13447cdf9f24261f5b44faaaeac46021ce3a9a3237ef699eced99284fb5058a1-2\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:47 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003cp id=\"p1\" data-m=\"PUT\"\u003edone\u003c/p\u003e"
+    },
+    {
+      "step": "step 2 (PUT on the element labelled DELETE)",
+      "method": "PUT",
+      "path": "/_pl/authz-template-request-method-in-selecto-c35d29/doc.html",
+      "status": 401,
+      "headers": {
+        "content-length": "429",
+        "content-type": "text/html; charset=utf-8"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\n\u003chead\u003e\n    \u003cmeta charset=\"UTF-8\"\u003e\n    \u003ctitle\u003e401 Unauthorized\u003c/title\u003e\n\u003c/head\u003e\n\u003cbody itemscope itemtype=\"https://pagelove.org/1.0/Error\"\u003e\n    \u003ch1\u003e401 Unauthorized\u003c/h1\u003e\n    \u003cp itemprop=\"message\"\u003eAuthentication required to access this resource.\u003c/p\u003e\n    \u003cdl\u003e\n        \u003cdt\u003eResource\u003c/dt\u003e\n        \u003cdd itemprop=\"resource\"\u003e/_pl/authz-template-request-method-in-selecto-c35d29/doc.html\u003c/dd\u003e\n    \u003c/dl\u003e\n\u003c/body\u003e\n\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 3 (DELETE on the element labelled DELETE)",
+      "method": "DELETE",
+      "path": "/_pl/authz-template-request-method-in-selecto-c35d29/doc.html",
+      "status": 204,
+      "headers": {
+        "etag": "\"99d808e20e32280fadde51becfa1c59481f2c4ca3bebafc771d20fca67eb33e1\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:47 GMT",
+        "vary": "Host, Range"
+      }
+    }
+  ],
+  "outcome": "pass",
+  "target": "local"
+}

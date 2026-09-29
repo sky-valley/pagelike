@@ -1,0 +1,37 @@
+{
+  "case": "javascript.methods.params-positional-by-declaration",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (PUT the page (public plane; registers inline declarations))",
+      "method": "PUT",
+      "path": "/_pl/javascript-methods-params-positional-by-7bbb83/m.html",
+      "status": 201,
+      "headers": {
+        "content-length": "1083",
+        "content-type": "text/html",
+        "etag": "\"5d5d18130013e680de12fb60f58e93f7c45f6a128e15b8ede3333f8e8c4857bd\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:43 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml xmlns:t=\"https://pagelike.test/_pl/javascript-methods-params-positional-by-7bbb83/Pair\"\u003e\u003cbody\u003e\n\u003cmain\u003e\n\u003ct:pair second=\"B\" first=\"A\" ignored=\"Z\"\u003e\u003c/t:pair\u003e\n\u003c/main\u003e\n\u003cdiv hidden itemscope itemtype=\"https://pagelove.org/Schema\"\u003e\n\u003cmeta itemprop=\"type\" content=\"https://pagelike.test/_pl/javascript-methods-params-positional-by-7bbb83/Pair\"\u003e\n\u003cul\u003e\n\u003cli itemprop=\"property\" itemscope itemtype=\"https://pagelove.org/Method\"\u003e\n\u003cmeta itemprop=\"name\" content=\"pair\"\u003e\n\u003cdiv itemprop=\"parameter\" itemscope itemtype=\"https://pagelove.org/Parameter\"\u003e\u003cmeta itemprop=\"name\" content=\"first\"\u003e\u003cmeta itemprop=\"type\" content=\"https://schema.host/Text\"\u003e\u003c/div\u003e\n\u003cdiv itemprop=\"parameter\" itemscope itemtype=\"https://pagelove.org/Parameter\"\u003e\u003cmeta itemprop=\"name\" content=\"second\"\u003e\u003cmeta itemprop=\"type\" content=\"https://schema.host/Text\"\u003e\u003c/div\u003e\n\u003cdiv itemprop=\"implementation\" itemscope itemtype=\"https://pagelove.org/JavaScript/Module\"\u003e\n\u003cscript itemprop=\"source\" type=\"module\"\u003e\nexport default function (p, q) { return 'PAIR:' + p + '-' + q; }\n\u003c/script\u003e\n\u003c/div\u003e\n\u003c/li\u003e\n\u003c/ul\u003e\n\u003c/div\u003e\n\u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 2 (GET the composed page)",
+      "method": "GET",
+      "path": "/_pl/javascript-methods-params-positional-by-7bbb83/m.html",
+      "status": 206,
+      "headers": {
+        "accept-ranges": "selector, bytes",
+        "content-length": "23",
+        "content-range": "selector main",
+        "content-type": "text/html",
+        "etag": "\"f11f4b4f0db02a94d68274588458aac00f9d8edbd416f80ffaebd5b8d57cb7ba-f11f4b4f0db02a94d68274588458aac00f9d8edbd416f80ffaebd5b8d57cb7ba-1\"",
+        "vary": "Host, Range, Accept"
+      },
+      "body": "\u003cmain\u003e\nPAIR:A-B\n\u003c/main\u003e"
+    }
+  ],
+  "outcome": "pass",
+  "target": "local"
+}

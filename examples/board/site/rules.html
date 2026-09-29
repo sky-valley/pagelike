@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head><meta charset="utf-8"><title>Board · rules and state machine</title></head>
+<body>
+<table><tbody>
+  <tr itemscope itemtype="https://pagelove.org/AuthorizationRule">
+    <td itemprop="actor">*</td>
+    <td><ul><li itemprop="resource">/</li><li itemprop="resource">/index.html</li><li itemprop="resource">/cards.html</li><li itemprop="resource">/partials.html</li><li itemprop="resource">/assets/*</li></ul></td>
+    <td><ul><li itemprop="method">GET</li><li itemprop="method">HEAD</li><li itemprop="method">OPTIONS</li></ul></td>
+    <td itemprop="selector"></td>
+    <td itemprop="action">Allow</td>
+  </tr>
+  <!-- Team members add cards and move any card. -->
+  <tr itemscope itemtype="https://pagelove.org/AuthorizationRule">
+    <td itemprop="actor">users</td>
+    <td itemprop="resource">/cards.html</td>
+    <td itemprop="method">POST</td>
+    <td itemprop="selector">#cards</td>
+    <td itemprop="action">Allow</td>
+  </tr>
+  <tr itemscope itemtype="https://pagelove.org/AuthorizationRule">
+    <td itemprop="actor">users</td>
+    <td itemprop="resource">/cards.html</td>
+    <td itemprop="method">PUT</td>
+    <td itemprop="selector">#cards &gt; article</td>
+    <td itemprop="action">Allow</td>
+  </tr>
+  <!-- Only a card's creator removes it. -->
+  <tr itemscope itemtype="https://pagelove.org/AuthorizationRule">
+    <td itemprop="actor">users</td>
+    <td itemprop="resource">/cards.html</td>
+    <td itemprop="method">DELETE</td>
+    <td itemprop="selector">#cards &gt; article[data-owner="${request.auth.username}"]</td>
+    <td itemprop="action">Allow</td>
+  </tr>
+</tbody></table>
+
+<!-- Card schema: every card has a title, a status and an owner. -->
+<div itemscope itemtype="https://pagelove.org/Schema">
+  <meta itemprop="type" content="https://example.org/Card">
+  <meta itemprop="name" content="Card">
+  <div itemprop="property" itemscope itemtype="https://pagelove.org/Property">
+    <meta itemprop="name" content="title"><meta itemprop="type" content="https://schema.host/Text"><meta itemprop="cardinality" content="1..1">
+  </div>
+  <div itemprop="property" itemscope itemtype="https://pagelove.org/Property">
+    <meta itemprop="name" content="status"><meta itemprop="type" content="https://schema.host/Text"><meta itemprop="cardinality" content="1..1">
+  </div>
+  <div itemprop="property" itemscope itemtype="https://pagelove.org/Property">
+    <meta itemprop="name" content="key"><meta itemprop="type" content="https://schema.host/Text"><meta itemprop="cardinality" content="1..1"><meta itemprop="unique" content="true">
+  </div>
+</div>
+
+<!-- The state machine: new cards start in todo; one step at a time. -->
+<div itemscope itemtype="https://pagelove.org/TransitionConstraint">
+  <meta itemprop="selector" content="[itemtype='https://example.org/Card']">
+  <meta itemprop="property" content="status"><meta itemprop="to" content="todo">
+</div>
+<div itemscope itemtype="https://pagelove.org/TransitionConstraint">
+  <meta itemprop="selector" content="[itemtype='https://example.org/Card']">
+  <meta itemprop="property" content="status"><meta itemprop="from" content="todo"><meta itemprop="to" content="doing">
+</div>
+<div itemscope itemtype="https://pagelove.org/TransitionConstraint">
+  <meta itemprop="selector" content="[itemtype='https://example.org/Card']">
+  <meta itemprop="property" content="status"><meta itemprop="from" content="doing"><meta itemprop="to" content="todo">
+</div>
+<div itemscope itemtype="https://pagelove.org/TransitionConstraint">
+  <meta itemprop="selector" content="[itemtype='https://example.org/Card']">
+  <meta itemprop="property" content="status"><meta itemprop="from" content="doing"><meta itemprop="to" content="done">
+</div>
+<div itemscope itemtype="https://pagelove.org/TransitionConstraint">
+  <meta itemprop="selector" content="[itemtype='https://example.org/Card']">
+  <meta itemprop="property" content="status"><meta itemprop="from" content="done">
+</div>
+
+<!-- Cards are created as the signed-in user. -->
+<div itemscope itemtype="https://pagelove.org/Trigger">
+  <meta itemprop="resource" content="/cards.html">
+  <meta itemprop="method" content="POST">
+  <div itemprop="action" itemscope itemtype="https://pagelove.org/Sessel">
+    <script itemprop="source" type="text/sessel">
+      @schema Context url("https://pagelove.org/Context");
+      @schema HTTPResponse url("https://pagelove.org/HTTPResponse");
+      let card = Element.fromString(Context.request.body);
+      if (card.attr("data-owner") != Context.request.auth.username) {
+        throw new HTTPResponse { status: 403, message: "Cards are created as yourself." }
+      }
+    </script>
+  </div>
+</div>
+</body>
+</html>

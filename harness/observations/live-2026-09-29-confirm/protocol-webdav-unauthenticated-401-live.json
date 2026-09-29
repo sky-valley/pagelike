@@ -1,0 +1,68 @@
+{
+  "case": "protocol.webdav.unauthenticated-401.live",
+  "failures": [
+    "step 1 (anonymous PROPFIND) PROPFIND ${P}/: status 401, want [207] (body: \u003carticle itemscope itemtype=\"https://pagelove.org/Error/Internal\"\u003e\u003cmeta itemprop=\"status\" content=\"401\"\u003e\u003cp itemprop=\"message\"\u003eAuthentication required\u003c/p\u003e\u003c/article\u003e)",
+    "step 2 (anonymous GET) GET ${P}/doc.html: status 401, want [200] (body: \u003carticle itemscope itemtype=\"https://pagelove.org/Error/Internal\"\u003e\u003cmeta itemprop=\"status\" content=\"401\"\u003e\u003cp itemprop=\"message\"\u003eAuthentication required\u003c/p\u003e\u003c/article\u003e)",
+    "step 2 (anonymous GET) GET ${P}/doc.html: body does not contain \"\u003ch1\u003eA\u003c/h1\u003e\" (body: \u003carticle itemscope itemtype=\"https://pagelove.org/Error/Internal\"\u003e\u003cmeta itemprop=\"status\" content=\"401\"\u003e\u003cp itemprop=\"message\"\u003eAuthentication required\u003c/p\u003e\u003c/article\u003e)"
+  ],
+  "observations": [
+    {
+      "step": "step 1 (anonymous PROPFIND)",
+      "method": "PROPFIND",
+      "path": "/_pl/protocol-webdav-unauthenticated-401-live-296588/",
+      "status": 401,
+      "headers": {
+        "content-length": "163",
+        "content-type": "text/html; charset=utf-8",
+        "dav": "1, 2",
+        "ms-author-via": "DAV",
+        "www-authenticate": "Basic realm=\"WebDAV\""
+      },
+      "body": "\u003carticle itemscope itemtype=\"https://pagelove.org/Error/Internal\"\u003e\u003cmeta itemprop=\"status\" content=\"401\"\u003e\u003cp itemprop=\"message\"\u003eAuthentication required\u003c/p\u003e\u003c/article\u003e"
+    },
+    {
+      "step": "step 2 (anonymous GET)",
+      "method": "GET",
+      "path": "/_pl/protocol-webdav-unauthenticated-401-live-296588/doc.html",
+      "status": 401,
+      "headers": {
+        "content-length": "163",
+        "content-type": "text/html; charset=utf-8",
+        "dav": "1, 2",
+        "ms-author-via": "DAV",
+        "www-authenticate": "Basic realm=\"WebDAV\""
+      },
+      "body": "\u003carticle itemscope itemtype=\"https://pagelove.org/Error/Internal\"\u003e\u003cmeta itemprop=\"status\" content=\"401\"\u003e\u003cp itemprop=\"message\"\u003eAuthentication required\u003c/p\u003e\u003c/article\u003e"
+    },
+    {
+      "step": "step 3 (anonymous GET of a document the public plane denies)",
+      "method": "GET",
+      "path": "/_pl/protocol-webdav-unauthenticated-401-live-296588/secret.html",
+      "status": 401,
+      "headers": {
+        "content-length": "163",
+        "content-type": "text/html; charset=utf-8",
+        "dav": "1, 2",
+        "ms-author-via": "DAV",
+        "www-authenticate": "Basic realm=\"WebDAV\""
+      },
+      "body": "\u003carticle itemscope itemtype=\"https://pagelove.org/Error/Internal\"\u003e\u003cmeta itemprop=\"status\" content=\"401\"\u003e\u003cp itemprop=\"message\"\u003eAuthentication required\u003c/p\u003e\u003c/article\u003e"
+    },
+    {
+      "step": "step 4 (anonymous PUT)",
+      "method": "PUT",
+      "path": "/_pl/protocol-webdav-unauthenticated-401-live-296588/anon.html",
+      "status": 401,
+      "headers": {
+        "content-length": "163",
+        "content-type": "text/html; charset=utf-8",
+        "dav": "1, 2",
+        "ms-author-via": "DAV",
+        "www-authenticate": "Basic realm=\"WebDAV\""
+      },
+      "body": "\u003carticle itemscope itemtype=\"https://pagelove.org/Error/Internal\"\u003e\u003cmeta itemprop=\"status\" content=\"401\"\u003e\u003cp itemprop=\"message\"\u003eAuthentication required\u003c/p\u003e\u003c/article\u003e"
+    }
+  ],
+  "outcome": "fail",
+  "target": "live"
+}

@@ -1,0 +1,34 @@
+{
+  "case": "protocol.options.no-existence-check",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (missing document still gets a normal answer)",
+      "method": "OPTIONS",
+      "path": "/_pl/protocol-options-no-existence-check-05f833/does-not-exist.html",
+      "status": 200,
+      "headers": {
+        "accept-query": "text/css-selector, text/sessel",
+        "accept-ranges": "selector",
+        "allow": "GET, HEAD, OPTIONS",
+        "content-length": "0",
+        "vary": "Authorization, Accept"
+      }
+    },
+    {
+      "step": "step 2 (missing document with a selector range is not a range error either)",
+      "method": "OPTIONS",
+      "path": "/_pl/protocol-options-no-existence-check-05f833/does-not-exist.html",
+      "status": 200,
+      "headers": {
+        "accept-query": "text/css-selector, text/sessel",
+        "accept-ranges": "selector",
+        "allow": "GET, HEAD, OPTIONS",
+        "content-length": "0",
+        "vary": "Authorization, Accept"
+      }
+    }
+  ],
+  "outcome": "pass",
+  "target": "local"
+}

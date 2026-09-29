@@ -1,0 +1,89 @@
+{
+  "case": "modeling.uniqueness.value-freed-by-delete",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (register declarations through the public plane (takes effect for the next request))",
+      "method": "PUT",
+      "path": "/_pl/modeling-uniqueness-value-freed-by-delet-cc5f4a/schema.html",
+      "status": 201,
+      "headers": {
+        "content-length": "536",
+        "content-type": "text/html",
+        "etag": "\"a0d398d94b38ff379698376f52f02447249a6b18d2eb17aed041ffd9d1e9d5e1\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:45 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\n  \u003cdiv hidden itemscope itemtype=\"https://pagelove.org/Schema\"\u003e\n    \u003cmeta itemprop=\"type\" content=\"https://pagelike.test/_pl/modeling-uniqueness-value-freed-by-delet-cc5f4a/Claim\"\u003e\n    \u003cdiv itemprop=\"property\" itemscope itemtype=\"https://pagelove.org/Property\"\u003e\n      \u003cmeta itemprop=\"name\" content=\"listingId\"\u003e\n      \u003cmeta itemprop=\"type\" content=\"https://schema.host/Text\"\u003e\n      \u003cmeta itemprop=\"cardinality\" content=\"1..1\"\u003e\n      \u003cmeta itemprop=\"unique\" content=\"true\"\u003e\n    \u003c/div\u003e\n  \u003c/div\u003e\n\u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 2 (seed an empty claims list)",
+      "method": "PUT",
+      "path": "/_pl/modeling-uniqueness-value-freed-by-delet-cc5f4a/claims.html",
+      "status": 201,
+      "headers": {
+        "content-length": "68",
+        "content-type": "text/html",
+        "etag": "\"129b446851f57c83859658b6c7042423f200a4cb67799270c4654fe7b0a83c04\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:45 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\n  \u003cul id=\"claims\"\u003e\u003c/ul\u003e\n\u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 3 (claim L1)",
+      "method": "POST",
+      "path": "/_pl/modeling-uniqueness-value-freed-by-delet-cc5f4a/claims.html",
+      "status": 206,
+      "headers": {
+        "content-length": "168",
+        "content-range": "selector #claims",
+        "content-type": "text/html",
+        "etag": "\"03e13736bcb063e1d85ff50e8aff93d990cea923ad1894f6f9d2b3fbca316f94-03e13736bcb063e1d85ff50e8aff93d990cea923ad1894f6f9d2b3fbca316f94-2\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:45 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003cli itemscope itemtype=\"https://pagelike.test/_pl/modeling-uniqueness-value-freed-by-delet-cc5f4a/Claim\" id=\"claim-L1\"\u003e\n  \u003cmeta itemprop=\"listingId\" content=\"L1\"\u003e\n\u003c/li\u003e"
+    },
+    {
+      "step": "step 4 (second claim on L1 rejected)",
+      "method": "POST",
+      "path": "/_pl/modeling-uniqueness-value-freed-by-delet-cc5f4a/claims.html",
+      "status": 422,
+      "headers": {
+        "content-length": "470",
+        "content-type": "text/html",
+        "vary": "Host, Range"
+      },
+      "body": "\u003cdiv itemscope itemtype=\"https://dombase.pagelove.team/ns/error/ConstraintViolation\"\u003e\u003cul itemprop=\"problems\"\u003e\u003cli itemprop=\"problem\"\u003e\u003cspan itemprop=\"message\"\u003eConstraint violation: 1 violation(s):\n  - [uniqueness] [itemprop='listingId'] (unique(listingId)): Uniqueness violation: another item in '/_pl/modeling-uniqueness-value-freed-by-delet-cc5f4a/claims.html' already claims this value for property 'listingId' (first claimed by item '0.2.0.1.0')\u003c/span\u003e\u003c/li\u003e\u003c/ul\u003e\u003c/div\u003e"
+    },
+    {
+      "step": "step 5 (release the claim)",
+      "method": "DELETE",
+      "path": "/_pl/modeling-uniqueness-value-freed-by-delet-cc5f4a/claims.html",
+      "status": 204,
+      "headers": {
+        "etag": "\"4d8c91222589291d94e7321e60d18c8fa2b7648ac1be8a74ac52616e92868fea\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:45 GMT",
+        "vary": "Host, Range"
+      }
+    },
+    {
+      "step": "step 6 (claim L1 again)",
+      "method": "POST",
+      "path": "/_pl/modeling-uniqueness-value-freed-by-delet-cc5f4a/claims.html",
+      "status": 206,
+      "headers": {
+        "content-length": "169",
+        "content-range": "selector #claims",
+        "content-type": "text/html",
+        "etag": "\"8c60e6fe4377e197a7db7c7334e6972b9a4974762af70a3fca1217d6de5748aa-8c60e6fe4377e197a7db7c7334e6972b9a4974762af70a3fca1217d6de5748aa-4\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:45 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003cli itemscope itemtype=\"https://pagelike.test/_pl/modeling-uniqueness-value-freed-by-delet-cc5f4a/Claim\" id=\"claim-L1c\"\u003e\n  \u003cmeta itemprop=\"listingId\" content=\"L1\"\u003e\n\u003c/li\u003e"
+    }
+  ],
+  "outcome": "pass",
+  "target": "local"
+}

@@ -1,0 +1,37 @@
+{
+  "case": "rw.post.prepend",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (prepend)",
+      "method": "POST",
+      "path": "/_pl/rw-post-prepend-164a45/post-prepend-test.html",
+      "status": 206,
+      "headers": {
+        "content-length": "23",
+        "content-range": "selector ul",
+        "content-type": "text/html",
+        "etag": "\"6c52a91f6d52de5dea7a821e32a0de2da09fec4a808e194dc4be2f8088e2c7d6-6c52a91f6d52de5dea7a821e32a0de2da09fec4a808e194dc4be2f8088e2c7d6-2\"",
+        "last-modified": "Mon, 28 Sep 2026 22:28:01 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003cli\u003eNew first item\u003c/li\u003e"
+    },
+    {
+      "step": "step 2 (order)",
+      "method": "GET",
+      "path": "/_pl/rw-post-prepend-164a45/post-prepend-test.html",
+      "status": 206,
+      "headers": {
+        "content-length": "55",
+        "content-range": "selector ul",
+        "content-type": "text/html",
+        "etag": "\"9bee838afa0f07d813674fd1ff38079fd078b1fbb8533c7b2c2eb27dd29ec978-9bee838afa0f07d813674fd1ff38079fd078b1fbb8533c7b2c2eb27dd29ec978-2\"",
+        "vary": "Host, Range, Accept"
+      },
+      "body": "\u003cul\u003e\u003cli\u003eNew first item\u003c/li\u003e\u003cli\u003eOld first item\u003c/li\u003e\u003c/ul\u003e"
+    }
+  ],
+  "outcome": "pass",
+  "target": "live"
+}

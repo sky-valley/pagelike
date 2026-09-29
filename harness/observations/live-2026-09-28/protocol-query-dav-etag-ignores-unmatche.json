@@ -1,0 +1,51 @@
+{
+  "case": "protocol.query-dav.etag-ignores-unmatched-change",
+  "failures": [
+    "step 3 (still not modified) QUERY ${P}/doc.html: status 200, want [304] (body: --boundarybAaczQDuvtoQ9ernHBrk0ydaM4gPy4U4\r\nContent-Type: text/html\r\nContent-Location: /_pl/protocol-query-dav-etag-ignores-unmatche-f3ca41/doc.html\r\nContent-Range: selector html:nth-child(1) \u003e body:nth-child(1) \u003e h1:nth-child(1)\r\nETag: \"1c…)"
+  ],
+  "observations": [
+    {
+      "step": "step 1 (first query)",
+      "method": "QUERY",
+      "path": "/_pl/protocol-query-dav-etag-ignores-unmatche-f3ca41/doc.html",
+      "status": 200,
+      "headers": {
+        "accept-ranges": "bytes",
+        "content-length": "500",
+        "content-type": "multipart/mixed; boundary=boundaryr1VKp1qRilJg9uH8gpYNwH2ux5c5as5q",
+        "etag": "\"c3717f235e9f8aab780043c4e83768c62b21897b549a7daf09cdb722a2817e2c\"",
+        "last-modified": "Mon, 28 Sep 2026 22:32:13 GMT"
+      },
+      "body": "--boundaryr1VKp1qRilJg9uH8gpYNwH2ux5c5as5q\r\nContent-Type: text/html\r\nContent-Location: /_pl/protocol-query-dav-etag-ignores-unmatche-f3ca41/doc.html\r\nContent-Range: selector html:nth-child(1) \u003e body:nth-child(1) \u003e h1:nth-child(1)\r\nETag: \"1c32123f6761b73d83893fff7af936d13ce7da8411f4a35df11aaed4a7d36db1-1c32123f6761b73d83893fff7af936d13ce7da8411f4a35df11aaed4a7d36db1-1\"\r\nLast-Modified: Mon, 28 Sep 2026 22:32:13 GMT\r\nContent-Length: 14\r\n\r\n\u003ch1\u003eBenji\u003c/h1\u003e\r\n--boundaryr1VKp1qRilJg9uH8gpYNwH2ux5c5as5q--"
+    },
+    {
+      "step": "step 2 (change only the paragraph)",
+      "method": "PUT",
+      "path": "/_pl/protocol-query-dav-etag-ignores-unmatche-f3ca41/doc.html",
+      "status": 200,
+      "headers": {
+        "accept-ranges": "bytes",
+        "content-length": "67",
+        "content-type": "text/html",
+        "etag": "\"9c2eeb231428f40134766861def1ae56972dcfc2e25c638f56787901e7dc375e\""
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\u003ch1\u003eBenji\u003c/h1\u003e\u003cp\u003etwo\u003c/p\u003e\u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 3 (still not modified)",
+      "method": "QUERY",
+      "path": "/_pl/protocol-query-dav-etag-ignores-unmatche-f3ca41/doc.html",
+      "status": 200,
+      "headers": {
+        "accept-ranges": "bytes",
+        "content-length": "500",
+        "content-type": "multipart/mixed; boundary=boundarybAaczQDuvtoQ9ernHBrk0ydaM4gPy4U4",
+        "etag": "\"860558760825be252d9596c720019ab3480b5040991e5fe6b1bac4860c875ac5\"",
+        "last-modified": "Mon, 28 Sep 2026 22:32:13 GMT"
+      },
+      "body": "--boundarybAaczQDuvtoQ9ernHBrk0ydaM4gPy4U4\r\nContent-Type: text/html\r\nContent-Location: /_pl/protocol-query-dav-etag-ignores-unmatche-f3ca41/doc.html\r\nContent-Range: selector html:nth-child(1) \u003e body:nth-child(1) \u003e h1:nth-child(1)\r\nETag: \"1c32123f6761b73d83893fff7af936d13ce7da8411f4a35df11aaed4a7d36db1-1c32123f6761b73d83893fff7af936d13ce7da8411f4a35df11aaed4a7d36db1-2\"\r\nLast-Modified: Mon, 28 Sep 2026 22:32:13 GMT\r\nContent-Length: 14\r\n\r\n\u003ch1\u003eBenji\u003c/h1\u003e\r\n--boundarybAaczQDuvtoQ9ernHBrk0ydaM4gPy4U4--"
+    }
+  ],
+  "outcome": "fail",
+  "target": "live"
+}

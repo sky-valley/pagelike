@@ -1,0 +1,48 @@
+{
+  "case": "modeling.shapes-closed.composed-inner-owns-subtree",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (register declarations through the public plane (takes effect for the next request))",
+      "method": "PUT",
+      "path": "/_pl/modeling-shapes-closed-composed-inner-ow-fbd451/shapes.html",
+      "status": 201,
+      "headers": {
+        "content-length": "746",
+        "content-type": "text/html",
+        "etag": "\"56a73d011016b2dadd714e595cba6d81dcfa487ae25b7d9e150262ec0ad785da\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:45 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\n  \u003cdiv hidden itemscope itemtype=\"https://pagelove.org/ShapeConstraint\"\u003e\n    \u003cmeta itemprop=\"resource\" content=\"/_pl/modeling-shapes-closed-composed-inner-ow-fbd451/notes/*\"\u003e\n    \u003ccode itemprop=\"selector\"\u003earticle[itemtype*=Note]\u003c/code\u003e\n    \u003ccode itemprop=\"permit\"\u003e[id]\u003c/code\u003e\n    \u003ccode itemprop=\"permit\"\u003e[itemprop=\"title\"]\u003c/code\u003e\n    \u003ccode itemprop=\"permit\"\u003e[itemprop=\"content\"]\u003c/code\u003e\n  \u003c/div\u003e\n  \u003cdiv hidden itemscope itemtype=\"https://pagelove.org/ShapeConstraint\"\u003e\n    \u003cmeta itemprop=\"resource\" content=\"/_pl/modeling-shapes-closed-composed-inner-ow-fbd451/notes/*\"\u003e\n    \u003ccode itemprop=\"selector\"\u003earticle[itemtype*=Note] \u0026gt; [itemprop='title']\u003c/code\u003e\n    \u003ccode itemprop=\"permit\"\u003eem\u003c/code\u003e\n  \u003c/div\u003e\n\u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 2 (em inside the title accepted)",
+      "method": "PUT",
+      "path": "/_pl/modeling-shapes-closed-composed-inner-ow-fbd451/notes/a.html",
+      "status": 201,
+      "headers": {
+        "content-length": "186",
+        "content-type": "text/html",
+        "etag": "\"9fe8277325f1311627ed4ea74e7ff2e3d54d399ee1252952662528615862de43\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:45 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\n  \u003carticle itemtype=\"https://schema.org/Note\" id=\"n1\"\u003e\n    \u003ch2 itemprop=\"title\"\u003e\u003cem\u003eHi\u003c/em\u003e\u003c/h2\u003e\n    \u003cp itemprop=\"content\"\u003ex\u003c/p\u003e\n  \u003c/article\u003e\n\u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 3 (span inside the title rejected)",
+      "method": "PUT",
+      "path": "/_pl/modeling-shapes-closed-composed-inner-ow-fbd451/notes/b.html",
+      "status": 422,
+      "headers": {
+        "content-length": "456",
+        "content-type": "text/html",
+        "vary": "Host, Range"
+      },
+      "body": "\u003cdiv itemscope itemtype=\"https://dombase.pagelove.team/ns/error/ShapeConstraint\"\u003e\u003cul itemprop=\"problems\"\u003e\u003cli itemprop=\"problem\"\u003e\u003cspan itemprop=\"message\"\u003eShape constraints violated\u003c/span\u003e\u003c/li\u003e\u003cli itemprop=\"problem\"\u003e\u003cspan itemprop=\"message\"\u003ehttps://pagelove.org/ShapeConstraint article[itemtype*=Note] \u0026gt; [itemprop='title']: Element \u0026lt;span\u0026gt; inside 'article[itemtype*=Note] \u0026gt; [itemprop='title']' is not permitted by any permit\u003c/span\u003e\u003c/li\u003e\u003c/ul\u003e\u003c/div\u003e"
+    }
+  ],
+  "outcome": "pass",
+  "target": "local"
+}

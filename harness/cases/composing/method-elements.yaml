@@ -1,0 +1,514 @@
+# Composing: method elements (element and attribute forms).
+# Spec: docs/spec/composing.md §10 (R-COMP-60..67). Declarations: area modeling.
+# Each case stores its page (with the schema inline) through a public PUT step,
+# which registers the schema immediately ("PUT the document containing the
+# schema once to register it"); schemas written over WebDAV may take up to 60 s.
+# Schema URIs embed ${P} so cases never collide on a shared host.
+cases:
+  - id: comp.me.sessel-element
+    title: A Sessel method element is replaced by the element its implementation returns
+    area: composing
+    feature: method elements
+    evidence: documented
+    source: "docs reference/composing-pages/Method-Elements §Example (snapshot 2026-09-28)"
+    confidence: high
+    requires: [sessel]
+    live: true
+    site:
+      settings: {default_get: allow}
+      rules:
+        - {actor: "*", resource: "${P}/*", method: [GET, HEAD, PUT], action: Allow}
+    steps:
+      - name: store the page with its schema
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/method-element-demo.html"
+          headers: {Content-Type: "text/html"}
+          body: |
+            <!DOCTYPE html>
+            <html xmlns:t="urn:x-pagelike${P}/Demo">
+              <body>
+                <main>
+                  <t:hello></t:hello>
+                </main>
+                <div hidden itemscope itemtype="https://pagelove.org/Schema">
+                  <meta itemprop="type" content="urn:x-pagelike${P}/Demo">
+                  <ul>
+                    <li itemprop="property" itemscope itemtype="https://pagelove.org/Method">
+                      <meta itemprop="name" content="hello">
+                      <meta itemprop="returns" content="https://pagelove.org/Element">
+                      <div itemprop="implementation" itemscope itemtype="https://pagelove.org/Sessel">
+                        <script itemprop="source" type="text/sessel">
+                          new p { "hello from urn:Demo" }
+                        </script>
+                      </div>
+                    </li>
+                  </ul>
+                </div>
+              </body>
+            </html>
+        expect: {status: [200, 201, 204]}
+      - name: read main
+        as: anonymous
+        request:
+          method: GET
+          path: "${P}/method-element-demo.html"
+          headers: {Range: "selector=main"}
+        expect:
+          status: 206
+          body_contains: ["hello from urn:Demo"]
+          body_not_contains: ["t:hello"]
+
+  - id: comp.me.javascript-element
+    title: A JavaScript method element returns a DOM node that is spliced in
+    area: composing
+    feature: method elements
+    evidence: documented
+    source: "docs reference/composing-pages/Method-Elements §JavaScript example (snapshot 2026-09-28)"
+    confidence: high
+    requires: [server-js]
+    live: true
+    site:
+      settings: {default_get: allow}
+      rules:
+        - {actor: "*", resource: "${P}/*", method: [GET, HEAD, PUT], action: Allow}
+    steps:
+      - name: store the page with its schema
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/js-method-element-demo.html"
+          headers: {Content-Type: "text/html"}
+          body: |
+            <!DOCTYPE html>
+            <html xmlns:j="urn:x-pagelike${P}/JsDemo">
+              <body>
+                <main>
+                  <j:hello></j:hello>
+                </main>
+                <div hidden itemscope itemtype="https://pagelove.org/Schema">
+                  <meta itemprop="type" content="urn:x-pagelike${P}/JsDemo">
+                  <ul>
+                    <li itemprop="property" itemscope itemtype="https://pagelove.org/Method">
+                      <meta itemprop="name" content="hello">
+                      <meta itemprop="returns" content="https://pagelove.org/Element">
+                      <div itemprop="implementation" itemscope itemtype="https://pagelove.org/JavaScript/Module">
+                        <script itemprop="source" type="module">export default () => { const d = new DOMParser().parseFromString("<p>hello from JavaScript</p>", "text/html"); return d.querySelector("p"); };</script>
+                      </div>
+                    </li>
+                  </ul>
+                </div>
+              </body>
+            </html>
+        expect: {status: [200, 201, 204]}
+      - name: read main
+        as: anonymous
+        request:
+          method: GET
+          path: "${P}/js-method-element-demo.html"
+          headers: {Range: "selector=main"}
+        expect:
+          status: 206
+          body_contains: ["hello from JavaScript"]
+          body_not_contains: ["j:hello"]
+
+  - id: comp.me.attribute-form-dnu
+    title: An undeclared attribute-form name reaches doesNotUnderstand and replaces the whole host element
+    area: composing
+    feature: method attribute form
+    evidence: documented
+    source: "docs reference/composing-pages/Method-Elements §Attribute-form example (snapshot 2026-09-28)"
+    confidence: high
+    requires: [sessel]
+    live: true
+    site:
+      settings: {default_get: allow}
+      rules:
+        - {actor: "*", resource: "${P}/*", method: [GET, HEAD, PUT], action: Allow}
+    steps:
+      - name: store the page with its schema
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/attr-form-demo.html"
+          headers: {Content-Type: "text/html"}
+          body: |
+            <!DOCTYPE html>
+            <html xmlns:t="urn:x-pagelike${P}/AttrDemo">
+              <body>
+                <main>
+                  <div t:greet="Ada"></div>
+                </main>
+                <div hidden itemscope itemtype="https://pagelove.org/Schema">
+                  <meta itemprop="type" content="urn:x-pagelike${P}/AttrDemo">
+                  <ul>
+                    <li itemprop="property" itemscope itemtype="https://pagelove.org/Method">
+                      <meta itemprop="name" content="doesNotUnderstand">
+                      <meta itemprop="returns" content="https://pagelove.org/Element">
+                      <div itemprop="implementation" itemscope itemtype="https://pagelove.org/Sessel">
+                        <script itemprop="source" type="text/sessel">
+                          new p { messageName + ": " + parameters[0] }
+                        </script>
+                      </div>
+                    </li>
+                  </ul>
+                </div>
+              </body>
+            </html>
+        expect: {status: [200, 201, 204]}
+      - name: read main
+        as: anonymous
+        request:
+          method: GET
+          path: "${P}/attr-form-demo.html"
+          headers: {Range: "selector=main"}
+        expect:
+          status: 206
+          body_contains: ["greet: Ada"]
+          body_not_contains: ["t:greet", "<div"]
+
+  - id: comp.me.element-args-by-name
+    title: Element-form attributes are matched to declared parameters by name; others are ignored
+    area: composing
+    feature: method elements
+    evidence: documented
+    source: "docs reference/composing-pages/Method-Elements §Passing arguments (snapshot 2026-09-28)"
+    confidence: high
+    requires: [sessel]
+    live: true
+    site:
+      settings: {default_get: allow}
+      rules:
+        - {actor: "*", resource: "${P}/*", method: [GET, HEAD, PUT], action: Allow}
+    steps:
+      - name: store the page with its schema
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/greet.html"
+          headers: {Content-Type: "text/html"}
+          body: |
+            <!DOCTYPE html>
+            <html xmlns:t="urn:x-pagelike${P}/Greet">
+              <body>
+                <main><t:greet name="Ada" other="ignored"></t:greet></main>
+                <div hidden itemscope itemtype="https://pagelove.org/Schema">
+                  <meta itemprop="type" content="urn:x-pagelike${P}/Greet">
+                  <ul>
+                    <li itemprop="property" itemscope itemtype="https://pagelove.org/Method">
+                      <meta itemprop="name" content="greet">
+                      <meta itemprop="returns" content="https://pagelove.org/Element">
+                      <ul>
+                        <li itemprop="parameter" itemscope itemtype="https://pagelove.org/Parameter">
+                          <meta itemprop="name" content="name">
+                          <meta itemprop="type" content="https://schema.host/Text">
+                        </li>
+                      </ul>
+                      <div itemprop="implementation" itemscope itemtype="https://pagelove.org/Sessel">
+                        <script itemprop="source" type="text/sessel">
+                          new p { "Hello, " + name + "!" }
+                        </script>
+                      </div>
+                    </li>
+                  </ul>
+                </div>
+              </body>
+            </html>
+        expect: {status: [200, 201, 204]}
+      - as: anonymous
+        request:
+          method: GET
+          path: "${P}/greet.html"
+          headers: {Range: "selector=main"}
+        expect:
+          status: 206
+          body_contains: ["Hello, Ada!"]
+          body_not_contains: ["ignored", "t:greet"]
+
+  - id: comp.me.null-result-removes
+    title: A method that returns null removes the element
+    area: composing
+    feature: method elements
+    evidence: documented
+    source: "docs reference/composing-pages/Method-Elements §How the result becomes HTML (Null → removed) (snapshot 2026-09-28)"
+    confidence: high
+    requires: [sessel]
+    live: true
+    site:
+      settings: {default_get: allow}
+      rules:
+        - {actor: "*", resource: "${P}/*", method: [GET, HEAD, PUT], action: Allow}
+    steps:
+      - as: anonymous
+        request:
+          method: PUT
+          path: "${P}/null.html"
+          headers: {Content-Type: "text/html"}
+          body: |
+            <!DOCTYPE html>
+            <html xmlns:t="urn:x-pagelike${P}/Nothing">
+              <body>
+                <main><t:nothing>inner text</t:nothing><p>after</p></main>
+                <div hidden itemscope itemtype="https://pagelove.org/Schema">
+                  <meta itemprop="type" content="urn:x-pagelike${P}/Nothing">
+                  <ul>
+                    <li itemprop="property" itemscope itemtype="https://pagelove.org/Method">
+                      <meta itemprop="name" content="nothing">
+                      <meta itemprop="returns" content="https://pagelove.org/Element">
+                      <div itemprop="implementation" itemscope itemtype="https://pagelove.org/Sessel">
+                        <script itemprop="source" type="text/sessel">null</script>
+                      </div>
+                    </li>
+                  </ul>
+                </div>
+              </body>
+            </html>
+        expect: {status: [200, 201, 204]}
+      - as: anonymous
+        request:
+          method: GET
+          path: "${P}/null.html"
+          headers: {Range: "selector=main"}
+        expect:
+          status: 206
+          body_contains: ["<p>after</p>"]
+          body_not_contains: ["t:nothing", "inner text"]
+
+  - id: comp.me.attr-form-undeclared-stripped
+    title: An attribute naming an undeclared method (no doesNotUnderstand) is stripped silently
+    area: composing
+    feature: method attribute form
+    evidence: documented
+    source: "docs reference/composing-pages/Method-Elements §Error cases (attribute form: 'silently stripped'), §doesNotUnderstand fallback (snapshot 2026-09-28)"
+    confidence: high
+    requires: [sessel]
+    live: true
+    site:
+      settings: {default_get: allow}
+      rules:
+        - {actor: "*", resource: "${P}/*", method: [GET, HEAD, PUT], action: Allow}
+    steps:
+      - as: anonymous
+        request:
+          method: PUT
+          path: "${P}/strip.html"
+          headers: {Content-Type: "text/html"}
+          body: |
+            <!DOCTYPE html>
+            <html xmlns:t="urn:x-pagelike${P}/OnlyHello">
+              <body>
+                <main><div id="host" t:unknown="v">keep</div></main>
+                <div hidden itemscope itemtype="https://pagelove.org/Schema">
+                  <meta itemprop="type" content="urn:x-pagelike${P}/OnlyHello">
+                  <ul>
+                    <li itemprop="property" itemscope itemtype="https://pagelove.org/Method">
+                      <meta itemprop="name" content="hello">
+                      <meta itemprop="returns" content="https://pagelove.org/Element">
+                      <div itemprop="implementation" itemscope itemtype="https://pagelove.org/Sessel">
+                        <script itemprop="source" type="text/sessel">new p { "hi" }</script>
+                      </div>
+                    </li>
+                  </ul>
+                </div>
+              </body>
+            </html>
+        expect: {status: [200, 201, 204]}
+      - as: anonymous
+        request:
+          method: GET
+          path: "${P}/strip.html"
+          headers: {Range: "selector=main"}
+        expect:
+          status: 206
+          body_contains: ['id="host"', ">keep</div>"]
+          body_not_contains: ["t:unknown"]
+
+  - id: comp.me.element-form-undeclared-500
+    title: An element naming an undeclared method (no doesNotUnderstand) fails with 500
+    area: composing
+    feature: method elements
+    evidence: documented
+    source: "docs reference/composing-pages/Method-Elements §Error cases (element form) (snapshot 2026-09-28)"
+    confidence: high
+    requires: [sessel]
+    live: true
+    notes: "Message per docs: 'no method found for t:unknown and no doesNotUnderstand defined' (not asserted)."
+    site:
+      settings: {default_get: allow}
+      rules:
+        - {actor: "*", resource: "${P}/*", method: [GET, HEAD, PUT], action: Allow}
+    steps:
+      - as: anonymous
+        request:
+          method: PUT
+          path: "${P}/undeclared.html"
+          headers: {Content-Type: "text/html"}
+          body: |
+            <!DOCTYPE html>
+            <html xmlns:t="urn:x-pagelike${P}/OnlyHello2">
+              <body>
+                <main><t:unknown></t:unknown></main>
+                <div hidden itemscope itemtype="https://pagelove.org/Schema">
+                  <meta itemprop="type" content="urn:x-pagelike${P}/OnlyHello2">
+                  <ul>
+                    <li itemprop="property" itemscope itemtype="https://pagelove.org/Method">
+                      <meta itemprop="name" content="hello">
+                      <meta itemprop="returns" content="https://pagelove.org/Element">
+                      <div itemprop="implementation" itemscope itemtype="https://pagelove.org/Sessel">
+                        <script itemprop="source" type="text/sessel">new p { "hi" }</script>
+                      </div>
+                    </li>
+                  </ul>
+                </div>
+              </body>
+            </html>
+        expect: {status: [200, 201, 204]}
+      - as: anonymous
+        request: {method: GET, path: "${P}/undeclared.html"}
+        expect: {status: 500}
+
+  - id: comp.me.transient-attr-not-dispatched
+    title: prefix:transient is never dispatched, even to doesNotUnderstand
+    area: composing
+    feature: method attribute form
+    evidence: documented
+    source: "docs reference/composing-pages/Method-Elements §Attribute form (last bullet), §Attribute-form example intro (snapshot 2026-09-28)"
+    confidence: high
+    requires: [sessel]
+    live: true
+    notes: "R-COMP-65."
+    site:
+      settings: {default_get: allow}
+      rules:
+        - {actor: "*", resource: "${P}/*", method: [GET, HEAD, PUT], action: Allow}
+    steps:
+      - as: anonymous
+        request:
+          method: PUT
+          path: "${P}/transient-dnu.html"
+          headers: {Content-Type: "text/html"}
+          body: |
+            <!DOCTYPE html>
+            <html xmlns:t="urn:x-pagelike${P}/Dnu">
+              <body>
+                <main><ul id="cart" t:transient><li>Default</li></ul></main>
+                <div hidden itemscope itemtype="https://pagelove.org/Schema">
+                  <meta itemprop="type" content="urn:x-pagelike${P}/Dnu">
+                  <ul>
+                    <li itemprop="property" itemscope itemtype="https://pagelove.org/Method">
+                      <meta itemprop="name" content="doesNotUnderstand">
+                      <meta itemprop="returns" content="https://pagelove.org/Element">
+                      <div itemprop="implementation" itemscope itemtype="https://pagelove.org/Sessel">
+                        <script itemprop="source" type="text/sessel">new p { "DNU:" + messageName }</script>
+                      </div>
+                    </li>
+                  </ul>
+                </div>
+              </body>
+            </html>
+        expect: {status: [200, 201, 204]}
+      - as: anonymous
+        request:
+          method: GET
+          path: "${P}/transient-dnu.html"
+          headers: {Range: "selector=main"}
+        expect:
+          status: 206
+          body_contains: ["<li>Default</li>"]
+          body_not_contains: ["DNU:transient"]
+
+  - id: comp.me.template-dispatched-last
+    title: A Context write by an attribute-form method is visible to p:template on the same element
+    area: composing
+    feature: evaluation order
+    evidence: documented
+    source: "docs reference/composing-pages/Method-Elements §Attribute form (template dispatched last), §Attribute-form example (Binding/CSS doesNotUnderstand writes Context[messageName]) (snapshot 2026-09-28)"
+    confidence: medium
+    requires: [sessel, liquid]
+    live: true
+    notes: "R-COMP-25/63/64. No 'returns' is declared, so the host is not replaced; the attribute is removed and Context.greeting is set for the host subtree."
+    site:
+      settings: {default_get: allow}
+      rules:
+        - {actor: "*", resource: "${P}/*", method: [GET, HEAD, PUT], action: Allow}
+    steps:
+      - as: anonymous
+        request:
+          method: PUT
+          path: "${P}/ctx.html"
+          headers: {Content-Type: "text/html"}
+          body: |
+            <!DOCTYPE html>
+            <html xmlns:t="urn:x-pagelike${P}/Ctx" xmlns:p="https://pagelove.org/1.0">
+              <body>
+                <main><div id="host" p:template="text/liquid" t:greeting="hi">[{{ greeting }}]</div></main>
+                <div hidden itemscope itemtype="https://pagelove.org/Schema">
+                  <meta itemprop="type" content="urn:x-pagelike${P}/Ctx">
+                  <ul>
+                    <li itemprop="property" itemscope itemtype="https://pagelove.org/Method">
+                      <meta itemprop="name" content="doesNotUnderstand">
+                      <div itemprop="implementation" itemscope itemtype="https://pagelove.org/Sessel">
+                        <script itemprop="source" type="text/sessel">
+                          Context[messageName] = parameters[0] + "!";
+                          null
+                        </script>
+                      </div>
+                    </li>
+                  </ul>
+                </div>
+              </body>
+            </html>
+        expect: {status: [200, 201, 204]}
+      - as: anonymous
+        request:
+          method: GET
+          path: "${P}/ctx.html"
+          headers: {Range: "selector=#host"}
+        expect:
+          status: 206
+          body_contains: ["[hi!]"]
+          body_not_contains: ["t:greeting", "p:template"]
+
+  - id: comp.me.implementation-error-500
+    title: A method implementation that raises fails composition with 500
+    area: composing
+    feature: method elements
+    evidence: documented
+    source: "docs reference/composing-pages/Method-Elements §Error cases (implementation raises) (snapshot 2026-09-28)"
+    confidence: high
+    requires: [sessel]
+    live: true
+    site:
+      settings: {default_get: allow}
+      rules:
+        - {actor: "*", resource: "${P}/*", method: [GET, HEAD, PUT], action: Allow}
+    steps:
+      - as: anonymous
+        request:
+          method: PUT
+          path: "${P}/boom.html"
+          headers: {Content-Type: "text/html"}
+          body: |
+            <!DOCTYPE html>
+            <html xmlns:t="urn:x-pagelike${P}/Boom">
+              <body>
+                <main><t:boom></t:boom></main>
+                <div hidden itemscope itemtype="https://pagelove.org/Schema">
+                  <meta itemprop="type" content="urn:x-pagelike${P}/Boom">
+                  <ul>
+                    <li itemprop="property" itemscope itemtype="https://pagelove.org/Method">
+                      <meta itemprop="name" content="boom">
+                      <meta itemprop="returns" content="https://pagelove.org/Element">
+                      <div itemprop="implementation" itemscope itemtype="https://pagelove.org/Sessel">
+                        <script itemprop="source" type="text/sessel">nosuchvariable + 1</script>
+                      </div>
+                    </li>
+                  </ul>
+                </div>
+              </body>
+            </html>
+        expect: {status: [200, 201, 204]}
+      - as: anonymous
+        request: {method: GET, path: "${P}/boom.html"}
+        expect: {status: 500}

@@ -1,0 +1,135 @@
+{
+  "case": "liquid.escape.probe-0929.source-text",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (a \u0026 b)",
+      "method": "GET",
+      "path": "/_pl/liquid-escape-probe-0929-source-text-7b7643/e1.html",
+      "status": 206,
+      "headers": {
+        "content-length": "23",
+        "content-range": "selector #o",
+        "content-type": "text/html",
+        "etag": "\"0e6d3e030fbaeb8b425785b45a3a407c03b09d33b8f868b0c04b8fa790e3e13d-0e6d3e030fbaeb8b425785b45a3a407c03b09d33b8f868b0c04b8fa790e3e13d-1\"",
+        "vary": "Host, Range, Accept"
+      },
+      "body": "\u003cp id=\"o\"\u003ea \u0026amp; b\u003c/p\u003e"
+    },
+    {
+      "step": "step 2 (character references in a Liquid string)",
+      "method": "GET",
+      "path": "/_pl/liquid-escape-probe-0929-source-text-7b7643/e2.html",
+      "status": 206,
+      "headers": {
+        "content-length": "32",
+        "content-range": "selector #o",
+        "content-type": "text/html",
+        "etag": "\"522c91b7f22a8f9f61a620f21abefdd27b0f58aaba516f8f8eaf2a8660b0f900-522c91b7f22a8f9f61a620f21abefdd27b0f58aaba516f8f8eaf2a8660b0f900-1\"",
+        "vary": "Host, Range, Accept"
+      },
+      "body": "\u003cp id=\"o\"\u003e\u0026lt;a href='x'\u0026gt;\u003c/p\u003e"
+    },
+    {
+      "step": "step 3 (\u003e in a tag)",
+      "method": "GET",
+      "path": "/_pl/liquid-escape-probe-0929-source-text-7b7643/e3.html",
+      "status": 206,
+      "headers": {
+        "content-length": "16",
+        "content-range": "selector #o",
+        "content-type": "text/html",
+        "etag": "\"5108c3be7f18ee87446408d8e1c5266040ef9ad3e12f72124a145f274907b272-5108c3be7f18ee87446408d8e1c5266040ef9ad3e12f72124a145f274907b272-1\"",
+        "vary": "Host, Range, Accept"
+      },
+      "body": "\u003cp id=\"o\"\u003egt\u003c/p\u003e"
+    },
+    {
+      "step": "step 4 (value from microdata)",
+      "method": "GET",
+      "path": "/_pl/liquid-escape-probe-0929-source-text-7b7643/e4.html",
+      "status": 206,
+      "headers": {
+        "cache-control": "private",
+        "content-length": "42",
+        "content-range": "selector #o",
+        "content-type": "text/html",
+        "etag": "\"f94e66e89a3894f55c66baf9ca75e644199937a1edb4b1be97a410aa433606bc-f94e66e89a3894f55c66baf9ca75e644199937a1edb4b1be97a410aa433606bc-1\"",
+        "vary": "Host, Range, Accept"
+      },
+      "body": "\u003cp id=\"o\"\u003e\u0026lt;a href='x'\u0026gt;|a \u0026amp; b\u003c/p\u003e"
+    },
+    {
+      "step": "step 5 (quotes are re-serialized)",
+      "method": "GET",
+      "path": "/_pl/liquid-escape-probe-0929-source-text-7b7643/e5.html",
+      "status": 206,
+      "headers": {
+        "content-length": "27",
+        "content-range": "selector #o",
+        "content-type": "text/html",
+        "etag": "\"20faac4e8a7ea99c132f7f7e2a7513bcae749e5e4351a7f5fb109395de93add0-20faac4e8a7ea99c132f7f7e2a7513bcae749e5e4351a7f5fb109395de93add0-1\"",
+        "vary": "Host, Range, Accept"
+      },
+      "body": "\u003cp id=\"o\"\u003eit's|say \"hi\"\u003c/p\u003e"
+    },
+    {
+      "step": "step 6 (stored source of e1)",
+      "method": "GET",
+      "path": "/_pl/liquid-escape-probe-0929-source-text-7b7643/e1.html",
+      "status": 200,
+      "headers": {
+        "accept-ranges": "bytes",
+        "content-length": "143",
+        "content-type": "text/html",
+        "etag": "\"65df7e4eef22c5326e385dae65b5a9f16b15cef6a0c61ecca9bf5e8b4a969307\"",
+        "last-modified": "Tue, 29 Sep 2026 01:56:55 GMT"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml xmlns:p=\"https://pagelove.org/1.0\"\u003e\u003cbody\u003e\u003cp id=\"o\" p:template=\"text/liquid\"\u003e{{ \"a \u0026amp; b\" | escape }}\u003c/p\u003e\u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 7 (character references in plain template text)",
+      "method": "GET",
+      "path": "/_pl/liquid-escape-probe-0929-source-text-7b7643/b1.html",
+      "status": 206,
+      "headers": {
+        "content-length": "40",
+        "content-range": "selector #o",
+        "content-type": "text/html",
+        "etag": "\"95da4b9ca21d7d8b25046079b7cc9d76e9450e8a38d14c1c52a7d8fd5ed4d4e2-95da4b9ca21d7d8b25046079b7cc9d76e9450e8a38d14c1c52a7d8fd5ed4d4e2-1\"",
+        "vary": "Host, Range, Accept"
+      },
+      "body": "\u003cp id=\"o\"\u003ex \u0026lt;i\u0026gt;y\u0026lt;/i\u0026gt; [1]\u003c/p\u003e"
+    },
+    {
+      "step": "step 8 (character references in an attribute inside the template)",
+      "method": "GET",
+      "path": "/_pl/liquid-escape-probe-0929-source-text-7b7643/b2.html",
+      "status": 206,
+      "headers": {
+        "content-length": "39",
+        "content-range": "selector #o",
+        "content-type": "text/html",
+        "etag": "\"a903c85092c6ef60d38fed1e56a2c5d2f418f52672c6b7d72304862816a63568-a903c85092c6ef60d38fed1e56a2c5d2f418f52672c6b7d72304862816a63568-1\"",
+        "vary": "Host, Range, Accept"
+      },
+      "body": "\u003cp id=\"o\"\u003e\u003ca id=\"t\" title=\"3\"\u003et\u003c/a\u003e\u003c/p\u003e"
+    },
+    {
+      "step": "step 9 (Liquid delimiters written as character references)",
+      "method": "GET",
+      "path": "/_pl/liquid-escape-probe-0929-source-text-7b7643/b3.html",
+      "status": 206,
+      "headers": {
+        "content-length": "15",
+        "content-range": "selector #o",
+        "content-type": "text/html",
+        "etag": "\"2b84db82e77e822cf7a3bc0f7239bde0c361c1361bfe49db45d73606ca660c29-2b84db82e77e822cf7a3bc0f7239bde0c361c1361bfe49db45d73606ca660c29-1\"",
+        "vary": "Host, Range, Accept"
+      },
+      "body": "\u003cp id=\"o\"\u003e2\u003c/p\u003e"
+    }
+  ],
+  "outcome": "pass",
+  "target": "live"
+}

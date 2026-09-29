@@ -1,0 +1,49 @@
+{
+  "case": "authz.selector.post-before-after-keys-parent",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (before a list item (parent is)",
+      "method": "POST",
+      "path": "/_pl/authz-selector-post-before-after-keys-pa-04e153/doc.html",
+      "status": 206,
+      "headers": {
+        "content-length": "24",
+        "content-range": "selector #b",
+        "content-type": "text/html",
+        "etag": "\"29d066a844fe1b9e21ad034c7a6343a68b9b5e1eef790187fc24f3d9f727715e-29d066a844fe1b9e21ad034c7a6343a68b9b5e1eef790187fc24f3d9f727715e-2\"",
+        "last-modified": "Mon, 28 Sep 2026 22:40:34 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003cli id=\"ab\"\u003ebetween\u003c/li\u003e"
+    },
+    {
+      "step": "step 2 (after a list item (parent is)",
+      "method": "POST",
+      "path": "/_pl/authz-selector-post-before-after-keys-pa-04e153/doc.html",
+      "status": 206,
+      "headers": {
+        "content-length": "17",
+        "content-range": "selector #b",
+        "content-type": "text/html",
+        "etag": "\"9c3dd74046180db1f14525a6a50070dd2087e6e0e54e5f309fbf72f3c7129e5d-9c3dd74046180db1f14525a6a50070dd2087e6e0e54e5f309fbf72f3c7129e5d-3\"",
+        "last-modified": "Mon, 28 Sep 2026 22:40:35 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003cli id=\"c\"\u003eC\u003c/li\u003e"
+    },
+    {
+      "step": "step 3 (after the list itself (parent is body))",
+      "method": "POST",
+      "path": "/_pl/authz-selector-post-before-after-keys-pa-04e153/doc.html",
+      "status": 401,
+      "headers": {
+        "content-length": "428",
+        "content-type": "text/html; charset=utf-8"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\n\u003chead\u003e\n    \u003cmeta charset=\"UTF-8\"\u003e\n    \u003ctitle\u003e401 Unauthorized\u003c/title\u003e\n\u003c/head\u003e\n\u003cbody itemscope itemtype=\"https://pagelove.org/1.0/Error\"\u003e\n    \u003ch1\u003e401 Unauthorized\u003c/h1\u003e\n    \u003cp itemprop=\"message\"\u003eAuthentication required to access this resource.\u003c/p\u003e\n    \u003cdl\u003e\n        \u003cdt\u003eResource\u003c/dt\u003e\n        \u003cdd itemprop=\"resource\"\u003e/_pl/authz-selector-post-before-after-keys-pa-04e153/doc.html\u003c/dd\u003e\n    \u003c/dl\u003e\n\u003c/body\u003e\n\u003c/html\u003e"
+    }
+  ],
+  "outcome": "pass",
+  "target": "live"
+}

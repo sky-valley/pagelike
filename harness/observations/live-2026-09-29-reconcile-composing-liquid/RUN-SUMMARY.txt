@@ -1,0 +1,31 @@
+# Live reconciliation of composing-liquid, 2026-09-29
+# (docs/compat/decisions-2026-09-29/composing-liquid.md)
+#
+# run1-probes/  run 1: 7 probe cases (loose expectations), 7 passed
+# run2/         run 2: 6 listed cases, 2 .live siblings, 7 probes, 15 passed.
+#               The case liquid.compose.range-over-rendered-output and its
+#               .live sibling shared one observation file name then; the file
+#               kept (renamed liquid-compose-range-over-rendered-live.json)
+#               is the sibling's. harness.ObservationName now keeps "-live".
+#               liquid.escape.escape-filter still took its strings from
+#               microdata then (an intermediate fix; the sibling had a second
+#               step for character references). Both changed before run 3.
+# this folder   run 3 (final, below): the same 15 cases, 15 passed.
+
+PASS comp.pag.probe-0929.single-with-id
+PASS comp.pag.probe-0929.single-without-id
+PASS comp.pag.probe-0929.two-with-ids
+PASS comp.pag.probe-0929.without-ids
+PASS comp.pag.links-and-slice
+PASS comp.pag.first-page-no-prev
+PASS comp.pag.multiple-without-ids-422
+PASS liquid.compose.range-over-rendered-output
+PASS liquid.compose.range-over-rendered-output.live
+PASS liquid.escape.escape-filter
+PASS liquid.escape.escape-filter.live
+PASS liquid.filters-exp.where-reject-find
+PASS liquid.compose.probe-0929.range-literal-forms
+PASS liquid.escape.probe-0929.source-text
+PASS liquid.filters-exp.probe-0929.map-single-value
+
+15 passed, 0 failed, 0 skipped

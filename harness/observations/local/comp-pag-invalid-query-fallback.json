@@ -1,0 +1,72 @@
+{
+  "case": "comp.pag.invalid-query-fallback",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (non-numeric page)",
+      "method": "GET",
+      "path": "/_pl/comp-pag-invalid-query-fallback-dedff6/contacts.html?paginate:page=abc",
+      "status": 200,
+      "headers": {
+        "accept-ranges": "selector, bytes",
+        "cache-control": "public, max-age=5",
+        "content-length": "519",
+        "content-type": "text/html",
+        "etag": "W/\"277f249e08e1c03fd76ce94e614c723af10f21ba262143e9511dae774198977c\"",
+        "link": "\u003c/_pl/comp-pag-invalid-query-fallback-dedff6/contacts.html?paginate:contacts:page=1\u003e; rel=\"first\"; title=\"contacts\", \u003c/_pl/comp-pag-invalid-query-fallback-dedff6/contacts.html?paginate:contacts:page=3\u003e; rel=\"last\"; title=\"contacts\", \u003c/_pl/comp-pag-invalid-query-fallback-dedff6/contacts.html?paginate:contacts:page=2\u003e; rel=\"next\"; title=\"contacts\"",
+        "vary": "Host, Range, Accept"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003chead\u003e\u003ctitle\u003eContacts\u003c/title\u003e\u003clink rel=\"first\" href=\"/_pl/comp-pag-invalid-query-fallback-dedff6/contacts.html?paginate:contacts:page=1\" title=\"contacts\"\u003e\u003clink rel=\"last\" href=\"/_pl/comp-pag-invalid-query-fallback-dedff6/contacts.html?paginate:contacts:page=3\" title=\"contacts\"\u003e\u003clink rel=\"next\" href=\"/_pl/comp-pag-invalid-query-fallback-dedff6/contacts.html?paginate:contacts:page=2\" title=\"contacts\"\u003e\u003c/head\u003e\u003cbody\u003e\n\u003cul id=\"contacts\"\u003e\n\u003cli\u003eAlice\u003c/li\u003e\u003cli\u003eBob\u003c/li\u003e\u003cli\u003eCarol\u003c/li\u003e\n\u003c/ul\u003e\n\u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 2 (zero page)",
+      "method": "GET",
+      "path": "/_pl/comp-pag-invalid-query-fallback-dedff6/contacts.html?paginate:page=0",
+      "status": 200,
+      "headers": {
+        "accept-ranges": "selector, bytes",
+        "cache-control": "public, max-age=5",
+        "content-length": "519",
+        "content-type": "text/html",
+        "etag": "W/\"277f249e08e1c03fd76ce94e614c723af10f21ba262143e9511dae774198977c\"",
+        "link": "\u003c/_pl/comp-pag-invalid-query-fallback-dedff6/contacts.html?paginate:contacts:page=1\u003e; rel=\"first\"; title=\"contacts\", \u003c/_pl/comp-pag-invalid-query-fallback-dedff6/contacts.html?paginate:contacts:page=3\u003e; rel=\"last\"; title=\"contacts\", \u003c/_pl/comp-pag-invalid-query-fallback-dedff6/contacts.html?paginate:contacts:page=2\u003e; rel=\"next\"; title=\"contacts\"",
+        "vary": "Host, Range, Accept"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003chead\u003e\u003ctitle\u003eContacts\u003c/title\u003e\u003clink rel=\"first\" href=\"/_pl/comp-pag-invalid-query-fallback-dedff6/contacts.html?paginate:contacts:page=1\" title=\"contacts\"\u003e\u003clink rel=\"last\" href=\"/_pl/comp-pag-invalid-query-fallback-dedff6/contacts.html?paginate:contacts:page=3\" title=\"contacts\"\u003e\u003clink rel=\"next\" href=\"/_pl/comp-pag-invalid-query-fallback-dedff6/contacts.html?paginate:contacts:page=2\" title=\"contacts\"\u003e\u003c/head\u003e\u003cbody\u003e\n\u003cul id=\"contacts\"\u003e\n\u003cli\u003eAlice\u003c/li\u003e\u003cli\u003eBob\u003c/li\u003e\u003cli\u003eCarol\u003c/li\u003e\n\u003c/ul\u003e\n\u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 3 (negative page)",
+      "method": "GET",
+      "path": "/_pl/comp-pag-invalid-query-fallback-dedff6/contacts.html?paginate:page=-2",
+      "status": 200,
+      "headers": {
+        "accept-ranges": "selector, bytes",
+        "cache-control": "public, max-age=5",
+        "content-length": "519",
+        "content-type": "text/html",
+        "etag": "W/\"277f249e08e1c03fd76ce94e614c723af10f21ba262143e9511dae774198977c\"",
+        "link": "\u003c/_pl/comp-pag-invalid-query-fallback-dedff6/contacts.html?paginate:contacts:page=1\u003e; rel=\"first\"; title=\"contacts\", \u003c/_pl/comp-pag-invalid-query-fallback-dedff6/contacts.html?paginate:contacts:page=3\u003e; rel=\"last\"; title=\"contacts\", \u003c/_pl/comp-pag-invalid-query-fallback-dedff6/contacts.html?paginate:contacts:page=2\u003e; rel=\"next\"; title=\"contacts\"",
+        "vary": "Host, Range, Accept"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003chead\u003e\u003ctitle\u003eContacts\u003c/title\u003e\u003clink rel=\"first\" href=\"/_pl/comp-pag-invalid-query-fallback-dedff6/contacts.html?paginate:contacts:page=1\" title=\"contacts\"\u003e\u003clink rel=\"last\" href=\"/_pl/comp-pag-invalid-query-fallback-dedff6/contacts.html?paginate:contacts:page=3\" title=\"contacts\"\u003e\u003clink rel=\"next\" href=\"/_pl/comp-pag-invalid-query-fallback-dedff6/contacts.html?paginate:contacts:page=2\" title=\"contacts\"\u003e\u003c/head\u003e\u003cbody\u003e\n\u003cul id=\"contacts\"\u003e\n\u003cli\u003eAlice\u003c/li\u003e\u003cli\u003eBob\u003c/li\u003e\u003cli\u003eCarol\u003c/li\u003e\n\u003c/ul\u003e\n\u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 4 (zero length uses the attribute value)",
+      "method": "GET",
+      "path": "/_pl/comp-pag-invalid-query-fallback-dedff6/contacts.html?paginate:length=0",
+      "status": 200,
+      "headers": {
+        "accept-ranges": "selector, bytes",
+        "cache-control": "public, max-age=5",
+        "content-length": "585",
+        "content-type": "text/html",
+        "etag": "W/\"03627f693561702ee103adeadd466df2497d2cdacccc1ef5e44e403bb405b040\"",
+        "link": "\u003c/_pl/comp-pag-invalid-query-fallback-dedff6/contacts.html?paginate:length=0\u0026paginate:contacts:page=1\u003e; rel=\"first\"; title=\"contacts\", \u003c/_pl/comp-pag-invalid-query-fallback-dedff6/contacts.html?paginate:length=0\u0026paginate:contacts:page=3\u003e; rel=\"last\"; title=\"contacts\", \u003c/_pl/comp-pag-invalid-query-fallback-dedff6/contacts.html?paginate:length=0\u0026paginate:contacts:page=2\u003e; rel=\"next\"; title=\"contacts\"",
+        "vary": "Host, Range, Accept"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003chead\u003e\u003ctitle\u003eContacts\u003c/title\u003e\u003clink rel=\"first\" href=\"/_pl/comp-pag-invalid-query-fallback-dedff6/contacts.html?paginate:length=0\u0026amp;paginate:contacts:page=1\" title=\"contacts\"\u003e\u003clink rel=\"last\" href=\"/_pl/comp-pag-invalid-query-fallback-dedff6/contacts.html?paginate:length=0\u0026amp;paginate:contacts:page=3\" title=\"contacts\"\u003e\u003clink rel=\"next\" href=\"/_pl/comp-pag-invalid-query-fallback-dedff6/contacts.html?paginate:length=0\u0026amp;paginate:contacts:page=2\" title=\"contacts\"\u003e\u003c/head\u003e\u003cbody\u003e\n\u003cul id=\"contacts\"\u003e\n\u003cli\u003eAlice\u003c/li\u003e\u003cli\u003eBob\u003c/li\u003e\u003cli\u003eCarol\u003c/li\u003e\n\u003c/ul\u003e\n\u003c/body\u003e\u003c/html\u003e\n"
+    }
+  ],
+  "outcome": "pass",
+  "target": "local"
+}

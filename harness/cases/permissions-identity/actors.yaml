@@ -1,0 +1,545 @@
+# Actor forms (spec R-PERM-9..18, 54).
+cases:
+  - id: authz.actor.user-name-is-sub
+    title: A user-name actor matches the OIDC sub, never the display name or email local part
+    area: permissions-identity
+    feature: actor user name
+    evidence: documented
+    source: "docs reference/permissions/AuthorizationRule §actor ('the request principal's OIDC sub'); languages/sessel/reference/syntax (request.auth.username = sub)"
+    confidence: high
+    requires: [multi-actor]
+    live: false
+    site:
+      files:
+        - path: "${P}/by-sub.html"
+          body: '<!DOCTYPE html><html><body><h1>T</h1></body></html>'
+        - path: "${P}/by-name.html"
+          body: '<!DOCTYPE html><html><body><h1>T</h1></body></html>'
+        - path: "${P}/rules.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div hidden itemscope itemtype="https://pagelove.org/AuthorizationRule">
+                <meta itemprop="actor" content="sub-alice"><meta itemprop="resource" content="${P}/by-sub.html">
+                <meta itemprop="method" content="PUT"><meta itemprop="action" content="allow">
+              </div>
+              <div hidden itemscope itemtype="https://pagelove.org/AuthorizationRule">
+                <meta itemprop="actor" content="Alice"><meta itemprop="actor" content="alice">
+                <meta itemprop="resource" content="${P}/by-name.html">
+                <meta itemprop="method" content="PUT"><meta itemprop="action" content="allow">
+              </div>
+            </body></html>
+    actors:
+      alice: {sub: sub-alice, name: Alice, email: alice@example.com, email_verified: true, roles: []}
+    steps:
+      - name: sub matches
+        as: alice
+        request: {method: PUT, path: "${P}/by-sub.html", headers: {Range: "selector=h1", Content-Type: text/html}, body: '<h1>A</h1>'}
+        expect: {status: 206}
+      - name: display name does not match
+        as: alice
+        request: {method: PUT, path: "${P}/by-name.html", headers: {Range: "selector=h1", Content-Type: text/html}, body: '<h1>A</h1>'}
+        expect: {status: 403}
+
+  - id: authz.actor.verified-email
+    title: An email actor matches only a verified email; unverified or absent emails never match
+    area: permissions-identity
+    feature: actor verified email
+    evidence: documented
+    source: "docs reference/permissions/AuthorizationRule §actor ('only when that email is verified')"
+    confidence: high
+    requires: [multi-actor]
+    live: false
+    site:
+      files:
+        - path: "${P}/doc.html"
+          body: '<!DOCTYPE html><html><body><h1>T</h1></body></html>'
+        - path: "${P}/rules.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div hidden itemscope itemtype="https://pagelove.org/AuthorizationRule">
+                <meta itemprop="actor" content="alice@example.com"><meta itemprop="resource" content="${P}/doc.html">
+                <meta itemprop="method" content="PUT"><meta itemprop="action" content="allow">
+              </div>
+            </body></html>
+    actors:
+      alice: {sub: sub-alice, email: alice@example.com, email_verified: true, roles: []}
+      mallory: {sub: sub-mallory, email: alice@example.com, email_verified: false, roles: []}
+      nomail: {sub: sub-nomail, email_verified: false, roles: []}
+    steps:
+      - name: verified email matches
+        as: alice
+        request: {method: PUT, path: "${P}/doc.html", headers: {Range: "selector=h1", Content-Type: text/html}, body: '<h1>A</h1>'}
+        expect: {status: 206}
+      - name: same email unverified does not match
+        as: mallory
+        request: {method: PUT, path: "${P}/doc.html", headers: {Range: "selector=h1", Content-Type: text/html}, body: '<h1>M</h1>'}
+        expect: {status: 403}
+      - name: absent email does not match
+        as: nomail
+        request: {method: PUT, path: "${P}/doc.html", headers: {Range: "selector=h1", Content-Type: text/html}, body: '<h1>N</h1>'}
+        expect: {status: 403}
+
+  - id: authz.actor.email-exact-case
+    title: Email actors are compared exactly (case-sensitive)
+    area: permissions-identity
+    feature: actor verified email
+    evidence: inferred
+    source: "docs reference/permissions/Group §Fields ('matched exactly'); no source discusses case"
+    confidence: low
+    requires: [multi-actor]
+    live: false
+    notes: Probe P-12. Case-insensitive domain comparison would be defensible; pagelike keeps exact matching until observed.
+    site:
+      files:
+        - path: "${P}/doc.html"
+          body: '<!DOCTYPE html><html><body><h1>T</h1></body></html>'
+        - path: "${P}/rules.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div hidden itemscope itemtype="https://pagelove.org/AuthorizationRule">
+                <meta itemprop="actor" content="Alice@Example.com"><meta itemprop="resource" content="${P}/doc.html">
+                <meta itemprop="method" content="PUT"><meta itemprop="action" content="allow">
+              </div>
+            </body></html>
+    actors:
+      alice: {sub: sub-alice, email: alice@example.com, email_verified: true, roles: []}
+    steps:
+      - name: differently-cased email does not match
+        as: alice
+        request: {method: PUT, path: "${P}/doc.html", headers: {Range: "selector=h1", Content-Type: text/html}, body: '<h1>A</h1>'}
+        expect: {status: 403}
+
+  - id: authz.actor.users-builtin
+    title: users matches every signed-in principal and no anonymous request
+    area: permissions-identity
+    feature: actor users
+    evidence: documented
+    source: "docs reference/permissions/AuthorizationRule §actor ('To say any signed-in user, write users')"
+    confidence: high
+    requires: [multi-actor]
+    live: false
+    site:
+      files:
+        - path: "${P}/doc.html"
+          body: '<!DOCTYPE html><html><body><h1>T</h1></body></html>'
+        - path: "${P}/rules.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div hidden itemscope itemtype="https://pagelove.org/AuthorizationRule">
+                <meta itemprop="actor" content="users"><meta itemprop="resource" content="${P}/doc.html">
+                <meta itemprop="method" content="PUT"><meta itemprop="action" content="allow">
+              </div>
+            </body></html>
+    actors:
+      mallory: {sub: sub-mallory, email: alice@example.com, email_verified: false, roles: []}
+    steps:
+      - name: any signed-in principal (even with an unverified email)
+        as: mallory
+        request: {method: PUT, path: "${P}/doc.html", headers: {Range: "selector=h1", Content-Type: text/html}, body: '<h1>M</h1>'}
+        expect: {status: 206}
+      - name: anonymous refused
+        as: anonymous
+        request: {method: PUT, path: "${P}/doc.html", headers: {Range: "selector=h1", Content-Type: text/html}, body: '<h1>X</h1>'}
+        expect: {status: 401}
+
+  - id: authz.actor.users-anonymous-live
+    title: users and authenticated never match an anonymous request
+    area: permissions-identity
+    feature: actor users
+    evidence: documented
+    source: "docs reference/permissions/AuthorizationRule §actor ('Neither matches an anonymous request')"
+    confidence: high
+    requires: []
+    live: true
+    site:
+      files:
+        - path: "${P}/doc.html"
+          body: '<!DOCTYPE html><html><body><h1>T</h1><p id="p">x</p></body></html>'
+        - path: "${P}/rules.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div hidden itemscope itemtype="https://pagelove.org/AuthorizationRule">
+                <meta itemprop="actor" content="users"><meta itemprop="resource" content="${P}/doc.html">
+                <meta itemprop="method" content="PUT"><meta itemprop="action" content="allow">
+              </div>
+              <div hidden itemscope itemtype="https://pagelove.org/AuthorizationRule">
+                <meta itemprop="actor" content="authenticated"><meta itemprop="resource" content="${P}/doc.html">
+                <meta itemprop="method" content="DELETE"><meta itemprop="action" content="allow">
+              </div>
+              <div hidden itemscope itemtype="https://pagelove.org/AuthorizationRule">
+                <meta itemprop="actor" content=":username"><meta itemprop="resource" content="${P}/doc.html">
+                <meta itemprop="method" content="POST"><meta itemprop="action" content="allow">
+              </div>
+            </body></html>
+    steps:
+      - name: users does not admit anonymous PUT
+        as: anonymous
+        request: {method: PUT, path: "${P}/doc.html", headers: {Range: "selector=h1", Content-Type: text/html}, body: '<h1>X</h1>'}
+        expect: {status: 401}
+      - name: authenticated does not admit anonymous DELETE
+        as: anonymous
+        request: {method: DELETE, path: "${P}/doc.html", headers: {Range: "selector=#p"}}
+        expect: {status: 401}
+      - name: ":username does not admit anonymous POST"
+        as: anonymous
+        request: {method: POST, path: "${P}/doc.html", headers: {Range: "selector=body", Content-Type: text/html}, body: '<p>x</p>'}
+        expect: {status: 401}
+
+  - id: authz.actor.authenticated-alias
+    title: authenticated is an alias of users
+    area: permissions-identity
+    feature: actor users
+    evidence: documented
+    source: "docs reference/permissions/AuthorizationRule §actor ('authenticated is an alias for the same thing')"
+    confidence: high
+    requires: [multi-actor]
+    live: false
+    site:
+      files:
+        - path: "${P}/doc.html"
+          body: '<!DOCTYPE html><html><body><h1>T</h1></body></html>'
+        - path: "${P}/rules.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div hidden itemscope itemtype="https://pagelove.org/AuthorizationRule">
+                <meta itemprop="actor" content="authenticated"><meta itemprop="resource" content="${P}/doc.html">
+                <meta itemprop="method" content="PUT"><meta itemprop="action" content="allow">
+              </div>
+            </body></html>
+    actors:
+      bob: {sub: sub-bob, email: bob@example.com, email_verified: true, roles: []}
+    steps:
+      - name: signed-in principal allowed
+        as: bob
+        request: {method: PUT, path: "${P}/doc.html", headers: {Range: "selector=h1", Content-Type: text/html}, body: '<h1>B</h1>'}
+        expect: {status: 206}
+
+  - id: authz.actor.star-matches-everyone
+    title: "* matches anonymous and signed-in requests alike"
+    area: permissions-identity
+    feature: actor wildcard
+    evidence: documented
+    source: "docs reference/permissions/AuthorizationRule §actor ('The wildcard *, matching all actors, including anonymous requests')"
+    confidence: high
+    requires: [multi-actor]
+    live: false
+    site:
+      files:
+        - path: "${P}/doc.html"
+          body: '<!DOCTYPE html><html><body><h1>T</h1></body></html>'
+        - path: "${P}/rules.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div hidden itemscope itemtype="https://pagelove.org/AuthorizationRule">
+                <meta itemprop="actor" content="*"><meta itemprop="resource" content="${P}/doc.html">
+                <meta itemprop="method" content="PUT"><meta itemprop="action" content="allow">
+              </div>
+            </body></html>
+    actors:
+      bob: {sub: sub-bob, email: bob@example.com, email_verified: true, roles: []}
+    steps:
+      - name: anonymous
+        as: anonymous
+        request: {method: PUT, path: "${P}/doc.html", headers: {Range: "selector=h1", Content-Type: text/html}, body: '<h1>anon</h1>'}
+        expect: {status: 206}
+      - name: signed in
+        as: bob
+        request: {method: PUT, path: "${P}/doc.html", headers: {Range: "selector=h1", Content-Type: text/html}, body: '<h1>bob</h1>'}
+        expect: {status: 206}
+
+  - id: authz.actor.multiple-values-or
+    title: Several actor values are OR-ed
+    area: permissions-identity
+    feature: actor multi-valued
+    evidence: documented
+    source: "docs reference/permissions/AuthorizationRule §actor ('Multiple actor values express OR semantics')"
+    confidence: high
+    requires: [multi-actor]
+    live: false
+    site:
+      files:
+        - path: "${P}/doc.html"
+          body: '<!DOCTYPE html><html><body><h1>T</h1></body></html>'
+        - path: "${P}/rules.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body><table><tbody>
+              <tr itemscope itemtype="https://pagelove.org/AuthorizationRule">
+                <td><ul><li itemprop="actor">sub-alice</li><li itemprop="actor">bob@example.com</li></ul></td>
+                <td itemprop="resource">${P}/doc.html</td>
+                <td itemprop="method">PUT</td><td itemprop="selector"></td><td itemprop="action">allow</td>
+              </tr>
+            </tbody></table></body></html>
+    actors:
+      alice: {sub: sub-alice, email: alice@example.com, email_verified: true, roles: []}
+      bob: {sub: sub-bob, email: bob@example.com, email_verified: true, roles: []}
+      carol: {sub: sub-carol, email: carol@example.com, email_verified: true, roles: []}
+    steps:
+      - name: alice by sub
+        as: alice
+        request: {method: PUT, path: "${P}/doc.html", headers: {Range: "selector=h1", Content-Type: text/html}, body: '<h1>A</h1>'}
+        expect: {status: 206}
+      - name: bob by email
+        as: bob
+        request: {method: PUT, path: "${P}/doc.html", headers: {Range: "selector=h1", Content-Type: text/html}, body: '<h1>B</h1>'}
+        expect: {status: 206}
+      - name: carol matches neither
+        as: carol
+        request: {method: PUT, path: "${P}/doc.html", headers: {Range: "selector=h1", Content-Type: text/html}, body: '<h1>C</h1>'}
+        expect: {status: 403}
+
+  - id: authz.actor.role-claim-as-group
+    title: An OIDC role is usable directly as a group-name actor
+    area: permissions-identity
+    feature: actor OIDC role
+    evidence: documented
+    source: "docs reference/permissions/Group §Other sources of membership ('any role carried in the principal's session … is usable directly as a group name')"
+    confidence: high
+    requires: [multi-actor]
+    live: false
+    site:
+      files:
+        - path: "${P}/doc.html"
+          body: '<!DOCTYPE html><html><body><h1>T</h1></body></html>'
+        - path: "${P}/rules.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div hidden itemscope itemtype="https://pagelove.org/AuthorizationRule">
+                <meta itemprop="actor" content="staff"><meta itemprop="resource" content="${P}/doc.html">
+                <meta itemprop="method" content="PUT"><meta itemprop="action" content="allow">
+              </div>
+            </body></html>
+    actors:
+      dave: {sub: sub-dave, email: dave@example.com, email_verified: true, roles: [staff]}
+      bob: {sub: sub-bob, email: bob@example.com, email_verified: true, roles: []}
+    steps:
+      - name: holder of the role
+        as: dave
+        request: {method: PUT, path: "${P}/doc.html", headers: {Range: "selector=h1", Content-Type: text/html}, body: '<h1>D</h1>'}
+        expect: {status: 206}
+      - name: principal without the role
+        as: bob
+        request: {method: PUT, path: "${P}/doc.html", headers: {Range: "selector=h1", Content-Type: text/html}, body: '<h1>B</h1>'}
+        expect: {status: 403}
+
+  - id: authz.actor.role-prefix-form
+    title: "role:<name> matches principals holding that role"
+    area: permissions-identity
+    feature: "actor role: form"
+    evidence: documented
+    source: "docs reference/permissions/AuthorizationRule §Templated values ('Match roles with the role: actor form instead')"
+    confidence: medium
+    requires: [multi-actor]
+    live: false
+    notes: Only the existence of the form is documented. Probe P-11.
+    site:
+      files:
+        - path: "${P}/doc.html"
+          body: '<!DOCTYPE html><html><body><h1>T</h1></body></html>'
+        - path: "${P}/rules.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div hidden itemscope itemtype="https://pagelove.org/AuthorizationRule">
+                <meta itemprop="actor" content="role:staff"><meta itemprop="resource" content="${P}/doc.html">
+                <meta itemprop="method" content="PUT"><meta itemprop="action" content="allow">
+              </div>
+            </body></html>
+    actors:
+      dave: {sub: sub-dave, email: dave@example.com, email_verified: true, roles: [staff]}
+      bob: {sub: sub-bob, email: bob@example.com, email_verified: true, roles: []}
+    steps:
+      - name: holder of the role
+        as: dave
+        request: {method: PUT, path: "${P}/doc.html", headers: {Range: "selector=h1", Content-Type: text/html}, body: '<h1>D</h1>'}
+        expect: {status: 206}
+      - name: principal without the role
+        as: bob
+        request: {method: PUT, path: "${P}/doc.html", headers: {Range: "selector=h1", Content-Type: text/html}, body: '<h1>B</h1>'}
+        expect: {status: 403}
+
+  - id: authz.actor.username-token-deprecated
+    title: ":username (and its ${…} spellings) as an actor matches every signed-in principal"
+    area: permissions-identity
+    feature: actor deprecated :username
+    evidence: documented
+    source: "docs reference/permissions/AuthorizationRule §:username as an actor is deprecated"
+    confidence: high
+    requires: [multi-actor]
+    live: false
+    site:
+      files:
+        - path: "${P}/a.html"
+          body: '<!DOCTYPE html><html><body><h1>T</h1></body></html>'
+        - path: "${P}/b.html"
+          body: '<!DOCTYPE html><html><body><h1>T</h1></body></html>'
+        - path: "${P}/c.html"
+          body: '<!DOCTYPE html><html><body><h1>T</h1></body></html>'
+        - path: "${P}/rules.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div hidden itemscope itemtype="https://pagelove.org/AuthorizationRule">
+                <meta itemprop="actor" content=":username"><meta itemprop="resource" content="${P}/a.html">
+                <meta itemprop="method" content="PUT"><meta itemprop="action" content="allow">
+              </div>
+              <div hidden itemscope itemtype="https://pagelove.org/AuthorizationRule">
+                <meta itemprop="actor" content="${username}"><meta itemprop="resource" content="${P}/b.html">
+                <meta itemprop="method" content="PUT"><meta itemprop="action" content="allow">
+              </div>
+              <div hidden itemscope itemtype="https://pagelove.org/AuthorizationRule">
+                <meta itemprop="actor" content="${request.auth.username}"><meta itemprop="resource" content="${P}/c.html">
+                <meta itemprop="method" content="PUT"><meta itemprop="action" content="allow">
+              </div>
+            </body></html>
+    actors:
+      bob: {sub: sub-bob, email: bob@example.com, email_verified: true, roles: []}
+    steps:
+      - name: ":username"
+        as: bob
+        request: {method: PUT, path: "${P}/a.html", headers: {Range: "selector=h1", Content-Type: text/html}, body: '<h1>B</h1>'}
+        expect: {status: 206}
+      - name: "${username}"
+        as: bob
+        request: {method: PUT, path: "${P}/b.html", headers: {Range: "selector=h1", Content-Type: text/html}, body: '<h1>B</h1>'}
+        expect: {status: 206}
+      - name: "${request.auth.username}"
+        as: bob
+        request: {method: PUT, path: "${P}/c.html", headers: {Range: "selector=h1", Content-Type: text/html}, body: '<h1>B</h1>'}
+        expect: {status: 206}
+      - name: anonymous never matches
+        as: anonymous
+        request: {method: PUT, path: "${P}/a.html", headers: {Range: "selector=h1", Content-Type: text/html}, body: '<h1>X</h1>'}
+        expect: {status: 401}
+
+  - id: authz.actor.username-token-tier-above-users
+    title: ":username outranks users; migrating to users lets an equal-tier deny win"
+    area: permissions-identity
+    feature: actor deprecated :username
+    evidence: documented
+    source: "docs reference/permissions/AuthorizationRule §:username as an actor is deprecated ('swapping :username for users lowers a rule's tier')"
+    confidence: high
+    requires: [multi-actor]
+    live: false
+    site:
+      files:
+        - path: "${P}/old.html"
+          body: '<!DOCTYPE html><html><body><h1>T</h1></body></html>'
+        - path: "${P}/new.html"
+          body: '<!DOCTYPE html><html><body><h1>T</h1></body></html>'
+        - path: "${P}/groups.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body><div itemscope itemtype="https://pagelove.org/Group">
+              <meta itemprop="name" content="suspended"><meta itemprop="member" content="alice@example.com">
+            </div></body></html>
+        - path: "${P}/rules.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div hidden itemscope itemtype="https://pagelove.org/AuthorizationRule">
+                <meta itemprop="actor" content="suspended">
+                <meta itemprop="resource" content="${P}/old.html"><meta itemprop="resource" content="${P}/new.html">
+                <meta itemprop="method" content="PUT"><meta itemprop="action" content="deny">
+              </div>
+              <div hidden itemscope itemtype="https://pagelove.org/AuthorizationRule">
+                <meta itemprop="actor" content=":username"><meta itemprop="resource" content="${P}/old.html">
+                <meta itemprop="method" content="PUT"><meta itemprop="action" content="allow">
+              </div>
+              <div hidden itemscope itemtype="https://pagelove.org/AuthorizationRule">
+                <meta itemprop="actor" content="users"><meta itemprop="resource" content="${P}/new.html">
+                <meta itemprop="method" content="PUT"><meta itemprop="action" content="allow">
+              </div>
+            </body></html>
+    actors:
+      alice: {sub: sub-alice, email: alice@example.com, email_verified: true, roles: []}
+    steps:
+      - name: ":username allow outranks a group deny"
+        as: alice
+        request: {method: PUT, path: "${P}/old.html", headers: {Range: "selector=h1", Content-Type: text/html}, body: '<h1>A</h1>'}
+        expect: {status: 206}
+      - name: users allow ties with the group deny, so deny wins
+        as: alice
+        request: {method: PUT, path: "${P}/new.html", headers: {Range: "selector=h1", Content-Type: text/html}, body: '<h1>A</h1>'}
+        expect: {status: 403}
+
+  - id: authz.actor.username-token-vs-user-deny
+    title: ":username Deny and an exact user-name Allow tie (same tier), so deny wins"
+    area: permissions-identity
+    feature: actor deprecated :username
+    evidence: inferred
+    source: "docs reference/permissions/AuthorizationRule §:username as an actor is deprecated ('sits above a group name'; exact tier unstated); spec R-PERM-17"
+    confidence: low
+    requires: [multi-actor]
+    live: false
+    notes: Probe P-10. If PageLove ranks :username strictly between groups and user names, alice gets 206.
+    site:
+      files:
+        - path: "${P}/doc.html"
+          body: '<!DOCTYPE html><html><body><h1>T</h1></body></html>'
+        - path: "${P}/rules.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div hidden itemscope itemtype="https://pagelove.org/AuthorizationRule">
+                <meta itemprop="actor" content=":username"><meta itemprop="resource" content="${P}/doc.html">
+                <meta itemprop="method" content="PUT"><meta itemprop="action" content="deny">
+              </div>
+              <div hidden itemscope itemtype="https://pagelove.org/AuthorizationRule">
+                <meta itemprop="actor" content="sub-alice"><meta itemprop="resource" content="${P}/doc.html">
+                <meta itemprop="method" content="PUT"><meta itemprop="action" content="allow">
+              </div>
+            </body></html>
+    actors:
+      alice: {sub: sub-alice, email: alice@example.com, email_verified: true, roles: []}
+    steps:
+      - name: alice refused
+        as: alice
+        request: {method: PUT, path: "${P}/doc.html", headers: {Range: "selector=h1", Content-Type: text/html}, body: '<h1>A</h1>'}
+        expect: {status: 403}
+
+  - id: authz.actor.401-vs-403
+    title: The same refusal is 401 for anonymous and 403 for a signed-in principal
+    area: permissions-identity
+    feature: 401 vs 403
+    evidence: documented
+    source: "docs reference/reading-and-writing/MOVE-method §Denials; PUT/POST/DELETE-method notes ('gets 401/403'); reference/permissions/AuthorizationRule §Testable examples"
+    confidence: high
+    requires: [multi-actor]
+    live: false
+    site:
+      files:
+        - path: "${P}/doc.html"
+          body: '<!DOCTYPE html><html><body><h1>T</h1></body></html>'
+        - path: "${P}/rules.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div hidden itemscope itemtype="https://pagelove.org/AuthorizationRule">
+                <meta itemprop="actor" content="*"><meta itemprop="resource" content="${P}/doc.html">
+                <meta itemprop="method" content="GET"><meta itemprop="action" content="deny">
+              </div>
+            </body></html>
+    actors:
+      bob: {sub: sub-bob, email: bob@example.com, email_verified: true, roles: []}
+    steps:
+      - name: anonymous read refused with 401
+        as: anonymous
+        request: {method: GET, path: "${P}/doc.html"}
+        expect: {status: 401}
+      - name: signed-in read refused with 403
+        as: bob
+        request: {method: GET, path: "${P}/doc.html"}
+        expect: {status: 403}
+      - name: signed-in write with no rule refused with 403
+        as: bob
+        request: {method: PUT, path: "${P}/doc.html", headers: {Range: "selector=h1", Content-Type: text/html}, body: '<h1>B</h1>'}
+        expect: {status: 403}

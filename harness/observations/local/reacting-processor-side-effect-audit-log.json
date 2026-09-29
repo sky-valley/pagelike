@@ -1,0 +1,51 @@
+{
+  "case": "reacting.processor.side-effect-audit-log",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (install the audit processor on successful PUTs)",
+      "method": "PUT",
+      "path": "/_pl/reacting-processor-side-effect-audit-log-a838ed/r/processors.html",
+      "status": 201,
+      "headers": {
+        "content-length": "835",
+        "content-type": "text/html",
+        "etag": "\"41922a29c43a6a50d939147c14e6aad53faa05b35b60f339f3291c88bdf81da0\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:49 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\n\u003cdiv hidden itemscope itemtype=\"https://pagelove.org/Processor\"\u003e\n  \u003cmeta itemprop=\"resource\" content=\"/_pl/reacting-processor-side-effect-audit-log-a838ed/d/*\"\u003e\n  \u003cmeta itemprop=\"method\" content=\"PUT\"\u003e\n  \u003cmeta itemprop=\"status\" content=\"2xx\"\u003e\n  \u003cdiv itemprop=\"action\" itemscope itemtype=\"https://pagelove.org/Sessel\"\u003e\n    \u003cscript itemprop=\"source\" type=\"text/sessel\"\u003e\n      @schema Context url(\"https://pagelove.org/Context\");\n      @schema Pagelove url(\"https://pagelove.org/1.0\");\n      @schema AuditLog url(\"https://pagelike.test/_pl/reacting-processor-side-effect-audit-log-a838ed/AuditLog\");\n      let log = new AuditLog { status: Context.response.status };\n      Pagelove.PUT(log, \"/_pl/reacting-processor-side-effect-audit-log-a838ed/audit/latest.html\")\n    \u003c/script\u003e\n  \u003c/div\u003e\n\u003c/div\u003e\n\u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 2 (a successful write)",
+      "method": "PUT",
+      "path": "/_pl/reacting-processor-side-effect-audit-log-a838ed/d/x.html",
+      "status": 201,
+      "headers": {
+        "content-length": "8",
+        "content-type": "text/html",
+        "etag": "\"31d8e07ec305ac4e2515d1f0b1c8c603b3858044eb7d97807d6d0970838cb0be\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:49 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003cp\u003ex\u003c/p\u003e"
+    },
+    {
+      "step": "step 3 (the audit record exists)",
+      "method": "GET",
+      "path": "/_pl/reacting-processor-side-effect-audit-log-a838ed/audit/latest.html",
+      "status": 200,
+      "headers": {
+        "accept-ranges": "selector, bytes",
+        "content-length": "198",
+        "content-type": "text/html",
+        "etag": "\"980279d1a335c4e2ff4db4ce8bb9363684de7b73b072a05a4c9aea3747a005c1\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:49 GMT",
+        "vary": "Host, Range, Accept"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\n\u003cdiv itemscope itemtype=\"https://pagelike.test/_pl/reacting-processor-side-effect-audit-log-a838ed/AuditLog\"\u003e\u003cmeta itemprop=\"status\" content=\"201\"\u003e\u003c/div\u003e\n\u003c/body\u003e\u003c/html\u003e\n"
+    }
+  ],
+  "outcome": "pass",
+  "target": "local"
+}

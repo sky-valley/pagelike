@@ -1,0 +1,49 @@
+{
+  "case": "reacting.th.webdav-never-fires",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (install a handler (Order.status becomes processing -\u003e POST ${SINK}/payments))",
+      "method": "PUT",
+      "path": "/_pl/reacting-th-webdav-never-fires-06bf2d/r/handlers.html",
+      "status": 201,
+      "headers": {
+        "content-length": "546",
+        "content-type": "text/html",
+        "etag": "\"8c0b9a4b234391f932d8c3b9282f28206e46d99adc0be5abbd7d8847581654a0\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:53 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\n\u003cdiv itemscope itemtype=\"https://pagelove.org/TransitionHandler\"\u003e\n  \u003cmeta itemprop=\"selector\" content=\"[itemtype='https://pagelike.test/_pl/reacting-th-webdav-never-fires-06bf2d/Order']\"\u003e\n  \u003cmeta itemprop=\"property\" content=\"status\"\u003e\n  \u003cmeta itemprop=\"becomes\" content=\"processing\"\u003e\n  \u003cdiv itemprop=\"action\" itemscope itemtype=\"https://pagelove.org/HttpRequest\"\u003e\n    \u003cmeta itemprop=\"url\" content=\"http://127.0.0.1:53680/c-dd44e255/payments\"\u003e\n    \u003cmeta itemprop=\"method\" content=\"POST\"\u003e\n  \u003c/div\u003e\n\u003c/div\u003e\n\u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 2 (seed order-1 at pending)",
+      "method": "PUT",
+      "path": "/_pl/reacting-th-webdav-never-fires-06bf2d/orders/order-1.html",
+      "status": 201,
+      "headers": {
+        "content-length": "234",
+        "content-type": "text/html",
+        "etag": "\"bfc1929aeac01810724a98684f31786b5145ab892cfc06761117c4d439c2d66b\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:53 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\u003cdiv id=\"order1\" itemscope itemtype=\"https://pagelike.test/_pl/reacting-th-webdav-never-fires-06bf2d/Order\"\u003e\u003cmeta itemprop=\"status\" content=\"pending\"\u003e\u003cspan itemprop=\"total\"\u003e42.00\u003c/span\u003e\u003c/div\u003e\u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 3 (an author sets processing over WebDAV)",
+      "method": "PUT",
+      "path": "/_pl/reacting-th-webdav-never-fires-06bf2d/orders/order-1.html",
+      "status": 200,
+      "headers": {
+        "accept-ranges": "bytes",
+        "content-length": "200",
+        "content-type": "text/html",
+        "etag": "\"83d45f6b0b1f8f7b39c436a8baee6649b2f51fbc508f4e0d2bff296b8326f01c\""
+      },
+      "body": "\u003c!DOCTYPE html\u003e\u003chtml\u003e\u003cbody\u003e\u003cdiv id=\"order1\" itemscope itemtype=\"https://pagelike.test/_pl/reacting-th-webdav-never-fires-06bf2d/Order\"\u003e\u003cmeta itemprop=\"status\" content=\"processing\"\u003e\u003c/div\u003e\u003c/body\u003e\u003c/html\u003e"
+    }
+  ],
+  "outcome": "pass",
+  "target": "local"
+}

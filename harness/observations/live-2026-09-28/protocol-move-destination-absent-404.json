@@ -1,0 +1,34 @@
+{
+  "case": "protocol.move.destination-absent-404",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (no such lane)",
+      "method": "MOVE",
+      "path": "/_pl/protocol-move-destination-absent-404-41b6dc/board.html",
+      "status": 404,
+      "headers": {
+        "content-length": "213",
+        "content-type": "text/html",
+        "vary": "Host, Range"
+      },
+      "body": "\u003cdiv itemscope itemtype=\"https://dombase.pagelove.team/ns/error/NotFound\"\u003e\u003cul itemprop=\"problems\"\u003e\u003cli itemprop=\"problem\"\u003e\u003cspan itemprop=\"message\"\u003eDestination element not found: #lane-archive\u003c/span\u003e\u003c/li\u003e\u003c/ul\u003e\u003c/div\u003e"
+    },
+    {
+      "step": "step 2 (card 3 still in todo)",
+      "method": "GET",
+      "path": "/_pl/protocol-move-destination-absent-404-41b6dc/board.html",
+      "status": 206,
+      "headers": {
+        "content-length": "190",
+        "content-range": "selector #lane-todo",
+        "content-type": "text/html",
+        "etag": "\"d90c29204f276cf47c317794655fce214e63b474a3c86245437cf3b7de13b11c-d90c29204f276cf47c317794655fce214e63b474a3c86245437cf3b7de13b11c-1\"",
+        "vary": "Host, Range, Accept"
+      },
+      "body": "\u003csection class=\"lane\" id=\"lane-todo\"\u003e\u003carticle class=\"card\" id=\"card-1\"\u003eOne\u003c/article\u003e\u003carticle class=\"card\" id=\"card-2\"\u003eTwo\u003c/article\u003e\u003carticle class=\"card\" id=\"card-3\"\u003eThree\u003c/article\u003e\u003c/section\u003e"
+    }
+  ],
+  "outcome": "pass",
+  "target": "live"
+}

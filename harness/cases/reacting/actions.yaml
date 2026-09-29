@@ -1,0 +1,593 @@
+# Reacting: actions and thrown HTTPResponses (spec R-REACT-18, 29..31, 34).
+# See discovery.yaml for directory conventions.
+anchors:
+  open_rules: &open_rules
+    - {actor: "*", resource: "${P}/*", method: [GET, HEAD, PUT, POST, DELETE], action: Allow}
+  seed_doc: &seed_doc
+    settings: {default_get: allow}
+    rules: *open_rules
+    files:
+      - path: "${P}/d/doc.html"
+        body: |
+          <!DOCTYPE html>
+          <html><body><h1 id="h">Original</h1></body></html>
+defaults:
+  area: reacting
+  site:
+    settings: {default_get: allow}
+    rules: *open_rules
+cases:
+  - id: reacting.actions.sessel-throw-403-docs-example
+    title: "Documented guard: a Sessel action throws HTTPResponse 403 when no Authorization header is sent"
+    feature: chain termination (Sessel)
+    evidence: documented
+    source: "docs reference/reacting-to-changes/Trigger §Chain termination (first example) (snapshot 2026-09-28)"
+    confidence: high
+    requires: [sessel]
+    live: true
+    notes: "spec: R-REACT-29, R-REACT-31. Uses the documented canonical-case header lookup; without the header both lookup behaviours (C2) give null."
+    site: *seed_doc
+    steps:
+      - name: install the documented guard (scoped to ${P}/d/*)
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/r/triggers.html"
+          headers: {Content-Type: text/html}
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+            <div itemscope itemtype="https://pagelove.org/Trigger">
+              <meta itemprop="resource" content="${P}/d/*">
+              <meta itemprop="method" content="PUT">
+              <meta itemprop="method" content="POST">
+              <meta itemprop="method" content="DELETE">
+              <div itemprop="action" itemscope itemtype="https://pagelove.org/Sessel">
+                <script itemprop="source" type="text/sessel">
+                  @schema Context url("https://pagelove.org/Context");
+                  @schema HTTPResponse url("https://pagelove.org/HTTPResponse");
+                  if (Context.request.headers["Authorization"] == null) {
+                    throw new HTTPResponse {
+                      status: 403,
+                      message: "<p>Forbidden</p>"
+                    }
+                  }
+                </script>
+              </div>
+            </div>
+            </body></html>
+        expect: {status: [200, 201, 204]}
+      - name: PUT without Authorization is refused with the thrown status and message
+        as: anonymous
+        request: {method: PUT, path: "${P}/d/doc.html", headers: {Content-Type: text/html}, body: "<!DOCTYPE html><html><body><h1>Changed</h1></body></html>"}
+        expect:
+          status: 403
+          body_contains: ["Forbidden"]
+      - name: DELETE is refused too
+        as: anonymous
+        request: {method: DELETE, path: "${P}/d/doc.html"}
+        expect: {status: 403}
+      - name: GET is not filtered and the document is unchanged
+        as: anonymous
+        request: {method: GET, path: "${P}/d/doc.html"}
+        expect: {status: 200, body_contains: ["Original"], body_not_contains: ["Changed"]}
+
+  - id: reacting.actions.js-throw-403-admin-restricted
+    title: "Documented JS action: throw a plain HTTPResponse object for /admin/ paths, return value otherwise discarded"
+    feature: chain termination (JavaScript)
+    evidence: documented
+    source: "docs reference/reacting-to-changes/Trigger §action (JavaScript example) (snapshot 2026-09-28)"
+    confidence: high
+    requires: [server-js]
+    live: true
+    notes: "spec: R-REACT-30. The docs test path.startsWith('/admin/'); the case tests the ${P}-scoped equivalent."
+    steps:
+      - name: install the JS action trigger
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/r/triggers.html"
+          headers: {Content-Type: text/html}
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+            <div hidden itemscope itemtype="https://pagelove.org/Trigger">
+              <meta itemprop="resource" content="${P}/*">
+              <meta itemprop="method" content="PUT">
+              <div itemprop="action" itemscope itemtype="https://pagelove.org/JavaScript/Module">
+                <script type="module" itemprop="source">
+                  export default function(ctx) {
+                    if (ctx.request.path.startsWith("${P}/admin/")) {
+                      throw {
+                        schema_url: "https://pagelove.org/HTTPResponse",
+                        status: 403,
+                        message: "Admin area is restricted"
+                      };
+                    }
+                    return true;
+                  }
+                </script>
+              </div>
+            </div>
+            </body></html>
+        expect: {status: [200, 201, 204]}
+      - name: an admin path is refused
+        as: anonymous
+        request: {method: PUT, path: "${P}/admin/x.html", headers: {Content-Type: text/html}, body: "<p>x</p>"}
+        expect: {status: 403, body_contains: ["Admin area is restricted"]}
+      - name: another path proceeds (return value discarded)
+        as: anonymous
+        request: {method: PUT, path: "${P}/d/x.html", headers: {Content-Type: text/html}, body: "<p>x</p>"}
+        expect: {status: [200, 201, 204]}
+
+  - id: reacting.actions.js-throw-itemtype-marker
+    title: A thrown JS object marked with itemtype (instead of schema_url) is recognized; body wins over message
+    feature: chain termination (JavaScript)
+    evidence: documented
+    source: "docs reference/reacting-to-changes/Trigger §Chain termination ('schema_url (or itemtype)', message is the fallback body) (snapshot 2026-09-28)"
+    confidence: high
+    requires: [server-js]
+    live: true
+    notes: "spec: R-REACT-30, R-REACT-31."
+    steps:
+      - name: install
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/r/triggers.html"
+          headers: {Content-Type: text/html}
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+            <div hidden itemscope itemtype="https://pagelove.org/Trigger">
+              <meta itemprop="resource" content="${P}/d/*">
+              <meta itemprop="method" content="PUT">
+              <div itemprop="action" itemscope itemtype="https://pagelove.org/JavaScript/Module">
+                <script type="module" itemprop="source">
+                  export default function(ctx) {
+                    throw { itemtype: "https://pagelove.org/HTTPResponse", status: 409, message: "from-message", body: "from-body" };
+                  }
+                </script>
+              </div>
+            </div>
+            </body></html>
+        expect: {status: [200, 201, 204]}
+      - name: the thrown status and body are returned
+        as: anonymous
+        request: {method: PUT, path: "${P}/d/x.html", headers: {Content-Type: text/html}, body: "<p>x</p>"}
+        expect:
+          status: 409
+          body_contains: ["from-body"]
+          body_not_contains: ["from-message"]
+
+  - id: reacting.actions.js-throw-default-status-500
+    title: A thrown HTTPResponse without status defaults to 500 and uses message as the body
+    feature: chain termination (JavaScript)
+    evidence: documented
+    source: "docs reference/reacting-to-changes/Trigger §Chain termination ('status (defaults to 500), message (fallback body when body is absent)') (snapshot 2026-09-28)"
+    confidence: high
+    requires: [server-js]
+    live: true
+    notes: "spec: R-REACT-30, R-REACT-31."
+    steps:
+      - name: install
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/r/triggers.html"
+          headers: {Content-Type: text/html}
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+            <div hidden itemscope itemtype="https://pagelove.org/Trigger">
+              <meta itemprop="resource" content="${P}/d/*">
+              <meta itemprop="method" content="PUT">
+              <div itemprop="action" itemscope itemtype="https://pagelove.org/JavaScript/Module">
+                <script type="module" itemprop="source">
+                  export default function(ctx) {
+                    throw { schema_url: "https://pagelove.org/HTTPResponse", message: "no-status-given" };
+                  }
+                </script>
+              </div>
+            </div>
+            </body></html>
+        expect: {status: [200, 201, 204]}
+      - name: status 500 with the message as body
+        as: anonymous
+        request: {method: PUT, path: "${P}/d/x.html", headers: {Content-Type: text/html}, body: "<p>x</p>"}
+        expect: {status: 500, body_contains: ["no-status-given"]}
+
+  - id: reacting.actions.js-throw-headers-object
+    title: The headers object on a thrown JS HTTPResponse becomes response headers
+    feature: chain termination (JavaScript)
+    evidence: documented
+    source: "docs reference/reacting-to-changes/Trigger §Chain termination ('headers (an object of additional response headers)') (snapshot 2026-09-28); beta-js/cors.html@c204746:57-67"
+    confidence: high
+    requires: [server-js]
+    live: true
+    notes: "spec: R-REACT-30, R-REACT-31."
+    steps:
+      - name: install
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/r/triggers.html"
+          headers: {Content-Type: text/html}
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+            <div hidden itemscope itemtype="https://pagelove.org/Trigger">
+              <meta itemprop="resource" content="${P}/d/*">
+              <meta itemprop="method" content="PUT">
+              <div itemprop="action" itemscope itemtype="https://pagelove.org/JavaScript/Module">
+                <script type="module" itemprop="source">
+                  export default function(ctx) {
+                    throw {
+                      schema_url: "https://pagelove.org/HTTPResponse",
+                      status: 409,
+                      body: "with-headers",
+                      headers: { "X-Pagelike-Test": "yes", "Content-Type": "text/plain" }
+                    };
+                  }
+                </script>
+              </div>
+            </div>
+            </body></html>
+        expect: {status: [200, 201, 204]}
+      - name: the headers are present
+        as: anonymous
+        request: {method: PUT, path: "${P}/d/x.html", headers: {Content-Type: text/html}, body: "<p>x</p>"}
+        expect:
+          status: 409
+          headers: {X-Pagelike-Test: "yes"}
+          header_matches: {Content-Type: "^text/plain"}
+          body_contains: ["with-headers"]
+
+  - id: reacting.actions.js-plain-error-is-runtime-error
+    title: Throwing an ordinary JS Error is a runtime error, not a chosen response
+    feature: runtime errors
+    evidence: documented
+    source: "docs reference/reacting-to-changes/Trigger §Error handling ('one that isn't a recognized HTTPResponse shape … the request fails'); javascript-in-schemas §Explaining why a value was rejected (snapshot 2026-09-28)"
+    confidence: low
+    requires: [server-js]
+    live: true
+    notes: "spec: R-REACT-34. Failure is documented; 500 is a pagelike decision (probe P-16)."
+    site: *seed_doc
+    steps:
+      - name: install
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/r/triggers.html"
+          headers: {Content-Type: text/html}
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+            <div hidden itemscope itemtype="https://pagelove.org/Trigger">
+              <meta itemprop="resource" content="${P}/d/*">
+              <meta itemprop="method" content="PUT">
+              <div itemprop="action" itemscope itemtype="https://pagelove.org/JavaScript/Module">
+                <script type="module" itemprop="source">
+                  export default function(ctx) { throw new Error("boom"); }
+                </script>
+              </div>
+            </div>
+            </body></html>
+        expect: {status: [200, 201, 204]}
+      - name: the request fails with a microdata error body
+        as: anonymous
+        request: {method: PUT, path: "${P}/d/doc.html", headers: {Content-Type: text/html}, body: "<!DOCTYPE html><html><body><h1>Changed</h1></body></html>"}
+        expect:
+          status: 500
+          header_matches: {Content-Type: "^text/html"}
+          body_contains: ["itemscope"]
+      - name: nothing was written
+        as: anonymous
+        request: {method: GET, path: "${P}/d/doc.html"}
+        expect: {status: 200, body_contains: ["Original"]}
+
+  - id: reacting.actions.sessel-throw-body-wins-over-message
+    title: A Sessel HTTPResponse with both body and message sends the body
+    feature: chain termination (Sessel)
+    evidence: documented
+    source: "docs reference/reacting-to-changes/Trigger §Chain termination (message is the fallback when body is absent) (snapshot 2026-09-28)"
+    confidence: medium
+    requires: [sessel]
+    live: true
+    notes: "spec: R-REACT-29, R-REACT-31. The field list is documented for the JS form and assumed identical for Sessel."
+    steps:
+      - name: install
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/r/triggers.html"
+          headers: {Content-Type: text/html}
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+            <div hidden itemscope itemtype="https://pagelove.org/Trigger">
+              <meta itemprop="resource" content="${P}/d/*">
+              <meta itemprop="method" content="PUT">
+              <div itemprop="action" itemscope itemtype="https://pagelove.org/Sessel">
+                <script itemprop="source" type="text/sessel">
+                  @schema HTTPResponse url("https://pagelove.org/HTTPResponse");
+                  throw new HTTPResponse { status: 409, message: "from-message", body: "from-body" }
+                </script>
+              </div>
+            </div>
+            </body></html>
+        expect: {status: [200, 201, 204]}
+      - name: body wins
+        as: anonymous
+        request: {method: PUT, path: "${P}/d/x.html", headers: {Content-Type: text/html}, body: "<p>x</p>"}
+        expect:
+          status: 409
+          body_contains: ["from-body"]
+          body_not_contains: ["from-message"]
+
+  - id: reacting.actions.sessel-throw-303-location-pair
+    title: "Documented redirect: throw HTTPResponse 303 with a Location Pair header"
+    feature: response headers (Pair)
+    evidence: documented
+    source: "docs reference/reacting-to-changes/Trigger §Response headers (first example) (snapshot 2026-09-28)"
+    confidence: high
+    requires: [sessel]
+    live: false
+    notes: "spec: R-REACT-29, R-REACT-31. Local only since 2026-09-29: live PageLove differs for a POST without Range (keep-standard, docs/compat/decisions-2026-09-29/reacting.md), which the sibling reacting.actions.sessel-throw-303-location-pair.live measures. GET, PUT, DELETE and selector POSTs send the thrown 303 live (probe reacting.actions.probe-0929.thrown-redirect)."
+    steps:
+      - name: install
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/r/triggers.html"
+          headers: {Content-Type: text/html}
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+            <div hidden itemscope itemtype="https://pagelove.org/Trigger">
+              <meta itemprop="resource" content="${P}/d/*">
+              <meta itemprop="method" content="POST">
+              <div itemprop="action" itemscope itemtype="https://pagelove.org/Sessel">
+                <script itemprop="source" type="text/sessel">
+                  @schema HTTPResponse url("https://pagelove.org/HTTPResponse");
+                  @schema Pair url("https://pagelove.org/Pair");
+                  throw new HTTPResponse {
+                    status: 303,
+                    header: new Pair { key: "Location", value: "/other-page.html" }
+                  }
+                </script>
+              </div>
+            </div>
+            </body></html>
+        expect: {status: [200, 201, 204]}
+      - name: POST is redirected
+        as: anonymous
+        request: {method: POST, path: "${P}/d/form.html", headers: {Content-Type: text/html}, body: "<p>x</p>"}
+        expect:
+          status: 303
+          headers: {Location: "/other-page.html"}
+
+  - id: reacting.actions.sessel-throw-303-location-pair.live
+    title: "Live PageLove: a POST without Range whose trigger throws 303 reads the Location as a template (404 for a missing page, no redirect)"
+    feature: response headers (Pair)
+    status: live-divergence
+    evidence: live-observed
+    source: "harness/observations/live-2026-09-29/reacting-actions-sessel-throw-303-locati.json; harness/observations/live-2026-09-29-reconcile-reacting/reacting-actions-probe-0929-thrown-redir.json (2026-09-29)"
+    confidence: high
+    requires: [sessel]
+    live: true
+    notes: "Measures a deliberate divergence (docs/compat/decisions-2026-09-29/reacting.md, keep-standard). Runs only against --target live. GET, PUT, DELETE and selector POSTs do send the thrown 303 (probe reacting.actions.probe-0929.thrown-redirect)."
+    steps:
+      - name: install
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/r/triggers.html"
+          headers: {Content-Type: text/html}
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+            <div hidden itemscope itemtype="https://pagelove.org/Trigger">
+              <meta itemprop="resource" content="${P}/d/*">
+              <meta itemprop="method" content="POST">
+              <div itemprop="action" itemscope itemtype="https://pagelove.org/Sessel">
+                <script itemprop="source" type="text/sessel">
+                  @schema HTTPResponse url("https://pagelove.org/HTTPResponse");
+                  @schema Pair url("https://pagelove.org/Pair");
+                  throw new HTTPResponse {
+                    status: 303,
+                    header: new Pair { key: "Location", value: "/other-page.html" }
+                  }
+                </script>
+              </div>
+            </div>
+            </body></html>
+        expect: {status: [200, 201, 204]}
+      - name: POST answers 404 for the Location's missing document, without a Location
+        as: anonymous
+        request: {method: POST, path: "${P}/d/form.html", headers: {Content-Type: text/html}, body: "<p>x</p>"}
+        expect:
+          status: 404
+          headers_absent: [Location]
+          body_contains: ["Document not found: /other-page.html"]
+
+  - id: reacting.actions.sessel-throw-multiple-header-pairs
+    title: "Documented: repeating header Pairs sets several response headers; status 200 still skips the write"
+    feature: response headers (Pair)
+    evidence: documented
+    source: "docs reference/reacting-to-changes/Trigger §Response headers (second example, '0..n cardinality') (snapshot 2026-09-28)"
+    confidence: high
+    requires: [sessel]
+    live: true
+    notes: "spec: R-REACT-29, R-REACT-9."
+    site: *seed_doc
+    steps:
+      - name: install
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/r/triggers.html"
+          headers: {Content-Type: text/html}
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+            <div hidden itemscope itemtype="https://pagelove.org/Trigger">
+              <meta itemprop="resource" content="${P}/d/*">
+              <meta itemprop="method" content="PUT">
+              <div itemprop="action" itemscope itemtype="https://pagelove.org/Sessel">
+                <script itemprop="source" type="text/sessel">
+                  @schema HTTPResponse url("https://pagelove.org/HTTPResponse");
+                  @schema Pair url("https://pagelove.org/Pair");
+                  throw new HTTPResponse {
+                    status: 200,
+                    body: "Hello",
+                    header: new Pair { key: "X-Custom", value: "one" },
+                    header: new Pair { key: "Cache-Control", value: "no-cache" }
+                  }
+                </script>
+              </div>
+            </div>
+            </body></html>
+        expect: {status: [200, 201, 204]}
+      - name: the thrown 200 is returned with both headers
+        as: anonymous
+        request: {method: PUT, path: "${P}/d/doc.html", headers: {Content-Type: text/html}, body: "<!DOCTYPE html><html><body><h1>Changed</h1></body></html>"}
+        expect:
+          status: 200
+          headers: {X-Custom: "one", Cache-Control: "no-cache"}
+          body: "Hello"
+      - name: core never ran, so the document is unchanged
+        as: anonymous
+        request: {method: GET, path: "${P}/d/doc.html"}
+        expect: {status: 200, body_contains: ["Original"]}
+
+  - id: reacting.actions.actions-run-in-document-order
+    title: A serving-path write storing a trigger with two actions is refused (422, platform schema Handler.action 1..1); nothing is installed
+    feature: action order
+    evidence: live-observed
+    source: "harness/observations/live-2026-09-29/reacting-actions-actions-run-in-document.json (2026-09-29); docs reference/reacting-to-changes/Trigger §action ('Actions execute in document order') describes stored items"
+    confidence: high
+    requires: [sessel]
+    live: true
+    notes: "spec: R-REACT-18, R-REACT-4a (live 2026-09-29). The id keeps its old name. A stored two-action trigger (WebDAV) still runs its actions in document order: reacting.actions.actions-run-in-document-order-stored (local only)."
+    steps:
+      - name: install a trigger with two throwing actions
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/r/triggers.html"
+          headers: {Content-Type: text/html}
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+            <div hidden itemscope itemtype="https://pagelove.org/Trigger">
+              <meta itemprop="resource" content="${P}/d/*">
+              <meta itemprop="method" content="PUT">
+              <div itemprop="action" itemscope itemtype="https://pagelove.org/Sessel">
+                <script itemprop="source" type="text/sessel">
+                  @schema HTTPResponse url("https://pagelove.org/HTTPResponse");
+                  throw new HTTPResponse { status: 409, message: "first" }
+                </script>
+              </div>
+              <div itemprop="action" itemscope itemtype="https://pagelove.org/Sessel">
+                <script itemprop="source" type="text/sessel">
+                  @schema HTTPResponse url("https://pagelove.org/HTTPResponse");
+                  throw new HTTPResponse { status: 423, message: "second" }
+                </script>
+              </div>
+            </div>
+            </body></html>
+        expect:
+          status: 422
+          body_contains: ["https://pagelove.org/SchemaViolation", "[https://pagelove.org/Handler].action: cardinality 1..1 violated: expected exactly 1 value, found 2"]
+      - name: no trigger was installed, so PUT proceeds
+        as: anonymous
+        request: {method: PUT, path: "${P}/d/x.html", headers: {Content-Type: text/html}, body: "<p>x</p>"}
+        expect: {status: [200, 201, 204]}
+
+  - id: reacting.actions.actions-run-in-document-order-stored
+    title: Actions of one stored trigger (written over WebDAV) run in document order; the first throw ends the chain
+    feature: action order
+    evidence: documented
+    source: "docs reference/reacting-to-changes/Trigger §action ('Actions execute in document order') (snapshot 2026-09-28)"
+    confidence: medium
+    requires: [sessel]
+    live: false
+    notes: "spec: R-REACT-18. Local only: the serving path refuses a second action (reacting.actions.actions-run-in-document-order), and a WebDAV-written trigger takes up to 60 s to bind on PageLove (R-REACT-5)."
+    site:
+      settings: {default_get: allow}
+      rules: *open_rules
+      files:
+        - path: "${P}/r/triggers.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+            <div hidden itemscope itemtype="https://pagelove.org/Trigger">
+              <meta itemprop="resource" content="${P}/d/*">
+              <meta itemprop="method" content="PUT">
+              <div itemprop="action" itemscope itemtype="https://pagelove.org/Sessel">
+                <script itemprop="source" type="text/sessel">
+                  @schema HTTPResponse url("https://pagelove.org/HTTPResponse");
+                  throw new HTTPResponse { status: 409, message: "first" }
+                </script>
+              </div>
+              <div itemprop="action" itemscope itemtype="https://pagelove.org/Sessel">
+                <script itemprop="source" type="text/sessel">
+                  @schema HTTPResponse url("https://pagelove.org/HTTPResponse");
+                  throw new HTTPResponse { status: 423, message: "second" }
+                </script>
+              </div>
+            </div>
+            </body></html>
+    steps:
+      - name: the first action's throw wins
+        as: anonymous
+        request: {method: PUT, path: "${P}/d/x.html", headers: {Content-Type: text/html}, body: "<p>x</p>"}
+        expect: {status: 409, body_contains: ["first"], body_not_contains: ["second"]}
+
+  - id: reacting.actions.thrown-response-drops-stored-content-type
+    title: A thrown response replaces the stored representation's Content-Type (default text/html)
+    feature: thrown response on the wire
+    evidence: client-source
+    source: "beta-js/cors.html@c204746:45-48 ('throwing replaces the response, so the stored type is not carried over'); spec R-REACT-31 (default is a pagelike decision)"
+    confidence: low
+    requires: [server-js]
+    live: true
+    notes: "Probe P-15 settles the default Content-Type."
+    site:
+      settings: {default_get: allow}
+      rules: *open_rules
+      files:
+        - path: "${P}/d/data.json"
+          content_type: application/json
+          body: '{"a":1}'
+    steps:
+      - name: install a GET trigger that throws without a Content-Type
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/r/triggers.html"
+          headers: {Content-Type: text/html}
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+            <div hidden itemscope itemtype="https://pagelove.org/Trigger">
+              <meta itemprop="resource" content="${P}/d/*">
+              <meta itemprop="method" content="GET">
+              <div itemprop="action" itemscope itemtype="https://pagelove.org/JavaScript/Module">
+                <script type="module" itemprop="source">
+                  export default function(ctx) {
+                    throw { schema_url: "https://pagelove.org/HTTPResponse", status: 200, body: "replaced" };
+                  }
+                </script>
+              </div>
+            </div>
+            </body></html>
+        expect: {status: [200, 201, 204]}
+      - name: the JSON resource is answered with the thrown body and an HTML type
+        as: anonymous
+        request: {method: GET, path: "${P}/d/data.json"}
+        expect:
+          status: 200
+          body: "replaced"
+          header_matches: {Content-Type: "^text/html"}

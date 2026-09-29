@@ -1,0 +1,37 @@
+{
+  "case": "javascript.dom.reflect-htmlelement-globals",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (PUT the page (public plane; registers inline declarations))",
+      "method": "PUT",
+      "path": "/_pl/javascript-dom-reflect-htmlelement-globa-3dbda5/probe.html",
+      "status": 201,
+      "headers": {
+        "content-length": "1477",
+        "content-type": "text/html",
+        "etag": "\"61a8afdf1fced792c6e0598d0dc7ff87b55a0b70b8fba013b995326dd67ed21b\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:42 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml xmlns:t=\"https://pagelike.test/_pl/javascript-dom-reflect-htmlelement-globa-3dbda5/Dreflecthtmlelementglobal\"\u003e\u003cbody\u003e\n\u003cmain\u003e\n\u003ct:probe\u003e\u003c/t:probe\u003e\n\u003c/main\u003e\n\u003cdiv hidden itemscope itemtype=\"https://pagelove.org/Schema\"\u003e\n\u003cmeta itemprop=\"type\" content=\"https://pagelike.test/_pl/javascript-dom-reflect-htmlelement-globa-3dbda5/Dreflecthtmlelementglobal\"\u003e\n\u003cul\u003e\n\u003cli itemprop=\"property\" itemscope itemtype=\"https://pagelove.org/Method\"\u003e\n\u003cmeta itemprop=\"name\" content=\"probe\"\u003e\n\u003cdiv itemprop=\"implementation\" itemscope itemtype=\"https://pagelove.org/JavaScript/Module\"\u003e\n\u003cscript itemprop=\"source\" type=\"module\"\u003e\nconst S = (...a) =\u003e a.map(String).join('|');\nconst H = (x) =\u003e String(x).replace(/[\u003c\u003e\"]/g, (c) =\u003e ({ '\u003c': '[', '\u003e': ']', '\"': \"'\" })[c]);\nconst tryName = (f) =\u003e { try { f(); return 'ok'; } catch (e) { return e.name + ':' + e.code; } };\nexport default function () {\nconst d = new DOMParser().parseFromString('\u003cp id=\"a\"\u003e\u003c/p\u003e\u003cp id=\"b\" dir=\"RTL\" inputmode=\"bogus\" enterkeyhint=\"go\" autocapitalize=\"off\"\u003e\u003c/p\u003e\u003cp id=\"c\" autocapitalize=\"on\"\u003e\u003c/p\u003e\u003cp id=\"e\" autocapitalize=\"\"\u003e\u003c/p\u003e\u003cp id=\"f\" autocapitalize=\"bogus\"\u003e\u003c/p\u003e', 'text/html');\nconst q = (s) =\u003e d.querySelector(s);\nreturn 'R:' + S(q('#a').dir, q('#a').inputMode, q('#a').enterKeyHint, q('#a').autocapitalize, q('#b').dir, q('#b').inputMode, q('#b').enterKeyHint, q('#b').autocapitalize, q('#c').autocapitalize, q('#e').autocapitalize, q('#f').autocapitalize);\n}\n\u003c/script\u003e\n\u003c/div\u003e\n\u003c/li\u003e\n\u003c/ul\u003e\n\u003c/div\u003e\n\u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 2 (GET \u003cmain\u003e: the method result is inserted as text)",
+      "method": "GET",
+      "path": "/_pl/javascript-dom-reflect-htmlelement-globa-3dbda5/probe.html",
+      "status": 206,
+      "headers": {
+        "accept-ranges": "selector, bytes",
+        "content-length": "54",
+        "content-range": "selector main",
+        "content-type": "text/html",
+        "etag": "\"c89b9644472f5ff2044eb483648174059a30cd6933e5ff2d25759e1b9477e7fd-c89b9644472f5ff2044eb483648174059a30cd6933e5ff2d25759e1b9477e7fd-1\"",
+        "vary": "Host, Range, Accept"
+      },
+      "body": "\u003cmain\u003e\nR:||||rtl||go|none|sentences||sentences\n\u003c/main\u003e"
+    }
+  ],
+  "outcome": "pass",
+  "target": "local"
+}

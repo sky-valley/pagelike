@@ -1,0 +1,67 @@
+{
+  "case": "comp.route.selector-write-through-stamp",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1",
+      "method": "POST",
+      "path": "/_pl/comp-route-selector-write-through-stamp-97755e/posts/hello.html",
+      "status": 206,
+      "headers": {
+        "content-length": "34",
+        "content-range": "selector #comments-hello",
+        "content-type": "text/html",
+        "etag": "\"ffb3370c2f09aaf1c7ab06f7d112be62a102944a628e45ce3ec81bcec98ff196-ffb3370c2f09aaf1c7ab06f7d112be62a102944a628e45ce3ec81bcec98ff196-2\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:42 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003cli class=\"comment\"\u003eNice post\u003c/li\u003e"
+    },
+    {
+      "step": "step 2 (the data file has the comment)",
+      "method": "GET",
+      "path": "/_pl/comp-route-selector-write-through-stamp-97755e/data/posts/hello.html",
+      "status": 200,
+      "headers": {
+        "accept-ranges": "bytes",
+        "content-length": "437",
+        "content-type": "text/html",
+        "etag": "\"25f3c11fd2e7e81340bd891629c5fcebf306b6740bf8d6df6c485b8b3a65e7ba\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:42 GMT"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml lang=\"en\"\u003e\u003cbody\u003e\n  \u003carticle itemscope itemtype=\"https://example.test/_pl/comp-route-selector-write-through-stamp-97755e/Post\" id=\"post-hello\"\u003e\n    \u003cmeta itemprop=\"slug\" content=\"hello\"\u003e\n    \u003cmeta itemprop=\"status\" content=\"Published\"\u003e\n    \u003ch1 itemprop=\"title\"\u003eHello, world\u003c/h1\u003e\n    \u003cul itemprop=\"comments\" id=\"comments-hello\" class=\"comment-list\"\u003e\u003cli class=\"comment\"\u003eNice post\u003c/li\u003e\u003c/ul\u003e\n  \u003c/article\u003e\n\u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 3 (the route template does not)",
+      "method": "GET",
+      "path": "/_pl/comp-route-selector-write-through-stamp-97755e/posts/:slug.html",
+      "status": 200,
+      "headers": {
+        "accept-ranges": "bytes",
+        "content-length": "479",
+        "content-type": "text/html",
+        "etag": "\"2248ce9b7917010c59989f0bb188488ce259d38f456563db5bf761a1750e78c0\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:42 GMT"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml lang=\"en\" xmlns:e=\"https://pagelove.org/Binding/Sessel\" xmlns:p=\"https://pagelove.org/1.0\"\u003e\n\u003cbody e:post=\"${[itemtype='https://example.test/_pl/comp-route-selector-write-through-stamp-97755e/Post']:has([itemprop='slug']:value-equals(request.params.slug)):has([itemprop='status']:value-equals('Published'))}.first()\"\u003e\n  \u003cmain class=\"reading post\"\u003e\n    \u003cp:stamp post\u003e\u003c/p:stamp\u003e\n    \u003cdiv class=\"post-missing\"\u003e\u003ch1\u003eNot found\u003c/h1\u003e\u003c/div\u003e\n  \u003c/main\u003e\n\u003c/body\u003e\n\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 4 (the page composes it back in)",
+      "method": "GET",
+      "path": "/_pl/comp-route-selector-write-through-stamp-97755e/posts/hello.html",
+      "status": 200,
+      "headers": {
+        "accept-ranges": "selector, bytes",
+        "cache-control": "public, max-age=5",
+        "content-length": "536",
+        "content-type": "text/html",
+        "etag": "W/\"98c995ce12a941e41ca132b8d6be9130f1cfc0b8cde1927496dbeff2e528944d\"",
+        "route-parameters": "slug=hello",
+        "vary": "Host, Range, Accept"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml lang=\"en\"\u003e\n\u003cbody\u003e\n  \u003cmain class=\"reading post\"\u003e\n    \u003carticle itemscope itemtype=\"https://example.test/_pl/comp-route-selector-write-through-stamp-97755e/Post\" id=\"post-hello\"\u003e\n    \u003cmeta itemprop=\"slug\" content=\"hello\"\u003e\n    \u003cmeta itemprop=\"status\" content=\"Published\"\u003e\n    \u003ch1 itemprop=\"title\"\u003eHello, world\u003c/h1\u003e\n    \u003cul itemprop=\"comments\" id=\"comments-hello\" class=\"comment-list\"\u003e\u003cli class=\"comment\"\u003eNice post\u003c/li\u003e\u003c/ul\u003e\n  \u003c/article\u003e\n    \u003cdiv class=\"post-missing\"\u003e\u003ch1\u003eNot found\u003c/h1\u003e\u003c/div\u003e\n  \u003c/main\u003e\n\u003c/body\u003e\n\u003c/html\u003e\n"
+    }
+  ],
+  "outcome": "pass",
+  "target": "local"
+}

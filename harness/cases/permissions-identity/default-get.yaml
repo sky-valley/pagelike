@@ -1,0 +1,392 @@
+# Host default-GET mode and the requests it never covers (spec R-PERM-44..46).
+# Cases with site.settings need requires: [host-config]; they can only run live on a
+# host whose default-get-authz-mode already matches.
+cases:
+  - id: authz.default-get.allow-mode-grants-unmatched-reads
+    title: With default-GET allow, unmatched GET/HEAD (whole and selector) succeed
+    area: permissions-identity
+    feature: default-GET mode allow
+    evidence: documented
+    source: "docs reference/permissions/AuthorizationRule §Conflict resolution; pagelove-dev SKILL.md@b489923:111-113 ('allow = public GET')"
+    confidence: high
+    requires: [host-config]
+    live: false
+    site:
+      settings:
+        default_get: allow
+      files:
+        - path: "${P}/doc.html"
+          body: '<!DOCTYPE html><html><body><h1>Open</h1></body></html>'
+    steps:
+      - name: whole-document GET
+        as: anonymous
+        request: {method: GET, path: "${P}/doc.html"}
+        expect: {status: 200, body_contains: ['Open']}
+      - name: HEAD
+        as: anonymous
+        request: {method: HEAD, path: "${P}/doc.html"}
+        expect: {status: 200}
+      - name: selector GET
+        as: anonymous
+        request: {method: GET, path: "${P}/doc.html", headers: {Range: "selector=h1"}}
+        expect: {status: 206, body_contains: ['Open']}
+      - name: css QUERY is a read too
+        as: anonymous
+        request: {method: QUERY, path: "${P}/doc.html", headers: {Content-Type: text/css-selector}, body: 'h1'}
+        expect: {status: [200, 206]}
+
+  - id: authz.default-get.deny-mode-refuses-unmatched-reads
+    title: With default-GET deny, unmatched GET/HEAD are refused
+    area: permissions-identity
+    feature: default-GET mode deny
+    evidence: documented
+    source: "docs reference/permissions/AuthorizationRule §Conflict resolution; pagelove-dev SKILL.md@b489923:111-113 ('deny = GET needs an auth rule'); pagelove-ats/site/admin/auth.html@8f200fc:31-33"
+    confidence: high
+    requires: [host-config]
+    live: false
+    site:
+      settings:
+        default_get: deny
+      files:
+        - path: "${P}/doc.html"
+          body: '<!DOCTYPE html><html><body><h1>Closed</h1></body></html>'
+    steps:
+      - name: whole-document GET
+        as: anonymous
+        request: {method: GET, path: "${P}/doc.html"}
+        expect: {status: 401, body_not_contains: ['Closed']}
+      - name: HEAD
+        as: anonymous
+        request: {method: HEAD, path: "${P}/doc.html"}
+        expect: {status: 401}
+      - name: selector GET
+        as: anonymous
+        request: {method: GET, path: "${P}/doc.html", headers: {Range: "selector=h1"}}
+        expect: {status: 401}
+
+  - id: authz.default-get.path-restriction-example
+    title: Rules scoped to /public/* do not cover /admin/* (documented example on a deny-mode host)
+    area: permissions-identity
+    feature: default-GET mode deny
+    evidence: documented
+    source: "docs reference/permissions/AuthorizationRule §Testable examples › Path restrictions (snapshot 2026-09-28)"
+    confidence: high
+    requires: [host-config]
+    live: false
+    notes: The documented response (401) only follows on a host whose default-GET mode is deny.
+    site:
+      settings:
+        default_get: deny
+      files:
+        - path: "${P}/public/index.html"
+          body: '<!DOCTYPE html><html><body><h1>Public</h1></body></html>'
+        - path: "${P}/rules.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div hidden itemscope itemtype="https://pagelove.org/AuthorizationRule">
+                <meta itemprop="actor" content="*"><meta itemprop="resource" content="${P}/public/*">
+                <meta itemprop="method" content="GET"><meta itemprop="action" content="Allow">
+              </div>
+            </body></html>
+    steps:
+      - name: admin path refused with the error document
+        as: anonymous
+        request: {method: GET, path: "${P}/admin/secret.html"}
+        expect:
+          status: 401
+          body_contains:
+            - 'itemtype="https://pagelove.org/1.0/Error"'
+            - '<dd itemprop="resource">${P}/admin/secret.html</dd>'
+      - name: public path allowed
+        as: anonymous
+        request: {method: GET, path: "${P}/public/"}
+        expect: {status: 200}
+
+  - id: authz.default-get.nonexistent-doc-allow-mode-404
+    title: On an allow-mode host a missing document with no rules is a 404
+    area: permissions-identity
+    feature: default-GET mode + absence
+    evidence: documented
+    source: "docs reference/reading-and-writing/GET-method §Error cases; reference/permissions/AuthorizationRule §Conflict resolution"
+    confidence: high
+    requires: [host-config]
+    live: false
+    site:
+      settings:
+        default_get: allow
+    steps:
+      - name: missing document
+        as: anonymous
+        request: {method: GET, path: "${P}/nope.html"}
+        expect: {status: 404}
+
+  - id: authz.default-get.never-covers-writes
+    title: The default-GET mode never grants writes (unmatched PUT/POST/DELETE are refused)
+    area: permissions-identity
+    feature: default deny for writes
+    evidence: documented
+    source: "docs reference/permissions/AuthorizationRule §Conflict resolution ('When no rule matches at all, the request is denied — unless it is a GET/HEAD'); pagelove-dev SKILL.md@b489923:149"
+    confidence: high
+    requires: []
+    live: true
+    notes: Holds in both modes, so no settings are needed and the case is safe live.
+    site:
+      files:
+        - path: "${P}/doc.html"
+          body: '<!DOCTYPE html><html><body><h1>T</h1><ul id="l"><li id="i">x</li></ul></body></html>'
+    steps:
+      - name: PUT
+        as: anonymous
+        request: {method: PUT, path: "${P}/doc.html", headers: {Range: "selector=h1", Content-Type: text/html}, body: '<h1>U</h1>'}
+        expect: {status: 401}
+      - name: POST
+        as: anonymous
+        request: {method: POST, path: "${P}/doc.html", headers: {Range: "selector=#l", Content-Type: text/html}, body: '<li>y</li>'}
+        expect: {status: 401}
+      - name: DELETE
+        as: anonymous
+        request: {method: DELETE, path: "${P}/doc.html", headers: {Range: "selector=#i"}}
+        expect: {status: 401}
+      - name: whole-document PUT creating a new path
+        as: anonymous
+        request: {method: PUT, path: "${P}/new.html", headers: {Content-Type: text/html}, body: '<!DOCTYPE html><html><body></body></html>'}
+        expect: {status: 401}
+
+  - id: authz.default-get.rules-override-allow-mode
+    title: A matching deny rule refuses a read regardless of the default-GET mode
+    area: permissions-identity
+    feature: default-GET mode vs rules
+    evidence: documented
+    source: "docs reference/permissions/AuthorizationRule §Conflict resolution (default-GET only applies when no rule matches)"
+    confidence: high
+    requires: []
+    live: true
+    site:
+      files:
+        - path: "${P}/doc.html"
+          body: '<!DOCTYPE html><html><body><h1>Hidden</h1></body></html>'
+        - path: "${P}/rules.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div hidden itemscope itemtype="https://pagelove.org/AuthorizationRule">
+                <meta itemprop="actor" content="*"><meta itemprop="resource" content="${P}/doc.html">
+                <meta itemprop="method" content="GET"><meta itemprop="action" content="deny">
+              </div>
+            </body></html>
+    steps:
+      - name: GET refused
+        as: anonymous
+        request: {method: GET, path: "${P}/doc.html"}
+        expect: {status: 401, body_not_contains: ['Hidden']}
+
+  - id: authz.default-get.selector-uncovered-element-deny-mode
+    title: In deny mode a selector-scoped GET allow opens only the elements it matches
+    area: permissions-identity
+    feature: default-GET mode deny + selector rules
+    evidence: documented
+    source: "docs reference/permissions/AuthorizationRule §Selectors that match several elements, §Conflict resolution; contrast pagelove-ats/site/admin/auth.html@8f200fc:39-46 (claims any selector GET allow opened every selector)"
+    confidence: medium
+    requires: [host-config]
+    live: false
+    notes: Compatibility decision C5 follows the docs, not the ATS observation.
+    site:
+      settings:
+        default_get: deny
+      files:
+        - path: "${P}/admin.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <table><tbody id="roles-body"><tr><td>Engineer</td></tr></tbody></table>
+              <table><tbody id="candidates-body"><tr><td>Ada Lovelace</td></tr></tbody></table>
+            </body></html>
+        - path: "${P}/rules.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div hidden itemscope itemtype="https://pagelove.org/AuthorizationRule">
+                <meta itemprop="actor" content="*"><meta itemprop="resource" content="${P}/admin.html">
+                <meta itemprop="method" content="GET"><meta itemprop="selector" content="#roles-body">
+                <meta itemprop="action" content="allow">
+              </div>
+            </body></html>
+    steps:
+      - name: the public window
+        as: anonymous
+        request: {method: GET, path: "${P}/admin.html", headers: {Range: "selector=#roles-body"}}
+        expect: {status: 206, body_contains: ['Engineer']}
+      - name: another element stays private
+        as: anonymous
+        request: {method: GET, path: "${P}/admin.html", headers: {Range: "selector=#candidates-body"}}
+        expect: {status: 401, body_not_contains: ['Ada']}
+      - name: the whole document stays private
+        as: anonymous
+        request: {method: GET, path: "${P}/admin.html"}
+        expect: {status: 401, body_not_contains: ['Ada']}
+
+  - id: authz.default-get.selector-uncovered-element-allow-mode
+    title: In allow mode a selector-scoped GET deny closes only the elements it matches
+    area: permissions-identity
+    feature: default-GET mode allow + selector rules
+    evidence: documented
+    source: "docs reference/permissions/AuthorizationRule §Conflict resolution, §Selectors that match several elements"
+    confidence: medium
+    requires: [host-config]
+    live: false
+    site:
+      settings:
+        default_get: allow
+      files:
+        - path: "${P}/doc.html"
+          body: '<!DOCTYPE html><html><body><p class="pub">Visible</p><p class="priv">Private</p></body></html>'
+        - path: "${P}/rules.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div hidden itemscope itemtype="https://pagelove.org/AuthorizationRule">
+                <meta itemprop="actor" content="*"><meta itemprop="resource" content="${P}/doc.html">
+                <meta itemprop="method" content="GET"><meta itemprop="selector" content=".priv">
+                <meta itemprop="action" content="deny">
+              </div>
+            </body></html>
+    steps:
+      - name: uncovered element readable by default
+        as: anonymous
+        request: {method: GET, path: "${P}/doc.html", headers: {Range: "selector=.pub"}}
+        expect: {status: 206, body_contains: ['Visible']}
+      - name: denied element refused
+        as: anonymous
+        request: {method: GET, path: "${P}/doc.html", headers: {Range: "selector=.priv"}}
+        expect: {status: 401, body_not_contains: ['Private']}
+
+  - id: authz.default-get.options-reflects-default
+    title: OPTIONS on an allow-mode host with no rules reports GET and HEAD
+    area: permissions-identity
+    feature: capability reporting + default-GET
+    evidence: live-observed
+    source: "read-probes.json case capabilities (docs.pagelove.com, 2026-09-28): OPTIONS / -> 200 Allow: HEAD, GET, OPTIONS"
+    confidence: medium
+    requires: [host-config]
+    live: false
+    site:
+      settings:
+        default_get: allow
+      files:
+        - path: "${P}/doc.html"
+          body: '<!DOCTYPE html><html><body><h1>T</h1></body></html>'
+    steps:
+      - name: Allow lists GET and HEAD but no write method
+        as: anonymous
+        request: {method: OPTIONS, path: "${P}/doc.html"}
+        expect:
+          status: [200, 204]
+          header_matches: {Allow: "^[A-Z, ]*(GET[A-Z, ]*HEAD|HEAD[A-Z, ]*GET)[A-Z, ]*$"}
+
+  - id: authz.default-get.sse-never-default-granted
+    title: An SSE subscribe with no matching rule is refused whatever the default-GET mode
+    area: permissions-identity
+    feature: SSE authorization
+    evidence: documented
+    source: "docs reference/reading-and-writing/Server-Sent-Events §Subscribing; reference/permissions/AuthorizationRule §Conflict resolution (SSE exception)"
+    confidence: high
+    requires: []
+    live: true
+    notes: Uses a plain request step (not sse_open) because the expected answer is an ordinary error response.
+    site:
+      files:
+        - path: "${P}/doc.html"
+          body: '<!DOCTYPE html><html><body><h1>T</h1></body></html>'
+    steps:
+      - name: subscribe refused
+        as: anonymous
+        request: {method: GET, path: "${P}/doc.html", headers: {Accept: text/event-stream}}
+        expect:
+          status: 401
+          header_matches: {Content-Type: "^text/html"}
+
+  - id: authz.default-get.sse-contrast-allow-mode
+    title: On an allow-mode host a plain GET succeeds while the SSE subscribe to the same path is refused
+    area: permissions-identity
+    feature: SSE authorization
+    evidence: documented
+    source: "docs reference/reading-and-writing/Server-Sent-Events §Subscribing ('unlike an ordinary GET, a subscribe request is never granted by a host's default-GET mode')"
+    confidence: high
+    requires: [host-config]
+    live: false
+    site:
+      settings:
+        default_get: allow
+      files:
+        - path: "${P}/doc.html"
+          body: '<!DOCTYPE html><html><body><h1>T</h1></body></html>'
+    steps:
+      - name: plain GET allowed by default
+        as: anonymous
+        request: {method: GET, path: "${P}/doc.html"}
+        expect: {status: 200}
+      - name: subscribe refused
+        as: anonymous
+        request: {method: GET, path: "${P}/doc.html", headers: {Accept: text/event-stream}}
+        expect: {status: 401}
+
+  - id: authz.default-get.sse-granted-by-rule
+    title: A GET rule grants the SSE subscribe
+    area: permissions-identity
+    feature: SSE authorization
+    evidence: documented
+    source: "docs reference/reading-and-writing/Server-Sent-Events §Subscribing ('subject to the same authorization rules as any other read')"
+    confidence: high
+    requires: []
+    live: true
+    site:
+      files:
+        - path: "${P}/doc.html"
+          body: '<!DOCTYPE html><html><body><h1>T</h1></body></html>'
+        - path: "${P}/rules.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div hidden itemscope itemtype="https://pagelove.org/AuthorizationRule">
+                <meta itemprop="actor" content="*"><meta itemprop="resource" content="${P}/doc.html">
+                <meta itemprop="method" content="GET"><meta itemprop="action" content="allow">
+              </div>
+            </body></html>
+    steps:
+      - sse_open: {name: s1, path: "${P}/doc.html", as: anonymous}
+      - sse_expect: {name: s1, event: pagelove-connection, within_ms: 3000}
+      - sse_close: {name: s1}
+
+  - id: authz.default-get.sse-users-only
+    title: A members-only stream admits signed-in subscribers and refuses anonymous ones
+    area: permissions-identity
+    feature: SSE authorization
+    evidence: documented
+    source: "docs reference/reading-and-writing/Server-Sent-Events §Subscribing; reference/permissions/AuthorizationRule §actor (users)"
+    confidence: high
+    requires: [multi-actor]
+    live: false
+    site:
+      files:
+        - path: "${P}/feed.html"
+          body: '<!DOCTYPE html><html><body><h1>Feed</h1></body></html>'
+        - path: "${P}/rules.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div hidden itemscope itemtype="https://pagelove.org/AuthorizationRule">
+                <meta itemprop="actor" content="users"><meta itemprop="resource" content="${P}/feed.html">
+                <meta itemprop="method" content="GET"><meta itemprop="action" content="allow">
+              </div>
+            </body></html>
+    actors:
+      bob: {sub: sub-bob, email: bob@example.com, email_verified: true, roles: []}
+    steps:
+      - name: anonymous subscribe refused
+        as: anonymous
+        request: {method: GET, path: "${P}/feed.html", headers: {Accept: text/event-stream}}
+        expect: {status: 401}
+      - sse_open: {name: s1, path: "${P}/feed.html", as: bob}
+      - sse_expect: {name: s1, event: pagelove-connection, within_ms: 3000}
+      - sse_close: {name: s1}

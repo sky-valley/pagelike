@@ -1,0 +1,36 @@
+{
+  "case": "reacting.th.class-selector-never-fires",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (install a class-selector handler)",
+      "method": "PUT",
+      "path": "/_pl/reacting-th-class-selector-never-fires-7ad329/r/handlers.html",
+      "status": 201,
+      "headers": {
+        "content-length": "423",
+        "content-type": "text/html",
+        "etag": "\"575323e09dd06c240b8fad87988737a10914c75133c0eb0d2907eff4bad9eccb\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:50 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\n\u003cdiv itemscope itemtype=\"https://pagelove.org/TransitionHandler\"\u003e\n  \u003cmeta itemprop=\"selector\" content=\".order\"\u003e\n  \u003cmeta itemprop=\"property\" content=\"status\"\u003e\n  \u003cmeta itemprop=\"becomes\" content=\"processing\"\u003e\n  \u003cdiv itemprop=\"action\" itemscope itemtype=\"https://pagelove.org/HttpRequest\"\u003e\n    \u003cmeta itemprop=\"url\" content=\"http://127.0.0.1:53641/c-5be3adb5/class\"\u003e\n  \u003c/div\u003e\n\u003c/div\u003e\n\u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 2 (create a classed order at processing)",
+      "method": "PUT",
+      "path": "/_pl/reacting-th-class-selector-never-fires-7ad329/orders/o.html",
+      "status": 201,
+      "headers": {
+        "content-length": "210",
+        "content-type": "text/html",
+        "etag": "\"e8c0c4c4e3c6623e86866382637fe0a965ed94479cfa74ce177cf39d26fc0779\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:50 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\u003chtml\u003e\u003cbody\u003e\u003cdiv class=\"order\" itemscope itemtype=\"https://pagelike.test/_pl/reacting-th-class-selector-never-fires-7ad329/Order\"\u003e\u003cmeta itemprop=\"status\" content=\"processing\"\u003e\u003c/div\u003e\u003c/body\u003e\u003c/html\u003e"
+    }
+  ],
+  "outcome": "pass",
+  "target": "local"
+}

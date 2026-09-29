@@ -1,0 +1,36 @@
+{
+  "case": "modeling.computed.legacy-bare-sessel-read-is-computed",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (register declarations through the public plane (takes effect for the next request))",
+      "method": "PUT",
+      "path": "/_pl/modeling-computed-legacy-bare-sessel-rea-825b64/schema.html",
+      "status": 201,
+      "headers": {
+        "content-length": "1084",
+        "content-type": "text/html",
+        "etag": "\"02405a90c8f0ebdb2038c9f735af22456d04e7034fc614989479df6b09cf5f31\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:44 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\n  \u003cdiv hidden itemscope itemtype=\"https://pagelove.org/Schema\"\u003e\n    \u003cmeta itemprop=\"type\" content=\"https://pagelike.test/_pl/modeling-computed-legacy-bare-sessel-rea-825b64/Person\"\u003e\n    \u003cdiv itemprop=\"property\" itemscope itemtype=\"https://pagelove.org/Property\"\u003e\n      \u003cmeta itemprop=\"name\" content=\"first-name\"\u003e\n      \u003cmeta itemprop=\"type\" content=\"https://schema.host/Text\"\u003e\n      \u003cmeta itemprop=\"cardinality\" content=\"1..1\"\u003e\n    \u003c/div\u003e\n    \u003cdiv itemprop=\"property\" itemscope itemtype=\"https://pagelove.org/Property\"\u003e\n      \u003cmeta itemprop=\"name\" content=\"last-name\"\u003e\n      \u003cmeta itemprop=\"type\" content=\"https://schema.host/Text\"\u003e\n      \u003cmeta itemprop=\"cardinality\" content=\"1..1\"\u003e\n    \u003c/div\u003e\n    \u003cdiv itemprop=\"property\" itemscope itemtype=\"https://pagelove.org/Property\"\u003e\n      \u003cmeta itemprop=\"name\" content=\"display-name\"\u003e\n      \u003cdiv itemprop=\"@read\" itemscope itemtype=\"https://pagelove.org/Sessel\"\u003e\n        \u003cscript itemprop=\"source\" type=\"text/sessel\"\u003eself.first-name + \" \" + self.last-name\u003c/script\u003e\n      \u003c/div\u003e\n    \u003c/div\u003e\n  \u003c/div\u003e\n\u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 2 (person carrying a display-name value accepted (as for @computed, live 2026-09-29))",
+      "method": "PUT",
+      "path": "/_pl/modeling-computed-legacy-bare-sessel-rea-825b64/b.html",
+      "status": 201,
+      "headers": {
+        "content-length": "315",
+        "content-type": "text/html",
+        "etag": "\"7ab4bd574f9b0bd9e29d0cad6724b83b22d9a15d47e8c24d8139ab6a28f04ba4\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:44 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\n  \u003cdiv itemscope itemtype=\"https://pagelike.test/_pl/modeling-computed-legacy-bare-sessel-rea-825b64/Person\"\u003e\n    \u003cmeta itemprop=\"first-name\" content=\"Ada\"\u003e\n    \u003cmeta itemprop=\"last-name\" content=\"Lovelace\"\u003e\n    \u003cmeta itemprop=\"display-name\" content=\"Countess\"\u003e\n  \u003c/div\u003e\n\u003c/body\u003e\u003c/html\u003e\n"
+    }
+  ],
+  "outcome": "pass",
+  "target": "local"
+}

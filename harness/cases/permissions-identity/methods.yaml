@@ -1,0 +1,363 @@
+# Method matching, default deny, special methods (spec R-PERM-23, 24, 46, 63).
+cases:
+  - id: authz.method.default-deny-put
+    title: With only GET allowed, a whole-document PUT is refused with 401 (documented example)
+    area: permissions-identity
+    feature: default deny for writes
+    evidence: documented
+    source: "docs reference/permissions/AuthorizationRule §Testable examples › Default deny (snapshot 2026-09-28)"
+    confidence: high
+    requires: []
+    live: true
+    site:
+      files:
+        - path: "${P}/authz-deny-test.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body><p>Original</p></body></html>
+        - path: "${P}/rules.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div hidden itemscope itemtype="https://pagelove.org/AuthorizationRule">
+                <meta itemprop="actor" content="*"><meta itemprop="resource" content="${P}/authz-deny-test.html">
+                <meta itemprop="method" content="GET"><meta itemprop="action" content="Allow">
+              </div>
+            </body></html>
+    steps:
+      - name: PUT refused
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/authz-deny-test.html"
+          headers: {Content-Type: text/html}
+          body: |
+            <!DOCTYPE html>
+            <html><body><p>Modified</p></body></html>
+        expect:
+          status: 401
+          header_matches: {Content-Type: "^text/html"}
+          body_contains:
+            - 'itemtype="https://pagelove.org/1.0/Error"'
+            - '<p itemprop="message">Authentication required to access this resource.</p>'
+            - '<dd itemprop="resource">${P}/authz-deny-test.html</dd>'
+      - name: document unchanged
+        as: author
+        plane: dav
+        request: {method: GET, path: "${P}/authz-deny-test.html"}
+        expect:
+          status: 200
+          body_contains: ['Original']
+          body_not_contains: ['Modified']
+
+  - id: authz.method.method-restriction
+    title: Rules allowing GET and POST do not allow DELETE (documented example)
+    area: permissions-identity
+    feature: method matching
+    evidence: documented
+    source: "docs reference/permissions/AuthorizationRule §Testable examples › Method restrictions (snapshot 2026-09-28)"
+    confidence: high
+    requires: []
+    live: true
+    site:
+      files:
+        - path: "${P}/authz-method-test.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body><ul><li>One</li><li>Two</li></ul></body></html>
+        - path: "${P}/rules.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div hidden itemscope itemtype="https://pagelove.org/AuthorizationRule">
+                <meta itemprop="actor" content="*"><meta itemprop="resource" content="${P}/authz-method-test.html">
+                <meta itemprop="method" content="GET"><meta itemprop="method" content="POST">
+                <meta itemprop="action" content="Allow">
+              </div>
+            </body></html>
+    steps:
+      - name: DELETE refused
+        as: anonymous
+        request:
+          method: DELETE
+          path: "${P}/authz-method-test.html"
+          headers: {Range: "selector=li"}
+        expect:
+          status: 401
+          body_contains: ['<dd itemprop="resource">${P}/authz-method-test.html</dd>']
+      - name: POST allowed
+        as: anonymous
+        request:
+          method: POST
+          path: "${P}/authz-method-test.html"
+          headers: {Range: "selector=ul", Content-Type: text/html}
+          body: '<li>Three</li>'
+        expect: {status: 206}
+
+  - id: authz.method.wildcard-grants-all
+    title: Method * grants every write method
+    area: permissions-identity
+    feature: method wildcard
+    evidence: documented
+    source: "docs reference/permissions/AuthorizationRule §method ('The wildcard * matches every method')"
+    confidence: high
+    requires: []
+    live: true
+    site:
+      files:
+        - path: "${P}/w.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body><h1>T</h1><ul id="l"><li id="i1">a</li><li id="i2">b</li></ul></body></html>
+        - path: "${P}/rules.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div hidden itemscope itemtype="https://pagelove.org/AuthorizationRule">
+                <meta itemprop="actor" content="*"><meta itemprop="resource" content="${P}/w.html">
+                <meta itemprop="method" content="*"><meta itemprop="action" content="allow">
+              </div>
+            </body></html>
+    steps:
+      - name: PUT
+        as: anonymous
+        request: {method: PUT, path: "${P}/w.html", headers: {Range: "selector=h1", Content-Type: text/html}, body: '<h1>U</h1>'}
+        expect: {status: 206}
+      - name: POST
+        as: anonymous
+        request: {method: POST, path: "${P}/w.html", headers: {Range: "selector=#l", Content-Type: text/html}, body: '<li id="i3">c</li>'}
+        expect: {status: 206}
+      - name: DELETE
+        as: anonymous
+        request: {method: DELETE, path: "${P}/w.html", headers: {Range: "selector=#i1"}}
+        expect: {status: 204}
+
+  - id: authz.method.wildcard-deny-beats-get-allow
+    title: "* * Deny on a private subtree beats a broad * GET Allow (same tier, deny wins)"
+    area: permissions-identity
+    feature: method wildcard + conflict
+    evidence: demo-source
+    source: "pagelove-shop/site/rules.html@d887054:9-13, 52-58 ('Deny wins over the broad public GET allow'); docs reference/permissions/AuthorizationRule §Conflict resolution"
+    confidence: high
+    requires: []
+    live: true
+    site:
+      files:
+        - path: "${P}/public.html"
+          body: '<!DOCTYPE html><html><body><h1>Public</h1></body></html>'
+        - path: "${P}/private/admin.html"
+          body: '<!DOCTYPE html><html><body><h1>Secret</h1></body></html>'
+        - path: "${P}/rules.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div hidden itemscope itemtype="https://pagelove.org/AuthorizationRule">
+                <meta itemprop="actor" content="*"><meta itemprop="resource" content="${P}/*">
+                <meta itemprop="method" content="GET"><meta itemprop="action" content="allow">
+              </div>
+              <div hidden itemscope itemtype="https://pagelove.org/AuthorizationRule">
+                <meta itemprop="actor" content="*"><meta itemprop="resource" content="${P}/private/*">
+                <meta itemprop="method" content="*"><meta itemprop="action" content="deny">
+              </div>
+            </body></html>
+    steps:
+      - name: public page readable
+        as: anonymous
+        request: {method: GET, path: "${P}/public.html"}
+        expect: {status: 200, body_contains: ['Public']}
+      - name: private page refused
+        as: anonymous
+        request: {method: GET, path: "${P}/private/admin.html"}
+        expect: {status: 401, body_not_contains: ['Secret']}
+
+  - id: authz.method.head-follows-get
+    title: HEAD is decided by GET rules
+    area: permissions-identity
+    feature: HEAD vs GET
+    evidence: inferred
+    source: "docs reference/permissions/AuthorizationRule §Conflict resolution (GET/HEAD treated together by default-GET); HTTP semantics of HEAD"
+    confidence: medium
+    requires: []
+    live: true
+    notes: On a default-GET allow host a 200 for the first step would mean HEAD does not look at GET rules (probe P-3).
+    site:
+      files:
+        - path: "${P}/denied.html"
+          body: '<!DOCTYPE html><html><body><h1>D</h1></body></html>'
+        - path: "${P}/allowed.html"
+          body: '<!DOCTYPE html><html><body><h1>A</h1></body></html>'
+        - path: "${P}/rules.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div hidden itemscope itemtype="https://pagelove.org/AuthorizationRule">
+                <meta itemprop="actor" content="*"><meta itemprop="resource" content="${P}/denied.html">
+                <meta itemprop="method" content="GET"><meta itemprop="action" content="deny">
+              </div>
+              <div hidden itemscope itemtype="https://pagelove.org/AuthorizationRule">
+                <meta itemprop="actor" content="*"><meta itemprop="resource" content="${P}/allowed.html">
+                <meta itemprop="method" content="GET"><meta itemprop="action" content="allow">
+              </div>
+            </body></html>
+    steps:
+      - name: HEAD of a GET-denied document
+        as: anonymous
+        request: {method: HEAD, path: "${P}/denied.html"}
+        expect: {status: 401}
+      - name: HEAD of a GET-allowed document
+        as: anonymous
+        request: {method: HEAD, path: "${P}/allowed.html"}
+        expect: {status: 200, headers_present: [ETag]}
+
+  - id: authz.method.options-not-gated
+    title: OPTIONS is answered even when every method is denied
+    area: permissions-identity
+    feature: OPTIONS vs authorization
+    evidence: inferred
+    source: "docs reference/protocol/OPTIONS-method ('answers what could I do here … purely from authorization rules'); beta-js/pagelove/primitives.mjs@c204746:180-190 calls OPTIONS on every page load"
+    confidence: medium
+    requires: []
+    live: true
+    notes: Probe P-4.
+    site:
+      files:
+        - path: "${P}/doc.html"
+          body: '<!DOCTYPE html><html><body><h1>D</h1></body></html>'
+        - path: "${P}/rules.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div hidden itemscope itemtype="https://pagelove.org/AuthorizationRule">
+                <meta itemprop="actor" content="*"><meta itemprop="resource" content="${P}/*">
+                <meta itemprop="method" content="*"><meta itemprop="action" content="deny">
+              </div>
+            </body></html>
+    steps:
+      - name: OPTIONS still answered
+        as: anonymous
+        request: {method: OPTIONS, path: "${P}/doc.html"}
+        expect:
+          status: [200, 204]
+          headers_present: [Allow]
+
+  - id: authz.method.options-reports-selector-grants
+    title: Multipart OPTIONS reports the selector-scoped grants the tutorial client relies on
+    area: permissions-identity
+    feature: capability reporting (OPTIONS)
+    evidence: client-source
+    source: "beta-js/pagelove/primitives.mjs@c204746:180-221 (parts with Content-Range selector + Allow attach .PUT/.DELETE); docs reference/protocol/OPTIONS-method §Multipart OPTIONS; learn/your-first-app"
+    confidence: high
+    requires: []
+    live: true
+    notes: Cross-area with protocol; this case pins only what the client parses.
+    site:
+      files:
+        - path: "${P}/index.html"
+          body: |
+            <!doctype html>
+            <html><body>
+              <ul id="todo-list"><li>Get Milk</li></ul>
+              <div hidden itemscope itemtype="https://pagelove.org/AuthorizationRule">
+                <meta itemprop="actor" content="*"><meta itemprop="resource" content="${P}/index.html">
+                <meta itemprop="method" content="PUT"><meta itemprop="method" content="DELETE">
+                <meta itemprop="selector" content="#todo-list li"><meta itemprop="action" content="allow">
+              </div>
+            </body></html>
+    steps:
+      - name: 207 multipart with a part for the rule selector
+        as: anonymous
+        request:
+          method: OPTIONS
+          path: "${P}/index.html"
+          headers: {Accept: multipart/mixed, Prefer: return=representation}
+        expect:
+          status: 207
+          header_matches: {Content-Type: "^multipart/mixed; *boundary="}
+          body_contains: ['#todo-list li', 'PUT', 'DELETE']
+
+  - id: authz.method.query-css-like-get
+    title: css-selector QUERY on the public plane is authorized exactly like a GET
+    area: permissions-identity
+    feature: QUERY authorization
+    evidence: documented
+    source: "docs reference/protocol/QUERY §On the edge proxy ('authorized the same way a GET of that path would be')"
+    confidence: high
+    requires: []
+    live: true
+    site:
+      files:
+        - path: "${P}/closed.html"
+          body: '<!DOCTYPE html><html><body><h1>C</h1></body></html>'
+        - path: "${P}/open.html"
+          body: '<!DOCTYPE html><html><body><h1>O</h1></body></html>'
+        - path: "${P}/rules.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div hidden itemscope itemtype="https://pagelove.org/AuthorizationRule">
+                <meta itemprop="actor" content="*"><meta itemprop="resource" content="${P}/closed.html">
+                <meta itemprop="method" content="GET"><meta itemprop="action" content="deny">
+              </div>
+              <div hidden itemscope itemtype="https://pagelove.org/AuthorizationRule">
+                <meta itemprop="actor" content="*"><meta itemprop="resource" content="${P}/open.html">
+                <meta itemprop="method" content="GET"><meta itemprop="action" content="allow">
+              </div>
+            </body></html>
+    steps:
+      - name: QUERY on a GET-denied document
+        as: anonymous
+        request:
+          method: QUERY
+          path: "${P}/closed.html"
+          headers: {Content-Type: text/css-selector}
+          body: 'h1'
+        expect: {status: 401}
+      - name: QUERY on a GET-allowed document
+        as: anonymous
+        request:
+          method: QUERY
+          path: "${P}/open.html"
+          headers: {Content-Type: text/css-selector}
+          body: 'h1'
+        expect:
+          status: [200, 206]
+          body_contains: ['O']
+
+  - id: authz.method.query-sessel-not-default-granted
+    title: A Sessel QUERY with no matching rule is refused even where GET is public
+    area: permissions-identity
+    feature: QUERY authorization
+    evidence: live-observed
+    source: "read-probes.json case query-sessel (docs.pagelove.com, 2026-09-28): anonymous QUERY text/sessel -> 401 while GET/QUERY css on the same path -> 206"
+    confidence: medium
+    requires: [sessel]
+    live: true
+    notes: Body avoids ${...} so the runner cannot rewrite it. Probe P-5 checks whether a QUERY rule grants it.
+    site:
+      files:
+        - path: "${P}/doc.html"
+          body: '<!DOCTYPE html><html><body><h1>D</h1></body></html>'
+        - path: "${P}/rules.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div hidden itemscope itemtype="https://pagelove.org/AuthorizationRule">
+                <meta itemprop="actor" content="*"><meta itemprop="resource" content="${P}/doc.html">
+                <meta itemprop="method" content="GET"><meta itemprop="action" content="allow">
+              </div>
+            </body></html>
+    steps:
+      - name: GET is public
+        as: anonymous
+        request: {method: GET, path: "${P}/doc.html"}
+        expect: {status: 200}
+      - name: Sessel QUERY refused
+        as: anonymous
+        request:
+          method: QUERY
+          path: "${P}/doc.html"
+          headers: {Content-Type: text/sessel}
+          body: '1 + 1'
+        expect:
+          status: 401
+          body_contains: ['itemtype="https://pagelove.org/1.0/Error"']

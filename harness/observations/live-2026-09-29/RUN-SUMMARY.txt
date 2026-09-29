@@ -1,0 +1,404 @@
+PASS comp.eb.count-sum
+PASS comp.eb.nearest-ancestor-wins
+PASS comp.eb.undefined-variable-fails
+PASS comp.eb.bare-auth-name-undefined
+PASS comp.eb.template-attr-order
+PASS comp.inc.basic
+PASS comp.inc.zero-matches-404
+PASS comp.inc.write-through-put
+PASS comp.inc.request-document-private
+PASS comp.jb.reduce-example
+PASS comp.jb.throw-fails
+PASS comp.jb.request-auth-private
+PASS comp.jb.wrong-namespace-ignored
+PASS comp.me.sessel-element
+PASS comp.me.attribute-form-dnu
+PASS comp.ns.strip-xmlns-and-directives
+PASS comp.ns.prefix-is-arbitrary
+PASS comp.ns.unbound-attr-left-as-is
+PASS comp.ns.self-closing-prefixed-element
+FAIL comp.pag.links-and-slice [harness/cases/composing/pagination.yaml]
+     - step 1 GET ${P}/contacts.html?paginate:page=2&paginate:length=3: body does not contain "<link rel=\"first\" href=\"?paginate:page=1&amp;paginate:length=3\" title=\"contacts\">" (body: <!DOCTYPE html>
+<html>
+<head><title>Contacts</title><link rel="first" href="/_pl/comp-pag-links-and-slice-dffedc/contacts.html?paginate:contacts:page=1" title="contacts"><link rel="last" href="/_pl/comp-pag-links-and-slice-dffedc/contacts.html?paginate:contacts:page=3" title="contacts"><link rel="prev" href="/_pl/comp-pag-links-and-slice-dffedc/contacts.html?paginate:contacts:page=1" title="contac…)
+     - step 1 GET ${P}/contacts.html?paginate:page=2&paginate:length=3: body does not contain "<link rel=\"prev\" href=\"?paginate:page=1&amp;paginate:length=3\" title=\"contacts\">" (body: <!DOCTYPE html>
+<html>
+<head><title>Contacts</title><link rel="first" href="/_pl/comp-pag-links-and-slice-dffedc/contacts.html?paginate:contacts:page=1" title="contacts"><link rel="last" href="/_pl/comp-pag-links-and-slice-dffedc/contacts.html?paginate:contacts:page=3" title="contacts"><link rel="prev" href="/_pl/comp-pag-links-and-slice-dffedc/contacts.html?paginate:contacts:page=1" title="contac…)
+     - step 1 GET ${P}/contacts.html?paginate:page=2&paginate:length=3: body does not contain "<link rel=\"next\" href=\"?paginate:page=3&amp;paginate:length=3\" title=\"contacts\">" (body: <!DOCTYPE html>
+<html>
+<head><title>Contacts</title><link rel="first" href="/_pl/comp-pag-links-and-slice-dffedc/contacts.html?paginate:contacts:page=1" title="contacts"><link rel="last" href="/_pl/comp-pag-links-and-slice-dffedc/contacts.html?paginate:contacts:page=3" title="contacts"><link rel="prev" href="/_pl/comp-pag-links-and-slice-dffedc/contacts.html?paginate:contacts:page=1" title="contac…)
+     - step 1 GET ${P}/contacts.html?paginate:page=2&paginate:length=3: body does not contain "<link rel=\"last\" href=\"?paginate:page=3&amp;paginate:length=3\" title=\"contacts\">" (body: <!DOCTYPE html>
+<html>
+<head><title>Contacts</title><link rel="first" href="/_pl/comp-pag-links-and-slice-dffedc/contacts.html?paginate:contacts:page=1" title="contacts"><link rel="last" href="/_pl/comp-pag-links-and-slice-dffedc/contacts.html?paginate:contacts:page=3" title="contacts"><link rel="prev" href="/_pl/comp-pag-links-and-slice-dffedc/contacts.html?paginate:contacts:page=1" title="contac…)
+FAIL comp.pag.first-page-no-prev [harness/cases/composing/pagination.yaml]
+     - step 1 GET ${P}/contacts.html: body does not contain "<link rel=\"next\" href=\"?paginate:page=2\" title=\"contacts\">" (body: <!DOCTYPE html>
+<html><head><title>Contacts</title><link rel="first" href="/_pl/comp-pag-first-page-no-prev-61c145/contacts.html?paginate:contacts:page=1" title="contacts"><link rel="last" href="/_pl/comp-pag-first-page-no-prev-61c145/contacts.html?paginate:contacts:page=3" title="contacts"><link rel="next" href="/_pl/comp-pag-first-page-no-prev-61c145/contacts.html?paginate:contacts:page=2" title…)
+FAIL comp.pag.multiple-without-ids-422 [harness/cases/composing/pagination.yaml]
+     - step 1 GET ${P}/two.html: status 200, want [422] (body: <!DOCTYPE html>
+<html><body>
+<ul><li>a</li><li>b</li></ul>
+<ul><li>d</li><li>e</li></ul>
+
+                <div style="
+                            position: fixed;
+                            bottom: 0;
+                            left: 0;
+…)
+PASS comp.rb.contacts-template
+PASS comp.rb.bypasses-read-authorization
+PASS comp.rb.invalid-selector-fails
+PASS javascript.classes.import-class-behaviour
+PASS javascript.client.generated-root-path-selector
+FAIL javascript.client.head-etag-then-conditional-writes [harness/cases/javascript/client.yaml]
+     - step 3 (element GET with the stale If-Match (beta-js sends If-Match on GET)) GET ${P}/board.html: status 206, want [412] (body: <ul id="list"><li id="item-1">one</li><li id="item-2">two</li></ul>)
+PASS javascript.client.post-response-is-one-node
+PASS javascript.client.fallback-put-plain-content-type
+PASS javascript.client.delete-missing-is-416
+FAIL javascript.query.javascript-body-415 [harness/cases/javascript/client.yaml]
+     - step 2 (QUERY text/javascript) QUERY ${P}/q.html: status 401, want [415] (body: <!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>401 Unauthorized</title>
+</head>
+<body itemscope itemtype="https://pagelove.org/1.0/Error">
+    <h1>401 Unauthorized</h1>
+    <p itemprop="message">Authentication required …)
+     - step 2 (QUERY text/javascript) QUERY ${P}/q.html: header Accept-Query missing
+PASS javascript.dom.instanceof-hierarchy
+PASS javascript.dom.names-and-node-types
+PASS javascript.dom.namespace-errors
+PASS javascript.dom.attributes-ns
+PASS javascript.dom.reflect-strings-and-urls
+FAIL javascript.dom.classlist [harness/cases/javascript/dom.yaml]
+     - step 2 (GET <main>: the method result is inserted as text) GET ${P}/probe.html: body does not contain "R:2|true|a b a|a b c|false|false|true|a c z|true|false|x c z|x|null|null|x,c,z|false|0|m n" (body: <main>
+R:3|true|a b a|a b a c|false|false|true|a a c z|true|false|x a c z|x|undefined|undefined|x,a,c,z|true|1|m n
+</main>)
+PASS javascript.dom.nodelist-static-snapshot
+PASS javascript.dom.mutation-errors
+FAIL javascript.dom.tree-operations [harness/cases/javascript/dom.yaml]
+     - step 2 (GET <main>: the method result is inserted as text) GET ${P}/probe.html: status 500, want [206] (body: <!DOCTYPE html>
+<html>
+  <head>
+    <title>500 Internal Server Error - Error</title>
+  </head>
+  <body itemscope itemtype="http://pagelove.org/Error">
+    <h1 itemprop="name">Internal Server Error</h1>
+    <meta itemprop="statusCode" conten…)
+     - step 2 (GET <main>: the method result is inserted as text) GET ${P}/probe.html: body does not contain "R:true|true|b|0|top,a,B,x,y|false|5|true|false|false|null|true|top|5|x|BODY" (body: <!DOCTYPE html>
+<html>
+  <head>
+    <title>500 Internal Server Error - Error</title>
+  </head>
+  <body itemscope itemtype="http://pagelove.org/Error">
+    <h1 itemprop="name">Internal Server Error</h1>
+    <meta itemprop="statusCode" content="500">
+    <p itemprop="description">Composition failed: internal error: JS method &#x27;probe&#x27; failed: javascript/module binding threw: cannot read prop…)
+FAIL javascript.dom.inner-outer-adjacent-html [harness/cases/javascript/dom.yaml]
+     - step 2 (GET <main>: the method result is inserted as text) GET ${P}/probe.html: status 500, want [206] (body: <!DOCTYPE html>
+<html>
+  <head>
+    <title>500 Internal Server Error - Error</title>
+  </head>
+  <body itemscope itemtype="http://pagelove.org/Error">
+    <h1 itemprop="name">Internal Server Error</h1>
+    <meta itemprop="statusCode" conten…)
+     - step 2 (GET <main>: the method result is inserted as text) GET ${P}/probe.html: body does not contain "R:[p]Old[/p]|[p]Loaded.[/p]|[ul id='l'][li]1[/li][/ul]|SECTION,HR,UL,BR|0,1,2|SyntaxError|ok|NoModificationAllowedError|S|0" (body: <!DOCTYPE html>
+<html>
+  <head>
+    <title>500 Internal Server Error - Error</title>
+  </head>
+  <body itemscope itemtype="http://pagelove.org/Error">
+    <h1 itemprop="name">Internal Server Error</h1>
+    <meta itemprop="statusCode" content="500">
+    <p itemprop="description">Composition failed: internal error: JS method &#x27;probe&#x27; failed: javascript/module binding threw: cannot read prop…)
+PASS javascript.dom.insertion-conveniences
+FAIL javascript.dom.closest-and-matches [harness/cases/javascript/dom.yaml]
+     - step 2 (GET <main>: the method result is inserted as text) GET ${P}/probe.html: body does not contain "R:f|true|null|true|true|false" (body: <main>
+R:f|false|null|true|true|false
+</main>)
+PASS javascript.dom.element-query-scans-whole-document
+FAIL javascript.dom.namespace-pipe-selectors [harness/cases/javascript/dom.yaml]
+     - step 2 (GET <main>: the method result is inserted as text) GET ${P}/probe.html: body does not contain "R:SyntaxError|0" (body: <main>
+R:SyntaxError|1
+</main>)
+PASS javascript.dom.character-data
+FAIL javascript.dom.domparser-ignores-type [harness/cases/javascript/dom.yaml]
+     - step 2 (GET <main>: the method result is inserted as text) GET ${P}/probe.html: status 500, want [206] (body: <!DOCTYPE html>
+<html>
+  <head>
+    <title>500 Internal Server Error - Error</title>
+  </head>
+  <body itemscope itemtype="http://pagelove.org/Error">
+    <h1 itemprop="name">Internal Server Error</h1>
+    <meta itemprop="statusCode" conten…)
+     - step 2 (GET <main>: the method result is inserted as text) GET ${P}/probe.html: body does not contain "R:HTML|true|P|true" (body: <!DOCTYPE html>
+<html>
+  <head>
+    <title>500 Internal Server Error - Error</title>
+  </head>
+  <body itemscope itemtype="http://pagelove.org/Error">
+    <h1 itemprop="name">Internal Server Error</h1>
+    <meta itemprop="statusCode" content="500">
+    <p itemprop="description">Composition failed: internal error: JS method &#x27;probe&#x27; failed: javascript/module binding threw: cannot read prop…)
+PASS javascript.dom.readonly-boundary
+PASS javascript.globals.host-io-absent
+PASS liquid.apps.blog-index-recent-posts
+PASS liquid.bind.people-worked-example
+PASS liquid.bind.multi-valued-route-shape
+PASS liquid.bind.polls-id-to-url
+PASS liquid.bind.expression-count-sum
+PASS liquid.bind.expression-scope-siblings
+PASS liquid.bind.sees-stored-template-source
+PASS liquid.bind.denied-data-still-rendered
+FAIL liquid.compose.range-over-rendered-output [harness/cases/liquid/composition.yaml]
+     - step 1 (first generated item) GET ${P}/gen.html: status 500, want [206] (body: <!DOCTYPE html>
+<html>
+  <head>
+    <title>500 Internal Server Error - Error</title>
+  </head>
+  <body itemscope itemtype="http://pagelove.org/Error">
+    <h1 itemprop="name">Internal Server Error</h1>
+    <meta itemprop="statusCode" conten…)
+     - step 1 (first generated item) GET ${P}/gen.html: body = "<!DOCTYPE html>\n<html>\n  <head>\n    <title>500 Internal Server Error - Error</title>\n  </head>\n  <body itemscope itemtype=\"http://pagelove.org/Error\">\n    <h1 itemprop=\"name\">Internal Server Error</h1>\n    <meta itemprop=\"statusCode\" content=\"500\">\n    <p itemprop=\"description\">Composition failed: include failed: method &#x27;template&#x27; failed: runtime error: Liquid syntax error: Liquid parse …", want "<li class=\"n1\">item 1</li>"
+     - step 2 (a later generated item) GET ${P}/gen.html: status 500, want [206] (body: <!DOCTYPE html>
+<html>
+  <head>
+    <title>500 Internal Server Error - Error</title>
+  </head>
+  <body itemscope itemtype="http://pagelove.org/Error">
+    <h1 itemprop="name">Internal Server Error</h1>
+    <meta itemprop="statusCode" conten…)
+     - step 2 (a later generated item) GET ${P}/gen.html: body = "<!DOCTYPE html>\n<html>\n  <head>\n    <title>500 Internal Server Error - Error</title>\n  </head>\n  <body itemscope itemtype=\"http://pagelove.org/Error\">\n    <h1 itemprop=\"name\">Internal Server Error</h1>\n    <meta itemprop=\"statusCode\" content=\"500\">\n    <p itemprop=\"description\">Composition failed: include failed: method &#x27;template&#x27; failed: runtime error: Liquid syntax error: Liquid parse …", want "<li class=\"n3\">item 3</li>"
+PASS liquid.compose.xml-atom-feed
+PASS liquid.compose.dav-serves-raw-template
+PASS liquid.compose.write-into-rendered-output
+PASS liquid.declare.p-prefix
+PASS liquid.declare.outside-host-untouched
+PASS liquid.declare.html-root-host
+PASS liquid.declare.nested-host-rendered-once
+PASS liquid.errors.filter-error-degrades-locally
+PASS liquid.errors.undefined-renders-empty
+FAIL liquid.escape.escape-filter [harness/cases/liquid/escaping.yaml]
+     - step 1 (read) GET ${P}/esc.html: status 500, want [206] (body: <!DOCTYPE html>
+<html>
+  <head>
+    <title>500 Internal Server Error - Error</title>
+  </head>
+  <body itemscope itemtype="http://pagelove.org/Error">
+    <h1 itemprop="name">Internal Server Error</h1>
+    <meta itemprop="statusCode" conten…)
+     - step 1 (read) GET ${P}/esc.html: body does not contain ">&lt;a href=&#39;x&#39;&gt;|a &amp; b</p>" (body: <!DOCTYPE html>
+<html>
+  <head>
+    <title>500 Internal Server Error - Error</title>
+  </head>
+  <body itemscope itemtype="http://pagelove.org/Error">
+    <h1 itemprop="name">Internal Server Error</h1>
+    <meta itemprop="statusCode" content="500">
+    <p itemprop="description">Composition failed: include failed: method &#x27;template&#x27; failed: runtime error: Liquid syntax error: Liquid parse …)
+PASS liquid.escape.query-value-not-evaluated
+PASS liquid.filters-array.ordering-strings
+PASS liquid.filters-date.date-examples
+FAIL liquid.filters-exp.where-reject-find [harness/cases/liquid/filters-expressions.yaml]
+     - step 1 (read) GET ${P}/exp.html: microdata find = [""], want "Retro"
+PASS liquid.filters-exp.self-reference-output-degrades
+PASS liquid.filters-number.arithmetic
+PASS modeling.cardinality.minimal-tag-example
+FAIL modeling.computed.write-rejected [harness/cases/modeling/computed.yaml]
+     - step 3 (person carrying a display-name value rejected) PUT ${P}/b.html: status 201, want [400 409 422] (body: <!DOCTYPE html>
+<html><body>
+  <div itemscope itemtype="https://pagelike.test/_pl/modeling-computed-write-rejected-716058/Person">
+    <meta itemprop="first-name" content="Ada">
+    <meta itemprop="last-name" content="Lovelace">
+    <meta i…)
+     - step 4 (b.html was not stored) GET ${P}/b.html: status 200, want [404] (body: <!DOCTYPE html>
+<html><body>
+  <div itemscope itemtype="https://pagelike.test/_pl/modeling-computed-write-rejected-716058/Person">
+    <meta itemprop="first-name" content="Ada">
+    <meta itemprop="last-name" content="Lovelace">
+    <meta i…)
+PASS modeling.defaults.static-injected
+PASS modeling.discovery.schema-anywhere
+PASS modeling.discovery.same-write-not-self-validated
+PASS modeling.enums.value-must-be-listed
+PASS modeling.errors.schema-violation-envelope
+PASS modeling.groups.exactly-one-auth-method
+PASS modeling.inheritance.parent-property-enforced-on-child
+PASS modeling.keys.auto-default-generated
+PASS modeling.methods.sessel-method-element
+FAIL modeling.nested.recursive-validation [harness/cases/modeling/nested.yaml]
+     - step 3 (nested address missing city rejected) PUT ${P}/p2.html: status 201, want [422] (body: <!DOCTYPE html>
+<html><body>
+  <div itemscope itemtype="https://pagelike.test/_pl/modeling-nested-recursive-validation-a3c63f/Person">
+    <span itemprop="name">Alice</span>
+    <div itemscope itemtype="https://pagelike.test/_pl/modeling-ne…)
+     - step 3 (nested address missing city rejected) PUT ${P}/p2.html: body does not contain "https://pagelove.org/SchemaViolation" (body: <!DOCTYPE html>
+<html><body>
+  <div itemscope itemtype="https://pagelike.test/_pl/modeling-nested-recursive-validation-a3c63f/Person">
+    <span itemprop="name">Alice</span>
+    <div itemscope itemtype="https://pagelike.test/_pl/modeling-nested-recursive-validation-a3c63f/Address" itemprop="address">
+      <span itemprop="street">123 Main St</span>
+    </div>
+  </div>
+
+                <div style="…)
+     - step 3 (nested address missing city rejected) PUT ${P}/p2.html: body does not contain "cardinality" (body: <!DOCTYPE html>
+<html><body>
+  <div itemscope itemtype="https://pagelike.test/_pl/modeling-nested-recursive-validation-a3c63f/Person">
+    <span itemprop="name">Alice</span>
+    <div itemscope itemtype="https://pagelike.test/_pl/modeling-nested-recursive-validation-a3c63f/Address" itemprop="address">
+      <span itemprop="street">123 Main St</span>
+    </div>
+  </div>
+
+                <div style="…)
+PASS modeling.references.unresolved-rejected
+PASS modeling.references.restrict-blocks-delete
+FAIL modeling.resolvers.sessel-write-normalise-email [harness/cases/modeling/resolvers.yaml]
+     - step 2 (submit a messy email) PUT ${P}/a.html: status 500, want [200 201 204] (body: <div itemscope itemtype="https://dombase.pagelove.team/ns/error/Internal"><ul itemprop="problems"><li itemprop="problem"><span itemprop="message">resolver pipeline error: sessel binding threw: unknown function: set_text (at bytes 0..4)</spa…)
+     - step 3 (stored state of a.html (authoring plane, raw)) GET ${P}/a.html: status 404, want [200] (body: <article itemscope itemtype="https://pagelove.org/Error/NotFound"><meta itemprop="status" content="404"><p itemprop="message">Not found: /_pl/modeling-resolvers-sessel-write-normalis-438206/a.html</p></article>)
+     - step 3 (stored state of a.html (authoring plane, raw)) GET ${P}/a.html: body does not contain "alice@example.com" (body: <article itemscope itemtype="https://pagelove.org/Error/NotFound"><meta itemprop="status" content="404"><p itemprop="message">Not found: /_pl/modeling-resolvers-sessel-write-normalis-438206/a.html</p></article>)
+FAIL modeling.shapes-closed.note-worked-example [harness/cases/modeling/shapes-closed.yaml]
+     - step 3 (note with an img rejected) PUT ${P}/notes/n2.html: body does not contain "https://pagelove.org/ConstraintViolation" (body: <div itemscope itemtype="https://dombase.pagelove.team/ns/error/ShapeConstraint"><ul itemprop="problems"><li itemprop="problem"><span itemprop="message">Shape constraints violated</span></li><li itemprop="problem"><span itemprop="message">https://pagelove.org/ShapeConstraint article[itemtype*=Note]: Element &lt;img&gt; inside 'article[itemtype*=Note]' is not permitted by any permit</span></li></ul…)
+     - step 4 (note with onclick on the title rejected) PUT ${P}/notes/n3.html: body does not contain "https://pagelove.org/ConstraintViolation" (body: <div itemscope itemtype="https://dombase.pagelove.team/ns/error/ShapeConstraint"><ul itemprop="problems"><li itemprop="problem"><span itemprop="message">Shape constraints violated</span></li><li itemprop="problem"><span itemprop="message">https://pagelove.org/ShapeConstraint article[itemtype*=Note]: Attribute &lt;onclick&gt; on &lt;h2&gt; inside 'article[itemtype*=Note]' is not permitted by any ma…)
+     - step 5 (note with a class on the root rejected) PUT ${P}/notes/n4.html: body does not contain "https://pagelove.org/ConstraintViolation" (body: <div itemscope itemtype="https://dombase.pagelove.team/ns/error/ShapeConstraint"><ul itemprop="problems"><li itemprop="problem"><span itemprop="message">Shape constraints violated</span></li><li itemprop="problem"><span itemprop="message">https://pagelove.org/ShapeConstraint article[itemtype*=Note]: Attribute &lt;class&gt; on &lt;article&gt; matched by 'article[itemtype*=Note]' is not permitted by…)
+FAIL modeling.shapes.required-properties-user [harness/cases/modeling/shapes.yaml]
+     - step 3 (user missing email rejected) PUT ${P}/people/missing-email.html: body does not contain "https://pagelove.org/ConstraintViolation" (body: <div itemscope itemtype="https://dombase.pagelove.team/ns/error/ShapeConstraint"><ul itemprop="problems"><li itemprop="problem"><span itemprop="message">Shape constraints violated</span></li><li itemprop="problem"><span itemprop="message">https://pagelove.org/ShapeConstraint [itemtype*=User]: Element matching '[itemtype*=User]' does not satisfy constraint ':has([itemprop="email"])'</span></li></ul…)
+     - step 3 (user missing email rejected) PUT ${P}/people/missing-email.html: body does not contain "constraintSelector" (body: <div itemscope itemtype="https://dombase.pagelove.team/ns/error/ShapeConstraint"><ul itemprop="problems"><li itemprop="problem"><span itemprop="message">Shape constraints violated</span></li><li itemprop="problem"><span itemprop="message">https://pagelove.org/ShapeConstraint [itemtype*=User]: Element matching '[itemtype*=User]' does not satisfy constraint ':has([itemprop="email"])'</span></li></ul…)
+     - step 3 (user missing email rejected) PUT ${P}/people/missing-email.html: body does not contain "failedConstraint" (body: <div itemscope itemtype="https://dombase.pagelove.team/ns/error/ShapeConstraint"><ul itemprop="problems"><li itemprop="problem"><span itemprop="message">Shape constraints violated</span></li><li itemprop="problem"><span itemprop="message">https://pagelove.org/ShapeConstraint [itemtype*=User]: Element matching '[itemtype*=User]' does not satisfy constraint ':has([itemprop="email"])'</span></li></ul…)
+PASS modeling.types.text-accepts-anything
+PASS modeling.types.text-content-value
+FAIL modeling.uniqueness.duplicate-across-documents [harness/cases/modeling/uniqueness.yaml]
+     - step 3 (second project with the same slug) PUT ${P}/p2.html: body does not contain "https://pagelove.org/ConstraintViolation" (body: <div itemscope itemtype="https://dombase.pagelove.team/ns/error/ConstraintViolation"><ul itemprop="problems"><li itemprop="problem"><span itemprop="message">Constraint violation: 1 violation(s):
+  - [uniqueness] [itemprop='slug'] (unique(slug)): Uniqueness violation: value already exists for property 'slug' at '/_pl/modeling-uniqueness-duplicate-across-doc-025eba/p1.html'</span></li></ul></div>)
+FAIL modeling.uniqueness.composite-recipe [harness/cases/modeling/uniqueness.yaml]
+     - step 5 (alice at acme again) PUT ${P}/m4.html: body does not contain "https://pagelove.org/ConstraintViolation" (body: <div itemscope itemtype="https://dombase.pagelove.team/ns/error/ConstraintViolation"><ul itemprop="problems"><li itemprop="problem"><span itemprop="message">Constraint violation: 1 violation(s):
+  - [uniqueness] [itemprop='org-id'], [itemprop='user-id'] (unique-group(membership-pair)): Composite uniqueness violation: value combination already exists for properties 'org-id, user-id'</span></li></ul…)
+PASS modeling.validators.property-sessel-email
+FAIL modeling.write-paths.webdav-put-validated-by-schema [harness/cases/modeling/write-paths.yaml]
+     - step 2 (author PUT of an invalid instance refused) PUT ${P}/t.html: status 201, want [422] (body: <!DOCTYPE html>
+<html><body>
+  <div itemscope itemtype="https://pagelike.test/_pl/modeling-write-paths-webdav-put-validate-4ad1e9/Tag"></div>
+</body></html>
+)
+     - step 3 (t.html was not stored) GET ${P}/t.html: status 200, want [404] (body: <!DOCTYPE html>
+<html><body>
+  <div itemscope itemtype="https://pagelike.test/_pl/modeling-write-paths-webdav-put-validate-4ad1e9/Tag"></div>
+</body></html>
+)
+PASS modeling.write-paths.unaffected-siblings-not-rechecked
+FAIL modeling.write-paths.failed-write-changes-nothing [harness/cases/modeling/write-paths.yaml]
+     - step 4 (invalid selector delete refused) DELETE ${P}/t.html: body does not contain "https://pagelove.org/SchemaViolation" (body: <div itemscope itemtype="https://dombase.pagelove.team/ns/error/Cardinality"><ul itemprop="problems"><li itemprop="problem"><span itemprop="message">https://pagelike.test/_pl/modeling-write-paths-failed-write-change-82cbcb/Tag /label: cardinality 1..1 violated: expected exactly 1 value, found 0 (cardinality)</span></li></ul></div>)
+PASS reacting.actions.sessel-throw-403-docs-example
+PASS reacting.actions.js-throw-403-admin-restricted
+PASS reacting.actions.js-plain-error-is-runtime-error
+FAIL reacting.actions.sessel-throw-303-location-pair [harness/cases/reacting/actions.yaml]
+     - step 2 (POST is redirected) POST ${P}/d/form.html: status 404, want [303] (body: <!DOCTYPE html>
+<html>
+  <head>
+    <title>404 Not Found - Error</title>
+  </head>
+  <body itemscope itemtype="http://pagelove.org/Error">
+    <h1 itemprop="name">Not Found</h1>
+    <meta itemprop="statusCode" content="404">
+    <p itemprop…)
+     - step 2 (POST is redirected) POST ${P}/d/form.html: header Location = "", want "/other-page.html"
+FAIL reacting.actions.actions-run-in-document-order [harness/cases/reacting/actions.yaml]
+     - step 1 (install a trigger with two throwing actions) PUT ${P}/r/triggers.html: status 422, want [200 201 204] (body: <div itemscope itemtype="https://pagelove.org/SchemaViolation"><ul itemprop="problems"><li itemprop="problem"><span itemprop="message">[https://pagelove.org/Handler].action: cardinality 1..1 violated: expected exactly 1 value, found 2</span…)
+     - step 2 (the first action's throw wins) PUT ${P}/d/x.html: status 201, want [409] (body: <p>x</p>)
+     - step 2 (the first action's throw wins) PUT ${P}/d/x.html: body does not contain "first" (body: <p>x</p>)
+PASS reacting.actions.thrown-response-drops-stored-content-type
+PASS reacting.context.sessel-request-fields
+FAIL reacting.context.header-lookup-lowercase [harness/cases/reacting/context.yaml]
+     - step 1 (install a lower-case gate) PUT ${P}/r/triggers.html: status 422, want [200 201 204] (body: <div itemscope itemtype="https://pagelove.org/SchemaViolation"><ul itemprop="problems"><li itemprop="problem"><span itemprop="message">[https://pagelove.org/Handler].action: cardinality 1..1 violated: expected exactly 1 value, found 0</span…)
+     - step 2 (without the header) PUT ${P}/d/x.html: status 201, want [401] (body: <p>x</p>)
+     - step 2 (without the header) PUT ${P}/d/x.html: body does not contain "Admin credential required" (body: <p>x</p>)
+PASS reacting.context.js-request-fields
+FAIL reacting.context.js-auth-anonymous-null [harness/cases/reacting/context.yaml]
+     - step 2 (anonymous auth is null) PUT ${P}/d/x.html: body = "auth={\"claims\":{},\"roles\":[]}", want "auth=null"
+FAIL reacting.context.resource-binding-on-trigger [harness/cases/reacting/context.yaml]
+     - step 1 (install a trigger whose gate uses r:secret) PUT ${P}/r/triggers.html: status 422, want [200 201 204] (body: <div itemscope itemtype="https://pagelove.org/SchemaViolation"><ul itemprop="problems"><li itemprop="problem"><span itemprop="message">[https://pagelove.org/Handler].action: cardinality 1..1 violated: expected exactly 1 value, found 0</span…)
+     - step 2 (wrong token) PUT ${P}/d/x.html: status 201, want [401] (body: <p>x</p>)
+     - step 2 (wrong token) PUT ${P}/d/x.html: body does not contain "token required" (body: <p>x</p>)
+PASS reacting.context.polls-existing-document-guard
+PASS reacting.discovery.trigger-in-separate-document
+PASS reacting.discovery.trigger-in-governed-document
+PASS reacting.discovery.subtype-via-schema-parent
+FAIL reacting.discovery.no-action-skipped [harness/cases/reacting/discovery.yaml]
+     - step 1 (install an action-less trigger) PUT ${P}/r/triggers.html: status 422, want [200 201 204] (body: <div itemscope itemtype="https://pagelove.org/SchemaViolation"><ul itemprop="problems"><li itemprop="problem"><span itemprop="message">[https://pagelove.org/Handler].action: cardinality 1..1 violated: expected exactly 1 value, found 0</span…)
+PASS reacting.discovery.template-content-not-discovered
+PASS reacting.discovery.same-request-snapshot
+PASS reacting.filters.resource-or
+FAIL reacting.filters.method-case-insensitive [harness/cases/reacting/filters.yaml]
+     - step 1 (install a trigger declared with method 'put') PUT ${P}/r/triggers.html: status 422, want [200 201 204] (body: <div itemscope itemtype="https://pagelove.org/SchemaViolation"><ul itemprop="problems"><li itemprop="problem"><span itemprop="message">[https://pagelove.org/RequestHandler].method: Value "put" is not a valid https://pagelove.org/HTTPMethod …)
+     - step 2 (PUT is matched) PUT ${P}/d/x.html: status 201, want [409] (body: <p>x</p>)
+     - step 2 (PUT is matched) PUT ${P}/d/x.html: body does not contain "lowercase-method" (body: <p>x</p>)
+PASS reacting.filters.omitted-filters-match-all
+FAIL reacting.filters.selector-semantic-match [harness/cases/reacting/filters.yaml]
+     - step 3 (a selector PUT targeting the heading does not) PUT ${P}/d/doc.html: status 409, want [200 204 206] (body: <!DOCTYPE html>
+<html>
+  <head>
+    <title>409 Conflict - Error</title>
+  </head>
+  <body itemscope itemtype="http://pagelove.org/Error">
+    <h1 itemprop="name">Conflict</h1>
+    <meta itemprop="statusCode" content="409">
+    <p itemprop="…)
+PASS reacting.gates.when-truthy-runs-action
+PASS reacting.gates.js-when
+PASS reacting.gates.otherwise-runs-when-falsy
+PASS sessel.bind.stamp-literal
+PASS sessel.bind.route-params
+PASS sessel.query.new.shorthand
+FAIL sessel.query.new.setters-and-mutation [harness/cases/sessel/query-construction.yaml]
+     - step 2 (prepend, insertBefore, getHTML) QUERY ${P}/product.html: status 400, want [200] (body: <!DOCTYPE html>
+<html>
+  <head>
+    <title>400 Bad Request - Error</title>
+  </head>
+  <body itemscope itemtype="http://pagelove.org/Error">
+    <h1 itemprop="name">Bad Request</h1>
+    <meta itemprop="statusCode" content="400">
+    <p item…)
+     - step 2 (prepend, insertBefore, getHTML) QUERY ${P}/product.html: body is not JSON: invalid character '<' looking for beginning of value
+PASS sessel.query.new.parse-helpers
+PASS sessel.query.schema.reflection
+PASS sessel.query.schema.instance-element-shape
+FAIL sessel.query.sel.from-self-list [harness/cases/sessel/query-selectors.yaml]
+     - step 1 (count and provenance) QUERY ${P}/doc.html: json = [3,["3","12","7"],false], want [3,["3","12","7"],true]
+FAIL sessel.query.sel.from-path [harness/cases/sessel/query-selectors.yaml]
+     - step 1 (literal path) QUERY ${P}/doc.html: json = null, want "Nike"
+     - step 2 (path from a variable) QUERY ${P}/doc.html: json = null, want "Cap"
+PASS sessel.query.sel.embedded-expressions
+FAIL sessel.query.sel.sub-select-provenance [harness/cases/sessel/query-selectors.yaml]
+     - step 1 (sub-select) QUERY ${P}/doc.html: json = [["a","b"],0,false], want [["a","b"],2,true]
+FAIL sessel.query.sel.element-getters [harness/cases/sessel/query-selectors.yaml]
+     - step 1 (selector and document) QUERY ${P}/doc.html: json = ["#main > h1:nth-child(1)",null], want ["#main \u003e h1:nth-child(1)","100"]
+     - step 2 (microdata values) QUERY ${P}/doc.html: json = ["/x","2026-01-02","c","","$29.99"], want ["/x","2026-01-02","c",null,"$29.99"]
+FAIL sessel.query.sel.selector-type [harness/cases/sessel/query-selectors.yaml]
+     - step 1 (execute on a path and on self) QUERY ${P}/doc.html: status 400, want [200] (body: <!DOCTYPE html>
+<html>
+  <head>
+    <title>400 Bad Request - Error</title>
+  </head>
+  <body itemscope itemtype="http://pagelove.org/Error">
+    <h1 itemprop="name">Bad Request</h1>
+    <meta itemprop="statusCode" content="400">
+    <p item…)
+     - step 1 (execute on a path and on self) QUERY ${P}/doc.html: body is not JSON: invalid character '<' looking for beginning of value
+PASS sessel.query.values.precedence
+FAIL sessel.query.values.integer-and-float-division [harness/cases/sessel/query-values.yaml]
+     - step 1 (division kinds) QUERY ${P}/doc.html: json = [2,2.5,"2","42"], want [2,2.5,"2","42.0"]
+PASS sessel.query.values.interpolation-and-let
+PASS sessel.query.values.dictionary-assignment
+PASS sessel.query.values.list-pipeline
+FAIL sessel.query.values.try-catch-message [harness/cases/sessel/query-values.yaml]
+     - step 1 (message) QUERY ${P}/doc.html: json = "Error: type error: cannot use 'a' in arithmetic", want "Error: Cannot add String and Integer"
+PASS sessel.query.values.integer-conversion-throws
+PASS sessel.query.values.sha256
+PASS sessel.query.values.random-string
+FAIL sessel.query.values.temporal-format [harness/cases/sessel/query-values.yaml]
+     - step 1 (format) QUERY ${P}/doc.html: json = ["March 23, 2026","2026-04-23",null], want ["March 23, 2026","2026-04-23",1]
+
+108 passed, 40 failed, 0 skipped

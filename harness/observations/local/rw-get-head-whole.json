@@ -1,0 +1,37 @@
+{
+  "case": "rw.get.head-whole",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (HEAD)",
+      "method": "HEAD",
+      "path": "/_pl/rw-get-head-whole-356980/h.html",
+      "status": 200,
+      "headers": {
+        "accept-ranges": "selector, bytes",
+        "content-length": "57",
+        "content-type": "text/html",
+        "etag": "\"07162fd1a6c4046628c05eaab4557bb8067bbfa5032d55d5063752f662764451\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:55 GMT",
+        "vary": "Host, Range, Accept"
+      }
+    },
+    {
+      "step": "step 2 (GET has the same validator)",
+      "method": "GET",
+      "path": "/_pl/rw-get-head-whole-356980/h.html",
+      "status": 200,
+      "headers": {
+        "accept-ranges": "selector, bytes",
+        "content-length": "57",
+        "content-type": "text/html",
+        "etag": "\"07162fd1a6c4046628c05eaab4557bb8067bbfa5032d55d5063752f662764451\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:55 GMT",
+        "vary": "Host, Range, Accept"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\u003cp\u003ehead me\u003c/p\u003e\u003c/body\u003e\u003c/html\u003e\n"
+    }
+  ],
+  "outcome": "pass",
+  "target": "local"
+}

@@ -1,0 +1,85 @@
+{
+  "case": "modeling.uniqueness.composite-recipe",
+  "failures": [
+    "step 5 (alice at acme again) PUT ${P}/m4.html: body does not contain \"https://pagelove.org/ConstraintViolation\" (body: \u003cdiv itemscope itemtype=\"https://dombase.pagelove.team/ns/error/ConstraintViolation\"\u003e\u003cul itemprop=\"problems\"\u003e\u003cli itemprop=\"problem\"\u003e\u003cspan itemprop=\"message\"\u003eConstraint violation: 1 violation(s):\n  - [uniqueness] [itemprop='org-id'], [itemprop='user-id'] (unique-group(membership-pair)): Composite uniqueness violation: value combination already exists for properties 'org-id, user-id'\u003c/span\u003e\u003c/li\u003e\u003c/ul…)"
+  ],
+  "observations": [
+    {
+      "step": "step 1 (register declarations through the public plane (takes effect for the next request))",
+      "method": "PUT",
+      "path": "/_pl/modeling-uniqueness-composite-recipe-b54519/schema.html",
+      "status": 201,
+      "headers": {
+        "content-type": "text/html",
+        "etag": "\"e4422131197228555dbd8e5ae9a5e36137df8d3c6a52d4a641da1efd143f4d77\"",
+        "last-modified": "Tue, 29 Sep 2026 00:48:36 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\n  \u003cdiv hidden itemscope itemtype=\"https://pagelove.org/Schema\"\u003e\n    \u003cmeta itemprop=\"type\" content=\"https://pagelike.test/_pl/modeling-uniqueness-composite-recipe-b54519/Membership\"\u003e\n    \u003cli itemprop=\"property\" itemscope itemtype=\"https://pagelove.org/Property\"\u003e\n      \u003cmeta itemprop=\"name\" content=\"user-id\"\u003e\n      \u003cmeta itemprop=\"type\" content=\"https://schema.host/Text\"\u003e\n      \u003cmeta itemprop=\"cardinality\" content=\"1..1\"\u003e\n      \u003cmeta itemprop=\"unique\" content=\"membership-pair\"\u003e\n    \u003c/li\u003e\n    \u003cli itemprop=\"property\" itemscope itemtype=\"https://pagelove.org/Property\"\u003e\n      \u003cmeta itemprop=\"name\" content=\"org-id\"\u003e\n      \u003cmeta itemprop=\"type\" content=\"https://schema.host/Text\"\u003e\n      \u003cmeta itemprop=\"cardinality\" content=\"1..1\"\u003e\n      \u003cmeta itemprop=\"unique\" content=\"membership-pair\"\u003e\n    \u003c/li\u003e\n  \u003cmeta itemprop=\"@id\" content=\"https://schema.host/l20p0wqs\"\u003e\u003cmeta itemprop=\"path\" content=\"/Schemahttps://schema.host/l20p0wqs.html\"\u003e\u003c/div\u003e\n\n                \u003cdiv style=\"\n                            position: fixed;\n                            bottom: 0;\n                            left: 0;\n                            right: 0;\n                            padding: 8px;\n                            background: #f0f0f0;\n                            text-align: center;\n                            font-size: 12px;\n                            color: #666;\n                            z-index: 9999;\n                            opacity: 0.8;\n                            border-top: 1px solid #ddd;\n                        \"\u003e\n                    Powered by\n                    \u003ca href=\"https://pagelove.com/\" style=\"color: #4a90d9; text-decoration: none\"\u003ePagelove\u003c/a\u003e\n                \u003c/div\u003e\n            \u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 2 (alice at acme)",
+      "method": "PUT",
+      "path": "/_pl/modeling-uniqueness-composite-recipe-b54519/m1.html",
+      "status": 201,
+      "headers": {
+        "content-type": "text/html",
+        "etag": "\"214d8ab634463ce9da7308e3a2ca7f0c46789aa84b27bff59efc9cdb39e7b176\"",
+        "last-modified": "Tue, 29 Sep 2026 00:48:37 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\n  \u003cdiv itemscope itemtype=\"https://pagelike.test/_pl/modeling-uniqueness-composite-recipe-b54519/Membership\"\u003e\n    \u003cmeta itemprop=\"user-id\" content=\"alice\"\u003e\n    \u003cmeta itemprop=\"org-id\" content=\"acme\"\u003e\n  \u003c/div\u003e\n\n                \u003cdiv style=\"\n                            position: fixed;\n                            bottom: 0;\n                            left: 0;\n                            right: 0;\n                            padding: 8px;\n                            background: #f0f0f0;\n                            text-align: center;\n                            font-size: 12px;\n                            color: #666;\n                            z-index: 9999;\n                            opacity: 0.8;\n                            border-top: 1px solid #ddd;\n                        \"\u003e\n                    Powered by\n                    \u003ca href=\"https://pagelove.com/\" style=\"color: #4a90d9; text-decoration: none\"\u003ePagelove\u003c/a\u003e\n                \u003c/div\u003e\n            \u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 3 (alice at globex)",
+      "method": "PUT",
+      "path": "/_pl/modeling-uniqueness-composite-recipe-b54519/m2.html",
+      "status": 201,
+      "headers": {
+        "content-type": "text/html",
+        "etag": "\"163a478bb0c62d1855539c50c73477b0ed067b277ae3904eae3fefcf0322ebc4\"",
+        "last-modified": "Tue, 29 Sep 2026 00:48:37 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\n  \u003cdiv itemscope itemtype=\"https://pagelike.test/_pl/modeling-uniqueness-composite-recipe-b54519/Membership\"\u003e\n    \u003cmeta itemprop=\"user-id\" content=\"alice\"\u003e\n    \u003cmeta itemprop=\"org-id\" content=\"globex\"\u003e\n  \u003c/div\u003e\n\n                \u003cdiv style=\"\n                            position: fixed;\n                            bottom: 0;\n                            left: 0;\n                            right: 0;\n                            padding: 8px;\n                            background: #f0f0f0;\n                            text-align: center;\n                            font-size: 12px;\n                            color: #666;\n                            z-index: 9999;\n                            opacity: 0.8;\n                            border-top: 1px solid #ddd;\n                        \"\u003e\n                    Powered by\n                    \u003ca href=\"https://pagelove.com/\" style=\"color: #4a90d9; text-decoration: none\"\u003ePagelove\u003c/a\u003e\n                \u003c/div\u003e\n            \u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 4 (bob at acme)",
+      "method": "PUT",
+      "path": "/_pl/modeling-uniqueness-composite-recipe-b54519/m3.html",
+      "status": 201,
+      "headers": {
+        "content-type": "text/html",
+        "etag": "\"3d96d1912c9a3744c5fd8c9798616742558bdee90dd0ebf604ab21070c3a3228\"",
+        "last-modified": "Tue, 29 Sep 2026 00:48:37 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\n  \u003cdiv itemscope itemtype=\"https://pagelike.test/_pl/modeling-uniqueness-composite-recipe-b54519/Membership\"\u003e\n    \u003cmeta itemprop=\"user-id\" content=\"bob\"\u003e\n    \u003cmeta itemprop=\"org-id\" content=\"acme\"\u003e\n  \u003c/div\u003e\n\n                \u003cdiv style=\"\n                            position: fixed;\n                            bottom: 0;\n                            left: 0;\n                            right: 0;\n                            padding: 8px;\n                            background: #f0f0f0;\n                            text-align: center;\n                            font-size: 12px;\n                            color: #666;\n                            z-index: 9999;\n                            opacity: 0.8;\n                            border-top: 1px solid #ddd;\n                        \"\u003e\n                    Powered by\n                    \u003ca href=\"https://pagelove.com/\" style=\"color: #4a90d9; text-decoration: none\"\u003ePagelove\u003c/a\u003e\n                \u003c/div\u003e\n            \u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 5 (alice at acme again)",
+      "method": "PUT",
+      "path": "/_pl/modeling-uniqueness-composite-recipe-b54519/m4.html",
+      "status": 422,
+      "headers": {
+        "content-length": "407",
+        "content-type": "text/html",
+        "vary": "Host, Range"
+      },
+      "body": "\u003cdiv itemscope itemtype=\"https://dombase.pagelove.team/ns/error/ConstraintViolation\"\u003e\u003cul itemprop=\"problems\"\u003e\u003cli itemprop=\"problem\"\u003e\u003cspan itemprop=\"message\"\u003eConstraint violation: 1 violation(s):\n  - [uniqueness] [itemprop='org-id'], [itemprop='user-id'] (unique-group(membership-pair)): Composite uniqueness violation: value combination already exists for properties 'org-id, user-id'\u003c/span\u003e\u003c/li\u003e\u003c/ul\u003e\u003c/div\u003e"
+    },
+    {
+      "step": "step 6 (m4.html was not stored)",
+      "method": "GET",
+      "path": "/_pl/modeling-uniqueness-composite-recipe-b54519/m4.html",
+      "status": 404,
+      "headers": {
+        "content-length": "207",
+        "content-type": "text/html; charset=utf-8"
+      },
+      "body": "\u003carticle itemscope itemtype=\"https://pagelove.org/Error/NotFound\"\u003e\u003cmeta itemprop=\"status\" content=\"404\"\u003e\u003cp itemprop=\"message\"\u003eNot found: /_pl/modeling-uniqueness-composite-recipe-b54519/m4.html\u003c/p\u003e\u003c/article\u003e"
+    }
+  ],
+  "outcome": "fail",
+  "target": "live"
+}

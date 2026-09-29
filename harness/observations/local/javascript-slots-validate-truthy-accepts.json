@@ -1,0 +1,48 @@
+{
+  "case": "javascript.slots.validate-truthy-accepts",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (register declarations through the public plane (takes effect for the next request))",
+      "method": "PUT",
+      "path": "/_pl/javascript-slots-validate-truthy-accepts-363625/schema.html",
+      "status": 201,
+      "headers": {
+        "content-length": "656",
+        "content-type": "text/html",
+        "etag": "\"9b8e24e56393e59b29335b9e6b42fc2143a9bbff6aeab20cab12760b66610a3f\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:43 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\n\u003cdiv hidden itemscope itemtype=\"https://pagelove.org/Schema\"\u003e\n\u003cmeta itemprop=\"type\" content=\"https://pagelike.test/_pl/javascript-slots-validate-truthy-accepts-363625/Vvalidatetruthyaccepts\"\u003e\n\u003cdiv itemprop=\"property\" itemscope itemtype=\"https://pagelove.org/Property\"\u003e\n\u003cmeta itemprop=\"name\" content=\"v\"\u003e\n\u003cmeta itemprop=\"type\" content=\"https://schema.host/Text\"\u003e\n\u003cmeta itemprop=\"cardinality\" content=\"1..1\"\u003e\n\u003cdiv itemprop=\"@validate\" itemscope itemtype=\"https://pagelove.org/JavaScript/Module\"\u003e\n\u003cscript itemprop=\"source\" type=\"module\"\u003e\nexport default (v) =\u003e v === 'x' ? 'yes' : '';\n\u003c/script\u003e\n\u003c/div\u003e\n\u003c/div\u003e\n\u003c/div\u003e\n\u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 2 (PUT an instance (a.html))",
+      "method": "PUT",
+      "path": "/_pl/javascript-slots-validate-truthy-accepts-363625/a.html",
+      "status": 201,
+      "headers": {
+        "content-length": "207",
+        "content-type": "text/html",
+        "etag": "\"fe7b0a1772ec0afbe57a1bc35f16fe2e7efb1392697e532a0ad84dfab294b30f\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:43 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\n\u003cdiv itemscope itemtype=\"https://pagelike.test/_pl/javascript-slots-validate-truthy-accepts-363625/Vvalidatetruthyaccepts\"\u003e\n\u003cmeta itemprop=\"v\" content=\"x\"\u003e\n\u003c/div\u003e\n\u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 3 (an empty-string result (falsy) rejects)",
+      "method": "PUT",
+      "path": "/_pl/javascript-slots-validate-truthy-accepts-363625/b.html",
+      "status": 422,
+      "headers": {
+        "content-length": "869",
+        "content-type": "text/html; charset=utf-8",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\n  \u003chead\u003e\n    \u003ctitle\u003e422 Unprocessable Entity - Schema Violation\u003c/title\u003e\n  \u003c/head\u003e\n  \u003cbody itemscope itemtype=\"https://pagelove.org/SchemaViolation\"\u003e\n    \u003ch1 itemprop=\"name\"\u003eUnprocessable Entity\u003c/h1\u003e\n    \u003cmeta itemprop=\"statusCode\" content=\"422\"\u003e\n    \u003cp itemprop=\"description\"\u003eSchema validation failed\u003c/p\u003e\n    \u003cul\u003e\n      \u003cli itemprop=\"violations\" itemscope itemtype=\"https://pagelove.org/Violation\"\u003e\n        \u003cspan itemprop=\"check\"\u003e@validate\u003c/span\u003e\n        \u003cspan itemprop=\"itemtype\"\u003ehttps://pagelike.test/_pl/javascript-slots-validate-truthy-accepts-363625/Vvalidatetruthyaccepts\u003c/span\u003e\n        \u003cspan itemprop=\"property\"\u003ev\u003c/span\u003e\n        \u003cspan itemprop=\"message\"\u003e[https://pagelike.test/_pl/javascript-slots-validate-truthy-accepts-363625/Vvalidatetruthyaccepts].v: the value was rejected by @validate\u003c/span\u003e\n      \u003c/li\u003e\n    \u003c/ul\u003e\n  \u003c/body\u003e\n\u003c/html\u003e\n"
+    }
+  ],
+  "outcome": "pass",
+  "target": "local"
+}

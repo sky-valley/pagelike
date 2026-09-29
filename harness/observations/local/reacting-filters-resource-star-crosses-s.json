@@ -1,0 +1,33 @@
+{
+  "case": "reacting.filters.resource-star-crosses-segments",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (install a trigger on ${P}/d/*)",
+      "method": "PUT",
+      "path": "/_pl/reacting-filters-resource-star-crosses-s-3e31e6/r/triggers.html",
+      "status": 201,
+      "headers": {
+        "content-length": "534",
+        "content-type": "text/html",
+        "etag": "\"8d3a11ce2138786736efabf68be865bb8fbdf8a75c695561b6ca81ebde936a20\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:48 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\n\u003cdiv hidden itemscope itemtype=\"https://pagelove.org/Trigger\"\u003e\n  \u003cmeta itemprop=\"resource\" content=\"/_pl/reacting-filters-resource-star-crosses-s-3e31e6/d/*\"\u003e\n  \u003cmeta itemprop=\"method\" content=\"PUT\"\u003e\n  \u003cdiv itemprop=\"action\" itemscope itemtype=\"https://pagelove.org/Sessel\"\u003e\n    \u003cscript itemprop=\"source\" type=\"text/sessel\"\u003e\n      @schema HTTPResponse url(\"https://pagelove.org/HTTPResponse\");\n      throw new HTTPResponse { status: 409, message: \"deep-hit\" }\n    \u003c/script\u003e\n  \u003c/div\u003e\n\u003c/div\u003e\n\u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 2 (a nested path two segments down matches)",
+      "method": "PUT",
+      "path": "/_pl/reacting-filters-resource-star-crosses-s-3e31e6/d/a/b.html",
+      "status": 409,
+      "headers": {
+        "content-length": "8",
+        "content-type": "text/html; charset=utf-8"
+      },
+      "body": "deep-hit"
+    }
+  ],
+  "outcome": "pass",
+  "target": "local"
+}

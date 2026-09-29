@@ -1,0 +1,50 @@
+{
+  "case": "javascript.slots.default-timestamp-docs-example",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (register declarations through the public plane (takes effect for the next request))",
+      "method": "PUT",
+      "path": "/_pl/javascript-slots-default-timestamp-docs-d8ba3d/schema.html",
+      "status": 201,
+      "headers": {
+        "content-length": "702",
+        "content-type": "text/html",
+        "etag": "\"2ddf983992631f0b5c4bf214955a2ced60faa6e3f7f243cf6742c461516c413d\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:43 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\n\u003cdiv hidden itemscope itemtype=\"https://pagelove.org/Schema\"\u003e\n\u003cmeta itemprop=\"type\" content=\"https://pagelike.test/_pl/javascript-slots-default-timestamp-docs-d8ba3d/Dfdefaulttimestampdocsexample\"\u003e\n\u003cdiv itemprop=\"property\" itemscope itemtype=\"https://pagelove.org/Property\"\u003e\n\u003cmeta itemprop=\"name\" content=\"d\"\u003e\n\u003cmeta itemprop=\"type\" content=\"https://schema.host/Text\"\u003e\n\u003cmeta itemprop=\"cardinality\" content=\"0..1\"\u003e\n\u003cdiv itemprop=\"default\" itemscope itemtype=\"https://pagelove.org/JavaScript/Module\"\u003e\n\u003cscript itemprop=\"source\" type=\"module\"\u003e\nexport default function(context) {\n  return `created at ${new Date().toISOString()}`;\n}\n\u003c/script\u003e\n\u003c/div\u003e\n\u003c/div\u003e\n\u003c/div\u003e\n\u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 2 (PUT an instance (a.html))",
+      "method": "PUT",
+      "path": "/_pl/javascript-slots-default-timestamp-docs-d8ba3d/a.html",
+      "status": 201,
+      "headers": {
+        "content-length": "282",
+        "content-type": "text/html",
+        "etag": "\"84b919464f4368de985fb48afe287becaab8445b5d48e5d4da826514ee1fef7a\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:43 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\n\u003cdiv itemscope itemtype=\"https://pagelike.test/_pl/javascript-slots-default-timestamp-docs-d8ba3d/Dfdefaulttimestampdocsexample\"\u003e\n\u003cmeta itemprop=\"other\" content=\"o\"\u003e\n\u003cmeta itemprop=\"d\" content=\"created at 2026-09-29T02:40:43.473Z\"\u003e\u003c/div\u003e\n\u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 3 (stored state (authoring plane, raw))",
+      "method": "GET",
+      "path": "/_pl/javascript-slots-default-timestamp-docs-d8ba3d/a.html",
+      "status": 200,
+      "headers": {
+        "accept-ranges": "bytes",
+        "content-length": "282",
+        "content-type": "text/html",
+        "etag": "\"84b919464f4368de985fb48afe287becaab8445b5d48e5d4da826514ee1fef7a\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:43 GMT"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\n\u003cdiv itemscope itemtype=\"https://pagelike.test/_pl/javascript-slots-default-timestamp-docs-d8ba3d/Dfdefaulttimestampdocsexample\"\u003e\n\u003cmeta itemprop=\"other\" content=\"o\"\u003e\n\u003cmeta itemprop=\"d\" content=\"created at 2026-09-29T02:40:43.473Z\"\u003e\u003c/div\u003e\n\u003c/body\u003e\u003c/html\u003e\n"
+    }
+  ],
+  "outcome": "pass",
+  "target": "local"
+}

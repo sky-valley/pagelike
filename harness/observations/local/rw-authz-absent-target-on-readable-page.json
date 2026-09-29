@@ -1,0 +1,35 @@
+{
+  "case": "rw.authz.absent-target-on-readable-page-416",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (allowed target present)",
+      "method": "PUT",
+      "path": "/_pl/rw-authz-absent-target-on-readable-page-979772/page.html",
+      "status": 206,
+      "headers": {
+        "content-length": "20",
+        "content-range": "selector #o1",
+        "content-type": "text/html",
+        "etag": "\"58efb5594135c8b50f9d0ee695a33fe49581b732d1ecbf2e76a65c173565889e-58efb5594135c8b50f9d0ee695a33fe49581b732d1ecbf2e76a65c173565889e-2\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:55 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003cli id=\"o1\"\u003eONE\u003c/li\u003e"
+    },
+    {
+      "step": "step 2 (target absent, page readable)",
+      "method": "PUT",
+      "path": "/_pl/rw-authz-absent-target-on-readable-page-979772/page.html",
+      "status": 416,
+      "headers": {
+        "content-length": "365",
+        "content-range": "selector */",
+        "content-type": "text/html; charset=utf-8"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\n  \u003chead\u003e\n    \u003ctitle\u003e416 Range Not Satisfiable - Error\u003c/title\u003e\n  \u003c/head\u003e\n  \u003cbody itemscope itemtype=\"http://pagelove.org/Error\"\u003e\n    \u003ch1 itemprop=\"name\"\u003eRange Not Satisfiable\u003c/h1\u003e\n    \u003cmeta itemprop=\"statusCode\" content=\"416\"\u003e\n    \u003cp itemprop=\"description\"\u003eHTML parsing error: No elements matched selector: #nothing-here\u003c/p\u003e\n  \u003c/body\u003e\n\u003c/html\u003e\n"
+    }
+  ],
+  "outcome": "pass",
+  "target": "local"
+}

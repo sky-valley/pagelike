@@ -1,0 +1,485 @@
+# Composing: resource bindings (r:) and how bound elements look to Liquid.
+# Spec: docs/spec/composing.md §6 (R-COMP-30..34), §9 R-COMP-52, §19.
+# Selectors are site-wide, so every itemtype/attribute used here embeds ${P}
+# to stay unique on a shared live host.
+cases:
+  - id: comp.rb.contacts-template
+    title: A resource binding collects items from other documents and a Liquid template renders them
+    area: composing
+    feature: resource binding
+    evidence: documented
+    source: "docs reference/composing-pages/Resource-Binding §Template rendering; languages/liquid/templating §Worked example: listing people (snapshot 2026-09-28)"
+    confidence: high
+    requires: [liquid]
+    live: true
+    notes: "R-COMP-30/31/52. Cross-document order is not asserted (pagelike: path order)."
+    site:
+      settings: {default_get: allow}
+      files:
+        - path: "${P}/people/anna.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body><div itemscope itemtype="https://example.test${P}/Person"><span itemprop="name">Anna</span></div></body></html>
+        - path: "${P}/people/ben.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body><div itemscope itemtype="https://example.test${P}/Person"><span itemprop="name">Ben</span></div></body></html>
+        - path: "${P}/listing.html"
+          body: |
+            <!doctype html>
+            <html lang="en" xmlns:r="https://pagelove.org/Binding/CSS" xmlns:p="https://pagelove.org/1.0">
+            <head><title>Contacts List</title></head>
+            <body r:contacts="[itemtype='https://example.test${P}/Person']" p:template="text/liquid">
+              <ul>
+                {% for contact in contacts %}
+                <li>{{ contact.name }}</li>
+                {% endfor %}
+              </ul>
+            </body>
+            </html>
+      rules:
+        - {actor: "*", resource: "${P}/*", method: [GET, HEAD], action: Allow}
+    steps:
+      - as: anonymous
+        request: {method: GET, path: "${P}/listing.html"}
+        expect:
+          status: 200
+          body_contains: ["<li>Anna</li>", "<li>Ben</li>"]
+          body_not_contains: ["r:contacts", "p:template", "{%", "{{", "xmlns:r"]
+
+  - id: comp.rb.multiple-bindings-one-element
+    title: Several resource bindings may sit on one element
+    area: composing
+    feature: resource binding
+    evidence: documented
+    source: "docs reference/composing-pages/Resource-Binding §Binding placement ('Multiple bindings may appear on the same element') (snapshot 2026-09-28)"
+    confidence: high
+    requires: [liquid]
+    live: true
+    site:
+      settings: {default_get: allow}
+      files:
+        - path: "${P}/data.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+            <i data-a="${P}">1</i>
+            <i data-b="${P}">1</i><i data-b="${P}">2</i>
+            </body></html>
+        - path: "${P}/page.html"
+          body: |
+            <!DOCTYPE html>
+            <html xmlns:r="https://pagelove.org/Binding/CSS" xmlns:p="https://pagelove.org/1.0">
+            <body><div id="out" r:a="[data-a='${P}']" r:b="[data-b='${P}']" p:template="text/liquid">A={{ a.size }};B={{ b.size }}</div></body>
+            </html>
+      rules:
+        - {actor: "*", resource: "${P}/*", method: [GET, HEAD], action: Allow}
+    steps:
+      - as: anonymous
+        request: {method: GET, path: "${P}/page.html"}
+        expect:
+          status: 200
+          body_contains: ["A=1;B=2"]
+
+  - id: comp.rb.empty-collection
+    title: A binding that matches nothing is an empty list, not an error
+    area: composing
+    feature: resource binding
+    evidence: documented
+    source: "docs reference/composing-pages/Resource-Binding §Error cases ('Empty collection (not an error)'); learn/build-a-blog §The archive ('all.size == 0') (snapshot 2026-09-28)"
+    confidence: high
+    requires: [liquid]
+    live: true
+    site:
+      settings: {default_get: allow}
+      files:
+        - path: "${P}/page.html"
+          body: |
+            <!DOCTYPE html>
+            <html xmlns:r="https://pagelove.org/Binding/CSS" xmlns:p="https://pagelove.org/1.0">
+            <body>
+              <section r:none="[itemtype='https://example.test${P}/Nobody']" p:template="text/liquid">{% if none.size == 0 %}<p id="empty">No items</p>{% endif %}count={{ none.size }}</section>
+            </body>
+            </html>
+      rules:
+        - {actor: "*", resource: "${P}/*", method: [GET, HEAD], action: Allow}
+    steps:
+      - as: anonymous
+        request: {method: GET, path: "${P}/page.html"}
+        expect:
+          status: 200
+          body_contains: ['<p id="empty">No items</p>', "count=0"]
+
+  - id: comp.rb.bypasses-read-authorization
+    title: A binding reads documents the requester is denied
+    area: composing
+    feature: resource binding security
+    evidence: documented
+    source: "docs reference/composing-pages/Resource-Binding §Security; learn/build-a-blog §Locking the data folder (snapshot 2026-09-28); pagelove-shop/site/admin/index.html@d887054:10-17"
+    confidence: high
+    requires: [liquid]
+    live: true
+    notes: "R-COMP-32. The data document is unreadable directly; the composed page still renders it."
+    site:
+      settings: {default_get: allow}
+      files:
+        - path: "${P}/data/secret.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body><p itemscope itemtype="https://example.test${P}/Secret"><span itemprop="code">S3CR3T-VALUE</span></p></body></html>
+        - path: "${P}/page.html"
+          body: |
+            <!DOCTYPE html>
+            <html xmlns:r="https://pagelove.org/Binding/CSS" xmlns:p="https://pagelove.org/1.0">
+            <body><ul r:secrets="[itemtype='https://example.test${P}/Secret']" p:template="text/liquid">{% for s in secrets %}<li>{{ s.code }}</li>{% endfor %}</ul></body>
+            </html>
+      rules:
+        - {actor: "*", resource: "${P}/*", method: [GET, HEAD], action: Allow}
+        - {actor: "*", resource: "${P}/data/*", method: [GET, HEAD], action: Deny}
+    steps:
+      - name: direct read is refused
+        as: anonymous
+        request: {method: GET, path: "${P}/data/secret.html"}
+        expect: {status: [401, 403]}
+      - name: the composed page shows the record
+        as: anonymous
+        request: {method: GET, path: "${P}/page.html"}
+        expect:
+          status: 200
+          body_contains: ["<li>S3CR3T-VALUE</li>"]
+
+  - id: comp.rb.invalid-selector-fails
+    title: An invalid binding selector fails the request
+    area: composing
+    feature: resource binding errors
+    evidence: documented
+    source: "docs reference/composing-pages/Resource-Binding §Error cases ('Request fails during document processing') (snapshot 2026-09-28)"
+    confidence: low
+    requires: []
+    live: true
+    notes: "R-COMP-33. Status is not documented; pagelike answers 500."
+    site:
+      settings: {default_get: allow}
+      files:
+        - path: "${P}/page.html"
+          body: |
+            <!DOCTYPE html>
+            <html xmlns:r="https://pagelove.org/Binding/CSS"><body><div r:bad="[[[">x</div></body></html>
+      rules:
+        - {actor: "*", resource: "${P}/*", method: [GET, HEAD], action: Allow}
+    steps:
+      - as: anonymous
+        request: {method: GET, path: "${P}/page.html"}
+        expect: {status: [400, 422, 500]}
+
+  - id: comp.rb.multi-valued-property-list
+    title: A repeated itemprop reads as a list, a single one as a plain value
+    area: composing
+    feature: Liquid view of bound elements
+    evidence: documented
+    source: "docs reference/modeling-data/Property §Reading a multi-valued property (selector route: 'you do get every value when there is more than one') (snapshot 2026-09-28); pagelove-shop/site/admin/products.html@d887054:20"
+    confidence: medium
+    requires: [liquid]
+    live: true
+    notes: "R-COMP-52. No schema governs the type, so cardinality coercion does not apply."
+    site:
+      settings: {default_get: allow}
+      files:
+        - path: "${P}/data/tee.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+            <div itemscope itemtype="https://example.test${P}/Product" id="product-tee">
+              <meta itemprop="variant" content="S">
+              <meta itemprop="variant" content="M">
+              <meta itemprop="variant" content="L">
+              <h1 itemprop="name">Pagelove T-shirt</h1>
+            </div>
+            </body></html>
+        - path: "${P}/page.html"
+          body: |
+            <!DOCTYPE html>
+            <html xmlns:r="https://pagelove.org/Binding/CSS" xmlns:p="https://pagelove.org/1.0">
+            <body><div r:products="[itemtype='https://example.test${P}/Product']" p:template="text/liquid">{% for p in products %}V={{ p.variant | join: "," }};N={{ p.name }};C={{ p.variant.size }};{% endfor %}</div></body>
+            </html>
+      rules:
+        - {actor: "*", resource: "${P}/*", method: [GET, HEAD], action: Allow}
+    steps:
+      - as: anonymous
+        request: {method: GET, path: "${P}/page.html"}
+        expect:
+          status: 200
+          body_contains: ["V=S,M,L;", "N=Pagelove T-shirt;", "C=3;"]
+
+  - id: comp.rb.at-id-path-fragment
+    title: A bound item exposes @id as its document path plus '#' and its id
+    area: composing
+    feature: Liquid view of bound elements
+    evidence: documented
+    source: "docs languages/sessel/reference/element §.microdata() ('@id … from the element's source path and id attribute'); languages/liquid/templating user['@id'] (snapshot 2026-09-28); pagelove-polls/site/index.html@c9270e5:90"
+    confidence: medium
+    requires: [liquid]
+    live: true
+    notes: "R-COMP-52. Only the path#id suffix is asserted; the value may be absolute."
+    site:
+      settings: {default_get: allow}
+      files:
+        - path: "${P}/data/p1.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body><div id="prod-1" itemscope itemtype="https://example.test${P}/Item"><span itemprop="name">One</span></div></body></html>
+        - path: "${P}/page.html"
+          body: |
+            <!DOCTYPE html>
+            <html xmlns:r="https://pagelove.org/Binding/CSS" xmlns:p="https://pagelove.org/1.0">
+            <body><p r:items="[itemtype='https://example.test${P}/Item']" p:template="text/liquid">{% for i in items %}[{{ i['@id'] }}]{% endfor %}</p></body>
+            </html>
+      rules:
+        - {actor: "*", resource: "${P}/*", method: [GET, HEAD], action: Allow}
+    steps:
+      - as: anonymous
+        request: {method: GET, path: "${P}/page.html"}
+        expect:
+          status: 200
+          body_contains: ["${P}/data/p1.html#prod-1]"]
+
+  - id: comp.rb.where-sort-reverse
+    title: Array filters work over bound items' properties (build-a-blog home page)
+    area: composing
+    feature: Liquid view of bound elements
+    evidence: documented
+    source: "docs learn/build-a-blog §A home page that finds posts by itself (snapshot 2026-09-28)"
+    confidence: high
+    requires: [liquid]
+    live: true
+    site:
+      settings: {default_get: allow}
+      files:
+        - path: "${P}/data/posts/first.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body><article itemscope itemtype="https://example.test${P}/Post" id="post-first">
+              <meta itemprop="status" content="Published">
+              <h1 itemprop="title">First</h1>
+              <time itemprop="publishedAt" datetime="2026-08-03">3 August 2026</time>
+            </article></body></html>
+        - path: "${P}/data/posts/second.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body><article itemscope itemtype="https://example.test${P}/Post" id="post-second">
+              <meta itemprop="status" content="Published">
+              <h1 itemprop="title">Second</h1>
+              <time itemprop="publishedAt" datetime="2026-08-05">5 August 2026</time>
+            </article></body></html>
+        - path: "${P}/data/posts/draft.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body><article itemscope itemtype="https://example.test${P}/Post" id="post-draft">
+              <meta itemprop="status" content="Draft">
+              <h1 itemprop="title">Unpublished</h1>
+              <time itemprop="publishedAt" datetime="2026-08-09">9 August 2026</time>
+            </article></body></html>
+        - path: "${P}/index.html"
+          body: |
+            <!DOCTYPE html>
+            <html lang="en" xmlns:p="https://pagelove.org/1.0" xmlns:r="https://pagelove.org/Binding/CSS">
+            <body>
+              <section class="excerpts" r:posts="[itemtype='https://example.test${P}/Post']" p:template="text/liquid">
+                {% assign recent = posts | where: "status", "Published" | sort: "publishedAt" | reverse %}
+                {% for post in recent limit: 4 %}<h2>[{{ post.title }}|{{ post.publishedAt }}]</h2>{% endfor %}
+              </section>
+            </body>
+            </html>
+      rules:
+        - {actor: "*", resource: "${P}/*", method: [GET, HEAD], action: Allow}
+    steps:
+      - as: anonymous
+        request: {method: GET, path: "${P}/index.html"}
+        expect:
+          status: 200
+          body_matches: '\[Second\|2026-08-05\][\s\S]*\[First\|2026-08-03\]'
+          body_not_contains: ["Unpublished"]
+
+  - id: comp.rb.not-cached
+    title: Bindings are evaluated per request, so a new record shows on the next read
+    area: composing
+    feature: resource binding
+    evidence: documented
+    source: "docs reference/composing-pages/Resource-Binding §Semantics ('At processing time, not cached') (snapshot 2026-09-28)"
+    confidence: high
+    requires: [liquid]
+    live: true
+    site:
+      settings: {default_get: allow}
+      files:
+        - path: "${P}/people/anna.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body><div itemscope itemtype="https://example.test${P}/Person"><span itemprop="name">Anna</span></div></body></html>
+        - path: "${P}/page.html"
+          body: |
+            <!DOCTYPE html>
+            <html xmlns:r="https://pagelove.org/Binding/CSS" xmlns:p="https://pagelove.org/1.0">
+            <body><p r:people="[itemtype='https://example.test${P}/Person']" p:template="text/liquid">n={{ people.size }};</p></body>
+            </html>
+      rules:
+        - {actor: "*", resource: "${P}/*", method: [GET, HEAD], action: Allow}
+    steps:
+      - name: one person
+        as: anonymous
+        request: {method: GET, path: "${P}/page.html"}
+        expect: {status: 200, body_contains: ["n=1;"]}
+      - name: add a second person over WebDAV
+        as: author
+        plane: dav
+        request:
+          method: PUT
+          path: "${P}/people/carl.html"
+          headers: {Content-Type: "text/html"}
+          body: |
+            <!DOCTYPE html>
+            <html><body><div itemscope itemtype="https://example.test${P}/Person"><span itemprop="name">Carl</span></div></body></html>
+        expect: {status: [200, 201, 204]}
+      - name: the page reflects it immediately
+        as: anonymous
+        request: {method: GET, path: "${P}/page.html"}
+        expect: {status: 200, body_contains: ["n=2;"]}
+
+  - id: comp.rb.template-inert-boundary
+    title: Bindings do not match elements inside <template> contents
+    area: composing
+    feature: resource binding
+    evidence: inferred
+    source: "docs languages/sessel/reference/element §.children()/.content() ('the inert boundary that prevents selectors from descending into <template>') (snapshot 2026-09-28)"
+    confidence: low
+    requires: [liquid]
+    live: true
+    notes: "R-COMP-31. Inferred: the same selector engine serves Sessel and bindings."
+    site:
+      settings: {default_get: allow}
+      files:
+        - path: "${P}/data.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+            <template><div itemscope itemtype="https://example.test${P}/Thing"><span itemprop="n">InsideTemplate</span></div></template>
+            <div itemscope itemtype="https://example.test${P}/Thing"><span itemprop="n">Outside</span></div>
+            </body></html>
+        - path: "${P}/page.html"
+          body: |
+            <!DOCTYPE html>
+            <html xmlns:r="https://pagelove.org/Binding/CSS" xmlns:p="https://pagelove.org/1.0">
+            <body><p r:things="[itemtype='https://example.test${P}/Thing']" p:template="text/liquid">n={{ things.size }};{% for t in things %}[{{ t.n }}]{% endfor %}</p></body>
+            </html>
+      rules:
+        - {actor: "*", resource: "${P}/*", method: [GET, HEAD], action: Allow}
+    steps:
+      - as: anonymous
+        request: {method: GET, path: "${P}/page.html"}
+        expect:
+          status: 200
+          body_contains: ["n=1;", "[Outside]"]
+          body_not_contains: ["InsideTemplate"]
+
+  - id: comp.rb.template-documents-visible
+    title: A stored creation template that carries microdata is itself matched by bindings, with raw Liquid values
+    area: composing
+    feature: resource binding
+    evidence: demo-source
+    source: "pagelove-cursor/plugins/pagelove/skills/pagelove-dev/SKILL.md@b97c3ef ('Resource binding picks up template files'); pagelove-polls/site/templates/new-poll.html@c9270e5:34 (itemtype written as a Liquid expression to avoid it)"
+    confidence: low
+    requires: [liquid]
+    live: true
+    notes: "R-COMP-31: bindings read stored markup. The rendered value is the literal text '{{ request.body.name }}' (Liquid does not re-render values)."
+    site:
+      settings: {default_get: allow}
+      files:
+        - path: "${P}/data/real.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body><div itemscope itemtype="https://example.test${P}/Thing"><span itemprop="name">Real</span></div></body></html>
+        - path: "${P}/templates/new-thing.html"
+          body: |
+            <!DOCTYPE html>
+            <html xmlns:p="https://pagelove.org/1.0" p:template="text/liquid">
+            <head><base href="${P}/data/{{ request.body.slug }}.html"></head>
+            <body><div itemscope itemtype="https://example.test${P}/Thing"><span itemprop="name">{{ request.body.name }}</span></div></body>
+            </html>
+        - path: "${P}/page.html"
+          body: |
+            <!DOCTYPE html>
+            <html xmlns:r="https://pagelove.org/Binding/CSS" xmlns:p="https://pagelove.org/1.0">
+            <body><p r:things="[itemtype='https://example.test${P}/Thing']" p:template="text/liquid">n={{ things.size }};</p></body>
+            </html>
+      rules:
+        - {actor: "*", resource: "${P}/*", method: [GET, HEAD], action: Allow}
+    steps:
+      - as: anonymous
+        request: {method: GET, path: "${P}/page.html"}
+        expect:
+          status: 200
+          body_contains: ["n=2;"]
+
+  - id: comp.rb.request-document-binding-private
+    title: Binding the Request Document exposes request fields and makes the page private
+    area: composing
+    feature: Request Document
+    evidence: documented
+    source: "docs reference/reading-and-writing/Request-Document §Shape, §Caching; reference/composing-pages/Resource-Binding note 'binding the Request Document' (snapshot 2026-09-28)"
+    confidence: medium
+    requires: [liquid]
+    live: true
+    notes: "R-COMP-120/150. Medium: the materialization of the Request item in Liquid (method/path as plain values) is inferred from R-COMP-52."
+    site:
+      settings: {default_get: allow}
+      files:
+        - path: "${P}/page.html"
+          body: |
+            <!DOCTYPE html>
+            <html xmlns:r="https://pagelove.org/Binding/CSS" xmlns:p="https://pagelove.org/1.0">
+            <body><p r:req="[itemtype='https://pagelove.org/Request']" p:template="text/liquid">{% for q in req %}M={{ q.method }};P={{ q.path }};{% endfor %}</p></body>
+            </html>
+      rules:
+        - {actor: "*", resource: "${P}/*", method: [GET, HEAD], action: Allow}
+    steps:
+      - as: anonymous
+        request: {method: GET, path: "${P}/page.html"}
+        expect:
+          status: 200
+          body_contains: ["M=GET;", "P=${P}/page.html;"]
+          header_contains: {Cache-Control: private}
+
+  - id: comp.rb.extension-in-binding
+    title: PageLove selector extensions work inside binding selectors
+    area: composing
+    feature: resource binding
+    evidence: documented
+    source: "docs reference/composing-pages/Resource-Binding §Graph constraint (r:admins with :has(… :value-equals('admin'))); Selector-Extensions §See also (snapshot 2026-09-28)"
+    confidence: high
+    requires: [liquid]
+    live: true
+    site:
+      settings: {default_get: allow}
+      files:
+        - path: "${P}/users.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+            <div itemscope itemtype="https://example.test${P}/User"><meta itemprop="role" content="admin"><span itemprop="name">Ada</span></div>
+            <div itemscope itemtype="https://example.test${P}/User"><meta itemprop="role" content="member"><span itemprop="name">Bo</span></div>
+            </body></html>
+        - path: "${P}/page.html"
+          body: |
+            <!DOCTYPE html>
+            <html xmlns:r="https://pagelove.org/Binding/CSS" xmlns:p="https://pagelove.org/1.0">
+            <body><p r:admins="[itemtype='https://example.test${P}/User']:has([itemprop=role]:value-equals('admin'))" p:template="text/liquid">admins={{ admins.size }};{% for a in admins %}[{{ a.name }}]{% endfor %}</p></body>
+            </html>
+      rules:
+        - {actor: "*", resource: "${P}/*", method: [GET, HEAD], action: Allow}
+    steps:
+      - as: anonymous
+        request: {method: GET, path: "${P}/page.html"}
+        expect:
+          status: 200
+          body_contains: ["admins=1;", "[Ada]"]
+          body_not_contains: ["[Bo]"]

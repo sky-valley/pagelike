@@ -1,0 +1,294 @@
+# Sessel inside page composition: e: expression bindings rendered with <p:stamp> or Liquid.
+# Spec: docs/spec/sessel.md R-SESSEL-1 (binding context), R-SESSEL-60 (names), R-SESSEL-344
+# (errors), R-SESSEL-371..372 (results). Composition mechanics belong to the composition area.
+# Selector literals inside e: attributes use single-quoted strings (double quotes would end the
+# HTML attribute; docs SC-14).
+defaults:
+  area: sessel
+  evidence: documented
+  confidence: medium
+  requires: [sessel]
+cases:
+  - id: sessel.bind.stamp-literal
+    title: "An e: binding evaluates a Sessel string and <p:stamp> emits it"
+    feature: expression bindings
+    source: "docs reference/composing-pages/Stamp §Example (snapshot 2026-09-28)"
+    confidence: high
+    live: true
+    notes: R-SESSEL-371/372; the documented request/response pair.
+    site:
+      files:
+        - path: "${P}/stamp-demo.html"
+          body: |
+            <!DOCTYPE html>
+            <html xmlns:e="https://pagelove.org/Binding/Sessel" xmlns:p="https://pagelove.org/1.0">
+              <body e:greeting="'hello from a binding'">
+                <main>
+                  <p:stamp greeting></p:stamp>
+                </main>
+              </body>
+            </html>
+      rules:
+        - {actor: "*", resource: "${P}/*", method: [GET], action: Allow}
+    steps:
+      - name: read main
+        as: anonymous
+        request:
+          method: GET
+          path: "${P}/stamp-demo.html"
+          headers: {Range: "selector=main"}
+        expect:
+          status: 206
+          body_contains: ["hello from a binding"]
+          body_not_contains: ["p:stamp", "'hello"]
+
+  - id: sessel.bind.declaration-order
+    title: "Later e: bindings on the same element see earlier ones by name"
+    feature: expression bindings
+    source: "docs reference/composing-pages/Expression-Binding §Declaration-order evaluation (snapshot 2026-09-28)"
+    live: true
+    notes: R-SESSEL-60 (binding names are context variables), R-SESSEL-81 (integer division), R-SESSEL-204 (from self).
+    site:
+      files:
+        - path: "${P}/avg.html"
+          body: |
+            <!DOCTYPE html>
+            <html xmlns:e="https://pagelove.org/Binding/Sessel" xmlns:p="https://pagelove.org/1.0">
+              <body>
+                <span itemprop="price">10</span><span itemprop="price">20</span><span itemprop="price">30</span>
+                <div id="out" e:total="(${[itemprop='price']} from self).sum()" e:count="(${[itemprop='price']} from self).count()" e:average="total / count">
+                  <p id="t"><p:stamp total></p:stamp></p>
+                  <p id="a"><p:stamp average></p:stamp></p>
+                </div>
+              </body>
+            </html>
+      rules:
+        - {actor: "*", resource: "${P}/*", method: [GET], action: Allow}
+    steps:
+      - name: total
+        as: anonymous
+        request:
+          method: GET
+          path: "${P}/avg.html"
+          headers: {Range: "selector=#t"}
+        expect:
+          status: 206
+          body_contains: ["60"]
+      - name: average
+        as: anonymous
+        request:
+          method: GET
+          path: "${P}/avg.html"
+          headers: {Range: "selector=#a"}
+        expect:
+          status: 206
+          body_contains: ["20"]
+
+  - id: sessel.bind.summary-liquid
+    title: Count and sum across documents rendered by Liquid (float sum prints as 100.0)
+    feature: expression bindings
+    source: "docs reference/composing-pages/Expression-Binding §Count and sum from site data (snapshot 2026-09-28)"
+    requires: [sessel, liquid]
+    live: true
+    notes: >-
+      R-SESSEL-144, R-SESSEL-92, R-SESSEL-372. The documented example's input pages are not published;
+      two prices summing to a Float 100.0 reproduce the documented "Count: 2" / "Sum: 100.0".
+      Scoped with from so a live host's other prices do not count.
+    site:
+      files:
+        - path: "${P}/sum/a.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body><data itemprop="price" value="40.5">40.50</data></body></html>
+        - path: "${P}/sum/b.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body><data itemprop="price" value="59.5">59.50</data></body></html>
+        - path: "${P}/summary.html"
+          body: |
+            <!DOCTYPE html>
+            <html xmlns:e="https://pagelove.org/Binding/Sessel" xmlns:pagelove="https://pagelove.org/1.0">
+              <body>
+                <div e:count="(${[itemprop='price']} from '${P}/sum/*').count()" e:sum="(${[itemprop='price']} from '${P}/sum/*').sum()" pagelove:template="text/liquid">
+                  <p>Count: {{ count }}</p>
+                  <p>Sum: {{ sum }}</p>
+                </div>
+              </body>
+            </html>
+      rules:
+        - {actor: "*", resource: "${P}/*", method: [GET], action: Allow}
+    steps:
+      - name: render
+        as: anonymous
+        request: {method: GET, path: "${P}/summary.html"}
+        expect:
+          status: 200
+          body_contains: ["Count: 2", "Sum: 100.0"]
+
+  - id: sessel.bind.scope
+    title: A binding is visible to its element and descendants, not to siblings
+    feature: expression bindings
+    source: "docs reference/composing-pages/Expression-Binding §Scope (snapshot 2026-09-28)"
+    live: true
+    notes: R-SESSEL-1. A stamp naming an absent binding is removed (Stamp §How the result is emitted).
+    site:
+      files:
+        - path: "${P}/scope.html"
+          body: |
+            <!DOCTYPE html>
+            <html xmlns:e="https://pagelove.org/Binding/Sessel" xmlns:p="https://pagelove.org/1.0">
+              <body>
+                <section e:outer="'OUTER-VALUE'">
+                  <div id="inner" e:local="'LOCAL-VALUE'"><p:stamp outer></p:stamp> <p:stamp local></p:stamp></div>
+                  <div id="sibling">[<p:stamp local></p:stamp>]</div>
+                </section>
+              </body>
+            </html>
+      rules:
+        - {actor: "*", resource: "${P}/*", method: [GET], action: Allow}
+    steps:
+      - name: inner sees both
+        as: anonymous
+        request:
+          method: GET
+          path: "${P}/scope.html"
+          headers: {Range: "selector=#inner"}
+        expect:
+          status: 206
+          body_contains: ["OUTER-VALUE", "LOCAL-VALUE"]
+      - name: sibling does not see local
+        as: anonymous
+        request:
+          method: GET
+          path: "${P}/scope.html"
+          headers: {Range: "selector=#sibling"}
+        expect:
+          status: 206
+          body_not_contains: ["LOCAL-VALUE"]
+
+  - id: sessel.bind.route-params
+    title: request.params exposes parameterized-route captures to a binding
+    feature: context variables
+    source: "docs reference/composing-pages/Parameterized-Routes §Example (snapshot 2026-09-28)"
+    live: true
+    notes: "R-SESSEL-291. A whole-document read: routes resolve only for whole-document reads, a selector GET of a route URL is 404 (R-COMP-107; docs/compat/decisions.md D-1)."
+    site:
+      files:
+        - path: "${P}/users/:id/profile.html"
+          body: |
+            <!DOCTYPE html>
+            <html xmlns:e="https://pagelove.org/Binding/Sessel" xmlns:p="https://pagelove.org/1.0">
+              <body e:uid="request.params.id">
+                <main><p:stamp uid></p:stamp></main>
+              </body>
+            </html>
+      rules:
+        - {actor: "*", resource: "${P}/*", method: [GET], action: Allow}
+    steps:
+      - name: concrete URL
+        as: anonymous
+        request:
+          method: GET
+          path: "${P}/users/42/profile.html"
+        expect:
+          status: 200
+          body_contains: ["<main>42</main>"]
+
+  - id: sessel.bind.undefined-variable-fails
+    title: A binding that references an undefined name fails composition
+    feature: expression bindings
+    source: "docs reference/composing-pages/Expression-Binding §Error cases; languages/sessel/reference/syntax §Authenticated identity in composition (snapshot 2026-09-28)"
+    live: true
+    notes: R-SESSEL-344 (500 from Method-Elements §Error cases); the bare rule-only name auth.claims.email is unbound in composition.
+    site:
+      files:
+        - path: "${P}/undefined.html"
+          body: |
+            <!DOCTYPE html>
+            <html xmlns:e="https://pagelove.org/Binding/Sessel" xmlns:p="https://pagelove.org/1.0">
+              <body e:who="auth.claims.email"><main><p:stamp who></p:stamp></main></body>
+            </html>
+      rules:
+        - {actor: "*", resource: "${P}/*", method: [GET], action: Allow}
+    steps:
+      - name: compose
+        as: anonymous
+        request: {method: GET, path: "${P}/undefined.html"}
+        expect: {status: 500}
+
+  - id: sessel.bind.anonymous-identity-null
+    title: request.auth.claims.email is null (not an error) for anonymous requests
+    feature: context variables
+    source: "docs languages/sessel/reference/syntax §Authenticated identity in composition (snapshot 2026-09-28)"
+    live: true
+    notes: R-SESSEL-291; reading request.auth makes the page Cache-Control private (composition area).
+    site:
+      files:
+        - path: "${P}/identity.html"
+          body: |
+            <!DOCTYPE html>
+            <html xmlns:e="https://pagelove.org/Binding/Sessel" xmlns:p="https://pagelove.org/1.0">
+              <body e:signedin="request.auth.claims.email != null ? 'SIGNED-IN' : 'ANONYMOUS'"><main><p:stamp signedin></p:stamp></main></body>
+            </html>
+      rules:
+        - {actor: "*", resource: "${P}/*", method: [GET], action: Allow}
+    steps:
+      - name: anonymous
+        as: anonymous
+        request:
+          method: GET
+          path: "${P}/identity.html"
+          headers: {Range: "selector=main"}
+        expect:
+          status: 206
+          body_contains: ["ANONYMOUS"]
+          header_contains: {Cache-Control: "private"}
+
+  - id: sessel.bind.wrong-namespace-ignored
+    title: "e: attributes under a namespace URI other than exactly https://pagelove.org/Binding/Sessel are ignored"
+    feature: expression bindings
+    source: "docs reference/composing-pages/Expression-Binding §Error cases (snapshot 2026-09-28)"
+    live: true
+    notes: The attribute holds an unparseable program, which would fail composition if it were evaluated.
+    site:
+      files:
+        - path: "${P}/wrong-ns.html"
+          body: |
+            <!DOCTYPE html>
+            <html xmlns:e="https://pagelove.org/Binding/Sessel/" xmlns:p="https://pagelove.org/1.0">
+              <body e:x="1 +"><main>ok<p:stamp x></p:stamp></main></body>
+            </html>
+      rules:
+        - {actor: "*", resource: "${P}/*", method: [GET], action: Allow}
+    steps:
+      - name: compose
+        as: anonymous
+        request:
+          method: GET
+          path: "${P}/wrong-ns.html"
+          headers: {Range: "selector=main"}
+        expect:
+          status: 206
+          body_contains: ["ok"]
+
+  - id: sessel.bind.parse-error-fails
+    title: A binding that fails to compile fails composition
+    feature: expression bindings
+    source: "docs reference/composing-pages/Expression-Binding §Error cases (snapshot 2026-09-28)"
+    live: true
+    notes: R-SESSEL-40.
+    site:
+      files:
+        - path: "${P}/parse-error.html"
+          body: |
+            <!DOCTYPE html>
+            <html xmlns:e="https://pagelove.org/Binding/Sessel" xmlns:p="https://pagelove.org/1.0">
+              <body e:x="(((" ><main><p:stamp x></p:stamp></main></body>
+            </html>
+      rules:
+        - {actor: "*", resource: "${P}/*", method: [GET], action: Allow}
+    steps:
+      - name: compose
+        as: anonymous
+        request: {method: GET, path: "${P}/parse-error.html"}
+        expect: {status: 500}

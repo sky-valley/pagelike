@@ -1,0 +1,522 @@
+# Modeling: which operations are validated, which instances a write affects, atomicity.
+# Spec: docs/spec/modeling.md §3 (R-MOD-13..R-MOD-16).
+cases:
+  - id: modeling.write-paths.webdav-put-validated-by-schema
+    title: "WebDAV authoring writes are validated against schemas"
+    area: modeling
+    feature: "validated operations"
+    evidence: documented
+    source: "docs reference/protocol/WebDAV §When something goes wrong (snapshot 2026-09-28); pagelove-shop/worker/src/index.js@d887054:250-256"
+    confidence: medium
+    requires: [webdav]
+    live: true
+    notes: "spec: R-MOD-13, R-MOD-75. The WebDAV error body is https://pagelove.org/Error with the pipeline document under 'detail' (not asserted). Kept (keep-documented-security, docs/compat/decisions-2026-09-29/serialization.md, \"Integration\"): live PageLove stores a WebDAV PUT without schema or shape checks; pagelike keeps the documented check, which apps such as the shop rely on to keep scripts out of documents their workers write. Sibling: .live."
+    site:
+      settings:
+        default_get: allow
+      rules:
+        - actor: "*"
+          resource: "${P}/*"
+          method: [GET, HEAD, PUT, POST, DELETE, MOVE]
+          action: Allow
+        - actor: "*"
+          resource: "${P}/*/*"
+          method: [GET, HEAD, PUT, POST, DELETE, MOVE]
+          action: Allow
+    steps:
+      - name: "register declarations through the public plane (takes effect for the next request)"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/schema.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div hidden itemscope itemtype="https://pagelove.org/Schema">
+                <meta itemprop="type" content="https://pagelike.test${P}/Tag">
+                <div itemprop="property" itemscope itemtype="https://pagelove.org/Property">
+                  <meta itemprop="name" content="label">
+                  <meta itemprop="type" content="https://schema.host/Text">
+                  <meta itemprop="cardinality" content="1..1">
+                </div>
+              </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "author PUT of an invalid instance refused"
+        as: author
+        plane: dav
+        request:
+          method: PUT
+          path: "${P}/t.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div itemscope itemtype="https://pagelike.test${P}/Tag"></div>
+            </body></html>
+        expect:
+          status: 422
+      - name: "t.html was not stored"
+        as: author
+        plane: dav
+        request:
+          method: GET
+          path: "${P}/t.html"
+        expect:
+          status: 404
+
+  - id: modeling.write-paths.webdav-put-validated-by-schema.live
+    title: "WebDAV authoring PUTs are not validated against schemas (the id predates the live answer)"
+    area: modeling
+    feature: "validated operations"
+    status: live-divergence
+    evidence: live-observed
+    source: "harness/observations/live-2026-09-29/modeling-write-paths-webdav-put-validate.json; harness/observations/live-2026-09-29-reconcile-modeling/modeling-probe-0929-webdav-after-propaga.json (still stored 65 s after the schema was stored, so no propagation delay explains it)"
+    confidence: high
+    requires: [webdav]
+    live: true
+    notes: "spec: R-MOD-13. Adopt-live 2026-09-29: the docs (WebDAV §When something goes wrong) and the shop demo implied a 422; PageLove stores the instance as sent, and the public plane still refuses it."
+    site:
+      settings:
+        default_get: allow
+      rules:
+        - actor: "*"
+          resource: "${P}/*"
+          method: [GET, HEAD, PUT, POST, DELETE, MOVE]
+          action: Allow
+        - actor: "*"
+          resource: "${P}/*/*"
+          method: [GET, HEAD, PUT, POST, DELETE, MOVE]
+          action: Allow
+    steps:
+      - name: "register declarations through the public plane (takes effect for the next request)"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/schema.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div hidden itemscope itemtype="https://pagelove.org/Schema">
+                <meta itemprop="type" content="https://pagelike.test${P}/Tag">
+                <div itemprop="property" itemscope itemtype="https://pagelove.org/Property">
+                  <meta itemprop="name" content="label">
+                  <meta itemprop="type" content="https://schema.host/Text">
+                  <meta itemprop="cardinality" content="1..1">
+                </div>
+              </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "author PUT of an invalid instance is stored"
+        as: author
+        plane: dav
+        request:
+          method: PUT
+          path: "${P}/t.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div itemscope itemtype="https://pagelike.test${P}/Tag"></div>
+            </body></html>
+        expect:
+          status: 201
+      - name: "t.html was stored as sent"
+        as: author
+        plane: dav
+        request:
+          method: GET
+          path: "${P}/t.html"
+        expect:
+          status: 200
+          body_contains: ["<div itemscope itemtype=\"https://pagelike.test${P}/Tag\"></div>"]
+      - name: "the same instance is refused on the public plane"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/t2.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div itemscope itemtype="https://pagelike.test${P}/Tag"></div>
+            </body></html>
+        expect:
+          status: 422
+          body_contains: ["https://pagelove.org/SchemaViolation", "Tag].label: cardinality 1..1 violated: expected exactly 1 value, found 0"]
+  - id: modeling.write-paths.whole-document-delete-not-validated
+    title: "Deleting a whole document is not schema-validated"
+    area: modeling
+    feature: "validated operations"
+    evidence: inferred
+    source: "docs reference/modeling-data/Property §What triggers a cascade (snapshot 2026-09-28) (DELETE of the document is schema-valid)"
+    confidence: high
+    requires: []
+    live: true
+    notes: "spec: R-MOD-13."
+    site:
+      settings:
+        default_get: allow
+      rules:
+        - actor: "*"
+          resource: "${P}/*"
+          method: [GET, HEAD, PUT, POST, DELETE, MOVE]
+          action: Allow
+        - actor: "*"
+          resource: "${P}/*/*"
+          method: [GET, HEAD, PUT, POST, DELETE, MOVE]
+          action: Allow
+    steps:
+      - name: "register declarations through the public plane (takes effect for the next request)"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/schema.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div hidden itemscope itemtype="https://pagelove.org/Schema">
+                <meta itemprop="type" content="https://pagelike.test${P}/Tag">
+                <div itemprop="property" itemscope itemtype="https://pagelove.org/Property">
+                  <meta itemprop="name" content="label">
+                  <meta itemprop="type" content="https://schema.host/Text">
+                  <meta itemprop="cardinality" content="1..1">
+                </div>
+              </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "valid tag"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/t.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div itemscope itemtype="https://pagelike.test${P}/Tag">
+                <meta itemprop="label" content="a">
+              </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "delete it"
+        as: anonymous
+        request:
+          method: DELETE
+          path: "${P}/t.html"
+        expect:
+          status: [200, 204]
+      - name: "document is gone"
+        as: author
+        plane: dav
+        request:
+          method: GET
+          path: "${P}/t.html"
+        expect:
+          status: 404
+  - id: modeling.write-paths.reads-never-validated
+    title: "Stored data that violates a schema remains readable"
+    area: modeling
+    feature: "validated operations"
+    evidence: inferred
+    source: "docs reference/modeling-data/Schema §When to reach for it (snapshot 2026-09-28)"
+    confidence: high
+    requires: []
+    live: true
+    notes: "spec: R-MOD-5, R-MOD-13."
+    site:
+      settings:
+        default_get: allow
+      files:
+        - path: "${P}/old.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div itemscope itemtype="https://pagelike.test${P}/Tag"></div>
+            </body></html>
+      rules:
+        - actor: "*"
+          resource: "${P}/*"
+          method: [GET, HEAD, PUT, POST, DELETE, MOVE]
+          action: Allow
+        - actor: "*"
+          resource: "${P}/*/*"
+          method: [GET, HEAD, PUT, POST, DELETE, MOVE]
+          action: Allow
+    steps:
+      - name: "register declarations through the public plane (takes effect for the next request)"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/schema.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div hidden itemscope itemtype="https://pagelove.org/Schema">
+                <meta itemprop="type" content="https://pagelike.test${P}/Tag">
+                <div itemprop="property" itemscope itemtype="https://pagelove.org/Property">
+                  <meta itemprop="name" content="label">
+                  <meta itemprop="type" content="https://schema.host/Text">
+                  <meta itemprop="cardinality" content="1..1">
+                </div>
+              </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "GET the pre-existing invalid document"
+        as: anonymous
+        request:
+          method: GET
+          path: "${P}/old.html"
+        expect:
+          status: 200
+          body_contains: [itemscope]
+  - id: modeling.write-paths.unaffected-siblings-not-rechecked
+    title: "A selector write validates only affected instances; an invalid sibling does not block it"
+    area: modeling
+    feature: "affected instances"
+    evidence: inferred
+    source: "pagelike decision (docs/spec/modeling.md R-MOD-14); docs reference/reading-and-writing/MOVE-method §When to reach for it (snapshot 2026-09-28)"
+    confidence: low
+    requires: []
+    live: true
+    notes: "spec: R-MOD-14. Probe P-MOD-14."
+    site:
+      settings:
+        default_get: allow
+      files:
+        - path: "${P}/pair.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div itemscope itemtype="https://pagelike.test${P}/Tag" id="t1">
+                <meta itemprop="label" content="a">
+              </div>
+              <div itemscope itemtype="https://pagelike.test${P}/Tag" id="t2"></div>
+            </body></html>
+      rules:
+        - actor: "*"
+          resource: "${P}/*"
+          method: [GET, HEAD, PUT, POST, DELETE, MOVE]
+          action: Allow
+        - actor: "*"
+          resource: "${P}/*/*"
+          method: [GET, HEAD, PUT, POST, DELETE, MOVE]
+          action: Allow
+    steps:
+      - name: "register declarations through the public plane (takes effect for the next request)"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/schema.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div hidden itemscope itemtype="https://pagelove.org/Schema">
+                <meta itemprop="type" content="https://pagelike.test${P}/Tag">
+                <div itemprop="property" itemscope itemtype="https://pagelove.org/Property">
+                  <meta itemprop="name" content="label">
+                  <meta itemprop="type" content="https://schema.host/Text">
+                  <meta itemprop="cardinality" content="1..1">
+                </div>
+              </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "replace the valid first tag with another valid tag"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/pair.html"
+          headers:
+            Range: "selector=#t1"
+            Content-Type: text/html
+          body: |
+            <div itemscope itemtype="https://pagelike.test${P}/Tag" id="t1">
+              <meta itemprop="label" content="a2">
+            </div>
+        expect:
+          status: [200, 204, 206]
+  - id: modeling.write-paths.whole-put-revalidates-all
+    title: "A whole-document PUT validates every instance in the new document"
+    area: modeling
+    feature: "affected instances"
+    evidence: inferred
+    source: "docs reference/reading-and-writing/PUT-method §Error cases (snapshot 2026-09-28)"
+    confidence: high
+    requires: []
+    live: true
+    notes: "spec: R-MOD-14."
+    site:
+      settings:
+        default_get: allow
+      files:
+        - path: "${P}/pair.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div itemscope itemtype="https://pagelike.test${P}/Tag" id="t1">
+                <meta itemprop="label" content="a">
+              </div>
+              <div itemscope itemtype="https://pagelike.test${P}/Tag" id="t2"></div>
+            </body></html>
+      rules:
+        - actor: "*"
+          resource: "${P}/*"
+          method: [GET, HEAD, PUT, POST, DELETE, MOVE]
+          action: Allow
+        - actor: "*"
+          resource: "${P}/*/*"
+          method: [GET, HEAD, PUT, POST, DELETE, MOVE]
+          action: Allow
+    steps:
+      - name: "register declarations through the public plane (takes effect for the next request)"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/schema.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div hidden itemscope itemtype="https://pagelove.org/Schema">
+                <meta itemprop="type" content="https://pagelike.test${P}/Tag">
+                <div itemprop="property" itemscope itemtype="https://pagelove.org/Property">
+                  <meta itemprop="name" content="label">
+                  <meta itemprop="type" content="https://schema.host/Text">
+                  <meta itemprop="cardinality" content="1..1">
+                </div>
+              </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "resubmitting a document with an invalid second instance is rejected"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/pair.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div itemscope itemtype="https://pagelike.test${P}/Tag" id="t1">
+                <meta itemprop="label" content="a">
+              </div>
+              <div itemscope itemtype="https://pagelike.test${P}/Tag" id="t2"></div>
+            </body></html>
+        expect:
+          status: 422
+          header_matches:
+            Content-Type: "^text/html"
+          body_contains: ["https://pagelove.org/SchemaViolation", cardinality]
+  - id: modeling.write-paths.failed-write-changes-nothing
+    title: "A rejected write leaves the document and its ETag unchanged"
+    area: modeling
+    feature: atomicity
+    evidence: live-observed
+    source: "harness/observations/live-2026-09-29/modeling-write-paths-failed-write-change.json (atomicity as documented in docs reference/modeling-data/ShapeConstraint §Error cases, snapshot 2026-09-28: 'No partial modification is applied on failure'; the refusal of a selector write is PageLove's Cardinality problems item)"
+    confidence: high
+    requires: []
+    live: true
+    notes: "spec: R-MOD-16, R-MOD-70. Adopt-live 2026-09-29 for the body of a selector write that breaks a cardinality."
+    site:
+      settings:
+        default_get: allow
+      rules:
+        - actor: "*"
+          resource: "${P}/*"
+          method: [GET, HEAD, PUT, POST, DELETE, MOVE]
+          action: Allow
+        - actor: "*"
+          resource: "${P}/*/*"
+          method: [GET, HEAD, PUT, POST, DELETE, MOVE]
+          action: Allow
+    steps:
+      - name: "register declarations through the public plane (takes effect for the next request)"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/schema.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div hidden itemscope itemtype="https://pagelove.org/Schema">
+                <meta itemprop="type" content="https://pagelike.test${P}/Tag">
+                <div itemprop="property" itemscope itemtype="https://pagelove.org/Property">
+                  <meta itemprop="name" content="label">
+                  <meta itemprop="type" content="https://schema.host/Text">
+                  <meta itemprop="cardinality" content="1..1">
+                </div>
+              </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "valid tag"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/t.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div itemscope itemtype="https://pagelike.test${P}/Tag" id="t1">
+                <meta itemprop="label" content="a">
+              </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "read and capture the ETag"
+        as: anonymous
+        request:
+          method: GET
+          path: "${P}/t.html"
+        expect:
+          status: 200
+          headers_present: [ETag]
+        capture:
+          etag1: header.ETag
+      - name: "invalid selector delete refused"
+        as: anonymous
+        request:
+          method: DELETE
+          path: "${P}/t.html"
+          headers:
+            Range: "selector=#t1 > meta[itemprop=\"label\"]"
+        expect:
+          status: 422
+          header_matches:
+            Content-Type: "^text/html"
+          body: "<div itemscope itemtype=\"https://dombase.pagelove.team/ns/error/Cardinality\"><ul itemprop=\"problems\"><li itemprop=\"problem\"><span itemprop=\"message\">https://pagelike.test${P}/Tag /label: cardinality 1..1 violated: expected exactly 1 value, found 0 (cardinality)</span></li></ul></div>"
+      - name: "document unchanged"
+        as: anonymous
+        request:
+          method: GET
+          path: "${P}/t.html"
+        expect:
+          status: 200
+          body_contains: ["content=\"a\""]
+          etag_equals: "${etag1}"

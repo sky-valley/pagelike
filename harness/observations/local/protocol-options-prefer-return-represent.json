@@ -1,0 +1,34 @@
+{
+  "case": "protocol.options.prefer-return-representation-ignored",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (with selector-scoped rules the answer is still 207)",
+      "method": "OPTIONS",
+      "path": "/_pl/protocol-options-prefer-return-represent-124b28/doc.html",
+      "status": 207,
+      "headers": {
+        "accept-query": "text/css-selector, text/sessel",
+        "accept-ranges": "selector",
+        "content-length": "215",
+        "content-type": "multipart/mixed; boundary=boundaryGNcZJdTW5RQb5a39aXVgAYaFzgA3FPhu",
+        "vary": "Authorization, Accept"
+      },
+      "body": "--boundaryGNcZJdTW5RQb5a39aXVgAYaFzgA3FPhu\r\nAllow: GET, HEAD, OPTIONS\r\n\r\n--boundaryGNcZJdTW5RQb5a39aXVgAYaFzgA3FPhu\r\nContent-Range: selector ul\r\nAllow: POST, OPTIONS\r\n\r\n--boundaryGNcZJdTW5RQb5a39aXVgAYaFzgA3FPhu--\r\n"
+    },
+    {
+      "step": "step 2 (without selector-scoped rules the answer is still 204)",
+      "method": "OPTIONS",
+      "path": "/_pl/protocol-options-prefer-return-represent-124b28/plain.html",
+      "status": 204,
+      "headers": {
+        "accept-query": "text/css-selector, text/sessel",
+        "accept-ranges": "selector",
+        "allow": "GET, HEAD, OPTIONS",
+        "vary": "Authorization, Accept"
+      }
+    }
+  ],
+  "outcome": "pass",
+  "target": "local"
+}

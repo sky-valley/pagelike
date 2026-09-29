@@ -1,0 +1,21 @@
+{
+  "case": "protocol.options.wildcard-star-example",
+  "failures": [
+    "step 1 (literal star as in the example) OPTIONS ${P}/options-test.html: header Allow = \"MOVE, PATCH, GET, POST, PUT, DELETE, HEAD, OPTIONS\", want \"*, OPTIONS\"",
+    "step 1 (literal star as in the example) OPTIONS ${P}/options-test.html: header Accept-Ranges = \"\", want \"selector\""
+  ],
+  "observations": [
+    {
+      "step": "step 1 (literal star as in the example)",
+      "method": "OPTIONS",
+      "path": "/_pl/protocol-options-wildcard-star-example-beef79/options-test.html",
+      "status": 200,
+      "headers": {
+        "allow": "MOVE, PATCH, GET, POST, PUT, DELETE, HEAD, OPTIONS",
+        "vary": "Authorization, Accept"
+      }
+    }
+  ],
+  "outcome": "fail",
+  "target": "live"
+}

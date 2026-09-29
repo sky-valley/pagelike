@@ -1,0 +1,80 @@
+{
+  "case": "rw.cond.put-if-match-stale-412",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (client A reads)",
+      "method": "GET",
+      "path": "/_pl/rw-cond-put-if-match-stale-412-75e29c/doc.html",
+      "status": 200,
+      "headers": {
+        "accept-ranges": "selector, bytes",
+        "content-length": "59",
+        "content-type": "text/html",
+        "etag": "\"b9e31935cd2d8c1173c91f34d6d69310b9b24b83c01c3112116b48e847c6a6d8\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:55 GMT",
+        "vary": "Host, Range, Accept"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\u003cp\u003eversion 1\u003c/p\u003e\u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 2 (client B saves first)",
+      "method": "PUT",
+      "path": "/_pl/rw-cond-put-if-match-stale-412-75e29c/doc.html",
+      "status": 200,
+      "headers": {
+        "content-length": "59",
+        "content-type": "text/html",
+        "etag": "\"95191bc0946e11dd7f20678122935372868f7a053a01f5a3d70e46ab73e451da\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:55 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\u003cp\u003eversion B\u003c/p\u003e\u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 3 (current tag)",
+      "method": "GET",
+      "path": "/_pl/rw-cond-put-if-match-stale-412-75e29c/doc.html",
+      "status": 200,
+      "headers": {
+        "accept-ranges": "selector, bytes",
+        "content-length": "59",
+        "content-type": "text/html",
+        "etag": "\"95191bc0946e11dd7f20678122935372868f7a053a01f5a3d70e46ab73e451da\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:55 GMT",
+        "vary": "Host, Range, Accept"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\u003cp\u003eversion B\u003c/p\u003e\u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 4 (client A's conditional save is rejected)",
+      "method": "PUT",
+      "path": "/_pl/rw-cond-put-if-match-stale-412-75e29c/doc.html",
+      "status": 412,
+      "headers": {
+        "content-length": "172",
+        "content-type": "text/html",
+        "etag": "\"95191bc0946e11dd7f20678122935372868f7a053a01f5a3d70e46ab73e451da\"",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\u003cdiv itemscope itemtype=\"http://pagelove.org/Error\"\u003e\u003cspan itemprop=\"message\"\u003ePrecondition Failed: ETag does not match\u003c/span\u003e\u003c/div\u003e\u003c/body\u003e\u003c/html\u003e"
+    },
+    {
+      "step": "step 5 (B's version survived)",
+      "method": "GET",
+      "path": "/_pl/rw-cond-put-if-match-stale-412-75e29c/doc.html",
+      "status": 200,
+      "headers": {
+        "accept-ranges": "selector, bytes",
+        "content-length": "59",
+        "content-type": "text/html",
+        "etag": "\"95191bc0946e11dd7f20678122935372868f7a053a01f5a3d70e46ab73e451da\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:55 GMT",
+        "vary": "Host, Range, Accept"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\u003cp\u003eversion B\u003c/p\u003e\u003c/body\u003e\u003c/html\u003e\n"
+    }
+  ],
+  "outcome": "pass",
+  "target": "local"
+}

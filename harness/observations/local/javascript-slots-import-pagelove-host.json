@@ -1,0 +1,34 @@
+{
+  "case": "javascript.slots.import-pagelove-host",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (register declarations through the public plane (takes effect for the next request))",
+      "method": "PUT",
+      "path": "/_pl/javascript-slots-import-pagelove-host-8e6104/schema.html",
+      "status": 201,
+      "headers": {
+        "content-length": "665",
+        "content-type": "text/html",
+        "etag": "\"0adf26372642a5dc07fbf8ea62b08e7026fc7c73306148803d495e370e87f1da\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:43 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\n\u003cdiv hidden itemscope itemtype=\"https://pagelove.org/Schema\"\u003e\n\u003cmeta itemprop=\"type\" content=\"https://pagelike.test/_pl/javascript-slots-import-pagelove-host-8e6104/Vimportpagelovehost\"\u003e\n\u003cdiv itemprop=\"property\" itemscope itemtype=\"https://pagelove.org/Property\"\u003e\n\u003cmeta itemprop=\"name\" content=\"v\"\u003e\n\u003cmeta itemprop=\"type\" content=\"https://schema.host/Text\"\u003e\n\u003cmeta itemprop=\"cardinality\" content=\"1..1\"\u003e\n\u003cdiv itemprop=\"@validate\" itemscope itemtype=\"https://pagelove.org/JavaScript/Module\"\u003e\n\u003cscript itemprop=\"source\" type=\"module\"\u003e\nimport host from 'pagelove:host';\nexport default () =\u003e true;\n\u003c/script\u003e\n\u003c/div\u003e\n\u003c/div\u003e\n\u003c/div\u003e\n\u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 2 (PUT an instance (a.html))",
+      "method": "PUT",
+      "path": "/_pl/javascript-slots-import-pagelove-host-8e6104/a.html",
+      "status": 422,
+      "headers": {
+        "content-length": "1196",
+        "content-type": "text/html; charset=utf-8",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\n  \u003chead\u003e\n    \u003ctitle\u003e422 Unprocessable Entity - Schema Violation\u003c/title\u003e\n  \u003c/head\u003e\n  \u003cbody itemscope itemtype=\"https://pagelove.org/SchemaViolation\"\u003e\n    \u003ch1 itemprop=\"name\"\u003eUnprocessable Entity\u003c/h1\u003e\n    \u003cmeta itemprop=\"statusCode\" content=\"422\"\u003e\n    \u003cp itemprop=\"description\"\u003eSchema validation failed\u003c/p\u003e\n    \u003cul\u003e\n      \u003cli itemprop=\"violations\" itemscope itemtype=\"https://pagelove.org/Violation\"\u003e\n        \u003cspan itemprop=\"check\"\u003e@validate\u003c/span\u003e\n        \u003cspan itemprop=\"itemtype\"\u003ehttps://pagelike.test/_pl/javascript-slots-import-pagelove-host-8e6104/Vimportpagelovehost\u003c/span\u003e\n        \u003cspan itemprop=\"property\"\u003ev\u003c/span\u003e\n        \u003cspan itemprop=\"message\"\u003e[https://pagelike.test/_pl/javascript-slots-import-pagelove-host-8e6104/Vimportpagelovehost].v: the value was rejected by @validate\u003c/span\u003e\n        \u003cdiv itemprop=\"failure\" itemscope itemtype=\"https://pagelove.org/BindingFailure\"\u003e\n          \u003cmeta itemprop=\"language\" content=\"https://pagelove.org/JavaScript/Module\"\u003e\n          \u003cmeta itemprop=\"variant\" content=\"import-not-allowed\"\u003e\n          \u003cp itemprop=\"message\"\u003eonly schema imports are allowed: pagelove:host\u003c/p\u003e\n        \u003c/div\u003e\n      \u003c/li\u003e\n    \u003c/ul\u003e\n  \u003c/body\u003e\n\u003c/html\u003e\n"
+    }
+  ],
+  "outcome": "pass",
+  "target": "local"
+}

@@ -1,0 +1,23 @@
+{
+  "case": "sessel.query.values.temporal-format",
+  "failures": [
+    "step 1 (format) QUERY ${P}/doc.html: json = [\"March 23, 2026\",\"2026-04-23\",null], want [\"March 23, 2026\",\"2026-04-23\",1]"
+  ],
+  "observations": [
+    {
+      "step": "step 1 (format)",
+      "method": "QUERY",
+      "path": "/_pl/sessel-query-values-temporal-format-aa2bd4/doc.html",
+      "status": 200,
+      "headers": {
+        "accept-ranges": "bytes",
+        "content-length": "36",
+        "content-type": "application/sessel+json",
+        "vary": "Host, Range"
+      },
+      "body": "[\"March 23, 2026\",\"2026-04-23\",null]"
+    }
+  ],
+  "outcome": "fail",
+  "target": "live"
+}

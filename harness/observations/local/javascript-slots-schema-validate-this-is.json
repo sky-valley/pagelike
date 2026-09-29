@@ -1,0 +1,48 @@
+{
+  "case": "javascript.slots.schema-validate-this-is-string-context-null",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (register declarations through the public plane (takes effect for the next request))",
+      "method": "PUT",
+      "path": "/_pl/javascript-slots-schema-validate-this-is-86fcee/schema.html",
+      "status": 201,
+      "headers": {
+        "content-length": "1343",
+        "content-type": "text/html",
+        "etag": "\"33f0bb704bd3c819a1a4697750fc0f81c2409cceaae2c6d9b580d30c65e97e82\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:43 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\n\u003cdiv hidden itemscope itemtype=\"https://pagelove.org/Schema\"\u003e\n\u003cmeta itemprop=\"type\" content=\"https://pagelike.test/_pl/javascript-slots-schema-validate-this-is-86fcee/SchemaVal\"\u003e\n\u003cdiv itemprop=\"property\" itemscope itemtype=\"https://pagelove.org/Property\"\u003e\n\u003cmeta itemprop=\"name\" content=\"n\"\u003e\n\u003cmeta itemprop=\"type\" content=\"https://schema.host/Text\"\u003e\n\u003cmeta itemprop=\"cardinality\" content=\"0..1\"\u003e\n\u003c/div\u003e\n\u003cdiv itemprop=\"@validate\" itemscope itemtype=\"https://pagelove.org/JavaScript/Module\"\u003e\n\u003cscript itemprop=\"source\" type=\"module\"\u003e\nexport default function (context) {\n  return typeof this === 'string' \u0026\u0026 context === null \u0026\u0026 this.includes('itemprop=\"n\"');\n}\n\u003c/script\u003e\n\u003c/div\u003e\n\u003c/div\u003e\n\u003cdiv hidden itemscope itemtype=\"https://pagelove.org/Schema\"\u003e\n\u003cmeta itemprop=\"type\" content=\"https://pagelike.test/_pl/javascript-slots-schema-validate-this-is-86fcee/SchemaValNeg\"\u003e\n\u003cdiv itemprop=\"property\" itemscope itemtype=\"https://pagelove.org/Property\"\u003e\n\u003cmeta itemprop=\"name\" content=\"n\"\u003e\n\u003cmeta itemprop=\"type\" content=\"https://schema.host/Text\"\u003e\n\u003cmeta itemprop=\"cardinality\" content=\"0..1\"\u003e\n\u003c/div\u003e\n\u003cdiv itemprop=\"@validate\" itemscope itemtype=\"https://pagelove.org/JavaScript/Module\"\u003e\n\u003cscript itemprop=\"source\" type=\"module\"\u003e\nexport default function () { return typeof this !== 'string'; }\n\u003c/script\u003e\n\u003c/div\u003e\n\u003c/div\u003e\n\u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 2 (the positive validator accepts)",
+      "method": "PUT",
+      "path": "/_pl/javascript-slots-schema-validate-this-is-86fcee/a.html",
+      "status": 201,
+      "headers": {
+        "content-length": "194",
+        "content-type": "text/html",
+        "etag": "\"3500255401fbd44ab77452f3b607dec59a1b8e7ad5afd858648b26c9cb7874c1\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:43 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\n\u003cdiv itemscope itemtype=\"https://pagelike.test/_pl/javascript-slots-schema-validate-this-is-86fcee/SchemaVal\"\u003e\n\u003cmeta itemprop=\"n\" content=\"x\"\u003e\n\u003c/div\u003e\n\u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 3 (the negated validator rejects (so the check above is meaningful))",
+      "method": "PUT",
+      "path": "/_pl/javascript-slots-schema-validate-this-is-86fcee/b.html",
+      "status": 422,
+      "headers": {
+        "content-length": "807",
+        "content-type": "text/html; charset=utf-8",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\n  \u003chead\u003e\n    \u003ctitle\u003e422 Unprocessable Entity - Schema Violation\u003c/title\u003e\n  \u003c/head\u003e\n  \u003cbody itemscope itemtype=\"https://pagelove.org/SchemaViolation\"\u003e\n    \u003ch1 itemprop=\"name\"\u003eUnprocessable Entity\u003c/h1\u003e\n    \u003cmeta itemprop=\"statusCode\" content=\"422\"\u003e\n    \u003cp itemprop=\"description\"\u003eSchema validation failed\u003c/p\u003e\n    \u003cul\u003e\n      \u003cli itemprop=\"violations\" itemscope itemtype=\"https://pagelove.org/Violation\"\u003e\n        \u003cspan itemprop=\"check\"\u003e@validate\u003c/span\u003e\n        \u003cspan itemprop=\"itemtype\"\u003ehttps://pagelike.test/_pl/javascript-slots-schema-validate-this-is-86fcee/SchemaValNeg\u003c/span\u003e\n        \u003cspan itemprop=\"message\"\u003e[https://pagelike.test/_pl/javascript-slots-schema-validate-this-is-86fcee/SchemaValNeg]: the instance was rejected by @validate\u003c/span\u003e\n      \u003c/li\u003e\n    \u003c/ul\u003e\n  \u003c/body\u003e\n\u003c/html\u003e\n"
+    }
+  ],
+  "outcome": "pass",
+  "target": "local"
+}

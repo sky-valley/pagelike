@@ -1,0 +1,33 @@
+{
+  "case": "rw.delete.content-range",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (delete by id)",
+      "method": "DELETE",
+      "path": "/_pl/rw-delete-content-range-429f70/cr.html",
+      "status": 204,
+      "headers": {
+        "etag": "\"a0e26c5e4eca9966d8fd0d3f9461e550761c5c44977460570a84d293e0801aa0\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:55 GMT",
+        "vary": "Host, Range"
+      }
+    },
+    {
+      "step": "step 2 (the tag is the document's)",
+      "method": "HEAD",
+      "path": "/_pl/rw-delete-content-range-429f70/cr.html",
+      "status": 200,
+      "headers": {
+        "accept-ranges": "selector, bytes",
+        "content-length": "54",
+        "content-type": "text/html",
+        "etag": "\"a0e26c5e4eca9966d8fd0d3f9461e550761c5c44977460570a84d293e0801aa0\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:55 GMT",
+        "vary": "Host, Range, Accept"
+      }
+    }
+  ],
+  "outcome": "pass",
+  "target": "local"
+}

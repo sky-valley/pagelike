@@ -1,0 +1,76 @@
+{
+  "case": "protocol.webdav.mkcol",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (missing parent)",
+      "method": "MKCOL",
+      "path": "/_pl/protocol-webdav-mkcol-59b581/newdir/",
+      "status": 409,
+      "headers": {
+        "content-length": "485",
+        "content-type": "text/html; charset=utf-8"
+      },
+      "body": "\u003carticle itemscope itemtype=\"https://pagelove.org/Error\"\u003e\u003cmeta itemprop=\"status\" content=\"409\"\u003e\u003cmeta itemprop=\"kind\" content=\"Conflict\"\u003e\u003cdiv itemprop=\"type\" itemscope itemtype=\"https://dombase.pagelove.team/ns/error/Conflict\"\u003e\u003c/div\u003e\u003cdiv itemprop=\"detail\"\u003e\u003cdiv itemscope itemtype=\"https://dombase.pagelove.team/ns/error/ParentDirectoryMissing\"\u003e\u003cul itemprop=\"problems\"\u003e\u003cli itemprop=\"problem\"\u003e\u003cspan itemprop=\"message\"\u003eParent directory does not exist\u003c/span\u003e\u003c/li\u003e\u003c/ul\u003e\u003c/div\u003e\u003c/div\u003e\u003c/article\u003e"
+    },
+    {
+      "step": "step 2 (the shared /_pl/ collection (may exist already))",
+      "method": "MKCOL",
+      "path": "/_pl/",
+      "status": 405,
+      "headers": {
+        "allow": "OPTIONS, GET, HEAD, PUT, POST, DELETE, COPY, MOVE, LOCK, UNLOCK, PROPFIND, QUERY",
+        "content-length": "478",
+        "content-type": "text/html; charset=utf-8"
+      },
+      "body": "\u003carticle itemscope itemtype=\"https://pagelove.org/Error\"\u003e\u003cmeta itemprop=\"status\" content=\"405\"\u003e\u003cmeta itemprop=\"kind\" content=\"Internal\"\u003e\u003cdiv itemprop=\"type\" itemscope itemtype=\"https://dombase.pagelove.team/ns/error/Internal\"\u003e\u003c/div\u003e\u003cdiv itemprop=\"detail\"\u003e\u003cdiv itemscope itemtype=\"https://dombase.pagelove.team/ns/error/DirectoryAlreadyExists\"\u003e\u003cul itemprop=\"problems\"\u003e\u003cli itemprop=\"problem\"\u003e\u003cspan itemprop=\"message\"\u003eDirectory already exists\u003c/span\u003e\u003c/li\u003e\u003c/ul\u003e\u003c/div\u003e\u003c/div\u003e\u003c/article\u003e"
+    },
+    {
+      "step": "step 3 (create the prefix collection)",
+      "method": "MKCOL",
+      "path": "/_pl/protocol-webdav-mkcol-59b581/",
+      "status": 201,
+      "headers": {
+        "content-length": "0",
+        "etag": "\"0000000000000000000000000000000000000000000000000000000000000000\""
+      }
+    },
+    {
+      "step": "step 4 (create)",
+      "method": "MKCOL",
+      "path": "/_pl/protocol-webdav-mkcol-59b581/newdir/",
+      "status": 201,
+      "headers": {
+        "content-length": "0",
+        "etag": "\"0000000000000000000000000000000000000000000000000000000000000000\""
+      }
+    },
+    {
+      "step": "step 5 (already exists)",
+      "method": "MKCOL",
+      "path": "/_pl/protocol-webdav-mkcol-59b581/newdir/",
+      "status": 405,
+      "headers": {
+        "allow": "OPTIONS, GET, HEAD, PUT, POST, DELETE, COPY, MOVE, LOCK, UNLOCK, PROPFIND, QUERY",
+        "content-length": "478",
+        "content-type": "text/html; charset=utf-8"
+      },
+      "body": "\u003carticle itemscope itemtype=\"https://pagelove.org/Error\"\u003e\u003cmeta itemprop=\"status\" content=\"405\"\u003e\u003cmeta itemprop=\"kind\" content=\"Internal\"\u003e\u003cdiv itemprop=\"type\" itemscope itemtype=\"https://dombase.pagelove.team/ns/error/Internal\"\u003e\u003c/div\u003e\u003cdiv itemprop=\"detail\"\u003e\u003cdiv itemscope itemtype=\"https://dombase.pagelove.team/ns/error/DirectoryAlreadyExists\"\u003e\u003cul itemprop=\"problems\"\u003e\u003cli itemprop=\"problem\"\u003e\u003cspan itemprop=\"message\"\u003eDirectory already exists\u003c/span\u003e\u003c/li\u003e\u003c/ul\u003e\u003c/div\u003e\u003c/div\u003e\u003c/article\u003e"
+    },
+    {
+      "step": "step 6 (it is a collection)",
+      "method": "PROPFIND",
+      "path": "/_pl/protocol-webdav-mkcol-59b581/newdir/",
+      "status": 207,
+      "headers": {
+        "content-length": "448",
+        "content-type": "application/xml; charset=utf-8",
+        "etag": "\"sha256:84f3bc597d65a56fe9f3c19e2aeda88c5fe1190d6412326c7b5c62f3de15d77d\"",
+        "vary": "Depth"
+      },
+      "body": "\u003c?xml version=\"1.0\" encoding=\"utf-8\" ?\u003e\n\u003cD:multistatus xmlns:D=\"DAV:\"\u003e\n  \u003cD:response\u003e\n    \u003cD:href\u003e/_pl/protocol-webdav-mkcol-59b581/newdir/\u003c/D:href\u003e\n    \u003cD:propstat\u003e\n      \u003cD:prop\u003e\n      \u003cD:resourcetype\u003e\u003cD:collection/\u003e\u003c/D:resourcetype\u003e\n      \u003cD:getetag\u003e\"sha256:84f3bc597d65a56fe9f3c19e2aeda88c5fe1190d6412326c7b5c62f3de15d77d\"\u003c/D:getetag\u003e\n      \u003c/D:prop\u003e\n      \u003cD:status\u003eHTTP/1.1 200 OK\u003c/D:status\u003e\n    \u003c/D:propstat\u003e\n  \u003c/D:response\u003e\n\u003c/D:multistatus\u003e"
+    }
+  ],
+  "outcome": "pass",
+  "target": "live"
+}

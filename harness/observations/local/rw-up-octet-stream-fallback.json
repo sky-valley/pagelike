@@ -1,0 +1,37 @@
+{
+  "case": "rw.up.octet-stream-fallback",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (unknown extension)",
+      "method": "PUT",
+      "path": "/_pl/rw-up-octet-stream-fallback-ca57db/mystery.qqzz",
+      "status": 201,
+      "headers": {
+        "content-length": "6",
+        "content-type": "application/octet-stream",
+        "etag": "\"6d229884c1268bb0ab32d8da315d0fe52f9147228bd830a37bc9fb28a954940d\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:56 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "opaque"
+    },
+    {
+      "step": "step 2 (served as octet-stream)",
+      "method": "GET",
+      "path": "/_pl/rw-up-octet-stream-fallback-ca57db/mystery.qqzz",
+      "status": 200,
+      "headers": {
+        "accept-ranges": "bytes",
+        "content-length": "6",
+        "content-type": "application/octet-stream",
+        "etag": "\"6d229884c1268bb0ab32d8da315d0fe52f9147228bd830a37bc9fb28a954940d\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:56 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "opaque"
+    }
+  ],
+  "outcome": "pass",
+  "target": "local"
+}

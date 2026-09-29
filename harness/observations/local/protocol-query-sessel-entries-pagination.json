@@ -1,0 +1,32 @@
+{
+  "case": "protocol.query-sessel.entries-pagination",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (first page)",
+      "method": "QUERY",
+      "path": "/_pl/protocol-query-sessel-entries-pagination-b5104e/five.html",
+      "status": 206,
+      "headers": {
+        "content-length": "9",
+        "content-range": "entries 0-1/5;",
+        "content-type": "application/sessel+json"
+      },
+      "body": "[\"1\",\"2\"]"
+    },
+    {
+      "step": "step 2 (last page is clamped to the list length)",
+      "method": "QUERY",
+      "path": "/_pl/protocol-query-sessel-entries-pagination-b5104e/five.html",
+      "status": 206,
+      "headers": {
+        "content-length": "9",
+        "content-range": "entries 3-4/5;",
+        "content-type": "application/sessel+json"
+      },
+      "body": "[\"4\",\"5\"]"
+    }
+  ],
+  "outcome": "pass",
+  "target": "local"
+}

@@ -1,0 +1,63 @@
+{
+  "case": "reacting.tc.empty-string-is-a-state",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (install an entry to \"\" and a step \"\" -\u003e ready)",
+      "method": "PUT",
+      "path": "/_pl/reacting-tc-empty-string-is-a-state-71e14d/transitions/rules.html",
+      "status": 201,
+      "headers": {
+        "content-length": "645",
+        "content-type": "text/html",
+        "etag": "\"4ca1b73832cbcc9bdb030d338172e8e7a33aaff9c36c9ab0fd1af21934529561\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:49 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\n\u003cdiv itemscope itemtype=\"https://pagelove.org/TransitionConstraint\"\u003e\n  \u003cmeta itemprop=\"selector\" content=\"[itemtype='https://pagelike.test/_pl/reacting-tc-empty-string-is-a-state-71e14d/Order']\"\u003e\n  \u003cmeta itemprop=\"property\" content=\"status\"\u003e\n  \u003cmeta itemprop=\"to\" content\u003e\n\u003c/div\u003e\n\u003cdiv itemscope itemtype=\"https://pagelove.org/TransitionConstraint\"\u003e\n  \u003cmeta itemprop=\"selector\" content=\"[itemtype='https://pagelike.test/_pl/reacting-tc-empty-string-is-a-state-71e14d/Order']\"\u003e\n  \u003cmeta itemprop=\"property\" content=\"status\"\u003e\n  \u003cmeta itemprop=\"from\" content\u003e\n  \u003cmeta itemprop=\"to\" content=\"ready\"\u003e\n\u003c/div\u003e\n\u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 2 (create an item in the empty state)",
+      "method": "PUT",
+      "path": "/_pl/reacting-tc-empty-string-is-a-state-71e14d/orders/a.html",
+      "status": 201,
+      "headers": {
+        "content-length": "187",
+        "content-type": "text/html",
+        "etag": "\"0a8b5268cc6f31f4769286aee46bed3a379b9915ac008bbb3f91db2845d78f78\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:49 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\u003chtml\u003e\u003cbody\u003e\u003cdiv id=\"a\" itemscope itemtype=\"https://pagelike.test/_pl/reacting-tc-empty-string-is-a-state-71e14d/Order\"\u003e\u003cmeta itemprop=\"status\" content\u003e\u003c/div\u003e\u003c/body\u003e\u003c/html\u003e"
+    },
+    {
+      "step": "step 3 (step \"\" -\u003e ready)",
+      "method": "PUT",
+      "path": "/_pl/reacting-tc-empty-string-is-a-state-71e14d/orders/a.html",
+      "status": 206,
+      "headers": {
+        "content-length": "154",
+        "content-range": "selector #a",
+        "content-type": "text/html",
+        "etag": "\"e784cf8be980e88b98358496fdd64b35558a78d23d59535aea8850dea56e602c-e784cf8be980e88b98358496fdd64b35558a78d23d59535aea8850dea56e602c-2\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:49 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003cdiv id=\"a\" itemscope itemtype=\"https://pagelike.test/_pl/reacting-tc-empty-string-is-a-state-71e14d/Order\"\u003e\u003cmeta itemprop=\"status\" content=\"ready\"\u003e\u003c/div\u003e"
+    },
+    {
+      "step": "step 4 (creating an item directly at ready is not an entry)",
+      "method": "PUT",
+      "path": "/_pl/reacting-tc-empty-string-is-a-state-71e14d/orders/b.html",
+      "status": 422,
+      "headers": {
+        "content-length": "1159",
+        "content-type": "text/html; charset=utf-8",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\n  \u003chead\u003e\n    \u003ctitle\u003e422 Unprocessable Entity - Transition Constraint Violation\u003c/title\u003e\n  \u003c/head\u003e\n  \u003cbody itemscope itemtype=\"https://pagelove.org/ConstraintViolation\"\u003e\n    \u003ch1 itemprop=\"name\"\u003eUnprocessable Entity\u003c/h1\u003e\n    \u003cmeta itemprop=\"statusCode\" content=\"422\"\u003e\n    \u003cp itemprop=\"description\"\u003eTransition constraints violated\u003c/p\u003e\n    \u003cul\u003e\n      \u003cli itemprop=\"violations\" itemscope itemtype=\"https://pagelove.org/Violation\"\u003e\n        \u003cspan itemprop=\"constraintSelector\"\u003e[itemprop='status']\u003c/span\u003e\n        \u003cspan itemprop=\"failedConstraint\"\u003etransition(status)\u003c/span\u003e\n        \u003cspan itemprop=\"message\"\u003eTransition violation: 'https://pagelike.test/_pl/reacting-tc-empty-string-is-a-state-71e14d/Order' property 'status' may not change from '' to 'ready' (constraint declared in '/_pl/reacting-tc-empty-string-is-a-state-71e14d/transitions/rules.html')\u003c/span\u003e\n        \u003cspan itemprop=\"itemtype\"\u003ehttps://pagelike.test/_pl/reacting-tc-empty-string-is-a-state-71e14d/Order\u003c/span\u003e\n        \u003cspan itemprop=\"property\"\u003estatus\u003c/span\u003e\n        \u003cspan itemprop=\"from\"\u003e\u003c/span\u003e\n        \u003cspan itemprop=\"to\"\u003eready\u003c/span\u003e\n      \u003c/li\u003e\n    \u003c/ul\u003e\n  \u003c/body\u003e\n\u003c/html\u003e\n"
+    }
+  ],
+  "outcome": "pass",
+  "target": "local"
+}

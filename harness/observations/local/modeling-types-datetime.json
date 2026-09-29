@@ -1,0 +1,60 @@
+{
+  "case": "modeling.types.datetime",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (register declarations through the public plane (takes effect for the next request))",
+      "method": "PUT",
+      "path": "/_pl/modeling-types-datetime-fba5ee/schema.html",
+      "status": 201,
+      "headers": {
+        "content-length": "469",
+        "content-type": "text/html",
+        "etag": "\"a0b33b9833d796d328f81fa1d36c138d2f59cce02f8449dee99b5b1ff0489e93\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:45 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\n  \u003cdiv hidden itemscope itemtype=\"https://pagelove.org/Schema\"\u003e\n    \u003cmeta itemprop=\"type\" content=\"https://pagelike.test/_pl/modeling-types-datetime-fba5ee/Value\"\u003e\n    \u003cdiv itemprop=\"property\" itemscope itemtype=\"https://pagelove.org/Property\"\u003e\n      \u003cmeta itemprop=\"name\" content=\"v\"\u003e\n      \u003cmeta itemprop=\"type\" content=\"https://schema.host/DateTime\"\u003e\n      \u003cmeta itemprop=\"cardinality\" content=\"1..1\"\u003e\n    \u003c/div\u003e\n  \u003c/div\u003e\n\u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 2 (valid: \"2024-01-15T10:30:00Z\")",
+      "method": "PUT",
+      "path": "/_pl/modeling-types-datetime-fba5ee/ok-0.html",
+      "status": 201,
+      "headers": {
+        "content-length": "200",
+        "content-type": "text/html",
+        "etag": "\"002081191c19a894a986d90e7d8d9382673f52c427d8df5cdc60bd13be4f933e\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:45 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\n  \u003cdiv itemscope itemtype=\"https://pagelike.test/_pl/modeling-types-datetime-fba5ee/Value\"\u003e\n    \u003cmeta itemprop=\"v\" content=\"2024-01-15T10:30:00Z\"\u003e\n  \u003c/div\u003e\n\u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 3 (invalid: \"2024-01-15\")",
+      "method": "PUT",
+      "path": "/_pl/modeling-types-datetime-fba5ee/bad-0.html",
+      "status": 422,
+      "headers": {
+        "content-length": "882",
+        "content-type": "text/html; charset=utf-8",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\n  \u003chead\u003e\n    \u003ctitle\u003e422 Unprocessable Entity - Schema Violation\u003c/title\u003e\n  \u003c/head\u003e\n  \u003cbody itemscope itemtype=\"https://pagelove.org/SchemaViolation\"\u003e\n    \u003ch1 itemprop=\"name\"\u003eUnprocessable Entity\u003c/h1\u003e\n    \u003cmeta itemprop=\"statusCode\" content=\"422\"\u003e\n    \u003cp itemprop=\"description\"\u003eSchema validation failed\u003c/p\u003e\n    \u003cul\u003e\n      \u003cli itemprop=\"violations\" itemscope itemtype=\"https://pagelove.org/Violation\"\u003e\n        \u003cspan itemprop=\"check\"\u003etype\u003c/span\u003e\n        \u003cspan itemprop=\"itemtype\"\u003ehttps://pagelike.test/_pl/modeling-types-datetime-fba5ee/Value\u003c/span\u003e\n        \u003cspan itemprop=\"property\"\u003ev\u003c/span\u003e\n        \u003cspan itemprop=\"value\"\u003e2024-01-15\u003c/span\u003e\n        \u003cspan itemprop=\"message\"\u003e[https://pagelike.test/_pl/modeling-types-datetime-fba5ee/Value].v: Value \u0026quot;2024-01-15\u0026quot; is not a valid https://schema.host/DateTime\u003c/span\u003e\n      \u003c/li\u003e\n    \u003c/ul\u003e\n  \u003c/body\u003e\n\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 4 (invalid: \"not-a-date\")",
+      "method": "PUT",
+      "path": "/_pl/modeling-types-datetime-fba5ee/bad-1.html",
+      "status": 422,
+      "headers": {
+        "content-length": "882",
+        "content-type": "text/html; charset=utf-8",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\n  \u003chead\u003e\n    \u003ctitle\u003e422 Unprocessable Entity - Schema Violation\u003c/title\u003e\n  \u003c/head\u003e\n  \u003cbody itemscope itemtype=\"https://pagelove.org/SchemaViolation\"\u003e\n    \u003ch1 itemprop=\"name\"\u003eUnprocessable Entity\u003c/h1\u003e\n    \u003cmeta itemprop=\"statusCode\" content=\"422\"\u003e\n    \u003cp itemprop=\"description\"\u003eSchema validation failed\u003c/p\u003e\n    \u003cul\u003e\n      \u003cli itemprop=\"violations\" itemscope itemtype=\"https://pagelove.org/Violation\"\u003e\n        \u003cspan itemprop=\"check\"\u003etype\u003c/span\u003e\n        \u003cspan itemprop=\"itemtype\"\u003ehttps://pagelike.test/_pl/modeling-types-datetime-fba5ee/Value\u003c/span\u003e\n        \u003cspan itemprop=\"property\"\u003ev\u003c/span\u003e\n        \u003cspan itemprop=\"value\"\u003enot-a-date\u003c/span\u003e\n        \u003cspan itemprop=\"message\"\u003e[https://pagelike.test/_pl/modeling-types-datetime-fba5ee/Value].v: Value \u0026quot;not-a-date\u0026quot; is not a valid https://schema.host/DateTime\u003c/span\u003e\n      \u003c/li\u003e\n    \u003c/ul\u003e\n  \u003c/body\u003e\n\u003c/html\u003e\n"
+    }
+  ],
+  "outcome": "pass",
+  "target": "local"
+}

@@ -1,0 +1,34 @@
+{
+  "case": "rw.authz.present-target-not-granted-401",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (write outside the granted selector)",
+      "method": "PUT",
+      "path": "/_pl/rw-authz-present-target-not-granted-401-e9827d/page.html",
+      "status": 401,
+      "headers": {
+        "content-length": "429",
+        "content-type": "text/html; charset=utf-8"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\n\u003chead\u003e\n    \u003cmeta charset=\"UTF-8\"\u003e\n    \u003ctitle\u003e401 Unauthorized\u003c/title\u003e\n\u003c/head\u003e\n\u003cbody itemscope itemtype=\"https://pagelove.org/1.0/Error\"\u003e\n    \u003ch1\u003e401 Unauthorized\u003c/h1\u003e\n    \u003cp itemprop=\"message\"\u003eAuthentication required to access this resource.\u003c/p\u003e\n    \u003cdl\u003e\n        \u003cdt\u003eResource\u003c/dt\u003e\n        \u003cdd itemprop=\"resource\"\u003e/_pl/rw-authz-present-target-not-granted-401-e9827d/page.html\u003c/dd\u003e\n    \u003c/dl\u003e\n\u003c/body\u003e\n\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 2 (unchanged)",
+      "method": "GET",
+      "path": "/_pl/rw-authz-present-target-not-granted-401-e9827d/page.html",
+      "status": 206,
+      "headers": {
+        "accept-ranges": "selector, bytes",
+        "content-length": "23",
+        "content-range": "selector #plain",
+        "content-type": "text/html",
+        "etag": "\"a21ce3f1a7c79ed2fd57de23cfa502616e06c3cb7dc00a97c3cd929b9d4f3251-a21ce3f1a7c79ed2fd57de23cfa502616e06c3cb7dc00a97c3cd929b9d4f3251-1\"",
+        "vary": "Host, Range, Accept"
+      },
+      "body": "\u003cp id=\"plain\"\u003eplain\u003c/p\u003e"
+    }
+  ],
+  "outcome": "pass",
+  "target": "local"
+}

@@ -1,0 +1,50 @@
+{
+  "case": "modeling.defaults.js-dynamic",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (register declarations through the public plane (takes effect for the next request))",
+      "method": "PUT",
+      "path": "/_pl/modeling-defaults-js-dynamic-7fc259/schema.html",
+      "status": 201,
+      "headers": {
+        "content-length": "701",
+        "content-type": "text/html",
+        "etag": "\"81292fd391befe59a88de92926a4f9d5fff4fd8f51aefb5c68817c8267071b80\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:44 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\n  \u003cdiv hidden itemscope itemtype=\"https://pagelove.org/Schema\"\u003e\n    \u003cmeta itemprop=\"type\" content=\"https://pagelike.test/_pl/modeling-defaults-js-dynamic-7fc259/Post\"\u003e\n    \u003cdiv itemprop=\"property\" itemscope itemtype=\"https://pagelove.org/Property\"\u003e\n      \u003cmeta itemprop=\"name\" content=\"x\"\u003e\n      \u003cmeta itemprop=\"type\" content=\"https://schema.host/Integer\"\u003e\n      \u003cmeta itemprop=\"cardinality\" content=\"1..1\"\u003e\n      \u003cdiv itemprop=\"default\" itemscope itemtype=\"https://pagelove.org/JavaScript/Module\"\u003e\n        \u003cscript itemprop=\"source\" type=\"module\"\u003eexport default () =\u003e String(Math.floor(100 + Math.random() * 500));\u003c/script\u003e\n      \u003c/div\u003e\n    \u003c/div\u003e\n  \u003c/div\u003e\n\u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 2 (post without x)",
+      "method": "PUT",
+      "path": "/_pl/modeling-defaults-js-dynamic-7fc259/p.html",
+      "status": 201,
+      "headers": {
+        "content-length": "179",
+        "content-type": "text/html",
+        "etag": "\"938db94c00006d34756506fe5947a1c22156b4aae0af7184add4476b293f026d\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:44 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\n  \u003cdiv itemscope itemtype=\"https://pagelike.test/_pl/modeling-defaults-js-dynamic-7fc259/Post\"\u003e\u003cmeta itemprop=\"x\" content=\"478\"\u003e\u003c/div\u003e\n\u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 3 (stored state of p.html (authoring plane, raw))",
+      "method": "GET",
+      "path": "/_pl/modeling-defaults-js-dynamic-7fc259/p.html",
+      "status": 200,
+      "headers": {
+        "accept-ranges": "bytes",
+        "content-length": "179",
+        "content-type": "text/html",
+        "etag": "\"938db94c00006d34756506fe5947a1c22156b4aae0af7184add4476b293f026d\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:44 GMT"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\n  \u003cdiv itemscope itemtype=\"https://pagelike.test/_pl/modeling-defaults-js-dynamic-7fc259/Post\"\u003e\u003cmeta itemprop=\"x\" content=\"478\"\u003e\u003c/div\u003e\n\u003c/body\u003e\u003c/html\u003e\n"
+    }
+  ],
+  "outcome": "pass",
+  "target": "local"
+}

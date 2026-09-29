@@ -1,0 +1,45 @@
+{
+  "case": "reacting.outbound.dispatched-even-if-core-fails",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (install)",
+      "method": "PUT",
+      "path": "/_pl/reacting-outbound-dispatched-even-if-cor-106615/r/triggers.html",
+      "status": 201,
+      "headers": {
+        "content-length": "422",
+        "content-type": "text/html",
+        "etag": "\"cefe5cd0612f64d0cc50e7e39acc8925345ef6a4aa5fedf69c1f1b02e60d6aa5\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:48 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\n\u003cdiv hidden itemscope itemtype=\"https://pagelove.org/Trigger\"\u003e\n  \u003cmeta itemprop=\"resource\" content=\"/_pl/reacting-outbound-dispatched-even-if-cor-106615/d/*\"\u003e\n  \u003cmeta itemprop=\"method\" content=\"PUT\"\u003e\n  \u003cdiv itemprop=\"action\" itemscope itemtype=\"https://pagelove.org/HttpRequest\"\u003e\n    \u003cmeta itemprop=\"url\" content=\"http://127.0.0.1:53434/c-83d29bf4/core-failed\"\u003e\n  \u003c/div\u003e\n\u003c/div\u003e\n\u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 2 (a selector PUT to a missing document fails in core)",
+      "method": "PUT",
+      "path": "/_pl/reacting-outbound-dispatched-even-if-cor-106615/d/missing.html",
+      "status": 404,
+      "headers": {
+        "content-length": "272",
+        "content-type": "text/html",
+        "vary": "Host, Range"
+      },
+      "body": "\u003cdiv itemscope itemtype=\"https://dombase.pagelove.team/ns/error/NotFound\"\u003e\u003cul itemprop=\"problems\"\u003e\u003cli itemprop=\"problem\"\u003e\u003cspan itemprop=\"message\"\u003edocument not found at request path: /_pl/reacting-outbound-dispatched-even-if-cor-106615/d/missing.html\u003c/span\u003e\u003c/li\u003e\u003c/ul\u003e\u003c/div\u003e"
+    },
+    {
+      "step": "step 3",
+      "method": "POST",
+      "path": "${SINK}/core-failed",
+      "headers": {
+        "accept-encoding": "gzip",
+        "content-length": "0",
+        "content-type": "text/html",
+        "user-agent": "Go-http-client/1.1"
+      }
+    }
+  ],
+  "outcome": "pass",
+  "target": "local"
+}

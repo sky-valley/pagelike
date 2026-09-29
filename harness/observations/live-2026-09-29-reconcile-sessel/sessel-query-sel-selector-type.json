@@ -1,0 +1,44 @@
+{
+  "case": "sessel.query.sel.selector-type",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (execute on a path and on self)",
+      "method": "QUERY",
+      "path": "/_pl/sessel-query-sel-selector-type-bc3917/doc.html",
+      "status": 200,
+      "headers": {
+        "accept-ranges": "bytes",
+        "content-length": "18",
+        "content-type": "application/sessel+json",
+        "vary": "Host, Range"
+      },
+      "body": "[0,\"Welcome\",\"h1\"]"
+    },
+    {
+      "step": "step 2 (without @schema, Selector is a tag name)",
+      "method": "QUERY",
+      "path": "/_pl/sessel-query-sel-selector-type-bc3917/doc.html",
+      "status": 200,
+      "headers": {
+        "content-type": "text/html",
+        "vary": "Host, Range"
+      },
+      "body": "\u003cselector\u003eh1\u003c/selector\u003e"
+    },
+    {
+      "step": "step 3 (so execute() is unknown)",
+      "method": "QUERY",
+      "path": "/_pl/sessel-query-sel-selector-type-bc3917/doc.html",
+      "status": 400,
+      "headers": {
+        "content-length": "349",
+        "content-type": "text/html",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\n  \u003chead\u003e\n    \u003ctitle\u003e400 Bad Request - Error\u003c/title\u003e\n  \u003c/head\u003e\n  \u003cbody itemscope itemtype=\"http://pagelove.org/Error\"\u003e\n    \u003ch1 itemprop=\"name\"\u003eBad Request\u003c/h1\u003e\n    \u003cmeta itemprop=\"statusCode\" content=\"400\"\u003e\n    \u003cp itemprop=\"description\"\u003eSessel evaluation error: unknown function: execute (at bytes 33..36)\u003c/p\u003e\n  \u003c/body\u003e\n\u003c/html\u003e"
+    }
+  ],
+  "outcome": "pass",
+  "target": "live"
+}

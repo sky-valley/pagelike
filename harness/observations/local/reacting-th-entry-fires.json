@@ -1,0 +1,48 @@
+{
+  "case": "reacting.th.entry-fires",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (install a handler (Order.status becomes processing -\u003e POST ${SINK}/payments))",
+      "method": "PUT",
+      "path": "/_pl/reacting-th-entry-fires-3d7aff/r/handlers.html",
+      "status": 201,
+      "headers": {
+        "content-length": "539",
+        "content-type": "text/html",
+        "etag": "\"bf7963edd84787bed5e6f8eb69ba613daa61ac97b4108a4658f261463fffda11\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:49 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\n\u003cdiv itemscope itemtype=\"https://pagelove.org/TransitionHandler\"\u003e\n  \u003cmeta itemprop=\"selector\" content=\"[itemtype='https://pagelike.test/_pl/reacting-th-entry-fires-3d7aff/Order']\"\u003e\n  \u003cmeta itemprop=\"property\" content=\"status\"\u003e\n  \u003cmeta itemprop=\"becomes\" content=\"processing\"\u003e\n  \u003cdiv itemprop=\"action\" itemscope itemtype=\"https://pagelove.org/HttpRequest\"\u003e\n    \u003cmeta itemprop=\"url\" content=\"http://127.0.0.1:53605/c-a96ca4d1/payments\"\u003e\n    \u003cmeta itemprop=\"method\" content=\"POST\"\u003e\n  \u003c/div\u003e\n\u003c/div\u003e\n\u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 2 (create an order at processing)",
+      "method": "PUT",
+      "path": "/_pl/reacting-th-entry-fires-3d7aff/orders/new.html",
+      "status": 201,
+      "headers": {
+        "content-length": "181",
+        "content-type": "text/html",
+        "etag": "\"fc2569b00ce9a8cec1b13e00b9c95548ee05c4d9e1e7db6a4196dacd6a3ecb3a\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:49 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\u003chtml\u003e\u003cbody\u003e\u003cdiv itemscope itemtype=\"https://pagelike.test/_pl/reacting-th-entry-fires-3d7aff/Order\"\u003e\u003cmeta itemprop=\"status\" content=\"processing\"\u003e\u003c/div\u003e\u003c/body\u003e\u003c/html\u003e"
+    },
+    {
+      "step": "step 3",
+      "method": "POST",
+      "path": "${SINK}/payments",
+      "headers": {
+        "accept-encoding": "gzip",
+        "content-length": "521",
+        "content-type": "text/html",
+        "user-agent": "Go-http-client/1.1"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\n  \u003chead\u003e\u003ctitle\u003eTransition\u003c/title\u003e\u003c/head\u003e\n  \u003cbody itemscope itemtype=\"https://pagelove.org/Transition\"\u003e\n    \u003cmeta itemprop=\"path\" content=\"/_pl/reacting-th-entry-fires-3d7aff/orders/new.html\"\u003e\n    \u003cmeta itemprop=\"selector\" content=\"[itemtype=\u0026quot;https://pagelike.test/_pl/reacting-th-entry-fires-3d7aff/Order\u0026quot;]\"\u003e\n    \u003cdiv itemscope itemtype=\"https://pagelike.test/_pl/reacting-th-entry-fires-3d7aff/Order\" itemprop=\"body\"\u003e\u003cmeta itemprop=\"status\" content=\"processing\"\u003e\u003c/div\u003e\n  \u003c/body\u003e\n\u003c/html\u003e\n"
+    }
+  ],
+  "outcome": "pass",
+  "target": "local"
+}

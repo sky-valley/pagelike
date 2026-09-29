@@ -1,0 +1,38 @@
+{
+  "case": "sse.mutation.move-before",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 2",
+      "events": [
+        {
+          "event": "pagelove-connection",
+          "data": "c9d9c3a2-6fb0-4689-b04b-ccb42186eabd"
+        }
+      ]
+    },
+    {
+      "step": "step 3 (move item c before item a)",
+      "method": "MOVE",
+      "path": "/_pl/sse-mutation-move-before-a89ccf/list.html",
+      "status": 204,
+      "headers": {
+        "etag": "\"5ef746e6426a9acf13d74b92c2aa96337e81095220c3a5fd312463f6725c6053\"",
+        "last-modified": "Mon, 28 Sep 2026 22:35:00 GMT",
+        "vary": "Host, Range"
+      }
+    },
+    {
+      "step": "step 4",
+      "events": [
+        {
+          "id": "v1~7ab0a09f3618.1790634900613-0",
+          "event": "mutation",
+          "data": "\u003carticle itemscope itemtype=\"https://pagelove.org/Mutation\"\u003e\n  \u003cspan itemprop=\"method\"\u003eMOVE\u003c/span\u003e\n  \u003cspan itemprop=\"selector\"\u003e#item-c\u003c/span\u003e\n  \u003cspan itemprop=\"etag\"\u003e5ef746e6426a9acf13d74b92c2aa96337e81095220c3a5fd312463f6725c6053\u003c/span\u003e\n  \u003cspan itemprop=\"path\"\u003e/_pl/sse-mutation-move-before-a89ccf/list.html\u003c/span\u003e\n  \u003cspan itemprop=\"host\"\u003elive-test-host.onpagelove.com\u003c/span\u003e\n  \u003cdiv itemprop=\"body\"\u003e\u003c/div\u003e\n  \u003cspan itemprop=\"destination\"\u003e#item-a\u003c/span\u003e\n  \u003cspan itemprop=\"placement\"\u003ebefore\u003c/span\u003e\n\u003c/article\u003e"
+        }
+      ]
+    }
+  ],
+  "outcome": "pass",
+  "target": "live"
+}

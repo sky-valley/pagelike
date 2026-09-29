@@ -1,0 +1,47 @@
+{
+  "case": "protocol.move.if-match-current",
+  "failures": [
+    "step 2 (conditional move with the current ETag) MOVE ${P}/board.html: status 412, want [204] (body: \u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\u003cdiv itemscope itemtype=\"http://pagelove.org/Error\"\u003e\u003cspan itemprop=\"message\"\u003ePrecondition Failed: ETag does not match\u003c/span\u003e\u003c/div\u003e\u003c/body\u003e\u003c/html\u003e)"
+  ],
+  "observations": [
+    {
+      "step": "step 1 (read document ETag)",
+      "method": "GET",
+      "path": "/_pl/protocol-move-if-match-current-0dfa64/board.html",
+      "status": 200,
+      "headers": {
+        "content-type": "text/html",
+        "etag": "\"9d231c6ada5b18a73ec3d855ebebdfd54a6ece98a4794c5e70ca0a091da49ee8\"",
+        "last-modified": "Mon, 28 Sep 2026 22:31:06 GMT",
+        "vary": "Host, Range, Accept"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\n\u003csection class=\"lane\" id=\"lane-todo\"\u003e\u003carticle class=\"card\" id=\"card-1\"\u003eOne\u003c/article\u003e\u003carticle class=\"card\" id=\"card-2\"\u003eTwo\u003c/article\u003e\u003carticle class=\"card\" id=\"card-3\"\u003eThree\u003c/article\u003e\u003c/section\u003e\n\u003csection class=\"lane\" id=\"lane-done\"\u003e\u003carticle class=\"card\" id=\"card-4\"\u003eFour\u003c/article\u003e\u003c/section\u003e\n\n                \u003cdiv style=\"\n                            position: fixed;\n                            bottom: 0;\n                            left: 0;\n                            right: 0;\n                            padding: 8px;\n                            background: #f0f0f0;\n                            text-align: center;\n                            font-size: 12px;\n                            color: #666;\n                            z-index: 9999;\n                            opacity: 0.8;\n                            border-top: 1px solid #ddd;\n                        \"\u003e\n                    Powered by\n                    \u003ca href=\"https://pagelove.com/\" style=\"color: #4a90d9; text-decoration: none\"\u003ePagelove\u003c/a\u003e\n                \u003c/div\u003e\n            \u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 2 (conditional move with the current ETag)",
+      "method": "MOVE",
+      "path": "/_pl/protocol-move-if-match-current-0dfa64/board.html",
+      "status": 412,
+      "headers": {
+        "content-length": "172",
+        "content-type": "text/html",
+        "etag": "\"8fc199dfe88bd859db172be3b70f1dade97ee98fa1a150bcf0120692507a9343-8fc199dfe88bd859db172be3b70f1dade97ee98fa1a150bcf0120692507a9343-1\"",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\u003cdiv itemscope itemtype=\"http://pagelove.org/Error\"\u003e\u003cspan itemprop=\"message\"\u003ePrecondition Failed: ETag does not match\u003c/span\u003e\u003c/div\u003e\u003c/body\u003e\u003c/html\u003e"
+    },
+    {
+      "step": "step 3 (conditional move with If-Match star)",
+      "method": "MOVE",
+      "path": "/_pl/protocol-move-if-match-current-0dfa64/board.html",
+      "status": 204,
+      "headers": {
+        "etag": "\"9c7c202385da85d37d49bfd16f5e2c6e0d84516f9b4a2a294671170e5b766d58\"",
+        "last-modified": "Mon, 28 Sep 2026 22:31:08 GMT",
+        "vary": "Host, Range"
+      }
+    }
+  ],
+  "outcome": "fail",
+  "target": "live"
+}

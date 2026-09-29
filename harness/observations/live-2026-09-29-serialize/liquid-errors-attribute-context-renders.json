@@ -1,0 +1,24 @@
+{
+  "case": "liquid.errors.attribute-context-renders-empty",
+  "failures": [
+    "step 1 (read) GET ${P}/attr.html: body does not contain \"\u003ca id=\\\"l\\\" href=\\\"\\\"\u003elink\u003c/a\u003e\" (body: \u003cp id=\"o\"\u003e\u003ca id=\"l\" href\u003elink\u003c/a\u003e\u003c/p\u003e)"
+  ],
+  "observations": [
+    {
+      "step": "step 1 (read)",
+      "method": "GET",
+      "path": "/_pl/liquid-errors-attribute-context-renders-28d5d4/attr.html",
+      "status": 206,
+      "headers": {
+        "content-length": "37",
+        "content-range": "selector #o",
+        "content-type": "text/html",
+        "etag": "\"edb41fa23d242052b368625d2c6a99c96d4a673e86e1be80bceef97f6fc21bc2-edb41fa23d242052b368625d2c6a99c96d4a673e86e1be80bceef97f6fc21bc2-1\"",
+        "vary": "Host, Range, Accept"
+      },
+      "body": "\u003cp id=\"o\"\u003e\u003ca id=\"l\" href\u003elink\u003c/a\u003e\u003c/p\u003e"
+    }
+  ],
+  "outcome": "fail",
+  "target": "live"
+}

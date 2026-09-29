@@ -1,0 +1,361 @@
+# Modeling: enum types (https://schema.host/Enum).
+# Spec: docs/spec/modeling.md R-MOD-23.
+cases:
+  - id: modeling.enums.value-must-be-listed
+    title: "A property typed with an Enum accepts only listed values (docs Gadget/Status example)"
+    area: modeling
+    feature: enums
+    evidence: documented
+    source: "docs reference/modeling-data/Types §Enum types (snapshot 2026-09-28); docs reference/modeling-data/Types §Error cases (snapshot 2026-09-28)"
+    confidence: high
+    requires: []
+    live: true
+    notes: "spec: R-MOD-23. Documented message: [<type>].status: Value \"sideways\" is not a valid <enum> (expected one of: \"active\", \"retired\")."
+    site:
+      settings:
+        default_get: allow
+      rules:
+        - actor: "*"
+          resource: "${P}/*"
+          method: [GET, HEAD, PUT, POST, DELETE, MOVE]
+          action: Allow
+        - actor: "*"
+          resource: "${P}/*/*"
+          method: [GET, HEAD, PUT, POST, DELETE, MOVE]
+          action: Allow
+    steps:
+      - name: "register declarations through the public plane (takes effect for the next request)"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/schema.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div hidden itemscope itemtype="https://schema.host/Enum">
+                <meta itemprop="name" content="https://pagelike.test${P}/Status">
+                <meta itemprop="value" content="active">
+                <meta itemprop="value" content="retired">
+              </div>
+              <div hidden itemscope itemtype="https://pagelove.org/Schema">
+                <meta itemprop="type" content="https://pagelike.test${P}/Gadget">
+                <div itemprop="property" itemscope itemtype="https://pagelove.org/Property">
+                  <meta itemprop="name" content="status">
+                  <meta itemprop="type" content="https://pagelike.test${P}/Status">
+                  <meta itemprop="cardinality" content="1..1">
+                </div>
+              </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "listed value accepted"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/g1.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div itemscope itemtype="https://pagelike.test${P}/Gadget">
+                <meta itemprop="status" content="active">
+              </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "unlisted value rejected; message names the value and the permitted list"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/g2.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div itemscope itemtype="https://pagelike.test${P}/Gadget">
+                <meta itemprop="status" content="sideways">
+              </div>
+            </body></html>
+        expect:
+          status: 422
+          header_matches:
+            Content-Type: "^text/html"
+          body_contains: ["https://pagelove.org/SchemaViolation", enum, sideways, retired]
+      - name: "g2.html was not stored"
+        as: author
+        plane: dav
+        request:
+          method: GET
+          path: "${P}/g2.html"
+        expect:
+          status: 404
+  - id: modeling.enums.declared-with-type-itemprop
+    title: "An Enum may be identified with itemprop=type instead of name"
+    area: modeling
+    feature: enums
+    evidence: documented
+    source: "docs reference/modeling-data/Types §Enum types (snapshot 2026-09-28); docs reference/modeling-data/Types §Error cases (snapshot 2026-09-28)"
+    confidence: high
+    requires: []
+    live: true
+    notes: "spec: R-MOD-23."
+    site:
+      settings:
+        default_get: allow
+      rules:
+        - actor: "*"
+          resource: "${P}/*"
+          method: [GET, HEAD, PUT, POST, DELETE, MOVE]
+          action: Allow
+        - actor: "*"
+          resource: "${P}/*/*"
+          method: [GET, HEAD, PUT, POST, DELETE, MOVE]
+          action: Allow
+    steps:
+      - name: "register declarations through the public plane (takes effect for the next request)"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/schema.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div hidden itemscope itemtype="https://schema.host/Enum">
+                <meta itemprop="type" content="https://pagelike.test${P}/Status">
+                <meta itemprop="value" content="active">
+                <meta itemprop="value" content="retired">
+              </div>
+              <div hidden itemscope itemtype="https://pagelove.org/Schema">
+                <meta itemprop="type" content="https://pagelike.test${P}/Gadget">
+                <div itemprop="property" itemscope itemtype="https://pagelove.org/Property">
+                  <meta itemprop="name" content="status">
+                  <meta itemprop="type" content="https://pagelike.test${P}/Status">
+                  <meta itemprop="cardinality" content="1..1">
+                </div>
+              </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "listed value accepted"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/g1.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div itemscope itemtype="https://pagelike.test${P}/Gadget">
+                <meta itemprop="status" content="retired">
+              </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "unlisted value rejected"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/g2.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div itemscope itemtype="https://pagelike.test${P}/Gadget">
+                <meta itemprop="status" content="gone">
+              </div>
+            </body></html>
+        expect:
+          status: 422
+          header_matches:
+            Content-Type: "^text/html"
+          body_contains: ["https://pagelove.org/SchemaViolation", enum]
+  - id: modeling.enums.declared-in-another-document
+    title: "Enums are host-wide: declared in one document, used by a schema in another"
+    area: modeling
+    feature: enums
+    evidence: demo-source
+    source: "docs reference/modeling-data/Types §Enum types (snapshot 2026-09-28); docs reference/modeling-data/Types §Error cases (snapshot 2026-09-28); pagelove-shop/site/schemas.html@d887054:8-30"
+    confidence: high
+    requires: []
+    live: true
+    notes: "spec: R-MOD-2, R-MOD-23."
+    site:
+      settings:
+        default_get: allow
+      rules:
+        - actor: "*"
+          resource: "${P}/*"
+          method: [GET, HEAD, PUT, POST, DELETE, MOVE]
+          action: Allow
+        - actor: "*"
+          resource: "${P}/*/*"
+          method: [GET, HEAD, PUT, POST, DELETE, MOVE]
+          action: Allow
+    steps:
+      - name: "register declarations through the public plane (takes effect for the next request)"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/enums.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div hidden itemscope itemtype="https://schema.host/Enum">
+                <meta itemprop="name" content="https://pagelike.test${P}/Status">
+                <meta itemprop="value" content="active">
+                <meta itemprop="value" content="retired">
+              </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "register declarations through the public plane (takes effect for the next request)"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/schema.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div hidden itemscope itemtype="https://pagelove.org/Schema">
+                <meta itemprop="type" content="https://pagelike.test${P}/Gadget">
+                <div itemprop="property" itemscope itemtype="https://pagelove.org/Property">
+                  <meta itemprop="name" content="status">
+                  <meta itemprop="type" content="https://pagelike.test${P}/Status">
+                  <meta itemprop="cardinality" content="1..1">
+                </div>
+              </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "unlisted value rejected"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/g.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div itemscope itemtype="https://pagelike.test${P}/Gadget">
+                <meta itemprop="status" content="sideways">
+              </div>
+            </body></html>
+        expect:
+          status: 422
+          header_matches:
+            Content-Type: "^text/html"
+          body_contains: ["https://pagelove.org/SchemaViolation", enum]
+  - id: modeling.enums.case-sensitive-and-empty
+    title: "Enum membership is exact: other casing and the empty string are rejected"
+    area: modeling
+    feature: enums
+    evidence: inferred
+    source: "docs reference/modeling-data/Types §Enum types (snapshot 2026-09-28); docs reference/modeling-data/Types §Error cases (snapshot 2026-09-28)"
+    confidence: medium
+    requires: []
+    live: true
+    notes: "spec: R-MOD-22, R-MOD-23."
+    site:
+      settings:
+        default_get: allow
+      rules:
+        - actor: "*"
+          resource: "${P}/*"
+          method: [GET, HEAD, PUT, POST, DELETE, MOVE]
+          action: Allow
+        - actor: "*"
+          resource: "${P}/*/*"
+          method: [GET, HEAD, PUT, POST, DELETE, MOVE]
+          action: Allow
+    steps:
+      - name: "register declarations through the public plane (takes effect for the next request)"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/schema.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div hidden itemscope itemtype="https://schema.host/Enum">
+                <meta itemprop="name" content="https://pagelike.test${P}/Status">
+                <meta itemprop="value" content="active">
+                <meta itemprop="value" content="retired">
+              </div>
+              <div hidden itemscope itemtype="https://pagelove.org/Schema">
+                <meta itemprop="type" content="https://pagelike.test${P}/Gadget">
+                <div itemprop="property" itemscope itemtype="https://pagelove.org/Property">
+                  <meta itemprop="name" content="status">
+                  <meta itemprop="type" content="https://pagelike.test${P}/Status">
+                  <meta itemprop="cardinality" content="0..1">
+                </div>
+              </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "different casing rejected"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/g1.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div itemscope itemtype="https://pagelike.test${P}/Gadget">
+                <meta itemprop="status" content="Active">
+              </div>
+            </body></html>
+        expect:
+          status: 422
+          header_matches:
+            Content-Type: "^text/html"
+          body_contains: ["https://pagelove.org/SchemaViolation", enum]
+      - name: "empty value rejected"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/g2.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div itemscope itemtype="https://pagelike.test${P}/Gadget">
+                <meta itemprop="status" content="">
+              </div>
+            </body></html>
+        expect:
+          status: 422
+          header_matches:
+            Content-Type: "^text/html"
+          body_contains: ["https://pagelove.org/SchemaViolation", enum]
+      - name: "absent optional value accepted"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/g3.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div itemscope itemtype="https://pagelike.test${P}/Gadget"></div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]

@@ -1,0 +1,38 @@
+{
+  "case": "javascript.client.fallback-put-plain-content-type",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (fallback PUT)",
+      "method": "PUT",
+      "path": "/_pl/javascript-client-fallback-put-plain-con-b35816/board.html",
+      "status": 206,
+      "headers": {
+        "content-length": "47",
+        "content-range": "selector #item-1",
+        "content-type": "text/html",
+        "etag": "\"467232d8bada99c6733318cc40d0d94b18827608bac58d9546cbe05f2dcbb49e-467232d8bada99c6733318cc40d0d94b18827608bac58d9546cbe05f2dcbb49e-2\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:42 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003cli id=\"item-1\" contenteditable\u003eone edited\u003c/li\u003e"
+    },
+    {
+      "step": "step 2 (GET the composed page)",
+      "method": "GET",
+      "path": "/_pl/javascript-client-fallback-put-plain-con-b35816/board.html",
+      "status": 206,
+      "headers": {
+        "accept-ranges": "selector, bytes",
+        "content-length": "47",
+        "content-range": "selector #item-1",
+        "content-type": "text/html",
+        "etag": "\"467232d8bada99c6733318cc40d0d94b18827608bac58d9546cbe05f2dcbb49e-467232d8bada99c6733318cc40d0d94b18827608bac58d9546cbe05f2dcbb49e-2\"",
+        "vary": "Host, Range, Accept"
+      },
+      "body": "\u003cli id=\"item-1\" contenteditable\u003eone edited\u003c/li\u003e"
+    }
+  ],
+  "outcome": "pass",
+  "target": "local"
+}

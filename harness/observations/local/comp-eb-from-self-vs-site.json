@@ -1,0 +1,38 @@
+{
+  "case": "comp.eb.from-self-vs-site",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (from self counts this document only)",
+      "method": "GET",
+      "path": "/_pl/comp-eb-from-self-vs-site-44a542/page.html",
+      "status": 206,
+      "headers": {
+        "accept-ranges": "selector, bytes",
+        "content-length": "15",
+        "content-range": "selector #l",
+        "content-type": "text/html",
+        "etag": "\"6d455e8ed736dd3cfad41b66c3f8c034975c146641d2b6c64b68feee7ed01e35-6d455e8ed736dd3cfad41b66c3f8c034975c146641d2b6c64b68feee7ed01e35-1\"",
+        "vary": "Host, Range, Accept"
+      },
+      "body": "\u003cp id=\"l\"\u003e2\u003c/p\u003e"
+    },
+    {
+      "step": "step 2 (without from the whole site is searched)",
+      "method": "GET",
+      "path": "/_pl/comp-eb-from-self-vs-site-44a542/page.html",
+      "status": 206,
+      "headers": {
+        "accept-ranges": "selector, bytes",
+        "content-length": "15",
+        "content-range": "selector #s",
+        "content-type": "text/html",
+        "etag": "\"f8fc911e6daaad279f55f65254f41cb5d069f1fc2e57736b7b5e52fd4f78ee26-f8fc911e6daaad279f55f65254f41cb5d069f1fc2e57736b7b5e52fd4f78ee26-1\"",
+        "vary": "Host, Range, Accept"
+      },
+      "body": "\u003cp id=\"s\"\u003e3\u003c/p\u003e"
+    }
+  ],
+  "outcome": "pass",
+  "target": "local"
+}

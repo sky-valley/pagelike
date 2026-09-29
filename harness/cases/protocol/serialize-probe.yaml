@@ -1,0 +1,1012 @@
+# Probes of PageLove's stored HTML form (LO-9 follow-up). Expectations are statuses
+# only; the bodies are read from the live observations and compared with
+# pagelike's storage serializer. (JSON is valid YAML.)
+{
+ "cases": [
+  {
+   "id": "protocol.serialize.probe-0929.dav-put-forms",
+   "title": "Probe: how PageLove stores irregular HTML uploaded over WebDAV (echo of each PUT)",
+   "area": "protocol",
+   "feature": "HTML storage form",
+   "evidence": "live-observed",
+   "source": "probe 2026-09-29",
+   "confidence": "high",
+   "requires": [
+    "webdav"
+   ],
+   "live": true,
+   "steps": [
+    {
+     "name": "fragment-only",
+     "as": "author",
+     "plane": "dav",
+     "request": {
+      "method": "PUT",
+      "path": "${P}/fragment-only.html",
+      "headers": {
+       "Content-Type": "text/html"
+      },
+      "body": "  \n<p>hi</p>\n"
+     },
+     "expect": {
+      "status": 201
+     }
+    },
+    {
+     "name": "doctype-lower-no-html",
+     "as": "author",
+     "plane": "dav",
+     "request": {
+      "method": "PUT",
+      "path": "${P}/doctype-lower-no-html.html",
+      "headers": {
+       "Content-Type": "text/html"
+      },
+      "body": "<!doctype html><title>t</title><p>a"
+     },
+     "expect": {
+      "status": 201
+     }
+    },
+    {
+     "name": "full-doc-whitespace",
+     "as": "author",
+     "plane": "dav",
+     "request": {
+      "method": "PUT",
+      "path": "${P}/full-doc-whitespace.html",
+      "headers": {
+       "Content-Type": "text/html"
+      },
+      "body": "<!DOCTYPE html>\n<html lang=en>\n<head>\n<meta charset=utf-8>\n</head>\n<body>\n<p>x</p>\n</body>\n</html>\n"
+     },
+     "expect": {
+      "status": 201
+     }
+    },
+    {
+     "name": "explicit-empty-head",
+     "as": "author",
+     "plane": "dav",
+     "request": {
+      "method": "PUT",
+      "path": "${P}/explicit-empty-head.html",
+      "headers": {
+       "Content-Type": "text/html"
+      },
+      "body": "<html><head></head><body><p>x</p></body></html>"
+     },
+     "expect": {
+      "status": 201
+     }
+    },
+    {
+     "name": "attributes",
+     "as": "author",
+     "plane": "dav",
+     "request": {
+      "method": "PUT",
+      "path": "${P}/attributes.html",
+      "headers": {
+       "Content-Type": "text/html"
+      },
+      "body": "<div><input disabled><input disabled=\"\"><input value=\"a&quot;b\" title='<&>' data-q=\"it's\"><span class=c id=d CLASS=e DATA-X=1 onClick=\"f()\">s</span><a href=\"?a=1&b=2\">l</a></div>"
+     },
+     "expect": {
+      "status": 201
+     }
+    },
+    {
+     "name": "text-escaping",
+     "as": "author",
+     "plane": "dav",
+     "request": {
+      "method": "PUT",
+      "path": "${P}/text-escaping.html",
+      "headers": {
+       "Content-Type": "text/html"
+      },
+      "body": "<p>a &amp; b &lt; c > d&nbsp;e \" ' &copy; é</p><p>{% if a > b and c < d %}x{% endif %}</p>"
+     },
+     "expect": {
+      "status": 201
+     }
+    },
+    {
+     "name": "tables",
+     "as": "author",
+     "plane": "dav",
+     "request": {
+      "method": "PUT",
+      "path": "${P}/tables.html",
+      "headers": {
+       "Content-Type": "text/html"
+      },
+      "body": "<table><tr><td>x</td></tr></table><table>{% for r in rows %}<tr><td>{{r}}</td></tr>{% endfor %}</table>"
+     },
+     "expect": {
+      "status": 201
+     }
+    },
+    {
+     "name": "leading-newlines",
+     "as": "author",
+     "plane": "dav",
+     "request": {
+      "method": "PUT",
+      "path": "${P}/leading-newlines.html",
+      "headers": {
+       "Content-Type": "text/html"
+      },
+      "body": "<pre>\n\nx</pre><textarea>\nq</textarea><listing>\nl</listing>"
+     },
+     "expect": {
+      "status": 201
+     }
+    },
+    {
+     "name": "void-and-foreign",
+     "as": "author",
+     "plane": "dav",
+     "request": {
+      "method": "PUT",
+      "path": "${P}/void-and-foreign.html",
+      "headers": {
+       "Content-Type": "text/html"
+      },
+      "body": "<br/><img src=a /><hr></hr><svg viewbox=\"0 0 1 1\"><circle r=\"1\"/><foreignObject><p>f</p></foreignObject></svg><math><mi>x</mi></math>"
+     },
+     "expect": {
+      "status": 201
+     }
+    },
+    {
+     "name": "raw-text",
+     "as": "author",
+     "plane": "dav",
+     "request": {
+      "method": "PUT",
+      "path": "${P}/raw-text.html",
+      "headers": {
+       "Content-Type": "text/html"
+      },
+      "body": "<script>if (a<b && c>d) { x = \"</p>\" }</script><style>a>b{c:d}</style><template><p>t</template><noscript><p>n</p></noscript><!--c--><?pi x?>"
+     },
+     "expect": {
+      "status": 201
+     }
+    },
+    {
+     "name": "pagelove-attributes",
+     "as": "author",
+     "plane": "dav",
+     "request": {
+      "method": "PUT",
+      "path": "${P}/pagelove-attributes.html",
+      "headers": {
+       "Content-Type": "text/html"
+      },
+      "body": "<!DOCTYPE html>\n<html xmlns:p=\"https://pagelove.org/1.0\" xmlns:r=\"https://pagelove.org/Binding/CSS\"><body><ul r:items=\"[itemtype='https://ex/T']\" p:template=\"text/liquid\">{% for i in items %}<li>{{ i.n }}</li>{% endfor %}</ul><div itemscope itemtype=\"https://ex/T\"><span itemprop=n>v</span><meta itemprop=m content=1></div></body></html>"
+     },
+     "expect": {
+      "status": 201
+     }
+    },
+    {
+     "name": "after-body-content",
+     "as": "author",
+     "plane": "dav",
+     "request": {
+      "method": "PUT",
+      "path": "${P}/after-body-content.html",
+      "headers": {
+       "Content-Type": "text/html"
+      },
+      "body": "<html><body><p>a</p></body></html>\n<!-- tail -->\n"
+     },
+     "expect": {
+      "status": 201
+     }
+    }
+   ]
+  },
+  {
+   "id": "protocol.serialize.probe-0929.public-writes",
+   "title": "Probe: how PageLove stores irregular HTML written on the public plane",
+   "area": "protocol",
+   "feature": "HTML storage form",
+   "evidence": "live-observed",
+   "source": "probe 2026-09-29",
+   "confidence": "high",
+   "requires": [
+    "webdav"
+   ],
+   "live": true,
+   "site": {
+    "files": [
+     {
+      "path": "${P}/list.html",
+      "body": "<!DOCTYPE html>\n<html><body>\n  <ul id=\"l\">\n    <li>one</li>\n  </ul>\n  <p id=\"q\">q</p>\n</body></html>\n"
+     }
+    ],
+    "rules": [
+     {
+      "actor": "*",
+      "resource": "${P}/*",
+      "method": [
+       "GET",
+       "PUT",
+       "POST",
+       "DELETE"
+      ],
+      "action": "Allow"
+     }
+    ]
+   },
+   "steps": [
+    {
+     "name": "read seeded",
+     "as": "anonymous",
+     "request": {
+      "method": "GET",
+      "path": "${P}/list.html"
+     },
+     "expect": {
+      "status": 200
+     }
+    },
+    {
+     "name": "post irregular fragment",
+     "as": "anonymous",
+     "request": {
+      "method": "POST",
+      "path": "${P}/list.html",
+      "headers": {
+       "Range": "selector=#l",
+       "Content-Type": "text/html"
+      },
+      "body": "<LI Class=a data-x='1'>two<input disabled>"
+     },
+     "expect": {
+      "status": 206
+     }
+    },
+    {
+     "name": "read after post",
+     "as": "anonymous",
+     "request": {
+      "method": "GET",
+      "path": "${P}/list.html"
+     },
+     "expect": {
+      "status": 200
+     }
+    },
+    {
+     "name": "delete one item",
+     "as": "anonymous",
+     "request": {
+      "method": "DELETE",
+      "path": "${P}/list.html",
+      "headers": {
+       "Range": "selector=#l > li:first-child"
+      }
+     },
+     "expect": {
+      "status": 204
+     }
+    },
+    {
+     "name": "read after delete",
+     "as": "anonymous",
+     "request": {
+      "method": "GET",
+      "path": "${P}/list.html"
+     },
+     "expect": {
+      "status": 200
+     }
+    },
+    {
+     "name": "whole-document public put",
+     "as": "anonymous",
+     "request": {
+      "method": "PUT",
+      "path": "${P}/whole.html",
+      "headers": {
+       "Content-Type": "text/html"
+      },
+      "body": "<HTML><Body class=x ><h1   id='a'>Hi</h1><p>{{ 1 | plus: 1 }}<input disabled=''></Body></HTML>"
+     },
+     "expect": {
+      "status": [
+       200,
+       201,
+       204
+      ]
+     }
+    },
+    {
+     "name": "read whole",
+     "as": "anonymous",
+     "request": {
+      "method": "GET",
+      "path": "${P}/whole.html"
+     },
+     "expect": {
+      "status": 200
+     }
+    }
+   ]
+  },
+  {
+   "id": "protocol.serialize.probe-0929.dom-shape",
+   "title": "Probe: PageLove's DOM for markup HTML5 tree construction would restructure (implied elements, tbody, p/div, li)",
+   "area": "protocol",
+   "feature": "HTML storage form",
+   "evidence": "live-observed",
+   "source": "probe 2026-09-29",
+   "confidence": "high",
+   "requires": [
+    "webdav"
+   ],
+   "live": true,
+   "site": {
+    "rules": [
+     {
+      "actor": "*",
+      "resource": "${P}/*",
+      "method": [
+       "GET"
+      ],
+      "action": "Allow"
+     }
+    ]
+   },
+   "steps": [
+    {
+     "name": "put frag",
+     "as": "author",
+     "plane": "dav",
+     "request": {
+      "method": "PUT",
+      "path": "${P}/frag.html",
+      "headers": {
+       "Content-Type": "text/html"
+      },
+      "body": "  \n<p>hi</p>\n"
+     },
+     "expect": {
+      "status": 201
+     }
+    },
+    {
+     "name": "select body on frag",
+     "as": "anonymous",
+     "request": {
+      "method": "GET",
+      "path": "${P}/frag.html",
+      "headers": {
+       "Range": "selector=body"
+      }
+     },
+     "expect": {
+      "status": [
+       206,
+       404,
+       416,
+       422
+      ]
+     }
+    },
+    {
+     "name": "select html on frag",
+     "as": "anonymous",
+     "request": {
+      "method": "GET",
+      "path": "${P}/frag.html",
+      "headers": {
+       "Range": "selector=html"
+      }
+     },
+     "expect": {
+      "status": [
+       206,
+       404,
+       416,
+       422
+      ]
+     }
+    },
+    {
+     "name": "select head on frag",
+     "as": "anonymous",
+     "request": {
+      "method": "GET",
+      "path": "${P}/frag.html",
+      "headers": {
+       "Range": "selector=head"
+      }
+     },
+     "expect": {
+      "status": [
+       206,
+       404,
+       416,
+       422
+      ]
+     }
+    },
+    {
+     "name": "select :root on frag",
+     "as": "anonymous",
+     "request": {
+      "method": "GET",
+      "path": "${P}/frag.html",
+      "headers": {
+       "Range": "selector=:root"
+      }
+     },
+     "expect": {
+      "status": [
+       206,
+       404,
+       416,
+       422
+      ]
+     }
+    },
+    {
+     "name": "select body > p on frag",
+     "as": "anonymous",
+     "request": {
+      "method": "GET",
+      "path": "${P}/frag.html",
+      "headers": {
+       "Range": "selector=body > p"
+      }
+     },
+     "expect": {
+      "status": [
+       206,
+       404,
+       416,
+       422
+      ]
+     }
+    },
+    {
+     "name": "put tbl",
+     "as": "author",
+     "plane": "dav",
+     "request": {
+      "method": "PUT",
+      "path": "${P}/tbl.html",
+      "headers": {
+       "Content-Type": "text/html"
+      },
+      "body": "<table><tr><td>x</td></tr></table>"
+     },
+     "expect": {
+      "status": 201
+     }
+    },
+    {
+     "name": "select table > tr on tbl",
+     "as": "anonymous",
+     "request": {
+      "method": "GET",
+      "path": "${P}/tbl.html",
+      "headers": {
+       "Range": "selector=table > tr"
+      }
+     },
+     "expect": {
+      "status": [
+       206,
+       404,
+       416,
+       422
+      ]
+     }
+    },
+    {
+     "name": "select table > tbody on tbl",
+     "as": "anonymous",
+     "request": {
+      "method": "GET",
+      "path": "${P}/tbl.html",
+      "headers": {
+       "Range": "selector=table > tbody"
+      }
+     },
+     "expect": {
+      "status": [
+       206,
+       404,
+       416,
+       422
+      ]
+     }
+    },
+    {
+     "name": "select tbody > tr on tbl",
+     "as": "anonymous",
+     "request": {
+      "method": "GET",
+      "path": "${P}/tbl.html",
+      "headers": {
+       "Range": "selector=tbody > tr"
+      }
+     },
+     "expect": {
+      "status": [
+       206,
+       404,
+       416,
+       422
+      ]
+     }
+    },
+    {
+     "name": "put pdiv",
+     "as": "author",
+     "plane": "dav",
+     "request": {
+      "method": "PUT",
+      "path": "${P}/pdiv.html",
+      "headers": {
+       "Content-Type": "text/html"
+      },
+      "body": "<p>a<div>b</div>"
+     },
+     "expect": {
+      "status": 201
+     }
+    },
+    {
+     "name": "select p > div on pdiv",
+     "as": "anonymous",
+     "request": {
+      "method": "GET",
+      "path": "${P}/pdiv.html",
+      "headers": {
+       "Range": "selector=p > div"
+      }
+     },
+     "expect": {
+      "status": [
+       206,
+       404,
+       416,
+       422
+      ]
+     }
+    },
+    {
+     "name": "put lis",
+     "as": "author",
+     "plane": "dav",
+     "request": {
+      "method": "PUT",
+      "path": "${P}/lis.html",
+      "headers": {
+       "Content-Type": "text/html"
+      },
+      "body": "<ul><li>a<li>b</ul>"
+     },
+     "expect": {
+      "status": 201
+     }
+    },
+    {
+     "name": "select li > li on lis",
+     "as": "anonymous",
+     "request": {
+      "method": "GET",
+      "path": "${P}/lis.html",
+      "headers": {
+       "Range": "selector=li > li"
+      }
+     },
+     "expect": {
+      "status": [
+       206,
+       404,
+       416,
+       422
+      ]
+     }
+    },
+    {
+     "name": "select ul > li:nth-child(2) on lis",
+     "as": "anonymous",
+     "request": {
+      "method": "GET",
+      "path": "${P}/lis.html",
+      "headers": {
+       "Range": "selector=ul > li:nth-child(2)"
+      }
+     },
+     "expect": {
+      "status": [
+       206,
+       404,
+       416,
+       422
+      ]
+     }
+    },
+    {
+     "name": "put misnest",
+     "as": "author",
+     "plane": "dav",
+     "request": {
+      "method": "PUT",
+      "path": "${P}/misnest.html",
+      "headers": {
+       "Content-Type": "text/html"
+      },
+      "body": "<b><i>x</b>y</i><p>z</p></div><select><option>a<option>b</select>"
+     },
+     "expect": {
+      "status": 201
+     }
+    }
+   ]
+  },
+  {
+   "id": "protocol.serialize.probe-0929.edge-rules",
+   "title": "Probe: PageLove tree-building edge rules (self-closing, stray end tags, raw text, escapes, doctype ids)",
+   "area": "protocol",
+   "feature": "HTML storage form",
+   "evidence": "live-observed",
+   "source": "probe 2026-09-29",
+   "confidence": "high",
+   "requires": [
+    "webdav"
+   ],
+   "live": true,
+   "site": {
+    "rules": [
+     {
+      "actor": "*",
+      "resource": "${P}/*",
+      "method": [
+       "GET"
+      ],
+      "action": "Allow"
+     }
+    ]
+   },
+   "steps": [
+    {
+     "name": "put selfclose",
+     "as": "author",
+     "plane": "dav",
+     "request": {
+      "method": "PUT",
+      "path": "${P}/selfclose.html",
+      "headers": {
+       "Content-Type": "text/html"
+      },
+      "body": "<div/>x<p:include src=\"a.html\"/>y<span/>z"
+     },
+     "expect": {
+      "status": 201
+     }
+    },
+    {
+     "name": "select div on selfclose",
+     "as": "anonymous",
+     "request": {
+      "method": "GET",
+      "path": "${P}/selfclose.html",
+      "headers": {
+       "Range": "selector=div"
+      }
+     },
+     "expect": {
+      "status": [
+       206,
+       404,
+       416,
+       422
+      ]
+     }
+    },
+    {
+     "name": "select span on selfclose",
+     "as": "anonymous",
+     "request": {
+      "method": "GET",
+      "path": "${P}/selfclose.html",
+      "headers": {
+       "Range": "selector=span"
+      }
+     },
+     "expect": {
+      "status": [
+       206,
+       404,
+       416,
+       422
+      ]
+     }
+    },
+    {
+     "name": "put stray-end",
+     "as": "author",
+     "plane": "dav",
+     "request": {
+      "method": "PUT",
+      "path": "${P}/stray-end.html",
+      "headers": {
+       "Content-Type": "text/html"
+      },
+      "body": "<p>a</p></p></br><div>b</DIV>"
+     },
+     "expect": {
+      "status": 201
+     }
+    },
+    {
+     "name": "put attr-escapes",
+     "as": "author",
+     "plane": "dav",
+     "request": {
+      "method": "PUT",
+      "path": "${P}/attr-escapes.html",
+      "headers": {
+       "Content-Type": "text/html"
+      },
+      "body": "<p title=\"a&nbsp;b<c>d&amp;e\" data-u=&amp;x data-c='&copy'>t &copy &notit; a < b</p>"
+     },
+     "expect": {
+      "status": 201
+     }
+    },
+    {
+     "name": "put noscript",
+     "as": "author",
+     "plane": "dav",
+     "request": {
+      "method": "PUT",
+      "path": "${P}/noscript.html",
+      "headers": {
+       "Content-Type": "text/html"
+      },
+      "body": "<noscript><p>n</p></noscript><textarea><b>x</b> &amp;</textarea><title>a &amp; <b></title><xmp><i>r</i></xmp>"
+     },
+     "expect": {
+      "status": 201
+     }
+    },
+    {
+     "name": "select noscript > p on noscript",
+     "as": "anonymous",
+     "request": {
+      "method": "GET",
+      "path": "${P}/noscript.html",
+      "headers": {
+       "Range": "selector=noscript > p"
+      }
+     },
+     "expect": {
+      "status": [
+       206,
+       404,
+       416,
+       422
+      ]
+     }
+    },
+    {
+     "name": "put doctype-ids",
+     "as": "author",
+     "plane": "dav",
+     "request": {
+      "method": "PUT",
+      "path": "${P}/doctype-ids.html",
+      "headers": {
+       "Content-Type": "text/html"
+      },
+      "body": "<!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML 1.0 Strict//EN\" \"http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd\"><p>x</p>"
+     },
+     "expect": {
+      "status": 201
+     }
+    },
+    {
+     "name": "put cdata-bogus",
+     "as": "author",
+     "plane": "dav",
+     "request": {
+      "method": "PUT",
+      "path": "${P}/cdata-bogus.html",
+      "headers": {
+       "Content-Type": "text/html"
+      },
+      "body": "<svg><![CDATA[a<b]]></svg><!foo><! -- x --></ x>"
+     },
+     "expect": {
+      "status": 201
+     }
+    },
+    {
+     "name": "put two-roots",
+     "as": "author",
+     "plane": "dav",
+     "request": {
+      "method": "PUT",
+      "path": "${P}/two-roots.html",
+      "headers": {
+       "Content-Type": "text/html"
+      },
+      "body": "<p>a</p><p>b</p>"
+     },
+     "expect": {
+      "status": 201
+     }
+    },
+    {
+     "name": "select :root on two-roots",
+     "as": "anonymous",
+     "request": {
+      "method": "GET",
+      "path": "${P}/two-roots.html",
+      "headers": {
+       "Range": "selector=:root"
+      }
+     },
+     "expect": {
+      "status": [
+       206,
+       404,
+       416,
+       422
+      ]
+     }
+    }
+   ]
+  },
+  {
+   "id": "protocol.serialize.probe-0929.liqsrc-in-tags",
+   "title": "Probe: Liquid tags containing < > & after PageLove stores the template",
+   "area": "protocol",
+   "feature": "HTML storage form",
+   "evidence": "live-observed",
+   "source": "probe 2026-09-29",
+   "confidence": "high",
+   "requires": [
+    "webdav"
+   ],
+   "live": true,
+   "site": {
+    "rules": [
+     {
+      "actor": "*",
+      "resource": "${P}/*",
+      "method": [
+       "GET"
+      ],
+      "action": "Allow"
+     }
+    ]
+   },
+   "steps": [
+    {
+     "name": "put template",
+     "as": "author",
+     "plane": "dav",
+     "request": {
+      "method": "PUT",
+      "path": "${P}/tpl.html",
+      "headers": {
+       "Content-Type": "text/html"
+      },
+      "body": "<!DOCTYPE html>\n<html xmlns:p=\"https://pagelove.org/1.0\"><body><div id=\"t\" p:template=\"text/liquid\">{% if 2 > 1 %}gt-ok{% endif %}|{{ \"x\" | append: \"&amp;\" }}|{% if 1 < 2 %}lt-ok{% endif %}|{{ \"a&b\" | size }}|{{ \"q&nbsp;r\" | size }}</div></body></html>"
+     },
+     "expect": {
+      "status": 201
+     }
+    },
+    {
+     "name": "dav read",
+     "as": "author",
+     "plane": "dav",
+     "request": {
+      "method": "GET",
+      "path": "${P}/tpl.html"
+     },
+     "expect": {
+      "status": 200
+     }
+    },
+    {
+     "name": "render",
+     "as": "anonymous",
+     "request": {
+      "method": "GET",
+      "path": "${P}/tpl.html"
+     },
+     "expect": {
+      "status": [
+       200,
+       500
+      ]
+     }
+    }
+   ]
+  },
+  {
+   "id": "protocol.serialize.probe-0929.liqsrc-outside-tags",
+   "title": "Probe: escaped markup in Liquid template text outside delimiters",
+   "area": "protocol",
+   "feature": "HTML storage form",
+   "evidence": "live-observed",
+   "source": "probe 2026-09-29",
+   "confidence": "high",
+   "requires": [
+    "webdav"
+   ],
+   "live": true,
+   "site": {
+    "rules": [
+     {
+      "actor": "*",
+      "resource": "${P}/*",
+      "method": [
+       "GET"
+      ],
+      "action": "Allow"
+     }
+    ]
+   },
+   "steps": [
+    {
+     "name": "put template",
+     "as": "author",
+     "plane": "dav",
+     "request": {
+      "method": "PUT",
+      "path": "${P}/tpl2.html",
+      "headers": {
+       "Content-Type": "text/html"
+      },
+      "body": "<!DOCTYPE html>\n<html xmlns:p=\"https://pagelove.org/1.0\"><body><div id=\"t\" p:template=\"text/liquid\">x &lt;i&gt;y&lt;/i&gt; a &amp;amp; b {{ 1 }}<a href=\"?a=1&amp;b={{ 2 }}\" title=\"&quot;q&quot;\">l</a></div></body></html>"
+     },
+     "expect": {
+      "status": 201
+     }
+    },
+    {
+     "name": "dav read",
+     "as": "author",
+     "plane": "dav",
+     "request": {
+      "method": "GET",
+      "path": "${P}/tpl2.html"
+     },
+     "expect": {
+      "status": 200
+     }
+    },
+    {
+     "name": "render",
+     "as": "anonymous",
+     "request": {
+      "method": "GET",
+      "path": "${P}/tpl2.html"
+     },
+     "expect": {
+      "status": [
+       200,
+       500
+      ]
+     }
+    }
+   ]
+  }
+ ]
+}

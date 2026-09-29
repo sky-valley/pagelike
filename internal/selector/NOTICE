@@ -1,0 +1,21 @@
+This package is a modified copy of github.com/andybalholm/cascadia v1.3.5
+(BSD-2-Clause-style licence reproduced in LICENSE.cascadia). Every file
+derived from cascadia (parser.go, selector.go, pseudo_classes.go,
+serialize.go, specificity.go) keeps the original copyright notice.
+
+pagelike's modifications (decision docs/decisions/0003-html-and-selectors.md):
+
+  - pluggable pseudo-classes (Options.Pseudo) that take precedence over
+    built-ins, used for the PageLove selector extensions (ext.go), and
+    selector functions expanded before parsing (functions.go);
+  - :is(), :where(), :scope, relative selectors in :has() (leading > + ~),
+    anchored :has() matching, :nth-child(An+B of S) (pagelike.go);
+  - HTML-vs-foreign case sensitivity for type and attribute selectors;
+  - browser semantics for :empty;
+  - Strict mode that rejects cascadia-only syntax (:matches, :containsOwn,
+    :haschild, :input, [a!=b], [a#=re]);
+  - Select/SelectFirst that, like browsers, do not match inside <template>
+    contents;
+  - cascadia's legacy `Selector` function type and its Compile/MustCompile
+    were removed (pagelike's Compile returns a *Selector; compile.go);
+  - canonical document-rooted selectors (path.go).

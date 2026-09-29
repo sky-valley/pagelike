@@ -1,0 +1,341 @@
+# Reacting: discovery of reaction items (spec docs/spec/reacting.md R-REACT-2, 4, 5).
+# Conventions for every file in this directory:
+# - Reaction documents live under ${P}/r/ and are installed with a public-plane
+#   PUT step (never site.files), because WebDAV-written rules can take up to
+#   60 s to bind on PageLove (R-REACT-5). Targets live under ${P}/d/ etc.
+# - Every trigger/processor `resource` and every constrained itemtype is scoped
+#   to ${P}, so reactions never affect other cases on a shared live host.
+# - Only ${P}, ${HOST}, ${ORIGIN}, ${SINK} and captured names are substituted.
+#   Sessel `${...}` selectors inside <script> blocks must be left untouched.
+anchors:
+  open_rules: &open_rules
+    - {actor: "*", resource: "${P}/*", method: [GET, HEAD, PUT, POST, DELETE], action: Allow}
+defaults:
+  area: reacting
+  site:
+    settings: {default_get: allow}
+    rules: *open_rules
+cases:
+  - id: reacting.discovery.trigger-in-separate-document
+    title: A trigger stored in one document governs requests to another document
+    feature: discovery (host-wide)
+    evidence: documented
+    source: "docs reference/reacting-to-changes/Trigger intro ('Any document on the host can contain trigger definitions') (snapshot 2026-09-28)"
+    confidence: high
+    requires: [sessel]
+    live: true
+    notes: "spec: R-REACT-2."
+    steps:
+      - name: seed the target document
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/d/doc.html"
+          headers: {Content-Type: text/html}
+          body: |
+            <!DOCTYPE html>
+            <html><body><h1 id="h">Original</h1></body></html>
+        expect: {status: [200, 201, 204]}
+      - name: install a trigger that refuses PUT under ${P}/d/
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/r/triggers.html"
+          headers: {Content-Type: text/html}
+          body: |
+            <!DOCTYPE html>
+            <html><head><title>triggers</title></head><body>
+            <div hidden itemscope itemtype="https://pagelove.org/Trigger">
+              <meta itemprop="resource" content="${P}/d/*">
+              <meta itemprop="method" content="PUT">
+              <div itemprop="action" itemscope itemtype="https://pagelove.org/Sessel">
+                <script itemprop="source" type="text/sessel">
+                  @schema HTTPResponse url("https://pagelove.org/HTTPResponse");
+                  throw new HTTPResponse { status: 409, message: "refused-by-trigger" }
+                </script>
+              </div>
+            </div>
+            </body></html>
+        expect: {status: [200, 201, 204]}
+      - name: a PUT to the governed document is refused by the trigger
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/d/doc.html"
+          headers: {Content-Type: text/html}
+          body: '<!DOCTYPE html><html><body><h1 id="h">Changed</h1></body></html>'
+        expect:
+          status: 409
+          body_contains: ["refused-by-trigger"]
+      - name: the document is unchanged and GET is not affected (method filter)
+        as: anonymous
+        request: {method: GET, path: "${P}/d/doc.html"}
+        expect:
+          status: 200
+          body_contains: ["Original"]
+          body_not_contains: ["Changed"]
+
+  - id: reacting.discovery.trigger-in-governed-document
+    title: A hidden trigger inside the document it governs guards that document
+    feature: discovery (same document)
+    evidence: documented
+    source: "docs reference/reacting-to-changes/Trigger intro; recipes/declaring-a-state-machine ('Store them in any document on the host') (snapshot 2026-09-28)"
+    confidence: high
+    requires: [sessel]
+    live: true
+    notes: "spec: R-REACT-2. The trigger does not exist yet when the document is created, so creation succeeds."
+    steps:
+      - name: create a document that carries its own DELETE guard
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/d/guarded.html"
+          headers: {Content-Type: text/html}
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+            <p id="content">keep me</p>
+            <div hidden itemscope itemtype="https://pagelove.org/Trigger">
+              <meta itemprop="resource" content="${P}/d/guarded.html">
+              <meta itemprop="method" content="DELETE">
+              <div itemprop="action" itemscope itemtype="https://pagelove.org/Sessel">
+                <script itemprop="source" type="text/sessel">
+                  @schema HTTPResponse url("https://pagelove.org/HTTPResponse");
+                  throw new HTTPResponse { status: 423, message: "locked" }
+                </script>
+              </div>
+            </div>
+            </body></html>
+        expect: {status: [200, 201, 204]}
+      - name: deleting the document is refused
+        as: anonymous
+        request: {method: DELETE, path: "${P}/d/guarded.html"}
+        expect:
+          status: 423
+          body_contains: ["locked"]
+      - name: the document still exists
+        as: anonymous
+        request: {method: GET, path: "${P}/d/guarded.html"}
+        expect:
+          status: 200
+          body_contains: ["keep me"]
+
+  - id: reacting.discovery.subtype-via-schema-parent
+    title: Items of a schema-declared subtype of Trigger run exactly like triggers
+    feature: discovery (inheritance)
+    evidence: documented
+    source: "docs reference/reacting-to-changes/Trigger intro ('Discovery is inheritance-aware'); reference/modeling-data/Schema §Shape (parent) (snapshot 2026-09-28)"
+    confidence: medium
+    requires: [sessel]
+    live: true
+    notes: "spec: R-REACT-2; cross-area modeling R-MOD-10 (parent chain)."
+    steps:
+      - name: register a Guard type whose parent is Trigger
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/r/schema.html"
+          headers: {Content-Type: text/html}
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+            <div hidden itemscope itemtype="https://pagelove.org/Schema">
+              <meta itemprop="type" content="https://pagelike.test${P}/Guard">
+              <meta itemprop="parent" content="https://pagelove.org/Trigger">
+            </div>
+            </body></html>
+        expect: {status: [200, 201, 204]}
+      - name: install a Guard item
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/r/guards.html"
+          headers: {Content-Type: text/html}
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+            <div hidden itemscope itemtype="https://pagelike.test${P}/Guard">
+              <meta itemprop="resource" content="${P}/d/*">
+              <meta itemprop="method" content="PUT">
+              <div itemprop="action" itemscope itemtype="https://pagelove.org/Sessel">
+                <script itemprop="source" type="text/sessel">
+                  @schema HTTPResponse url("https://pagelove.org/HTTPResponse");
+                  throw new HTTPResponse { status: 409, message: "subtype-guard" }
+                </script>
+              </div>
+            </div>
+            </body></html>
+        expect: {status: [200, 201, 204]}
+      - name: the subtype item fires
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/d/x.html"
+          headers: {Content-Type: text/html}
+          body: '<!DOCTYPE html><html><body><p>x</p></body></html>'
+        expect:
+          status: 409
+          body_contains: ["subtype-guard"]
+
+  - id: reacting.discovery.no-action-skipped
+    title: A serving-path write storing a trigger without an action is refused (422, platform schema Handler.action 1..1); nothing is installed
+    feature: malformed items
+    evidence: live-observed
+    source: "harness/observations/live-2026-09-29/reacting-discovery-no-action-skipped.json (2026-09-29); docs reference/reacting-to-changes/Trigger §action ('a trigger with neither is skipped') describes stored items"
+    confidence: high
+    requires: []
+    live: true
+    notes: "spec: R-REACT-4, R-REACT-4a (live 2026-09-29). The id keeps its old name. A stored action-less trigger (WebDAV) is still skipped: reacting.discovery.no-action-skipped-stored (local only)."
+    steps:
+      - name: install an action-less trigger
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/r/triggers.html"
+          headers: {Content-Type: text/html}
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+            <div hidden itemscope itemtype="https://pagelove.org/Trigger">
+              <meta itemprop="resource" content="${P}/d/*">
+              <meta itemprop="method" content="PUT">
+            </div>
+            </body></html>
+        expect:
+          status: 422
+          body_contains: ["https://pagelove.org/SchemaViolation", "[https://pagelove.org/Handler].action: cardinality 1..1 violated: expected exactly 1 value, found 0"]
+      - name: the trigger document was not stored
+        as: anonymous
+        request: {method: GET, path: "${P}/r/triggers.html"}
+        expect: {status: 404}
+      - name: the write proceeds normally
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/d/x.html"
+          headers: {Content-Type: text/html}
+          body: '<!DOCTYPE html><html><body><p id="v">written</p></body></html>'
+        expect: {status: [200, 201, 204]}
+      - name: read back
+        as: anonymous
+        request: {method: GET, path: "${P}/d/x.html"}
+        expect: {status: 200, body_contains: ["written"]}
+
+  - id: reacting.discovery.no-action-skipped-stored
+    title: A stored trigger with neither action nor otherwise (written over WebDAV) is skipped and does not break the request
+    feature: malformed items
+    evidence: documented
+    source: "docs reference/reacting-to-changes/Trigger §action ('a trigger with neither is skipped'), §Error handling (snapshot 2026-09-28)"
+    confidence: medium
+    requires: []
+    live: false
+    notes: "spec: R-REACT-4. Local only: the serving path refuses such a trigger (reacting.discovery.no-action-skipped), and a WebDAV-written trigger takes up to 60 s to bind on PageLove (R-REACT-5)."
+    site:
+      settings: {default_get: allow}
+      rules: *open_rules
+      files:
+        - path: "${P}/r/triggers.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+            <div hidden itemscope itemtype="https://pagelove.org/Trigger">
+              <meta itemprop="resource" content="${P}/d/*">
+              <meta itemprop="method" content="PUT">
+            </div>
+            </body></html>
+    steps:
+      - name: the write proceeds normally
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/d/x.html"
+          headers: {Content-Type: text/html}
+          body: '<!DOCTYPE html><html><body><p id="v">written</p></body></html>'
+        expect: {status: [200, 201, 204]}
+      - name: read back
+        as: anonymous
+        request: {method: GET, path: "${P}/d/x.html"}
+        expect: {status: 200, body_contains: ["written"]}
+
+  - id: reacting.discovery.template-content-not-discovered
+    title: A trigger inside <template> content is not part of the document tree and never runs
+    feature: discovery (stored tree only)
+    evidence: inferred
+    source: "inferred from HTML parsing (template contents are a separate fragment); spec R-REACT-2"
+    confidence: low
+    requires: [sessel]
+    live: true
+    steps:
+      - name: install a trigger wrapped in <template>
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/r/triggers.html"
+          headers: {Content-Type: text/html}
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+            <template>
+              <div itemscope itemtype="https://pagelove.org/Trigger">
+                <meta itemprop="resource" content="${P}/d/*">
+                <meta itemprop="method" content="PUT">
+                <div itemprop="action" itemscope itemtype="https://pagelove.org/Sessel">
+                  <script itemprop="source" type="text/sessel">
+                    @schema HTTPResponse url("https://pagelove.org/HTTPResponse");
+                    throw new HTTPResponse { status: 409, message: "from-template" }
+                  </script>
+                </div>
+              </div>
+            </template>
+            </body></html>
+        expect: {status: [200, 201, 204]}
+      - name: the write proceeds
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/d/x.html"
+          headers: {Content-Type: text/html}
+          body: '<!DOCTYPE html><html><body><p>x</p></body></html>'
+        expect: {status: [200, 201, 204]}
+
+  - id: reacting.discovery.same-request-snapshot
+    title: A request that stores a trigger is not itself subject to that trigger; the next request is
+    feature: binding time
+    evidence: inferred
+    source: "spec R-REACT-5 (per-request snapshot, pagelike decision); docs TransitionConstraint §Taking effect ('the very next write')"
+    confidence: low
+    requires: [sessel]
+    live: true
+    steps:
+      - name: create a document that contains a PUT guard for itself
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/d/self.html"
+          headers: {Content-Type: text/html}
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+            <p>v1</p>
+            <div hidden itemscope itemtype="https://pagelove.org/Trigger">
+              <meta itemprop="resource" content="${P}/d/self.html">
+              <meta itemprop="method" content="PUT">
+              <div itemprop="action" itemscope itemtype="https://pagelove.org/Sessel">
+                <script itemprop="source" type="text/sessel">
+                  @schema HTTPResponse url("https://pagelove.org/HTTPResponse");
+                  throw new HTTPResponse { status: 409, message: "self-guard" }
+                </script>
+              </div>
+            </div>
+            </body></html>
+        expect: {status: [200, 201, 204]}
+      - name: the next PUT is refused
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/d/self.html"
+          headers: {Content-Type: text/html}
+          body: '<!DOCTYPE html><html><body><p>v2</p></body></html>'
+        expect:
+          status: 409
+          body_contains: ["self-guard"]

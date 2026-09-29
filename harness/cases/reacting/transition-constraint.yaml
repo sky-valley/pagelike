@@ -1,0 +1,901 @@
+# Reacting: TransitionConstraint (spec R-REACT-62..72).
+# See discovery.yaml for directory conventions. Rules are written through the
+# serving path so they bind immediately (R-REACT-5); the constrained type is
+# https://pagelike.test${P}/Order, unique to each run.
+anchors:
+  open_rules: &open_rules
+    - {actor: "*", resource: "${P}/*", method: [GET, HEAD, PUT, POST, DELETE], action: Allow}
+  install_recipe_rules: &install_recipe_rules
+    name: install the recipe's four rules (entry pending, pending->processing, processing->success, exit success)
+    as: anonymous
+    request:
+      method: PUT
+      path: "${P}/transitions/rules.html"
+      headers: {Content-Type: text/html}
+      body: |
+        <!DOCTYPE html>
+        <html><body>
+        <div itemscope itemtype="https://pagelove.org/TransitionConstraint">
+          <meta itemprop="selector" content="[itemtype='https://pagelike.test${P}/Order']">
+          <meta itemprop="property" content="status">
+          <meta itemprop="to" content="pending">
+        </div>
+        <div itemscope itemtype="https://pagelove.org/TransitionConstraint">
+          <meta itemprop="selector" content="[itemtype='https://pagelike.test${P}/Order']">
+          <meta itemprop="property" content="status">
+          <meta itemprop="from" content="pending">
+          <meta itemprop="to" content="processing">
+        </div>
+        <div itemscope itemtype="https://pagelove.org/TransitionConstraint">
+          <meta itemprop="selector" content="[itemtype='https://pagelike.test${P}/Order']">
+          <meta itemprop="property" content="status">
+          <meta itemprop="from" content="processing">
+          <meta itemprop="to" content="success">
+        </div>
+        <div itemscope itemtype="https://pagelove.org/TransitionConstraint">
+          <meta itemprop="selector" content="[itemtype='https://pagelike.test${P}/Order']">
+          <meta itemprop="property" content="status">
+          <meta itemprop="from" content="success">
+        </div>
+        </body></html>
+    expect: {status: [200, 201, 204]}
+  install_middle_rules: &install_middle_rules
+    name: install only the middle of the lifecycle (no exit rule)
+    as: anonymous
+    request:
+      method: PUT
+      path: "${P}/transitions/rules.html"
+      headers: {Content-Type: text/html}
+      body: |
+        <!DOCTYPE html>
+        <html><body>
+        <div itemscope itemtype="https://pagelove.org/TransitionConstraint">
+          <meta itemprop="selector" content="[itemtype='https://pagelike.test${P}/Order']">
+          <meta itemprop="property" content="status">
+          <meta itemprop="to" content="pending">
+        </div>
+        <div itemscope itemtype="https://pagelove.org/TransitionConstraint">
+          <meta itemprop="selector" content="[itemtype='https://pagelike.test${P}/Order']">
+          <meta itemprop="property" content="status">
+          <meta itemprop="from" content="pending">
+          <meta itemprop="to" content="processing">
+        </div>
+        <div itemscope itemtype="https://pagelove.org/TransitionConstraint">
+          <meta itemprop="selector" content="[itemtype='https://pagelike.test${P}/Order']">
+          <meta itemprop="property" content="status">
+          <meta itemprop="from" content="processing">
+          <meta itemprop="to" content="success">
+        </div>
+        </body></html>
+    expect: {status: [200, 201, 204]}
+  seed_order1_pending: &seed_order1_pending
+    name: seed order-1 at pending (entry rule permits it)
+    as: anonymous
+    request:
+      method: PUT
+      path: "${P}/orders/order-1.html"
+      headers: {Content-Type: text/html}
+      body: |
+        <!DOCTYPE html>
+        <html><body>
+        <div id="order1" itemscope itemtype="https://pagelike.test${P}/Order">
+          <meta itemprop="status" content="pending">
+          <span itemprop="total">42.00</span>
+        </div>
+        </body></html>
+    expect: {status: [200, 201, 204]}
+  order1_to_processing: &order1_to_processing
+    name: take the legal step pending -> processing with a selector PUT
+    as: anonymous
+    request:
+      method: PUT
+      path: "${P}/orders/order-1.html"
+      headers: {Content-Type: text/html, Range: "selector=#order1"}
+      body: |
+        <div id="order1" itemscope itemtype="https://pagelike.test${P}/Order">
+          <meta itemprop="status" content="processing">
+          <span itemprop="total">42.00</span>
+        </div>
+    expect: {status: [200, 204, 206]}
+  order1_to_success: &order1_to_success
+    name: report back processing -> success
+    as: anonymous
+    request:
+      method: PUT
+      path: "${P}/orders/order-1.html"
+      headers: {Content-Type: text/html, Range: "selector=#order1"}
+      body: |
+        <div id="order1" itemscope itemtype="https://pagelike.test${P}/Order">
+          <meta itemprop="status" content="success">
+          <span itemprop="total">42.00</span>
+        </div>
+    expect: {status: [200, 204, 206]}
+defaults:
+  area: reacting
+  site:
+    settings: {default_get: allow}
+    rules: *open_rules
+cases:
+  - id: reacting.tc.recipe-end-to-end
+    title: "State-machine recipe: entry, legal step, rejected skip with a 422 ConstraintViolation, report-back, exit"
+    feature: TransitionConstraint (recipe)
+    evidence: documented
+    source: "docs recipes/declaring-a-state-machine §Declare the rules … §Notify a worker; reference/reacting-to-changes/TransitionConstraint §The 422 body (snapshot 2026-09-28)"
+    confidence: high
+    requires: []
+    live: true
+    notes: "spec: R-REACT-63..65, R-REACT-69, R-REACT-72. Order has no @key, so the violation has no key property (absent, not empty)."
+    steps:
+      - *install_recipe_rules
+      - *seed_order1_pending
+      - *order1_to_processing
+      - name: seed order-2 at pending
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/orders/order-2.html"
+          headers: {Content-Type: text/html}
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+            <div id="order2" itemscope itemtype="https://pagelike.test${P}/Order">
+              <meta itemprop="status" content="pending">
+              <span itemprop="total">10.00</span>
+            </div>
+            </body></html>
+        expect: {status: [200, 201, 204]}
+      - name: the illegal step pending -> success is rejected
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/orders/order-2.html"
+          headers: {Content-Type: text/html, Range: "selector=#order2"}
+          body: |
+            <div id="order2" itemscope itemtype="https://pagelike.test${P}/Order">
+              <meta itemprop="status" content="success">
+              <span itemprop="total">10.00</span>
+            </div>
+        expect:
+          status: 422
+          header_matches: {Content-Type: "^text/html"}
+          body_contains: ["https://pagelike.test${P}/Order", "${P}/transitions/rules.html"]
+          microdata:
+            - type: https://pagelove.org/ConstraintViolation
+              properties: {statusCode: "422", description: "Transition constraints violated", name: "Unprocessable Entity"}
+            - type: https://pagelove.org/Violation
+              properties:
+                constraintSelector: "[itemprop='status']"
+                failedConstraint: "transition(status)"
+                property: status
+                from: pending
+                to: success
+                key: null
+      - name: the document did not change
+        as: anonymous
+        request: {method: GET, path: "${P}/orders/order-2.html"}
+        expect: {status: 200, body_contains: ['content="pending"'], body_not_contains: ['content="success"']}
+      - *order1_to_success
+      - name: success orders may be deleted (exit rule)
+        as: anonymous
+        request: {method: DELETE, path: "${P}/orders/order-1.html"}
+        expect: {status: [200, 204]}
+      - name: gone
+        as: anonymous
+        request: {method: GET, path: "${P}/orders/order-1.html"}
+        expect: {status: 404}
+
+  - id: reacting.tc.entry-without-rule-rejected
+    title: Once a property is watched, creating an item needs an entry rule (422 with empty from)
+    feature: TransitionConstraint (strictness, entry)
+    evidence: documented
+    source: "docs reference/reacting-to-changes/TransitionConstraint §Strictness, §The 422 body ('an entry violation has an empty from'); demo-apps/demo-03-resource-exchange/schema/listing.html@c4dd883:42-45 (verified) (snapshot 2026-09-28)"
+    confidence: high
+    requires: []
+    live: true
+    notes: "spec: R-REACT-64, R-REACT-65, R-REACT-72."
+    steps:
+      - name: install only a step rule
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/transitions/rules.html"
+          headers: {Content-Type: text/html}
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+            <div itemscope itemtype="https://pagelove.org/TransitionConstraint">
+              <meta itemprop="selector" content="[itemtype='https://pagelike.test${P}/Order']">
+              <meta itemprop="property" content="status">
+              <meta itemprop="from" content="pending">
+              <meta itemprop="to" content="processing">
+            </div>
+            </body></html>
+        expect: {status: [200, 201, 204]}
+      - name: creating an order is an undeclared entry
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/orders/order-1.html"
+          headers: {Content-Type: text/html}
+          body: |
+            <!DOCTYPE html>
+            <html><body><div itemscope itemtype="https://pagelike.test${P}/Order"><meta itemprop="status" content="pending"></div></body></html>
+        expect:
+          status: 422
+          microdata:
+            - type: https://pagelove.org/Violation
+              properties: {failedConstraint: "transition(status)", property: status, from: "", to: pending, key: null}
+      - name: nothing was created
+        as: anonymous
+        request: {method: GET, path: "${P}/orders/order-1.html"}
+        expect: {status: 404}
+
+  - id: reacting.tc.delete-surprise-exit-needed
+    title: "The delete surprise: without an exit rule a completed order cannot be deleted; adding one fixes it"
+    feature: TransitionConstraint (exit)
+    evidence: documented
+    source: "docs recipes/declaring-a-state-machine §The delete surprise; reference/reacting-to-changes/TransitionConstraint §Strictness (snapshot 2026-09-28)"
+    confidence: high
+    requires: []
+    live: true
+    notes: "spec: R-REACT-65 (exit), R-REACT-67 (whole-document DELETE), R-REACT-72 (exit violation has an empty to)."
+    steps:
+      - *install_middle_rules
+      - *seed_order1_pending
+      - *order1_to_processing
+      - *order1_to_success
+      - name: deleting the document is an undeclared exit
+        as: anonymous
+        request: {method: DELETE, path: "${P}/orders/order-1.html"}
+        expect:
+          status: 422
+          microdata:
+            - type: https://pagelove.org/Violation
+              properties: {failedConstraint: "transition(status)", property: status, from: success, to: ""}
+      - name: the document still exists
+        as: anonymous
+        request: {method: GET, path: "${P}/orders/order-1.html"}
+        expect: {status: 200}
+      - *install_recipe_rules
+      - name: with the exit rule the same DELETE succeeds
+        as: anonymous
+        request: {method: DELETE, path: "${P}/orders/order-1.html"}
+        expect: {status: [200, 204]}
+
+  - id: reacting.tc.unchanged-value-passes
+    title: A write that leaves the watched value unchanged is not a transition
+    feature: TransitionConstraint (strictness)
+    evidence: documented
+    source: "docs reference/reacting-to-changes/TransitionConstraint §Strictness ('A write that does not change the watched value is not a transition and always passes'); demo-apps/demo-03-resource-exchange/app.js@c4dd883:105-109 (verified) (snapshot 2026-09-28)"
+    confidence: high
+    requires: []
+    live: true
+    notes: "spec: R-REACT-64, R-REACT-65."
+    steps:
+      - *install_recipe_rules
+      - *seed_order1_pending
+      - name: whole-document PUT with the same status and a new total
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/orders/order-1.html"
+          headers: {Content-Type: text/html}
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+            <div id="order1" itemscope itemtype="https://pagelike.test${P}/Order">
+              <meta itemprop="status" content="pending">
+              <span itemprop="total">50.00</span>
+            </div>
+            </body></html>
+        expect: {status: [200, 201, 204]}
+      - name: selector PUT with the same status
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/orders/order-1.html"
+          headers: {Content-Type: text/html, Range: "selector=#order1"}
+          body: |
+            <div id="order1" itemscope itemtype="https://pagelike.test${P}/Order">
+              <meta itemprop="status" content="pending">
+              <span itemprop="total">51.00</span>
+            </div>
+        expect: {status: [200, 204, 206]}
+
+  - id: reacting.tc.unwatched-property-unconstrained
+    title: Other properties of a watched item stay unconstrained
+    feature: TransitionConstraint (scope)
+    evidence: documented
+    source: "docs reference/reacting-to-changes/TransitionConstraint §Strictness ('other properties on orders stay unconstrained too') (snapshot 2026-09-28)"
+    confidence: high
+    requires: []
+    live: true
+    notes: "spec: R-REACT-64."
+    steps:
+      - *install_recipe_rules
+      - *seed_order1_pending
+      - name: change only the total
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/orders/order-1.html"
+          headers: {Content-Type: text/html, Range: "selector=#order1 [itemprop=total]"}
+          body: '<span itemprop="total">99.00</span>'
+        expect: {status: [200, 204, 206]}
+
+  - id: reacting.tc.other-type-unconstrained
+    title: A constraint on Order.status says nothing about status on other types
+    feature: TransitionConstraint (scope)
+    evidence: documented
+    source: "docs reference/reacting-to-changes/TransitionConstraint §Strictness ('a constraint on status for orders says nothing about status on other types') (snapshot 2026-09-28)"
+    confidence: high
+    requires: []
+    live: true
+    notes: "spec: R-REACT-64."
+    steps:
+      - *install_recipe_rules
+      - name: create a Ticket in any state
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/tickets/t1.html"
+          headers: {Content-Type: text/html}
+          body: |
+            <!DOCTYPE html>
+            <html><body><div id="t1" itemscope itemtype="https://pagelike.test${P}/Ticket"><meta itemprop="status" content="open"></div></body></html>
+        expect: {status: [200, 201, 204]}
+      - name: jump it to any other state
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/tickets/t1.html"
+          headers: {Content-Type: text/html, Range: "selector=#t1"}
+          body: '<div id="t1" itemscope itemtype="https://pagelike.test${P}/Ticket"><meta itemprop="status" content="archived"></div>'
+        expect: {status: [200, 204, 206]}
+      - name: delete it without an exit rule
+        as: anonymous
+        request: {method: DELETE, path: "${P}/tickets/t1.html"}
+        expect: {status: [200, 204]}
+
+  - id: reacting.tc.multi-valued-rejected
+    title: A write that gives a constrained item two values for the watched property is rejected
+    feature: TransitionConstraint (single-valued)
+    evidence: documented
+    source: "docs reference/reacting-to-changes/TransitionConstraint §The watched property must be single-valued (snapshot 2026-09-28)"
+    confidence: high
+    requires: []
+    live: true
+    notes: "spec: R-REACT-66. Only status and the property name are asserted; the message wording is pagelike's."
+    steps:
+      - *install_recipe_rules
+      - *seed_order1_pending
+      - name: two status values
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/orders/order-1.html"
+          headers: {Content-Type: text/html}
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+            <div id="order1" itemscope itemtype="https://pagelike.test${P}/Order">
+              <meta itemprop="status" content="pending">
+              <meta itemprop="status" content="processing">
+            </div>
+            </body></html>
+        expect:
+          status: 422
+          microdata:
+            - type: https://pagelove.org/Violation
+              properties: {property: status}
+      - name: unchanged
+        as: anonymous
+        request: {method: GET, path: "${P}/orders/order-1.html"}
+        expect: {status: 200, body_not_contains: ['content="processing"']}
+
+  - id: reacting.tc.empty-string-is-a-state
+    title: The empty string is an ordinary state value, distinct from absent
+    feature: TransitionConstraint (values)
+    evidence: documented
+    source: "docs reference/reacting-to-changes/TransitionConstraint §from and to ('The empty string \"\" is an ordinary state value, distinct from absent') (snapshot 2026-09-28)"
+    confidence: medium
+    requires: []
+    live: true
+    notes: "spec: R-REACT-63. The rule from=\"\" to=\"ready\" is a step, not an entry, so creating an item directly at ready is still rejected."
+    steps:
+      - name: install an entry to "" and a step "" -> ready
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/transitions/rules.html"
+          headers: {Content-Type: text/html}
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+            <div itemscope itemtype="https://pagelove.org/TransitionConstraint">
+              <meta itemprop="selector" content="[itemtype='https://pagelike.test${P}/Order']">
+              <meta itemprop="property" content="status">
+              <meta itemprop="to" content="">
+            </div>
+            <div itemscope itemtype="https://pagelove.org/TransitionConstraint">
+              <meta itemprop="selector" content="[itemtype='https://pagelike.test${P}/Order']">
+              <meta itemprop="property" content="status">
+              <meta itemprop="from" content="">
+              <meta itemprop="to" content="ready">
+            </div>
+            </body></html>
+        expect: {status: [200, 201, 204]}
+      - name: create an item in the empty state
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/orders/a.html"
+          headers: {Content-Type: text/html}
+          body: '<!DOCTYPE html><html><body><div id="a" itemscope itemtype="https://pagelike.test${P}/Order"><meta itemprop="status" content=""></div></body></html>'
+        expect: {status: [200, 201, 204]}
+      - name: step "" -> ready
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/orders/a.html"
+          headers: {Content-Type: text/html, Range: "selector=#a"}
+          body: '<div id="a" itemscope itemtype="https://pagelike.test${P}/Order"><meta itemprop="status" content="ready"></div>'
+        expect: {status: [200, 204, 206]}
+      - name: creating an item directly at ready is not an entry
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/orders/b.html"
+          headers: {Content-Type: text/html}
+          body: '<!DOCTYPE html><html><body><div itemscope itemtype="https://pagelike.test${P}/Order"><meta itemprop="status" content="ready"></div></body></html>'
+        expect: {status: 422}
+
+  - id: reacting.tc.missing-property-ignored
+    title: A stored constraint without property is ignored and never blocks writes
+    feature: TransitionConstraint (malformed)
+    evidence: documented
+    source: "docs reference/reacting-to-changes/TransitionConstraint §Taking effect ('A stored rule missing its selector or property is ignored; a malformed rule never blocks writes') (snapshot 2026-09-28)"
+    confidence: high
+    requires: []
+    live: true
+    notes: "spec: R-REACT-4, R-REACT-62. The malformed rule is stored over WebDAV (site.files); ignoring it needs no propagation time."
+    site:
+      settings: {default_get: allow}
+      rules: *open_rules
+      files:
+        - path: "${P}/transitions/rules.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+            <div itemscope itemtype="https://pagelove.org/TransitionConstraint">
+              <meta itemprop="selector" content="[itemtype='https://pagelike.test${P}/Order']">
+              <meta itemprop="to" content="pending">
+            </div>
+            </body></html>
+    steps:
+      - name: an order in any state can be created and changed
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/orders/o.html"
+          headers: {Content-Type: text/html}
+          body: '<!DOCTYPE html><html><body><div id="o" itemscope itemtype="https://pagelike.test${P}/Order"><meta itemprop="status" content="weird"></div></body></html>'
+        expect: {status: [200, 201, 204]}
+      - name: delete
+        as: anonymous
+        request: {method: DELETE, path: "${P}/orders/o.html"}
+        expect: {status: [200, 204]}
+
+  - id: reacting.tc.neither-from-nor-to-rejected-on-serving-path
+    title: Writing a constraint with neither from nor to through the serving path is rejected with 422, and such a rule never enforces
+    feature: TransitionConstraint (malformed)
+    evidence: documented
+    source: "docs reference/reacting-to-changes/TransitionConstraint §from and to ('on hosts running the platform schemas, writing such a rule is rejected with 422') (snapshot 2026-09-28)"
+    confidence: medium
+    requires: []
+    live: true
+    notes: "spec: R-REACT-62. Probe P-29."
+    steps:
+      - name: the rule document is refused
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/transitions/rules.html"
+          headers: {Content-Type: text/html}
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+            <div itemscope itemtype="https://pagelove.org/TransitionConstraint">
+              <meta itemprop="selector" content="[itemtype='https://pagelike.test${P}/Order']">
+              <meta itemprop="property" content="status">
+            </div>
+            </body></html>
+        expect: {status: 422}
+      - name: orders are unconstrained
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/orders/o.html"
+          headers: {Content-Type: text/html}
+          body: '<!DOCTYPE html><html><body><div itemscope itemtype="https://pagelike.test${P}/Order"><meta itemprop="status" content="anything"></div></body></html>'
+        expect: {status: [200, 201, 204]}
+
+  - id: reacting.tc.isa-selector-matches-subtype
+    title: ":isa() in a constraint selector watches schema-declared subtypes too"
+    feature: TransitionConstraint (selector)
+    evidence: documented
+    source: "docs reference/reacting-to-changes/TransitionConstraint §selector (':isa(…) matches the type and any schema-declared subtype') (snapshot 2026-09-28)"
+    confidence: medium
+    requires: []
+    live: true
+    notes: "spec: R-REACT-64; cross-area modeling (subtype map)."
+    steps:
+      - name: declare SpecialOrder as a subtype of Order
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/schema.html"
+          headers: {Content-Type: text/html}
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+            <div hidden itemscope itemtype="https://pagelove.org/Schema">
+              <meta itemprop="type" content="https://pagelike.test${P}/Order">
+            </div>
+            <div hidden itemscope itemtype="https://pagelove.org/Schema">
+              <meta itemprop="type" content="https://pagelike.test${P}/SpecialOrder">
+              <meta itemprop="parent" content="https://pagelike.test${P}/Order">
+            </div>
+            </body></html>
+        expect: {status: [200, 201, 204]}
+      - name: install an :isa entry rule for pending only
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/transitions/rules.html"
+          headers: {Content-Type: text/html}
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+            <div itemscope itemtype="https://pagelove.org/TransitionConstraint">
+              <meta itemprop="selector" content=":isa('https://pagelike.test${P}/Order')">
+              <meta itemprop="property" content="status">
+              <meta itemprop="to" content="pending">
+            </div>
+            </body></html>
+        expect: {status: [200, 201, 204]}
+      - name: a SpecialOrder created at processing is rejected
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/orders/s1.html"
+          headers: {Content-Type: text/html}
+          body: '<!DOCTYPE html><html><body><div itemscope itemtype="https://pagelike.test${P}/SpecialOrder"><meta itemprop="status" content="processing"></div></body></html>'
+        expect: {status: 422}
+      - name: a SpecialOrder created at pending is accepted
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/orders/s2.html"
+          headers: {Content-Type: text/html}
+          body: '<!DOCTYPE html><html><body><div itemscope itemtype="https://pagelike.test${P}/SpecialOrder"><meta itemprop="status" content="pending"></div></body></html>'
+        expect: {status: [200, 201, 204]}
+
+  - id: reacting.tc.post-append-is-entry
+    title: Appending an item with POST is an entry and needs an entry rule for its state
+    feature: TransitionConstraint (selector-scoped writes)
+    evidence: demo-source
+    source: "demo-apps/demo-03-resource-exchange/schema/listing.html@c4dd883:42-45 and app.js@c4dd883:170-189 (new listings appended by POST need the entry rule, 'verified'); docs recipes/declaring-a-state-machine §When to use this approach"
+    confidence: high
+    requires: []
+    live: true
+    notes: "spec: R-REACT-67, R-REACT-69."
+    site:
+      settings: {default_get: allow}
+      rules: *open_rules
+      files:
+        - path: "${P}/orders/list.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body><ul id="orders"></ul></body></html>
+    steps:
+      - *install_recipe_rules
+      - name: appending an order at processing is rejected
+        as: anonymous
+        request:
+          method: POST
+          path: "${P}/orders/list.html"
+          headers: {Content-Type: text/html, Range: "selector=#orders"}
+          body: '<li id="o1" itemscope itemtype="https://pagelike.test${P}/Order"><meta itemprop="status" content="processing"></li>'
+        expect: {status: 422}
+      - name: appending an order at pending is accepted
+        as: anonymous
+        request:
+          method: POST
+          path: "${P}/orders/list.html"
+          headers: {Content-Type: text/html, Range: "selector=#orders"}
+          body: '<li id="o2" itemscope itemtype="https://pagelike.test${P}/Order"><meta itemprop="status" content="pending"></li>'
+        expect: {status: [200, 201, 204, 206]}
+
+  - id: reacting.tc.selector-delete-is-exit
+    title: A selector DELETE removing a watched item is an exit
+    feature: TransitionConstraint (selector-scoped writes)
+    evidence: documented
+    source: "docs reference/reacting-to-changes/TransitionConstraint §Strictness ('removing the item or its watched property … is an exit'); recipes/declaring-a-state-machine §When to use this approach (snapshot 2026-09-28)"
+    confidence: high
+    requires: []
+    live: true
+    notes: "spec: R-REACT-65, R-REACT-69."
+    steps:
+      - *install_middle_rules
+      - name: create a list with one pending order
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/orders/list.html"
+          headers: {Content-Type: text/html}
+          body: |
+            <!DOCTYPE html>
+            <html><body><ul id="orders"><li id="o1" itemscope itemtype="https://pagelike.test${P}/Order"><meta itemprop="status" content="pending"></li></ul></body></html>
+        expect: {status: [200, 201, 204]}
+      - name: deleting the item is an undeclared exit
+        as: anonymous
+        request: {method: DELETE, path: "${P}/orders/list.html", headers: {Range: "selector=#o1"}}
+        expect:
+          status: 422
+          microdata:
+            - type: https://pagelove.org/Violation
+              properties: {property: status, from: pending, to: ""}
+      - name: the item is still there
+        as: anonymous
+        request: {method: GET, path: "${P}/orders/list.html"}
+        expect: {status: 200, body_contains: ['id="o1"']}
+
+  - id: reacting.tc.demo3-claim-status-span
+    title: "Resource exchange: claim/complete a listing by replacing its status span; same-value writes are no-ops"
+    feature: TransitionConstraint (demo state machine)
+    evidence: demo-source
+    source: "demo-apps/demo-03-resource-exchange/schema/listing.html@c4dd883:5-68; app.js@c4dd883:91-121,170-189; docs/LIVE-TESTING.md@c4dd883:33-35"
+    confidence: high
+    requires: []
+    live: true
+    notes: "spec: R-REACT-64, R-REACT-69 (ancestor item pairs with itself). completed -> open is not declared."
+    site:
+      settings: {default_get: allow}
+      rules: *open_rules
+      files:
+        - path: "${P}/exchange/index.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body><ul id="pl-listings"></ul></body></html>
+    steps:
+      - name: register the Listing schema (listingId is the @key)
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/exchange/schema/listing.html"
+          headers: {Content-Type: text/html}
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+            <div itemscope itemtype="https://pagelove.org/Schema">
+              <meta itemprop="type" content="https://pagelike.test${P}/Listing">
+              <div itemprop="property" itemscope itemtype="https://pagelove.org/Property">
+                <meta itemprop="name" content="listingId"><meta itemprop="type" content="https://schema.host/Text"><meta itemprop="cardinality" content="1..1"><meta itemprop="unique" content="true"><meta itemprop="@key" content="true">
+              </div>
+              <div itemprop="property" itemscope itemtype="https://pagelove.org/Property">
+                <meta itemprop="name" content="status"><meta itemprop="type" content="https://schema.host/Text"><meta itemprop="cardinality" content="1..1">
+              </div>
+            </div>
+            <div hidden itemscope itemtype="https://pagelove.org/TransitionConstraint">
+              <meta itemprop="selector" content="[itemtype='https://pagelike.test${P}/Listing']">
+              <meta itemprop="property" content="status">
+              <meta itemprop="to" content="open">
+            </div>
+            <div hidden itemscope itemtype="https://pagelove.org/TransitionConstraint">
+              <meta itemprop="selector" content="[itemtype='https://pagelike.test${P}/Listing']">
+              <meta itemprop="property" content="status">
+              <meta itemprop="from" content="open">
+              <meta itemprop="to" content="claimed">
+            </div>
+            <div hidden itemscope itemtype="https://pagelove.org/TransitionConstraint">
+              <meta itemprop="selector" content="[itemtype='https://pagelike.test${P}/Listing']">
+              <meta itemprop="property" content="status">
+              <meta itemprop="from" content="claimed">
+              <meta itemprop="to" content="completed">
+            </div>
+            <div hidden itemscope itemtype="https://pagelove.org/TransitionConstraint">
+              <meta itemprop="selector" content="[itemtype='https://pagelike.test${P}/Listing']">
+              <meta itemprop="property" content="status">
+              <meta itemprop="from" content="claimed">
+              <meta itemprop="to" content="open">
+            </div>
+            </body></html>
+        expect: {status: [200, 201, 204]}
+      - name: post a new listing (entry at open)
+        as: anonymous
+        request:
+          method: POST
+          path: "${P}/exchange/index.html"
+          headers: {Content-Type: text/html, Range: "selector=#pl-listings"}
+          body: |
+            <li class="listing" id="L1" itemscope itemtype="https://pagelike.test${P}/Listing">
+              <meta itemprop="listingId" content="L1">
+              <h2 class="listing-title">Cordless drill</h2>
+              <p class="listing-meta">by Ana · <span class="status-tag" id="status-L1" data-status="open" itemprop="status">open</span></p>
+            </li>
+        expect: {status: [200, 201, 204, 206]}
+      - name: claim (open -> claimed)
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/exchange/index.html"
+          headers: {Content-Type: text/html, Range: "selector=#status-L1"}
+          body: '<span class="status-tag" id="status-L1" data-status="claimed" itemprop="status">claimed</span>'
+        expect: {status: [200, 204, 206]}
+      - name: a second claimant writing the same value is a no-op, not a rejection
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/exchange/index.html"
+          headers: {Content-Type: text/html, Range: "selector=#status-L1"}
+          body: '<span class="status-tag" id="status-L1" data-status="claimed" itemprop="status">claimed</span>'
+        expect: {status: [200, 204, 206]}
+      - name: complete (claimed -> completed)
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/exchange/index.html"
+          headers: {Content-Type: text/html, Range: "selector=#status-L1"}
+          body: '<span class="status-tag" id="status-L1" data-status="completed" itemprop="status">completed</span>'
+        expect: {status: [200, 204, 206]}
+      - name: re-opening a completed listing is rejected
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/exchange/index.html"
+          headers: {Content-Type: text/html, Range: "selector=#status-L1"}
+          body: '<span class="status-tag" id="status-L1" data-status="open" itemprop="status">open</span>'
+        expect:
+          status: 422
+          body_contains: ["transition"]
+          microdata:
+            - type: https://pagelove.org/Violation
+              properties: {property: status, from: completed, to: open, key: L1}
+
+  - id: reacting.tc.serving-path-rules-bind-immediately
+    title: A constraint written through the serving path binds for the very next write
+    feature: TransitionConstraint (taking effect)
+    evidence: documented
+    source: "docs reference/reacting-to-changes/TransitionConstraint §Taking effect ('the very next write validates against the new rules'); recipes/declaring-a-state-machine ('PUT this document … the rules bind immediately') (snapshot 2026-09-28)"
+    confidence: high
+    requires: []
+    live: true
+    notes: "spec: R-REACT-5, R-REACT-74."
+    steps:
+      - name: an order at processing can be created before the rules exist
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/orders/before.html"
+          headers: {Content-Type: text/html}
+          body: '<!DOCTYPE html><html><body><div itemscope itemtype="https://pagelike.test${P}/Order"><meta itemprop="status" content="processing"></div></body></html>'
+        expect: {status: [200, 201, 204]}
+      - *install_recipe_rules
+      - name: immediately afterwards the same creation is rejected
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/orders/after.html"
+          headers: {Content-Type: text/html}
+          body: '<!DOCTYPE html><html><body><div itemscope itemtype="https://pagelike.test${P}/Order"><meta itemprop="status" content="processing"></div></body></html>'
+        expect: {status: 422}
+
+  - id: reacting.tc.rules-read-from-committed-state
+    title: A write that adds rules and items together is validated against the rules committed before it
+    feature: TransitionConstraint (taking effect)
+    evidence: inferred
+    source: "spec R-REACT-71 (pagelike decision)"
+    confidence: low
+    requires: []
+    live: true
+    steps:
+      - name: one document carries both the rule and an order in an undeclared state
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/orders/combo.html"
+          headers: {Content-Type: text/html}
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+            <div hidden itemscope itemtype="https://pagelove.org/TransitionConstraint">
+              <meta itemprop="selector" content="[itemtype='https://pagelike.test${P}/Order']">
+              <meta itemprop="property" content="status">
+              <meta itemprop="to" content="pending">
+            </div>
+            <div id="o" itemscope itemtype="https://pagelike.test${P}/Order"><meta itemprop="status" content="processing"></div>
+            </body></html>
+        expect: {status: [200, 201, 204]}
+      - name: the next change is validated against the stored rule
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/orders/combo.html"
+          headers: {Content-Type: text/html, Range: "selector=#o"}
+          body: '<div id="o" itemscope itemtype="https://pagelike.test${P}/Order"><meta itemprop="status" content="shipped"></div>'
+        expect: {status: 422}
+
+  - id: reacting.tc.uniqueness-before-transition
+    title: A write that breaks both a uniqueness constraint and a transition rule is refused by uniqueness first
+    feature: TransitionConstraint (pipeline position)
+    evidence: inferred
+    source: "spec R-REACT-71 ('a duplicate key fails first as a uniqueness 422'), modeling R-MOD-15 (transitions are step 10, after uniqueness)"
+    confidence: low
+    requires: []
+    live: true
+    notes: "Pins the order of the engine's Validate hooks (schema phase before transition phase) whatever the Go initialization order."
+    steps:
+      - name: declare the Order schema with a unique sku
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/schema.html"
+          headers: {Content-Type: text/html}
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+            <div hidden itemscope itemtype="https://pagelove.org/Schema">
+              <meta itemprop="type" content="https://pagelike.test${P}/Order">
+              <div itemprop="property" itemscope itemtype="https://pagelove.org/Property">
+                <meta itemprop="name" content="sku">
+                <meta itemprop="type" content="https://schema.host/Text">
+                <meta itemprop="unique" content="true">
+              </div>
+              <div itemprop="property" itemscope itemtype="https://pagelove.org/Property">
+                <meta itemprop="name" content="status">
+                <meta itemprop="type" content="https://schema.host/Text">
+              </div>
+            </div>
+            </body></html>
+        expect: {status: [200, 201, 204]}
+      - name: allow only entries into pending
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/transitions/rules.html"
+          headers: {Content-Type: text/html}
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+            <div itemscope itemtype="https://pagelove.org/TransitionConstraint">
+              <meta itemprop="selector" content="[itemtype='https://pagelike.test${P}/Order']">
+              <meta itemprop="property" content="status">
+              <meta itemprop="to" content="pending">
+            </div>
+            </body></html>
+        expect: {status: [200, 201, 204]}
+      - name: the first order is a legal entry
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/orders/a.html"
+          headers: {Content-Type: text/html}
+          body: '<!DOCTYPE html><html><body><div itemscope itemtype="https://pagelike.test${P}/Order"><meta itemprop="sku" content="A-1"><meta itemprop="status" content="pending"></div></body></html>'
+        expect: {status: [200, 201, 204]}
+      - name: a duplicate sku entering an undeclared state fails as a uniqueness violation
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/orders/b.html"
+          headers: {Content-Type: text/html}
+          body: '<!DOCTYPE html><html><body><div itemscope itemtype="https://pagelike.test${P}/Order"><meta itemprop="sku" content="A-1"><meta itemprop="status" content="shipped"></div></body></html>'
+        expect:
+          status: 422
+          # Uniqueness body as observed live 2026-09-29 (docs/compat/decisions-2026-09-29/modeling.md).
+          body_contains: ["[uniqueness]", "Uniqueness violation"]
+          body_not_contains: ["Transition constraints violated"]
+      - name: nothing was stored
+        as: anonymous
+        request: {method: GET, path: "${P}/orders/b.html"}
+        expect: {status: 404}

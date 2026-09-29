@@ -1,0 +1,37 @@
+{
+  "case": "rw.put.whole-replace",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (replace the whole document)",
+      "method": "PUT",
+      "path": "/_pl/rw-put-whole-replace-c1f368/replace.html",
+      "status": 200,
+      "headers": {
+        "content-length": "63",
+        "content-type": "text/html",
+        "etag": "\"120de404af0ad93d37661daafada2dd881f2b40be16fb2a9e4074116b1015a4c\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:56 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\u003ch1\u003eVersion two\u003c/h1\u003e\u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 2 (read back)",
+      "method": "GET",
+      "path": "/_pl/rw-put-whole-replace-c1f368/replace.html",
+      "status": 200,
+      "headers": {
+        "accept-ranges": "selector, bytes",
+        "content-length": "63",
+        "content-type": "text/html",
+        "etag": "\"120de404af0ad93d37661daafada2dd881f2b40be16fb2a9e4074116b1015a4c\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:56 GMT",
+        "vary": "Host, Range, Accept"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\u003ch1\u003eVersion two\u003c/h1\u003e\u003c/body\u003e\u003c/html\u003e\n"
+    }
+  ],
+  "outcome": "pass",
+  "target": "local"
+}

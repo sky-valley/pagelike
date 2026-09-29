@@ -1,0 +1,45 @@
+{
+  "case": "protocol.webdav.bypasses-authorization-rules",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (author writes)",
+      "method": "PUT",
+      "path": "/_pl/protocol-webdav-bypasses-authorization-r-9acbe1/locked.html",
+      "status": 201,
+      "headers": {
+        "content-length": "73",
+        "content-type": "text/html",
+        "etag": "\"3752cfb04df0816a999229ab3e0c4774a881cf69e494ee28b392a4b0fe6894d1\""
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\u003ch1\u003eWritten by the author\u003c/h1\u003e\u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 2 (author reads)",
+      "method": "GET",
+      "path": "/_pl/protocol-webdav-bypasses-authorization-r-9acbe1/locked.html",
+      "status": 200,
+      "headers": {
+        "accept-ranges": "bytes",
+        "content-length": "73",
+        "content-type": "text/html",
+        "etag": "\"3752cfb04df0816a999229ab3e0c4774a881cf69e494ee28b392a4b0fe6894d1\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:48 GMT"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\u003ch1\u003eWritten by the author\u003c/h1\u003e\u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 3 (the public plane still applies the rules)",
+      "method": "GET",
+      "path": "/_pl/protocol-webdav-bypasses-authorization-r-9acbe1/locked.html",
+      "status": 401,
+      "headers": {
+        "content-length": "432",
+        "content-type": "text/html; charset=utf-8"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\n\u003chead\u003e\n    \u003cmeta charset=\"UTF-8\"\u003e\n    \u003ctitle\u003e401 Unauthorized\u003c/title\u003e\n\u003c/head\u003e\n\u003cbody itemscope itemtype=\"https://pagelove.org/1.0/Error\"\u003e\n    \u003ch1\u003e401 Unauthorized\u003c/h1\u003e\n    \u003cp itemprop=\"message\"\u003eAuthentication required to access this resource.\u003c/p\u003e\n    \u003cdl\u003e\n        \u003cdt\u003eResource\u003c/dt\u003e\n        \u003cdd itemprop=\"resource\"\u003e/_pl/protocol-webdav-bypasses-authorization-r-9acbe1/locked.html\u003c/dd\u003e\n    \u003c/dl\u003e\n\u003c/body\u003e\n\u003c/html\u003e\n"
+    }
+  ],
+  "outcome": "pass",
+  "target": "local"
+}

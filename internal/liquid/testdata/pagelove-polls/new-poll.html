@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:p="https://pagelove.org/1.0" p:template="text/liquid">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{% assign id = 10 | random: lower: true, digits: true %}
+{% assign title = request.body.title | default: "" | strip %}
+{% if title == "" %}{% assign title = "Untitled poll" %}{% endif %}
+{{ title | escape }} · Polls by Pagelove</title>
+<base href="/polls/{{ id }}.html">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&amp;family=Manrope:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/assets/polls.css?v=20260924b">
+</head>
+<body class="poll-page">
+{% assign organizer = request.body.organizer | default: "" | strip %}
+{% if organizer == "" %}{% assign organizer = "Someone" %}{% endif %}
+{% assign desc = request.body.description | default: "" | strip %}
+{% assign opts = request.body.options | default: "" | split: ";;" %}
+{% if request.body.listed == "on" %}{% assign listed = "true" %}{% else %}{% assign listed = "false" %}{% endif %}
+
+<header class="site wrap">
+  <a class="brand" href="/">Polls <em>by Pagelove</em></a>
+  <nav>
+    <a class="hide-sm" href="/">New poll</a>
+    <a class="hide-sm" href="/#how">How it works</a>
+    <a class="pill" href="https://pagelove.com/" target="_blank" rel="noopener"><span class="dot"></span>Built on Pagelove</a>
+  </nav>
+</header>
+
+<main class="wrap">
+
+<article id="poll" itemscope itemtype="{{ 'https://pagelove.org/Poll' }}">
+
+  <header class="poll-head">
+    <p class="eyebrow">Scheduling poll</p>
+    <h1 itemprop="title">{{ title | escape }}</h1>
+    {% if desc != "" %}
+    <p class="desc" itemprop="description">{{ desc | escape }}</p>
+    {% endif %}
+    <p class="meta">Organised by <strong itemprop="organizer">{{ organizer | escape }}</strong> · created <time itemprop="created" datetime="{{ request.body.created | escape }}">{{ request.body.createdLabel | escape }}</time></p>
+    <meta itemprop="createdLabel" content="{{ request.body.createdLabel | escape }}">
+    <meta itemprop="listed" content="{{ listed }}">
+    <meta itemprop="optionCount" content="{{ opts.size }}">
+  </header>
+
+  <div class="share">
+    <span class="lbl">Share this poll</span>
+    <input id="share-url" type="text" readonly value="/polls/{{ id }}.html" aria-label="Poll link">
+    <button type="button" class="btn secondary sm" id="copy-link">Copy link</button>
+  </div>
+
+  <section class="card grid-card" aria-label="Availability grid">
+    <div class="grid-wrap">
+      <table id="grid">
+        <thead>
+          <tr>
+            <th class="corner" scope="col">Participant</th>
+            {% for o in opts %}
+            {% assign f = o | split: "|" %}
+            <th scope="col" id="o{{ forloop.index }}" data-option="o{{ forloop.index }}" itemprop="option" itemscope itemtype="https://pagelove.org/PollOption">
+              <time itemprop="start" datetime="{{ f[0] | escape }}"><span class="dow">{{ f[1] | escape }}</span><span class="day">{{ f[2] | escape }}</span><span class="time">{{ f[3] | escape }}</span></time>
+            </th>
+            {% endfor %}
+          </tr>
+        </thead>
+        <tbody id="responses"></tbody>
+        <tbody id="entry">
+          <tr class="entry">
+            <th scope="row"><input id="entry-name" type="text" maxlength="60" placeholder="Your name" autocomplete="name" aria-label="Your name"></th>
+            {% for o in opts %}
+            <td data-option="o{{ forloop.index }}"><button type="button" class="vote" data-vote="no" aria-label="Toggle availability">no</button></td>
+            {% endfor %}
+          </tr>
+        </tbody>
+        <tfoot>
+          <tr class="totals">
+            <th scope="row">Available</th>
+            {% for o in opts %}
+            <td data-option="o{{ forloop.index }}"><span class="count">0</span><span class="maybe"></span></td>
+            {% endfor %}
+          </tr>
+        </tfoot>
+      </table>
+    </div>
+    <p id="empty">No responses yet. Type your name, tap the circles, and save.</p>
+    <div class="save-bar">
+      <button type="button" class="btn primary" id="save">Save my availability</button>
+      <button type="button" class="btn ghost" id="cancel" hidden>Cancel</button>
+      <p class="status" id="status" aria-live="polite"></p>
+      <div class="legend"><span class="l-yes">Yes</span><span class="l-maybe">If need be</span><span class="l-no">No</span></div>
+    </div>
+  </section>
+
+</article>
+
+<details class="hood" id="hood">
+  <summary><span class="chev">▶</span> Under the hood <span class="tag">live HTTP log</span></summary>
+  <div class="hood-body">
+    <p>This page is the database. Saving sends <code>POST /polls/{{ id }}.html</code> with <code>Range: selector=#responses</code> and a single <code>&lt;tr&gt;</code>. Edits are <code>PUT</code>, withdrawals are <code>DELETE</code>, and other people's rows arrive over a Server-Sent Events subscription to this URL.</p>
+    <ol id="log"><li class="none">Nothing yet. Save a response to see the request.</li></ol>
+  </div>
+</details>
+
+<p class="footnote">Anyone with the link can respond. Rows you save are remembered in this browser so you can edit or withdraw them. See the <a href="/admin/auth.html">authorization rules and shape constraints</a> that govern this page, or the <a href="/templates/new-poll.html">Liquid template</a> that created it.</p>
+
+</main>
+
+<footer class="site-foot wrap">
+  <span>Polls by Pagelove · a scheduling-poll template for the Pagelove™ gallery</span>
+  <span><a href="/">Create another poll</a></span>
+</footer>
+
+<script src="/assets/poll.js?v=20260924b" type="module"></script>
+</body>
+</html>

@@ -1,0 +1,748 @@
+# Modeling: static and dynamic defaults, @key primary keys and the auto-generated key default.
+# Spec: docs/spec/modeling.md §6 and §8 (R-MOD-27..R-MOD-29, R-MOD-33..R-MOD-35).
+cases:
+  - id: modeling.defaults.static-injected
+    title: "A static default is injected as <meta itemprop content> when the property is absent"
+    area: modeling
+    feature: defaults
+    evidence: documented
+    source: "docs reference/modeling-data/Property §Defaults (snapshot 2026-09-28)"
+    confidence: high
+    requires: []
+    live: true
+    notes: "spec: R-MOD-27. Placement (last child of the item) is a pagelike decision; only presence is asserted."
+    site:
+      settings:
+        default_get: allow
+      rules:
+        - actor: "*"
+          resource: "${P}/*"
+          method: [GET, HEAD, PUT, POST, DELETE, MOVE]
+          action: Allow
+        - actor: "*"
+          resource: "${P}/*/*"
+          method: [GET, HEAD, PUT, POST, DELETE, MOVE]
+          action: Allow
+    steps:
+      - name: "register declarations through the public plane (takes effect for the next request)"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/schema.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div hidden itemscope itemtype="https://pagelove.org/Schema">
+                <meta itemprop="type" content="https://pagelike.test${P}/Post">
+                <div itemprop="property" itemscope itemtype="https://pagelove.org/Property">
+                  <meta itemprop="name" content="title">
+                  <meta itemprop="type" content="https://schema.host/Text">
+                  <meta itemprop="cardinality" content="1..1">
+                </div>
+                <div itemprop="property" itemscope itemtype="https://pagelove.org/Property">
+                  <meta itemprop="name" content="status">
+                  <meta itemprop="type" content="https://schema.host/Text">
+                  <meta itemprop="cardinality" content="0..1">
+                  <meta itemprop="default" content="draft">
+                </div>
+              </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "post without status"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/p.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div itemscope itemtype="https://pagelike.test${P}/Post">
+                <meta itemprop="title" content="Hello">
+              </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "stored state of p.html (authoring plane, raw)"
+        as: author
+        plane: dav
+        request:
+          method: GET
+          path: "${P}/p.html"
+        expect:
+          status: 200
+          body_contains: ["<meta itemprop=\"status\" content=\"draft\">"]
+      - name: "public read shows the injected value"
+        as: anonymous
+        request:
+          method: GET
+          path: "${P}/p.html"
+        expect:
+          status: 200
+          body_contains: ["content=\"draft\""]
+  - id: modeling.defaults.present-value-kept
+    title: "A default is not injected when the property is present"
+    area: modeling
+    feature: defaults
+    evidence: documented
+    source: "docs reference/modeling-data/Property §Defaults (snapshot 2026-09-28)"
+    confidence: high
+    requires: []
+    live: true
+    notes: "spec: R-MOD-27."
+    site:
+      settings:
+        default_get: allow
+      rules:
+        - actor: "*"
+          resource: "${P}/*"
+          method: [GET, HEAD, PUT, POST, DELETE, MOVE]
+          action: Allow
+        - actor: "*"
+          resource: "${P}/*/*"
+          method: [GET, HEAD, PUT, POST, DELETE, MOVE]
+          action: Allow
+    steps:
+      - name: "register declarations through the public plane (takes effect for the next request)"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/schema.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div hidden itemscope itemtype="https://pagelove.org/Schema">
+                <meta itemprop="type" content="https://pagelike.test${P}/Post">
+                <div itemprop="property" itemscope itemtype="https://pagelove.org/Property">
+                  <meta itemprop="name" content="status">
+                  <meta itemprop="type" content="https://schema.host/Text">
+                  <meta itemprop="cardinality" content="0..1">
+                  <meta itemprop="default" content="draft">
+                </div>
+              </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "post with explicit status"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/p.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div itemscope itemtype="https://pagelike.test${P}/Post">
+                <meta itemprop="status" content="published">
+              </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "stored state of p.html (authoring plane, raw)"
+        as: author
+        plane: dav
+        request:
+          method: GET
+          path: "${P}/p.html"
+        expect:
+          status: 200
+          body_contains: ["content=\"published\""]
+          body_not_contains: ["content=\"draft\""]
+  - id: modeling.defaults.present-empty-not-defaulted
+    title: "An empty value is present, so no default is injected"
+    area: modeling
+    feature: defaults
+    evidence: inferred
+    source: "docs reference/modeling-data/Property §Defaults (snapshot 2026-09-28) ('injected when the property is absent')"
+    confidence: medium
+    requires: []
+    live: true
+    notes: "spec: R-MOD-22, R-MOD-27."
+    site:
+      settings:
+        default_get: allow
+      rules:
+        - actor: "*"
+          resource: "${P}/*"
+          method: [GET, HEAD, PUT, POST, DELETE, MOVE]
+          action: Allow
+        - actor: "*"
+          resource: "${P}/*/*"
+          method: [GET, HEAD, PUT, POST, DELETE, MOVE]
+          action: Allow
+    steps:
+      - name: "register declarations through the public plane (takes effect for the next request)"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/schema.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div hidden itemscope itemtype="https://pagelove.org/Schema">
+                <meta itemprop="type" content="https://pagelike.test${P}/Post">
+                <div itemprop="property" itemscope itemtype="https://pagelove.org/Property">
+                  <meta itemprop="name" content="status">
+                  <meta itemprop="type" content="https://schema.host/Text">
+                  <meta itemprop="cardinality" content="0..1">
+                  <meta itemprop="default" content="draft">
+                </div>
+              </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "post with empty status"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/p.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div itemscope itemtype="https://pagelike.test${P}/Post">
+                <meta itemprop="status" content="">
+              </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "stored state of p.html (authoring plane, raw)"
+        as: author
+        plane: dav
+        request:
+          method: GET
+          path: "${P}/p.html"
+        expect:
+          status: 200
+          # An empty value is stored as a bare attribute (LO-15).
+          body_contains: ["<meta itemprop=\"status\" content>"]
+          body_not_contains: ["content=\"draft\""]
+  - id: modeling.defaults.default-satisfies-required
+    title: "Defaults are applied before validation, so a default satisfies 1..1"
+    area: modeling
+    feature: defaults
+    evidence: documented
+    source: "docs reference/modeling-data/Property §Defaults (snapshot 2026-09-28) ('Dynamic defaults run server-side, before validation'); docs reference/modeling-data/Property §Validators (snapshot 2026-09-28)"
+    confidence: high
+    requires: []
+    live: true
+    notes: "spec: R-MOD-15, R-MOD-27."
+    site:
+      settings:
+        default_get: allow
+      rules:
+        - actor: "*"
+          resource: "${P}/*"
+          method: [GET, HEAD, PUT, POST, DELETE, MOVE]
+          action: Allow
+        - actor: "*"
+          resource: "${P}/*/*"
+          method: [GET, HEAD, PUT, POST, DELETE, MOVE]
+          action: Allow
+    steps:
+      - name: "register declarations through the public plane (takes effect for the next request)"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/schema.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div hidden itemscope itemtype="https://pagelove.org/Schema">
+                <meta itemprop="type" content="https://pagelike.test${P}/Post">
+                <div itemprop="property" itemscope itemtype="https://pagelove.org/Property">
+                  <meta itemprop="name" content="status">
+                  <meta itemprop="type" content="https://schema.host/Text">
+                  <meta itemprop="cardinality" content="1..1">
+                  <meta itemprop="default" content="draft">
+                </div>
+              </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "post without the required status"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/p.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div itemscope itemtype="https://pagelike.test${P}/Post"></div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "stored state of p.html (authoring plane, raw)"
+        as: author
+        plane: dav
+        request:
+          method: GET
+          path: "${P}/p.html"
+        expect:
+          status: 200
+          body_contains: ["content=\"draft\""]
+  - id: modeling.defaults.default-is-type-checked
+    title: "An injected default is validated like any value"
+    area: modeling
+    feature: defaults
+    evidence: inferred
+    source: "docs reference/modeling-data/Property §Defaults (snapshot 2026-09-28); docs reference/modeling-data/Types §How type validation runs (snapshot 2026-09-28)"
+    confidence: medium
+    requires: []
+    live: true
+    notes: "spec: R-MOD-15, R-MOD-27."
+    site:
+      settings:
+        default_get: allow
+      rules:
+        - actor: "*"
+          resource: "${P}/*"
+          method: [GET, HEAD, PUT, POST, DELETE, MOVE]
+          action: Allow
+        - actor: "*"
+          resource: "${P}/*/*"
+          method: [GET, HEAD, PUT, POST, DELETE, MOVE]
+          action: Allow
+    steps:
+      - name: "register declarations through the public plane (takes effect for the next request)"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/schema.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div hidden itemscope itemtype="https://pagelove.org/Schema">
+                <meta itemprop="type" content="https://pagelike.test${P}/Post">
+                <div itemprop="property" itemscope itemtype="https://pagelove.org/Property">
+                  <meta itemprop="name" content="rank">
+                  <meta itemprop="type" content="https://schema.host/Integer">
+                  <meta itemprop="cardinality" content="1..1">
+                  <meta itemprop="default" content="not-a-number">
+                </div>
+              </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "post relying on an invalid default"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/p.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div itemscope itemtype="https://pagelike.test${P}/Post"></div>
+            </body></html>
+        expect:
+          status: 422
+          header_matches:
+            Content-Type: "^text/html"
+          body_contains: ["https://pagelove.org/SchemaViolation", type]
+      - name: "explicit valid value accepted"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/q.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div itemscope itemtype="https://pagelike.test${P}/Post">
+                <meta itemprop="rank" content="3">
+              </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+  - id: modeling.defaults.selector-post-new-item-gets-default
+    title: "A new item appended with a selector POST receives defaults"
+    area: modeling
+    feature: defaults
+    evidence: inferred
+    source: "docs reference/modeling-data/Property §Defaults (snapshot 2026-09-28); docs reference/reading-and-writing/POST-method §Error cases (snapshot 2026-09-28)"
+    confidence: medium
+    requires: []
+    live: true
+    notes: "spec: R-MOD-14, R-MOD-27."
+    site:
+      settings:
+        default_get: allow
+      rules:
+        - actor: "*"
+          resource: "${P}/*"
+          method: [GET, HEAD, PUT, POST, DELETE, MOVE]
+          action: Allow
+        - actor: "*"
+          resource: "${P}/*/*"
+          method: [GET, HEAD, PUT, POST, DELETE, MOVE]
+          action: Allow
+    steps:
+      - name: "register declarations through the public plane (takes effect for the next request)"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/schema.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div hidden itemscope itemtype="https://pagelove.org/Schema">
+                <meta itemprop="type" content="https://pagelike.test${P}/Post">
+                <div itemprop="property" itemscope itemtype="https://pagelove.org/Property">
+                  <meta itemprop="name" content="title">
+                  <meta itemprop="type" content="https://schema.host/Text">
+                  <meta itemprop="cardinality" content="1..1">
+                </div>
+                <div itemprop="property" itemscope itemtype="https://pagelove.org/Property">
+                  <meta itemprop="name" content="status">
+                  <meta itemprop="type" content="https://schema.host/Text">
+                  <meta itemprop="cardinality" content="0..1">
+                  <meta itemprop="default" content="draft">
+                </div>
+              </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "seed an empty list"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/list.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <ul id="posts"></ul>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "append a post without status"
+        as: anonymous
+        request:
+          method: POST
+          path: "${P}/list.html"
+          headers:
+            Range: "selector=#posts"
+            Content-Type: text/html
+          body: |
+            <li itemscope itemtype="https://pagelike.test${P}/Post">
+              <meta itemprop="title" content="Appended">
+            </li>
+        expect:
+          status: [200, 204, 206]
+      - name: "stored state of list.html (authoring plane, raw)"
+        as: author
+        plane: dav
+        request:
+          method: GET
+          path: "${P}/list.html"
+        expect:
+          status: 200
+          body_contains: ["content=\"Appended\"", "content=\"draft\""]
+  - id: modeling.defaults.sessel-dynamic
+    title: "A Sessel dynamic default is evaluated at write time (String.random)"
+    area: modeling
+    feature: defaults
+    evidence: documented
+    source: "docs reference/modeling-data/Property §Defaults (snapshot 2026-09-28)"
+    confidence: high
+    requires: [sessel]
+    live: true
+    notes: "spec: R-MOD-28. The value should be 8 random characters; the runner has no body regex, so only presence is asserted."
+    site:
+      settings:
+        default_get: allow
+      rules:
+        - actor: "*"
+          resource: "${P}/*"
+          method: [GET, HEAD, PUT, POST, DELETE, MOVE]
+          action: Allow
+        - actor: "*"
+          resource: "${P}/*/*"
+          method: [GET, HEAD, PUT, POST, DELETE, MOVE]
+          action: Allow
+    steps:
+      - name: "register declarations through the public plane (takes effect for the next request)"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/schema.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div hidden itemscope itemtype="https://pagelove.org/Schema">
+                <meta itemprop="type" content="https://pagelike.test${P}/Post">
+                <div itemprop="property" itemscope itemtype="https://pagelove.org/Property">
+                  <meta itemprop="name" content="code">
+                  <meta itemprop="type" content="https://schema.host/Text">
+                  <meta itemprop="cardinality" content="1..1">
+                  <div itemprop="default" itemscope itemtype="https://pagelove.org/Sessel">
+                    <script itemprop="source" type="text/sessel">String.random(8)</script>
+                  </div>
+                </div>
+              </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "post without code"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/p.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div itemscope itemtype="https://pagelike.test${P}/Post"></div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "stored state of p.html (authoring plane, raw)"
+        as: author
+        plane: dav
+        request:
+          method: GET
+          path: "${P}/p.html"
+        expect:
+          status: 200
+          body_contains: ["itemprop=\"code\""]
+  - id: modeling.defaults.js-dynamic
+    title: "A JavaScript/Module dynamic default is evaluated at write time"
+    area: modeling
+    feature: defaults
+    evidence: documented
+    source: "docs reference/modeling-data/Property §Defaults (snapshot 2026-09-28); docs languages/javascript/server/javascript-in-schemas §Examples (snapshot 2026-09-28)"
+    confidence: high
+    requires: [server-js]
+    live: true
+    notes: "spec: R-MOD-28."
+    site:
+      settings:
+        default_get: allow
+      rules:
+        - actor: "*"
+          resource: "${P}/*"
+          method: [GET, HEAD, PUT, POST, DELETE, MOVE]
+          action: Allow
+        - actor: "*"
+          resource: "${P}/*/*"
+          method: [GET, HEAD, PUT, POST, DELETE, MOVE]
+          action: Allow
+    steps:
+      - name: "register declarations through the public plane (takes effect for the next request)"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/schema.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div hidden itemscope itemtype="https://pagelove.org/Schema">
+                <meta itemprop="type" content="https://pagelike.test${P}/Post">
+                <div itemprop="property" itemscope itemtype="https://pagelove.org/Property">
+                  <meta itemprop="name" content="x">
+                  <meta itemprop="type" content="https://schema.host/Integer">
+                  <meta itemprop="cardinality" content="1..1">
+                  <div itemprop="default" itemscope itemtype="https://pagelove.org/JavaScript/Module">
+                    <script itemprop="source" type="module">export default () => String(Math.floor(100 + Math.random() * 500));</script>
+                  </div>
+                </div>
+              </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "post without x"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/p.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div itemscope itemtype="https://pagelike.test${P}/Post"></div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "stored state of p.html (authoring plane, raw)"
+        as: author
+        plane: dav
+        request:
+          method: GET
+          path: "${P}/p.html"
+        expect:
+          status: 200
+          body_contains: ["itemprop=\"x\""]
+  - id: modeling.defaults.js-default-reads-this
+    title: "A JS default sees client-supplied declared fields on this"
+    area: modeling
+    feature: defaults
+    evidence: documented
+    source: "docs languages/javascript/server/javascript-in-schemas §this and context for default (snapshot 2026-09-28)"
+    confidence: medium
+    requires: [server-js]
+    live: true
+    notes: "spec: R-MOD-28."
+    site:
+      settings:
+        default_get: allow
+      rules:
+        - actor: "*"
+          resource: "${P}/*"
+          method: [GET, HEAD, PUT, POST, DELETE, MOVE]
+          action: Allow
+        - actor: "*"
+          resource: "${P}/*/*"
+          method: [GET, HEAD, PUT, POST, DELETE, MOVE]
+          action: Allow
+    steps:
+      - name: "register declarations through the public plane (takes effect for the next request)"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/schema.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div hidden itemscope itemtype="https://pagelove.org/Schema">
+                <meta itemprop="type" content="https://pagelike.test${P}/Post">
+                <div itemprop="property" itemscope itemtype="https://pagelove.org/Property">
+                  <meta itemprop="name" content="name">
+                  <meta itemprop="type" content="https://schema.host/Text">
+                  <meta itemprop="cardinality" content="1..1">
+                </div>
+                <div itemprop="property" itemscope itemtype="https://pagelove.org/Property">
+                  <meta itemprop="name" content="slug">
+                  <meta itemprop="type" content="https://schema.host/Text">
+                  <meta itemprop="cardinality" content="0..1">
+                  <div itemprop="default" itemscope itemtype="https://pagelove.org/JavaScript/Module">
+                    <script itemprop="source" type="module">export default function () { return "for-" + this.name; }</script>
+                  </div>
+                </div>
+              </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "post with name only"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/p.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div itemscope itemtype="https://pagelike.test${P}/Post">
+                <meta itemprop="name" content="alice">
+              </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "stored state of p.html (authoring plane, raw)"
+        as: author
+        plane: dav
+        request:
+          method: GET
+          path: "${P}/p.html"
+        expect:
+          status: 200
+          body_contains: ["content=\"for-alice\""]
+  - id: modeling.defaults.dynamic-default-failure
+    title: "A dynamic default that throws makes the write fail and nothing is stored"
+    area: modeling
+    feature: defaults
+    evidence: documented
+    source: "docs reference/modeling-data/Property §Error cases (snapshot 2026-09-28) ('Write error on the affected item')"
+    confidence: low
+    requires: [server-js]
+    live: true
+    notes: "spec: R-MOD-29. The status is undocumented; pagelike returns 422 with a BindingFailure (probe P-MOD-26)."
+    site:
+      settings:
+        default_get: allow
+      rules:
+        - actor: "*"
+          resource: "${P}/*"
+          method: [GET, HEAD, PUT, POST, DELETE, MOVE]
+          action: Allow
+        - actor: "*"
+          resource: "${P}/*/*"
+          method: [GET, HEAD, PUT, POST, DELETE, MOVE]
+          action: Allow
+    steps:
+      - name: "register declarations through the public plane (takes effect for the next request)"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/schema.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div hidden itemscope itemtype="https://pagelove.org/Schema">
+                <meta itemprop="type" content="https://pagelike.test${P}/Post">
+                <div itemprop="property" itemscope itemtype="https://pagelove.org/Property">
+                  <meta itemprop="name" content="x">
+                  <meta itemprop="type" content="https://schema.host/Text">
+                  <meta itemprop="cardinality" content="0..1">
+                  <div itemprop="default" itemscope itemtype="https://pagelove.org/JavaScript/Module">
+                    <script itemprop="source" type="module">export default () => { throw new Error("no default today"); };</script>
+                  </div>
+                </div>
+              </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "post without x"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/p.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div itemscope itemtype="https://pagelike.test${P}/Post"></div>
+            </body></html>
+        expect:
+          status: [422, 500]
+      - name: "p.html was not stored"
+        as: author
+        plane: dav
+        request:
+          method: GET
+          path: "${P}/p.html"
+        expect:
+          status: 404

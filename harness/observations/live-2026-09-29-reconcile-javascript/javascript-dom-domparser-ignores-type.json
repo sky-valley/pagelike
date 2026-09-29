@@ -1,0 +1,35 @@
+{
+  "case": "javascript.dom.domparser-ignores-type",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (PUT the page (public plane; registers inline declarations))",
+      "method": "PUT",
+      "path": "/_pl/javascript-dom-domparser-ignores-type-656e12/probe.html",
+      "status": 201,
+      "headers": {
+        "content-type": "text/html",
+        "etag": "\"61ff567206eb42d8c6f6df9ec324f3eba425ebbd4dd5f6d93edb80bfb633008e\"",
+        "last-modified": "Tue, 29 Sep 2026 01:54:17 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml xmlns:t=\"https://pagelike.test/_pl/javascript-dom-domparser-ignores-type-656e12/Ddomparserignorestype\"\u003e\u003cbody\u003e\n\u003cmain\u003e\n\u003ct:probe\u003e\u003c/t:probe\u003e\n\u003c/main\u003e\n\u003cdiv hidden itemscope itemtype=\"https://pagelove.org/Schema\"\u003e\n\u003cmeta itemprop=\"type\" content=\"https://pagelike.test/_pl/javascript-dom-domparser-ignores-type-656e12/Ddomparserignorestype\"\u003e\n\u003cul\u003e\n\u003cli itemprop=\"property\" itemscope itemtype=\"https://pagelove.org/Method\"\u003e\n\u003cmeta itemprop=\"name\" content=\"probe\"\u003e\n\u003cdiv itemprop=\"implementation\" itemscope itemtype=\"https://pagelove.org/JavaScript/Module\"\u003e\n\u003cscript itemprop=\"source\" type=\"module\"\u003e\nconst S = (...a) =\u003e a.map(String).join('|');\nconst H = (x) =\u003e String(x).replace(/[\u003c\u003e\"]/g, (c) =\u003e ({ '\u003c': '[', '\u003e': ']', '\"': \"'\" })[c]);\nconst tryName = (f) =\u003e { try { f(); return 'ok'; } catch (e) { return e.name + ':' + e.code; } };\nexport default function () {\nconst P = new DOMParser(), xs = new XMLSerializer();\nconst d = P.parseFromString('\u003cp\u003ex\u003c/p\u003e', 'application/xml');\nconst s = P.parseFromString('\u003csvg\u003e\u003cg/\u003e\u003c/svg\u003e', 'image/svg+xml');\nreturn 'R:' + S(d.documentElement.tagName, d.head, d.body, d.childNodes.length, d instanceof Document, H(xs.serializeToString(d)), s.documentElement.tagName, H(xs.serializeToString(s)));\n}\n\u003c/script\u003e\n\u003c/div\u003e\n\u003c/li\u003e\n\u003c/ul\u003e\n\u003cmeta itemprop=\"@id\" content=\"https://schema.host/ujzii55g\"\u003e\u003cmeta itemprop=\"path\" content=\"/Schemahttps://schema.host/ujzii55g.html\"\u003e\u003c/div\u003e\n\n                \u003cdiv style=\"\n                            position: fixed;\n                            bottom: 0;\n                            left: 0;\n                            right: 0;\n                            padding: 8px;\n                            background: #f0f0f0;\n                            text-align: center;\n                            font-size: 12px;\n                            color: #666;\n                            z-index: 9999;\n                            opacity: 0.8;\n                            border-top: 1px solid #ddd;\n                        \"\u003e\n                    Powered by\n                    \u003ca href=\"https://pagelove.com/\" style=\"color: #4a90d9; text-decoration: none\"\u003ePagelove\u003c/a\u003e\n                \u003c/div\u003e\n            \u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 2 (GET \u003cmain\u003e: the method result is inserted as text)",
+      "method": "GET",
+      "path": "/_pl/javascript-dom-domparser-ignores-type-656e12/probe.html",
+      "status": 206,
+      "headers": {
+        "content-length": "67",
+        "content-range": "selector main",
+        "content-type": "text/html",
+        "etag": "\"487c48256a31f64be8c7657864c45f815ad2e7934470d7d22d4825d38a8ae830-487c48256a31f64be8c7657864c45f815ad2e7934470d7d22d4825d38a8ae830-1\"",
+        "vary": "Host, Range, Accept"
+      },
+      "body": "\u003cmain\u003e\nR:P|null|null|1|true|[p]x[/p]|SVG|[svg][g][/g][/svg]\n\u003c/main\u003e"
+    }
+  ],
+  "outcome": "pass",
+  "target": "live"
+}

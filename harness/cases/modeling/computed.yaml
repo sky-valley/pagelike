@@ -1,0 +1,350 @@
+# Modeling: computed properties (@computed and the legacy bare-Sessel @read form).
+# Spec: docs/spec/modeling.md §10 (R-MOD-44).
+cases:
+  - id: modeling.computed.write-rejected
+    title: "Writing a value to a @computed property is accepted and stored (the id predates the live answer)"
+    area: modeling
+    feature: "computed properties"
+    evidence: live-observed
+    source: "harness/observations/live-2026-09-29/modeling-computed-write-rejected.json; harness/observations/live-2026-09-29-reconcile-modeling/modeling-probe-0929-computed-value.json (the value is validated like any other). Documented as rejected: docs reference/modeling-data/Property §Computed properties (snapshot 2026-09-28)"
+    confidence: high
+    requires: [sessel]
+    live: true
+    notes: "spec: R-MOD-44. Adopt-live 2026-09-29: PageLove stores the written value and checks it against the property's type and cardinality; pagelike's former 422 check=computed is gone."
+    site:
+      settings:
+        default_get: allow
+      rules:
+        - actor: "*"
+          resource: "${P}/*"
+          method: [GET, HEAD, PUT, POST, DELETE, MOVE]
+          action: Allow
+        - actor: "*"
+          resource: "${P}/*/*"
+          method: [GET, HEAD, PUT, POST, DELETE, MOVE]
+          action: Allow
+    steps:
+      - name: "register declarations through the public plane (takes effect for the next request)"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/schema.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div hidden itemscope itemtype="https://pagelove.org/Schema">
+                <meta itemprop="type" content="https://pagelike.test${P}/Person">
+                <div itemprop="property" itemscope itemtype="https://pagelove.org/Property">
+                  <meta itemprop="name" content="first-name">
+                  <meta itemprop="type" content="https://schema.host/Text">
+                  <meta itemprop="cardinality" content="1..1">
+                </div>
+                <div itemprop="property" itemscope itemtype="https://pagelove.org/Property">
+                  <meta itemprop="name" content="last-name">
+                  <meta itemprop="type" content="https://schema.host/Text">
+                  <meta itemprop="cardinality" content="1..1">
+                </div>
+                <div itemprop="property" itemscope itemtype="https://pagelove.org/Property">
+                  <meta itemprop="name" content="display-name">
+                  <div itemprop="@computed" itemscope itemtype="https://pagelove.org/Sessel">
+                    <script itemprop="source" type="text/sessel">self.first-name + " " + self.last-name</script>
+                  </div>
+                </div>
+              </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "person without display-name accepted"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/a.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div itemscope itemtype="https://pagelike.test${P}/Person">
+                <meta itemprop="first-name" content="Ada">
+                <meta itemprop="last-name" content="Lovelace">
+              </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "person carrying a display-name value accepted"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/b.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div itemscope itemtype="https://pagelike.test${P}/Person">
+                <meta itemprop="first-name" content="Ada">
+                <meta itemprop="last-name" content="Lovelace">
+                <meta itemprop="display-name" content="Countess">
+              </div>
+            </body></html>
+        expect:
+          status: 201
+      - name: "b.html was stored with the written value"
+        as: author
+        plane: dav
+        request:
+          method: GET
+          path: "${P}/b.html"
+        expect:
+          status: 200
+          body_contains: ["<meta itemprop=\"display-name\" content=\"Countess\">"]
+  - id: modeling.computed.legacy-bare-sessel-read-is-computed
+    title: "An @read slot typed as the bare https://pagelove.org/Sessel item is a computed property"
+    area: modeling
+    feature: "computed properties"
+    evidence: documented
+    source: "docs reference/modeling-data/Property §Legacy syntax: @read wrapped in bare Sessel (snapshot 2026-09-28)"
+    confidence: medium
+    requires: [sessel]
+    live: true
+    notes: "spec: R-MOD-44. Since live 2026-09-29 a written value is accepted for computed properties (modeling.computed.write-rejected), so this case only checks that the legacy form does not refuse writes either."
+    site:
+      settings:
+        default_get: allow
+      rules:
+        - actor: "*"
+          resource: "${P}/*"
+          method: [GET, HEAD, PUT, POST, DELETE, MOVE]
+          action: Allow
+        - actor: "*"
+          resource: "${P}/*/*"
+          method: [GET, HEAD, PUT, POST, DELETE, MOVE]
+          action: Allow
+    steps:
+      - name: "register declarations through the public plane (takes effect for the next request)"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/schema.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div hidden itemscope itemtype="https://pagelove.org/Schema">
+                <meta itemprop="type" content="https://pagelike.test${P}/Person">
+                <div itemprop="property" itemscope itemtype="https://pagelove.org/Property">
+                  <meta itemprop="name" content="first-name">
+                  <meta itemprop="type" content="https://schema.host/Text">
+                  <meta itemprop="cardinality" content="1..1">
+                </div>
+                <div itemprop="property" itemscope itemtype="https://pagelove.org/Property">
+                  <meta itemprop="name" content="last-name">
+                  <meta itemprop="type" content="https://schema.host/Text">
+                  <meta itemprop="cardinality" content="1..1">
+                </div>
+                <div itemprop="property" itemscope itemtype="https://pagelove.org/Property">
+                  <meta itemprop="name" content="display-name">
+                  <div itemprop="@read" itemscope itemtype="https://pagelove.org/Sessel">
+                    <script itemprop="source" type="text/sessel">self.first-name + " " + self.last-name</script>
+                  </div>
+                </div>
+              </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "person carrying a display-name value accepted (as for @computed, live 2026-09-29)"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/b.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div itemscope itemtype="https://pagelike.test${P}/Person">
+                <meta itemprop="first-name" content="Ada">
+                <meta itemprop="last-name" content="Lovelace">
+                <meta itemprop="display-name" content="Countess">
+              </div>
+            </body></html>
+        expect:
+          status: [200, 201]
+  - id: modeling.computed.typed-read-via-query
+    title: "A computed property is calculated on typed reads (Sessel QUERY)"
+    area: modeling
+    feature: "computed properties"
+    evidence: documented
+    source: "docs reference/modeling-data/Property §Computed properties (snapshot 2026-09-28)"
+    confidence: medium
+    requires: [sessel, multi-actor]
+    live: false
+    notes: "spec: R-MOD-44. The live probe showed Sessel QUERY requires authentication (read-probes.json query-sessel returned 401); a Sessel QUERY also needs an explicit QUERY grant (R-PROTO-74), so the rules grant QUERY on the prefix."
+    site:
+      settings:
+        default_get: allow
+      rules:
+        - actor: "*"
+          resource: "${P}/*"
+          method: [GET, HEAD, PUT, POST, DELETE, MOVE]
+          action: Allow
+        - actor: alice
+          resource: "${P}/*"
+          method: [QUERY]
+          action: Allow
+        - actor: "*"
+          resource: "${P}/*/*"
+          method: [GET, HEAD, PUT, POST, DELETE, MOVE]
+          action: Allow
+    actors:
+      alice:
+        sub: alice
+        email: "alice@example.com"
+        email_verified: true
+        roles: []
+    steps:
+      - name: "register declarations through the public plane (takes effect for the next request)"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/schema.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div hidden itemscope itemtype="https://pagelove.org/Schema">
+                <meta itemprop="type" content="https://pagelike.test${P}/Person">
+                <div itemprop="property" itemscope itemtype="https://pagelove.org/Property">
+                  <meta itemprop="name" content="first-name">
+                  <meta itemprop="type" content="https://schema.host/Text">
+                  <meta itemprop="cardinality" content="1..1">
+                </div>
+                <div itemprop="property" itemscope itemtype="https://pagelove.org/Property">
+                  <meta itemprop="name" content="last-name">
+                  <meta itemprop="type" content="https://schema.host/Text">
+                  <meta itemprop="cardinality" content="1..1">
+                </div>
+                <div itemprop="property" itemscope itemtype="https://pagelove.org/Property">
+                  <meta itemprop="name" content="display-name">
+                  <div itemprop="@computed" itemscope itemtype="https://pagelove.org/Sessel">
+                    <script itemprop="source" type="text/sessel">self.first-name + " " + self.last-name</script>
+                  </div>
+                </div>
+              </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "store a person"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/a.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div itemscope itemtype="https://pagelike.test${P}/Person">
+                <meta itemprop="first-name" content="Ada">
+                <meta itemprop="last-name" content="Lovelace">
+              </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "evaluate the computed property"
+        as: alice
+        request:
+          method: QUERY
+          path: "${P}/a.html"
+          headers:
+            Content-Type: text/sessel
+          body: |
+            @schema Person url("https://pagelike.test${P}/Person");
+            Person.search().first().display-name
+        expect:
+          status: [200, 206]
+          body_contains: ["Ada Lovelace"]
+  - id: modeling.computed.not-materialized-in-html
+    title: "Computed values are not injected into the raw HTML representation"
+    area: modeling
+    feature: "computed properties"
+    evidence: inferred
+    source: "pagelike decision (docs/spec/modeling.md R-MOD-44)"
+    confidence: low
+    requires: [sessel]
+    live: true
+    notes: "spec: R-MOD-44. Probe P-MOD-24."
+    site:
+      settings:
+        default_get: allow
+      rules:
+        - actor: "*"
+          resource: "${P}/*"
+          method: [GET, HEAD, PUT, POST, DELETE, MOVE]
+          action: Allow
+        - actor: "*"
+          resource: "${P}/*/*"
+          method: [GET, HEAD, PUT, POST, DELETE, MOVE]
+          action: Allow
+    steps:
+      - name: "register declarations through the public plane (takes effect for the next request)"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/schema.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div hidden itemscope itemtype="https://pagelove.org/Schema">
+                <meta itemprop="type" content="https://pagelike.test${P}/Person">
+                <div itemprop="property" itemscope itemtype="https://pagelove.org/Property">
+                  <meta itemprop="name" content="first-name">
+                  <meta itemprop="type" content="https://schema.host/Text">
+                  <meta itemprop="cardinality" content="1..1">
+                </div>
+                <div itemprop="property" itemscope itemtype="https://pagelove.org/Property">
+                  <meta itemprop="name" content="last-name">
+                  <meta itemprop="type" content="https://schema.host/Text">
+                  <meta itemprop="cardinality" content="1..1">
+                </div>
+                <div itemprop="property" itemscope itemtype="https://pagelove.org/Property">
+                  <meta itemprop="name" content="display-name">
+                  <div itemprop="@computed" itemscope itemtype="https://pagelove.org/Sessel">
+                    <script itemprop="source" type="text/sessel">self.first-name + " " + self.last-name</script>
+                  </div>
+                </div>
+              </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "store a person"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/a.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div itemscope itemtype="https://pagelike.test${P}/Person">
+                <meta itemprop="first-name" content="Ada">
+                <meta itemprop="last-name" content="Lovelace">
+              </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "GET the document"
+        as: anonymous
+        request:
+          method: GET
+          path: "${P}/a.html"
+        expect:
+          status: 200
+          body_not_contains: ["Ada Lovelace"]

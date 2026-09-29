@@ -1,0 +1,96 @@
+{
+  "case": "rw.cond.delete-if-match",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (read)",
+      "method": "GET",
+      "path": "/_pl/rw-cond-delete-if-match-f170ba/del.html",
+      "status": 200,
+      "headers": {
+        "content-type": "text/html",
+        "etag": "\"066d4a00a76bd0b622d4bb6ebe94dade357559c3414bfa82bbe10ef5479edcfd\"",
+        "last-modified": "Mon, 28 Sep 2026 22:25:41 GMT",
+        "vary": "Host, Range, Accept"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\u003cp\u003ev1\u003c/p\u003e\n                \u003cdiv style=\"\n                            position: fixed;\n                            bottom: 0;\n                            left: 0;\n                            right: 0;\n                            padding: 8px;\n                            background: #f0f0f0;\n                            text-align: center;\n                            font-size: 12px;\n                            color: #666;\n                            z-index: 9999;\n                            opacity: 0.8;\n                            border-top: 1px solid #ddd;\n                        \"\u003e\n                    Powered by\n                    \u003ca href=\"https://pagelove.com/\" style=\"color: #4a90d9; text-decoration: none\"\u003ePagelove\u003c/a\u003e\n                \u003c/div\u003e\n            \u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 2 (someone else edits)",
+      "method": "PUT",
+      "path": "/_pl/rw-cond-delete-if-match-f170ba/del.html",
+      "status": 200,
+      "headers": {
+        "content-type": "text/html",
+        "etag": "\"79c3cd4a20d1067a70a2f2bb476ba49fde1958456fe65a294ce5b441211b5a5c\"",
+        "last-modified": "Mon, 28 Sep 2026 22:25:42 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\u003cp\u003ev2\u003c/p\u003e\n                \u003cdiv style=\"\n                            position: fixed;\n                            bottom: 0;\n                            left: 0;\n                            right: 0;\n                            padding: 8px;\n                            background: #f0f0f0;\n                            text-align: center;\n                            font-size: 12px;\n                            color: #666;\n                            z-index: 9999;\n                            opacity: 0.8;\n                            border-top: 1px solid #ddd;\n                        \"\u003e\n                    Powered by\n                    \u003ca href=\"https://pagelove.com/\" style=\"color: #4a90d9; text-decoration: none\"\u003ePagelove\u003c/a\u003e\n                \u003c/div\u003e\n            \u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 3 (current tag)",
+      "method": "GET",
+      "path": "/_pl/rw-cond-delete-if-match-f170ba/del.html",
+      "status": 200,
+      "headers": {
+        "content-type": "text/html",
+        "etag": "\"79c3cd4a20d1067a70a2f2bb476ba49fde1958456fe65a294ce5b441211b5a5c\"",
+        "last-modified": "Mon, 28 Sep 2026 22:25:42 GMT",
+        "vary": "Host, Range, Accept"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\u003cp\u003ev2\u003c/p\u003e\n                \u003cdiv style=\"\n                            position: fixed;\n                            bottom: 0;\n                            left: 0;\n                            right: 0;\n                            padding: 8px;\n                            background: #f0f0f0;\n                            text-align: center;\n                            font-size: 12px;\n                            color: #666;\n                            z-index: 9999;\n                            opacity: 0.8;\n                            border-top: 1px solid #ddd;\n                        \"\u003e\n                    Powered by\n                    \u003ca href=\"https://pagelove.com/\" style=\"color: #4a90d9; text-decoration: none\"\u003ePagelove\u003c/a\u003e\n                \u003c/div\u003e\n            \u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 4 (stale delete refused)",
+      "method": "DELETE",
+      "path": "/_pl/rw-cond-delete-if-match-f170ba/del.html",
+      "status": 412,
+      "headers": {
+        "content-length": "172",
+        "content-type": "text/html",
+        "etag": "\"79c3cd4a20d1067a70a2f2bb476ba49fde1958456fe65a294ce5b441211b5a5c\"",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\u003cdiv itemscope itemtype=\"http://pagelove.org/Error\"\u003e\u003cspan itemprop=\"message\"\u003ePrecondition Failed: ETag does not match\u003c/span\u003e\u003c/div\u003e\u003c/body\u003e\u003c/html\u003e"
+    },
+    {
+      "step": "step 5 (still there)",
+      "method": "GET",
+      "path": "/_pl/rw-cond-delete-if-match-f170ba/del.html",
+      "status": 200,
+      "headers": {
+        "content-type": "text/html",
+        "etag": "\"79c3cd4a20d1067a70a2f2bb476ba49fde1958456fe65a294ce5b441211b5a5c\"",
+        "last-modified": "Mon, 28 Sep 2026 22:25:42 GMT",
+        "vary": "Host, Range, Accept"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\u003cp\u003ev2\u003c/p\u003e\n                \u003cdiv style=\"\n                            position: fixed;\n                            bottom: 0;\n                            left: 0;\n                            right: 0;\n                            padding: 8px;\n                            background: #f0f0f0;\n                            text-align: center;\n                            font-size: 12px;\n                            color: #666;\n                            z-index: 9999;\n                            opacity: 0.8;\n                            border-top: 1px solid #ddd;\n                        \"\u003e\n                    Powered by\n                    \u003ca href=\"https://pagelove.com/\" style=\"color: #4a90d9; text-decoration: none\"\u003ePagelove\u003c/a\u003e\n                \u003c/div\u003e\n            \u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 6 (current delete succeeds)",
+      "method": "DELETE",
+      "path": "/_pl/rw-cond-delete-if-match-f170ba/del.html",
+      "status": 204,
+      "headers": {
+        "etag": "\"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855\"",
+        "last-modified": "Mon, 28 Sep 2026 22:25:44 GMT",
+        "vary": "Host, Range"
+      }
+    },
+    {
+      "step": "step 7 (gone)",
+      "method": "GET",
+      "path": "/_pl/rw-cond-delete-if-match-f170ba/del.html",
+      "status": 404,
+      "headers": {
+        "content-length": "341",
+        "content-type": "text/html",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\n  \u003chead\u003e\n    \u003ctitle\u003e404 Not Found - Error\u003c/title\u003e\n  \u003c/head\u003e\n  \u003cbody itemscope itemtype=\"http://pagelove.org/Error\"\u003e\n    \u003ch1 itemprop=\"name\"\u003eNot Found\u003c/h1\u003e\n    \u003cmeta itemprop=\"statusCode\" content=\"404\"\u003e\n    \u003cp itemprop=\"description\"\u003eDocument not found: /_pl/rw-cond-delete-if-match-f170ba/del.html\u003c/p\u003e\n  \u003c/body\u003e\n\u003c/html\u003e"
+    }
+  ],
+  "outcome": "pass",
+  "target": "live"
+}

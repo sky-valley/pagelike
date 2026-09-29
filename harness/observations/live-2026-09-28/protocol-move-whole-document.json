@@ -1,0 +1,44 @@
+{
+  "case": "protocol.move.whole-document",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (move a to b)",
+      "method": "MOVE",
+      "path": "/_pl/protocol-move-whole-document-25ae9a/a.html",
+      "status": 204,
+      "headers": {
+        "etag": "\"2813a93918ced2ec67e5c148aa6eab0eef998af885bc4231bb2cb197ee7f7847\"",
+        "last-modified": "Mon, 28 Sep 2026 22:30:58 GMT",
+        "vary": "Host, Range"
+      }
+    },
+    {
+      "step": "step 2 (source is gone)",
+      "method": "GET",
+      "path": "/_pl/protocol-move-whole-document-25ae9a/a.html",
+      "status": 404,
+      "headers": {
+        "content-length": "344",
+        "content-type": "text/html",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\n  \u003chead\u003e\n    \u003ctitle\u003e404 Not Found - Error\u003c/title\u003e\n  \u003c/head\u003e\n  \u003cbody itemscope itemtype=\"http://pagelove.org/Error\"\u003e\n    \u003ch1 itemprop=\"name\"\u003eNot Found\u003c/h1\u003e\n    \u003cmeta itemprop=\"statusCode\" content=\"404\"\u003e\n    \u003cp itemprop=\"description\"\u003eDocument not found: /_pl/protocol-move-whole-document-25ae9a/a.html\u003c/p\u003e\n  \u003c/body\u003e\n\u003c/html\u003e"
+    },
+    {
+      "step": "step 3 (destination has the content)",
+      "method": "GET",
+      "path": "/_pl/protocol-move-whole-document-25ae9a/b.html",
+      "status": 200,
+      "headers": {
+        "content-type": "text/html",
+        "etag": "\"2813a93918ced2ec67e5c148aa6eab0eef998af885bc4231bb2cb197ee7f7847\"",
+        "last-modified": "Mon, 28 Sep 2026 22:30:58 GMT",
+        "vary": "Host, Range, Accept"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\u003ch1\u003eRelocated document\u003c/h1\u003e\n                \u003cdiv style=\"\n                            position: fixed;\n                            bottom: 0;\n                            left: 0;\n                            right: 0;\n                            padding: 8px;\n                            background: #f0f0f0;\n                            text-align: center;\n                            font-size: 12px;\n                            color: #666;\n                            z-index: 9999;\n                            opacity: 0.8;\n                            border-top: 1px solid #ddd;\n                        \"\u003e\n                    Powered by\n                    \u003ca href=\"https://pagelove.com/\" style=\"color: #4a90d9; text-decoration: none\"\u003ePagelove\u003c/a\u003e\n                \u003c/div\u003e\n            \u003c/body\u003e\u003c/html\u003e\n"
+    }
+  ],
+  "outcome": "pass",
+  "target": "live"
+}

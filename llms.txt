@@ -1,0 +1,23 @@
+# pagelike
+
+> pagelike is an open-source (Apache-2.0), self-hostable Go server compatible with PageLove (https://pagelove.com). HTML documents are both the application and its database. CSS selectors address elements (`Range: selector=#id`), and HTTP GET/PUT/POST/DELETE/MOVE read and write them. Server-sent events stream every change. Permissions, schemas, templates and reactions are declared as microdata inside the documents. It is an independent reimplementation, not affiliated with PageLove, and it contains no PageLove code.
+
+Key facts:
+- Single static binary (`pagelike serve`); each site is a SQLite database plus blobs; sites are routed by host name (`<site>.<domain>`, authoring at `dav-<site>.<domain>`).
+- Compatibility is measured with a differential harness: 1,426 cases, all local cases pass; 603 were run against live PageLove, 578 match and 25 differ on purpose. See docs/compat/report.md.
+- Supports Liquid, Sessel and sandboxed server JavaScript (QuickJS), AuthorizationRule, schemas and shape constraints, triggers, WebDAV authoring, OpenID Connect and local accounts.
+
+## Docs
+- [README](https://github.com/sky-valley/pagelike/blob/main/README.md): install, quick start, self-hosting, identity
+- [Compatibility report](https://github.com/sky-valley/pagelike/blob/main/docs/compat/report.md): what matches PageLove, deliberate differences, gaps, performance
+- [Compatibility matrix](https://github.com/sky-valley/pagelike/blob/main/docs/compat/matrix.md): per-feature results
+- [Live observations](https://github.com/sky-valley/pagelike/blob/main/docs/compat/live-observations.md): PageLove behaviour observed on live hosts
+- [Specification](https://github.com/sky-valley/pagelike/tree/main/docs/spec): requirements by area with evidence levels
+- [Design](https://github.com/sky-valley/pagelike/blob/main/docs/design.md) and [architecture](https://github.com/sky-valley/pagelike/blob/main/docs/architecture.md)
+
+## Examples
+- [examples/](https://github.com/sky-valley/pagelike/tree/main/examples): participation experiences (photo sharing with ownership, a poll, a board with a state machine), iframe embedding and remix
+
+## Optional
+- [Harness](https://github.com/sky-valley/pagelike/tree/main/harness): the YAML compatibility cases and runner
+- [Releases](https://github.com/sky-valley/pagelike/releases): binaries for Linux, macOS and Windows

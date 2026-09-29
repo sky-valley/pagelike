@@ -1,0 +1,38 @@
+{
+  "case": "authz.group.multiple-documents-same-name-union",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (member of the first item)",
+      "method": "PUT",
+      "path": "/_pl/authz-group-multiple-documents-same-name-38a06a/doc.html",
+      "status": 206,
+      "headers": {
+        "content-length": "10",
+        "content-range": "selector h1",
+        "content-type": "text/html",
+        "etag": "\"af90603dd63fdeb4201ae05894179707af24ba30c5b3e4ef70cb20a17c740999-af90603dd63fdeb4201ae05894179707af24ba30c5b3e4ef70cb20a17c740999-2\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:47 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003ch1\u003eA\u003c/h1\u003e"
+    },
+    {
+      "step": "step 2 (member of the second item)",
+      "method": "PUT",
+      "path": "/_pl/authz-group-multiple-documents-same-name-38a06a/doc.html",
+      "status": 206,
+      "headers": {
+        "content-length": "10",
+        "content-range": "selector h1",
+        "content-type": "text/html",
+        "etag": "\"0e3ab556a09b50a60589ff4d86bb2f9986936aab4c0a32b561633f9a5c1afaef-0e3ab556a09b50a60589ff4d86bb2f9986936aab4c0a32b561633f9a5c1afaef-3\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:47 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003ch1\u003eB\u003c/h1\u003e"
+    }
+  ],
+  "outcome": "pass",
+  "target": "local"
+}

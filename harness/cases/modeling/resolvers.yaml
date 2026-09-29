@@ -1,0 +1,1189 @@
+# Modeling: @write and @read resolvers (property pipelines), their chain order and errors.
+# Spec: docs/spec/modeling.md §12 (R-MOD-49..R-MOD-53).
+cases:
+  - id: modeling.resolvers.sessel-write-normalise-email
+    title: "A Sessel @write trims and lowercases before storage (docs example, in the form PageLove runs)"
+    area: modeling
+    feature: resolvers
+    evidence: live-observed
+    source: "docs reference/modeling-data/Resolvers §Examples (snapshot 2026-09-28); harness/observations/live-2026-09-29/modeling-resolvers-sessel-write-normalis.json (the documented el.set_text(...) fails: 500 'unknown function: set_text'); harness/observations/live-2026-09-29-reconcile-modeling/modeling-probe-0929-resolver-forms.json (form C, a constructed element with .lower(), works)"
+    confidence: high
+    requires: [sessel]
+    live: true
+    notes: "spec: R-MOD-49. Harness artifact 2026-09-29: the docs example calls set_text and lowercase(), which PageLove does not have, and the .text(x) setter refuses stored elements ('requires a constructed element'). The case now builds a new element, as the slug recipe does. pagelike still accepts the documented forms (modeling.probe-0929.resolver-forms, deferred to the Sessel area)."
+    site:
+      settings:
+        default_get: allow
+      rules:
+        - actor: "*"
+          resource: "${P}/*"
+          method: [GET, HEAD, PUT, POST, DELETE, MOVE]
+          action: Allow
+        - actor: "*"
+          resource: "${P}/*/*"
+          method: [GET, HEAD, PUT, POST, DELETE, MOVE]
+          action: Allow
+    steps:
+      - name: "register declarations through the public plane (takes effect for the next request)"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/schema.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div hidden itemscope itemtype="https://pagelove.org/Schema">
+                <meta itemprop="type" content="https://pagelike.test${P}/Account">
+                <div itemprop="property" itemscope itemtype="https://pagelove.org/Property">
+                  <meta itemprop="name" content="email">
+                  <meta itemprop="type" content="https://schema.host/Text">
+                  <meta itemprop="cardinality" content="1..1">
+                  <div itemprop="@write" itemscope itemtype="https://pagelove.org/Sessel">
+                    <script itemprop="source" type="text/sessel">self.map((el) => new span[itemprop="email"] { el.text().trim().lower() })</script>
+                  </div>
+                </div>
+              </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "submit a messy email"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/a.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div itemscope itemtype="https://pagelike.test${P}/Account">
+                <span itemprop="email"> Alice@Example.COM </span>
+              </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "stored state of a.html (authoring plane, raw)"
+        as: author
+        plane: dav
+        request:
+          method: GET
+          path: "${P}/a.html"
+        expect:
+          status: 200
+          body_contains: ["alice@example.com"]
+          body_not_contains: ["Alice@Example.COM"]
+  - id: modeling.resolvers.js-write-trim-lower
+    title: "A JavaScript @write returns the transformed value"
+    area: modeling
+    feature: resolvers
+    evidence: documented
+    source: "docs reference/modeling-data/Resolvers §Shape (snapshot 2026-09-28); docs languages/javascript/server/javascript-in-schemas §Examples (snapshot 2026-09-28)"
+    confidence: high
+    requires: [server-js]
+    live: true
+    notes: "spec: R-MOD-49."
+    site:
+      settings:
+        default_get: allow
+      rules:
+        - actor: "*"
+          resource: "${P}/*"
+          method: [GET, HEAD, PUT, POST, DELETE, MOVE]
+          action: Allow
+        - actor: "*"
+          resource: "${P}/*/*"
+          method: [GET, HEAD, PUT, POST, DELETE, MOVE]
+          action: Allow
+    steps:
+      - name: "register declarations through the public plane (takes effect for the next request)"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/schema.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div hidden itemscope itemtype="https://pagelove.org/Schema">
+                <meta itemprop="type" content="https://pagelike.test${P}/Account">
+                <div itemprop="property" itemscope itemtype="https://pagelove.org/Property">
+                  <meta itemprop="name" content="email">
+                  <meta itemprop="type" content="https://schema.host/Text">
+                  <meta itemprop="cardinality" content="1..1">
+                  <div itemprop="@write" itemscope itemtype="https://pagelove.org/JavaScript/Module">
+                    <script itemprop="source" type="module">export default (val) => typeof val === 'string' ? val.trim().toLowerCase() : val;</script>
+                  </div>
+                </div>
+              </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "submit a messy email"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/a.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div itemscope itemtype="https://pagelike.test${P}/Account">
+                <meta itemprop="email" content=" Alice@Example.COM ">
+              </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "stored state of a.html (authoring plane, raw)"
+        as: author
+        plane: dav
+        request:
+          method: GET
+          path: "${P}/a.html"
+        expect:
+          status: 200
+          body_contains: ["content=\"alice@example.com\""]
+  - id: modeling.resolvers.recipe-slug-lowercase
+    title: "Recipe: @write replaces the slug meta with a lowercased one"
+    area: modeling
+    feature: resolvers
+    evidence: documented
+    source: "docs recipes/transforming-data §Lowercasing a slug on write (snapshot 2026-09-28)"
+    confidence: high
+    requires: [sessel]
+    live: true
+    notes: "spec: R-MOD-49."
+    site:
+      settings:
+        default_get: allow
+      rules:
+        - actor: "*"
+          resource: "${P}/*"
+          method: [GET, HEAD, PUT, POST, DELETE, MOVE]
+          action: Allow
+        - actor: "*"
+          resource: "${P}/*/*"
+          method: [GET, HEAD, PUT, POST, DELETE, MOVE]
+          action: Allow
+    steps:
+      - name: "register declarations through the public plane (takes effect for the next request)"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/schema.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div hidden itemscope itemtype="https://pagelove.org/Schema">
+                <meta itemprop="type" content="https://pagelike.test${P}/Project">
+                <li itemprop="property" itemscope itemtype="https://pagelove.org/Property">
+                  <meta itemprop="name" content="slug">
+                  <meta itemprop="type" content="https://schema.host/Text">
+                  <meta itemprop="cardinality" content="1..1">
+                  <script type="text/sessel" itemprop="@write">
+                    self.map((el) => {
+                      let normalized = el.value().lowercase();
+                      new meta[itemprop="slug"][content=normalized] {}
+                    })
+                  </script>
+                </li>
+              </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "PUT My-Project"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/p.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div itemscope itemtype="https://pagelike.test${P}/Project">
+                <meta itemprop="slug" content="My-Project">
+              </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "stored state of p.html (authoring plane, raw)"
+        as: author
+        plane: dav
+        request:
+          method: GET
+          path: "${P}/p.html"
+        expect:
+          status: 200
+          body_contains: [my-project]
+          body_not_contains: [My-Project]
+      - name: "public GET returns the lowercase form"
+        as: anonymous
+        request:
+          method: GET
+          path: "${P}/p.html"
+        expect:
+          status: 200
+          body_contains: [my-project]
+          body_not_contains: [My-Project]
+  - id: modeling.resolvers.write-runs-before-validation
+    title: "Validation sees the @write output"
+    area: modeling
+    feature: resolvers
+    evidence: documented
+    source: "docs reference/modeling-data/Resolvers §When each hook runs (snapshot 2026-09-28)"
+    confidence: high
+    requires: [sessel]
+    live: true
+    notes: "spec: R-MOD-15, R-MOD-49."
+    site:
+      settings:
+        default_get: allow
+      rules:
+        - actor: "*"
+          resource: "${P}/*"
+          method: [GET, HEAD, PUT, POST, DELETE, MOVE]
+          action: Allow
+        - actor: "*"
+          resource: "${P}/*/*"
+          method: [GET, HEAD, PUT, POST, DELETE, MOVE]
+          action: Allow
+    steps:
+      - name: "register declarations through the public plane (takes effect for the next request)"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/schema.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div hidden itemscope itemtype="https://pagelove.org/Schema">
+                <meta itemprop="type" content="https://pagelike.test${P}/Flag">
+                <div itemprop="property" itemscope itemtype="https://pagelove.org/Property">
+                  <meta itemprop="name" content="on">
+                  <meta itemprop="type" content="https://schema.host/Boolean">
+                  <meta itemprop="cardinality" content="1..1">
+                  <div itemprop="@write" itemscope itemtype="https://pagelove.org/Sessel">
+                    <script itemprop="source" type="text/sessel">self.map((el) => el.set_text(el.text().lowercase()))</script>
+                  </div>
+                </div>
+              </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "TRUE is lowercased, then passes Boolean"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/f.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div itemscope itemtype="https://pagelike.test${P}/Flag">
+                <span itemprop="on">TRUE</span>
+              </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "stored state of f.html (authoring plane, raw)"
+        as: author
+        plane: dav
+        request:
+          method: GET
+          path: "${P}/f.html"
+        expect:
+          status: 200
+          body_contains: [">true<"]
+  - id: modeling.resolvers.js-read-uppercase
+    title: "A JavaScript @read transforms the value on public reads only"
+    area: modeling
+    feature: resolvers
+    evidence: documented
+    source: "docs reference/modeling-data/Resolvers §Examples (snapshot 2026-09-28); docs recipes/transforming-data §When to use this approach (snapshot 2026-09-28)"
+    confidence: medium
+    requires: [server-js]
+    live: true
+    notes: "spec: R-MOD-50. Returning raw bytes on the WebDAV plane is inferred (probe P-MOD-25)."
+    site:
+      settings:
+        default_get: allow
+      rules:
+        - actor: "*"
+          resource: "${P}/*"
+          method: [GET, HEAD, PUT, POST, DELETE, MOVE]
+          action: Allow
+        - actor: "*"
+          resource: "${P}/*/*"
+          method: [GET, HEAD, PUT, POST, DELETE, MOVE]
+          action: Allow
+    steps:
+      - name: "register declarations through the public plane (takes effect for the next request)"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/schema.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div hidden itemscope itemtype="https://pagelove.org/Schema">
+                <meta itemprop="type" content="https://pagelike.test${P}/Doc">
+                <div itemprop="property" itemscope itemtype="https://pagelove.org/Property">
+                  <meta itemprop="name" content="title">
+                  <meta itemprop="type" content="https://schema.host/Text">
+                  <meta itemprop="cardinality" content="1..1">
+                  <div itemprop="@read" itemscope itemtype="https://pagelove.org/JavaScript/Module">
+                    <script itemprop="source" type="module">export default (val) => typeof val === 'string' ? val.toUpperCase() : val;</script>
+                  </div>
+                </div>
+              </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "store a lowercase title"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/d.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div itemscope itemtype="https://pagelike.test${P}/Doc">
+                <span itemprop="title">hello</span>
+              </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "public GET shows the transformed value"
+        as: anonymous
+        request:
+          method: GET
+          path: "${P}/d.html"
+        expect:
+          status: 200
+          body_contains: [HELLO]
+      - name: "stored (authoring plane) value is unchanged"
+        as: author
+        plane: dav
+        request:
+          method: GET
+          path: "${P}/d.html"
+        expect:
+          status: 200
+          body_contains: [">hello<"]
+          body_not_contains: [HELLO]
+  - id: modeling.resolvers.recipe-date-format-read
+    title: "Recipe: @read formats a stored timestamp while keeping the datetime attribute"
+    area: modeling
+    feature: resolvers
+    evidence: documented
+    source: "docs recipes/transforming-data §Formatting a date on read (snapshot 2026-09-28)"
+    confidence: high
+    requires: [sessel]
+    live: true
+    notes: "spec: R-MOD-50."
+    site:
+      settings:
+        default_get: allow
+      rules:
+        - actor: "*"
+          resource: "${P}/*"
+          method: [GET, HEAD, PUT, POST, DELETE, MOVE]
+          action: Allow
+        - actor: "*"
+          resource: "${P}/*/*"
+          method: [GET, HEAD, PUT, POST, DELETE, MOVE]
+          action: Allow
+    steps:
+      - name: "register declarations through the public plane (takes effect for the next request)"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/schema.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div hidden itemscope itemtype="https://pagelove.org/Schema">
+                <meta itemprop="type" content="https://pagelike.test${P}/Entry">
+                <li itemprop="property" itemscope itemtype="https://pagelove.org/Property">
+                  <meta itemprop="name" content="createdAt">
+                  <meta itemprop="type" content="https://schema.host/DateTime">
+                  <meta itemprop="cardinality" content="1..1">
+                  <script type="text/sessel" itemprop="@read">
+                    self.map((el) => {
+                      let stamp = el.value().parseDateTime();
+                      new time[itemprop="createdAt"][datetime=el.value()] {
+                        stamp.format("d MMMM yyyy")
+                      }
+                    })
+                  </script>
+                </li>
+              </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "store a raw timestamp"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/e.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div itemscope itemtype="https://pagelike.test${P}/Entry">
+                <time itemprop="createdAt" datetime="2026-04-08T09:15:00Z"></time>
+              </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "public GET shows the formatted date"
+        as: anonymous
+        request:
+          method: GET
+          path: "${P}/e.html"
+        expect:
+          status: 200
+          body_contains: ["8 April 2026", "datetime=\"2026-04-08T09:15:00Z\""]
+      - name: "stored state of e.html (authoring plane, raw)"
+        as: author
+        plane: dav
+        request:
+          method: GET
+          path: "${P}/e.html"
+        expect:
+          status: 200
+          body_contains: ["datetime=\"2026-04-08T09:15:00Z\""]
+          body_not_contains: ["8 April 2026"]
+  - id: modeling.resolvers.chain-order
+    title: "@write runs child-first and @read runs ancestor-first across the inheritance chain"
+    area: modeling
+    feature: resolvers
+    evidence: documented
+    source: "docs reference/modeling-data/Resolvers §Inheritance ordering (snapshot 2026-09-28)"
+    confidence: high
+    requires: [sessel]
+    live: true
+    notes: "spec: R-MOD-11, R-MOD-51."
+    site:
+      settings:
+        default_get: allow
+      rules:
+        - actor: "*"
+          resource: "${P}/*"
+          method: [GET, HEAD, PUT, POST, DELETE, MOVE]
+          action: Allow
+        - actor: "*"
+          resource: "${P}/*/*"
+          method: [GET, HEAD, PUT, POST, DELETE, MOVE]
+          action: Allow
+    steps:
+      - name: "register declarations through the public plane (takes effect for the next request)"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/schema.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div hidden itemscope itemtype="https://pagelove.org/Schema">
+                <meta itemprop="type" content="https://pagelike.test${P}/Entity">
+                <div itemprop="property" itemscope itemtype="https://pagelove.org/Property">
+                  <meta itemprop="name" content="code">
+                  <meta itemprop="type" content="https://schema.host/Text">
+                  <meta itemprop="cardinality" content="1..1">
+                  <script type="text/sessel" itemprop="@write">self.map((el) => el.set_text(el.text() + "a"))</script>
+                  <script type="text/sessel" itemprop="@read">self.map((el) => el.set_text(el.text() + "1"))</script>
+                </div>
+              </div>
+              <div hidden itemscope itemtype="https://pagelove.org/Schema">
+                <meta itemprop="type" content="https://pagelike.test${P}/Person">
+                <meta itemprop="parent" content="https://pagelike.test${P}/Entity">
+                <div itemprop="property" itemscope itemtype="https://pagelove.org/Property">
+                  <meta itemprop="name" content="code">
+                  <meta itemprop="type" content="https://schema.host/Text">
+                  <meta itemprop="cardinality" content="1..1">
+                  <script type="text/sessel" itemprop="@write">self.map((el) => el.set_text(el.text() + "b"))</script>
+                  <script type="text/sessel" itemprop="@read">self.map((el) => el.set_text(el.text() + "2"))</script>
+                </div>
+              </div>
+              <div hidden itemscope itemtype="https://pagelove.org/Schema">
+                <meta itemprop="type" content="https://pagelike.test${P}/Employee">
+                <meta itemprop="parent" content="https://pagelike.test${P}/Person">
+                <div itemprop="property" itemscope itemtype="https://pagelove.org/Property">
+                  <meta itemprop="name" content="code">
+                  <meta itemprop="type" content="https://schema.host/Text">
+                  <meta itemprop="cardinality" content="1..1">
+                  <script type="text/sessel" itemprop="@write">self.map((el) => el.set_text(el.text() + "c"))</script>
+                  <script type="text/sessel" itemprop="@read">self.map((el) => el.set_text(el.text() + "3"))</script>
+                </div>
+              </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "store an Employee with code x"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/e.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div itemscope itemtype="https://pagelike.test${P}/Employee">
+                <span itemprop="code">x</span>
+              </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "stored state of e.html (authoring plane, raw)"
+        as: author
+        plane: dav
+        request:
+          method: GET
+          path: "${P}/e.html"
+        expect:
+          status: 200
+          body_contains: [">xcba<"]
+      - name: "public GET applies @read root to leaf"
+        as: anonymous
+        request:
+          method: GET
+          path: "${P}/e.html"
+        expect:
+          status: 200
+          body_contains: [">xcba123<"]
+  - id: modeling.resolvers.mixed-language-chain
+    title: "A parent's Sessel @read feeds a child's JavaScript @read"
+    area: modeling
+    feature: resolvers
+    evidence: documented
+    source: "docs reference/modeling-data/Resolvers §Mixed-language chaining (snapshot 2026-09-28)"
+    confidence: medium
+    requires: [sessel, server-js]
+    live: true
+    notes: "spec: R-MOD-51."
+    site:
+      settings:
+        default_get: allow
+      rules:
+        - actor: "*"
+          resource: "${P}/*"
+          method: [GET, HEAD, PUT, POST, DELETE, MOVE]
+          action: Allow
+        - actor: "*"
+          resource: "${P}/*/*"
+          method: [GET, HEAD, PUT, POST, DELETE, MOVE]
+          action: Allow
+    steps:
+      - name: "register declarations through the public plane (takes effect for the next request)"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/schema.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div hidden itemscope itemtype="https://pagelove.org/Schema">
+                <meta itemprop="type" content="https://pagelike.test${P}/Entity">
+                <div itemprop="property" itemscope itemtype="https://pagelove.org/Property">
+                  <meta itemprop="name" content="code">
+                  <meta itemprop="type" content="https://schema.host/Text">
+                  <meta itemprop="cardinality" content="1..1">
+                  <script type="text/sessel" itemprop="@read">self.map((el) => el.set_text(el.text() + "-s"))</script>
+                </div>
+              </div>
+              <div hidden itemscope itemtype="https://pagelove.org/Schema">
+                <meta itemprop="type" content="https://pagelike.test${P}/Person">
+                <meta itemprop="parent" content="https://pagelike.test${P}/Entity">
+                <div itemprop="property" itemscope itemtype="https://pagelove.org/Property">
+                  <meta itemprop="name" content="code">
+                  <meta itemprop="type" content="https://schema.host/Text">
+                  <meta itemprop="cardinality" content="1..1">
+                  <div itemprop="@read" itemscope itemtype="https://pagelove.org/JavaScript/Module">
+                    <script itemprop="source" type="module">export default (val) => typeof val === 'string' ? val + '-j' : val;</script>
+                  </div>
+                </div>
+              </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "store a Person with code x"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/p.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div itemscope itemtype="https://pagelike.test${P}/Person">
+                <span itemprop="code">x</span>
+              </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "public GET shows x-s-j"
+        as: anonymous
+        request:
+          method: GET
+          path: "${P}/p.html"
+        expect:
+          status: 200
+          body_contains: [x-s-j]
+  - id: modeling.resolvers.compile-failure-skips-step
+    title: "A resolver that fails to compile is skipped and the write proceeds"
+    area: modeling
+    feature: resolvers
+    evidence: documented
+    source: "docs reference/modeling-data/Resolvers §Error cases (snapshot 2026-09-28)"
+    confidence: high
+    requires: [sessel]
+    live: true
+    notes: "spec: R-MOD-48, R-MOD-52."
+    site:
+      settings:
+        default_get: allow
+      rules:
+        - actor: "*"
+          resource: "${P}/*"
+          method: [GET, HEAD, PUT, POST, DELETE, MOVE]
+          action: Allow
+        - actor: "*"
+          resource: "${P}/*/*"
+          method: [GET, HEAD, PUT, POST, DELETE, MOVE]
+          action: Allow
+    steps:
+      - name: "register declarations through the public plane (takes effect for the next request)"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/schema.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div hidden itemscope itemtype="https://pagelove.org/Schema">
+                <meta itemprop="type" content="https://pagelike.test${P}/Account">
+                <div itemprop="property" itemscope itemtype="https://pagelove.org/Property">
+                  <meta itemprop="name" content="email">
+                  <meta itemprop="type" content="https://schema.host/Text">
+                  <meta itemprop="cardinality" content="1..1">
+                  <script type="text/sessel" itemprop="@write">self.map((el) =></script>
+                </div>
+              </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "write accepted unchanged"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/a.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div itemscope itemtype="https://pagelike.test${P}/Account">
+                <span itemprop="email">Mixed@Case</span>
+              </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "stored state of a.html (authoring plane, raw)"
+        as: author
+        plane: dav
+        request:
+          method: GET
+          path: "${P}/a.html"
+        expect:
+          status: 200
+          body_contains: ["Mixed@Case"]
+  - id: modeling.resolvers.runtime-error-fails-write
+    title: "A @write that throws makes the write fail before storage"
+    area: modeling
+    feature: resolvers
+    evidence: documented
+    source: "docs reference/modeling-data/Resolvers §Error cases (snapshot 2026-09-28); docs languages/javascript/server/javascript-in-schemas §Explaining why a value was rejected (snapshot 2026-09-28)"
+    confidence: medium
+    requires: [server-js]
+    live: true
+    notes: "spec: R-MOD-52. JS docs call this an internal error; pagelike returns 500 (C17)."
+    site:
+      settings:
+        default_get: allow
+      rules:
+        - actor: "*"
+          resource: "${P}/*"
+          method: [GET, HEAD, PUT, POST, DELETE, MOVE]
+          action: Allow
+        - actor: "*"
+          resource: "${P}/*/*"
+          method: [GET, HEAD, PUT, POST, DELETE, MOVE]
+          action: Allow
+    steps:
+      - name: "register declarations through the public plane (takes effect for the next request)"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/schema.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div hidden itemscope itemtype="https://pagelove.org/Schema">
+                <meta itemprop="type" content="https://pagelike.test${P}/Account">
+                <div itemprop="property" itemscope itemtype="https://pagelove.org/Property">
+                  <meta itemprop="name" content="email">
+                  <meta itemprop="type" content="https://schema.host/Text">
+                  <meta itemprop="cardinality" content="1..1">
+                  <div itemprop="@write" itemscope itemtype="https://pagelove.org/JavaScript/Module">
+                    <script itemprop="source" type="module">export default () => { throw new Error("boom"); };</script>
+                  </div>
+                </div>
+              </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "write fails"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/a.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div itemscope itemtype="https://pagelike.test${P}/Account">
+                <meta itemprop="email" content="x@y">
+              </div>
+            </body></html>
+        expect:
+          status: [422, 500]
+      - name: "a.html was not stored"
+        as: author
+        plane: dav
+        request:
+          method: GET
+          path: "${P}/a.html"
+        expect:
+          status: 404
+  - id: modeling.resolvers.non-element-return-fails-write
+    title: "A Sessel @write returning a non-element makes the write fail"
+    area: modeling
+    feature: resolvers
+    evidence: documented
+    source: "docs reference/modeling-data/Resolvers §Error cases (snapshot 2026-09-28)"
+    confidence: medium
+    requires: [sessel]
+    live: true
+    notes: "spec: R-MOD-52."
+    site:
+      settings:
+        default_get: allow
+      rules:
+        - actor: "*"
+          resource: "${P}/*"
+          method: [GET, HEAD, PUT, POST, DELETE, MOVE]
+          action: Allow
+        - actor: "*"
+          resource: "${P}/*/*"
+          method: [GET, HEAD, PUT, POST, DELETE, MOVE]
+          action: Allow
+    steps:
+      - name: "register declarations through the public plane (takes effect for the next request)"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/schema.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div hidden itemscope itemtype="https://pagelove.org/Schema">
+                <meta itemprop="type" content="https://pagelike.test${P}/Account">
+                <div itemprop="property" itemscope itemtype="https://pagelove.org/Property">
+                  <meta itemprop="name" content="email">
+                  <meta itemprop="type" content="https://schema.host/Text">
+                  <meta itemprop="cardinality" content="1..1">
+                  <script type="text/sessel" itemprop="@write">"not an element"</script>
+                </div>
+              </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "write fails"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/a.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div itemscope itemtype="https://pagelike.test${P}/Account">
+                <meta itemprop="email" content="x@y">
+              </div>
+            </body></html>
+        expect:
+          status: [422, 500]
+      - name: "a.html was not stored"
+        as: author
+        plane: dav
+        request:
+          method: GET
+          path: "${P}/a.html"
+        expect:
+          status: 404
+  - id: modeling.resolvers.empty-list-removes-property
+    title: "A @write returning an empty list removes the property"
+    area: modeling
+    feature: resolvers
+    evidence: documented
+    source: "docs reference/modeling-data/Resolvers §Error cases (snapshot 2026-09-28)"
+    confidence: medium
+    requires: [sessel]
+    live: true
+    notes: "spec: R-MOD-49, R-MOD-52."
+    site:
+      settings:
+        default_get: allow
+      rules:
+        - actor: "*"
+          resource: "${P}/*"
+          method: [GET, HEAD, PUT, POST, DELETE, MOVE]
+          action: Allow
+        - actor: "*"
+          resource: "${P}/*/*"
+          method: [GET, HEAD, PUT, POST, DELETE, MOVE]
+          action: Allow
+    steps:
+      - name: "register declarations through the public plane (takes effect for the next request)"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/schema.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div hidden itemscope itemtype="https://pagelove.org/Schema">
+                <meta itemprop="type" content="https://pagelike.test${P}/Doc">
+                <div itemprop="property" itemscope itemtype="https://pagelove.org/Property">
+                  <meta itemprop="name" content="secret">
+                  <meta itemprop="type" content="https://schema.host/Text">
+                  <meta itemprop="cardinality" content="0..n">
+                  <script type="text/sessel" itemprop="@write">[]</script>
+                </div>
+              </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "write with a secret"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/d.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div itemscope itemtype="https://pagelike.test${P}/Doc">
+                <meta itemprop="secret" content="s3cret">
+                <p>body</p>
+              </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "stored state of d.html (authoring plane, raw)"
+        as: author
+        plane: dav
+        request:
+          method: GET
+          path: "${P}/d.html"
+        expect:
+          status: 200
+          body_contains: [body]
+          body_not_contains: [s3cret]
+  - id: modeling.resolvers.read-error-fails-get
+    title: "A @read that throws makes the GET fail; the stored document is intact"
+    area: modeling
+    feature: resolvers
+    evidence: documented
+    source: "docs reference/modeling-data/Resolvers §Error cases (snapshot 2026-09-28)"
+    confidence: medium
+    requires: [server-js]
+    live: true
+    notes: "spec: R-MOD-52. The status is undocumented ('the GET request fails'); pagelike returns 500."
+    site:
+      settings:
+        default_get: allow
+      rules:
+        - actor: "*"
+          resource: "${P}/*"
+          method: [GET, HEAD, PUT, POST, DELETE, MOVE]
+          action: Allow
+        - actor: "*"
+          resource: "${P}/*/*"
+          method: [GET, HEAD, PUT, POST, DELETE, MOVE]
+          action: Allow
+    steps:
+      - name: "register declarations through the public plane (takes effect for the next request)"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/schema.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div hidden itemscope itemtype="https://pagelove.org/Schema">
+                <meta itemprop="type" content="https://pagelike.test${P}/Doc">
+                <div itemprop="property" itemscope itemtype="https://pagelove.org/Property">
+                  <meta itemprop="name" content="title">
+                  <meta itemprop="type" content="https://schema.host/Text">
+                  <meta itemprop="cardinality" content="1..1">
+                  <div itemprop="@read" itemscope itemtype="https://pagelove.org/JavaScript/Module">
+                    <script itemprop="source" type="module">export default () => { throw new Error("read boom"); };</script>
+                  </div>
+                </div>
+              </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: store
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/d.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div itemscope itemtype="https://pagelike.test${P}/Doc">
+                <meta itemprop="title" content="t">
+              </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "public GET fails"
+        as: anonymous
+        request:
+          method: GET
+          path: "${P}/d.html"
+        expect:
+          status: 500
+      - name: "stored state of d.html (authoring plane, raw)"
+        as: author
+        plane: dav
+        request:
+          method: GET
+          path: "${P}/d.html"
+        expect:
+          status: 200
+          body_contains: ["content=\"t\""]
+  - id: modeling.resolvers.js-write-httpresponse-postcode
+    title: "A JS @write can refuse the write with a thrown HTTPResponse, or transform it (postcode example)"
+    area: modeling
+    feature: resolvers
+    evidence: documented
+    source: "docs languages/javascript/server/javascript-in-schemas §Explaining why a value was rejected (snapshot 2026-09-28)"
+    confidence: high
+    requires: [server-js]
+    live: true
+    notes: "spec: R-MOD-47, R-MOD-49."
+    site:
+      settings:
+        default_get: allow
+      rules:
+        - actor: "*"
+          resource: "${P}/*"
+          method: [GET, HEAD, PUT, POST, DELETE, MOVE]
+          action: Allow
+        - actor: "*"
+          resource: "${P}/*/*"
+          method: [GET, HEAD, PUT, POST, DELETE, MOVE]
+          action: Allow
+    steps:
+      - name: "register declarations through the public plane (takes effect for the next request)"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/schema.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div hidden itemscope itemtype="https://pagelove.org/Schema">
+                <meta itemprop="type" content="https://pagelike.test${P}/Address">
+                <div itemprop="property" itemscope itemtype="https://pagelove.org/Property">
+                  <meta itemprop="name" content="postcode">
+                  <meta itemprop="type" content="https://schema.host/Text">
+                  <meta itemprop="cardinality" content="1..1">
+                  <div itemprop="@write" itemscope itemtype="https://pagelove.org/JavaScript/Module">
+                    <script itemprop="source" type="module">export default function (value) {
+                        if (!/^[A-Z]{1,2}[0-9]/.test(value)) {
+                          throw { schema_url: "https://pagelove.org/HTTPResponse", status: 422, message: value + " is not a valid postcode" };
+                        }
+                        return value.toUpperCase();
+                      }</script>
+                  </div>
+                </div>
+              </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "valid prefix is uppercased"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/a.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div itemscope itemtype="https://pagelike.test${P}/Address">
+                <meta itemprop="postcode" content="SW1A 1aa">
+              </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "stored state of a.html (authoring plane, raw)"
+        as: author
+        plane: dav
+        request:
+          method: GET
+          path: "${P}/a.html"
+        expect:
+          status: 200
+          body_contains: ["content=\"SW1A 1AA\""]
+      - name: "invalid postcode refused with the thrown message"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/b.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div itemscope itemtype="https://pagelike.test${P}/Address">
+                <meta itemprop="postcode" content="zz">
+              </div>
+            </body></html>
+        expect:
+          status: 422
+          body_contains: ["zz is not a valid postcode"]
+      - name: "b.html was not stored"
+        as: author
+        plane: dav
+        request:
+          method: GET
+          path: "${P}/b.html"
+        expect:
+          status: 404
+  - id: modeling.resolvers.identity-bare-sessel-read
+    title: "Resolvers page claim: a bare-Sessel @read returning self is an identity transformer"
+    area: modeling
+    feature: resolvers
+    evidence: documented
+    source: "docs reference/modeling-data/Resolvers §Identity resolver (snapshot 2026-09-28)"
+    confidence: low
+    requires: [sessel]
+    live: true
+    status: disputed
+    notes: "spec: R-MOD-44. Contradiction C13: by the Property page's legacy rule, this form is a computed property (so the write is rejected)."
+    site:
+      settings:
+        default_get: allow
+      rules:
+        - actor: "*"
+          resource: "${P}/*"
+          method: [GET, HEAD, PUT, POST, DELETE, MOVE]
+          action: Allow
+        - actor: "*"
+          resource: "${P}/*/*"
+          method: [GET, HEAD, PUT, POST, DELETE, MOVE]
+          action: Allow
+    steps:
+      - name: "register declarations through the public plane (takes effect for the next request)"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/schema.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div hidden itemscope itemtype="https://pagelove.org/Schema">
+                <meta itemprop="type" content="https://pagelike.test${P}/Doc">
+                <div itemprop="property" itemscope itemtype="https://pagelove.org/Property">
+                  <meta itemprop="name" content="title">
+                  <meta itemprop="type" content="https://schema.host/Text">
+                  <meta itemprop="cardinality" content="1..1">
+                  <div itemprop="@read" itemscope itemtype="https://pagelove.org/Sessel">
+                    <script itemprop="source" type="text/sessel">self</script>
+                  </div>
+                </div>
+              </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "writing the property is accepted"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/d.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div itemscope itemtype="https://pagelike.test${P}/Doc">
+                <meta itemprop="title" content="t">
+              </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "value reads back unchanged"
+        as: anonymous
+        request:
+          method: GET
+          path: "${P}/d.html"
+        expect:
+          status: 200
+          body_contains: ["content=\"t\""]

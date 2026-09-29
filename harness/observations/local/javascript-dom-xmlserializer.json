@@ -1,0 +1,37 @@
+{
+  "case": "javascript.dom.xmlserializer",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (PUT the page (public plane; registers inline declarations))",
+      "method": "PUT",
+      "path": "/_pl/javascript-dom-xmlserializer-8df016/probe.html",
+      "status": 201,
+      "headers": {
+        "content-length": "1359",
+        "content-type": "text/html",
+        "etag": "\"99646b440cebd7949f0af9e0dbf397fd0fdd0579926600fb9b7e53143c089142\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:43 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml xmlns:t=\"https://pagelike.test/_pl/javascript-dom-xmlserializer-8df016/Dxmlserializer\"\u003e\u003cbody\u003e\n\u003cmain\u003e\n\u003ct:probe\u003e\u003c/t:probe\u003e\n\u003c/main\u003e\n\u003cdiv hidden itemscope itemtype=\"https://pagelove.org/Schema\"\u003e\n\u003cmeta itemprop=\"type\" content=\"https://pagelike.test/_pl/javascript-dom-xmlserializer-8df016/Dxmlserializer\"\u003e\n\u003cul\u003e\n\u003cli itemprop=\"property\" itemscope itemtype=\"https://pagelove.org/Method\"\u003e\n\u003cmeta itemprop=\"name\" content=\"probe\"\u003e\n\u003cdiv itemprop=\"implementation\" itemscope itemtype=\"https://pagelove.org/JavaScript/Module\"\u003e\n\u003cscript itemprop=\"source\" type=\"module\"\u003e\nconst S = (...a) =\u003e a.map(String).join('|');\nconst H = (x) =\u003e String(x).replace(/[\u003c\u003e\"]/g, (c) =\u003e ({ '\u003c': '[', '\u003e': ']', '\"': \"'\" })[c]);\nconst tryName = (f) =\u003e { try { f(); return 'ok'; } catch (e) { return e.name + ':' + e.code; } };\nexport default function () {\nconst d = new DOMParser().parseFromString('\u003c!DOCTYPE html\u003e\u003cp id=\"a\"\u003ex\u003c/p\u003e', 'text/html');\nconst xs = new XMLSerializer();\nconst f = d.createDocumentFragment(); f.appendChild(d.createElement('i')); f.appendChild(d.createTextNode('t'));\nreturn 'R:' + S(H(xs.serializeToString(d.querySelector('p'))), H(xs.serializeToString(f)), H(xs.serializeToString(d.createElement('br'))), xs.serializeToString(d).includes('html'), xs.serializeToString(d.createComment('c')).length);\n}\n\u003c/script\u003e\n\u003c/div\u003e\n\u003c/li\u003e\n\u003c/ul\u003e\n\u003c/div\u003e\n\u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 2 (GET \u003cmain\u003e: the method result is inserted as text)",
+      "method": "GET",
+      "path": "/_pl/javascript-dom-xmlserializer-8df016/probe.html",
+      "status": 206,
+      "headers": {
+        "accept-ranges": "selector, bytes",
+        "content-length": "53",
+        "content-range": "selector main",
+        "content-type": "text/html",
+        "etag": "\"374672d70fabe6db088475b91d37c0e7a59bc5a71a233a2b8ff468c84520509f-374672d70fabe6db088475b91d37c0e7a59bc5a71a233a2b8ff468c84520509f-1\"",
+        "vary": "Host, Range, Accept"
+      },
+      "body": "\u003cmain\u003e\nR:[p id='a']x[/p]|[i][/i]t|[br]|true|8\n\u003c/main\u003e"
+    }
+  ],
+  "outcome": "pass",
+  "target": "local"
+}

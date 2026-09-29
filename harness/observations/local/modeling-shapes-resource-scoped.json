@@ -1,0 +1,48 @@
+{
+  "case": "modeling.shapes.resource-scoped",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (register declarations through the public plane (takes effect for the next request))",
+      "method": "PUT",
+      "path": "/_pl/modeling-shapes-resource-scoped-5ceda4/shapes.html",
+      "status": 201,
+      "headers": {
+        "content-length": "407",
+        "content-type": "text/html",
+        "etag": "\"4a5392d378e657b5ef1ff1dbeab948582b92780ff4294a0e64a0ee6d6a3fd86b\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:45 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\n  \u003cdiv hidden itemscope itemtype=\"https://pagelove.org/ShapeConstraint\"\u003e\n    \u003cmeta itemprop=\"resource\" content=\"/_pl/modeling-shapes-resource-scoped-5ceda4/admin/*\"\u003e\n    \u003ccode itemprop=\"selector\"\u003e[itemtype*=Config]\u003c/code\u003e\n    \u003ccode itemprop=\"constraint\"\u003e:has([itemprop='apiKey'])\u003c/code\u003e\n    \u003ccode itemprop=\"constraint\"\u003e:has([itemprop='endpoint'])\u003c/code\u003e\n  \u003c/div\u003e\n\u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 2 (config outside the resource accepted)",
+      "method": "PUT",
+      "path": "/_pl/modeling-shapes-resource-scoped-5ceda4/other/c.html",
+      "status": 201,
+      "headers": {
+        "content-length": "160",
+        "content-type": "text/html",
+        "etag": "\"3ed384dc61e28ab69eacc2b1de68862703532d99014026311806f49566fbbb67\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:45 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\n  \u003cdiv itemscope itemtype=\"https://example.org/Config\"\u003e\n    \u003cmeta itemprop=\"endpoint\" content=\"https://x\"\u003e\n  \u003c/div\u003e\n\u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 3 (same config inside the resource rejected)",
+      "method": "PUT",
+      "path": "/_pl/modeling-shapes-resource-scoped-5ceda4/admin/c.html",
+      "status": 422,
+      "headers": {
+        "content-length": "412",
+        "content-type": "text/html",
+        "vary": "Host, Range"
+      },
+      "body": "\u003cdiv itemscope itemtype=\"https://dombase.pagelove.team/ns/error/ShapeConstraint\"\u003e\u003cul itemprop=\"problems\"\u003e\u003cli itemprop=\"problem\"\u003e\u003cspan itemprop=\"message\"\u003eShape constraints violated\u003c/span\u003e\u003c/li\u003e\u003cli itemprop=\"problem\"\u003e\u003cspan itemprop=\"message\"\u003ehttps://pagelove.org/ShapeConstraint [itemtype*=Config]: Element matching '[itemtype*=Config]' does not satisfy constraint ':has([itemprop='apiKey'])'\u003c/span\u003e\u003c/li\u003e\u003c/ul\u003e\u003c/div\u003e"
+    }
+  ],
+  "outcome": "pass",
+  "target": "local"
+}

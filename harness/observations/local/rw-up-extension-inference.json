@@ -1,0 +1,68 @@
+{
+  "case": "rw.up.extension-inference",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (CSS without header)",
+      "method": "PUT",
+      "path": "/_pl/rw-up-extension-inference-54aef7/style.css",
+      "status": 201,
+      "headers": {
+        "content-length": "19",
+        "content-type": "text/css",
+        "etag": "\"d3c26d9d8fa474b7644361edebfa602173f62a1999dc73ee5b2d6d68e0172c6b\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:56 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "h1 { color: blue; }"
+    },
+    {
+      "step": "step 2 (CSS served as text/css)",
+      "method": "GET",
+      "path": "/_pl/rw-up-extension-inference-54aef7/style.css",
+      "status": 200,
+      "headers": {
+        "accept-ranges": "bytes",
+        "cache-control": "public, max-age=300",
+        "content-length": "19",
+        "content-type": "text/css",
+        "etag": "\"d3c26d9d8fa474b7644361edebfa602173f62a1999dc73ee5b2d6d68e0172c6b\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:56 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "h1 { color: blue; }"
+    },
+    {
+      "step": "step 3 (PNG without header)",
+      "method": "PUT",
+      "path": "/_pl/rw-up-extension-inference-54aef7/pic.png",
+      "status": 201,
+      "headers": {
+        "content-length": "20",
+        "content-type": "image/png",
+        "etag": "\"ec214fbae69d60f2a0537838f11c1cd2c77f270e0b246eec5ba0fb7317d7c6c1\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:56 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "not-really-png-bytes"
+    },
+    {
+      "step": "step 4 (PNG served as image/png)",
+      "method": "GET",
+      "path": "/_pl/rw-up-extension-inference-54aef7/pic.png",
+      "status": 200,
+      "headers": {
+        "accept-ranges": "bytes",
+        "cache-control": "public, max-age=300",
+        "content-length": "20",
+        "content-type": "image/png",
+        "etag": "\"ec214fbae69d60f2a0537838f11c1cd2c77f270e0b246eec5ba0fb7317d7c6c1\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:56 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "not-really-png-bytes"
+    }
+  ],
+  "outcome": "pass",
+  "target": "local"
+}

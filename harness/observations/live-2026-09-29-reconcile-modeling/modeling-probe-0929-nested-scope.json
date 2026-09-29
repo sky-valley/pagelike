@@ -1,0 +1,97 @@
+{
+  "case": "modeling.probe-0929.nested-scope",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (register Address and Person)",
+      "method": "PUT",
+      "path": "/_pl/modeling-probe-0929-nested-scope-aee759/schema.html",
+      "status": 201,
+      "headers": {
+        "content-type": "text/html",
+        "etag": "\"7b89bee3d5f3e23beadf03904f41acb04968e76f7eb2e613e5c3c1372573e616\"",
+        "last-modified": "Tue, 29 Sep 2026 02:08:21 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\n  \u003cdiv hidden itemscope itemtype=\"https://pagelove.org/Schema\"\u003e\n    \u003cmeta itemprop=\"type\" content=\"https://pagelike.test/_pl/modeling-probe-0929-nested-scope-aee759/Address\"\u003e\n    \u003cdiv itemprop=\"property\" itemscope itemtype=\"https://pagelove.org/Property\"\u003e\n      \u003cmeta itemprop=\"name\" content=\"street\"\u003e\n      \u003cmeta itemprop=\"type\" content=\"https://schema.host/Text\"\u003e\n      \u003cmeta itemprop=\"cardinality\" content=\"1..1\"\u003e\n    \u003c/div\u003e\n    \u003cdiv itemprop=\"property\" itemscope itemtype=\"https://pagelove.org/Property\"\u003e\n      \u003cmeta itemprop=\"name\" content=\"city\"\u003e\n      \u003cmeta itemprop=\"type\" content=\"https://schema.host/Text\"\u003e\n      \u003cmeta itemprop=\"cardinality\" content=\"1..1\"\u003e\n    \u003c/div\u003e\n  \u003cmeta itemprop=\"@id\" content=\"https://schema.host/vk6mwtkm\"\u003e\u003cmeta itemprop=\"path\" content=\"/Schemahttps://schema.host/vk6mwtkm.html\"\u003e\u003c/div\u003e\n  \u003cdiv hidden itemscope itemtype=\"https://pagelove.org/Schema\"\u003e\n    \u003cmeta itemprop=\"type\" content=\"https://pagelike.test/_pl/modeling-probe-0929-nested-scope-aee759/Person\"\u003e\n    \u003cdiv itemprop=\"property\" itemscope itemtype=\"https://pagelove.org/Property\"\u003e\n      \u003cmeta itemprop=\"name\" content=\"name\"\u003e\n      \u003cmeta itemprop=\"type\" content=\"https://schema.host/Text\"\u003e\n      \u003cmeta itemprop=\"cardinality\" content=\"1..1\"\u003e\n    \u003c/div\u003e\n    \u003cdiv itemprop=\"property\" itemscope itemtype=\"https://pagelove.org/Property\"\u003e\n      \u003cmeta itemprop=\"name\" content=\"address\"\u003e\n      \u003cmeta itemprop=\"type\" content=\"https://pagelike.test/_pl/modeling-probe-0929-nested-scope-aee759/Address\"\u003e\n      \u003cmeta itemprop=\"cardinality\" content=\"0..1\"\u003e\n    \u003c/div\u003e\n  \u003cmeta itemprop=\"@id\" content=\"https://schema.host/1cvzqecq\"\u003e\u003cmeta itemprop=\"path\" content=\"/Schemahttps://schema.host/1cvzqecq.html\"\u003e\u003c/div\u003e\n\n                \u003cdiv style=\"\n                            position: fixed;\n                            bottom: 0;\n                            left: 0;\n                            right: 0;\n                            padding: 8px;\n                            background: #f0f0f0;\n                            text-align: center;\n                            font-size: 12px;\n                            color: #666;\n                            z-index: 9999;\n                            opacity: 0.8;\n                            border-top: 1px solid #ddd;\n                        \"\u003e\n                    Powered by\n                    \u003ca href=\"https://pagelove.com/\" style=\"color: #4a90d9; text-decoration: none\"\u003ePagelove\u003c/a\u003e\n                \u003c/div\u003e\n            \u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 2 (a top-level Address missing city is refused (the Address schema is live))",
+      "method": "PUT",
+      "path": "/_pl/modeling-probe-0929-nested-scope-aee759/top.html",
+      "status": 422,
+      "headers": {
+        "content-length": "300",
+        "content-type": "text/html",
+        "vary": "Host, Range"
+      },
+      "body": "\u003cdiv itemscope itemtype=\"https://pagelove.org/SchemaViolation\"\u003e\u003cul itemprop=\"problems\"\u003e\u003cli itemprop=\"problem\"\u003e\u003cspan itemprop=\"message\"\u003e[https://pagelike.test/_pl/modeling-probe-0929-nested-scope-aee759/Address].city: cardinality 1..1 violated: expected exactly 1 value, found 0\u003c/span\u003e\u003c/li\u003e\u003c/ul\u003e\u003c/div\u003e"
+    },
+    {
+      "step": "step 3 (an Address item inside the Person's markup (not a property value), missing city, is accepted)",
+      "method": "PUT",
+      "path": "/_pl/modeling-probe-0929-nested-scope-aee759/dom-nested.html",
+      "status": 201,
+      "headers": {
+        "content-type": "text/html",
+        "etag": "\"9762631ced749f73aedb8e2f0b8822e381a4e0427814613a527a20a1d133d844\"",
+        "last-modified": "Tue, 29 Sep 2026 02:08:22 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\n  \u003cdiv itemscope itemtype=\"https://pagelike.test/_pl/modeling-probe-0929-nested-scope-aee759/Person\"\u003e\n    \u003cspan itemprop=\"name\"\u003eAlice\u003c/span\u003e\n    \u003cdiv itemscope itemtype=\"https://pagelike.test/_pl/modeling-probe-0929-nested-scope-aee759/Address\"\u003e\n      \u003cspan itemprop=\"street\"\u003e1 Main St\u003c/span\u003e\n    \u003c/div\u003e\n  \u003c/div\u003e\n\n                \u003cdiv style=\"\n                            position: fixed;\n                            bottom: 0;\n                            left: 0;\n                            right: 0;\n                            padding: 8px;\n                            background: #f0f0f0;\n                            text-align: center;\n                            font-size: 12px;\n                            color: #666;\n                            z-index: 9999;\n                            opacity: 0.8;\n                            border-top: 1px solid #ddd;\n                        \"\u003e\n                    Powered by\n                    \u003ca href=\"https://pagelove.com/\" style=\"color: #4a90d9; text-decoration: none\"\u003ePagelove\u003c/a\u003e\n                \u003c/div\u003e\n            \u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 4 (an address value typed as another schema is accepted)",
+      "method": "PUT",
+      "path": "/_pl/modeling-probe-0929-nested-scope-aee759/wrong-type.html",
+      "status": 201,
+      "headers": {
+        "content-type": "text/html",
+        "etag": "\"669794bbf7da8091190542787ae0bd4eff7883c4562ec668a2cee97113f23f9d\"",
+        "last-modified": "Tue, 29 Sep 2026 02:08:23 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\n  \u003cdiv itemscope itemtype=\"https://pagelike.test/_pl/modeling-probe-0929-nested-scope-aee759/Person\"\u003e\n    \u003cspan itemprop=\"name\"\u003eAlice\u003c/span\u003e\n    \u003cdiv itemprop=\"address\" itemscope itemtype=\"https://pagelike.test/_pl/modeling-probe-0929-nested-scope-aee759/Person\"\u003e\n      \u003cspan itemprop=\"name\"\u003eBob\u003c/span\u003e\n    \u003c/div\u003e\n  \u003c/div\u003e\n\n                \u003cdiv style=\"\n                            position: fixed;\n                            bottom: 0;\n                            left: 0;\n                            right: 0;\n                            padding: 8px;\n                            background: #f0f0f0;\n                            text-align: center;\n                            font-size: 12px;\n                            color: #666;\n                            z-index: 9999;\n                            opacity: 0.8;\n                            border-top: 1px solid #ddd;\n                        \"\u003e\n                    Powered by\n                    \u003ca href=\"https://pagelove.com/\" style=\"color: #4a90d9; text-decoration: none\"\u003ePagelove\u003c/a\u003e\n                \u003c/div\u003e\n            \u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 5 (an address value that is plain text, not an item, is accepted)",
+      "method": "PUT",
+      "path": "/_pl/modeling-probe-0929-nested-scope-aee759/text-address.html",
+      "status": 201,
+      "headers": {
+        "content-type": "text/html",
+        "etag": "\"05b096d4335767111649c06f2ef4cc8e94cfea78068ba0290f9375cce1b42e3b\"",
+        "last-modified": "Tue, 29 Sep 2026 02:08:23 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\n  \u003cdiv itemscope itemtype=\"https://pagelike.test/_pl/modeling-probe-0929-nested-scope-aee759/Person\"\u003e\n    \u003cspan itemprop=\"name\"\u003eAlice\u003c/span\u003e\n    \u003cspan itemprop=\"address\"\u003e1 Main St, Springfield\u003c/span\u003e\n  \u003c/div\u003e\n\n                \u003cdiv style=\"\n                            position: fixed;\n                            bottom: 0;\n                            left: 0;\n                            right: 0;\n                            padding: 8px;\n                            background: #f0f0f0;\n                            text-align: center;\n                            font-size: 12px;\n                            color: #666;\n                            z-index: 9999;\n                            opacity: 0.8;\n                            border-top: 1px solid #ddd;\n                        \"\u003e\n                    Powered by\n                    \u003ca href=\"https://pagelove.com/\" style=\"color: #4a90d9; text-decoration: none\"\u003ePagelove\u003c/a\u003e\n                \u003c/div\u003e\n            \u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 6 (a Person missing its name, holding an Address missing city: only the name is reported)",
+      "method": "PUT",
+      "path": "/_pl/modeling-probe-0929-nested-scope-aee759/both.html",
+      "status": 422,
+      "headers": {
+        "content-length": "299",
+        "content-type": "text/html",
+        "vary": "Host, Range"
+      },
+      "body": "\u003cdiv itemscope itemtype=\"https://pagelove.org/SchemaViolation\"\u003e\u003cul itemprop=\"problems\"\u003e\u003cli itemprop=\"problem\"\u003e\u003cspan itemprop=\"message\"\u003e[https://pagelike.test/_pl/modeling-probe-0929-nested-scope-aee759/Person].name: cardinality 1..1 violated: expected exactly 1 value, found 0\u003c/span\u003e\u003c/li\u003e\u003c/ul\u003e\u003c/div\u003e"
+    },
+    {
+      "step": "step 7 (an Address item inside an item whose type has no schema, missing city)",
+      "method": "PUT",
+      "path": "/_pl/modeling-probe-0929-nested-scope-aee759/wrapped.html",
+      "status": 201,
+      "headers": {
+        "content-type": "text/html",
+        "etag": "\"7cbcb05bca63403c82e8a6a456f37dd9859a141fc4cca2bf53565a94fd79229b\"",
+        "last-modified": "Tue, 29 Sep 2026 02:08:24 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\n  \u003cdiv itemscope itemtype=\"https://example.org/Wrapper\"\u003e\n    \u003cspan itemprop=\"label\"\u003ew\u003c/span\u003e\n    \u003cdiv itemscope itemtype=\"https://pagelike.test/_pl/modeling-probe-0929-nested-scope-aee759/Address\"\u003e\n      \u003cspan itemprop=\"street\"\u003e1 Main St\u003c/span\u003e\n    \u003c/div\u003e\n  \u003c/div\u003e\n\n                \u003cdiv style=\"\n                            position: fixed;\n                            bottom: 0;\n                            left: 0;\n                            right: 0;\n                            padding: 8px;\n                            background: #f0f0f0;\n                            text-align: center;\n                            font-size: 12px;\n                            color: #666;\n                            z-index: 9999;\n                            opacity: 0.8;\n                            border-top: 1px solid #ddd;\n                        \"\u003e\n                    Powered by\n                    \u003ca href=\"https://pagelove.com/\" style=\"color: #4a90d9; text-decoration: none\"\u003ePagelove\u003c/a\u003e\n                \u003c/div\u003e\n            \u003c/body\u003e\u003c/html\u003e\n"
+    }
+  ],
+  "outcome": "pass",
+  "target": "live"
+}

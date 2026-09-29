@@ -1,0 +1,47 @@
+{
+  "case": "modeling.cardinality.move-reorder-within-item",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (register declarations through the public plane (takes effect for the next request))",
+      "method": "PUT",
+      "path": "/_pl/modeling-cardinality-move-reorder-within-acaece/schema.html",
+      "status": 201,
+      "headers": {
+        "content-length": "481",
+        "content-type": "text/html",
+        "etag": "\"7c2ddef68708f910cee0abd1c47303fc69a7d1000459fe83991203b7336b2a98\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:44 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\n  \u003cdiv hidden itemscope itemtype=\"https://pagelove.org/Schema\"\u003e\n    \u003cmeta itemprop=\"type\" content=\"https://pagelike.test/_pl/modeling-cardinality-move-reorder-within-acaece/Note\"\u003e\n    \u003cdiv itemprop=\"property\" itemscope itemtype=\"https://pagelove.org/Property\"\u003e\n      \u003cmeta itemprop=\"name\" content=\"v\"\u003e\n      \u003cmeta itemprop=\"type\" content=\"https://schema.host/Text\"\u003e\n      \u003cmeta itemprop=\"cardinality\" content=\"1..n\"\u003e\n    \u003c/div\u003e\n  \u003c/div\u003e\n\u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 2 (seed)",
+      "method": "PUT",
+      "path": "/_pl/modeling-cardinality-move-reorder-within-acaece/m.html",
+      "status": 201,
+      "headers": {
+        "content-length": "256",
+        "content-type": "text/html",
+        "etag": "\"e207ec88b8776f59339598d5056a78c9b6c133e99d6a85f24f9f1ad3a69ba220\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:44 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\n  \u003cdiv itemscope itemtype=\"https://pagelike.test/_pl/modeling-cardinality-move-reorder-within-acaece/Note\" id=\"a\"\u003e\n    \u003cmeta id=\"v1\" itemprop=\"v\" content=\"1\"\u003e\n    \u003cmeta id=\"v2\" itemprop=\"v\" content=\"2\"\u003e\n  \u003c/div\u003e\n\u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 3 (move v2 before v1)",
+      "method": "MOVE",
+      "path": "/_pl/modeling-cardinality-move-reorder-within-acaece/m.html",
+      "status": 204,
+      "headers": {
+        "etag": "\"47750e43522f28d385c72be48db8a61d818abdb243c43fec9b47268ec25e8fa7\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:44 GMT",
+        "vary": "Host, Range"
+      }
+    }
+  ],
+  "outcome": "pass",
+  "target": "local"
+}

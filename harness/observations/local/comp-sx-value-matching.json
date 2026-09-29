@@ -1,0 +1,107 @@
+{
+  "case": "comp.sx.value-matching",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1",
+      "method": "GET",
+      "path": "/_pl/comp-sx-value-matching-312e20/sx.html",
+      "status": 206,
+      "headers": {
+        "accept-ranges": "selector, bytes",
+        "content-length": "58",
+        "content-range": "selector [itemprop=hostname]:value-equals('localhost')",
+        "content-type": "text/html",
+        "etag": "\"203a7ef7963cb60d7b4aa96c28c336fb97a7e83cc59ebebf2c231d99db2489bf-203a7ef7963cb60d7b4aa96c28c336fb97a7e83cc59ebebf2c231d99db2489bf-1\"",
+        "vary": "Host, Range, Accept"
+      },
+      "body": "\u003cmeta id=\"m-host\" itemprop=\"hostname\" content=\"localhost\"\u003e"
+    },
+    {
+      "step": "step 2",
+      "method": "GET",
+      "path": "/_pl/comp-sx-value-matching-312e20/sx.html",
+      "status": 206,
+      "headers": {
+        "accept-ranges": "selector, bytes",
+        "content-length": "52",
+        "content-range": "selector [itemprop=url]:value-equals('/about')",
+        "content-type": "text/html",
+        "etag": "\"a9ba2ada34bfdbe41c53c95b6baf704db609553f2895792b1967fb45f7157ed2-a9ba2ada34bfdbe41c53c95b6baf704db609553f2895792b1967fb45f7157ed2-1\"",
+        "vary": "Host, Range, Accept"
+      },
+      "body": "\u003ca id=\"a1\" itemprop=\"url\" href=\"/about\"\u003eAbout Us\u003c/a\u003e"
+    },
+    {
+      "step": "step 3",
+      "method": "GET",
+      "path": "/_pl/comp-sx-value-matching-312e20/sx.html",
+      "status": 206,
+      "headers": {
+        "accept-ranges": "selector, bytes",
+        "content-length": "58",
+        "content-range": "selector [itemprop=score]:value-equals('42')",
+        "content-type": "text/html",
+        "etag": "\"20077753f84b030e428dceebc8dfc1be995d919068f30e293a73817cf5a07b4f-20077753f84b030e428dceebc8dfc1be995d919068f30e293a73817cf5a07b4f-1\"",
+        "vary": "Host, Range, Accept"
+      },
+      "body": "\u003cdata id=\"d1\" itemprop=\"score\" value=\"42\"\u003eForty-two\u003c/data\u003e"
+    },
+    {
+      "step": "step 4 (text content of \u003cdata\u003e differs from its value)",
+      "method": "GET",
+      "path": "/_pl/comp-sx-value-matching-312e20/sx.html",
+      "status": 416,
+      "headers": {
+        "content-length": "381",
+        "content-type": "text/html",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\n  \u003chead\u003e\n    \u003ctitle\u003e416 Range Not Satisfiable - Error\u003c/title\u003e\n  \u003c/head\u003e\n  \u003cbody itemscope itemtype=\"http://pagelove.org/Error\"\u003e\n    \u003ch1 itemprop=\"name\"\u003eRange Not Satisfiable\u003c/h1\u003e\n    \u003cmeta itemprop=\"statusCode\" content=\"416\"\u003e\n    \u003cp itemprop=\"description\"\u003eHTML parsing error: No elements matched selector: #d1:value-equals('Forty-two')\u003c/p\u003e\n  \u003c/body\u003e\n\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 5",
+      "method": "GET",
+      "path": "/_pl/comp-sx-value-matching-312e20/sx.html",
+      "status": 206,
+      "headers": {
+        "accept-ranges": "selector, bytes",
+        "content-length": "58",
+        "content-range": "selector #d1:equals('Forty-two')",
+        "content-type": "text/html",
+        "etag": "\"20077753f84b030e428dceebc8dfc1be995d919068f30e293a73817cf5a07b4f-20077753f84b030e428dceebc8dfc1be995d919068f30e293a73817cf5a07b4f-1\"",
+        "vary": "Host, Range, Accept"
+      },
+      "body": "\u003cdata id=\"d1\" itemprop=\"score\" value=\"42\"\u003eForty-two\u003c/data\u003e"
+    },
+    {
+      "step": "step 6 (meta has no text content)",
+      "method": "GET",
+      "path": "/_pl/comp-sx-value-matching-312e20/sx.html",
+      "status": 416,
+      "headers": {
+        "content-length": "377",
+        "content-type": "text/html",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\n  \u003chead\u003e\n    \u003ctitle\u003e416 Range Not Satisfiable - Error\u003c/title\u003e\n  \u003c/head\u003e\n  \u003cbody itemscope itemtype=\"http://pagelove.org/Error\"\u003e\n    \u003ch1 itemprop=\"name\"\u003eRange Not Satisfiable\u003c/h1\u003e\n    \u003cmeta itemprop=\"statusCode\" content=\"416\"\u003e\n    \u003cp itemprop=\"description\"\u003eHTML parsing error: No elements matched selector: #m-host:contains('local')\u003c/p\u003e\n  \u003c/body\u003e\n\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 7",
+      "method": "GET",
+      "path": "/_pl/comp-sx-value-matching-312e20/sx.html",
+      "status": 206,
+      "headers": {
+        "accept-ranges": "selector, bytes",
+        "content-length": "58",
+        "content-range": "selector [itemprop=hostname]:value-contains('HOST', i)",
+        "content-type": "text/html",
+        "etag": "\"203a7ef7963cb60d7b4aa96c28c336fb97a7e83cc59ebebf2c231d99db2489bf-203a7ef7963cb60d7b4aa96c28c336fb97a7e83cc59ebebf2c231d99db2489bf-1\"",
+        "vary": "Host, Range, Accept"
+      },
+      "body": "\u003cmeta id=\"m-host\" itemprop=\"hostname\" content=\"localhost\"\u003e"
+    }
+  ],
+  "outcome": "pass",
+  "target": "local"
+}

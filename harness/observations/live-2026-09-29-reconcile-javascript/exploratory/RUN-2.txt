@@ -1,0 +1,20 @@
+FAIL javascript.dom.probe-0929.domparser-tree-builder [harness/cases/javascript/dom-probes-0929.yaml]
+     - step 2 (GET <main>: the method result is inserted as text) GET ${P}/probe.html: status 500, want [206] (body: <!DOCTYPE html>
+<html>
+  <head>
+    <title>500 Internal Server Error - Error</title>
+  </head>
+  <body itemscope itemtype="http://pagelove.org/Error">
+    <h1 itemprop="name">Internal Server Error</h1>
+    <meta itemprop="statusCode" conten…)
+     - step 2 (GET <main>: the method result is inserted as text) GET ${P}/probe.html: body does not contain "R:" (body: <!DOCTYPE html>
+<html>
+  <head>
+    <title>500 Internal Server Error - Error</title>
+  </head>
+  <body itemscope itemtype="http://pagelove.org/Error">
+    <h1 itemprop="name">Internal Server Error</h1>
+    <meta itemprop="statusCode" content="500">
+    <p itemprop="description">Composition failed: internal error: JS method &#x27;probe&#x27; failed: return-type error in javascript/module binding: J…)
+
+2 passed, 1 failed, 0 skipped

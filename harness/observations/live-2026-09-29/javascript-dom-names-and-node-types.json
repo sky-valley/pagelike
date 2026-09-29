@@ -1,0 +1,35 @@
+{
+  "case": "javascript.dom.names-and-node-types",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (PUT the page (public plane; registers inline declarations))",
+      "method": "PUT",
+      "path": "/_pl/javascript-dom-names-and-node-types-1d2b60/probe.html",
+      "status": 201,
+      "headers": {
+        "content-type": "text/html",
+        "etag": "\"a18efd8f64bb25a072f416541e2a390bf8251e6d1386a44c4f5e173523521930\"",
+        "last-modified": "Tue, 29 Sep 2026 00:46:10 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml xmlns:t=\"https://pagelike.test/_pl/javascript-dom-names-and-node-types-1d2b60/Dnamesandnodetypes\"\u003e\u003cbody\u003e\n\u003cmain\u003e\n\u003ct:probe\u003e\u003c/t:probe\u003e\n\u003c/main\u003e\n\u003cdiv hidden itemscope itemtype=\"https://pagelove.org/Schema\"\u003e\n\u003cmeta itemprop=\"type\" content=\"https://pagelike.test/_pl/javascript-dom-names-and-node-types-1d2b60/Dnamesandnodetypes\"\u003e\n\u003cul\u003e\n\u003cli itemprop=\"property\" itemscope itemtype=\"https://pagelove.org/Method\"\u003e\n\u003cmeta itemprop=\"name\" content=\"probe\"\u003e\n\u003cdiv itemprop=\"implementation\" itemscope itemtype=\"https://pagelove.org/JavaScript/Module\"\u003e\n\u003cscript itemprop=\"source\" type=\"module\"\u003e\nconst S = (...a) =\u003e a.map(String).join('|');\nconst H = (x) =\u003e String(x).replace(/[\u003c\u003e\"]/g, (c) =\u003e ({ '\u003c': '[', '\u003e': ']', '\"': \"'\" })[c]);\nconst tryName = (f) =\u003e { try { f(); return 'ok'; } catch (e) { return e.name + ':' + e.code; } };\nexport default function () {\nconst d = new DOMParser().parseFromString('\u003c!DOCTYPE html\u003e\u003csection\u003e\u003c/section\u003e\u003csvg\u003e\u003cg\u003e\u003c/g\u003e\u003c/svg\u003e', 'text/html');\nconst sec = d.querySelector('section'), g = d.querySelector('g');\nconst li = d.createElement('li');\nconst lg = d.createElementNS('http://www.w3.org/2000/svg', 'linearGradient');\nconst tf = d.createElementNS('urn:x', 't:foo');\nreturn 'R:' + S(sec.tagName, sec.localName, g.tagName, li.tagName, li.nodeName, lg.tagName, tf.localName, tf.prefix, tf.namespaceURI, sec.prefix, sec.namespaceURI,\n  d.createTextNode('a').nodeName, d.createComment('b').nodeName, d.nodeName, d.createDocumentFragment().nodeName,\n  sec.nodeType, d.createTextNode('a').nodeType, d.createComment('b').nodeType, d.nodeType, d.createDocumentFragment().nodeType, d.firstChild.nodeType);\n}\n\u003c/script\u003e\n\u003c/div\u003e\n\u003c/li\u003e\n\u003c/ul\u003e\n\u003cmeta itemprop=\"@id\" content=\"https://schema.host/uletuijx\"\u003e\u003cmeta itemprop=\"path\" content=\"/Schemahttps://schema.host/uletuijx.html\"\u003e\u003c/div\u003e\n\n                \u003cdiv style=\"\n                            position: fixed;\n                            bottom: 0;\n                            left: 0;\n                            right: 0;\n                            padding: 8px;\n                            background: #f0f0f0;\n                            text-align: center;\n                            font-size: 12px;\n                            color: #666;\n                            z-index: 9999;\n                            opacity: 0.8;\n                            border-top: 1px solid #ddd;\n                        \"\u003e\n                    Powered by\n                    \u003ca href=\"https://pagelove.com/\" style=\"color: #4a90d9; text-decoration: none\"\u003ePagelove\u003c/a\u003e\n                \u003c/div\u003e\n            \u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 2 (GET \u003cmain\u003e: the method result is inserted as text)",
+      "method": "GET",
+      "path": "/_pl/javascript-dom-names-and-node-types-1d2b60/probe.html",
+      "status": 206,
+      "headers": {
+        "content-length": "135",
+        "content-range": "selector main",
+        "content-type": "text/html",
+        "etag": "\"1057cd1d415160a486a7ed1df2075f0dda94306178bfb64f29069e6ca89d67b4-1057cd1d415160a486a7ed1df2075f0dda94306178bfb64f29069e6ca89d67b4-1\"",
+        "vary": "Host, Range, Accept"
+      },
+      "body": "\u003cmain\u003e\nR:SECTION|section|G|LI|LI|linearGradient|foo|t|urn:x|null|null|#text|#comment|#document|#document-fragment|1|3|8|9|11|10\n\u003c/main\u003e"
+    }
+  ],
+  "outcome": "pass",
+  "target": "live"
+}

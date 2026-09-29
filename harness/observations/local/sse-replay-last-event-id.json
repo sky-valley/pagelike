@@ -1,0 +1,123 @@
+{
+  "case": "sse.replay.last-event-id",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (sse open s1)",
+      "method": "GET",
+      "path": "/_pl/sse-replay-last-event-id-4020e6/doc.html",
+      "status": 200,
+      "headers": {
+        "cache-control": "no-cache",
+        "content-type": "text/event-stream",
+        "x-accel-buffering": "no"
+      }
+    },
+    {
+      "step": "step 2",
+      "events": [
+        {
+          "event": "pagelove-connection",
+          "data": "3f82ec9e-53e7-4057-ab53-37030eb2668e"
+        }
+      ]
+    },
+    {
+      "step": "step 3 (write seen live)",
+      "method": "PUT",
+      "path": "/_pl/sse-replay-last-event-id-4020e6/doc.html",
+      "status": 206,
+      "headers": {
+        "content-length": "23",
+        "content-range": "selector #a",
+        "content-type": "text/html",
+        "etag": "\"78f82eea51940fb31b68782ed7bbf4dc78a633a9006c56ec1daf520a7ded27fe-78f82eea51940fb31b68782ed7bbf4dc78a633a9006c56ec1daf520a7ded27fe-2\"",
+        "last-modified": "Tue, 29 Sep 2026 02:41:00 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003cp id=\"a\"\u003eseen-live\u003c/p\u003e"
+    },
+    {
+      "step": "step 4",
+      "events": [
+        {
+          "id": "v1~1a92bdecb42e.1790649660093-1",
+          "event": "mutation",
+          "data": "\u003carticle itemscope itemtype=\"https://pagelove.org/Mutation\"\u003e\n  \u003cspan itemprop=\"method\"\u003ePUT\u003c/span\u003e\n  \u003cspan itemprop=\"selector\"\u003e#a\u003c/span\u003e\n  \u003cspan itemprop=\"etag\"\u003e617ac77845151001d7a5a54d745425443be27008551c78fedb77baf942fca241\u003c/span\u003e\n  \u003cspan itemprop=\"path\"\u003e/_pl/sse-replay-last-event-id-4020e6/doc.html\u003c/span\u003e\n  \u003cspan itemprop=\"host\"\u003et.localhost\u003c/span\u003e\n  \u003cdiv itemprop=\"body\"\u003e\u003cp id=\"a\"\u003eseen-live\u003c/p\u003e\u003c/div\u003e\n\u003c/article\u003e"
+        }
+      ]
+    },
+    {
+      "step": "step 6 (missed write one)",
+      "method": "PUT",
+      "path": "/_pl/sse-replay-last-event-id-4020e6/doc.html",
+      "status": 206,
+      "headers": {
+        "content-length": "24",
+        "content-range": "selector #b",
+        "content-type": "text/html",
+        "etag": "\"c9d0d27b4aa60182623d141c6106df50560075dca9917dc50a1a073486c9981a-c9d0d27b4aa60182623d141c6106df50560075dca9917dc50a1a073486c9981a-3\"",
+        "last-modified": "Tue, 29 Sep 2026 02:41:00 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003cp id=\"b\"\u003emissed-one\u003c/p\u003e"
+    },
+    {
+      "step": "step 7 (missed write two)",
+      "method": "PUT",
+      "path": "/_pl/sse-replay-last-event-id-4020e6/doc.html",
+      "status": 206,
+      "headers": {
+        "content-length": "24",
+        "content-range": "selector #c",
+        "content-type": "text/html",
+        "etag": "\"ab3820a3f2d85be3a38e03ebfad6ead4d5b02c6f52d3874ba37985de91ea9dfc-ab3820a3f2d85be3a38e03ebfad6ead4d5b02c6f52d3874ba37985de91ea9dfc-4\"",
+        "last-modified": "Tue, 29 Sep 2026 02:41:00 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003cp id=\"c\"\u003emissed-two\u003c/p\u003e"
+    },
+    {
+      "step": "step 8 (sse open s2)",
+      "method": "GET",
+      "path": "/_pl/sse-replay-last-event-id-4020e6/doc.html",
+      "status": 200,
+      "headers": {
+        "cache-control": "no-cache",
+        "content-type": "text/event-stream",
+        "x-accel-buffering": "no"
+      }
+    },
+    {
+      "step": "step 9",
+      "events": [
+        {
+          "event": "pagelove-connection",
+          "data": "05752658-e5c1-4a13-a61e-1b11925b53c7"
+        }
+      ]
+    },
+    {
+      "step": "step 10",
+      "events": [
+        {
+          "id": "v1~1a92bdecb42e.1790649660094-2",
+          "event": "mutation",
+          "data": "\u003carticle itemscope itemtype=\"https://pagelove.org/Mutation\"\u003e\n  \u003cspan itemprop=\"method\"\u003ePUT\u003c/span\u003e\n  \u003cspan itemprop=\"selector\"\u003e#b\u003c/span\u003e\n  \u003cspan itemprop=\"etag\"\u003e0b74567e1a9cdbcf3781d53bdbb60a7fbfe8f63b8cbc768b66e497ab560a01ab\u003c/span\u003e\n  \u003cspan itemprop=\"path\"\u003e/_pl/sse-replay-last-event-id-4020e6/doc.html\u003c/span\u003e\n  \u003cspan itemprop=\"host\"\u003et.localhost\u003c/span\u003e\n  \u003cdiv itemprop=\"body\"\u003e\u003cp id=\"b\"\u003emissed-one\u003c/p\u003e\u003c/div\u003e\n\u003c/article\u003e"
+        }
+      ]
+    },
+    {
+      "step": "step 11",
+      "events": [
+        {
+          "id": "v1~1a92bdecb42e.1790649660095-3",
+          "event": "mutation",
+          "data": "\u003carticle itemscope itemtype=\"https://pagelove.org/Mutation\"\u003e\n  \u003cspan itemprop=\"method\"\u003ePUT\u003c/span\u003e\n  \u003cspan itemprop=\"selector\"\u003e#c\u003c/span\u003e\n  \u003cspan itemprop=\"etag\"\u003e5ca7d7fe1f601eefbb55899b7c8a25b7d3d611ecc06ce3ce43901194f547f42b\u003c/span\u003e\n  \u003cspan itemprop=\"path\"\u003e/_pl/sse-replay-last-event-id-4020e6/doc.html\u003c/span\u003e\n  \u003cspan itemprop=\"host\"\u003et.localhost\u003c/span\u003e\n  \u003cdiv itemprop=\"body\"\u003e\u003cp id=\"c\"\u003emissed-two\u003c/p\u003e\u003c/div\u003e\n\u003c/article\u003e"
+        }
+      ]
+    }
+  ],
+  "outcome": "pass",
+  "target": "local"
+}

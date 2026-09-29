@@ -1,0 +1,33 @@
+{
+  "case": "authz.template.query-lookup-in-resource",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (query names the path being written)",
+      "method": "PUT",
+      "path": "/_pl/authz-template-query-lookup-in-resource-fc46f3/q/a.html?slot=a",
+      "status": 201,
+      "headers": {
+        "content-length": "42",
+        "content-type": "text/html",
+        "etag": "\"3fff4062aa70fc98a2fca5a182f7dbd10e53dff6459e0a10649fb91dbee828a1\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:47 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\u003chtml\u003e\u003cbody\u003ea\u003c/body\u003e\u003c/html\u003e"
+    },
+    {
+      "step": "step 2 (query names a different path)",
+      "method": "PUT",
+      "path": "/_pl/authz-template-query-lookup-in-resource-fc46f3/q/a.html?slot=b",
+      "status": 401,
+      "headers": {
+        "content-length": "428",
+        "content-type": "text/html; charset=utf-8"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\n\u003chead\u003e\n    \u003cmeta charset=\"UTF-8\"\u003e\n    \u003ctitle\u003e401 Unauthorized\u003c/title\u003e\n\u003c/head\u003e\n\u003cbody itemscope itemtype=\"https://pagelove.org/1.0/Error\"\u003e\n    \u003ch1\u003e401 Unauthorized\u003c/h1\u003e\n    \u003cp itemprop=\"message\"\u003eAuthentication required to access this resource.\u003c/p\u003e\n    \u003cdl\u003e\n        \u003cdt\u003eResource\u003c/dt\u003e\n        \u003cdd itemprop=\"resource\"\u003e/_pl/authz-template-query-lookup-in-resource-fc46f3/q/a.html\u003c/dd\u003e\n    \u003c/dl\u003e\n\u003c/body\u003e\n\u003c/html\u003e\n"
+    }
+  ],
+  "outcome": "pass",
+  "target": "local"
+}

@@ -1,0 +1,255 @@
+# Reads whose selector matches several elements (spec R-PERM-41, 43).
+cases:
+  - id: authz.multimatch.all-matches-read-denied-if-any-denied
+    title: An all-matches read (multipart or JSON-LD) is refused if any matched element is denied; a single read checks only the first match
+    area: permissions-identity
+    feature: multi-match reads
+    evidence: documented
+    source: "docs reference/permissions/AuthorizationRule §Selectors that match several elements (snapshot 2026-09-28)"
+    confidence: high
+    requires: []
+    live: true
+    notes: >-
+      Live PageLove serves every match, the denied one included
+      (harness/observations/live-2026-09-28/authz-multimatch-all-matches-read-denied-if-any-denied.json).
+      pagelike keeps the documented refusal (docs/compat/decisions.md, keep-documented-security);
+      authz.multimatch.all-matches-read-denied-if-any-denied.live measures the divergence. The last
+      step also pins PageLove's multipart part headers (live-observed).
+    site:
+      files:
+        - path: "${P}/list.html"
+          body: &multimatch_list |
+            <!DOCTYPE html>
+            <html><body><ul>
+              <li class="item" itemscope itemtype="http://schema.org/Thing"><span itemprop="name">Alpha</span></li>
+              <li class="item secret" itemscope itemtype="http://schema.org/Thing"><span itemprop="name">Bravo</span></li>
+              <li class="item" itemscope itemtype="http://schema.org/Thing"><span itemprop="name">Charlie</span></li>
+            </ul></body></html>
+        - path: "${P}/rules.html"
+          body: &multimatch_rules |
+            <!DOCTYPE html>
+            <html><body>
+              <div hidden itemscope itemtype="https://pagelove.org/AuthorizationRule">
+                <meta itemprop="actor" content="*"><meta itemprop="resource" content="${P}/list.html">
+                <meta itemprop="method" content="GET"><meta itemprop="action" content="Allow">
+              </div>
+              <div hidden itemscope itemtype="https://pagelove.org/AuthorizationRule">
+                <meta itemprop="actor" content="*"><meta itemprop="resource" content="${P}/list.html">
+                <meta itemprop="method" content="GET"><meta itemprop="selector" content=".secret">
+                <meta itemprop="action" content="Deny">
+              </div>
+            </body></html>
+    steps:
+      - name: multipart all-matches read refused
+        as: anonymous
+        request:
+          method: GET
+          path: "${P}/list.html"
+          headers: {Range: "selector=.item", Accept: multipart/mixed}
+        expect:
+          status: 401
+          body_not_contains: ['Bravo', 'Alpha']
+      - name: JSON-LD all-matches read refused
+        as: anonymous
+        request:
+          method: GET
+          path: "${P}/list.html"
+          headers: {Range: "selector=.item", Accept: application/ld+json}
+        expect:
+          status: 401
+          body_not_contains: ['Bravo']
+      - name: single-result read returns only the first (permitted) match
+        as: anonymous
+        request:
+          method: GET
+          path: "${P}/list.html"
+          headers: {Range: "selector=.item", Accept: text/html}
+        expect:
+          status: 206
+          body_contains: ['Alpha']
+          body_not_contains: ['Bravo', 'Charlie']
+      - name: a narrower selector that avoids the denied element succeeds
+        as: anonymous
+        request:
+          method: GET
+          path: "${P}/list.html"
+          headers: {Range: "selector=.item:not(.secret)", Accept: multipart/mixed}
+        expect:
+          status: 200
+          headers: {Vary: "Host, Range, Accept, Paginate"}
+          headers_absent: [ETag]
+          multipart_parts: 2
+          body_contains:
+            - 'Alpha'
+            - 'Charlie'
+            - 'Content-Disposition: attachment; filename="${P}/list.html"'
+            - 'Content-Range: selector .item:not(.secret)'
+            - '<li class="item" itemscope itemtype="http://schema.org/Thing"><span itemprop="name">Alpha</span></li>'
+          body_not_contains: ['Bravo']
+
+  - id: authz.multimatch.all-matches-read-denied-if-any-denied.live
+    title: Live PageLove serves all matches of a selector although one is denied by a selector-scoped rule
+    area: permissions-identity
+    feature: multi-match reads
+    status: live-divergence
+    evidence: live-observed
+    source: "harness/observations/live-2026-09-28/authz-multimatch-all-matches-read-denied-if-any-denied.json (host live-test-host, 2026-09-28)"
+    confidence: high
+    requires: []
+    live: true
+    notes: "Measures a deliberate divergence (docs/compat/decisions.md, keep-documented-security). Runs only against --target live."
+    site:
+      files:
+        - path: "${P}/list.html"
+          body: *multimatch_list
+        - path: "${P}/rules.html"
+          body: *multimatch_rules
+    steps:
+      - name: multipart includes the denied element
+        as: anonymous
+        request:
+          method: GET
+          path: "${P}/list.html"
+          headers: {Range: "selector=.item", Accept: multipart/mixed}
+        expect:
+          status: 200
+          multipart_parts: 3
+          body_contains: ['Bravo']
+      - name: JSON-LD includes the denied element
+        as: anonymous
+        request:
+          method: GET
+          path: "${P}/list.html"
+          headers: {Range: "selector=.item", Accept: application/ld+json}
+        expect:
+          status: 206
+          body_contains: ['Bravo']
+
+  - id: authz.multimatch.single-read-first-match-denied
+    title: A single-result read is refused when its first match is denied
+    area: permissions-identity
+    feature: multi-match reads
+    evidence: documented
+    source: "docs reference/permissions/AuthorizationRule §Selectors that match several elements ('A read that asks for one element is authorized against that element')"
+    confidence: high
+    requires: []
+    live: true
+    notes: >-
+      Live PageLove serves the denied first match
+      (harness/observations/live-2026-09-28/authz-multimatch-single-read-first-match-denied.json).
+      pagelike keeps the documented refusal (docs/compat/decisions.md, keep-documented-security);
+      authz.multimatch.single-read-first-match-denied.live measures the divergence.
+    site:
+      files:
+        - path: "${P}/list.html"
+          body: &first_denied_list |
+            <!DOCTYPE html>
+            <html><body><ul>
+              <li class="item secret">Bravo</li>
+              <li class="item">Alpha</li>
+            </ul></body></html>
+        - path: "${P}/rules.html"
+          body: &first_denied_rules |
+            <!DOCTYPE html>
+            <html><body>
+              <div hidden itemscope itemtype="https://pagelove.org/AuthorizationRule">
+                <meta itemprop="actor" content="*"><meta itemprop="resource" content="${P}/list.html">
+                <meta itemprop="method" content="GET"><meta itemprop="action" content="Allow">
+              </div>
+              <div hidden itemscope itemtype="https://pagelove.org/AuthorizationRule">
+                <meta itemprop="actor" content="*"><meta itemprop="resource" content="${P}/list.html">
+                <meta itemprop="method" content="GET"><meta itemprop="selector" content=".secret">
+                <meta itemprop="action" content="Deny">
+              </div>
+            </body></html>
+    steps:
+      - name: first match denied
+        as: anonymous
+        request:
+          method: GET
+          path: "${P}/list.html"
+          headers: {Range: "selector=.item"}
+        expect:
+          status: 401
+          body_not_contains: ['Bravo']
+
+  - id: authz.multimatch.single-read-first-match-denied.live
+    title: Live PageLove serves a denied first match to a single-result read
+    area: permissions-identity
+    feature: multi-match reads
+    status: live-divergence
+    evidence: live-observed
+    source: "harness/observations/live-2026-09-28/authz-multimatch-single-read-first-match-denied.json (host live-test-host, 2026-09-28)"
+    confidence: high
+    requires: []
+    live: true
+    notes: "Measures a deliberate divergence (docs/compat/decisions.md, keep-documented-security). Runs only against --target live."
+    site:
+      files:
+        - path: "${P}/list.html"
+          body: *first_denied_list
+        - path: "${P}/rules.html"
+          body: *first_denied_rules
+    steps:
+      - name: first match served
+        as: anonymous
+        request:
+          method: GET
+          path: "${P}/list.html"
+          headers: {Range: "selector=.item"}
+        expect:
+          status: 206
+          body_html: '<li class="item secret">Bravo</li>'
+
+  - id: authz.multimatch.uncovered-element-default-deny
+    title: With default-GET deny, an all-matches read fails if any match is uncovered by an allow rule
+    area: permissions-identity
+    feature: multi-match reads + default-GET
+    evidence: documented
+    source: "docs reference/permissions/AuthorizationRule §Selectors that match several elements ('or left uncovered when the host does not grant unmatched reads')"
+    confidence: high
+    requires: [host-config]
+    live: false
+    site:
+      settings:
+        default_get: deny
+      files:
+        - path: "${P}/rows.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body><table><tbody>
+              <tr class="row pub"><td>Public one</td></tr>
+              <tr class="row pub"><td>Public two</td></tr>
+              <tr class="row priv"><td>Private</td></tr>
+            </tbody></table></body></html>
+        - path: "${P}/rules.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div hidden itemscope itemtype="https://pagelove.org/AuthorizationRule">
+                <meta itemprop="actor" content="*"><meta itemprop="resource" content="${P}/rows.html">
+                <meta itemprop="method" content="GET"><meta itemprop="selector" content=".pub">
+                <meta itemprop="action" content="allow">
+              </div>
+            </body></html>
+    steps:
+      - name: all rows (one uncovered)
+        as: anonymous
+        request:
+          method: GET
+          path: "${P}/rows.html"
+          headers: {Range: "selector=.row", Accept: multipart/mixed}
+        expect: {status: 401, body_not_contains: ['Private']}
+      - name: only the public rows
+        as: anonymous
+        request:
+          method: GET
+          path: "${P}/rows.html"
+          headers: {Range: "selector=.pub", Accept: multipart/mixed}
+        expect:
+          status: [200, 206]
+          body_contains: ['Public one', 'Public two']
+      - name: whole document is not covered by the selector rule
+        as: anonymous
+        request: {method: GET, path: "${P}/rows.html"}
+        expect: {status: 401}

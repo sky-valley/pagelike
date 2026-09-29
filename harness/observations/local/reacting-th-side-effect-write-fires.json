@@ -1,0 +1,62 @@
+{
+  "case": "reacting.th.side-effect-write-fires",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (install a handler (Order.status becomes processing -\u003e POST ${SINK}/payments))",
+      "method": "PUT",
+      "path": "/_pl/reacting-th-side-effect-write-fires-396041/r/handlers.html",
+      "status": 201,
+      "headers": {
+        "content-length": "551",
+        "content-type": "text/html",
+        "etag": "\"4d8131f913c8d8888fba524a012e027a513208857225786e7551f96ad751f65a\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:55 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\n\u003cdiv itemscope itemtype=\"https://pagelove.org/TransitionHandler\"\u003e\n  \u003cmeta itemprop=\"selector\" content=\"[itemtype='https://pagelike.test/_pl/reacting-th-side-effect-write-fires-396041/Order']\"\u003e\n  \u003cmeta itemprop=\"property\" content=\"status\"\u003e\n  \u003cmeta itemprop=\"becomes\" content=\"processing\"\u003e\n  \u003cdiv itemprop=\"action\" itemscope itemtype=\"https://pagelove.org/HttpRequest\"\u003e\n    \u003cmeta itemprop=\"url\" content=\"http://127.0.0.1:53692/c-7cc462a0/payments\"\u003e\n    \u003cmeta itemprop=\"method\" content=\"POST\"\u003e\n  \u003c/div\u003e\n\u003c/div\u003e\n\u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 2 (install a trigger that creates an order at processing)",
+      "method": "PUT",
+      "path": "/_pl/reacting-th-side-effect-write-fires-396041/r/triggers.html",
+      "status": 201,
+      "headers": {
+        "content-length": "684",
+        "content-type": "text/html",
+        "etag": "\"cae2b15f15e1d74c4da7e9a2cda26394011ba4c7de2eecf087ea87e2fc53677a\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:55 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\n\u003cdiv hidden itemscope itemtype=\"https://pagelove.org/Trigger\"\u003e\n  \u003cmeta itemprop=\"resource\" content=\"/_pl/reacting-th-side-effect-write-fires-396041/d/*\"\u003e\n  \u003cmeta itemprop=\"method\" content=\"PUT\"\u003e\n  \u003cdiv itemprop=\"action\" itemscope itemtype=\"https://pagelove.org/Sessel\"\u003e\n    \u003cscript itemprop=\"source\" type=\"text/sessel\"\u003e\n      @schema Pagelove url(\"https://pagelove.org/1.0\");\n      @schema Order url(\"https://pagelike.test/_pl/reacting-th-side-effect-write-fires-396041/Order\");\n      Pagelove.PUT(new Order { status: \"processing\" }, \"/_pl/reacting-th-side-effect-write-fires-396041/orders/from-trigger.html\")\n    \u003c/script\u003e\n  \u003c/div\u003e\n\u003c/div\u003e\n\u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 3 (fire the trigger)",
+      "method": "PUT",
+      "path": "/_pl/reacting-th-side-effect-write-fires-396041/d/x.html",
+      "status": 201,
+      "headers": {
+        "content-length": "8",
+        "content-type": "text/html",
+        "etag": "\"31d8e07ec305ac4e2515d1f0b1c8c603b3858044eb7d97807d6d0970838cb0be\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:55 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003cp\u003ex\u003c/p\u003e"
+    },
+    {
+      "step": "step 4",
+      "method": "POST",
+      "path": "${SINK}/payments",
+      "headers": {
+        "accept-encoding": "gzip",
+        "content-length": "566",
+        "content-type": "text/html",
+        "user-agent": "Go-http-client/1.1"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\n  \u003chead\u003e\u003ctitle\u003eTransition\u003c/title\u003e\u003c/head\u003e\n  \u003cbody itemscope itemtype=\"https://pagelove.org/Transition\"\u003e\n    \u003cmeta itemprop=\"path\" content=\"/_pl/reacting-th-side-effect-write-fires-396041/orders/from-trigger.html\"\u003e\n    \u003cmeta itemprop=\"selector\" content=\"[itemtype=\u0026quot;https://pagelike.test/_pl/reacting-th-side-effect-write-fires-396041/Order\u0026quot;]\"\u003e\n    \u003cdiv itemscope itemtype=\"https://pagelike.test/_pl/reacting-th-side-effect-write-fires-396041/Order\" itemprop=\"body\"\u003e\u003cmeta itemprop=\"status\" content=\"processing\"\u003e\u003c/div\u003e\n  \u003c/body\u003e\n\u003c/html\u003e\n"
+    }
+  ],
+  "outcome": "pass",
+  "target": "local"
+}

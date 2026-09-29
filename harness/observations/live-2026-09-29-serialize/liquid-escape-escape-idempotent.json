@@ -1,0 +1,25 @@
+{
+  "case": "liquid.escape.escape-idempotent",
+  "failures": [
+    "step 1 (read) GET ${P}/esc2.html: body does not contain \"\u003cp id=\\\"o\\\"\u003e\u0026lt;\u003c/p\u003e\" (body: \u003cp id=\"o\"\u003e\u0026amp;lt;\u003c/p\u003e)",
+    "step 1 (read) GET ${P}/esc2.html: body contains \"\u0026amp;lt;\""
+  ],
+  "observations": [
+    {
+      "step": "step 1 (read)",
+      "method": "GET",
+      "path": "/_pl/liquid-escape-escape-idempotent-4bbe10/esc2.html",
+      "status": 206,
+      "headers": {
+        "content-length": "22",
+        "content-range": "selector #o",
+        "content-type": "text/html",
+        "etag": "\"77291d047dda64dcc061ebb338c604d14b37ff8e281cb643fcc1acc93eda2425-77291d047dda64dcc061ebb338c604d14b37ff8e281cb643fcc1acc93eda2425-1\"",
+        "vary": "Host, Range, Accept"
+      },
+      "body": "\u003cp id=\"o\"\u003e\u0026amp;lt;\u003c/p\u003e"
+    }
+  ],
+  "outcome": "fail",
+  "target": "live"
+}

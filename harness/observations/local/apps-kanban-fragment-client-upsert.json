@@ -1,0 +1,163 @@
+{
+  "case": "apps.kanban.fragment-client-upsert",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (add a list (POST)",
+      "method": "POST",
+      "path": "/_pl/apps-kanban-fragment-client-upsert-7cb06d/boards/b1.html",
+      "status": 206,
+      "headers": {
+        "content-length": "235",
+        "content-range": "selector #lists",
+        "content-type": "text/html",
+        "etag": "\"d3a5c4441c57007e101a124fff45908378b4d8a5cb3f4dbdce7f3dc58c4bedb8-d3a5c4441c57007e101a124fff45908378b4d8a5cb3f4dbdce7f3dc58c4bedb8-2\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:41 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003csection class=\"list\" id=\"L-new\" itemscope itemtype=\"urn:board:List\" draggable=\"true\"\u003e\u003cdiv class=\"list-head\"\u003e\u003ch2 class=\"list-title\" data-f=\"list-name\" itemprop=\"name\"\u003eDoing\u003c/h2\u003e\u003c/div\u003e\u003cdiv class=\"cards\" id=\"L-new-cards\"\u003e\u003c/div\u003e\u003c/section\u003e"
+    },
+    {
+      "step": "step 2 (add a card to the just-created list (no staleness, W-2))",
+      "method": "POST",
+      "path": "/_pl/apps-kanban-fragment-client-upsert-7cb06d/boards/b1.html",
+      "status": 206,
+      "headers": {
+        "content-length": "164",
+        "content-range": "selector #L-new-cards",
+        "content-type": "text/html",
+        "etag": "\"60e9a99aa1d139a0b990b653fe2348666190862c8c2de24bf802a0771dab2e4d-60e9a99aa1d139a0b990b653fe2348666190862c8c2de24bf802a0771dab2e4d-3\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:41 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003carticle class=\"card\" id=\"C-9\" itemscope itemtype=\"urn:board:Card\" draggable=\"true\"\u003e\u003cdiv class=\"card-title\" data-f=\"card-title\" itemprop=\"name\"\u003eNine\u003c/div\u003e\u003c/article\u003e"
+    },
+    {
+      "step": "step 3 (upsert, first try: PUT a field the card does not have yet)",
+      "method": "PUT",
+      "path": "/_pl/apps-kanban-fragment-client-upsert-7cb06d/boards/b1.html",
+      "status": 416,
+      "headers": {
+        "content-length": "449",
+        "content-type": "text/html",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\u003cdiv itemscope itemtype=\"http://pagelove.org/Error\"\u003e\u003cspan itemprop=\"statusCode\"\u003e416\u003c/span\u003e\u003cspan itemprop=\"message\"\u003e\u003cdiv itemscope itemtype=\"https://dombase.pagelove.team/ns/error/selector-no-match\"\u003e\u003cul itemprop=\"problems\"\u003e\u003cli itemprop=\"problem\"\u003e\u003cspan itemprop=\"message\"\u003eselector \"#C-9 [data-f=\\\"card-due\\\"]\": selector matched no elements at the request path or any origin\u003c/span\u003e\u003c/li\u003e\u003c/ul\u003e\u003c/div\u003e\u003c/span\u003e\u003c/div\u003e\u003c/body\u003e\u003c/html\u003e"
+    },
+    {
+      "step": "step 4 (upsert, fallback: POST the field into the card)",
+      "method": "POST",
+      "path": "/_pl/apps-kanban-fragment-client-upsert-7cb06d/boards/b1.html",
+      "status": 206,
+      "headers": {
+        "content-length": "51",
+        "content-range": "selector #C-9",
+        "content-type": "text/html",
+        "etag": "\"980ca0ba62ec0bcb98ff35e4e8b5bea573dac791ee7c5aed96adcb44fbc2cdc4-980ca0ba62ec0bcb98ff35e4e8b5bea573dac791ee7c5aed96adcb44fbc2cdc4-4\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:41 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003cmeta data-f=\"card-due\" content=\"2026-10-01T00:00\"\u003e"
+    },
+    {
+      "step": "step 5 (upsert, second time: PUT now replaces the field)",
+      "method": "PUT",
+      "path": "/_pl/apps-kanban-fragment-client-upsert-7cb06d/boards/b1.html",
+      "status": 206,
+      "headers": {
+        "content-length": "51",
+        "content-range": "selector #C-9 [data-f=\"card-due\"]",
+        "content-type": "text/html",
+        "etag": "\"d87acb37e33be034001ab71a2673513ee0f0be4450380fb002e6fa61d71c6385-d87acb37e33be034001ab71a2673513ee0f0be4450380fb002e6fa61d71c6385-5\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:41 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003cmeta data-f=\"card-due\" content=\"2026-10-02T00:00\"\u003e"
+    },
+    {
+      "step": "step 6 (rename the card (one-field PUT))",
+      "method": "PUT",
+      "path": "/_pl/apps-kanban-fragment-client-upsert-7cb06d/boards/b1.html",
+      "status": 206,
+      "headers": {
+        "content-length": "73",
+        "content-range": "selector #C-9 [data-f=\"card-title\"]",
+        "content-type": "text/html",
+        "etag": "\"126d4f3148bf7a2f8968e223a0eab6a2269819d098586e714ecf050064759d53-126d4f3148bf7a2f8968e223a0eab6a2269819d098586e714ecf050064759d53-6\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:41 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003cdiv class=\"card-title\" data-f=\"card-title\" itemprop=\"name\"\u003eRenamed\u003c/div\u003e"
+    },
+    {
+      "step": "step 7 (read it back with a cache-busting query)",
+      "method": "GET",
+      "path": "/_pl/apps-kanban-fragment-client-upsert-7cb06d/boards/b1.html?v=1789423173000",
+      "status": 206,
+      "headers": {
+        "accept-ranges": "selector, bytes",
+        "content-length": "218",
+        "content-range": "selector #C-9",
+        "content-type": "text/html",
+        "etag": "\"dbd9bd37fa454196fab383ef63dc61167dc49bab494b6239465ed47284151663-dbd9bd37fa454196fab383ef63dc61167dc49bab494b6239465ed47284151663-6\"",
+        "vary": "Host, Range, Accept"
+      },
+      "body": "\u003carticle class=\"card\" id=\"C-9\" itemscope itemtype=\"urn:board:Card\" draggable=\"true\"\u003e\u003cdiv class=\"card-title\" data-f=\"card-title\" itemprop=\"name\"\u003eRenamed\u003c/div\u003e\u003cmeta data-f=\"card-due\" content=\"2026-10-02T00:00\"\u003e\u003c/article\u003e"
+    },
+    {
+      "step": "step 8 (create a missing container by POSTing into body)",
+      "method": "POST",
+      "path": "/_pl/apps-kanban-fragment-client-upsert-7cb06d/boards/b1.html",
+      "status": 206,
+      "headers": {
+        "content-length": "29",
+        "content-range": "selector body",
+        "content-type": "text/html",
+        "etag": "\"da5945171202cb37ac40f19cd56b553930c3aa23b6878ec9b95662491a411225-da5945171202cb37ac40f19cd56b553930c3aa23b6878ec9b95662491a411225-7\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:41 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003cdiv hidden id=\"epics\"\u003e\u003c/div\u003e"
+    },
+    {
+      "step": "step 9 (the container is addressable at once)",
+      "method": "POST",
+      "path": "/_pl/apps-kanban-fragment-client-upsert-7cb06d/boards/b1.html",
+      "status": 206,
+      "headers": {
+        "content-length": "79",
+        "content-range": "selector #epics",
+        "content-type": "text/html",
+        "etag": "\"c1ed36c70093a73c2eb78f8ea548cd14b10720aea47d73da5e17f2f7f507fde5-c1ed36c70093a73c2eb78f8ea548cd14b10720aea47d73da5e17f2f7f507fde5-8\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:41 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003carticle class=\"epic\" id=\"E-1\"\u003e\u003cmeta data-f=\"epic-name\" content=\"Q4\"\u003e\u003c/article\u003e"
+    },
+    {
+      "step": "step 10 (delete the card)",
+      "method": "DELETE",
+      "path": "/_pl/apps-kanban-fragment-client-upsert-7cb06d/boards/b1.html",
+      "status": 204,
+      "headers": {
+        "etag": "\"a7c46f74e149c7d2fab64eddc005805c54adeeb95b5a8059fdf30e77efa7cd98\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:41 GMT",
+        "vary": "Host, Range"
+      }
+    },
+    {
+      "step": "step 11 (deleting it again is 416)",
+      "method": "DELETE",
+      "path": "/_pl/apps-kanban-fragment-client-upsert-7cb06d/boards/b1.html",
+      "status": 416,
+      "headers": {
+        "content-length": "427",
+        "content-type": "text/html",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\u003cdiv itemscope itemtype=\"http://pagelove.org/Error\"\u003e\u003cspan itemprop=\"statusCode\"\u003e416\u003c/span\u003e\u003cspan itemprop=\"message\"\u003e\u003cdiv itemscope itemtype=\"https://dombase.pagelove.team/ns/error/selector-no-match\"\u003e\u003cul itemprop=\"problems\"\u003e\u003cli itemprop=\"problem\"\u003e\u003cspan itemprop=\"message\"\u003eselector \"#C-9\": selector matched no elements at the request path or any origin\u003c/span\u003e\u003c/li\u003e\u003c/ul\u003e\u003c/div\u003e\u003c/span\u003e\u003c/div\u003e\u003c/body\u003e\u003c/html\u003e"
+    }
+  ],
+  "outcome": "pass",
+  "target": "local"
+}

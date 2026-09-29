@@ -1,0 +1,37 @@
+{
+  "case": "rw.up.explicit-header-wins-over-extension",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (CSS path sent as text/plain)",
+      "method": "PUT",
+      "path": "/_pl/rw-up-explicit-header-wins-over-extensio-c499e3/data.css",
+      "status": 201,
+      "headers": {
+        "content-length": "20",
+        "content-type": "text/plain",
+        "etag": "\"5de625c36355cce7c1d5408826a0b21abfb49fb6c0e1f16c945a6f2aef38200c\"",
+        "last-modified": "Mon, 28 Sep 2026 22:29:18 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "body { color: red; }"
+    },
+    {
+      "step": "step 2 (served as text/plain)",
+      "method": "GET",
+      "path": "/_pl/rw-up-explicit-header-wins-over-extensio-c499e3/data.css",
+      "status": 200,
+      "headers": {
+        "accept-ranges": "bytes",
+        "content-length": "20",
+        "content-type": "text/plain",
+        "etag": "\"5de625c36355cce7c1d5408826a0b21abfb49fb6c0e1f16c945a6f2aef38200c\"",
+        "last-modified": "Mon, 28 Sep 2026 22:29:18 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "body { color: red; }"
+    }
+  ],
+  "outcome": "pass",
+  "target": "live"
+}

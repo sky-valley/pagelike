@@ -1,0 +1,34 @@
+{
+  "case": "modeling.uniqueness.duplicate-within-document",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (register declarations through the public plane (takes effect for the next request))",
+      "method": "PUT",
+      "path": "/_pl/modeling-uniqueness-duplicate-within-doc-bdd423/schema.html",
+      "status": 201,
+      "headers": {
+        "content-length": "531",
+        "content-type": "text/html",
+        "etag": "\"89afd72a1a837f2c0826f1a5b27d64c7be2dd6f531fe56d474c6dcbfaaced14f\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:45 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\n  \u003cdiv hidden itemscope itemtype=\"https://pagelove.org/Schema\"\u003e\n    \u003cmeta itemprop=\"type\" content=\"https://pagelike.test/_pl/modeling-uniqueness-duplicate-within-doc-bdd423/Project\"\u003e\n    \u003cli itemprop=\"property\" itemscope itemtype=\"https://pagelove.org/Property\"\u003e\n      \u003cmeta itemprop=\"name\" content=\"slug\"\u003e\n      \u003cmeta itemprop=\"type\" content=\"https://schema.host/Text\"\u003e\n      \u003cmeta itemprop=\"cardinality\" content=\"1..1\"\u003e\n      \u003cmeta itemprop=\"unique\" content=\"true\"\u003e\n    \u003c/li\u003e\n  \u003c/div\u003e\n\u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 2 (document with two launch projects)",
+      "method": "PUT",
+      "path": "/_pl/modeling-uniqueness-duplicate-within-doc-bdd423/two.html",
+      "status": 422,
+      "headers": {
+        "content-length": "450",
+        "content-type": "text/html",
+        "vary": "Host, Range"
+      },
+      "body": "\u003cdiv itemscope itemtype=\"https://dombase.pagelove.team/ns/error/ConstraintViolation\"\u003e\u003cul itemprop=\"problems\"\u003e\u003cli itemprop=\"problem\"\u003e\u003cspan itemprop=\"message\"\u003eConstraint violation: 1 violation(s):\n  - [uniqueness] [itemprop='slug'] (unique(slug)): Uniqueness violation: another item in '/_pl/modeling-uniqueness-duplicate-within-doc-bdd423/two.html' already claims this value for property 'slug' (first claimed by item '0.2.0.1')\u003c/span\u003e\u003c/li\u003e\u003c/ul\u003e\u003c/div\u003e"
+    }
+  ],
+  "outcome": "pass",
+  "target": "local"
+}

@@ -1,0 +1,47 @@
+{
+  "case": "reacting.gates.otherwise-runs-when-falsy",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (install the documented otherwise trigger)",
+      "method": "PUT",
+      "path": "/_pl/reacting-gates-otherwise-runs-when-falsy-a41898/r/triggers.html",
+      "status": 201,
+      "headers": {
+        "content-length": "952",
+        "content-type": "text/html",
+        "etag": "\"4793098b890cad6498d7df917f950bd2a7b9b50eb8f1e308e7b8a1a33794eace\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:48 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\n\u003cdiv hidden itemscope itemtype=\"https://pagelove.org/Trigger\"\u003e\n  \u003cmeta itemprop=\"resource\" content=\"/_pl/reacting-gates-otherwise-runs-when-falsy-a41898/d/*\"\u003e\n  \u003cmeta itemprop=\"method\" content=\"PUT\"\u003e\n  \u003cdiv itemprop=\"when\" itemscope itemtype=\"https://pagelove.org/Sessel\"\u003e\n    \u003cscript itemprop=\"source\" type=\"text/sessel\"\u003e\n      @schema Context url(\"https://pagelove.org/Context\");\n      Context.request.headers[\"authorization\"] != null\n    \u003c/script\u003e\n  \u003c/div\u003e\n  \u003cdiv itemprop=\"action\" itemscope itemtype=\"https://pagelove.org/Sessel\"\u003e\n    \u003cscript itemprop=\"source\" type=\"text/sessel\"\u003e1\u003c/script\u003e\n  \u003c/div\u003e\n  \u003cdiv itemprop=\"otherwise\" itemscope itemtype=\"https://pagelove.org/Sessel\"\u003e\n    \u003cscript itemprop=\"source\" type=\"text/sessel\"\u003e\n      @schema HTTPResponse url(\"https://pagelove.org/HTTPResponse\");\n      throw new HTTPResponse { status: 401, body: \"Authorization required\" }\n    \u003c/script\u003e\n  \u003c/div\u003e\n\u003c/div\u003e\n\u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 2 (without an Authorization header the otherwise branch rejects)",
+      "method": "PUT",
+      "path": "/_pl/reacting-gates-otherwise-runs-when-falsy-a41898/d/x.html",
+      "status": 401,
+      "headers": {
+        "content-length": "22",
+        "content-type": "text/html; charset=utf-8"
+      },
+      "body": "Authorization required"
+    },
+    {
+      "step": "step 3 (with the header the action (a no-op) runs and the write proceeds)",
+      "method": "PUT",
+      "path": "/_pl/reacting-gates-otherwise-runs-when-falsy-a41898/d/x.html",
+      "status": 201,
+      "headers": {
+        "content-length": "8",
+        "content-type": "text/html",
+        "etag": "\"31d8e07ec305ac4e2515d1f0b1c8c603b3858044eb7d97807d6d0970838cb0be\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:48 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003cp\u003ex\u003c/p\u003e"
+    }
+  ],
+  "outcome": "pass",
+  "target": "local"
+}

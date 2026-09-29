@@ -1,0 +1,279 @@
+{
+  "case": "sessel.query.probe-0929.values",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (float text forms)",
+      "method": "QUERY",
+      "path": "/_pl/sessel-query-probe-0929-values-68b2e9/doc.html",
+      "status": 200,
+      "headers": {
+        "accept-ranges": "bytes",
+        "content-length": "63",
+        "content-type": "application/sessel+json",
+        "vary": "Host, Range"
+      },
+      "body": "[\"42\",\"42\",42.0,100.0,\"2.5\",\"0.30000000000000004\",\"2.5\",\"42,1\"]"
+    },
+    {
+      "step": "step 2 (float extremes)",
+      "method": "QUERY",
+      "path": "/_pl/sessel-query-probe-0929-values-68b2e9/doc.html",
+      "status": 200,
+      "headers": {
+        "accept-ranges": "bytes",
+        "content-length": "52",
+        "content-type": "application/sessel+json",
+        "vary": "Host, Range"
+      },
+      "body": "[\"10000000000000000\",\"0.00000015\",\"-0\",1e+16,1.5e-7]"
+    },
+    {
+      "step": "step 3 (float JSON thresholds)",
+      "method": "QUERY",
+      "path": "/_pl/sessel-query-probe-0929-values-68b2e9/doc.html",
+      "status": 200,
+      "headers": {
+        "accept-ranges": "bytes",
+        "content-length": "59",
+        "content-type": "application/sessel+json",
+        "vary": "Host, Range"
+      },
+      "body": "[1000000000000000.0,0.0001,0.00001,1e-6,2500000000000000.0]"
+    },
+    {
+      "step": "step 4 (float as constructed text)",
+      "method": "QUERY",
+      "path": "/_pl/sessel-query-probe-0929-values-68b2e9/doc.html",
+      "status": 200,
+      "headers": {
+        "content-type": "text/html",
+        "vary": "Host, Range"
+      },
+      "body": "\u003cp\u003e42\u003c/p\u003e"
+    },
+    {
+      "step": "step 5 (String + Integer)",
+      "method": "QUERY",
+      "path": "/_pl/sessel-query-probe-0929-values-68b2e9/doc.html",
+      "status": 200,
+      "headers": {
+        "accept-ranges": "bytes",
+        "content-length": "56",
+        "content-type": "application/sessel+json",
+        "vary": "Host, Range"
+      },
+      "body": "[\"TypeError\",\"type error: cannot use 'a' in arithmetic\"]"
+    },
+    {
+      "step": "step 6 (Integer + String)",
+      "method": "QUERY",
+      "path": "/_pl/sessel-query-probe-0929-values-68b2e9/doc.html",
+      "status": 200,
+      "headers": {
+        "accept-ranges": "bytes",
+        "content-length": "56",
+        "content-type": "application/sessel+json",
+        "vary": "Host, Range"
+      },
+      "body": "[\"TypeError\",\"type error: cannot use 'a' in arithmetic\"]"
+    },
+    {
+      "step": "step 7 (numeric String + Integer)",
+      "method": "QUERY",
+      "path": "/_pl/sessel-query-probe-0929-values-68b2e9/doc.html",
+      "status": 200,
+      "headers": {
+        "accept-ranges": "bytes",
+        "content-length": "56",
+        "content-type": "application/sessel+json",
+        "vary": "Host, Range"
+      },
+      "body": "[\"TypeError\",\"type error: cannot use '5' in arithmetic\"]"
+    },
+    {
+      "step": "step 8 (String * Integer)",
+      "method": "QUERY",
+      "path": "/_pl/sessel-query-probe-0929-values-68b2e9/doc.html",
+      "status": 200,
+      "headers": {
+        "accept-ranges": "bytes",
+        "content-length": "56",
+        "content-type": "application/sessel+json",
+        "vary": "Host, Range"
+      },
+      "body": "[\"TypeError\",\"type error: cannot use 'a' in arithmetic\"]"
+    },
+    {
+      "step": "step 9 (Boolean + Integer)",
+      "method": "QUERY",
+      "path": "/_pl/sessel-query-probe-0929-values-68b2e9/doc.html",
+      "status": 200,
+      "headers": {
+        "accept-ranges": "bytes",
+        "content-length": "59",
+        "content-type": "application/sessel+json",
+        "vary": "Host, Range"
+      },
+      "body": "[\"TypeError\",\"type error: cannot use 'true' in arithmetic\"]"
+    },
+    {
+      "step": "step 10 (List + Integer)",
+      "method": "QUERY",
+      "path": "/_pl/sessel-query-probe-0929-values-68b2e9/doc.html",
+      "status": 200,
+      "headers": {
+        "accept-ranges": "bytes",
+        "content-length": "56",
+        "content-type": "application/sessel+json",
+        "vary": "Host, Range"
+      },
+      "body": "[\"TypeError\",\"type error: cannot use '1' in arithmetic\"]"
+    },
+    {
+      "step": "step 11 (two-item List + Integer)",
+      "method": "QUERY",
+      "path": "/_pl/sessel-query-probe-0929-values-68b2e9/doc.html",
+      "status": 200,
+      "headers": {
+        "accept-ranges": "bytes",
+        "content-length": "59",
+        "content-type": "application/sessel+json",
+        "vary": "Host, Range"
+      },
+      "body": "[\"TypeError\",\"type error: cannot use '1, b' in arithmetic\"]"
+    },
+    {
+      "step": "step 12 (Dictionary + Integer)",
+      "method": "QUERY",
+      "path": "/_pl/sessel-query-probe-0929-values-68b2e9/doc.html",
+      "status": 200,
+      "headers": {
+        "accept-ranges": "bytes",
+        "content-length": "64",
+        "content-type": "application/sessel+json",
+        "vary": "Host, Range"
+      },
+      "body": "[\"TypeError\",\"type error: cannot use '{\\\"a\\\":1}' in arithmetic\"]"
+    },
+    {
+      "step": "step 13 (String + Boolean)",
+      "method": "QUERY",
+      "path": "/_pl/sessel-query-probe-0929-values-68b2e9/doc.html",
+      "status": 200,
+      "headers": {
+        "accept-ranges": "bytes",
+        "content-length": "56",
+        "content-type": "application/sessel+json",
+        "vary": "Host, Range"
+      },
+      "body": "[\"TypeError\",\"type error: cannot use 'a' in arithmetic\"]"
+    },
+    {
+      "step": "step 14 (numeric String * numeric String)",
+      "method": "QUERY",
+      "path": "/_pl/sessel-query-probe-0929-values-68b2e9/doc.html",
+      "status": 200,
+      "headers": {
+        "accept-ranges": "bytes",
+        "content-length": "56",
+        "content-type": "application/sessel+json",
+        "vary": "Host, Range"
+      },
+      "body": "[\"TypeError\",\"type error: cannot use '5' in arithmetic\"]"
+    },
+    {
+      "step": "step 15 (division by zero message)",
+      "method": "QUERY",
+      "path": "/_pl/sessel-query-probe-0929-values-68b2e9/doc.html",
+      "status": 200,
+      "headers": {
+        "accept-ranges": "bytes",
+        "content-length": "35",
+        "content-type": "application/sessel+json",
+        "vary": "Host, Range"
+      },
+      "body": "[\"RuntimeError\",\"division by zero\"]"
+    },
+    {
+      "step": "step 16 (PlainDate accessor methods)",
+      "method": "QUERY",
+      "path": "/_pl/sessel-query-probe-0929-values-68b2e9/doc.html",
+      "status": 200,
+      "headers": {
+        "accept-ranges": "bytes",
+        "content-length": "32",
+        "content-type": "application/sessel+json",
+        "vary": "Host, Range"
+      },
+      "body": "[2026,3,23,1,82,13,31,365,false]"
+    },
+    {
+      "step": "step 17 (PlainDateTime accessor methods)",
+      "method": "QUERY",
+      "path": "/_pl/sessel-query-probe-0929-values-68b2e9/doc.html",
+      "status": 200,
+      "headers": {
+        "accept-ranges": "bytes",
+        "content-length": "20",
+        "content-type": "application/sessel+json",
+        "vary": "Host, Range"
+      },
+      "body": "[2026,3,23,14,30,45]"
+    },
+    {
+      "step": "step 18 (Duration accessor method)",
+      "method": "QUERY",
+      "path": "/_pl/sessel-query-probe-0929-values-68b2e9/doc.html",
+      "status": 200,
+      "headers": {
+        "accept-ranges": "bytes",
+        "content-length": "7",
+        "content-type": "application/sessel+json",
+        "vary": "Host, Range"
+      },
+      "body": "[1,2,3]"
+    },
+    {
+      "step": "step 19 (PlainDate weekday name format)",
+      "method": "QUERY",
+      "path": "/_pl/sessel-query-probe-0929-values-68b2e9/doc.html",
+      "status": 200,
+      "headers": {
+        "accept-ranges": "bytes",
+        "content-length": "8",
+        "content-type": "application/sessel+json",
+        "vary": "Host, Range"
+      },
+      "body": "\"Monday\""
+    },
+    {
+      "step": "step 20 (empty text and value)",
+      "method": "QUERY",
+      "path": "/_pl/sessel-query-probe-0929-values-68b2e9/doc.html",
+      "status": 200,
+      "headers": {
+        "accept-ranges": "bytes",
+        "content-length": "23",
+        "content-type": "application/sessel+json",
+        "vary": "Host, Range"
+      },
+      "body": "[\"\",\"\",null,\"\",null,\"\"]"
+    },
+    {
+      "step": "step 21 (whitespace in text and value)",
+      "method": "QUERY",
+      "path": "/_pl/sessel-query-probe-0929-values-68b2e9/doc.html",
+      "status": 200,
+      "headers": {
+        "accept-ranges": "bytes",
+        "content-length": "30",
+        "content-type": "application/sessel+json",
+        "vary": "Host, Range"
+      },
+      "body": "[\"a b\",\"x y\",null,\"a b\",\" x \"]"
+    }
+  ],
+  "outcome": "pass",
+  "target": "live"
+}

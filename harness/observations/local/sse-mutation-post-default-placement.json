@@ -1,0 +1,53 @@
+{
+  "case": "sse.mutation.post-default-placement",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (sse open s1)",
+      "method": "GET",
+      "path": "/_pl/sse-mutation-post-default-placement-f7ee48/doc.html",
+      "status": 200,
+      "headers": {
+        "cache-control": "no-cache",
+        "content-type": "text/event-stream",
+        "x-accel-buffering": "no"
+      }
+    },
+    {
+      "step": "step 2",
+      "events": [
+        {
+          "event": "pagelove-connection",
+          "data": "d2a6ea0f-6acd-4cf2-a6da-e6bd3a2a4750"
+        }
+      ]
+    },
+    {
+      "step": "step 3 (append an item)",
+      "method": "POST",
+      "path": "/_pl/sse-mutation-post-default-placement-f7ee48/doc.html",
+      "status": 206,
+      "headers": {
+        "content-length": "17",
+        "content-range": "selector ul",
+        "content-type": "text/html",
+        "etag": "\"cc2eb60cc2c4a792aa8e3f78f56eba388c54ffdb43d80859ca336755ea65b38c-cc2eb60cc2c4a792aa8e3f78f56eba388c54ffdb43d80859ca336755ea65b38c-2\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:59 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003cli\u003eNew item\u003c/li\u003e"
+    },
+    {
+      "step": "step 4",
+      "events": [
+        {
+          "id": "v1~b3c1b6f899c6.1790649659988-1",
+          "event": "mutation",
+          "data": "\u003carticle itemscope itemtype=\"https://pagelove.org/Mutation\"\u003e\n  \u003cspan itemprop=\"method\"\u003ePOST\u003c/span\u003e\n  \u003cspan itemprop=\"selector\"\u003eul\u003c/span\u003e\n  \u003cspan itemprop=\"etag\"\u003e0d00f04477b08f6a6d00f8aed90bd5ef94a68d175959ac829b0d495a75469cfb\u003c/span\u003e\n  \u003cspan itemprop=\"path\"\u003e/_pl/sse-mutation-post-default-placement-f7ee48/doc.html\u003c/span\u003e\n  \u003cspan itemprop=\"host\"\u003et.localhost\u003c/span\u003e\n  \u003cdiv itemprop=\"body\"\u003e\u003cli\u003eNew item\u003c/li\u003e\u003c/div\u003e\n  \u003cspan itemprop=\"placement\"\u003eappend\u003c/span\u003e\n\u003c/article\u003e"
+        }
+      ]
+    }
+  ],
+  "outcome": "pass",
+  "target": "local"
+}

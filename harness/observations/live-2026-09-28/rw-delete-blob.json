@@ -1,0 +1,31 @@
+{
+  "case": "rw.delete.blob",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (delete the blob)",
+      "method": "DELETE",
+      "path": "/_pl/rw-delete-blob-1f324e/data.json",
+      "status": 204,
+      "headers": {
+        "etag": "\"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855\"",
+        "last-modified": "Mon, 28 Sep 2026 22:26:14 GMT",
+        "vary": "Host, Range"
+      }
+    },
+    {
+      "step": "step 2 (gone)",
+      "method": "GET",
+      "path": "/_pl/rw-delete-blob-1f324e/data.json",
+      "status": 404,
+      "headers": {
+        "content-length": "333",
+        "content-type": "text/html",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\n  \u003chead\u003e\n    \u003ctitle\u003e404 Not Found - Error\u003c/title\u003e\n  \u003c/head\u003e\n  \u003cbody itemscope itemtype=\"http://pagelove.org/Error\"\u003e\n    \u003ch1 itemprop=\"name\"\u003eNot Found\u003c/h1\u003e\n    \u003cmeta itemprop=\"statusCode\" content=\"404\"\u003e\n    \u003cp itemprop=\"description\"\u003eDocument not found: /_pl/rw-delete-blob-1f324e/data.json\u003c/p\u003e\n  \u003c/body\u003e\n\u003c/html\u003e"
+    }
+  ],
+  "outcome": "pass",
+  "target": "live"
+}

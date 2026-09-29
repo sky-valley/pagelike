@@ -1,0 +1,230 @@
+# Apps: "Your first Pagelove application" (docs learn/your-first-app, snapshot 2026-09-28).
+# Spec: docs/spec/apps.md A1, R-APPS-6, §7.2 (ACC-FA-*).
+# The requests are the ones beta-js sends for this page: an <li> without an id is
+# addressed as "#todo-list > li:nth-child(N)" (beta-js pagelove/primitives.mjs@c204746:1-60)
+# and bodies carry "Content-Type: text/html;charset=UTF-8" (primitives.mjs:258-270).
+# The app treats any 2xx as success (R-APPS-20), so writes accept any 2xx here;
+# the exact codes are pinned by the reading-writing cases.
+cases:
+  - id: apps.first-app.shopping-list-crud
+    title: "Shopping list: tick (PUT), add (POST) and delete (DELETE) under the tutorial's in-page rules"
+    area: apps
+    feature: "tutorial: first app"
+    evidence: documented
+    source: "docs learn/your-first-app §Deleting items, final document (lines 238-320) (snapshot 2026-09-28); beta-js pagelove/primitives.mjs@c204746:1-60, 258-270"
+    confidence: high
+    requires: []
+    live: true
+    notes: "Rules exactly as in the tutorial, resource rewritten under ${P}. R-PERM-25: the rule selector '#todo-list li' covers the key element addressed by ':nth-child'."
+    site:
+      settings: {default_get: allow}
+      files:
+        - path: "${P}/index.html"
+          body: |
+            <!doctype html>
+            <html lang="en">
+                <head>
+                    <meta charset="UTF-8" />
+                    <title>Simple Todo List</title>
+                </head>
+                <body>
+                    <h1>Shopping List</h1>
+                    <ul id="todo-list">
+                        <li><input type="checkbox" />Get Milk <button class="delete">&#x1F5D1;</button></li>
+                        <li><input type="checkbox" />Buy Eggs <button class="delete">&#x1F5D1;</button></li>
+                        <li><input type="checkbox" />Make pancakes <button class="delete">&#x1F5D1;</button></li>
+                    </ul>
+                    <div hidden itemscope itemtype="https://pagelove.org/AuthorizationRule">
+                        <meta itemprop="actor" content="*" />
+                        <meta itemprop="resource" content="${P}/index.html" />
+                        <meta itemprop="method" content="PUT" />
+                        <meta itemprop="method" content="DELETE" />
+                        <meta itemprop="selector" content="#todo-list li" />
+                        <meta itemprop="action" content="allow" />
+                    </div>
+                    <div hidden itemscope itemtype="https://pagelove.org/AuthorizationRule">
+                        <meta itemprop="actor" content="*" />
+                        <meta itemprop="resource" content="${P}/index.html" />
+                        <meta itemprop="method" content="POST" />
+                        <meta itemprop="selector" content="#todo-list" />
+                        <meta itemprop="action" content="allow" />
+                    </div>
+                </body>
+            </html>
+    steps:
+      - name: the page is readable
+        as: anonymous
+        request: {method: GET, path: "${P}/index.html"}
+        expect: {status: 200, body_contains: ["Get Milk", "Buy Eggs", "Make pancakes"]}
+      - name: tick the first item (li.PUT() sends the element's outerHTML)
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/index.html"
+          headers:
+            Range: "selector=#todo-list > li:nth-child(1)"
+            Content-Type: "text/html;charset=UTF-8"
+          body: '<li><input type="checkbox" checked="">Get Milk <button class="delete">&#x1F5D1;</button></li>'
+        expect: {status: [200, 204, 206]}
+      - name: the tick persisted
+        as: anonymous
+        request:
+          method: GET
+          path: "${P}/index.html"
+          headers: {Range: "selector=#todo-list > li:nth-child(1)"}
+        expect: {status: 206, body_contains: ["checked", "Get Milk"]}
+      - name: add an item (ul.POST(...)); the client appends the response body
+        as: anonymous
+        request:
+          method: POST
+          path: "${P}/index.html"
+          headers:
+            Range: "selector=#todo-list"
+            Content-Type: "text/html;charset=UTF-8"
+          body: '<li><input type="checkbox">Bread <button class="delete">&#x1F5D1;</button></li>'
+        expect: {status: [200, 201, 206], body_contains: ["Bread"]}
+      - name: delete "Buy Eggs" (li.DELETE())
+        as: anonymous
+        request:
+          method: DELETE
+          path: "${P}/index.html"
+          headers: {Range: "selector=#todo-list > li:nth-child(2)"}
+        expect: {status: [200, 204]}
+      - name: the list now holds Get Milk, Make pancakes, Bread
+        as: anonymous
+        request:
+          method: GET
+          path: "${P}/index.html"
+          headers: {Range: "selector=#todo-list"}
+        expect:
+          status: 206
+          body_contains: ["Get Milk", "Make pancakes", "Bread"]
+          body_not_contains: ["Buy Eggs"]
+
+  - id: apps.first-app.write-needs-rule
+    title: "Writes outside what the tutorial's rules grant are refused (anonymous → 401) and change nothing"
+    area: apps
+    feature: "tutorial: first app"
+    evidence: documented
+    source: "docs learn/your-first-app §intro to AuthorizationRule ('Pagelove won't write anything to the server unless a rule says it may') (snapshot 2026-09-28); docs reference/permissions/AuthorizationRule"
+    confidence: high
+    requires: []
+    live: true
+    notes: "R-PERM-54 (401 for anonymous). The PUT rule covers '#todo-list li' only; POST covers '#todo-list' only; nothing grants a whole-document write."
+    site:
+      settings: {default_get: allow}
+      files:
+        - path: "${P}/index.html"
+          body: |
+            <!doctype html>
+            <html lang="en"><head><meta charset="UTF-8" /><title>Simple Todo List</title></head>
+            <body>
+              <h1>Shopping List</h1>
+              <ul id="todo-list"><li><input type="checkbox" />Get Milk</li></ul>
+              <div hidden itemscope itemtype="https://pagelove.org/AuthorizationRule">
+                <meta itemprop="actor" content="*" />
+                <meta itemprop="resource" content="${P}/index.html" />
+                <meta itemprop="method" content="PUT" />
+                <meta itemprop="selector" content="#todo-list li" />
+                <meta itemprop="action" content="allow" />
+              </div>
+            </body></html>
+    steps:
+      - name: PUT on the heading (not granted)
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/index.html"
+          headers: {Range: "selector=h1", Content-Type: "text/html"}
+          body: "<h1>Hacked</h1>"
+        expect: {status: 401}
+      - name: POST into the list before the POST rule exists
+        as: anonymous
+        request:
+          method: POST
+          path: "${P}/index.html"
+          headers: {Range: "selector=#todo-list", Content-Type: "text/html"}
+          body: "<li>Sneaky</li>"
+        expect: {status: 401}
+      - name: DELETE of an item (the rule grants PUT only)
+        as: anonymous
+        request:
+          method: DELETE
+          path: "${P}/index.html"
+          headers: {Range: "selector=#todo-list > li:nth-child(1)"}
+        expect: {status: 401}
+      - name: whole-document PUT
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/index.html"
+          headers: {Content-Type: "text/html"}
+          body: "<!doctype html><html><body>gone</body></html>"
+        expect: {status: 401}
+      - name: nothing changed
+        as: anonymous
+        request: {method: GET, path: "${P}/index.html"}
+        expect:
+          status: 200
+          body_contains: ["Shopping List", "Get Milk"]
+          body_not_contains: ["Hacked", "Sneaky", "gone"]
+
+  - id: apps.first-app.directory-url-writes
+    title: "A page loaded at a directory URL is written through that URL (beta-js uses location.href)"
+    area: apps
+    feature: directory URL equivalence
+    evidence: client-source
+    source: "beta-js pagelove/primitives.mjs@c204746:423-427 (PLDocument URL = location.href without fragment); docs learn/your-first-app rules name /index.html (snapshot 2026-09-28)"
+    confidence: medium
+    requires: []
+    live: true
+    notes: "R-APPS-6 (pagelike decision; C-11). kanban and ats hard-code index.html paths for writes, which suggests PageLove may not map directory URLs for writes; probe P-APPS-4. The rule names the index.html path; R-PERM-19 canonicalizes the directory form."
+    site:
+      settings: {default_get: allow}
+      files:
+        - path: "${P}/list/index.html"
+          body: |
+            <!doctype html>
+            <html><body>
+              <ul id="todo-list"><li><input type="checkbox" />Get Milk</li></ul>
+              <div hidden itemscope itemtype="https://pagelove.org/AuthorizationRule">
+                <meta itemprop="actor" content="*" />
+                <meta itemprop="resource" content="${P}/list/index.html" />
+                <meta itemprop="method" content="PUT" />
+                <meta itemprop="selector" content="#todo-list li" />
+                <meta itemprop="action" content="allow" />
+              </div>
+              <div hidden itemscope itemtype="https://pagelove.org/AuthorizationRule">
+                <meta itemprop="actor" content="*" />
+                <meta itemprop="resource" content="${P}/list/index.html" />
+                <meta itemprop="method" content="POST" />
+                <meta itemprop="selector" content="#todo-list" />
+                <meta itemprop="action" content="allow" />
+              </div>
+            </body></html>
+    steps:
+      - name: selector PUT addressed to the directory URL
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/list/"
+          headers:
+            Range: "selector=#todo-list > li:nth-child(1)"
+            Content-Type: "text/html;charset=UTF-8"
+          body: '<li><input type="checkbox" checked="">Get Milk</li>'
+        expect: {status: [200, 204, 206]}
+      - name: selector POST addressed to the directory URL
+        as: anonymous
+        request:
+          method: POST
+          path: "${P}/list/"
+          headers:
+            Range: "selector=#todo-list"
+            Content-Type: "text/html;charset=UTF-8"
+          body: "<li>Bread</li>"
+        expect: {status: [200, 201, 206]}
+      - name: both writes landed in index.html
+        as: author
+        plane: dav
+        request: {method: GET, path: "${P}/list/index.html"}
+        expect: {status: 200, body_contains: ["checked", "Bread"]}

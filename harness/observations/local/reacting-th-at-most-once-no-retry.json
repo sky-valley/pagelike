@@ -1,0 +1,48 @@
+{
+  "case": "reacting.th.at-most-once-no-retry",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 2 (install a handler with retry 3)",
+      "method": "PUT",
+      "path": "/_pl/reacting-th-at-most-once-no-retry-da9eae/r/handlers.html",
+      "status": 201,
+      "headers": {
+        "content-length": "541",
+        "content-type": "text/html",
+        "etag": "\"f88fdd5d853873585701e191214fab9f849962a6e04f12bd2e41e07e765aed07\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:53 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\n\u003cdiv itemscope itemtype=\"https://pagelove.org/TransitionHandler\"\u003e\n  \u003cmeta itemprop=\"selector\" content=\"[itemtype='https://pagelike.test/_pl/reacting-th-at-most-once-no-retry-da9eae/Order']\"\u003e\n  \u003cmeta itemprop=\"property\" content=\"status\"\u003e\n  \u003cmeta itemprop=\"becomes\" content=\"processing\"\u003e\n  \u003cdiv itemprop=\"action\" itemscope itemtype=\"https://pagelove.org/HttpRequest\"\u003e\n    \u003cmeta itemprop=\"url\" content=\"http://127.0.0.1:53669/c-e91baa1c/once\"\u003e\n    \u003cmeta itemprop=\"retry\" content=\"3\"\u003e\n  \u003c/div\u003e\n\u003c/div\u003e\n\u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 3 (create an order at processing)",
+      "method": "PUT",
+      "path": "/_pl/reacting-th-at-most-once-no-retry-da9eae/orders/o.html",
+      "status": 201,
+      "headers": {
+        "content-length": "191",
+        "content-type": "text/html",
+        "etag": "\"7c357a77858bea337930bf6e77f19e99f04cba31b523be4368e0d28e97895de2\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:53 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\u003chtml\u003e\u003cbody\u003e\u003cdiv itemscope itemtype=\"https://pagelike.test/_pl/reacting-th-at-most-once-no-retry-da9eae/Order\"\u003e\u003cmeta itemprop=\"status\" content=\"processing\"\u003e\u003c/div\u003e\u003c/body\u003e\u003c/html\u003e"
+    },
+    {
+      "step": "step 4",
+      "method": "POST",
+      "path": "${SINK}/once",
+      "headers": {
+        "accept-encoding": "gzip",
+        "content-length": "549",
+        "content-type": "text/html",
+        "user-agent": "Go-http-client/1.1"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\n  \u003chead\u003e\u003ctitle\u003eTransition\u003c/title\u003e\u003c/head\u003e\n  \u003cbody itemscope itemtype=\"https://pagelove.org/Transition\"\u003e\n    \u003cmeta itemprop=\"path\" content=\"/_pl/reacting-th-at-most-once-no-retry-da9eae/orders/o.html\"\u003e\n    \u003cmeta itemprop=\"selector\" content=\"[itemtype=\u0026quot;https://pagelike.test/_pl/reacting-th-at-most-once-no-retry-da9eae/Order\u0026quot;]\"\u003e\n    \u003cdiv itemscope itemtype=\"https://pagelike.test/_pl/reacting-th-at-most-once-no-retry-da9eae/Order\" itemprop=\"body\"\u003e\u003cmeta itemprop=\"status\" content=\"processing\"\u003e\u003c/div\u003e\n  \u003c/body\u003e\n\u003c/html\u003e\n"
+    }
+  ],
+  "outcome": "pass",
+  "target": "local"
+}

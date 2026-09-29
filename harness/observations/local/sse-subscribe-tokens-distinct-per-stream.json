@@ -1,0 +1,48 @@
+{
+  "case": "sse.subscribe.tokens-distinct-per-stream",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (sse open s1)",
+      "method": "GET",
+      "path": "/_pl/sse-subscribe-tokens-distinct-per-stream-bb25a7/doc.html",
+      "status": 200,
+      "headers": {
+        "cache-control": "no-cache",
+        "content-type": "text/event-stream",
+        "x-accel-buffering": "no"
+      }
+    },
+    {
+      "step": "step 2",
+      "events": [
+        {
+          "event": "pagelove-connection",
+          "data": "c06f8c10-de45-4a1a-b921-d3f3198d45d2"
+        }
+      ]
+    },
+    {
+      "step": "step 3 (sse open s2)",
+      "method": "GET",
+      "path": "/_pl/sse-subscribe-tokens-distinct-per-stream-bb25a7/doc.html",
+      "status": 200,
+      "headers": {
+        "cache-control": "no-cache",
+        "content-type": "text/event-stream",
+        "x-accel-buffering": "no"
+      }
+    },
+    {
+      "step": "step 4",
+      "events": [
+        {
+          "event": "pagelove-connection",
+          "data": "4875d0da-0f39-4de4-84d2-a8cdff18228d"
+        }
+      ]
+    }
+  ],
+  "outcome": "pass",
+  "target": "local"
+}

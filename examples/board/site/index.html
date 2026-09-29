@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:p="https://pagelove.org/1.0" xmlns:r="https://pagelove.org/Binding/CSS">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Team board</title>
+<link rel="stylesheet" href="/assets/board.css">
+</head>
+<body>
+<!-- The shared header is stored once and included (composition). -->
+<p:include resource="/partials.html" selector="#board-header"></p:include>
+
+<!-- Lanes are composed on the server from the cards in /cards.html. -->
+<main id="lanes" class="lanes" r:cards="[itemtype='https://example.org/Card']" p:template="text/liquid">
+{% assign order = "todo,doing,done" | split: "," %}
+{% for lane in order %}
+  <section class="lane" data-lane="{{ lane }}">
+    <h2>{% case lane %}{% when "todo" %}To do{% when "doing" %}Doing{% else %}Done{% endcase %}</h2>
+    {% assign here = cards | where: "status", lane %}
+    {% for card in here %}
+    <article class="card" data-key="{{ card.key }}" data-status="{{ card.status }}">
+      <h3>{{ card.title }}</h3>
+      <p class="who">{{ card.owner }}</p>
+    </article>
+    {% endfor %}
+  </section>
+{% endfor %}
+</main>
+
+<form id="new-card" class="new-card" hidden>
+  <input id="title" maxlength="80" placeholder="New card title" required>
+  <button type="submit">Add card</button>
+  <p id="msg" role="status"></p>
+</form>
+<script type="module" src="/assets/board.js"></script>
+</body>
+</html>

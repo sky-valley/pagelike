@@ -1,0 +1,37 @@
+{
+  "case": "javascript.dom.unlisted-members-absent",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (PUT the page (public plane; registers inline declarations))",
+      "method": "PUT",
+      "path": "/_pl/javascript-dom-unlisted-members-absent-eebb44/probe.html",
+      "status": 201,
+      "headers": {
+        "content-length": "1375",
+        "content-type": "text/html",
+        "etag": "\"1a2b10e192c0718b66a91cece7cf4f6000af2bd2b2de5e16ef30478b0b8b729c\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:42 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml xmlns:t=\"https://pagelike.test/_pl/javascript-dom-unlisted-members-absent-eebb44/Dunlistedmembersabsent\"\u003e\u003cbody\u003e\n\u003cmain\u003e\n\u003ct:probe\u003e\u003c/t:probe\u003e\n\u003c/main\u003e\n\u003cdiv hidden itemscope itemtype=\"https://pagelove.org/Schema\"\u003e\n\u003cmeta itemprop=\"type\" content=\"https://pagelike.test/_pl/javascript-dom-unlisted-members-absent-eebb44/Dunlistedmembersabsent\"\u003e\n\u003cul\u003e\n\u003cli itemprop=\"property\" itemscope itemtype=\"https://pagelove.org/Method\"\u003e\n\u003cmeta itemprop=\"name\" content=\"probe\"\u003e\n\u003cdiv itemprop=\"implementation\" itemscope itemtype=\"https://pagelove.org/JavaScript/Module\"\u003e\n\u003cscript itemprop=\"source\" type=\"module\"\u003e\nconst S = (...a) =\u003e a.map(String).join('|');\nconst H = (x) =\u003e String(x).replace(/[\u003c\u003e\"]/g, (c) =\u003e ({ '\u003c': '[', '\u003e': ']', '\"': \"'\" })[c]);\nconst tryName = (f) =\u003e { try { f(); return 'ok'; } catch (e) { return e.name + ':' + e.code; } };\nexport default function () {\nconst d = new DOMParser().parseFromString('\u003cp id=\"a\"\u003et\u003c/p\u003e', 'text/html');\nconst p = d.querySelector('p');\nreturn 'R:' + S(typeof p.innerText, typeof p.dataset, typeof p.style, typeof p.hidden, typeof p.title, typeof p.lang, typeof p.tabIndex, typeof d.getElementsByTagName, typeof d.getElementsByClassName, typeof p.replaceChildren, typeof p.toggleAttribute, typeof p.getAttributeNames, typeof p.addEventListener, typeof p.insertAdjacentElement);\n}\n\u003c/script\u003e\n\u003c/div\u003e\n\u003c/li\u003e\n\u003c/ul\u003e\n\u003c/div\u003e\n\u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 2 (GET \u003cmain\u003e: the method result is inserted as text)",
+      "method": "GET",
+      "path": "/_pl/javascript-dom-unlisted-members-absent-eebb44/probe.html",
+      "status": 206,
+      "headers": {
+        "accept-ranges": "selector, bytes",
+        "content-length": "156",
+        "content-range": "selector main",
+        "content-type": "text/html",
+        "etag": "\"f54ccc443a67916943d20e584ce0210ce20fa64cc6705edda31a354e622d8001-f54ccc443a67916943d20e584ce0210ce20fa64cc6705edda31a354e622d8001-1\"",
+        "vary": "Host, Range, Accept"
+      },
+      "body": "\u003cmain\u003e\nR:undefined|undefined|undefined|undefined|undefined|undefined|undefined|undefined|undefined|undefined|undefined|undefined|undefined|undefined\n\u003c/main\u003e"
+    }
+  ],
+  "outcome": "pass",
+  "target": "local"
+}

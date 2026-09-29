@@ -1,0 +1,60 @@
+{
+  "case": "protocol.query-sessel.scalar-results",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (string)",
+      "method": "QUERY",
+      "path": "/_pl/protocol-query-sessel-scalar-results-b664f2/doc.html",
+      "status": 200,
+      "headers": {
+        "accept-ranges": "bytes",
+        "content-length": "7",
+        "content-type": "application/sessel+json",
+        "vary": "Host, Range"
+      },
+      "body": "\"hello\""
+    },
+    {
+      "step": "step 2 (boolean)",
+      "method": "QUERY",
+      "path": "/_pl/protocol-query-sessel-scalar-results-b664f2/doc.html",
+      "status": 200,
+      "headers": {
+        "accept-ranges": "bytes",
+        "content-length": "4",
+        "content-type": "application/sessel+json",
+        "vary": "Host, Range"
+      },
+      "body": "true"
+    },
+    {
+      "step": "step 3",
+      "method": "QUERY",
+      "path": "/_pl/protocol-query-sessel-scalar-results-b664f2/doc.html",
+      "status": 200,
+      "headers": {
+        "accept-ranges": "bytes",
+        "content-length": "4",
+        "content-type": "application/sessel+json",
+        "vary": "Host, Range"
+      },
+      "body": "null"
+    },
+    {
+      "step": "step 4 (dictionary with a list)",
+      "method": "QUERY",
+      "path": "/_pl/protocol-query-sessel-scalar-results-b664f2/doc.html",
+      "status": 200,
+      "headers": {
+        "accept-ranges": "bytes",
+        "content-length": "31",
+        "content-type": "application/sessel+json",
+        "vary": "Host, Range"
+      },
+      "body": "{\"name\":\"Widget\",\"sizes\":[1,2]}"
+    }
+  ],
+  "outcome": "pass",
+  "target": "live"
+}

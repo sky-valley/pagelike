@@ -1,0 +1,50 @@
+{
+  "case": "javascript.slots.default-arrow-this-undefined",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (register declarations through the public plane (takes effect for the next request))",
+      "method": "PUT",
+      "path": "/_pl/javascript-slots-default-arrow-this-unde-a15d54/schema.html",
+      "status": 201,
+      "headers": {
+        "content-length": "657",
+        "content-type": "text/html",
+        "etag": "\"8b6264502a854fefd454bc3e61e87faad2f27bc09ea83d163e52cc417b7a1148\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:43 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\n\u003cdiv hidden itemscope itemtype=\"https://pagelove.org/Schema\"\u003e\n\u003cmeta itemprop=\"type\" content=\"https://pagelike.test/_pl/javascript-slots-default-arrow-this-unde-a15d54/Dfdefaultarrowthisundefined\"\u003e\n\u003cdiv itemprop=\"property\" itemscope itemtype=\"https://pagelove.org/Property\"\u003e\n\u003cmeta itemprop=\"name\" content=\"d\"\u003e\n\u003cmeta itemprop=\"type\" content=\"https://schema.host/Text\"\u003e\n\u003cmeta itemprop=\"cardinality\" content=\"0..1\"\u003e\n\u003cdiv itemprop=\"default\" itemscope itemtype=\"https://pagelove.org/JavaScript/Module\"\u003e\n\u003cscript itemprop=\"source\" type=\"module\"\u003e\nexport default () =\u003e 'this-' + typeof this;\n\u003c/script\u003e\n\u003c/div\u003e\n\u003c/div\u003e\n\u003c/div\u003e\n\u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 2 (PUT an instance (a.html))",
+      "method": "PUT",
+      "path": "/_pl/javascript-slots-default-arrow-this-unde-a15d54/a.html",
+      "status": 201,
+      "headers": {
+        "content-length": "260",
+        "content-type": "text/html",
+        "etag": "\"74395ed776edcb1c2c65351b2f88054e45ff1bf83ca3829130104b91e01e2efb\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:43 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\n\u003cdiv itemscope itemtype=\"https://pagelike.test/_pl/javascript-slots-default-arrow-this-unde-a15d54/Dfdefaultarrowthisundefined\"\u003e\n\u003cmeta itemprop=\"other\" content=\"o\"\u003e\n\u003cmeta itemprop=\"d\" content=\"this-undefined\"\u003e\u003c/div\u003e\n\u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 3 (stored state (authoring plane, raw))",
+      "method": "GET",
+      "path": "/_pl/javascript-slots-default-arrow-this-unde-a15d54/a.html",
+      "status": 200,
+      "headers": {
+        "accept-ranges": "bytes",
+        "content-length": "260",
+        "content-type": "text/html",
+        "etag": "\"74395ed776edcb1c2c65351b2f88054e45ff1bf83ca3829130104b91e01e2efb\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:43 GMT"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\n\u003cdiv itemscope itemtype=\"https://pagelike.test/_pl/javascript-slots-default-arrow-this-unde-a15d54/Dfdefaultarrowthisundefined\"\u003e\n\u003cmeta itemprop=\"other\" content=\"o\"\u003e\n\u003cmeta itemprop=\"d\" content=\"this-undefined\"\u003e\u003c/div\u003e\n\u003c/body\u003e\u003c/html\u003e\n"
+    }
+  ],
+  "outcome": "pass",
+  "target": "local"
+}

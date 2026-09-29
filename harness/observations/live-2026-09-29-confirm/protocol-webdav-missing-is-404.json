@@ -1,0 +1,39 @@
+{
+  "case": "protocol.webdav.missing-is-404",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (delete missing)",
+      "method": "DELETE",
+      "path": "/_pl/protocol-webdav-missing-is-404-4f825e/gone.html",
+      "status": 204,
+      "headers": {
+        "etag": "\"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855\""
+      }
+    },
+    {
+      "step": "step 2 (propfind missing)",
+      "method": "PROPFIND",
+      "path": "/_pl/protocol-webdav-missing-is-404-4f825e/gone.html",
+      "status": 404,
+      "headers": {
+        "content-length": "203",
+        "content-type": "text/html; charset=utf-8"
+      },
+      "body": "\u003carticle itemscope itemtype=\"https://pagelove.org/Error/NotFound\"\u003e\u003cmeta itemprop=\"status\" content=\"404\"\u003e\u003cp itemprop=\"message\"\u003eNot found: /_pl/protocol-webdav-missing-is-404-4f825e/gone.html\u003c/p\u003e\u003c/article\u003e"
+    },
+    {
+      "step": "step 3 (get missing)",
+      "method": "GET",
+      "path": "/_pl/protocol-webdav-missing-is-404-4f825e/gone.html",
+      "status": 404,
+      "headers": {
+        "content-length": "203",
+        "content-type": "text/html; charset=utf-8"
+      },
+      "body": "\u003carticle itemscope itemtype=\"https://pagelove.org/Error/NotFound\"\u003e\u003cmeta itemprop=\"status\" content=\"404\"\u003e\u003cp itemprop=\"message\"\u003eNot found: /_pl/protocol-webdav-missing-is-404-4f825e/gone.html\u003c/p\u003e\u003c/article\u003e"
+    }
+  ],
+  "outcome": "pass",
+  "target": "live"
+}

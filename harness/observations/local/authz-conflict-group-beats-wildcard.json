@@ -1,0 +1,45 @@
+{
+  "case": "authz.conflict.group-beats-wildcard",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (member reads)",
+      "method": "GET",
+      "path": "/_pl/authz-conflict-group-beats-wildcard-d7d447/blog/post.html",
+      "status": 200,
+      "headers": {
+        "accept-ranges": "selector, bytes",
+        "content-length": "54",
+        "content-type": "text/html",
+        "etag": "\"302430b3e1d58abc1653391622921c59346011236f88744af0060757f53c6803\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:46 GMT",
+        "vary": "Host, Range, Accept"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\u003chtml\u003e\u003cbody\u003e\u003ch1\u003ePost\u003c/h1\u003e\u003c/body\u003e\u003c/html\u003e"
+    },
+    {
+      "step": "step 2 (non-member refused)",
+      "method": "GET",
+      "path": "/_pl/authz-conflict-group-beats-wildcard-d7d447/blog/post.html",
+      "status": 403,
+      "headers": {
+        "content-length": "473",
+        "content-type": "text/html; charset=utf-8"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\n\u003chead\u003e\n    \u003cmeta charset=\"UTF-8\"\u003e\n    \u003ctitle\u003e403 Forbidden\u003c/title\u003e\n\u003c/head\u003e\n\u003cbody itemscope itemtype=\"https://pagelove.org/1.0/Error\"\u003e\n    \u003ch1\u003e403 Forbidden\u003c/h1\u003e\n    \u003cp itemprop=\"message\"\u003eYou do not have permission to access this resource.\u003c/p\u003e\n    \u003cdl\u003e\n        \u003cdt\u003eResource\u003c/dt\u003e\n        \u003cdd itemprop=\"resource\"\u003e/_pl/authz-conflict-group-beats-wildcard-d7d447/blog/post.html\u003c/dd\u003e\n    \u003c/dl\u003e\n    \u003cp\u003e\u003ca href=\"/auth/logout\"\u003eLog out\u003c/a\u003e\u003c/p\u003e\n\u003c/body\u003e\n\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 3 (anonymous refused)",
+      "method": "GET",
+      "path": "/_pl/authz-conflict-group-beats-wildcard-d7d447/blog/post.html",
+      "status": 401,
+      "headers": {
+        "content-length": "474",
+        "content-type": "text/html; charset=utf-8"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\n\u003chead\u003e\n    \u003cmeta charset=\"UTF-8\"\u003e\n    \u003ctitle\u003e401 Unauthorized\u003c/title\u003e\n\u003c/head\u003e\n\u003cbody itemscope itemtype=\"https://pagelove.org/1.0/Error\"\u003e\n    \u003ch1\u003e401 Unauthorized\u003c/h1\u003e\n    \u003cp itemprop=\"message\"\u003eAuthentication required to access this resource.\u003c/p\u003e\n    \u003cdl\u003e\n        \u003cdt\u003eResource\u003c/dt\u003e\n        \u003cdd itemprop=\"resource\"\u003e/_pl/authz-conflict-group-beats-wildcard-d7d447/blog/post.html\u003c/dd\u003e\n    \u003c/dl\u003e\n    \u003cp\u003e\u003ca href=\"/auth/login\"\u003eLog in\u003c/a\u003e\u003c/p\u003e\n\u003c/body\u003e\n\u003c/html\u003e\n"
+    }
+  ],
+  "outcome": "pass",
+  "target": "local"
+}

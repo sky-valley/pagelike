@@ -1,0 +1,105 @@
+{
+  "case": "apps.blog.comment-write-through-and-shape",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (an honest comment, exactly as the page script serializes it)",
+      "method": "POST",
+      "path": "/_pl/apps-blog-comment-write-through-and-shap-1971ff/posts/hello-world.html",
+      "status": 206,
+      "headers": {
+        "content-length": "250",
+        "content-range": "selector #comments-hello-world",
+        "content-type": "text/html",
+        "etag": "\"669c9dbff19c7d57819be717e1f89a6e88bfcf5c2ed803e7941097bd3c417a00-669c9dbff19c7d57819be717e1f89a6e88bfcf5c2ed803e7941097bd3c417a00-2\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:41 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003cli class=\"comment\" itemscope itemtype=\"https://blog.example/Comment\"\u003e\u003cp class=\"comment-meta\"\u003e\u003cstrong itemprop=\"author\"\u003eAda\u003c/strong\u003e \u003ctime itemprop=\"createdAt\" datetime=\"2026-09-28\"\u003ejust now\u003c/time\u003e\u003c/p\u003e\u003cdiv itemprop=\"body\"\u003e\u003cp\u003eNice post.\u003c/p\u003e\u003c/div\u003e\u003c/li\u003e"
+    },
+    {
+      "step": "step 2 (it landed in the data file, not in the route template)",
+      "method": "GET",
+      "path": "/_pl/apps-blog-comment-write-through-and-shap-1971ff/data/posts/hello-world.html",
+      "status": 200,
+      "headers": {
+        "accept-ranges": "bytes",
+        "content-length": "1250",
+        "content-type": "text/html",
+        "etag": "\"fd34379c201c9caf3538d98e28f327da5bc9974ab47c1bc3f4e6ce52e8a788d4\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:41 GMT"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml lang=\"en\"\u003e\n\u003chead\u003e\u003cmeta charset=\"UTF-8\"\u003e\u003ctitle\u003edata: hello-world\u003c/title\u003e\u003c/head\u003e\n\u003cbody\u003e\n  \u003carticle itemscope itemtype=\"https://pagelike.test/_pl/apps-blog-comment-write-through-and-shap-1971ff/Post\" id=\"post-hello-world\"\u003e\n    \u003cmeta itemprop=\"slug\" content=\"hello-world\"\u003e\n    \u003cmeta itemprop=\"status\" content=\"Published\"\u003e\n    \u003cmeta itemprop=\"excerpt\" content=\"The first post on Field Notes, and a look at how this blog works.\"\u003e\n    \u003cmeta itemprop=\"displayDate\" content=\"3 August 2026\"\u003e\n    \u003cmeta itemprop=\"monthLabel\" content=\"August 2026\"\u003e\n    \u003ch1 itemprop=\"title\"\u003eHello, world\u003c/h1\u003e\n    \u003cp class=\"byline\"\u003e\u003ctime itemprop=\"publishedAt\" datetime=\"2026-08-03\"\u003e3 August 2026\u003c/time\u003e · \u003cspan itemprop=\"author\"\u003eSam\u003c/span\u003e\u003c/p\u003e\n    \u003cdiv itemprop=\"body\"\u003e\n      \u003cp\u003eWelcome to Field Notes. This post is a single HTML file.\u003c/p\u003e\n    \u003c/div\u003e\n    \u003ch2 class=\"comments-title\"\u003eComments\u003c/h2\u003e\n    \u003cul itemprop=\"comments\" id=\"comments-hello-world\" class=\"comment-list\"\u003e\u003cli class=\"comment\" itemscope itemtype=\"https://blog.example/Comment\"\u003e\u003cp class=\"comment-meta\"\u003e\u003cstrong itemprop=\"author\"\u003eAda\u003c/strong\u003e \u003ctime itemprop=\"createdAt\" datetime=\"2026-09-28\"\u003ejust now\u003c/time\u003e\u003c/p\u003e\u003cdiv itemprop=\"body\"\u003e\u003cp\u003eNice post.\u003c/p\u003e\u003c/div\u003e\u003c/li\u003e\u003c/ul\u003e\n  \u003c/article\u003e\n\u003c/body\u003e\n\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 3 (the route template is untouched)",
+      "method": "GET",
+      "path": "/_pl/apps-blog-comment-write-through-and-shap-1971ff/posts/:slug.html",
+      "status": 200,
+      "headers": {
+        "accept-ranges": "bytes",
+        "content-length": "773",
+        "content-type": "text/html",
+        "etag": "\"bd53a71fc00c7f6c05ebbea23188cf1c10375f3154d429724e9d8b0c8e3067d6\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:41 GMT"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml lang=\"en\" xmlns:e=\"https://pagelove.org/Binding/Sessel\" xmlns:p=\"https://pagelove.org/1.0\"\u003e\n\u003chead\u003e\n  \u003cmeta charset=\"UTF-8\"\u003e\n  \u003ctitle\u003eField Notes\u003c/title\u003e\n  \u003cstyle\u003e\n    main:has(article[itemscope]) .post-missing { display: none; }\n  \u003c/style\u003e\n\u003c/head\u003e\n\u003cbody e:post=\"${[itemtype='https://pagelike.test/_pl/apps-blog-comment-write-through-and-shap-1971ff/Post']:has([itemprop='slug']:value-equals(request.params.slug)):has([itemprop='status']:value-equals('Published'))}.first()\"\u003e\n  \u003cmain class=\"reading post\"\u003e\n    \u003cp:stamp post\u003e\u003c/p:stamp\u003e\n    \u003cdiv class=\"post-missing\"\u003e\n      \u003ch1\u003eNot found\u003c/h1\u003e\n      \u003cp\u003eThis post doesn't exist, or it hasn't been published yet.\u003c/p\u003e\n    \u003c/div\u003e\n    \u003ca class=\"back\" href=\"/index.html\"\u003eAll posts\u003c/a\u003e\n  \u003c/main\u003e\n\u003c/body\u003e\n\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 4 (the page shows the comment)",
+      "method": "GET",
+      "path": "/_pl/apps-blog-comment-write-through-and-shap-1971ff/posts/hello-world.html",
+      "status": 200,
+      "headers": {
+        "accept-ranges": "selector, bytes",
+        "cache-control": "public, max-age=5",
+        "content-length": "1571",
+        "content-type": "text/html",
+        "etag": "W/\"7471c9744fc4039a9e41fcaebdc5663c264decf4f735f38c7feba133036645de\"",
+        "route-parameters": "slug=hello-world",
+        "vary": "Host, Range, Accept"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml lang=\"en\"\u003e\n\u003chead\u003e\n  \u003cmeta charset=\"UTF-8\"\u003e\n  \u003ctitle\u003eField Notes\u003c/title\u003e\n  \u003cstyle\u003e\n    main:has(article[itemscope]) .post-missing { display: none; }\n  \u003c/style\u003e\n\u003c/head\u003e\n\u003cbody\u003e\n  \u003cmain class=\"reading post\"\u003e\n    \u003carticle itemscope itemtype=\"https://pagelike.test/_pl/apps-blog-comment-write-through-and-shap-1971ff/Post\" id=\"post-hello-world\"\u003e\n    \u003cmeta itemprop=\"slug\" content=\"hello-world\"\u003e\n    \u003cmeta itemprop=\"status\" content=\"Published\"\u003e\n    \u003cmeta itemprop=\"excerpt\" content=\"The first post on Field Notes, and a look at how this blog works.\"\u003e\n    \u003cmeta itemprop=\"displayDate\" content=\"3 August 2026\"\u003e\n    \u003cmeta itemprop=\"monthLabel\" content=\"August 2026\"\u003e\n    \u003ch1 itemprop=\"title\"\u003eHello, world\u003c/h1\u003e\n    \u003cp class=\"byline\"\u003e\u003ctime itemprop=\"publishedAt\" datetime=\"2026-08-03\"\u003e3 August 2026\u003c/time\u003e · \u003cspan itemprop=\"author\"\u003eSam\u003c/span\u003e\u003c/p\u003e\n    \u003cdiv itemprop=\"body\"\u003e\n      \u003cp\u003eWelcome to Field Notes. This post is a single HTML file.\u003c/p\u003e\n    \u003c/div\u003e\n    \u003ch2 class=\"comments-title\"\u003eComments\u003c/h2\u003e\n    \u003cul itemprop=\"comments\" id=\"comments-hello-world\" class=\"comment-list\"\u003e\u003cli class=\"comment\" itemscope itemtype=\"https://blog.example/Comment\"\u003e\u003cp class=\"comment-meta\"\u003e\u003cstrong itemprop=\"author\"\u003eAda\u003c/strong\u003e \u003ctime itemprop=\"createdAt\" datetime=\"2026-09-28\"\u003ejust now\u003c/time\u003e\u003c/p\u003e\u003cdiv itemprop=\"body\"\u003e\u003cp\u003eNice post.\u003c/p\u003e\u003c/div\u003e\u003c/li\u003e\u003c/ul\u003e\n  \u003c/article\u003e\n    \u003cdiv class=\"post-missing\"\u003e\n      \u003ch1\u003eNot found\u003c/h1\u003e\n      \u003cp\u003eThis post doesn't exist, or it hasn't been published yet.\u003c/p\u003e\n    \u003c/div\u003e\n    \u003ca class=\"back\" href=\"/index.html\"\u003eAll posts\u003c/a\u003e\n  \u003c/main\u003e\n\u003c/body\u003e\n\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 5 (the tutorial's attack is refused)",
+      "method": "POST",
+      "path": "/_pl/apps-blog-comment-write-through-and-shap-1971ff/posts/hello-world.html",
+      "status": 422,
+      "headers": {
+        "content-length": "650",
+        "content-type": "text/html",
+        "vary": "Host, Range"
+      },
+      "body": "\u003cdiv itemscope itemtype=\"https://dombase.pagelove.team/ns/error/ShapeConstraint\"\u003e\u003cul itemprop=\"problems\"\u003e\u003cli itemprop=\"problem\"\u003e\u003cspan itemprop=\"message\"\u003eShape constraints violated\u003c/span\u003e\u003c/li\u003e\u003cli itemprop=\"problem\"\u003e\u003cspan itemprop=\"message\"\u003ehttps://pagelove.org/ShapeConstraint [itemprop='comments'][id][class]: Element \u0026lt;li\u0026gt; inside '[itemprop='comments'][id][class]' is not permitted by any permit\u003c/span\u003e\u003c/li\u003e\u003cli itemprop=\"problem\"\u003e\u003cspan itemprop=\"message\"\u003ehttps://pagelove.org/ShapeConstraint [itemprop='comments'][id][class]: Element \u0026lt;script\u0026gt; inside '[itemprop='comments'][id][class]' is not permitted by any permit\u003c/span\u003e\u003c/li\u003e\u003c/ul\u003e\u003c/div\u003e"
+    },
+    {
+      "step": "step 6 (the data file has no script)",
+      "method": "GET",
+      "path": "/_pl/apps-blog-comment-write-through-and-shap-1971ff/data/posts/hello-world.html",
+      "status": 200,
+      "headers": {
+        "accept-ranges": "bytes",
+        "content-length": "1250",
+        "content-type": "text/html",
+        "etag": "\"fd34379c201c9caf3538d98e28f327da5bc9974ab47c1bc3f4e6ce52e8a788d4\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:41 GMT"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml lang=\"en\"\u003e\n\u003chead\u003e\u003cmeta charset=\"UTF-8\"\u003e\u003ctitle\u003edata: hello-world\u003c/title\u003e\u003c/head\u003e\n\u003cbody\u003e\n  \u003carticle itemscope itemtype=\"https://pagelike.test/_pl/apps-blog-comment-write-through-and-shap-1971ff/Post\" id=\"post-hello-world\"\u003e\n    \u003cmeta itemprop=\"slug\" content=\"hello-world\"\u003e\n    \u003cmeta itemprop=\"status\" content=\"Published\"\u003e\n    \u003cmeta itemprop=\"excerpt\" content=\"The first post on Field Notes, and a look at how this blog works.\"\u003e\n    \u003cmeta itemprop=\"displayDate\" content=\"3 August 2026\"\u003e\n    \u003cmeta itemprop=\"monthLabel\" content=\"August 2026\"\u003e\n    \u003ch1 itemprop=\"title\"\u003eHello, world\u003c/h1\u003e\n    \u003cp class=\"byline\"\u003e\u003ctime itemprop=\"publishedAt\" datetime=\"2026-08-03\"\u003e3 August 2026\u003c/time\u003e · \u003cspan itemprop=\"author\"\u003eSam\u003c/span\u003e\u003c/p\u003e\n    \u003cdiv itemprop=\"body\"\u003e\n      \u003cp\u003eWelcome to Field Notes. This post is a single HTML file.\u003c/p\u003e\n    \u003c/div\u003e\n    \u003ch2 class=\"comments-title\"\u003eComments\u003c/h2\u003e\n    \u003cul itemprop=\"comments\" id=\"comments-hello-world\" class=\"comment-list\"\u003e\u003cli class=\"comment\" itemscope itemtype=\"https://blog.example/Comment\"\u003e\u003cp class=\"comment-meta\"\u003e\u003cstrong itemprop=\"author\"\u003eAda\u003c/strong\u003e \u003ctime itemprop=\"createdAt\" datetime=\"2026-09-28\"\u003ejust now\u003c/time\u003e\u003c/p\u003e\u003cdiv itemprop=\"body\"\u003e\u003cp\u003eNice post.\u003c/p\u003e\u003c/div\u003e\u003c/li\u003e\u003c/ul\u003e\n  \u003c/article\u003e\n\u003c/body\u003e\n\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 7 (the rule does not open other elements of the page)",
+      "method": "POST",
+      "path": "/_pl/apps-blog-comment-write-through-and-shap-1971ff/posts/hello-world.html",
+      "status": 416,
+      "headers": {
+        "content-length": "356",
+        "content-type": "text/html",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\n  \u003chead\u003e\n    \u003ctitle\u003e416 Range Not Satisfiable - Error\u003c/title\u003e\n  \u003c/head\u003e\n  \u003cbody itemscope itemtype=\"http://pagelove.org/Error\"\u003e\n    \u003ch1 itemprop=\"name\"\u003eRange Not Satisfiable\u003c/h1\u003e\n    \u003cmeta itemprop=\"statusCode\" content=\"416\"\u003e\n    \u003cp itemprop=\"description\"\u003eHTML parsing error: No elements matched selector: main\u003c/p\u003e\n  \u003c/body\u003e\n\u003c/html\u003e\n"
+    }
+  ],
+  "outcome": "pass",
+  "target": "local"
+}

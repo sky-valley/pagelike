@@ -1,0 +1,51 @@
+{
+  "case": "reacting.writes.chained-transformations-last-wins",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (install both transformers in one document (document order))",
+      "method": "PUT",
+      "path": "/_pl/reacting-writes-chained-transformations-7b9505/r/triggers.html",
+      "status": 201,
+      "headers": {
+        "content-length": "1505",
+        "content-type": "text/html",
+        "etag": "\"48e4ff82fba9e5c1af07c9792d1ec2bee41f0f3aa63b2402b475985c79946d13\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:55 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\n\u003cdiv hidden itemscope itemtype=\"https://pagelove.org/Trigger\"\u003e\n  \u003cmeta itemprop=\"resource\" content=\"/_pl/reacting-writes-chained-transformations-7b9505/d/*\"\u003e\n  \u003cmeta itemprop=\"method\" content=\"PUT\"\u003e\n  \u003cdiv itemprop=\"action\" itemscope itemtype=\"https://pagelove.org/Sessel\"\u003e\n    \u003cscript itemprop=\"source\" type=\"text/sessel\"\u003e\n      @schema Context url(\"https://pagelove.org/Context\");\n      @schema Pagelove url(\"https://pagelove.org/1.0\");\n      @schema Article url(\"https://schema.org/Article\");\n      Pagelove.PUT(new Article { name: \"first-transform\" }, Context.request.path)\n    \u003c/script\u003e\n  \u003c/div\u003e\n\u003c/div\u003e\n\u003cdiv hidden itemscope itemtype=\"https://pagelove.org/Trigger\"\u003e\n  \u003cmeta itemprop=\"resource\" content=\"/_pl/reacting-writes-chained-transformations-7b9505/d/*\"\u003e\n  \u003cmeta itemprop=\"method\" content=\"PUT\"\u003e\n  \u003cdiv itemprop=\"action\" itemscope itemtype=\"https://pagelove.org/Sessel\"\u003e\n    \u003cscript itemprop=\"source\" type=\"text/sessel\"\u003e\n      @schema Context url(\"https://pagelove.org/Context\");\n      @schema Pagelove url(\"https://pagelove.org/1.0\");\n      @schema Article url(\"https://schema.org/Article\");\n      @schema HTTPResponse url(\"https://pagelove.org/HTTPResponse\");\n      if (Context.request.body.contains(\"first-transform\") == false) {\n        throw new HTTPResponse { status: 417, message: \"did not see the first transformation\" }\n      }\n      Pagelove.PUT(new Article { name: \"second-transform\" }, Context.request.path)\n    \u003c/script\u003e\n  \u003c/div\u003e\n\u003c/div\u003e\n\u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 2 (write)",
+      "method": "PUT",
+      "path": "/_pl/reacting-writes-chained-transformations-7b9505/d/post.html",
+      "status": 201,
+      "headers": {
+        "content-length": "153",
+        "content-type": "text/html",
+        "etag": "\"250cebf7061196dbb96c458a5c44441c3a3e00112c94b80cbafcd9bac1e3ec99\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:55 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\n\u003cdiv itemscope itemtype=\"https://schema.org/Article\"\u003e\u003cmeta itemprop=\"name\" content=\"second-transform\"\u003e\u003c/div\u003e\n\u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 3 (the last transformation is stored)",
+      "method": "GET",
+      "path": "/_pl/reacting-writes-chained-transformations-7b9505/d/post.html",
+      "status": 200,
+      "headers": {
+        "accept-ranges": "selector, bytes",
+        "content-length": "153",
+        "content-type": "text/html",
+        "etag": "\"250cebf7061196dbb96c458a5c44441c3a3e00112c94b80cbafcd9bac1e3ec99\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:55 GMT",
+        "vary": "Host, Range, Accept"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\n\u003cdiv itemscope itemtype=\"https://schema.org/Article\"\u003e\u003cmeta itemprop=\"name\" content=\"second-transform\"\u003e\u003c/div\u003e\n\u003c/body\u003e\u003c/html\u003e\n"
+    }
+  ],
+  "outcome": "pass",
+  "target": "local"
+}

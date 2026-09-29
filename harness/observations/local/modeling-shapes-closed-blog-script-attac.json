@@ -1,0 +1,77 @@
+{
+  "case": "modeling.shapes-closed.blog-script-attack",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (register declarations through the public plane (takes effect for the next request))",
+      "method": "PUT",
+      "path": "/_pl/modeling-shapes-closed-blog-script-attac-5e98fc/constraints.html",
+      "status": 201,
+      "headers": {
+        "content-length": "690",
+        "content-type": "text/html",
+        "etag": "\"86f2f2ccf501e1b59dbe22933c0dc8b30ec7284846b8472eb3ba38c79cefd9ad\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:45 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\n  \u003cdiv hidden itemscope itemtype=\"https://pagelove.org/ShapeConstraint\"\u003e\n    \u003cmeta itemprop=\"resource\" content=\"/_pl/modeling-shapes-closed-blog-script-attac-5e98fc/posts/*\"\u003e\n    \u003ccode itemprop=\"selector\"\u003e[itemprop='comments'][id][class]\u003c/code\u003e\n    \u003ccode itemprop=\"permit\"\u003eli[class=\"comment\"][itemscope][itemtype=\"https://blog.example/Comment\"]\u003c/code\u003e\n    \u003ccode itemprop=\"permit\"\u003ep[class=\"comment-meta\"]\u003c/code\u003e\n    \u003ccode itemprop=\"permit\"\u003estrong[itemprop=\"author\"]\u003c/code\u003e\n    \u003ccode itemprop=\"permit\"\u003etime[itemprop=\"createdAt\"][datetime]\u003c/code\u003e\n    \u003ccode itemprop=\"permit\"\u003ediv[itemprop=\"body\"]\u003c/code\u003e\n    \u003ccode itemprop=\"permit\"\u003ep\u003c/code\u003e\n  \u003c/div\u003e\n\u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 2 (seed a post with a comments list)",
+      "method": "PUT",
+      "path": "/_pl/modeling-shapes-closed-blog-script-attac-5e98fc/posts/hello.html",
+      "status": 201,
+      "headers": {
+        "content-length": "113",
+        "content-type": "text/html",
+        "etag": "\"e2a3ac578cb562b8ea3671958874c70385cc8d96d94c468d1881dc8a0f60eb00\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:45 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\n  \u003cul itemprop=\"comments\" id=\"comments-hello\" class=\"comments\"\u003e\u003c/ul\u003e\n\u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 3 (script comment refused)",
+      "method": "POST",
+      "path": "/_pl/modeling-shapes-closed-blog-script-attac-5e98fc/posts/hello.html",
+      "status": 422,
+      "headers": {
+        "content-length": "650",
+        "content-type": "text/html",
+        "vary": "Host, Range"
+      },
+      "body": "\u003cdiv itemscope itemtype=\"https://dombase.pagelove.team/ns/error/ShapeConstraint\"\u003e\u003cul itemprop=\"problems\"\u003e\u003cli itemprop=\"problem\"\u003e\u003cspan itemprop=\"message\"\u003eShape constraints violated\u003c/span\u003e\u003c/li\u003e\u003cli itemprop=\"problem\"\u003e\u003cspan itemprop=\"message\"\u003ehttps://pagelove.org/ShapeConstraint [itemprop='comments'][id][class]: Element \u0026lt;li\u0026gt; inside '[itemprop='comments'][id][class]' is not permitted by any permit\u003c/span\u003e\u003c/li\u003e\u003cli itemprop=\"problem\"\u003e\u003cspan itemprop=\"message\"\u003ehttps://pagelove.org/ShapeConstraint [itemprop='comments'][id][class]: Element \u0026lt;script\u0026gt; inside '[itemprop='comments'][id][class]' is not permitted by any permit\u003c/span\u003e\u003c/li\u003e\u003c/ul\u003e\u003c/div\u003e"
+    },
+    {
+      "step": "step 4 (honest comment accepted)",
+      "method": "POST",
+      "path": "/_pl/modeling-shapes-closed-blog-script-attac-5e98fc/posts/hello.html",
+      "status": 206,
+      "headers": {
+        "content-length": "250",
+        "content-range": "selector #comments-hello",
+        "content-type": "text/html",
+        "etag": "\"9602c542d7f536c2b7b04cd5f022c3411c2b1790779a29bce736af8eae0763e8-9602c542d7f536c2b7b04cd5f022c3411c2b1790779a29bce736af8eae0763e8-2\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:45 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003cli class=\"comment\" itemscope itemtype=\"https://blog.example/Comment\"\u003e\u003cp class=\"comment-meta\"\u003e\u003cstrong itemprop=\"author\"\u003eAnn\u003c/strong\u003e \u003ctime itemprop=\"createdAt\" datetime=\"2026-09-28\"\u003ejust now\u003c/time\u003e\u003c/p\u003e\u003cdiv itemprop=\"body\"\u003e\u003cp\u003eNice post.\u003c/p\u003e\u003c/div\u003e\u003c/li\u003e"
+    },
+    {
+      "step": "step 5 (stored state of hello.html (authoring plane, raw))",
+      "method": "GET",
+      "path": "/_pl/modeling-shapes-closed-blog-script-attac-5e98fc/posts/hello.html",
+      "status": 200,
+      "headers": {
+        "accept-ranges": "bytes",
+        "content-length": "363",
+        "content-type": "text/html",
+        "etag": "\"439112ad78279be38b1569289b5c82dcaca34d36a2438d70e96ece8831497124\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:45 GMT"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\n  \u003cul itemprop=\"comments\" id=\"comments-hello\" class=\"comments\"\u003e\u003cli class=\"comment\" itemscope itemtype=\"https://blog.example/Comment\"\u003e\u003cp class=\"comment-meta\"\u003e\u003cstrong itemprop=\"author\"\u003eAnn\u003c/strong\u003e \u003ctime itemprop=\"createdAt\" datetime=\"2026-09-28\"\u003ejust now\u003c/time\u003e\u003c/p\u003e\u003cdiv itemprop=\"body\"\u003e\u003cp\u003eNice post.\u003c/p\u003e\u003c/div\u003e\u003c/li\u003e\u003c/ul\u003e\n\u003c/body\u003e\u003c/html\u003e\n"
+    }
+  ],
+  "outcome": "pass",
+  "target": "local"
+}

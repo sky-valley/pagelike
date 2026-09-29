@@ -1,0 +1,37 @@
+{
+  "case": "javascript.dom.classlist",
+  "failures": [
+    "step 2 (GET \u003cmain\u003e: the method result is inserted as text) GET ${P}/probe.html: body does not contain \"R:2|true|a b a|a b c|false|false|true|a c z|true|false|x c z|x|null|null|x,c,z|false|0|m n\" (body: \u003cmain\u003e\nR:3|true|a b a|a b a c|false|false|true|a a c z|true|false|x a c z|x|undefined|undefined|x,a,c,z|true|1|m n\n\u003c/main\u003e)"
+  ],
+  "observations": [
+    {
+      "step": "step 1 (PUT the page (public plane; registers inline declarations))",
+      "method": "PUT",
+      "path": "/_pl/javascript-dom-classlist-0fb0ee/probe.html",
+      "status": 201,
+      "headers": {
+        "content-type": "text/html",
+        "etag": "\"8b5d8df13f27825011b6ceb833ae40c65d2ffc5bac1c2454190273141c960112\"",
+        "last-modified": "Tue, 29 Sep 2026 00:46:18 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml xmlns:t=\"https://pagelike.test/_pl/javascript-dom-classlist-0fb0ee/Dclasslist\"\u003e\u003cbody\u003e\n\u003cmain\u003e\n\u003ct:probe\u003e\u003c/t:probe\u003e\n\u003c/main\u003e\n\u003cdiv hidden itemscope itemtype=\"https://pagelove.org/Schema\"\u003e\n\u003cmeta itemprop=\"type\" content=\"https://pagelike.test/_pl/javascript-dom-classlist-0fb0ee/Dclasslist\"\u003e\n\u003cul\u003e\n\u003cli itemprop=\"property\" itemscope itemtype=\"https://pagelove.org/Method\"\u003e\n\u003cmeta itemprop=\"name\" content=\"probe\"\u003e\n\u003cdiv itemprop=\"implementation\" itemscope itemtype=\"https://pagelove.org/JavaScript/Module\"\u003e\n\u003cscript itemprop=\"source\" type=\"module\"\u003e\nconst S = (...a) =\u003e a.map(String).join('|');\nconst H = (x) =\u003e String(x).replace(/[\u003c\u003e\"]/g, (c) =\u003e ({ '\u003c': '[', '\u003e': ']', '\"': \"'\" })[c]);\nconst tryName = (f) =\u003e { try { f(); return 'ok'; } catch (e) { return e.name + ':' + e.code; } };\nexport default function () {\nconst d = new DOMParser().parseFromString('\u003cp class=\"a b a\"\u003e\u003c/p\u003e', 'text/html');\nconst p = d.querySelector('p'), cl = p.classList;\nconst out = [cl.length, cl.contains('a'), cl.value];\ncl.add('c', 'a'); out.push(p.getAttribute('class'));\nout.push(cl.toggle('b')); out.push(cl.toggle('z', false)); out.push(cl.toggle('z', true)); out.push(p.className);\nout.push(cl.replace('a', 'x')); out.push(cl.replace('nope', 'y')); out.push(p.className);\nout.push(cl.item(0), cl.item(-1), cl.item(99), [...cl].join(','));\ncl.remove('x', 'c', 'z'); out.push(p.hasAttribute('class'), cl.length);\ncl.value = 'm n'; out.push(p.className);\nreturn 'R:' + S(...out);\n}\n\u003c/script\u003e\n\u003c/div\u003e\n\u003c/li\u003e\n\u003c/ul\u003e\n\u003cmeta itemprop=\"@id\" content=\"https://schema.host/750ifg42\"\u003e\u003cmeta itemprop=\"path\" content=\"/Schemahttps://schema.host/750ifg42.html\"\u003e\u003c/div\u003e\n\n                \u003cdiv style=\"\n                            position: fixed;\n                            bottom: 0;\n                            left: 0;\n                            right: 0;\n                            padding: 8px;\n                            background: #f0f0f0;\n                            text-align: center;\n                            font-size: 12px;\n                            color: #666;\n                            z-index: 9999;\n                            opacity: 0.8;\n                            border-top: 1px solid #ddd;\n                        \"\u003e\n                    Powered by\n                    \u003ca href=\"https://pagelove.com/\" style=\"color: #4a90d9; text-decoration: none\"\u003ePagelove\u003c/a\u003e\n                \u003c/div\u003e\n            \u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 2 (GET \u003cmain\u003e: the method result is inserted as text)",
+      "method": "GET",
+      "path": "/_pl/javascript-dom-classlist-0fb0ee/probe.html",
+      "status": 206,
+      "headers": {
+        "content-length": "122",
+        "content-range": "selector main",
+        "content-type": "text/html",
+        "etag": "\"0c2011ad4d8bc0c0b21bf70e8e2073e545b5f233f15dcaf069060fd1e288020f-0c2011ad4d8bc0c0b21bf70e8e2073e545b5f233f15dcaf069060fd1e288020f-1\"",
+        "vary": "Host, Range, Accept"
+      },
+      "body": "\u003cmain\u003e\nR:3|true|a b a|a b a c|false|false|true|a a c z|true|false|x a c z|x|undefined|undefined|x,a,c,z|true|1|m n\n\u003c/main\u003e"
+    }
+  ],
+  "outcome": "fail",
+  "target": "live"
+}

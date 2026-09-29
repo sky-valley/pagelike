@@ -1,0 +1,54 @@
+{
+  "case": "protocol.webdav.file-propfind-304",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (file properties)",
+      "method": "PROPFIND",
+      "path": "/_pl/protocol-webdav-file-propfind-304-17b666/dav/a.html",
+      "status": 207,
+      "headers": {
+        "content-length": "603",
+        "content-type": "application/xml; charset=utf-8",
+        "etag": "\"propfind:sha256:9c1e04072b5553658e15ccf788a5429ed41b902113b34a3cecbb1702e23ec6da\""
+      },
+      "body": "\u003c?xml version=\"1.0\" encoding=\"utf-8\" ?\u003e\n\u003cD:multistatus xmlns:D=\"DAV:\"\u003e\n  \u003cD:response\u003e\n    \u003cD:href\u003e/_pl/protocol-webdav-file-propfind-304-17b666/dav/a.html\u003c/D:href\u003e\n    \u003cD:propstat\u003e\n      \u003cD:prop\u003e\n      \u003cD:resourcetype/\u003e\n      \u003cD:getcontenttype\u003etext/html\u003c/D:getcontenttype\u003e\n      \u003cD:getcontentlength\u003e53\u003c/D:getcontentlength\u003e\n      \u003cD:getlastmodified\u003eMon, 28 Sep 2026 22:33:34 GMT\u003c/D:getlastmodified\u003e\n      \u003cD:getetag\u003e\"018b3777697859dce21939d17486caa4a5187d5383b48a2f93fae06aa8608d3b\"\u003c/D:getetag\u003e\n      \u003c/D:prop\u003e\n      \u003cD:status\u003eHTTP/1.1 200 OK\u003c/D:status\u003e\n    \u003c/D:propstat\u003e\n  \u003c/D:response\u003e\n\u003c/D:multistatus\u003e"
+    },
+    {
+      "step": "step 2 (revalidate)",
+      "method": "PROPFIND",
+      "path": "/_pl/protocol-webdav-file-propfind-304-17b666/dav/a.html",
+      "status": 304,
+      "headers": {
+        "etag": "\"propfind:sha256:9c1e04072b5553658e15ccf788a5429ed41b902113b34a3cecbb1702e23ec6da\""
+      }
+    },
+    {
+      "step": "step 3 (after an edit the tag no longer matches)",
+      "method": "PUT",
+      "path": "/_pl/protocol-webdav-file-propfind-304-17b666/dav/a.html",
+      "status": 200,
+      "headers": {
+        "accept-ranges": "bytes",
+        "content-length": "54",
+        "content-type": "text/html",
+        "etag": "\"a47df433779a0588c21fec09724c73501b18d74ca35e7437cd4b91d4b19e9ae3\""
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\u003ch1\u003eA2\u003c/h1\u003e\u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 4 (full answer again)",
+      "method": "PROPFIND",
+      "path": "/_pl/protocol-webdav-file-propfind-304-17b666/dav/a.html",
+      "status": 207,
+      "headers": {
+        "content-length": "603",
+        "content-type": "application/xml; charset=utf-8",
+        "etag": "\"propfind:sha256:b07cbfa3f483f8abdda0bcee793b2f8d2be32e790c765a9b2557ac232c6a3076\""
+      },
+      "body": "\u003c?xml version=\"1.0\" encoding=\"utf-8\" ?\u003e\n\u003cD:multistatus xmlns:D=\"DAV:\"\u003e\n  \u003cD:response\u003e\n    \u003cD:href\u003e/_pl/protocol-webdav-file-propfind-304-17b666/dav/a.html\u003c/D:href\u003e\n    \u003cD:propstat\u003e\n      \u003cD:prop\u003e\n      \u003cD:resourcetype/\u003e\n      \u003cD:getcontenttype\u003etext/html\u003c/D:getcontenttype\u003e\n      \u003cD:getcontentlength\u003e54\u003c/D:getcontentlength\u003e\n      \u003cD:getlastmodified\u003eMon, 28 Sep 2026 22:33:35 GMT\u003c/D:getlastmodified\u003e\n      \u003cD:getetag\u003e\"a47df433779a0588c21fec09724c73501b18d74ca35e7437cd4b91d4b19e9ae3\"\u003c/D:getetag\u003e\n      \u003c/D:prop\u003e\n      \u003cD:status\u003eHTTP/1.1 200 OK\u003c/D:status\u003e\n    \u003c/D:propstat\u003e\n  \u003c/D:response\u003e\n\u003c/D:multistatus\u003e"
+    }
+  ],
+  "outcome": "pass",
+  "target": "live"
+}

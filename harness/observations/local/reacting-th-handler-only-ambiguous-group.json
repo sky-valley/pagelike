@@ -1,0 +1,50 @@
+{
+  "case": "reacting.th.handler-only-ambiguous-group-commits",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (install a handler (Order.status becomes processing -\u003e POST ${SINK}/payments))",
+      "method": "PUT",
+      "path": "/_pl/reacting-th-handler-only-ambiguous-group-088544/r/handlers.html",
+      "status": 201,
+      "headers": {
+        "content-length": "556",
+        "content-type": "text/html",
+        "etag": "\"0eb0c2f32b1d7e6be463bd298e1a126d03a4509578747fbec4e9ef1fcec04d8e\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:54 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\n\u003cdiv itemscope itemtype=\"https://pagelove.org/TransitionHandler\"\u003e\n  \u003cmeta itemprop=\"selector\" content=\"[itemtype='https://pagelike.test/_pl/reacting-th-handler-only-ambiguous-group-088544/Order']\"\u003e\n  \u003cmeta itemprop=\"property\" content=\"status\"\u003e\n  \u003cmeta itemprop=\"becomes\" content=\"processing\"\u003e\n  \u003cdiv itemprop=\"action\" itemscope itemtype=\"https://pagelove.org/HttpRequest\"\u003e\n    \u003cmeta itemprop=\"url\" content=\"http://127.0.0.1:53688/c-440dc2f4/payments\"\u003e\n    \u003cmeta itemprop=\"method\" content=\"POST\"\u003e\n  \u003c/div\u003e\n\u003c/div\u003e\n\u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 2 (two keyless pending orders)",
+      "method": "PUT",
+      "path": "/_pl/reacting-th-handler-only-ambiguous-group-088544/orders/pair.html",
+      "status": 201,
+      "headers": {
+        "content-length": "349",
+        "content-type": "text/html",
+        "etag": "\"32dfed37cd89532e85f79bd4fdd4c823d212a4693a5683d93d0e4034a3171560\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:54 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\u003chtml\u003e\u003cbody\u003e\u003cdiv itemscope itemtype=\"https://pagelike.test/_pl/reacting-th-handler-only-ambiguous-group-088544/Order\"\u003e\u003cmeta itemprop=\"status\" content=\"pending\"\u003e\u003c/div\u003e\u003cdiv itemscope itemtype=\"https://pagelike.test/_pl/reacting-th-handler-only-ambiguous-group-088544/Order\"\u003e\u003cmeta itemprop=\"status\" content=\"pending\"\u003e\u003c/div\u003e\u003c/body\u003e\u003c/html\u003e"
+    },
+    {
+      "step": "step 3 (one of them becomes processing)",
+      "method": "PUT",
+      "path": "/_pl/reacting-th-handler-only-ambiguous-group-088544/orders/pair.html",
+      "status": 200,
+      "headers": {
+        "content-length": "352",
+        "content-type": "text/html",
+        "etag": "\"c4e891a98e5e950af0efaad8f0bedfb54a5e1058bcb17a446f8a658bdbbe242e\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:54 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\u003chtml\u003e\u003cbody\u003e\u003cdiv itemscope itemtype=\"https://pagelike.test/_pl/reacting-th-handler-only-ambiguous-group-088544/Order\"\u003e\u003cmeta itemprop=\"status\" content=\"processing\"\u003e\u003c/div\u003e\u003cdiv itemscope itemtype=\"https://pagelike.test/_pl/reacting-th-handler-only-ambiguous-group-088544/Order\"\u003e\u003cmeta itemprop=\"status\" content=\"pending\"\u003e\u003c/div\u003e\u003c/body\u003e\u003c/html\u003e"
+    }
+  ],
+  "outcome": "pass",
+  "target": "local"
+}

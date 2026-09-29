@@ -1,0 +1,484 @@
+# Apps: pagelove-shop (research/upstream/pagelove-shop@d887054).
+# Spec: docs/spec/apps.md A7, §7.7 (ACC-SH-*), R-APPS-12/14/24/26/27, W-13, W-14, W-17.
+# Types that site-wide Sessel queries look up (AdminCredential, Order for the
+# route binding) are made unique per run; resources are rewritten under ${P}.
+cases:
+  - id: apps.shop.transient-basket
+    title: "Each session has its own #basket: read-modify-write PUT, identity check, DELETE resets"
+    area: apps
+    feature: "template: shop"
+    evidence: documented
+    source: "docs reference/composing-pages/Transient-Elements (snapshot 2026-09-28); pagelove-shop site/basket.html@d887054:10-27, site/js/shop.mjs:55-96, site/rules.html:15-24"
+    confidence: high
+    requires: [multi-actor]
+    live: false
+    notes: "R-APPS-27, R-COMP-110..117. Two actors give two sessions; anonymous visitors get a session cookie the same way (R-PERM-64). The shop never POSTs into the basket (W-17, C-4)."
+    actors:
+      shopper_a: {sub: shopper-a, email: a@example.com, email_verified: true, name: Shopper A}
+      shopper_b: {sub: shopper-b, email: b@example.com, email_verified: true, name: Shopper B}
+    site:
+      settings: {default_get: allow}
+      files:
+        - path: "${P}/basket.html"
+          body: |
+            <!DOCTYPE html>
+            <html lang="en" xmlns:p="https://pagelove.org/1.0">
+            <head>
+              <meta charset="UTF-8">
+              <title>Your basket — Pagelove Shop</title>
+            </head>
+            <body>
+              <main class="wrap basket" data-basket-page>
+                <h1>Your basket</h1>
+                <ul id="basket" p:transient></ul>
+                <div data-basket-view></div>
+              </main>
+            </body>
+            </html>
+      rules:
+        - {actor: "*", resource: "${P}/*", method: [GET, HEAD], action: Allow}
+        - {actor: "*", resource: "${P}/basket.html", selector: "#basket", method: [PUT, DELETE], action: Allow}
+    steps:
+      - name: a new session reads the default basket
+        as: shopper_a
+        request:
+          method: GET
+          path: "${P}/basket.html"
+          headers: {Range: "selector=#basket"}
+        expect:
+          status: 206
+          body_contains: ['id="basket"']
+          body_not_contains: ["PL-TEE"]
+          header_matches: {Cache-Control: "private"}
+      - name: add a tee (PUT of the whole basket element)
+        as: shopper_a
+        request:
+          method: PUT
+          path: "${P}/basket.html"
+          headers: {Range: "selector=#basket", Content-Type: "text/html"}
+          body: '<ul id="basket"><li data-sku="PL-TEE" data-slug="tee" data-name="Pagelove T-shirt" data-variant="M" data-emoji="👕" data-price="2800" data-qty="2"></li></ul>'
+        expect: {status: [200, 204, 206]}
+      - name: the same session sees its line
+        as: shopper_a
+        request:
+          method: GET
+          path: "${P}/basket.html"
+          headers: {Range: "selector=#basket"}
+        expect:
+          status: 206
+          body_contains: ['data-sku="PL-TEE"', 'data-qty="2"']
+          header_matches: {Cache-Control: "private"}
+      - name: another session does not
+        as: shopper_b
+        request:
+          method: GET
+          path: "${P}/basket.html"
+          headers: {Range: "selector=#basket"}
+        expect: {status: 206, body_not_contains: ["PL-TEE"]}
+      - name: a replacement that no longer matches #basket is refused
+        as: shopper_a
+        request:
+          method: PUT
+          path: "${P}/basket.html"
+          headers: {Range: "selector=#basket", Content-Type: "text/html"}
+          body: '<ul id="other"></ul>'
+        expect: {status: 422}
+      - name: the stored document is untouched
+        as: author
+        plane: dav
+        request: {method: GET, path: "${P}/basket.html"}
+        expect: {status: 200, body_contains: ["p:transient"], body_not_contains: ["PL-TEE"]}
+      - name: empty the basket (DELETE drops the session copy)
+        as: shopper_a
+        request:
+          method: DELETE
+          path: "${P}/basket.html"
+          headers: {Range: "selector=#basket"}
+        expect: {status: [200, 204]}
+      - name: back to the default
+        as: shopper_a
+        request:
+          method: GET
+          path: "${P}/basket.html"
+          headers: {Range: "selector=#basket"}
+        expect: {status: 206, body_not_contains: ["PL-TEE"]}
+
+  - id: apps.shop.admin-basic-gate
+    title: "A GET trigger gates /admin/* on the browser's Basic credential and answers 401 with WWW-Authenticate"
+    area: apps
+    feature: "template: shop"
+    evidence: demo-source
+    source: "pagelove-shop site/admin-auth.html@d887054:5-59, site/rules.html:52-69, site/private/admin.example.html, ops/deploy-admin-password.sh (Basic base64(owner:<password>))"
+    confidence: high
+    requires: [sessel]
+    live: true
+    notes: "R-APPS-12 (lower-case header lookup), R-APPS-14 (Basic is application data, not identity; thrown headers reach the client), R-REACT-13 (GET implies HEAD), R-PERM-40 (deny on /private/* beats the public GET allow). Credential: owner:test = b3duZXI6dGVzdA==."
+    site:
+      settings: {default_get: allow}
+      files:
+        - path: "${P}/private/admin.html"
+          body: |
+            <!DOCTYPE html>
+            <html lang="en">
+            <head><meta charset="UTF-8"><title>admin credential</title></head>
+            <body>
+              <div itemscope itemtype="https://pagelike.test${P}/AdminCredential">
+                <meta itemprop="authorization" content="Basic b3duZXI6dGVzdA==">
+                <meta itemprop="username" content="owner">
+              </div>
+            </body>
+            </html>
+        - path: "${P}/admin/index.html"
+          body: '<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><title>Orders — Pagelove Shop admin</title></head><body><main data-admin-orders><h1>Orders</h1></main></body></html>'
+        - path: "${P}/data/products/tee.html"
+          body: '<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><title>data: tee</title></head><body><div itemscope itemtype="https://shop.example/Product" id="product-tee"><meta itemprop="slug" content="tee"><h1 itemprop="name">Pagelove T-shirt</h1></div></body></html>'
+        - path: "${P}/admin-auth.html"
+          body: |
+            <!DOCTYPE html>
+            <html lang="en">
+            <head><meta charset="UTF-8"><title>admin gate</title></head>
+            <body>
+              <div itemscope itemtype="https://pagelove.org/Trigger">
+                <meta itemprop="resource" content="${P}/admin/*">
+                <meta itemprop="method" content="GET">
+                <div itemprop="when" itemscope itemtype="https://pagelove.org/Sessel">
+                  <script itemprop="source" type="text/sessel">
+            @schema Context url("https://pagelove.org/Context");
+            (Context.request.headers["authorization"] ?? "") == ${[itemtype="https://pagelike.test${P}/AdminCredential"] [itemprop="authorization"]}.first().value()
+                  </script>
+                </div>
+                <div itemprop="otherwise" itemscope itemtype="https://pagelove.org/Sessel">
+                  <script itemprop="source" type="text/sessel">
+            @schema HTTPResponse url("https://pagelove.org/HTTPResponse");
+            @schema Pair url("https://pagelove.org/Pair");
+            throw new HTTPResponse { status: 401, header: new Pair { key: "WWW-Authenticate", value: "Basic realm=\"Pagelove Shop admin\"" }, body: "Authorization required" }
+                  </script>
+                </div>
+              </div>
+              <div itemscope itemtype="https://pagelove.org/Trigger">
+                <meta itemprop="resource" content="${P}/data/products/*">
+                <meta itemprop="method" content="PUT">
+                <meta itemprop="method" content="DELETE">
+                <div itemprop="when" itemscope itemtype="https://pagelove.org/Sessel">
+                  <script itemprop="source" type="text/sessel">
+            @schema Context url("https://pagelove.org/Context");
+            (Context.request.headers["authorization"] ?? "") == ${[itemtype="https://pagelike.test${P}/AdminCredential"] [itemprop="authorization"]}.first().value()
+                  </script>
+                </div>
+                <div itemprop="otherwise" itemscope itemtype="https://pagelove.org/Sessel">
+                  <script itemprop="source" type="text/sessel">
+            @schema HTTPResponse url("https://pagelove.org/HTTPResponse");
+            throw new HTTPResponse { status: 401, body: "Admin credential required to change shop data" }
+                  </script>
+                </div>
+              </div>
+            </body>
+            </html>
+      rules:
+        - {actor: "*", resource: "${P}/*", method: [GET], action: Allow}
+        - {actor: "*", resource: "${P}/private/*", method: ["*"], action: Deny}
+        - {actor: "*", resource: "${P}/data/products/*", method: [PUT, DELETE], action: Allow}
+    steps:
+      - name: no credential → 401 with a Basic challenge
+        as: anonymous
+        request: {method: GET, path: "${P}/admin/index.html"}
+        expect:
+          status: 401
+          header_contains: {WWW-Authenticate: 'Basic realm="Pagelove Shop admin"'}
+          body_not_contains: ["<h1>Orders</h1>"]
+      - name: HEAD is gated too
+        as: anonymous
+        request: {method: HEAD, path: "${P}/admin/index.html"}
+        expect: {status: 401}
+      - name: the right credential opens the page
+        as: anonymous
+        request:
+          method: GET
+          path: "${P}/admin/index.html"
+          headers: {Authorization: "Basic b3duZXI6dGVzdA=="}
+        expect: {status: 200, body_contains: ["<h1>Orders</h1>"]}
+      - name: a wrong password does not
+        as: anonymous
+        request:
+          method: GET
+          path: "${P}/admin/index.html"
+          headers: {Authorization: "Basic b3duZXI6bm9wZQ=="}
+        expect: {status: 401}
+      - name: the credential document is never readable, even with the credential
+        as: anonymous
+        request:
+          method: GET
+          path: "${P}/private/admin.html"
+          headers: {Authorization: "Basic b3duZXI6dGVzdA=="}
+        expect: {status: 401, body_not_contains: ["b3duZXI6dGVzdA"]}
+      - name: a catalogue write without the credential is refused by the trigger
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/data/products/tee.html"
+          headers: {Content-Type: "text/html; charset=utf-8"}
+          body: '<!DOCTYPE html><html><body><div itemscope itemtype="https://shop.example/Product" id="product-tee"><meta itemprop="slug" content="tee"><h1 itemprop="name">Defaced</h1></div></body></html>'
+        expect: {status: 401}
+      - name: with the credential it succeeds
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/data/products/tee.html"
+          headers: {Content-Type: "text/html; charset=utf-8", Authorization: "Basic b3duZXI6dGVzdA=="}
+          body: '<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><title>data: tee</title></head><body><div itemscope itemtype="https://shop.example/Product" id="product-tee"><meta itemprop="slug" content="tee"><h1 itemprop="name">Pagelove T-shirt v2</h1></div></body></html>'
+        expect: {status: [200, 201, 204]}
+      - name: the product reflects the admin write only
+        as: anonymous
+        request: {method: GET, path: "${P}/data/products/tee.html"}
+        expect: {status: 200, body_contains: ["Pagelove T-shirt v2"], body_not_contains: ["Defaced"]}
+
+  - id: apps.shop.order-confirmation-elevated
+    title: "The order route stamps an order from /data/orders/ that the visitor cannot read directly"
+    area: apps
+    feature: "template: shop"
+    evidence: demo-source
+    source: "pagelove-shop site/orders/:id.html@d887054:10-17, site/rules.html:26-38, worker/src/index.js:219-237 (order document), site/js/shop.mjs:404-409 (status PUT)"
+    confidence: high
+    requires: [sessel]
+    live: true
+    notes: "R-PERM-77 (composition not filtered), R-COMP-73/74 (stamps of private origins), R-PERM-51 (selector PUT granted while GET is denied). The admin trigger is left out: this case is about composition and rules."
+    site:
+      settings: {default_get: allow}
+      files:
+        - path: "${P}/data/orders/ord-abc123.html"
+          body: |
+            <!DOCTYPE html>
+            <html lang="en"><head><meta charset="UTF-8"><title>order ord-abc123</title></head>
+            <body>
+              <div itemscope itemtype="https://pagelike.test${P}/Order" id="order-ord-abc123"><meta itemprop="orderId" content="ord-abc123"><meta itemprop="placedAt" content="2026-09-28T10:00:00.000Z"><meta itemprop="currency" content="GBP"><meta itemprop="amountTotal" content="3295"><meta itemprop="paymentStatus" content="pending"><meta itemprop="email" content="grace@example.com"><ul itemprop="lines"><li itemscope itemtype="https://shop.example/OrderLine"><meta itemprop="sku" content="PL-TEE"><meta itemprop="quantity" content="1"></li></ul></div>
+            </body>
+            </html>
+        - path: "${P}/orders/:id.html"
+          body: |
+            <!DOCTYPE html>
+            <html lang="en" xmlns:e="https://pagelove.org/Binding/Sessel" xmlns:p="https://pagelove.org/1.0">
+            <head><meta charset="UTF-8"><title>Order — Pagelove Shop</title></head>
+            <body e:order="${[itemtype='https://pagelike.test${P}/Order']:has([itemprop='orderId']:value-equals(request.params.id))}.first()">
+              <main class="wrap confirm" data-order-page>
+                <p:stamp order></p:stamp>
+              </main>
+            </body>
+            </html>
+      rules:
+        - {actor: "*", resource: "${P}/*", method: [GET], action: Allow}
+        - {actor: "*", resource: "${P}/data/orders/*", method: [PUT], action: Allow}
+        - {actor: "*", resource: "${P}/data/orders/*", method: [GET], action: Deny}
+    steps:
+      - name: the confirmation page shows the order
+        as: anonymous
+        request: {method: GET, path: "${P}/orders/ord-abc123.html"}
+        expect: {status: 200, body_contains: ['content="ord-abc123"', 'itemprop="paymentStatus" content="pending"']}
+      - name: the raw record is not public
+        as: anonymous
+        request: {method: GET, path: "${P}/data/orders/ord-abc123.html"}
+        expect: {status: 401, body_not_contains: ["grace@example.com"]}
+      - name: "admin UI: one selector PUT replaces the status meta"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/data/orders/ord-abc123.html"
+          headers: {Range: 'selector=[itemprop="paymentStatus"]', Content-Type: "text/html"}
+          body: '<meta itemprop="paymentStatus" content="paid">'
+        expect: {status: [200, 204, 206]}
+      - name: the confirmation page reflects it
+        as: anonymous
+        request: {method: GET, path: "${P}/orders/ord-abc123.html"}
+        expect: {status: 200, body_contains: ['itemprop="paymentStatus" content="paid"']}
+      - name: an unknown order id renders the page without an order
+        as: anonymous
+        request: {method: GET, path: "${P}/orders/nope.html"}
+        expect: {status: 200, body_not_contains: ['itemprop="orderId"']}
+
+  - id: apps.shop.order-shape-dav
+    title: "The checkout worker's dav writes: create-only PUT, If-Match update, and the closed Order shape"
+    area: apps
+    feature: "template: shop"
+    evidence: demo-source
+    source: "pagelove-shop worker/src/index.js@d887054:219-268 (create with If-None-Match: *), 425-452 (update with If-Match), site/constraints.html:9-19"
+    confidence: high
+    requires: [webdav]
+    live: true
+    notes: "R-APPS-24, R-PROTO-112 (dav writes are shape-validated), R-PROTO-113/114/119 (content ETag, preconditions), W-14 (the shape's root must be permitted). Kept (keep-documented-security, docs/compat/decisions-2026-09-29/serialization.md, \"Integration\"): live PageLove stores a WebDAV PUT without schema or shape checks; pagelike keeps the documented check, which apps such as the shop rely on to keep scripts out of documents their workers write. Sibling: .live."
+    site:
+      settings: {default_get: allow}
+      files:
+        - path: "${P}/constraints.html"
+          body: |
+            <!DOCTYPE html>
+            <html lang="en">
+            <head><meta charset="UTF-8"><title>shape constraints</title></head>
+            <body>
+              <div itemscope itemtype="https://pagelove.org/ShapeConstraint">
+                <meta itemprop="resource" content="${P}/data/orders/*">
+                <meta itemprop="selector" content="[itemtype='https://shop.example/Order']">
+                <code itemprop="permit">div[itemscope][itemtype="https://shop.example/Order"][id]</code>
+                <code itemprop="permit">meta[itemprop][content]</code>
+                <code itemprop="permit">ul[itemprop="lines"]</code>
+                <code itemprop="permit">li[itemscope][itemtype="https://shop.example/OrderLine"]</code>
+              </div>
+            </body>
+            </html>
+    steps:
+      - name: create the order (create-only)
+        as: author
+        plane: dav
+        request:
+          method: PUT
+          path: "${P}/data/orders/o1.html"
+          headers: {Content-Type: "text/html; charset=utf-8", If-None-Match: "*"}
+          body: &order |
+            <!DOCTYPE html>
+            <html lang="en"><head><meta charset="UTF-8"><title>order o1</title></head>
+            <body>
+              <div itemscope itemtype="https://shop.example/Order" id="order-o1"><meta itemprop="orderId" content="o1"><meta itemprop="placedAt" content="2026-09-28T10:00:00.000Z"><meta itemprop="currency" content="GBP"><meta itemprop="subtotal" content="2800"><meta itemprop="shipping" content="495"><meta itemprop="amountTotal" content="3295"><meta itemprop="paymentStatus" content="pending"><meta itemprop="paymentProvider" content="stripe"><meta itemprop="paymentReference" content="cs_test_1"><meta itemprop="email" content="grace@example.com"><meta itemprop="customerName" content="Grace"><meta itemprop="line1" content="1 Road"><meta itemprop="city" content="London"><meta itemprop="postcode" content="N1 1AA"><meta itemprop="country" content="United Kingdom"><ul itemprop="lines"><li itemscope itemtype="https://shop.example/OrderLine"><meta itemprop="sku" content="PL-TEE"><meta itemprop="slug" content="tee"><meta itemprop="name" content="Pagelove T-shirt"><meta itemprop="variant" content="M"><meta itemprop="unitPrice" content="2800"><meta itemprop="quantity" content="1"><meta itemprop="lineTotal" content="2800"></li></ul></div>
+            </body>
+            </html>
+        expect: {status: [200, 201, 204]}
+      - name: a replayed create is refused (the worker then re-reads and reuses it)
+        as: author
+        plane: dav
+        request:
+          method: PUT
+          path: "${P}/data/orders/o1.html"
+          headers: {Content-Type: "text/html; charset=utf-8", If-None-Match: "*"}
+          body: *order
+        expect: {status: 412}
+      - name: webhook path, read with the content ETag
+        as: author
+        plane: dav
+        request: {method: GET, path: "${P}/data/orders/o1.html"}
+        expect: {status: 200, headers_present: [ETag], body_contains: ['content="pending"']}
+        capture: {e1: header.ETag}
+      - name: conditional update to paid
+        as: author
+        plane: dav
+        request:
+          method: PUT
+          path: "${P}/data/orders/o1.html"
+          headers: {Content-Type: "text/html; charset=utf-8", If-Match: "${e1}"}
+          body: '<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><title>order o1</title></head><body><div itemscope itemtype="https://shop.example/Order" id="order-o1"><meta itemprop="orderId" content="o1"><meta itemprop="paymentStatus" content="paid"><ul itemprop="lines"></ul></div></body></html>'
+        expect: {status: [200, 204]}
+      - name: a second update with the stale tag loses
+        as: author
+        plane: dav
+        request:
+          method: PUT
+          path: "${P}/data/orders/o1.html"
+          headers: {Content-Type: "text/html; charset=utf-8", If-Match: "${e1}"}
+          body: '<!DOCTYPE html><html><body><div itemscope itemtype="https://shop.example/Order" id="order-o1"><meta itemprop="orderId" content="o1"><meta itemprop="paymentStatus" content="cancelled"></div></body></html>'
+        expect: {status: 412}
+      - name: an order carrying a script is refused by the closed shape
+        as: author
+        plane: dav
+        request:
+          method: PUT
+          path: "${P}/data/orders/o2.html"
+          headers: {Content-Type: "text/html; charset=utf-8", If-None-Match: "*"}
+          body: '<!DOCTYPE html><html><body><div itemscope itemtype="https://shop.example/Order" id="order-o2"><meta itemprop="orderId" content="o2"><script>alert(1)</script></div></body></html>'
+        expect: {status: 422}
+      - name: nothing was stored for it
+        as: author
+        plane: dav
+        request: {method: GET, path: "${P}/data/orders/o2.html"}
+        expect: {status: 404}
+
+  - id: apps.shop.order-shape-dav.live
+    title: "The checkout worker's dav writes: create-only PUT, If-Match update, and the closed Order shape"
+    area: apps
+    feature: "template: shop"
+    status: live-divergence
+    evidence: demo-source
+    source: "pagelove-shop worker/src/index.js@d887054:219-268 (create with If-None-Match: *), 425-452 (update with If-Match), site/constraints.html:9-19"
+    confidence: high
+    requires: [webdav]
+    live: true
+    notes: "R-APPS-24, R-PROTO-112 (dav writes were documented as shape-validated; live 2026-09-29 they are not, see docs/compat/decisions-2026-09-29/modeling.md), R-PROTO-113/114/119 (content ETag, preconditions), W-14 (the shape's root must be permitted)."
+    site:
+      settings: {default_get: allow}
+      files:
+        - path: "${P}/constraints.html"
+          body: |
+            <!DOCTYPE html>
+            <html lang="en">
+            <head><meta charset="UTF-8"><title>shape constraints</title></head>
+            <body>
+              <div itemscope itemtype="https://pagelove.org/ShapeConstraint">
+                <meta itemprop="resource" content="${P}/data/orders/*">
+                <meta itemprop="selector" content="[itemtype='https://shop.example/Order']">
+                <code itemprop="permit">div[itemscope][itemtype="https://shop.example/Order"][id]</code>
+                <code itemprop="permit">meta[itemprop][content]</code>
+                <code itemprop="permit">ul[itemprop="lines"]</code>
+                <code itemprop="permit">li[itemscope][itemtype="https://shop.example/OrderLine"]</code>
+              </div>
+            </body>
+            </html>
+    steps:
+      - name: create the order (create-only)
+        as: author
+        plane: dav
+        request:
+          method: PUT
+          path: "${P}/data/orders/o1.html"
+          headers: {Content-Type: "text/html; charset=utf-8", If-None-Match: "*"}
+          body: &order |
+            <!DOCTYPE html>
+            <html lang="en"><head><meta charset="UTF-8"><title>order o1</title></head>
+            <body>
+              <div itemscope itemtype="https://shop.example/Order" id="order-o1"><meta itemprop="orderId" content="o1"><meta itemprop="placedAt" content="2026-09-28T10:00:00.000Z"><meta itemprop="currency" content="GBP"><meta itemprop="subtotal" content="2800"><meta itemprop="shipping" content="495"><meta itemprop="amountTotal" content="3295"><meta itemprop="paymentStatus" content="pending"><meta itemprop="paymentProvider" content="stripe"><meta itemprop="paymentReference" content="cs_test_1"><meta itemprop="email" content="grace@example.com"><meta itemprop="customerName" content="Grace"><meta itemprop="line1" content="1 Road"><meta itemprop="city" content="London"><meta itemprop="postcode" content="N1 1AA"><meta itemprop="country" content="United Kingdom"><ul itemprop="lines"><li itemscope itemtype="https://shop.example/OrderLine"><meta itemprop="sku" content="PL-TEE"><meta itemprop="slug" content="tee"><meta itemprop="name" content="Pagelove T-shirt"><meta itemprop="variant" content="M"><meta itemprop="unitPrice" content="2800"><meta itemprop="quantity" content="1"><meta itemprop="lineTotal" content="2800"></li></ul></div>
+            </body>
+            </html>
+        expect: {status: [200, 201, 204]}
+      - name: a replayed create is refused (the worker then re-reads and reuses it)
+        as: author
+        plane: dav
+        request:
+          method: PUT
+          path: "${P}/data/orders/o1.html"
+          headers: {Content-Type: "text/html; charset=utf-8", If-None-Match: "*"}
+          body: *order
+        expect: {status: 412}
+      - name: webhook path, read with the content ETag
+        as: author
+        plane: dav
+        request: {method: GET, path: "${P}/data/orders/o1.html"}
+        expect: {status: 200, headers_present: [ETag], body_contains: ['content="pending"']}
+        capture: {e1: header.ETag}
+      - name: conditional update to paid
+        as: author
+        plane: dav
+        request:
+          method: PUT
+          path: "${P}/data/orders/o1.html"
+          headers: {Content-Type: "text/html; charset=utf-8", If-Match: "${e1}"}
+          body: '<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><title>order o1</title></head><body><div itemscope itemtype="https://shop.example/Order" id="order-o1"><meta itemprop="orderId" content="o1"><meta itemprop="paymentStatus" content="paid"><ul itemprop="lines"></ul></div></body></html>'
+        expect: {status: [200, 204]}
+      - name: a second update with the stale tag loses
+        as: author
+        plane: dav
+        request:
+          method: PUT
+          path: "${P}/data/orders/o1.html"
+          headers: {Content-Type: "text/html; charset=utf-8", If-Match: "${e1}"}
+          body: '<!DOCTYPE html><html><body><div itemscope itemtype="https://shop.example/Order" id="order-o1"><meta itemprop="orderId" content="o1"><meta itemprop="paymentStatus" content="cancelled"></div></body></html>'
+        expect: {status: 412}
+      # Live 2026-09-29 (docs/compat/decisions-2026-09-29/modeling.md): PageLove checks no shape on a
+      # WebDAV PUT, so the closed Order shape does not stop the worker's writes; the worker must not rely on it.
+      - name: an order carrying a script is stored (dav PUTs are not shape-checked)
+        as: author
+        plane: dav
+        request:
+          method: PUT
+          path: "${P}/data/orders/o2.html"
+          headers: {Content-Type: "text/html; charset=utf-8", If-None-Match: "*"}
+          body: '<!DOCTYPE html><html><body><div itemscope itemtype="https://shop.example/Order" id="order-o2"><meta itemprop="orderId" content="o2"><script>alert(1)</script></div></body></html>'
+        expect: {status: 201}
+      - name: it was stored as sent
+        as: author
+        plane: dav
+        request: {method: GET, path: "${P}/data/orders/o2.html"}
+        expect: {status: 200, body_contains: ["<script>alert(1)</script>"]}

@@ -1,0 +1,95 @@
+{
+  "case": "apps.shop.order-shape-dav.live",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (create the order (create-only))",
+      "method": "PUT",
+      "path": "/_pl/apps-shop-order-shape-dav-live-4fd5af/data/orders/o1.html",
+      "status": 201,
+      "headers": {
+        "content-length": "1245",
+        "content-type": "text/html",
+        "etag": "\"3afea0474bfa2755e54fbf4f3336d84b5f6e2e916958e82f3375bc99f51a55d9\""
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml lang=\"en\"\u003e\u003chead\u003e\u003cmeta charset=\"UTF-8\"\u003e\u003ctitle\u003eorder o1\u003c/title\u003e\u003c/head\u003e\n\u003cbody\u003e\n  \u003cdiv itemscope itemtype=\"https://shop.example/Order\" id=\"order-o1\"\u003e\u003cmeta itemprop=\"orderId\" content=\"o1\"\u003e\u003cmeta itemprop=\"placedAt\" content=\"2026-09-28T10:00:00.000Z\"\u003e\u003cmeta itemprop=\"currency\" content=\"GBP\"\u003e\u003cmeta itemprop=\"subtotal\" content=\"2800\"\u003e\u003cmeta itemprop=\"shipping\" content=\"495\"\u003e\u003cmeta itemprop=\"amountTotal\" content=\"3295\"\u003e\u003cmeta itemprop=\"paymentStatus\" content=\"pending\"\u003e\u003cmeta itemprop=\"paymentProvider\" content=\"stripe\"\u003e\u003cmeta itemprop=\"paymentReference\" content=\"cs_test_1\"\u003e\u003cmeta itemprop=\"email\" content=\"grace@example.com\"\u003e\u003cmeta itemprop=\"customerName\" content=\"Grace\"\u003e\u003cmeta itemprop=\"line1\" content=\"1 Road\"\u003e\u003cmeta itemprop=\"city\" content=\"London\"\u003e\u003cmeta itemprop=\"postcode\" content=\"N1 1AA\"\u003e\u003cmeta itemprop=\"country\" content=\"United Kingdom\"\u003e\u003cul itemprop=\"lines\"\u003e\u003cli itemscope itemtype=\"https://shop.example/OrderLine\"\u003e\u003cmeta itemprop=\"sku\" content=\"PL-TEE\"\u003e\u003cmeta itemprop=\"slug\" content=\"tee\"\u003e\u003cmeta itemprop=\"name\" content=\"Pagelove T-shirt\"\u003e\u003cmeta itemprop=\"variant\" content=\"M\"\u003e\u003cmeta itemprop=\"unitPrice\" content=\"2800\"\u003e\u003cmeta itemprop=\"quantity\" content=\"1\"\u003e\u003cmeta itemprop=\"lineTotal\" content=\"2800\"\u003e\u003c/li\u003e\u003c/ul\u003e\u003c/div\u003e\n\u003c/body\u003e\n\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 2 (a replayed create is refused (the worker then re-reads and reuses it))",
+      "method": "PUT",
+      "path": "/_pl/apps-shop-order-shape-dav-live-4fd5af/data/orders/o1.html",
+      "status": 412,
+      "headers": {
+        "content-length": "447",
+        "content-type": "text/html; charset=utf-8"
+      },
+      "body": "\u003carticle itemscope itemtype=\"https://pagelove.org/Error\"\u003e\u003cmeta itemprop=\"status\" content=\"412\"\u003e\u003cmeta itemprop=\"kind\" content=\"Internal\"\u003e\u003cdiv itemprop=\"type\" itemscope itemtype=\"https://dombase.pagelove.team/ns/error/Internal\"\u003e\u003c/div\u003e\u003cdiv itemprop=\"detail\"\u003e\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\u003cdiv itemscope itemtype=\"http://pagelove.org/Error\"\u003e\u003cspan itemprop=\"message\"\u003ePrecondition Failed: resource already exists\u003c/span\u003e\u003c/div\u003e\u003c/body\u003e\u003c/html\u003e\u003c/div\u003e\u003c/article\u003e"
+    },
+    {
+      "step": "step 3 (webhook path, read with the content ETag)",
+      "method": "GET",
+      "path": "/_pl/apps-shop-order-shape-dav-live-4fd5af/data/orders/o1.html",
+      "status": 200,
+      "headers": {
+        "accept-ranges": "bytes",
+        "content-length": "1245",
+        "content-type": "text/html",
+        "etag": "\"3afea0474bfa2755e54fbf4f3336d84b5f6e2e916958e82f3375bc99f51a55d9\"",
+        "last-modified": "Tue, 29 Sep 2026 02:43:26 GMT"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml lang=\"en\"\u003e\u003chead\u003e\u003cmeta charset=\"UTF-8\"\u003e\u003ctitle\u003eorder o1\u003c/title\u003e\u003c/head\u003e\n\u003cbody\u003e\n  \u003cdiv itemscope itemtype=\"https://shop.example/Order\" id=\"order-o1\"\u003e\u003cmeta itemprop=\"orderId\" content=\"o1\"\u003e\u003cmeta itemprop=\"placedAt\" content=\"2026-09-28T10:00:00.000Z\"\u003e\u003cmeta itemprop=\"currency\" content=\"GBP\"\u003e\u003cmeta itemprop=\"subtotal\" content=\"2800\"\u003e\u003cmeta itemprop=\"shipping\" content=\"495\"\u003e\u003cmeta itemprop=\"amountTotal\" content=\"3295\"\u003e\u003cmeta itemprop=\"paymentStatus\" content=\"pending\"\u003e\u003cmeta itemprop=\"paymentProvider\" content=\"stripe\"\u003e\u003cmeta itemprop=\"paymentReference\" content=\"cs_test_1\"\u003e\u003cmeta itemprop=\"email\" content=\"grace@example.com\"\u003e\u003cmeta itemprop=\"customerName\" content=\"Grace\"\u003e\u003cmeta itemprop=\"line1\" content=\"1 Road\"\u003e\u003cmeta itemprop=\"city\" content=\"London\"\u003e\u003cmeta itemprop=\"postcode\" content=\"N1 1AA\"\u003e\u003cmeta itemprop=\"country\" content=\"United Kingdom\"\u003e\u003cul itemprop=\"lines\"\u003e\u003cli itemscope itemtype=\"https://shop.example/OrderLine\"\u003e\u003cmeta itemprop=\"sku\" content=\"PL-TEE\"\u003e\u003cmeta itemprop=\"slug\" content=\"tee\"\u003e\u003cmeta itemprop=\"name\" content=\"Pagelove T-shirt\"\u003e\u003cmeta itemprop=\"variant\" content=\"M\"\u003e\u003cmeta itemprop=\"unitPrice\" content=\"2800\"\u003e\u003cmeta itemprop=\"quantity\" content=\"1\"\u003e\u003cmeta itemprop=\"lineTotal\" content=\"2800\"\u003e\u003c/li\u003e\u003c/ul\u003e\u003c/div\u003e\n\u003c/body\u003e\n\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 4 (conditional update to paid)",
+      "method": "PUT",
+      "path": "/_pl/apps-shop-order-shape-dav-live-4fd5af/data/orders/o1.html",
+      "status": 200,
+      "headers": {
+        "accept-ranges": "bytes",
+        "content-length": "292",
+        "content-type": "text/html",
+        "etag": "\"ee1e1d42f7d827d39a7567406b3e89e60d5c11da6cc318bf19acdee9a6da51c8\""
+      },
+      "body": "\u003c!DOCTYPE html\u003e\u003chtml lang=\"en\"\u003e\u003chead\u003e\u003cmeta charset=\"UTF-8\"\u003e\u003ctitle\u003eorder o1\u003c/title\u003e\u003c/head\u003e\u003cbody\u003e\u003cdiv itemscope itemtype=\"https://shop.example/Order\" id=\"order-o1\"\u003e\u003cmeta itemprop=\"orderId\" content=\"o1\"\u003e\u003cmeta itemprop=\"paymentStatus\" content=\"paid\"\u003e\u003cul itemprop=\"lines\"\u003e\u003c/ul\u003e\u003c/div\u003e\u003c/body\u003e\u003c/html\u003e"
+    },
+    {
+      "step": "step 5 (a second update with the stale tag loses)",
+      "method": "PUT",
+      "path": "/_pl/apps-shop-order-shape-dav-live-4fd5af/data/orders/o1.html",
+      "status": 412,
+      "headers": {
+        "content-length": "443",
+        "content-type": "text/html; charset=utf-8"
+      },
+      "body": "\u003carticle itemscope itemtype=\"https://pagelove.org/Error\"\u003e\u003cmeta itemprop=\"status\" content=\"412\"\u003e\u003cmeta itemprop=\"kind\" content=\"Internal\"\u003e\u003cdiv itemprop=\"type\" itemscope itemtype=\"https://dombase.pagelove.team/ns/error/Internal\"\u003e\u003c/div\u003e\u003cdiv itemprop=\"detail\"\u003e\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\u003cdiv itemscope itemtype=\"http://pagelove.org/Error\"\u003e\u003cspan itemprop=\"message\"\u003ePrecondition Failed: ETag does not match\u003c/span\u003e\u003c/div\u003e\u003c/body\u003e\u003c/html\u003e\u003c/div\u003e\u003c/article\u003e"
+    },
+    {
+      "step": "step 6 (an order carrying a script is stored (dav PUTs are not shape-checked))",
+      "method": "PUT",
+      "path": "/_pl/apps-shop-order-shape-dav-live-4fd5af/data/orders/o2.html",
+      "status": 201,
+      "headers": {
+        "content-length": "177",
+        "content-type": "text/html",
+        "etag": "\"91b5507607028d8f3febe8186ecda8edb2f01bd1ee7516735163d358d84050af\""
+      },
+      "body": "\u003c!DOCTYPE html\u003e\u003chtml\u003e\u003cbody\u003e\u003cdiv itemscope itemtype=\"https://shop.example/Order\" id=\"order-o2\"\u003e\u003cmeta itemprop=\"orderId\" content=\"o2\"\u003e\u003cscript\u003ealert(1)\u003c/script\u003e\u003c/div\u003e\u003c/body\u003e\u003c/html\u003e"
+    },
+    {
+      "step": "step 7 (it was stored as sent)",
+      "method": "GET",
+      "path": "/_pl/apps-shop-order-shape-dav-live-4fd5af/data/orders/o2.html",
+      "status": 200,
+      "headers": {
+        "accept-ranges": "bytes",
+        "content-length": "177",
+        "content-type": "text/html",
+        "etag": "\"91b5507607028d8f3febe8186ecda8edb2f01bd1ee7516735163d358d84050af\"",
+        "last-modified": "Tue, 29 Sep 2026 02:43:28 GMT"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\u003chtml\u003e\u003cbody\u003e\u003cdiv itemscope itemtype=\"https://shop.example/Order\" id=\"order-o2\"\u003e\u003cmeta itemprop=\"orderId\" content=\"o2\"\u003e\u003cscript\u003ealert(1)\u003c/script\u003e\u003c/div\u003e\u003c/body\u003e\u003c/html\u003e"
+    }
+  ],
+  "outcome": "pass",
+  "target": "live"
+}

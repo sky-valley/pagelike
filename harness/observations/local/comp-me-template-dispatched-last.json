@@ -1,0 +1,37 @@
+{
+  "case": "comp.me.template-dispatched-last",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1",
+      "method": "PUT",
+      "path": "/_pl/comp-me-template-dispatched-last-c2c737/ctx.html",
+      "status": 201,
+      "headers": {
+        "content-length": "878",
+        "content-type": "text/html",
+        "etag": "\"56771589002c3a1f57ba2e56e780e9d7612fefe8214321188fe16c0ef4e59ab5\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:42 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml xmlns:t=\"urn:x-pagelike/_pl/comp-me-template-dispatched-last-c2c737/Ctx\" xmlns:p=\"https://pagelove.org/1.0\"\u003e\n  \u003cbody\u003e\n    \u003cmain\u003e\u003cdiv id=\"host\" p:template=\"text/liquid\" t:greeting=\"hi\"\u003e[{{ greeting }}]\u003c/div\u003e\u003c/main\u003e\n    \u003cdiv hidden itemscope itemtype=\"https://pagelove.org/Schema\"\u003e\n      \u003cmeta itemprop=\"type\" content=\"urn:x-pagelike/_pl/comp-me-template-dispatched-last-c2c737/Ctx\"\u003e\n      \u003cul\u003e\n        \u003cli itemprop=\"property\" itemscope itemtype=\"https://pagelove.org/Method\"\u003e\n          \u003cmeta itemprop=\"name\" content=\"doesNotUnderstand\"\u003e\n          \u003cdiv itemprop=\"implementation\" itemscope itemtype=\"https://pagelove.org/Sessel\"\u003e\n            \u003cscript itemprop=\"source\" type=\"text/sessel\"\u003e\n              Context[messageName] = parameters[0] + \"!\";\n              null\n            \u003c/script\u003e\n          \u003c/div\u003e\n        \u003c/li\u003e\n      \u003c/ul\u003e\n    \u003c/div\u003e\n  \u003c/body\u003e\n\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 2",
+      "method": "GET",
+      "path": "/_pl/comp-me-template-dispatched-last-c2c737/ctx.html",
+      "status": 206,
+      "headers": {
+        "accept-ranges": "selector, bytes",
+        "content-length": "26",
+        "content-range": "selector #host",
+        "content-type": "text/html",
+        "etag": "\"60c94f9ce507806f5dc9f408f65ade53de937c053a440153755bb69d27c14482-60c94f9ce507806f5dc9f408f65ade53de937c053a440153755bb69d27c14482-1\"",
+        "vary": "Host, Range, Accept"
+      },
+      "body": "\u003cdiv id=\"host\"\u003e[hi!]\u003c/div\u003e"
+    }
+  ],
+  "outcome": "pass",
+  "target": "local"
+}

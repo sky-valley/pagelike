@@ -1,0 +1,38 @@
+{
+  "case": "sse.mutation.whole-document-delete",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 2",
+      "events": [
+        {
+          "event": "pagelove-connection",
+          "data": "45250664-d25b-4a9a-8e9d-44c942206d91"
+        }
+      ]
+    },
+    {
+      "step": "step 3 (delete the whole document)",
+      "method": "DELETE",
+      "path": "/_pl/sse-mutation-whole-document-delete-efd638/doc.html",
+      "status": 204,
+      "headers": {
+        "etag": "\"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855\"",
+        "last-modified": "Mon, 28 Sep 2026 22:35:10 GMT",
+        "vary": "Host, Range"
+      }
+    },
+    {
+      "step": "step 4",
+      "events": [
+        {
+          "id": "v1~9da8e12b5a4d.1790634910928-0",
+          "event": "mutation",
+          "data": "\u003carticle itemscope itemtype=\"https://pagelove.org/Mutation\"\u003e\n  \u003cspan itemprop=\"method\"\u003eDELETE\u003c/span\u003e\n  \u003cspan itemprop=\"selector\"\u003e\u003c/span\u003e\n  \u003cspan itemprop=\"etag\"\u003ee3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855\u003c/span\u003e\n  \u003cspan itemprop=\"path\"\u003e/_pl/sse-mutation-whole-document-delete-efd638/doc.html\u003c/span\u003e\n  \u003cspan itemprop=\"host\"\u003elive-test-host.onpagelove.com\u003c/span\u003e\n  \u003cdiv itemprop=\"body\"\u003e\u003c/div\u003e\n\u003c/article\u003e"
+        }
+      ]
+    }
+  ],
+  "outcome": "pass",
+  "target": "live"
+}

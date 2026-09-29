@@ -1,0 +1,34 @@
+{
+  "case": "javascript.methods.readonly-mutation-fails-500",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (PUT the page (public plane; registers inline declarations))",
+      "method": "PUT",
+      "path": "/_pl/javascript-methods-readonly-mutation-fai-1b03a5/m.html",
+      "status": 201,
+      "headers": {
+        "content-length": "715",
+        "content-type": "text/html",
+        "etag": "\"70aa8452983684ba29c04b315dd98eea28f2f8e13bf2ffd87ed0d8b98edbb6aa\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:43 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml xmlns:t=\"https://pagelike.test/_pl/javascript-methods-readonly-mutation-fai-1b03a5/Mut\"\u003e\u003cbody\u003e\n\u003cmain\u003e\n\u003ct:mut\u003e\u003cp\u003ex\u003c/p\u003e\u003c/t:mut\u003e\n\u003c/main\u003e\n\u003cdiv hidden itemscope itemtype=\"https://pagelove.org/Schema\"\u003e\n\u003cmeta itemprop=\"type\" content=\"https://pagelike.test/_pl/javascript-methods-readonly-mutation-fai-1b03a5/Mut\"\u003e\n\u003cul\u003e\n\u003cli itemprop=\"property\" itemscope itemtype=\"https://pagelove.org/Method\"\u003e\n\u003cmeta itemprop=\"name\" content=\"mut\"\u003e\n\u003cdiv itemprop=\"implementation\" itemscope itemtype=\"https://pagelove.org/JavaScript/Module\"\u003e\n\u003cscript itemprop=\"source\" type=\"module\"\u003e\nexport default () =\u003e { document.querySelector('p').textContent = 'y'; return 'no'; };\n\u003c/script\u003e\n\u003c/div\u003e\n\u003c/li\u003e\n\u003c/ul\u003e\n\u003c/div\u003e\n\u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 2 (GET the composed page)",
+      "method": "GET",
+      "path": "/_pl/javascript-methods-readonly-mutation-fai-1b03a5/m.html",
+      "status": 500,
+      "headers": {
+        "content-length": "995",
+        "content-type": "text/html; charset=utf-8",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\n\u003chead\u003e\n\u003cmeta charset=\"UTF-8\"\u003e\n\u003ctitle\u003e500 Internal Server Error\u003c/title\u003e\n\u003c/head\u003e\n\u003cbody\u003e\n\u003carticle itemscope itemtype=\"https://pagelove.org/Error\"\u003e\n  \u003cmeta itemprop=\"status\" content=\"500\"\u003e\n  \u003cmeta itemprop=\"kind\" content=\"CompositionError\"\u003e\n  \u003cdiv itemprop=\"type\" itemscope itemtype=\"https://dombase.pagelove.team/ns/error/CompositionError\"\u003e\u003c/div\u003e\n  \u003cp itemprop=\"message\"\u003emethod mut: NoModificationAllowedError: document is read-only in this binding context\u003c/p\u003e\n  \u003cmeta itemprop=\"resource\" content=\"/_pl/javascript-methods-readonly-mutation-fai-1b03a5/m.html\"\u003e\n  \u003cdiv itemprop=\"detail\"\u003e\u003cdiv itemprop=\"failure\" itemscope itemtype=\"https://pagelove.org/BindingFailure\"\u003e\u003cmeta itemprop=\"language\" content=\"https://pagelove.org/JavaScript/Module\"\u003e\u003cmeta itemprop=\"variant\" content=\"threw\"\u003e\u003cp itemprop=\"message\"\u003eNoModificationAllowedError: document is read-only in this binding context\u003c/p\u003e\u003cpre itemprop=\"stack\"\u003e    at default (eval:1:51)\u003c/pre\u003e\u003c/div\u003e\u003c/div\u003e\n\u003c/article\u003e\n\u003c/body\u003e\n\u003c/html\u003e\n"
+    }
+  ],
+  "outcome": "pass",
+  "target": "local"
+}

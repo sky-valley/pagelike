@@ -1,0 +1,22 @@
+{
+  "case": "rw.cn.jsonld-selector-all-matches",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (all people as JSON-LD)",
+      "method": "GET",
+      "path": "/_pl/rw-cn-jsonld-selector-all-matches-be8a8c/team.html",
+      "status": 206,
+      "headers": {
+        "content-length": "174",
+        "content-range": "selector .person",
+        "content-type": "application/ld+json; charset=utf-8",
+        "etag": "W/\"1353fe0392ee64d73920b15eea2648ee59c374010cb220b0f1fb14af16920278\"",
+        "vary": "Host, Range, Accept, Paginate"
+      },
+      "body": "{\n  \"@context\": \"http://schema.org/\",\n  \"@graph\": [\n    {\n      \"@type\": \"Person\",\n      \"name\": \"Alice\"\n    },\n    {\n      \"@type\": \"Person\",\n      \"name\": \"Bob\"\n    }\n  ]\n}"
+    }
+  ],
+  "outcome": "pass",
+  "target": "live"
+}

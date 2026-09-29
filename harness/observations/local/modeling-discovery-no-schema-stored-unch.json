@@ -1,0 +1,36 @@
+{
+  "case": "modeling.discovery.no-schema-stored-unchanged",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (store an ungoverned item with arbitrary properties)",
+      "method": "PUT",
+      "path": "/_pl/modeling-discovery-no-schema-stored-unch-bd8f36/free.html",
+      "status": 201,
+      "headers": {
+        "content-length": "300",
+        "content-type": "text/html",
+        "etag": "\"95076a3368bdd4472b577e2f22b569740d9534dd7bb311d979c01263bc3558ee\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:44 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\n  \u003cdiv itemscope itemtype=\"https://pagelike.test/_pl/modeling-discovery-no-schema-stored-unch-bd8f36/Ungoverned\"\u003e\n    \u003cmeta itemprop=\"count\" content=\"not-a-number\"\u003e\n    \u003cmeta itemprop=\"count\" content=\"twice\"\u003e\n    \u003cspan itemprop=\"whatever\"\u003e\u003c/span\u003e\n  \u003c/div\u003e\n\u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 2 (stored state of free.html (authoring plane, raw))",
+      "method": "GET",
+      "path": "/_pl/modeling-discovery-no-schema-stored-unch-bd8f36/free.html",
+      "status": 200,
+      "headers": {
+        "accept-ranges": "bytes",
+        "content-length": "300",
+        "content-type": "text/html",
+        "etag": "\"95076a3368bdd4472b577e2f22b569740d9534dd7bb311d979c01263bc3558ee\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:44 GMT"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\n  \u003cdiv itemscope itemtype=\"https://pagelike.test/_pl/modeling-discovery-no-schema-stored-unch-bd8f36/Ungoverned\"\u003e\n    \u003cmeta itemprop=\"count\" content=\"not-a-number\"\u003e\n    \u003cmeta itemprop=\"count\" content=\"twice\"\u003e\n    \u003cspan itemprop=\"whatever\"\u003e\u003c/span\u003e\n  \u003c/div\u003e\n\u003c/body\u003e\u003c/html\u003e\n"
+    }
+  ],
+  "outcome": "pass",
+  "target": "local"
+}

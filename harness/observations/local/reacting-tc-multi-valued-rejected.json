@@ -1,0 +1,63 @@
+{
+  "case": "reacting.tc.multi-valued-rejected",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (install the recipe's four rules (entry pending, pending-\u003eprocessing, processing-\u003esuccess, exit success))",
+      "method": "PUT",
+      "path": "/_pl/reacting-tc-multi-valued-rejected-c25f03/transitions/rules.html",
+      "status": 201,
+      "headers": {
+        "content-length": "1290",
+        "content-type": "text/html",
+        "etag": "\"889734e08df9e7439b0d9836257caae9af02f8532945a7a1a1b8a72d0ea48b76\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:49 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\n\u003cdiv itemscope itemtype=\"https://pagelove.org/TransitionConstraint\"\u003e\n  \u003cmeta itemprop=\"selector\" content=\"[itemtype='https://pagelike.test/_pl/reacting-tc-multi-valued-rejected-c25f03/Order']\"\u003e\n  \u003cmeta itemprop=\"property\" content=\"status\"\u003e\n  \u003cmeta itemprop=\"to\" content=\"pending\"\u003e\n\u003c/div\u003e\n\u003cdiv itemscope itemtype=\"https://pagelove.org/TransitionConstraint\"\u003e\n  \u003cmeta itemprop=\"selector\" content=\"[itemtype='https://pagelike.test/_pl/reacting-tc-multi-valued-rejected-c25f03/Order']\"\u003e\n  \u003cmeta itemprop=\"property\" content=\"status\"\u003e\n  \u003cmeta itemprop=\"from\" content=\"pending\"\u003e\n  \u003cmeta itemprop=\"to\" content=\"processing\"\u003e\n\u003c/div\u003e\n\u003cdiv itemscope itemtype=\"https://pagelove.org/TransitionConstraint\"\u003e\n  \u003cmeta itemprop=\"selector\" content=\"[itemtype='https://pagelike.test/_pl/reacting-tc-multi-valued-rejected-c25f03/Order']\"\u003e\n  \u003cmeta itemprop=\"property\" content=\"status\"\u003e\n  \u003cmeta itemprop=\"from\" content=\"processing\"\u003e\n  \u003cmeta itemprop=\"to\" content=\"success\"\u003e\n\u003c/div\u003e\n\u003cdiv itemscope itemtype=\"https://pagelove.org/TransitionConstraint\"\u003e\n  \u003cmeta itemprop=\"selector\" content=\"[itemtype='https://pagelike.test/_pl/reacting-tc-multi-valued-rejected-c25f03/Order']\"\u003e\n  \u003cmeta itemprop=\"property\" content=\"status\"\u003e\n  \u003cmeta itemprop=\"from\" content=\"success\"\u003e\n\u003c/div\u003e\n\u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 2 (seed order-1 at pending (entry rule permits it))",
+      "method": "PUT",
+      "path": "/_pl/reacting-tc-multi-valued-rejected-c25f03/orders/order-1.html",
+      "status": 201,
+      "headers": {
+        "content-length": "246",
+        "content-type": "text/html",
+        "etag": "\"5e3c1e37a7a6ad3d8564e9d1e3f277dcfab6b25b1a52665aad3e1756f8f9b801\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:49 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\n\u003cdiv id=\"order1\" itemscope itemtype=\"https://pagelike.test/_pl/reacting-tc-multi-valued-rejected-c25f03/Order\"\u003e\n  \u003cmeta itemprop=\"status\" content=\"pending\"\u003e\n  \u003cspan itemprop=\"total\"\u003e42.00\u003c/span\u003e\n\u003c/div\u003e\n\u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 3 (two status values)",
+      "method": "PUT",
+      "path": "/_pl/reacting-tc-multi-valued-rejected-c25f03/orders/order-1.html",
+      "status": 422,
+      "headers": {
+        "content-length": "1028",
+        "content-type": "text/html; charset=utf-8",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\n  \u003chead\u003e\n    \u003ctitle\u003e422 Unprocessable Entity - Transition Constraint Violation\u003c/title\u003e\n  \u003c/head\u003e\n  \u003cbody itemscope itemtype=\"https://pagelove.org/ConstraintViolation\"\u003e\n    \u003ch1 itemprop=\"name\"\u003eUnprocessable Entity\u003c/h1\u003e\n    \u003cmeta itemprop=\"statusCode\" content=\"422\"\u003e\n    \u003cp itemprop=\"description\"\u003eTransition constraints violated\u003c/p\u003e\n    \u003cul\u003e\n      \u003cli itemprop=\"violations\" itemscope itemtype=\"https://pagelove.org/Violation\"\u003e\n        \u003cspan itemprop=\"constraintSelector\"\u003e[itemprop='status']\u003c/span\u003e\n        \u003cspan itemprop=\"failedConstraint\"\u003etransition(status)\u003c/span\u003e\n        \u003cspan itemprop=\"message\"\u003eTransition violation: 'https://pagelike.test/_pl/reacting-tc-multi-valued-rejected-c25f03/Order' property 'status' must be single-valued (found 2 values)\u003c/span\u003e\n        \u003cspan itemprop=\"itemtype\"\u003ehttps://pagelike.test/_pl/reacting-tc-multi-valued-rejected-c25f03/Order\u003c/span\u003e\n        \u003cspan itemprop=\"property\"\u003estatus\u003c/span\u003e\n        \u003cspan itemprop=\"from\"\u003epending\u003c/span\u003e\n      \u003c/li\u003e\n    \u003c/ul\u003e\n  \u003c/body\u003e\n\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 4 (unchanged)",
+      "method": "GET",
+      "path": "/_pl/reacting-tc-multi-valued-rejected-c25f03/orders/order-1.html",
+      "status": 200,
+      "headers": {
+        "accept-ranges": "selector, bytes",
+        "content-length": "246",
+        "content-type": "text/html",
+        "etag": "\"5e3c1e37a7a6ad3d8564e9d1e3f277dcfab6b25b1a52665aad3e1756f8f9b801\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:49 GMT",
+        "vary": "Host, Range, Accept"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\n\u003cdiv id=\"order1\" itemscope itemtype=\"https://pagelike.test/_pl/reacting-tc-multi-valued-rejected-c25f03/Order\"\u003e\n  \u003cmeta itemprop=\"status\" content=\"pending\"\u003e\n  \u003cspan itemprop=\"total\"\u003e42.00\u003c/span\u003e\n\u003c/div\u003e\n\u003c/body\u003e\u003c/html\u003e\n"
+    }
+  ],
+  "outcome": "pass",
+  "target": "local"
+}

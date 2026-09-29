@@ -1,0 +1,46 @@
+{
+  "case": "protocol.move.whole-document",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (move a to b)",
+      "method": "MOVE",
+      "path": "/_pl/protocol-move-whole-document-eb24a3/a.html",
+      "status": 204,
+      "headers": {
+        "etag": "\"ea74ed4cc6a8391b3ac7ad3cad3987e5c5d867dd2becef722038cc03ae7ad04e\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:48 GMT",
+        "vary": "Host, Range"
+      }
+    },
+    {
+      "step": "step 2 (source is gone)",
+      "method": "GET",
+      "path": "/_pl/protocol-move-whole-document-eb24a3/a.html",
+      "status": 404,
+      "headers": {
+        "content-length": "345",
+        "content-type": "text/html",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\n  \u003chead\u003e\n    \u003ctitle\u003e404 Not Found - Error\u003c/title\u003e\n  \u003c/head\u003e\n  \u003cbody itemscope itemtype=\"http://pagelove.org/Error\"\u003e\n    \u003ch1 itemprop=\"name\"\u003eNot Found\u003c/h1\u003e\n    \u003cmeta itemprop=\"statusCode\" content=\"404\"\u003e\n    \u003cp itemprop=\"description\"\u003eDocument not found: /_pl/protocol-move-whole-document-eb24a3/a.html\u003c/p\u003e\n  \u003c/body\u003e\n\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 3 (destination has the content)",
+      "method": "GET",
+      "path": "/_pl/protocol-move-whole-document-eb24a3/b.html",
+      "status": 200,
+      "headers": {
+        "accept-ranges": "selector, bytes",
+        "content-length": "70",
+        "content-type": "text/html",
+        "etag": "\"ea74ed4cc6a8391b3ac7ad3cad3987e5c5d867dd2becef722038cc03ae7ad04e\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:48 GMT",
+        "vary": "Host, Range, Accept"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\u003ch1\u003eRelocated document\u003c/h1\u003e\u003c/body\u003e\u003c/html\u003e\n"
+    }
+  ],
+  "outcome": "pass",
+  "target": "local"
+}

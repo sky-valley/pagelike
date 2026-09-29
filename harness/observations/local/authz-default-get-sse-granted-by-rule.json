@@ -1,0 +1,28 @@
+{
+  "case": "authz.default-get.sse-granted-by-rule",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (sse open s1)",
+      "method": "GET",
+      "path": "/_pl/authz-default-get-sse-granted-by-rule-c6661d/doc.html",
+      "status": 200,
+      "headers": {
+        "cache-control": "no-cache",
+        "content-type": "text/event-stream",
+        "x-accel-buffering": "no"
+      }
+    },
+    {
+      "step": "step 2",
+      "events": [
+        {
+          "event": "pagelove-connection",
+          "data": "45a59fe9-d822-484d-b984-b53924d57967"
+        }
+      ]
+    }
+  ],
+  "outcome": "pass",
+  "target": "local"
+}

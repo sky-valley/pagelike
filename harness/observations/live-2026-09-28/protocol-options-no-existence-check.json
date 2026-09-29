@@ -1,0 +1,28 @@
+{
+  "case": "protocol.options.no-existence-check",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (missing document still gets a normal answer)",
+      "method": "OPTIONS",
+      "path": "/_pl/protocol-options-no-existence-check-94b660/does-not-exist.html",
+      "status": 200,
+      "headers": {
+        "allow": "GET, HEAD, OPTIONS",
+        "vary": "Authorization, Accept"
+      }
+    },
+    {
+      "step": "step 2 (missing document with a selector range is not a range error either)",
+      "method": "OPTIONS",
+      "path": "/_pl/protocol-options-no-existence-check-94b660/does-not-exist.html",
+      "status": 200,
+      "headers": {
+        "allow": "GET, HEAD, OPTIONS",
+        "vary": "Authorization, Accept"
+      }
+    }
+  ],
+  "outcome": "pass",
+  "target": "live"
+}

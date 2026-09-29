@@ -1,0 +1,60 @@
+{
+  "case": "rw.cond.put-if-match-list",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (read)",
+      "method": "GET",
+      "path": "/_pl/rw-cond-put-if-match-list-954904/doc.html",
+      "status": 200,
+      "headers": {
+        "content-type": "text/html",
+        "etag": "\"066d4a00a76bd0b622d4bb6ebe94dade357559c3414bfa82bbe10ef5479edcfd\"",
+        "last-modified": "Mon, 28 Sep 2026 22:25:31 GMT",
+        "vary": "Host, Range, Accept"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\u003cp\u003ev1\u003c/p\u003e\n                \u003cdiv style=\"\n                            position: fixed;\n                            bottom: 0;\n                            left: 0;\n                            right: 0;\n                            padding: 8px;\n                            background: #f0f0f0;\n                            text-align: center;\n                            font-size: 12px;\n                            color: #666;\n                            z-index: 9999;\n                            opacity: 0.8;\n                            border-top: 1px solid #ddd;\n                        \"\u003e\n                    Powered by\n                    \u003ca href=\"https://pagelove.com/\" style=\"color: #4a90d9; text-decoration: none\"\u003ePagelove\u003c/a\u003e\n                \u003c/div\u003e\n            \u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 2 (list containing a bogus and the current tag)",
+      "method": "PUT",
+      "path": "/_pl/rw-cond-put-if-match-list-954904/doc.html",
+      "status": 200,
+      "headers": {
+        "content-type": "text/html",
+        "etag": "\"745a867b00f75b701b6c23a6db69e2cafa2c20e76d66c229428e6ee0503419aa\"",
+        "last-modified": "Mon, 28 Sep 2026 22:25:32 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\u003cp\u003ev2 via list\u003c/p\u003e\n                \u003cdiv style=\"\n                            position: fixed;\n                            bottom: 0;\n                            left: 0;\n                            right: 0;\n                            padding: 8px;\n                            background: #f0f0f0;\n                            text-align: center;\n                            font-size: 12px;\n                            color: #666;\n                            z-index: 9999;\n                            opacity: 0.8;\n                            border-top: 1px solid #ddd;\n                        \"\u003e\n                    Powered by\n                    \u003ca href=\"https://pagelove.com/\" style=\"color: #4a90d9; text-decoration: none\"\u003ePagelove\u003c/a\u003e\n                \u003c/div\u003e\n            \u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 3 (list of only bogus tags fails)",
+      "method": "PUT",
+      "path": "/_pl/rw-cond-put-if-match-list-954904/doc.html",
+      "status": 412,
+      "headers": {
+        "content-length": "172",
+        "content-type": "text/html",
+        "etag": "\"745a867b00f75b701b6c23a6db69e2cafa2c20e76d66c229428e6ee0503419aa\"",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\u003cdiv itemscope itemtype=\"http://pagelove.org/Error\"\u003e\u003cspan itemprop=\"message\"\u003ePrecondition Failed: ETag does not match\u003c/span\u003e\u003c/div\u003e\u003c/body\u003e\u003c/html\u003e"
+    },
+    {
+      "step": "step 4 (content is the list write)",
+      "method": "GET",
+      "path": "/_pl/rw-cond-put-if-match-list-954904/doc.html",
+      "status": 200,
+      "headers": {
+        "content-type": "text/html",
+        "etag": "\"745a867b00f75b701b6c23a6db69e2cafa2c20e76d66c229428e6ee0503419aa\"",
+        "last-modified": "Mon, 28 Sep 2026 22:25:32 GMT",
+        "vary": "Host, Range, Accept"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\u003cp\u003ev2 via list\u003c/p\u003e\n                \u003cdiv style=\"\n                            position: fixed;\n                            bottom: 0;\n                            left: 0;\n                            right: 0;\n                            padding: 8px;\n                            background: #f0f0f0;\n                            text-align: center;\n                            font-size: 12px;\n                            color: #666;\n                            z-index: 9999;\n                            opacity: 0.8;\n                            border-top: 1px solid #ddd;\n                        \"\u003e\n                    Powered by\n                    \u003ca href=\"https://pagelove.com/\" style=\"color: #4a90d9; text-decoration: none\"\u003ePagelove\u003c/a\u003e\n                \u003c/div\u003e\n            \u003c/body\u003e\u003c/html\u003e\n"
+    }
+  ],
+  "outcome": "pass",
+  "target": "live"
+}

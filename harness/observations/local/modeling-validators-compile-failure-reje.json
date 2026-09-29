@@ -1,0 +1,34 @@
+{
+  "case": "modeling.validators.compile-failure-rejects-every-write",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (register declarations through the public plane (takes effect for the next request))",
+      "method": "PUT",
+      "path": "/_pl/modeling-validators-compile-failure-reje-c5f45e/schema.html",
+      "status": 201,
+      "headers": {
+        "content-length": "553",
+        "content-type": "text/html",
+        "etag": "\"168cf1870795d1e31eff2b10fe2d38576cfc8646d30150b5db7f276b10fa8b71\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:45 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\n  \u003cdiv hidden itemscope itemtype=\"https://pagelove.org/Schema\"\u003e\n    \u003cmeta itemprop=\"type\" content=\"https://pagelike.test/_pl/modeling-validators-compile-failure-reje-c5f45e/Account\"\u003e\n    \u003cdiv itemprop=\"property\" itemscope itemtype=\"https://pagelove.org/Property\"\u003e\n      \u003cmeta itemprop=\"name\" content=\"email\"\u003e\n      \u003cmeta itemprop=\"type\" content=\"https://schema.host/Text\"\u003e\n      \u003cmeta itemprop=\"cardinality\" content=\"0..1\"\u003e\n    \u003c/div\u003e\n    \u003cscript type=\"text/sessel\" itemprop=\"@validate\"\u003e(((\u003c/script\u003e\n  \u003c/div\u003e\n\u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 2 (even an empty instance is rejected)",
+      "method": "PUT",
+      "path": "/_pl/modeling-validators-compile-failure-reje-c5f45e/a.html",
+      "status": 422,
+      "headers": {
+        "content-length": "830",
+        "content-type": "text/html; charset=utf-8",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\n  \u003chead\u003e\n    \u003ctitle\u003e422 Unprocessable Entity - Schema Violation\u003c/title\u003e\n  \u003c/head\u003e\n  \u003cbody itemscope itemtype=\"https://pagelove.org/SchemaViolation\"\u003e\n    \u003ch1 itemprop=\"name\"\u003eUnprocessable Entity\u003c/h1\u003e\n    \u003cmeta itemprop=\"statusCode\" content=\"422\"\u003e\n    \u003cp itemprop=\"description\"\u003eSchema validation failed\u003c/p\u003e\n    \u003cul\u003e\n      \u003cli itemprop=\"violations\" itemscope itemtype=\"https://pagelove.org/Violation\"\u003e\n        \u003cspan itemprop=\"check\"\u003e@validate\u003c/span\u003e\n        \u003cspan itemprop=\"itemtype\"\u003ehttps://pagelike.test/_pl/modeling-validators-compile-failure-reje-c5f45e/Account\u003c/span\u003e\n        \u003cspan itemprop=\"message\"\u003e[https://pagelike.test/_pl/modeling-validators-compile-failure-reje-c5f45e/Account]: @validate does not compile: parse error at 1:4: unexpected end of input\u003c/span\u003e\n      \u003c/li\u003e\n    \u003c/ul\u003e\n  \u003c/body\u003e\n\u003c/html\u003e\n"
+    }
+  ],
+  "outcome": "pass",
+  "target": "local"
+}

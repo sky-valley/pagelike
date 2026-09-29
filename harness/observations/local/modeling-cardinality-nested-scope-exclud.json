@@ -1,0 +1,48 @@
+{
+  "case": "modeling.cardinality.nested-scope-excluded",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (register declarations through the public plane (takes effect for the next request))",
+      "method": "PUT",
+      "path": "/_pl/modeling-cardinality-nested-scope-exclud-1762c6/schema.html",
+      "status": 201,
+      "headers": {
+        "content-length": "530",
+        "content-type": "text/html",
+        "etag": "\"f20dc804d3de4542435d87a2d65043ddb228df42061ae4a09863ba087a06815c\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:44 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\n  \u003cdiv hidden itemscope itemtype=\"https://pagelove.org/Schema\"\u003e\n    \u003cmeta itemprop=\"type\" content=\"https://pagelike.test/_pl/modeling-cardinality-nested-scope-exclud-1762c6/Tag\"\u003e\n    \u003cdiv itemprop=\"property\" itemscope itemtype=\"https://pagelove.org/Property\"\u003e\n      \u003cmeta itemprop=\"name\" content=\"label\"\u003e\n      \u003cmeta itemprop=\"type\" content=\"https://schema.host/Text\"\u003e\n      \u003cmeta itemprop=\"cardinality\" content=\"1..1\"\u003e\n      \u003cmeta itemprop=\"unique\" content=\"true\"\u003e\n    \u003c/div\u003e\n  \u003c/div\u003e\n\u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 2 (label only inside a nested item: rejected)",
+      "method": "PUT",
+      "path": "/_pl/modeling-cardinality-nested-scope-exclud-1762c6/t.html",
+      "status": 422,
+      "headers": {
+        "content-length": "866",
+        "content-type": "text/html; charset=utf-8",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\n  \u003chead\u003e\n    \u003ctitle\u003e422 Unprocessable Entity - Schema Violation\u003c/title\u003e\n  \u003c/head\u003e\n  \u003cbody itemscope itemtype=\"https://pagelove.org/SchemaViolation\"\u003e\n    \u003ch1 itemprop=\"name\"\u003eUnprocessable Entity\u003c/h1\u003e\n    \u003cmeta itemprop=\"statusCode\" content=\"422\"\u003e\n    \u003cp itemprop=\"description\"\u003eSchema validation failed\u003c/p\u003e\n    \u003cul\u003e\n      \u003cli itemprop=\"violations\" itemscope itemtype=\"https://pagelove.org/Violation\"\u003e\n        \u003cspan itemprop=\"check\"\u003ecardinality\u003c/span\u003e\n        \u003cspan itemprop=\"itemtype\"\u003ehttps://pagelike.test/_pl/modeling-cardinality-nested-scope-exclud-1762c6/Tag\u003c/span\u003e\n        \u003cspan itemprop=\"property\"\u003elabel\u003c/span\u003e\n        \u003cspan itemprop=\"message\"\u003e[https://pagelike.test/_pl/modeling-cardinality-nested-scope-exclud-1762c6/Tag].label: cardinality 1..1 violated: expected exactly 1 value, found 0\u003c/span\u003e\n      \u003c/li\u003e\n    \u003c/ul\u003e\n  \u003c/body\u003e\n\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 3 (label at the outer level plus a nested item with its own label: accepted)",
+      "method": "PUT",
+      "path": "/_pl/modeling-cardinality-nested-scope-exclud-1762c6/t2.html",
+      "status": 201,
+      "headers": {
+        "content-length": "372",
+        "content-type": "text/html",
+        "etag": "\"016831cb58a9ac0271d7226e381a5a9ddb0af1a0b55084c38b743c51db3b7be6\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:44 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\n  \u003cdiv itemscope itemtype=\"https://pagelike.test/_pl/modeling-cardinality-nested-scope-exclud-1762c6/Tag\"\u003e\n    \u003cmeta itemprop=\"label\" content=\"outer\"\u003e\n    \u003cdiv itemscope itemtype=\"https://pagelike.test/_pl/modeling-cardinality-nested-scope-exclud-1762c6/Inner\"\u003e\n      \u003cmeta itemprop=\"label\" content=\"inner\"\u003e\n    \u003c/div\u003e\n  \u003c/div\u003e\n\u003c/body\u003e\u003c/html\u003e\n"
+    }
+  ],
+  "outcome": "pass",
+  "target": "local"
+}

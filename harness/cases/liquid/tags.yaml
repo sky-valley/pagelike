@@ -1,0 +1,297 @@
+# Standard Liquid tags and expressions as PageLove templates use them.
+# Spec: docs/spec/liquid.md §8 (R-LIQ-70..78), R-LIQ-57/58/76.
+defaults:
+  area: liquid
+  requires: [liquid]
+cases:
+  - id: liquid.tags.control-flow
+    title: "if/elsif/else, unless, case/when and and/or/contains behave as standard Liquid"
+    feature: tags
+    evidence: inferred
+    source: "docs languages/liquid/filters ('the standard Shopify Liquid filters'); languages/liquid/templating §Data sources (assign, capture, etc.); pagelove-cursor SKILL.md@b97c3ef:172-178 (if/else on request.auth)"
+    confidence: medium
+    live: true
+    notes: R-LIQ-70, R-LIQ-74.
+    site:
+      settings: {default_get: allow}
+      files:
+        - path: "${P}/cf.html"
+          body: |
+            <!DOCTYPE html>
+            <html xmlns:p="https://pagelove.org/1.0"><body>
+              <div itemscope itemtype="urn:liquid:result" p:template="text/liquid">{% assign n = 2 %}
+                <span itemprop="ifelse">{% if n == 1 %}one{% elsif n == 2 %}two{% else %}many{% endif %}</span>
+                <span itemprop="unless">{% unless n > 5 %}small{% endunless %}</span>
+                <span itemprop="case">{% case "b" %}{% when "a" %}A{% when "b", "c" %}B{% else %}Z{% endcase %}</span>
+                <span itemprop="logic">{% if "abc" contains "b" and 1 < 2 or false %}y{% else %}n{% endif %}</span>
+                <span itemprop="arr">{% assign xs = "a,b" | split: "," %}{% if xs contains "b" %}has-b{% endif %}</span>
+              </div>
+            </body></html>
+      rules: [{actor: "*", resource: "${P}/*", method: [GET, HEAD], action: Allow}]
+    steps:
+      - name: read
+        as: anonymous
+        request: {method: GET, path: "${P}/cf.html"}
+        expect:
+          status: 200
+          microdata: {ifelse: two, unless: small, case: B, logic: y, arr: has-b}
+
+  - id: liquid.tags.loops
+    title: "for with ranges, limit:/offset:, break/continue, else, forloop members and cycle"
+    feature: tags
+    evidence: demo-source
+    source: "pagelove-polls/site/index.html@c9270e5:89 ({% for poll in listed limit: 8 %}); templates/new-poll.html@c9270e5:60-62 (forloop.index); learn/build-a-blog (limit: 4); Shopify semantics for the rest"
+    confidence: medium
+    live: true
+    notes: R-LIQ-70, R-LIQ-71.
+    site:
+      settings: {default_get: allow}
+      files:
+        - path: "${P}/loops.html"
+          body: |
+            <!DOCTYPE html>
+            <html xmlns:p="https://pagelove.org/1.0"><body>
+              <div itemscope itemtype="urn:liquid:result" p:template="text/liquid">
+                <span itemprop="limit">{% for i in (1..9) limit: 4 %}{{ i }}{% endfor %}</span>
+                <span itemprop="offset">{% for i in (1..5) offset:2 %}{{ i }}{% endfor %}</span>
+                <span itemprop="bc">{% for i in (1..6) %}{% if i == 3 %}{% continue %}{% endif %}{% if i == 5 %}{% break %}{% endif %}{{ forloop.index }}{% endfor %}</span>
+                <span itemprop="else">{% for x in nothing_here %}x{% else %}none{% endfor %}</span>
+                <span itemprop="members">{% for i in (1..3) %}{{ forloop.index0 }}{{ forloop.rindex }}{% if forloop.first %}F{% endif %}{% if forloop.last %}L{% endif %}{{ forloop.length }};{% endfor %}</span>
+                <span itemprop="cycle">{% for i in (1..3) %}{% cycle "a", "b" %}{% endfor %}</span>
+                <span itemprop="rangevar">{% assign hi = 3 %}{% for i in (1..hi) %}{{ i }}{% endfor %}</span>
+              </div>
+            </body></html>
+      rules: [{actor: "*", resource: "${P}/*", method: [GET, HEAD], action: Allow}]
+    steps:
+      - name: read
+        as: anonymous
+        request: {method: GET, path: "${P}/loops.html"}
+        expect:
+          status: 200
+          microdata: {limit: "1234", offset: "345", bc: "124", else: none, members: "03F3;123;21L3;", cycle: aba, rangevar: "123"}
+
+  - id: liquid.tags.variables
+    title: assign, capture, increment/decrement and echo
+    feature: tags
+    evidence: documented
+    source: "docs languages/liquid/templating §Data sources ('Variables created with assign, capture, etc.'); §Limits (assign/capture charged)"
+    confidence: medium
+    live: true
+    notes: R-LIQ-70.
+    site:
+      settings: {default_get: allow}
+      files:
+        - path: "${P}/vars.html"
+          body: |
+            <!DOCTYPE html>
+            <html xmlns:p="https://pagelove.org/1.0"><body>
+              <div itemscope itemtype="urn:liquid:result" p:template="text/liquid">
+                <span itemprop="capture">{% capture x %}a{{ 1 | plus: 1 }}{% endcapture %}{{ x }}</span>
+                <span itemprop="assign">{% assign s = "hi" | upcase %}{{ s }}</span>
+                <span itemprop="inc">{% increment c %}{% increment c %}</span>
+                <span itemprop="echo">{% echo "e" | upcase %}</span>
+              </div>
+            </body></html>
+      rules: [{actor: "*", resource: "${P}/*", method: [GET, HEAD], action: Allow}]
+    steps:
+      - name: read
+        as: anonymous
+        request: {method: GET, path: "${P}/vars.html"}
+        expect:
+          status: 200
+          microdata: {capture: a2, assign: HI, inc: "01", echo: E}
+
+  - id: liquid.tags.filters-in-conditions
+    title: "{% if coll | has: … %} and {% if coll | has_exp: … %} accept filter chains"
+    feature: tags
+    evidence: documented
+    source: "docs languages/liquid/filters/array §has ({% if products | has: \"onsale\", true %}); filters/expressions §has_exp"
+    confidence: medium
+    live: true
+    notes: "R-LIQ-73. The docs compare with boolean true; microdata values are strings, so this case passes the string (see liquid.filters-array.where-boolean-matches-string for true vs \"true\")."
+    site:
+      settings: {default_get: allow}
+      files:
+        - path: "${P}/sale-data.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div itemscope itemtype="https://example.test${P}/Product"><meta itemprop="sku" content="A-1"><meta itemprop="onsale" content="false"></div>
+              <div itemscope itemtype="https://example.test${P}/Product"><meta itemprop="sku" content="B-2"><meta itemprop="onsale" content="true"></div>
+            </body></html>
+        - path: "${P}/sale.html"
+          body: |
+            <!DOCTYPE html>
+            <html xmlns:p="https://pagelove.org/1.0" xmlns:r="https://pagelove.org/Binding/CSS"><body>
+              <p id="o" r:products="[itemtype='https://example.test${P}/Product']" p:template="text/liquid">{% if products | has: "onsale", "true" %}Sale on now!{% endif %}|{% if products | has_exp: "p", "p.sku == 'B-2'" %}has B-2{% endif %}|{% if products | has: "sku", "Z-9" %}bad{% endif %}</p>
+            </body></html>
+      rules: [{actor: "*", resource: "${P}/*", method: [GET, HEAD], action: Allow}]
+    steps:
+      - name: read
+        as: anonymous
+        request: {method: GET, path: "${P}/sale.html", headers: {Range: "selector=#o"}}
+        expect:
+          status: 206
+          body_contains: [">Sale on now!|has B-2|</p>"]
+
+  - id: liquid.tags.truthiness
+    title: Only nil and false are falsy; the empty string, 0 and empty arrays are truthy
+    feature: expressions
+    evidence: demo-source
+    source: "pagelove-shop/site/index.html@d887054:17-19 ('an empty string is TRUTHY in Liquid')"
+    confidence: high
+    live: true
+    notes: R-LIQ-57.
+    site:
+      settings: {default_get: allow}
+      files:
+        - path: "${P}/truthy.html"
+          body: |
+            <!DOCTYPE html>
+            <html xmlns:p="https://pagelove.org/1.0"><body>
+              <p id="o" p:template="text/liquid">{% assign e = "" %}{% assign z = 0 %}{% assign a = "" | split: "," | pop %}{% if e %}E{% endif %}{% if z %}Z{% endif %}{% if a %}A{% endif %}{% if nil %}N{% endif %}{% if false %}F{% endif %}{% if undefined_thing %}U{% endif %}</p>
+            </body></html>
+      rules: [{actor: "*", resource: "${P}/*", method: [GET, HEAD], action: Allow}]
+    steps:
+      - name: read
+        as: anonymous
+        request: {method: GET, path: "${P}/truthy.html", headers: {Range: "selector=#o"}}
+        expect:
+          status: 206
+          body_contains: [">EZA</p>"]
+
+  - id: liquid.tags.blank-empty
+    title: "The blank and empty literals: \"\" != blank is false, [] == empty is true"
+    feature: expressions
+    evidence: demo-source
+    source: "pagelove-shop/site/index.html@d887054:25 ({% if shot != blank %}); Shopify blank/empty semantics"
+    confidence: medium
+    live: true
+    notes: R-LIQ-58. Whitespace-only == blank is a low-confidence pagelike decision (asserted separately).
+    site:
+      settings: {default_get: allow}
+      files:
+        - path: "${P}/blank.html"
+          body: |
+            <!DOCTYPE html>
+            <html xmlns:p="https://pagelove.org/1.0"><body>
+              <p id="o" p:template="text/liquid">{% assign s = "" %}{% assign xs = "" | split: "," | pop %}{% if s != blank %}A{% endif %}{% if s == empty %}B{% endif %}{% if xs == empty %}C{% endif %}{% if nosuch == blank %}D{% endif %}{% if "x" != blank %}E{% endif %}</p>
+            </body></html>
+      rules: [{actor: "*", resource: "${P}/*", method: [GET, HEAD], action: Allow}]
+    steps:
+      - name: read
+        as: anonymous
+        request: {method: GET, path: "${P}/blank.html", headers: {Range: "selector=#o"}}
+        expect:
+          status: 206
+          body_contains: [">BCDE</p>"]
+
+  - id: liquid.tags.raw-protects-script
+    title: "{% raw %} keeps Liquid delimiters and JS template literals intact"
+    feature: tags
+    evidence: client-source
+    source: "pagelove-cursor SKILL.md@b97c3ef:389-399 (wrap scripts in {% raw %} when the body uses Liquid)"
+    confidence: medium
+    live: true
+    notes: R-LIQ-12, R-LIQ-70.
+    site:
+      settings: {default_get: allow}
+      files:
+        - path: "${P}/raw.html"
+          body: |
+            <!DOCTYPE html>
+            <html xmlns:p="https://pagelove.org/1.0"><body p:template="text/liquid">
+            <p id="v">{{ 1 | plus: 1 }}</p>
+            {% raw %}<script id="s">const t = `${a}`; const u = "{{ x }}";</script>{% endraw %}
+            </body></html>
+      rules: [{actor: "*", resource: "${P}/*", method: [GET, HEAD], action: Allow}]
+    steps:
+      - name: read
+        as: anonymous
+        request: {method: GET, path: "${P}/raw.html"}
+        expect:
+          status: 200
+          body_contains: ['<p id="v">2</p>', 'const t = `${a}`; const u = "{{ x }}";']
+          body_not_contains: ["{% raw %}", "{% endraw %}"]
+
+  - id: liquid.tags.include-refused
+    title: "{% include %} cannot read files or documents; the page fails composition"
+    feature: tags
+    evidence: inferred
+    source: "docs languages/liquid/templating §Template scope ('Templates cannot … Perform I/O'); docs/decisions/0002-liquid.md (stock engine read the working directory)"
+    confidence: low
+    live: true
+    notes: R-LIQ-77, R-LIQ-205, P-LIQ-4. Status is a pagelike decision; the no-read part is the security requirement.
+    site:
+      settings: {default_get: allow}
+      files:
+        - path: "${P}/secret.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body><p>SECRET-MARKER-7F3</p></body></html>
+        - path: "${P}/inc.html"
+          body: |
+            <!DOCTYPE html>
+            <html xmlns:p="https://pagelove.org/1.0"><body>
+              <div p:template="text/liquid">{% include "secret.html" %}{% render "${P}/secret.html" %}</div>
+            </body></html>
+      rules: [{actor: "*", resource: "${P}/*", method: [GET, HEAD], action: Allow}]
+    steps:
+      - name: read
+        as: anonymous
+        request: {method: GET, path: "${P}/inc.html"}
+        expect:
+          status: 500
+          body_not_contains: ["SECRET-MARKER-7F3"]
+
+  - id: liquid.tags.reversed-limit-order
+    title: "for … reversed limit:2 applies limit before reversing (Shopify order)"
+    feature: tags
+    evidence: inferred
+    source: "Shopify Liquid for-loop semantics; docs/decisions/0002-liquid.md gap G6"
+    confidence: low
+    live: true
+    notes: R-LIQ-72, P-LIQ-14. LiquidJS/osteele order would give 54.
+    site:
+      settings: {default_get: allow}
+      files:
+        - path: "${P}/rev.html"
+          body: |
+            <!DOCTYPE html>
+            <html xmlns:p="https://pagelove.org/1.0"><body>
+              <p id="o" p:template="text/liquid">{% for i in (1..5) reversed limit:2 %}{{ i }}{% endfor %}</p>
+            </body></html>
+      rules: [{actor: "*", resource: "${P}/*", method: [GET, HEAD], action: Allow}]
+    steps:
+      - name: read
+        as: anonymous
+        request: {method: GET, path: "${P}/rev.html", headers: {Range: "selector=#o"}}
+        expect:
+          status: 206
+          body_contains: [">21</p>"]
+
+  - id: liquid.tags.numeric-string-comparison
+    title: A numeric string compares numerically with a number (microdata values are strings)
+    feature: expressions
+    evidence: documented
+    source: "docs languages/liquid/filters/expressions §where_exp (\"u.age >= 18\" over bound items); filters/array §sort_natural ('use sort when you want numeric order'); reference/modeling-data/Property (bound values are plain strings)"
+    confidence: low
+    live: true
+    notes: R-LIQ-76, P-LIQ-5, docs/decisions/0002-liquid.md gap G1.
+    site:
+      settings: {default_get: allow}
+      files:
+        - path: "${P}/numcmp.html"
+          body: |
+            <!DOCTYPE html>
+            <html xmlns:p="https://pagelove.org/1.0"><body>
+              <p id="o" p:template="text/liquid">{% assign a = "34" %}{% if a >= 18 %}adult{% endif %}|{% if a == 34 %}eq{% endif %}|{% if "9" < 10 %}lt{% endif %}|{% if "true" == true %}bool{% endif %}</p>
+            </body></html>
+      rules: [{actor: "*", resource: "${P}/*", method: [GET, HEAD], action: Allow}]
+    steps:
+      - name: read
+        as: anonymous
+        request: {method: GET, path: "${P}/numcmp.html", headers: {Range: "selector=#o"}}
+        expect:
+          status: 206
+          body_contains: [">adult|eq|lt|bool</p>"]

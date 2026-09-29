@@ -1,0 +1,37 @@
+{
+  "case": "rw.up.html-by-content-type-without-extension",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (store HTML at an extension-less path)",
+      "method": "PUT",
+      "path": "/_pl/rw-up-html-by-content-type-without-exten-69638b/page",
+      "status": 201,
+      "headers": {
+        "content-length": "64",
+        "content-type": "text/html",
+        "etag": "\"7345e04fca08b2de3c6fba792d5eb2aa87238f683803f5aed558874e45db37f4\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:56 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\u003ch1\u003eNo extension\u003c/h1\u003e\u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 2 (selector-addressable)",
+      "method": "GET",
+      "path": "/_pl/rw-up-html-by-content-type-without-exten-69638b/page",
+      "status": 206,
+      "headers": {
+        "accept-ranges": "selector, bytes",
+        "content-length": "21",
+        "content-range": "selector h1",
+        "content-type": "text/html",
+        "etag": "\"24455d43cc0c0a7ed574af894e4a3eb505e16002d88f7c2b4148f9b53ac1ca49-24455d43cc0c0a7ed574af894e4a3eb505e16002d88f7c2b4148f9b53ac1ca49-1\"",
+        "vary": "Host, Range, Accept"
+      },
+      "body": "\u003ch1\u003eNo extension\u003c/h1\u003e"
+    }
+  ],
+  "outcome": "pass",
+  "target": "local"
+}

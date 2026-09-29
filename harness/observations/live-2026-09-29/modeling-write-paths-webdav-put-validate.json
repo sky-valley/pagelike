@@ -1,0 +1,50 @@
+{
+  "case": "modeling.write-paths.webdav-put-validated-by-schema",
+  "failures": [
+    "step 2 (author PUT of an invalid instance refused) PUT ${P}/t.html: status 201, want [422] (body: \u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\n  \u003cdiv itemscope itemtype=\"https://pagelike.test/_pl/modeling-write-paths-webdav-put-validate-4ad1e9/Tag\"\u003e\u003c/div\u003e\n\u003c/body\u003e\u003c/html\u003e\n)",
+    "step 3 (t.html was not stored) GET ${P}/t.html: status 200, want [404] (body: \u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\n  \u003cdiv itemscope itemtype=\"https://pagelike.test/_pl/modeling-write-paths-webdav-put-validate-4ad1e9/Tag\"\u003e\u003c/div\u003e\n\u003c/body\u003e\u003c/html\u003e\n)"
+  ],
+  "observations": [
+    {
+      "step": "step 1 (register declarations through the public plane (takes effect for the next request))",
+      "method": "PUT",
+      "path": "/_pl/modeling-write-paths-webdav-put-validate-4ad1e9/schema.html",
+      "status": 201,
+      "headers": {
+        "content-type": "text/html",
+        "etag": "\"0e93cb5512c47f32a91e056e0a477a6ef92898f7179cbbab1b86322c0bba497d\"",
+        "last-modified": "Tue, 29 Sep 2026 00:48:42 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\n  \u003cdiv hidden itemscope itemtype=\"https://pagelove.org/Schema\"\u003e\n    \u003cmeta itemprop=\"type\" content=\"https://pagelike.test/_pl/modeling-write-paths-webdav-put-validate-4ad1e9/Tag\"\u003e\n    \u003cdiv itemprop=\"property\" itemscope itemtype=\"https://pagelove.org/Property\"\u003e\n      \u003cmeta itemprop=\"name\" content=\"label\"\u003e\n      \u003cmeta itemprop=\"type\" content=\"https://schema.host/Text\"\u003e\n      \u003cmeta itemprop=\"cardinality\" content=\"1..1\"\u003e\n    \u003c/div\u003e\n  \u003cmeta itemprop=\"@id\" content=\"https://schema.host/7eg1v8yl\"\u003e\u003cmeta itemprop=\"path\" content=\"/Schemahttps://schema.host/7eg1v8yl.html\"\u003e\u003c/div\u003e\n\n                \u003cdiv style=\"\n                            position: fixed;\n                            bottom: 0;\n                            left: 0;\n                            right: 0;\n                            padding: 8px;\n                            background: #f0f0f0;\n                            text-align: center;\n                            font-size: 12px;\n                            color: #666;\n                            z-index: 9999;\n                            opacity: 0.8;\n                            border-top: 1px solid #ddd;\n                        \"\u003e\n                    Powered by\n                    \u003ca href=\"https://pagelove.com/\" style=\"color: #4a90d9; text-decoration: none\"\u003ePagelove\u003c/a\u003e\n                \u003c/div\u003e\n            \u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 2 (author PUT of an invalid instance refused)",
+      "method": "PUT",
+      "path": "/_pl/modeling-write-paths-webdav-put-validate-4ad1e9/t.html",
+      "status": 201,
+      "headers": {
+        "content-length": "157",
+        "content-type": "text/html",
+        "etag": "\"292cf7bd89e55713de0bb428a851d11ea84dcc06ca77bb58d556412ce33e36df\""
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\n  \u003cdiv itemscope itemtype=\"https://pagelike.test/_pl/modeling-write-paths-webdav-put-validate-4ad1e9/Tag\"\u003e\u003c/div\u003e\n\u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 3 (t.html was not stored)",
+      "method": "GET",
+      "path": "/_pl/modeling-write-paths-webdav-put-validate-4ad1e9/t.html",
+      "status": 200,
+      "headers": {
+        "accept-ranges": "bytes",
+        "content-length": "157",
+        "content-type": "text/html",
+        "etag": "\"292cf7bd89e55713de0bb428a851d11ea84dcc06ca77bb58d556412ce33e36df\"",
+        "last-modified": "Tue, 29 Sep 2026 00:48:43 GMT"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\n  \u003cdiv itemscope itemtype=\"https://pagelike.test/_pl/modeling-write-paths-webdav-put-validate-4ad1e9/Tag\"\u003e\u003c/div\u003e\n\u003c/body\u003e\u003c/html\u003e\n"
+    }
+  ],
+  "outcome": "fail",
+  "target": "live"
+}

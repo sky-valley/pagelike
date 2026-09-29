@@ -1,0 +1,37 @@
+{
+  "case": "javascript.dom.reflect-booleans",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (PUT the page (public plane; registers inline declarations))",
+      "method": "PUT",
+      "path": "/_pl/javascript-dom-reflect-booleans-f20ad1/probe.html",
+      "status": 201,
+      "headers": {
+        "content-length": "1445",
+        "content-type": "text/html",
+        "etag": "\"0a074afa9082ca01d2f171971966270aa0aa1ff19d20dd1d0386705fa24e1002\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:42 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml xmlns:t=\"https://pagelike.test/_pl/javascript-dom-reflect-booleans-f20ad1/Dreflectbooleans\"\u003e\u003cbody\u003e\n\u003cmain\u003e\n\u003ct:probe\u003e\u003c/t:probe\u003e\n\u003c/main\u003e\n\u003cdiv hidden itemscope itemtype=\"https://pagelove.org/Schema\"\u003e\n\u003cmeta itemprop=\"type\" content=\"https://pagelike.test/_pl/javascript-dom-reflect-booleans-f20ad1/Dreflectbooleans\"\u003e\n\u003cul\u003e\n\u003cli itemprop=\"property\" itemscope itemtype=\"https://pagelove.org/Method\"\u003e\n\u003cmeta itemprop=\"name\" content=\"probe\"\u003e\n\u003cdiv itemprop=\"implementation\" itemscope itemtype=\"https://pagelove.org/JavaScript/Module\"\u003e\n\u003cscript itemprop=\"source\" type=\"module\"\u003e\nconst S = (...a) =\u003e a.map(String).join('|');\nconst H = (x) =\u003e String(x).replace(/[\u003c\u003e\"]/g, (c) =\u003e ({ '\u003c': '[', '\u003e': ']', '\"': \"'\" })[c]);\nconst tryName = (f) =\u003e { try { f(); return 'ok'; } catch (e) { return e.name + ':' + e.code; } };\nexport default function () {\nconst d = new DOMParser().parseFromString('\u003cinput\u003e\u003cdetails open\u003e\u003c/details\u003e', 'text/html');\nconst i = d.querySelector('input'), det = d.querySelector('details');\nconst r1 = i.required; i.required = true; const r2 = i.hasAttribute('required'); const v = i.getAttribute('required'); const r3 = i.required;\ni.required = false; const r4 = i.hasAttribute('required');\nconst o1 = det.open; det.open = false; const o2 = det.hasAttribute('open');\ni.readOnly = true; const ro = i.hasAttribute('readonly');\nreturn 'R:' + S(r1, r2, v, r3, r4, o1, o2, ro);\n}\n\u003c/script\u003e\n\u003c/div\u003e\n\u003c/li\u003e\n\u003c/ul\u003e\n\u003c/div\u003e\n\u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 2 (GET \u003cmain\u003e: the method result is inserted as text)",
+      "method": "GET",
+      "path": "/_pl/javascript-dom-reflect-booleans-f20ad1/probe.html",
+      "status": 206,
+      "headers": {
+        "accept-ranges": "selector, bytes",
+        "content-length": "55",
+        "content-range": "selector main",
+        "content-type": "text/html",
+        "etag": "\"ed84dc431e0387b793fb5c936eb4924ef1a3eff8170a103e0b567a51f0aac804-ed84dc431e0387b793fb5c936eb4924ef1a3eff8170a103e0b567a51f0aac804-1\"",
+        "vary": "Host, Range, Accept"
+      },
+      "body": "\u003cmain\u003e\nR:false|true||true|false|true|false|true\n\u003c/main\u003e"
+    }
+  ],
+  "outcome": "pass",
+  "target": "local"
+}

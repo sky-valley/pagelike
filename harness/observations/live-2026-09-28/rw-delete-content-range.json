@@ -1,0 +1,21 @@
+{
+  "case": "rw.delete.content-range",
+  "failures": [
+    "step 1 (delete by id) DELETE ${P}/cr.html: header Content-Range = \"\", want match \"^selector[ =]#gone$\""
+  ],
+  "observations": [
+    {
+      "step": "step 1 (delete by id)",
+      "method": "DELETE",
+      "path": "/_pl/rw-delete-content-range-904583/cr.html",
+      "status": 204,
+      "headers": {
+        "etag": "\"19ea03f72b14afab5c80d5de65fd798390dbfd264b453a8bec72ebafc24025ae\"",
+        "last-modified": "Mon, 28 Sep 2026 22:25:58 GMT",
+        "vary": "Host, Range"
+      }
+    }
+  ],
+  "outcome": "fail",
+  "target": "live"
+}

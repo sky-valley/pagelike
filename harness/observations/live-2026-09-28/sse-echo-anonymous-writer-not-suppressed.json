@@ -1,0 +1,42 @@
+{
+  "case": "sse.echo.anonymous-writer-not-suppressed",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 2",
+      "events": [
+        {
+          "event": "pagelove-connection",
+          "data": "6199bef5-8758-4573-923a-ee62e55250b9"
+        }
+      ]
+    },
+    {
+      "step": "step 3 (cookie-less write)",
+      "method": "PUT",
+      "path": "/_pl/sse-echo-anonymous-writer-not-suppressed-411476/doc.html",
+      "status": 206,
+      "headers": {
+        "content-length": "18",
+        "content-range": "selector h1",
+        "content-type": "text/html",
+        "etag": "\"c09e1f039ec0d16542590e0a0b13dd4449b4b26ae496281aec082a97fcda2e0f-c09e1f039ec0d16542590e0a0b13dd4449b4b26ae496281aec082a97fcda2e0f-2\"",
+        "last-modified": "Mon, 28 Sep 2026 22:34:21 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003ch1\u003eNo cookie\u003c/h1\u003e"
+    },
+    {
+      "step": "step 4",
+      "events": [
+        {
+          "id": "v1~e51932cf8236.1790634861755-0",
+          "event": "mutation",
+          "data": "\u003carticle itemscope itemtype=\"https://pagelove.org/Mutation\"\u003e\n  \u003cspan itemprop=\"method\"\u003ePUT\u003c/span\u003e\n  \u003cspan itemprop=\"selector\"\u003eh1\u003c/span\u003e\n  \u003cspan itemprop=\"etag\"\u003ee8814f68b3023e7eec557fbb22a943a10c91d632d220c0298d09c29cf2568021\u003c/span\u003e\n  \u003cspan itemprop=\"path\"\u003e/_pl/sse-echo-anonymous-writer-not-suppressed-411476/doc.html\u003c/span\u003e\n  \u003cspan itemprop=\"host\"\u003elive-test-host.onpagelove.com\u003c/span\u003e\n  \u003cdiv itemprop=\"body\"\u003e\u003ch1\u003eNo cookie\u003c/h1\u003e\u003c/div\u003e\n\u003c/article\u003e"
+        }
+      ]
+    }
+  ],
+  "outcome": "pass",
+  "target": "live"
+}

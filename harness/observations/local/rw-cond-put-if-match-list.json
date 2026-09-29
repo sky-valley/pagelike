@@ -1,0 +1,65 @@
+{
+  "case": "rw.cond.put-if-match-list",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (read)",
+      "method": "GET",
+      "path": "/_pl/rw-cond-put-if-match-list-9706c0/doc.html",
+      "status": 200,
+      "headers": {
+        "accept-ranges": "selector, bytes",
+        "content-length": "52",
+        "content-type": "text/html",
+        "etag": "\"afa21261a7bf6e1aa69d35512e0ded6d40f7df278f7255489c392445bbd1c796\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:55 GMT",
+        "vary": "Host, Range, Accept"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\u003cp\u003ev1\u003c/p\u003e\u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 2 (list containing a bogus and the current tag)",
+      "method": "PUT",
+      "path": "/_pl/rw-cond-put-if-match-list-9706c0/doc.html",
+      "status": 200,
+      "headers": {
+        "content-length": "61",
+        "content-type": "text/html",
+        "etag": "\"ec0c37fda12df7e38cbe0ba6198d15efbe098fa7ea484f8dc207ac1c3e754b3a\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:55 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\u003cp\u003ev2 via list\u003c/p\u003e\u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 3 (list of only bogus tags fails)",
+      "method": "PUT",
+      "path": "/_pl/rw-cond-put-if-match-list-9706c0/doc.html",
+      "status": 412,
+      "headers": {
+        "content-length": "172",
+        "content-type": "text/html",
+        "etag": "\"ec0c37fda12df7e38cbe0ba6198d15efbe098fa7ea484f8dc207ac1c3e754b3a\"",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\u003cdiv itemscope itemtype=\"http://pagelove.org/Error\"\u003e\u003cspan itemprop=\"message\"\u003ePrecondition Failed: ETag does not match\u003c/span\u003e\u003c/div\u003e\u003c/body\u003e\u003c/html\u003e"
+    },
+    {
+      "step": "step 4 (content is the list write)",
+      "method": "GET",
+      "path": "/_pl/rw-cond-put-if-match-list-9706c0/doc.html",
+      "status": 200,
+      "headers": {
+        "accept-ranges": "selector, bytes",
+        "content-length": "61",
+        "content-type": "text/html",
+        "etag": "\"ec0c37fda12df7e38cbe0ba6198d15efbe098fa7ea484f8dc207ac1c3e754b3a\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:55 GMT",
+        "vary": "Host, Range, Accept"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\u003cp\u003ev2 via list\u003c/p\u003e\u003c/body\u003e\u003c/html\u003e\n"
+    }
+  ],
+  "outcome": "pass",
+  "target": "local"
+}

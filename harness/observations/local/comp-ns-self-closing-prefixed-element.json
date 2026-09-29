@@ -1,0 +1,38 @@
+{
+  "case": "comp.ns.self-closing-prefixed-element",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (whole page)",
+      "method": "GET",
+      "path": "/_pl/comp-ns-self-closing-prefixed-element-deea38/page.html",
+      "status": 200,
+      "headers": {
+        "accept-ranges": "selector, bytes",
+        "cache-control": "public, max-age=5",
+        "content-length": "126",
+        "content-type": "text/html",
+        "etag": "W/\"5fdd224569c4704bb6d99c883091754994abce0766bdf04b068adb4f604f1c0a\"",
+        "vary": "Host, Range, Accept"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\n\u003cbody\u003e\n  \u003cheader id=\"nav\"\u003eNavigation\u003c/header\u003e\n  \u003cmain\u003e\u003cp\u003ePage content here.\u003c/p\u003e\u003c/main\u003e\n\u003c/body\u003e\n\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 2 (main is still a child of body)",
+      "method": "GET",
+      "path": "/_pl/comp-ns-self-closing-prefixed-element-deea38/page.html",
+      "status": 206,
+      "headers": {
+        "accept-ranges": "selector, bytes",
+        "content-length": "38",
+        "content-range": "selector body \u003e main",
+        "content-type": "text/html",
+        "etag": "\"f7c3d612e5e401eba4e932b7ab8137c1d5ed654fca04f240c3a93098ec284e7d-f7c3d612e5e401eba4e932b7ab8137c1d5ed654fca04f240c3a93098ec284e7d-1\"",
+        "vary": "Host, Range, Accept"
+      },
+      "body": "\u003cmain\u003e\u003cp\u003ePage content here.\u003c/p\u003e\u003c/main\u003e"
+    }
+  ],
+  "outcome": "pass",
+  "target": "local"
+}

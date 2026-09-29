@@ -1,0 +1,290 @@
+# JavaScript area: minimised probes written while reconciling the server DOM with the live PageLove
+# run of 2026-09-29 (docs/compat/decisions-2026-09-29/javascript.md). Each probe isolates one DOM
+# behaviour, wraps every read in T() so one failure cannot hide the others, and returns a
+# '|'-joined string that is inserted into <main> as text (same method-element scaffold as dom.yaml).
+# Helpers: H(x) replaces < > " with [ ] ' ; T(f) is H(f()) or 'E:<error name>'; J is JSON.stringify;
+# X serializes a node with XMLSerializer; N(n) names a node ('null', 'undef' or 'node:' + nodeName).
+defaults:
+  area: "javascript"
+  evidence: "live-observed"
+  confidence: "high"
+  requires: ["server-js"]
+  site:
+    settings:
+      default_get: "allow"
+    rules:
+      - actor: "*"
+        resource: "${P}/*"
+        method: ["GET", "HEAD", "PUT", "POST", "DELETE", "MOVE"]
+        action: "Allow"
+cases:
+  - id: "javascript.dom.probe-0929.domparser-shape"
+    title: "Probe: DOMParser keeps what the markup wrote and leaves out implied html, head and body (fragments, explicit head/body/html, text, prefixed elements)"
+    feature: "DOM parsing"
+    source: "harness/observations/live-2026-09-29-reconcile-javascript/javascript-dom-probe-0929-domparser-shap.json; first seen in harness/observations/live-2026-09-29/javascript-dom-domparser-ignores-type.json, javascript-dom-tree-operations.json and javascript-dom-inner-outer-adjacent-html.json (d.body and parentElement were null)"
+    live: true
+    notes: >-
+      Probe for R-JS-74 (docs/compat/decisions-2026-09-29/javascript.md, adopt-live). First group: the
+      child names of a parsed fragment, the parentNode type and parentElement of a top-level element,
+      instanceof Document. Then one group per input: serialization / documentElement / head / body /
+      childNodes.length ('-' is null).
+    steps:
+      - name: "PUT the page (public plane; registers inline declarations)"
+        as: "anonymous"
+        request:
+          method: "PUT"
+          path: "${P}/probe.html"
+          headers:
+            Content-Type: "text/html"
+          body: |
+            <!DOCTYPE html>
+            <html xmlns:t="https://pagelike.test${P}/Pdomparsershape"><body>
+            <main>
+            <t:probe></t:probe>
+            </main>
+            <div hidden itemscope itemtype="https://pagelove.org/Schema">
+            <meta itemprop="type" content="https://pagelike.test${P}/Pdomparsershape">
+            <ul>
+            <li itemprop="property" itemscope itemtype="https://pagelove.org/Method">
+            <meta itemprop="name" content="probe">
+            <div itemprop="implementation" itemscope itemtype="https://pagelove.org/JavaScript/Module">
+            <script itemprop="source" type="module">
+            const H = (x) => String(x).replace(/[<>"]/g, (c) => ({ '<': '[', '>': ']', '"': "'" })[c]);
+            const T = (f) => { try { return H(f()); } catch (e) { return 'E:' + e.name; } };
+            const J = (x) => JSON.stringify(x);
+            const X = (n) => new XMLSerializer().serializeToString(n);
+            const N = (n) => (n === null ? 'null' : n === undefined ? 'undef' : typeof n === 'object' ? 'node:' + n.nodeName : typeof n + ':' + n);
+            export default function () {
+            const P = new DOMParser();
+            const K = (n) => (n === null ? '-' : n.nodeName);
+            const G = (m) => T(() => { const d = P.parseFromString(m, 'text/html'); return X(d) + '/' + K(d.documentElement) + '/' + K(d.head) + '/' + K(d.body) + '/' + d.childNodes.length; });
+            const d1 = P.parseFromString('<ul id="l"><li>a</li></ul><p>x</p>', 'text/html');
+            const l = d1.querySelector('#l');
+            const a = [T(() => Array.from(d1.childNodes, (n) => n.nodeName).join(',')), T(() => l.parentNode.nodeType), T(() => N(l.parentElement)), T(() => d1 instanceof Document)];
+            const g = [G('<ul id="l"><li>a</li></ul><p>x</p>'), G('<!DOCTYPE html><html><head><title>t</title></head><body><p>x</p></body></html>'), G('<title>t</title><p>x</p>'), G('<body><p>x</p></body>'),
+              G('<head><title>t</title></head><p>x</p>'), G('<html><p>x</p></html>'), G(''), G('text <b>bold</b>'), G('<t:x/><i>t</i>')];
+            return ['R:', a.join('|'), ' ## ', g.join(' ## ')].join('');
+            }
+            </script>
+            </div>
+            </li>
+            </ul>
+            </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "GET <main>: the method result is inserted as text"
+        as: "anonymous"
+        request:
+          method: "GET"
+          path: "${P}/probe.html"
+          headers:
+            Range: "selector=main"
+        expect:
+          status: 206
+          body_contains: ["R:UL,P|9|null|true ## [ul id='l'][li]a[/li][/ul][p]x[/p]/UL/-/-/2 ## [!DOCTYPE html][html][head][title]t[/title][/head][body][p]x[/p][/body][/html]/HTML/HEAD/BODY/2 ## [title]t[/title][p]x[/p]/TITLE/-/-/2 ## [body][p]x[/p][/body]/BODY/-/BODY/1 ## [head][title]t[/title][/head][p]x[/p]/HEAD/HEAD/-/2 ## [html][p]x[/p][/html]/HTML/-/-/1 ## /-/-/-/0 ## text [b]bold[/b]/B/-/-/2 ## [t:x][/t:x][i]t[/i]/T:X/-/-/2"]
+  - id: "javascript.dom.probe-0929.document-children"
+    title: "Probe: a parsed document may hold several elements and text; its top-level elements accept insertion conveniences, insertAdjacentHTML and outerHTML"
+    feature: "DOM Node"
+    source: "harness/observations/live-2026-09-29-reconcile-javascript/javascript-dom-probe-0929-document-child.json"
+    live: true
+    notes: >-
+      Probe for R-JS-66, R-JS-69, R-JS-71 (docs/compat/decisions-2026-09-29/javascript.md, adopt-
+      live). One group per operation on '<p id=a>a</p><p id=b>b</p>'.
+    steps:
+      - name: "PUT the page (public plane; registers inline declarations)"
+        as: "anonymous"
+        request:
+          method: "PUT"
+          path: "${P}/probe.html"
+          headers:
+            Content-Type: "text/html"
+          body: |
+            <!DOCTYPE html>
+            <html xmlns:t="https://pagelike.test${P}/Pdocumentchildren"><body>
+            <main>
+            <t:probe></t:probe>
+            </main>
+            <div hidden itemscope itemtype="https://pagelove.org/Schema">
+            <meta itemprop="type" content="https://pagelike.test${P}/Pdocumentchildren">
+            <ul>
+            <li itemprop="property" itemscope itemtype="https://pagelove.org/Method">
+            <meta itemprop="name" content="probe">
+            <div itemprop="implementation" itemscope itemtype="https://pagelove.org/JavaScript/Module">
+            <script itemprop="source" type="module">
+            const H = (x) => String(x).replace(/[<>"]/g, (c) => ({ '<': '[', '>': ']', '"': "'" })[c]);
+            const T = (f) => { try { return H(f()); } catch (e) { return 'E:' + e.name; } };
+            const J = (x) => JSON.stringify(x);
+            const X = (n) => new XMLSerializer().serializeToString(n);
+            const N = (n) => (n === null ? 'null' : n === undefined ? 'undef' : typeof n === 'object' ? 'node:' + n.nodeName : typeof n + ':' + n);
+            export default function () {
+            const P = new DOMParser();
+            const mk = () => P.parseFromString('<p id="a">a</p><p id="b">b</p>', 'text/html');
+            const r = [];
+            r.push(T(() => { const d = mk(); d.appendChild(d.createElement('i')); return X(d); }));
+            r.push(T(() => { const d = mk(); d.appendChild(d.createTextNode('t')); return X(d); }));
+            r.push(T(() => { const d = mk(); d.insertBefore(d.createElement('i'), d.firstChild); return X(d) + '/' + N(d.documentElement); }));
+            r.push(T(() => { const d = mk(); d.querySelector('#a').before('s', d.createElement('u')); return X(d); }));
+            r.push(T(() => { const d = mk(); d.querySelector('#a').after(d.createElement('u')); return X(d); }));
+            r.push(T(() => { const d = mk(); d.querySelector('#a').replaceWith(d.createElement('u')); return X(d) + '/' + N(d.documentElement); }));
+            r.push(T(() => { const d = mk(); d.querySelector('#a').remove(); return X(d) + '/' + N(d.documentElement); }));
+            r.push(T(() => { const d = mk(); d.removeChild(d.firstChild); return X(d); }));
+            r.push(T(() => { const d = mk(); d.querySelector('#b').insertAdjacentHTML('afterend', '<i>i</i>'); return X(d); }));
+            r.push(T(() => { const d = mk(); d.querySelector('#a').outerHTML = '<b>1</b><b>2</b>'; return X(d); }));
+            r.push(T(() => J(mk().textContent)));
+            r.push(T(() => { const d = P.parseFromString('', 'text/html'); d.appendChild(d.createElement('p')); return X(d) + '/' + N(d.documentElement); }));
+            r.push(T(() => { const d = mk(); const f = d.createDocumentFragment(); f.appendChild(d.createElement('i')); f.appendChild(d.createElement('u')); d.appendChild(f); return X(d); }));
+            r.push(T(() => { const d = mk(); return N(d.querySelector('#a').parentNode) + '/' + N(d.querySelector('#a').parentElement) + '/' + d.contains(d.querySelector('#b')) + '/' + d.getElementsByTagNameNS('*', 'p').length + '/' + d.querySelectorAll('*').length; }));
+            return ['R:', r.join(' ## ')].join('');
+            }
+            </script>
+            </div>
+            </li>
+            </ul>
+            </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "GET <main>: the method result is inserted as text"
+        as: "anonymous"
+        request:
+          method: "GET"
+          path: "${P}/probe.html"
+          headers:
+            Range: "selector=main"
+        expect:
+          status: 206
+          body_contains: ["R:[p id='a']a[/p][p id='b']b[/p][i][/i] ## [p id='a']a[/p][p id='b']b[/p]t ## [i][/i][p id='a']a[/p][p id='b']b[/p]/node:I ## s[u][/u][p id='a']a[/p][p id='b']b[/p] ## [p id='a']a[/p][u][/u][p id='b']b[/p] ## [u][/u][p id='b']b[/p]/node:U ## [p id='b']b[/p]/node:P ## [p id='b']b[/p] ## [p id='a']a[/p][p id='b']b[/p][i]i[/i] ## [b]1[/b][b]2[/b][p id='b']b[/p] ## 'ab' ## [p][/p]/node:P ## [p id='a']a[/p][p id='b']b[/p][i][/i][u][/u] ## node:#document/null/true/2/2"]
+  - id: "javascript.dom.probe-0929.classlist-duplicates"
+    title: "Probe: DOMTokenList keeps duplicate tokens; remove and toggle drop every copy; replace; the empty list removes class; tokens are not validated; item() out of range is undefined and item('0') is a TypeError"
+    feature: "DOM classList"
+    source: "harness/observations/live-2026-09-29-reconcile-javascript/javascript-dom-probe-0929-classlist-dupl.json; first seen in harness/observations/live-2026-09-29/javascript-dom-classlist.json"
+    live: true
+    notes: >-
+      Probe for R-JS-70 (docs/compat/decisions-2026-09-29/javascript.md, adopt-live). One group per
+      paragraph p1..p8. J is JSON.stringify, so a null attribute prints null and a missing item prints
+      undefined.
+    steps:
+      - name: "PUT the page (public plane; registers inline declarations)"
+        as: "anonymous"
+        request:
+          method: "PUT"
+          path: "${P}/probe.html"
+          headers:
+            Content-Type: "text/html"
+          body: |
+            <!DOCTYPE html>
+            <html xmlns:t="https://pagelike.test${P}/Pclasslistduplicates"><body>
+            <main>
+            <t:probe></t:probe>
+            </main>
+            <div hidden itemscope itemtype="https://pagelove.org/Schema">
+            <meta itemprop="type" content="https://pagelike.test${P}/Pclasslistduplicates">
+            <ul>
+            <li itemprop="property" itemscope itemtype="https://pagelove.org/Method">
+            <meta itemprop="name" content="probe">
+            <div itemprop="implementation" itemscope itemtype="https://pagelove.org/JavaScript/Module">
+            <script itemprop="source" type="module">
+            const H = (x) => String(x).replace(/[<>"]/g, (c) => ({ '<': '[', '>': ']', '"': "'" })[c]);
+            const T = (f) => { try { return H(f()); } catch (e) { return 'E:' + e.name; } };
+            const J = (x) => JSON.stringify(x);
+            const X = (n) => new XMLSerializer().serializeToString(n);
+            const N = (n) => (n === null ? 'null' : n === undefined ? 'undef' : typeof n === 'object' ? 'node:' + n.nodeName : typeof n + ':' + n);
+            export default function () {
+            const d = new DOMParser().parseFromString('<p id="p1" class="a b a"></p><p id="p2" class="q"></p><p id="p3" class=" a  b "></p><p id="p4" class="a b a"></p><p id="p5" class="a b a"></p><p id="p6"></p><p id="p7" class="a"></p><p id="p8" class="a b"></p>', 'text/html');
+            const g = (id) => d.getElementById(id);
+            const p1 = g('p1'), p2 = g('p2'), p3 = g('p3'), p4 = g('p4'), p5 = g('p5'), p6 = g('p6'), p7 = g('p7'), p8 = g('p8');
+            const r1 = [T(() => { p1.classList.remove('a'); return J(p1.getAttribute('class')); }), T(() => p1.classList.contains('a')), T(() => p1.classList.length)];
+            const r2 = [T(() => { p2.classList.remove('q'); return p2.hasAttribute('class'); }), T(() => J(p2.getAttribute('class'))), T(() => p2.classList.length), T(() => J(p2.classList.value))];
+            const r3 = [T(() => p3.classList.length), T(() => J(p3.classList.value)), T(() => J([...p3.classList])), T(() => { p3.classList.add('c'); return J(p3.getAttribute('class')); })];
+            const r4 = [T(() => p4.classList.toggle('a')), T(() => J(p4.getAttribute('class'))), T(() => p4.classList.contains('a'))];
+            const r5 = [T(() => p5.classList.replace('a', 'b')), T(() => J(p5.getAttribute('class')))];
+            const r6 = [T(() => p6.classList.length), T(() => J(p6.classList.value)), T(() => { p6.classList.add('x'); return J(p6.getAttribute('class')); }), T(() => { p6.classList.toggle('x'); return p6.hasAttribute('class'); }), T(() => J(p6.getAttribute('class')))];
+            const r7 = [T(() => J(p7.classList.item(-1))), T(() => J(p7.classList.item(1))), T(() => J(p7.classList.item(0))), T(() => p7.classList.item('0')), T(() => { p7.classList.add(''); return 'ok'; }), T(() => { p7.classList.add('a b'); return 'ok'; }), T(() => p7.classList.contains('')), T(() => J(p7.getAttribute('class'))), T(() => { p7.classList.value = ''; return p7.hasAttribute('class'); }), T(() => J(p7.getAttribute('class')))];
+            const r8 = [T(() => p8.classList.toggle('a', true)), T(() => p8.classList.toggle('c', false)), T(() => { p8.classList.add('b', 'b', 'd'); return J(p8.getAttribute('class')); }), T(() => p8.classList.replace('b', 'b')), T(() => J(p8.getAttribute('class'))), T(() => p8.classList.replace('a', 'd')), T(() => J(p8.getAttribute('class')))];
+            return ['R:', [r1, r2, r3, r4, r5, r6, r7, r8].map((x) => x.join('|')).join(' ## ')].join('');
+            }
+            </script>
+            </div>
+            </li>
+            </ul>
+            </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "GET <main>: the method result is inserted as text"
+        as: "anonymous"
+        request:
+          method: "GET"
+          path: "${P}/probe.html"
+          headers:
+            Range: "selector=main"
+        expect:
+          status: 206
+          body_contains: ["R:'b'|false|1 ## false|null|0|'' ## 2|' a  b '|['a','b']|'a b c' ## false|'b'|false ## true|'b a' ## 0|''|'x'|false|null ## undefined|undefined|'a'|E:TypeError|ok|ok|false|'a a b'|true|'' ## true|false|'a b d'|true|'a b d'|true|'d b'"]
+  - id: "javascript.dom.probe-0929.kept-divergences"
+    title: "Live PageLove: classList stringifies as [object Object]; DOMParser honours self-closing syntax on every element, lets a p contain a p and inserts no tbody"
+    feature: "DOM parsing"
+    source: "harness/observations/live-2026-09-29-reconcile-javascript/javascript-dom-probe-0929-kept-divergenc.json; first seen in harness/observations/live-2026-09-29-reconcile-javascript/exploratory/javascript-dom-probe-0929-classlist-dupl.json (toString), exploratory/javascript-dom-probe-0929-domparser-xml.json (<Bar/>) and exploratory/javascript-dom-probe-0929-domparser-shap-run3.json (<p>a<p>b<table>)"
+    status: "live-divergence"
+    live: true
+    notes: >-
+      Measures divergences pagelike keeps (docs/compat/decisions-2026-09-29/javascript.md, keep-
+      standard): String(classList) is the class string in pagelike; pagelike's DOMParser builds trees
+      with the WHATWG tree builder (<span/> is not closed, <p> closes an open p, tables get a tbody),
+      and only leaves out the html, head and body the markup does not write. Runs only against
+      --target live.
+    steps:
+      - name: "PUT the page (public plane; registers inline declarations)"
+        as: "anonymous"
+        request:
+          method: "PUT"
+          path: "${P}/probe.html"
+          headers:
+            Content-Type: "text/html"
+          body: |
+            <!DOCTYPE html>
+            <html xmlns:t="https://pagelike.test${P}/Pkeptdivergences"><body>
+            <main>
+            <t:probe></t:probe>
+            </main>
+            <div hidden itemscope itemtype="https://pagelove.org/Schema">
+            <meta itemprop="type" content="https://pagelike.test${P}/Pkeptdivergences">
+            <ul>
+            <li itemprop="property" itemscope itemtype="https://pagelove.org/Method">
+            <meta itemprop="name" content="probe">
+            <div itemprop="implementation" itemscope itemtype="https://pagelove.org/JavaScript/Module">
+            <script itemprop="source" type="module">
+            const H = (x) => String(x).replace(/[<>"]/g, (c) => ({ '<': '[', '>': ']', '"': "'" })[c]);
+            const T = (f) => { try { return H(f()); } catch (e) { return 'E:' + e.name; } };
+            const J = (x) => JSON.stringify(x);
+            const X = (n) => new XMLSerializer().serializeToString(n);
+            const N = (n) => (n === null ? 'null' : n === undefined ? 'undef' : typeof n === 'object' ? 'node:' + n.nodeName : typeof n + ':' + n);
+            export default function () {
+            const P = new DOMParser();
+            const d = P.parseFromString('<p id="p" class="k m">x</p>', 'text/html');
+            const p = d.querySelector('#p');
+            const cl = [T(() => String(p.classList)), T(() => p.classList.value), T(() => p.className)];
+            const sc = [T(() => X(P.parseFromString('<foo><bar/><baz>t</baz></foo>', 'text/html'))), T(() => X(P.parseFromString('<foo><bar/><baz>t</baz></foo>', 'application/xml'))),
+              T(() => X(P.parseFromString('<div><span/><i>t</i></div>', 'text/html'))), T(() => X(P.parseFromString('<my-el/><i>t</i>', 'text/html'))),
+              T(() => X(P.parseFromString('<p>a<p>b<table><tr><td>x</td></tr></table>', 'text/html')))];
+            return ['R:', cl.join('|'), ' ## ', sc.join(' ## ')].join('');
+            }
+            </script>
+            </div>
+            </li>
+            </ul>
+            </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "GET <main>: the method result is inserted as text"
+        as: "anonymous"
+        request:
+          method: "GET"
+          path: "${P}/probe.html"
+          headers:
+            Range: "selector=main"
+        expect:
+          status: 206
+          body_contains: ["R:[object Object]|k m|k m ## [foo][bar][/bar][baz]t[/baz][/foo] ## [foo][bar][/bar][baz]t[/baz][/foo] ## [div][span][/span][i]t[/i][/div] ## [my-el][/my-el][i]t[/i] ## [p]a[p]b[table][tr][td]x[/td][/tr][/table][/p][/p]"]

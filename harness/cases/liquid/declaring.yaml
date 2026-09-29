@@ -1,0 +1,300 @@
+# How a Liquid template is declared: the *:template attribute, namespace
+# binding, what is (not) templated. Spec: docs/spec/liquid.md §1 (R-LIQ-1..8).
+defaults:
+  area: liquid
+  requires: [liquid]
+cases:
+  - id: liquid.declare.p-prefix
+    title: "p:template with xmlns:p bound to the 1.0 namespace renders the element's content"
+    feature: template declaration
+    evidence: documented
+    source: "docs languages/liquid/templating §Enabling templating; reference/protocol/QUERY §On the edge proxy (composed <main class=calc>5</main>) (snapshot 2026-09-28)"
+    confidence: high
+    live: true
+    notes: R-LIQ-1, R-LIQ-30.
+    site:
+      settings: {default_get: allow}
+      files:
+        - path: "${P}/p.html"
+          body: |
+            <!DOCTYPE html>
+            <html xmlns:p="https://pagelove.org/1.0"><body>
+              <div id="out" p:template="text/liquid">{{ 2 | plus: 3 }}</div>
+            </body></html>
+      rules: [{actor: "*", resource: "${P}/*", method: [GET, HEAD], action: Allow}]
+    steps:
+      - name: whole document
+        as: anonymous
+        request: {method: GET, path: "${P}/p.html"}
+        expect:
+          status: 200
+          body_contains: ['<div id="out">5</div>']
+          body_not_contains: ["{{", "template="]
+
+  - id: liquid.declare.pagelove-prefix
+    title: "pagelove:template with xmlns:pagelove works the same (kanban, docs spelling)"
+    feature: template declaration
+    evidence: documented
+    source: "docs languages/liquid/templating §Enabling templating (pagelove:template); pagelove-kanban/site/app.js@85109ab:641,653"
+    confidence: high
+    live: true
+    site:
+      settings: {default_get: allow}
+      files:
+        - path: "${P}/pl.html"
+          body: |
+            <!DOCTYPE html>
+            <html lang="en" xmlns:pagelove="https://pagelove.org/1.0"><body>
+              <main class="calc" pagelove:template="text/liquid">{{ 2 | plus: 3 }}</main>
+            </body></html>
+      rules: [{actor: "*", resource: "${P}/*", method: [GET, HEAD], action: Allow}]
+    steps:
+      - name: read
+        as: anonymous
+        request: {method: GET, path: "${P}/pl.html"}
+        expect:
+          status: 200
+          body_contains: ['<main class="calc">5</main>']
+          body_not_contains: ["pagelove:template", "{{"]
+
+  - id: liquid.declare.arbitrary-prefix
+    title: Any prefix bound to https://pagelove.org/1.0 declares a template
+    feature: template declaration
+    evidence: inferred
+    source: "docs reference/composing-pages/Resource-Binding §Namespace declaration ('The prefix can be any valid XML prefix'); Method-Elements §Attribute form (*:template)"
+    confidence: medium
+    live: true
+    notes: R-LIQ-1. Docs state prefix freedom for bindings and use both p and pagelove for templates.
+    site:
+      settings: {default_get: allow}
+      files:
+        - path: "${P}/tpl.html"
+          body: |
+            <!DOCTYPE html>
+            <html xmlns:tpl="https://pagelove.org/1.0"><body>
+              <p id="o" tpl:template="text/liquid">{{ "ab" | upcase }}</p>
+            </body></html>
+      rules: [{actor: "*", resource: "${P}/*", method: [GET, HEAD], action: Allow}]
+    steps:
+      - name: read
+        as: anonymous
+        request: {method: GET, path: "${P}/tpl.html"}
+        expect:
+          status: 200
+          body_contains: ['<p id="o">AB</p>']
+
+  - id: liquid.declare.xmlns-on-host
+    title: The namespace may be declared on the host element itself
+    feature: template declaration
+    evidence: inferred
+    source: "docs recipes/paginating-a-list §Add the attribute (xmlns:p on the element carrying p:paginate); reference/composing-pages/Method-Elements §Element form (declaration on any ancestor)"
+    confidence: medium
+    live: true
+    notes: R-LIQ-1.
+    site:
+      settings: {default_get: allow}
+      files:
+        - path: "${P}/host-ns.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <p id="o" xmlns:p="https://pagelove.org/1.0" p:template="text/liquid">{{ 6 | times: 7 }}</p>
+            </body></html>
+      rules: [{actor: "*", resource: "${P}/*", method: [GET, HEAD], action: Allow}]
+    steps:
+      - name: read
+        as: anonymous
+        request: {method: GET, path: "${P}/host-ns.html", headers: {Range: "selector=#o"}}
+        expect:
+          status: 206
+          body_contains: [">42</p>"]
+
+  - id: liquid.declare.unbound-prefix-inert
+    title: A p:template whose prefix is not declared is left exactly as written and not rendered
+    feature: template declaration
+    evidence: documented
+    source: "docs reference/composing-pages/Method-Elements §Error cases (attribute form, unbound prefix: 'left in the output exactly as written'); Resource-Binding §Namespace declaration"
+    confidence: medium
+    live: true
+    notes: R-LIQ-3.
+    site:
+      settings: {default_get: allow}
+      files:
+        - path: "${P}/unbound.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <p id="o" p:template="text/liquid">{{ 1 | plus: 1 }}</p>
+            </body></html>
+      rules: [{actor: "*", resource: "${P}/*", method: [GET, HEAD], action: Allow}]
+    steps:
+      - name: read
+        as: anonymous
+        request: {method: GET, path: "${P}/unbound.html"}
+        expect:
+          status: 200
+          body_contains: ["{{ 1 | plus: 1 }}", 'p:template="text/liquid"']
+          body_not_contains: [">2</p>"]
+
+  - id: liquid.declare.wrong-namespace-inert
+    title: A prefix bound to a different URI does not declare a template
+    feature: template declaration
+    evidence: inferred
+    source: "docs reference/composing-pages/Method-Elements §Error cases (prefix bound to another URI is not recognised); Resource-Binding ('must also be enabled by declaring the https://pagelove.org/1.0 namespace')"
+    confidence: low
+    live: true
+    notes: R-LIQ-3.
+    site:
+      settings: {default_get: allow}
+      files:
+        - path: "${P}/wrongns.html"
+          body: |
+            <!DOCTYPE html>
+            <html xmlns:p="https://pagelove.org/"><body>
+              <p id="o" p:template="text/liquid">{{ 1 | plus: 1 }}</p>
+            </body></html>
+      rules: [{actor: "*", resource: "${P}/*", method: [GET, HEAD], action: Allow}]
+    steps:
+      - name: read
+        as: anonymous
+        request: {method: GET, path: "${P}/wrongns.html"}
+        expect:
+          status: 200
+          body_contains: ["{{ 1 | plus: 1 }}"]
+
+  - id: liquid.declare.outside-host-untouched
+    title: Liquid-looking text outside the template host is served unchanged
+    feature: template scope
+    evidence: documented
+    source: "docs languages/liquid/templating §Enabling templating ('Only the subtree rooted at the annotated element is processed. The rest of the document is unchanged.')"
+    confidence: high
+    live: true
+    notes: R-LIQ-5.
+    site:
+      settings: {default_get: allow}
+      files:
+        - path: "${P}/outside.html"
+          body: |
+            <!DOCTYPE html>
+            <html xmlns:p="https://pagelove.org/1.0"><body>
+              <p id="lit">Hi {{first_name}}, {% if x %}literal{% endif %}</p>
+              <p id="tpl" p:template="text/liquid">{{ "in" | append: "side" }}</p>
+            </body></html>
+      rules: [{actor: "*", resource: "${P}/*", method: [GET, HEAD], action: Allow}]
+    steps:
+      - name: read
+        as: anonymous
+        request: {method: GET, path: "${P}/outside.html"}
+        expect:
+          status: 200
+          body_contains: ['<p id="lit">Hi {{first_name}}, {% if x %}literal{% endif %}</p>', '<p id="tpl">inside</p>']
+
+  - id: liquid.declare.no-template-document-verbatim
+    title: A document without any template host keeps merge-field braces verbatim (ATS email templates)
+    feature: template scope
+    evidence: demo-source
+    source: "pagelove-ats/site/admin/index.html@8f200fc:1398-1414 (stored EmailTemplate records containing {{first_name}}, {{role_title}})"
+    confidence: high
+    live: true
+    notes: R-LIQ-5.
+    site:
+      settings: {default_get: allow}
+      files:
+        - path: "${P}/emails.html"
+          body: |
+            <!DOCTYPE html>
+            <html lang="en"><body>
+            <table hidden><tbody id="email-templates-body"><tr id="T-001" itemscope itemtype="https://pagelove.org/EmailTemplate">
+                <td itemprop="subject">{{company}} - {{role_title}} role</td>
+                <td itemprop="body">Hi {{first_name}},</td>
+            </tr></tbody></table>
+            </body></html>
+      rules: [{actor: "*", resource: "${P}/*", method: [GET, HEAD], action: Allow}]
+    steps:
+      - name: read
+        as: anonymous
+        request: {method: GET, path: "${P}/emails.html"}
+        expect:
+          status: 200
+          body_contains: ["{{company}} - {{role_title}} role", "Hi {{first_name}},"]
+          microdata: {subject: "{{company}} - {{role_title}} role"}
+
+  - id: liquid.declare.unknown-engine
+    title: An unsupported template MIME type fails composition clearly
+    feature: template declaration
+    evidence: inferred
+    source: "docs languages/liquid/templating §Enabling templating (engine table lists only text/liquid); docs/design.md principle (unsupported fails clearly)"
+    confidence: low
+    live: true
+    notes: R-LIQ-2, P-LIQ-17. PageLove may instead ignore the element; the live run settles it.
+    site:
+      settings: {default_get: allow}
+      files:
+        - path: "${P}/mustache.html"
+          body: |
+            <!DOCTYPE html>
+            <html xmlns:p="https://pagelove.org/1.0"><body>
+              <p id="o" p:template="text/mustache">{{ x }}</p>
+            </body></html>
+      rules: [{actor: "*", resource: "${P}/*", method: [GET, HEAD], action: Allow}]
+    steps:
+      - name: read
+        as: anonymous
+        request: {method: GET, path: "${P}/mustache.html"}
+        expect:
+          status: 500
+
+  - id: liquid.declare.html-root-host
+    title: "p:template on <html> templates the whole document, <title> included (polls)"
+    feature: template placement
+    evidence: demo-source
+    source: "pagelove-polls/site/templates/new-poll.html@c9270e5:2-10; site/polls/kfd47o4zqd.html@c9270e5:2,6-9"
+    confidence: medium
+    live: true
+    notes: R-LIQ-4, R-LIQ-10 (Liquid inside RCDATA <title>), R-LIQ-30 (lang kept, p:template removed).
+    site:
+      settings: {default_get: allow}
+      files:
+        - path: "${P}/root.html"
+          body: |
+            <!DOCTYPE html>
+            <html lang="en" xmlns:p="https://pagelove.org/1.0" p:template="text/liquid">
+            <head><title>{% assign t = "Team lunch" %}{{ t | escape }} · Polls</title></head>
+            <body><h1 id="h">{{ t | upcase }}</h1></body>
+            </html>
+      rules: [{actor: "*", resource: "${P}/*", method: [GET, HEAD], action: Allow}]
+    steps:
+      - name: read
+        as: anonymous
+        request: {method: GET, path: "${P}/root.html"}
+        expect:
+          status: 200
+          body_contains: ["<title>Team lunch · Polls</title>", '<h1 id="h">TEAM LUNCH</h1>', '<html lang="en"']
+          body_not_contains: ["p:template", "{%", "{{"]
+
+  - id: liquid.declare.nested-host-rendered-once
+    title: A template host inside another host is rendered once, by the outer template
+    feature: nested templates
+    evidence: inferred
+    source: "docs languages/liquid/templating §Enabling templating (subtree processed); reference/composing-pages/Method-Elements §Attribute form (dispatch order); pagelike decision R-LIQ-7"
+    confidence: low
+    live: true
+    notes: "R-LIQ-7, P-LIQ-8. If PageLove re-renders the inner host with a fresh scope the output is [] instead of [2]."
+    site:
+      settings: {default_get: allow}
+      files:
+        - path: "${P}/nested.html"
+          body: |
+            <!DOCTYPE html>
+            <html xmlns:p="https://pagelove.org/1.0"><body>
+              <div id="outer" p:template="text/liquid">{% assign x = 2 %}<section id="inner" p:template="text/liquid">[{{ x }}]</section></div>
+            </body></html>
+      rules: [{actor: "*", resource: "${P}/*", method: [GET, HEAD], action: Allow}]
+    steps:
+      - name: read
+        as: anonymous
+        request: {method: GET, path: "${P}/nested.html", headers: {Range: "selector=#outer"}}
+        expect:
+          status: 206
+          body_contains: ['<section id="inner">[2]</section>']
+          body_not_contains: ["template="]

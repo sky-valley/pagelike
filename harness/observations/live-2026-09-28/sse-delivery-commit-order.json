@@ -1,0 +1,92 @@
+{
+  "case": "sse.delivery.commit-order",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 2",
+      "events": [
+        {
+          "event": "pagelove-connection",
+          "data": "fd86bea1-fe3b-4043-baac-1d3cb3305122"
+        }
+      ]
+    },
+    {
+      "step": "step 3 (first write)",
+      "method": "PUT",
+      "path": "/_pl/sse-delivery-commit-order-ff238f/doc.html",
+      "status": 206,
+      "headers": {
+        "content-length": "17",
+        "content-range": "selector #a",
+        "content-type": "text/html",
+        "etag": "\"088d7d1d11518015f4538f4be86a4d292a4744b11650189844f638e7b5850845-088d7d1d11518015f4538f4be86a4d292a4744b11650189844f638e7b5850845-2\"",
+        "last-modified": "Mon, 28 Sep 2026 22:34:05 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003cp id=\"a\"\u003eone\u003c/p\u003e"
+    },
+    {
+      "step": "step 4 (second write)",
+      "method": "PUT",
+      "path": "/_pl/sse-delivery-commit-order-ff238f/doc.html",
+      "status": 206,
+      "headers": {
+        "content-length": "17",
+        "content-range": "selector #b",
+        "content-type": "text/html",
+        "etag": "\"3a42248b2f82b49d7c4aac6e8befcc9e9e2bc72307d33e028921e6d0806320e2-3a42248b2f82b49d7c4aac6e8befcc9e9e2bc72307d33e028921e6d0806320e2-3\"",
+        "last-modified": "Mon, 28 Sep 2026 22:34:05 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003cp id=\"b\"\u003etwo\u003c/p\u003e"
+    },
+    {
+      "step": "step 5 (third write)",
+      "method": "PUT",
+      "path": "/_pl/sse-delivery-commit-order-ff238f/doc.html",
+      "status": 206,
+      "headers": {
+        "content-length": "19",
+        "content-range": "selector #c",
+        "content-type": "text/html",
+        "etag": "\"77add2fa35c38b003bee972a1b1b0b30ca485012844a4ddad1c31f3159cdabac-77add2fa35c38b003bee972a1b1b0b30ca485012844a4ddad1c31f3159cdabac-4\"",
+        "last-modified": "Mon, 28 Sep 2026 22:34:05 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003cp id=\"c\"\u003ethree\u003c/p\u003e"
+    },
+    {
+      "step": "step 6",
+      "events": [
+        {
+          "id": "v1~badbfdf4a9bf.1790634845070-0",
+          "event": "mutation",
+          "data": "\u003carticle itemscope itemtype=\"https://pagelove.org/Mutation\"\u003e\n  \u003cspan itemprop=\"method\"\u003ePUT\u003c/span\u003e\n  \u003cspan itemprop=\"selector\"\u003e#a\u003c/span\u003e\n  \u003cspan itemprop=\"etag\"\u003ec7e61a5cc3a2453104cdb02c697b72f3524be4612ed3a5822f2f0531817e6da3\u003c/span\u003e\n  \u003cspan itemprop=\"path\"\u003e/_pl/sse-delivery-commit-order-ff238f/doc.html\u003c/span\u003e\n  \u003cspan itemprop=\"host\"\u003elive-test-host.onpagelove.com\u003c/span\u003e\n  \u003cdiv itemprop=\"body\"\u003e\u003cp id=\"a\"\u003eone\u003c/p\u003e\u003c/div\u003e\n\u003c/article\u003e"
+        }
+      ]
+    },
+    {
+      "step": "step 7",
+      "events": [
+        {
+          "id": "v1~badbfdf4a9bf.1790634845443-0",
+          "event": "mutation",
+          "data": "\u003carticle itemscope itemtype=\"https://pagelove.org/Mutation\"\u003e\n  \u003cspan itemprop=\"method\"\u003ePUT\u003c/span\u003e\n  \u003cspan itemprop=\"selector\"\u003e#b\u003c/span\u003e\n  \u003cspan itemprop=\"etag\"\u003e1db504eb5617e9b70de159a9c8ea0ea29691af874cf072e3dd455ce3d1013fab\u003c/span\u003e\n  \u003cspan itemprop=\"path\"\u003e/_pl/sse-delivery-commit-order-ff238f/doc.html\u003c/span\u003e\n  \u003cspan itemprop=\"host\"\u003elive-test-host.onpagelove.com\u003c/span\u003e\n  \u003cdiv itemprop=\"body\"\u003e\u003cp id=\"b\"\u003etwo\u003c/p\u003e\u003c/div\u003e\n\u003c/article\u003e"
+        }
+      ]
+    },
+    {
+      "step": "step 8",
+      "events": [
+        {
+          "id": "v1~badbfdf4a9bf.1790634845660-0",
+          "event": "mutation",
+          "data": "\u003carticle itemscope itemtype=\"https://pagelove.org/Mutation\"\u003e\n  \u003cspan itemprop=\"method\"\u003ePUT\u003c/span\u003e\n  \u003cspan itemprop=\"selector\"\u003e#c\u003c/span\u003e\n  \u003cspan itemprop=\"etag\"\u003ea46a5c2326f5368a7ea658242498c7bdb1d43618eb5392351472d880aabf9bdf\u003c/span\u003e\n  \u003cspan itemprop=\"path\"\u003e/_pl/sse-delivery-commit-order-ff238f/doc.html\u003c/span\u003e\n  \u003cspan itemprop=\"host\"\u003elive-test-host.onpagelove.com\u003c/span\u003e\n  \u003cdiv itemprop=\"body\"\u003e\u003cp id=\"c\"\u003ethree\u003c/p\u003e\u003c/div\u003e\n\u003c/article\u003e"
+        }
+      ]
+    }
+  ],
+  "outcome": "pass",
+  "target": "live"
+}

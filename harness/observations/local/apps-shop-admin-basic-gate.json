@@ -1,0 +1,109 @@
+{
+  "case": "apps.shop.admin-basic-gate",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (no credential → 401 with a Basic challenge)",
+      "method": "GET",
+      "path": "/_pl/apps-shop-admin-basic-gate-efc991/admin/index.html",
+      "status": 401,
+      "headers": {
+        "content-length": "22",
+        "content-type": "text/html; charset=utf-8",
+        "www-authenticate": "Basic realm=\"Pagelove Shop admin\""
+      },
+      "body": "Authorization required"
+    },
+    {
+      "step": "step 2 (HEAD is gated too)",
+      "method": "HEAD",
+      "path": "/_pl/apps-shop-admin-basic-gate-efc991/admin/index.html",
+      "status": 401,
+      "headers": {
+        "content-length": "22",
+        "content-type": "text/html; charset=utf-8",
+        "www-authenticate": "Basic realm=\"Pagelove Shop admin\""
+      }
+    },
+    {
+      "step": "step 3 (the right credential opens the page)",
+      "method": "GET",
+      "path": "/_pl/apps-shop-admin-basic-gate-efc991/admin/index.html",
+      "status": 200,
+      "headers": {
+        "accept-ranges": "selector, bytes",
+        "content-length": "177",
+        "content-type": "text/html",
+        "etag": "\"b7bf2d8759aeb67c9c788a5e9cbc45e98aeaaa251118dc0595b79a74bbe86306\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:41 GMT",
+        "vary": "Host, Range, Accept"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\u003chtml lang=\"en\"\u003e\u003chead\u003e\u003cmeta charset=\"UTF-8\"\u003e\u003ctitle\u003eOrders — Pagelove Shop admin\u003c/title\u003e\u003c/head\u003e\u003cbody\u003e\u003cmain data-admin-orders\u003e\u003ch1\u003eOrders\u003c/h1\u003e\u003c/main\u003e\u003c/body\u003e\u003c/html\u003e"
+    },
+    {
+      "step": "step 4 (a wrong password does not)",
+      "method": "GET",
+      "path": "/_pl/apps-shop-admin-basic-gate-efc991/admin/index.html",
+      "status": 401,
+      "headers": {
+        "content-length": "22",
+        "content-type": "text/html; charset=utf-8",
+        "www-authenticate": "Basic realm=\"Pagelove Shop admin\""
+      },
+      "body": "Authorization required"
+    },
+    {
+      "step": "step 5 (the credential document is never readable, even with the credential)",
+      "method": "GET",
+      "path": "/_pl/apps-shop-admin-basic-gate-efc991/private/admin.html",
+      "status": 401,
+      "headers": {
+        "content-length": "425",
+        "content-type": "text/html; charset=utf-8"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\n\u003chead\u003e\n    \u003cmeta charset=\"UTF-8\"\u003e\n    \u003ctitle\u003e401 Unauthorized\u003c/title\u003e\n\u003c/head\u003e\n\u003cbody itemscope itemtype=\"https://pagelove.org/1.0/Error\"\u003e\n    \u003ch1\u003e401 Unauthorized\u003c/h1\u003e\n    \u003cp itemprop=\"message\"\u003eAuthentication required to access this resource.\u003c/p\u003e\n    \u003cdl\u003e\n        \u003cdt\u003eResource\u003c/dt\u003e\n        \u003cdd itemprop=\"resource\"\u003e/_pl/apps-shop-admin-basic-gate-efc991/private/admin.html\u003c/dd\u003e\n    \u003c/dl\u003e\n\u003c/body\u003e\n\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 6 (a catalogue write without the credential is refused by the trigger)",
+      "method": "PUT",
+      "path": "/_pl/apps-shop-admin-basic-gate-efc991/data/products/tee.html",
+      "status": 401,
+      "headers": {
+        "content-length": "45",
+        "content-type": "text/html; charset=utf-8"
+      },
+      "body": "Admin credential required to change shop data"
+    },
+    {
+      "step": "step 7 (with the credential it succeeds)",
+      "method": "PUT",
+      "path": "/_pl/apps-shop-admin-basic-gate-efc991/data/products/tee.html",
+      "status": 200,
+      "headers": {
+        "content-length": "268",
+        "content-type": "text/html",
+        "etag": "\"0705639713f96e2335c38dad1f1adabc9c31c6675ea71ca7f27726b287ae7927\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:41 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\u003chtml lang=\"en\"\u003e\u003chead\u003e\u003cmeta charset=\"UTF-8\"\u003e\u003ctitle\u003edata: tee\u003c/title\u003e\u003c/head\u003e\u003cbody\u003e\u003cdiv itemscope itemtype=\"https://shop.example/Product\" id=\"product-tee\"\u003e\u003cmeta itemprop=\"slug\" content=\"tee\"\u003e\u003ch1 itemprop=\"name\"\u003ePagelove T-shirt v2\u003c/h1\u003e\u003c/div\u003e\u003c/body\u003e\u003c/html\u003e"
+    },
+    {
+      "step": "step 8 (the product reflects the admin write only)",
+      "method": "GET",
+      "path": "/_pl/apps-shop-admin-basic-gate-efc991/data/products/tee.html",
+      "status": 200,
+      "headers": {
+        "accept-ranges": "selector, bytes",
+        "content-length": "268",
+        "content-type": "text/html",
+        "etag": "\"0705639713f96e2335c38dad1f1adabc9c31c6675ea71ca7f27726b287ae7927\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:41 GMT",
+        "vary": "Host, Range, Accept"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\u003chtml lang=\"en\"\u003e\u003chead\u003e\u003cmeta charset=\"UTF-8\"\u003e\u003ctitle\u003edata: tee\u003c/title\u003e\u003c/head\u003e\u003cbody\u003e\u003cdiv itemscope itemtype=\"https://shop.example/Product\" id=\"product-tee\"\u003e\u003cmeta itemprop=\"slug\" content=\"tee\"\u003e\u003ch1 itemprop=\"name\"\u003ePagelove T-shirt v2\u003c/h1\u003e\u003c/div\u003e\u003c/body\u003e\u003c/html\u003e"
+    }
+  ],
+  "outcome": "pass",
+  "target": "local"
+}

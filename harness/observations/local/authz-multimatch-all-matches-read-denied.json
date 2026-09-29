@@ -1,0 +1,58 @@
+{
+  "case": "authz.multimatch.all-matches-read-denied-if-any-denied",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (multipart all-matches read refused)",
+      "method": "GET",
+      "path": "/_pl/authz-multimatch-all-matches-read-denied-def804/list.html",
+      "status": 401,
+      "headers": {
+        "content-length": "430",
+        "content-type": "text/html; charset=utf-8"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\n\u003chead\u003e\n    \u003cmeta charset=\"UTF-8\"\u003e\n    \u003ctitle\u003e401 Unauthorized\u003c/title\u003e\n\u003c/head\u003e\n\u003cbody itemscope itemtype=\"https://pagelove.org/1.0/Error\"\u003e\n    \u003ch1\u003e401 Unauthorized\u003c/h1\u003e\n    \u003cp itemprop=\"message\"\u003eAuthentication required to access this resource.\u003c/p\u003e\n    \u003cdl\u003e\n        \u003cdt\u003eResource\u003c/dt\u003e\n        \u003cdd itemprop=\"resource\"\u003e/_pl/authz-multimatch-all-matches-read-denied-def804/list.html\u003c/dd\u003e\n    \u003c/dl\u003e\n\u003c/body\u003e\n\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 2 (JSON-LD all-matches read refused)",
+      "method": "GET",
+      "path": "/_pl/authz-multimatch-all-matches-read-denied-def804/list.html",
+      "status": 401,
+      "headers": {
+        "content-length": "430",
+        "content-type": "text/html; charset=utf-8"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\n\u003chead\u003e\n    \u003cmeta charset=\"UTF-8\"\u003e\n    \u003ctitle\u003e401 Unauthorized\u003c/title\u003e\n\u003c/head\u003e\n\u003cbody itemscope itemtype=\"https://pagelove.org/1.0/Error\"\u003e\n    \u003ch1\u003e401 Unauthorized\u003c/h1\u003e\n    \u003cp itemprop=\"message\"\u003eAuthentication required to access this resource.\u003c/p\u003e\n    \u003cdl\u003e\n        \u003cdt\u003eResource\u003c/dt\u003e\n        \u003cdd itemprop=\"resource\"\u003e/_pl/authz-multimatch-all-matches-read-denied-def804/list.html\u003c/dd\u003e\n    \u003c/dl\u003e\n\u003c/body\u003e\n\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 3 (single-result read returns only the first (permitted) match)",
+      "method": "GET",
+      "path": "/_pl/authz-multimatch-all-matches-read-denied-def804/list.html",
+      "status": 206,
+      "headers": {
+        "accept-ranges": "selector, bytes",
+        "content-length": "101",
+        "content-range": "selector .item",
+        "content-type": "text/html",
+        "etag": "\"d9df3211015e75f9dfbb3dfa7361a1e4dd5ee891313cffdf722c4d8da59c3735-d9df3211015e75f9dfbb3dfa7361a1e4dd5ee891313cffdf722c4d8da59c3735-1\"",
+        "vary": "Host, Range, Accept"
+      },
+      "body": "\u003cli class=\"item\" itemscope itemtype=\"http://schema.org/Thing\"\u003e\u003cspan itemprop=\"name\"\u003eAlpha\u003c/span\u003e\u003c/li\u003e"
+    },
+    {
+      "step": "step 4 (a narrower selector that avoids the denied element succeeds)",
+      "method": "GET",
+      "path": "/_pl/authz-multimatch-all-matches-read-denied-def804/list.html",
+      "status": 200,
+      "headers": {
+        "accept-ranges": "selector, bytes",
+        "content-length": "1022",
+        "content-type": "multipart/mixed; boundary=boundaryS6FTWivqyVX19uRjUcp8N9pAKwrlOFFh",
+        "vary": "Host, Range, Accept, Paginate"
+      },
+      "body": "--boundaryS6FTWivqyVX19uRjUcp8N9pAKwrlOFFh\r\nContent-Disposition: attachment; filename=\"/_pl/authz-multimatch-all-matches-read-denied-def804/list.html\"\r\nContent-Type: text/html\r\nContent-Range: selector .item:not(.secret)\r\nETag: \"d9df3211015e75f9dfbb3dfa7361a1e4dd5ee891313cffdf722c4d8da59c3735-d9df3211015e75f9dfbb3dfa7361a1e4dd5ee891313cffdf722c4d8da59c3735-1\"\r\nContent-Length: 101\r\n\r\n\u003cli class=\"item\" itemscope itemtype=\"http://schema.org/Thing\"\u003e\u003cspan itemprop=\"name\"\u003eAlpha\u003c/span\u003e\u003c/li\u003e\r\n--boundaryS6FTWivqyVX19uRjUcp8N9pAKwrlOFFh\r\nContent-Disposition: attachment; filename=\"/_pl/authz-multimatch-all-matches-read-denied-def804/list.html\"\r\nContent-Type: text/html\r\nContent-Range: selector .item:not(.secret)\r\nETag: \"2da795fe83386c7aee30ec9080308bcaef31316a67e8ae7e01af9a5696689dc4-2da795fe83386c7aee30ec9080308bcaef31316a67e8ae7e01af9a5696689dc4-1\"\r\nContent-Length: 103\r\n\r\n\u003cli class=\"item\" itemscope itemtype=\"http://schema.org/Thing\"\u003e\u003cspan itemprop=\"name\"\u003eCharlie\u003c/span\u003e\u003c/li\u003e\r\n--boundaryS6FTWivqyVX19uRjUcp8N9pAKwrlOFFh--"
+    }
+  ],
+  "outcome": "pass",
+  "target": "local"
+}

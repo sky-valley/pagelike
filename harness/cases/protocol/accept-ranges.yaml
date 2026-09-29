@@ -1,0 +1,124 @@
+# Accept-Ranges and range units (spec: docs/spec/protocol.md §1 R-PROTO-5, §3)
+cases:
+  - id: protocol.accept-ranges.html-full-document
+    title: A whole-document GET of HTML advertises Accept-Ranges selector, bytes
+    area: protocol
+    feature: Accept-Ranges on HTML responses
+    evidence: documented
+    source: "docs reference/protocol/Accept-Ranges §Standard response (snapshot 2026-09-28)"
+    confidence: high
+    requires: []
+    live: false
+    notes: >-
+      R-PROTO-30. Local-only: PageLove's CDN rewrites or strips the header (documented known
+      issue; live responses carried none, C-5).
+    site:
+      files:
+        - path: "${P}/doc.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body><h1>Title</h1><p>Text</p></body></html>
+      rules:
+        - {actor: "*", resource: "${P}/*", method: [GET], action: Allow}
+    steps:
+      - name: header present without a Range request
+        as: anonymous
+        request: {method: GET, path: "${P}/doc.html"}
+        expect:
+          status: 200
+          headers: {Accept-Ranges: "selector, bytes"}
+
+  - id: protocol.accept-ranges.html-fragment
+    title: A selector-range GET also advertises Accept-Ranges selector, bytes and never entries
+    area: protocol
+    feature: Accept-Ranges on HTML responses
+    evidence: documented
+    source: "docs reference/protocol/Accept-Ranges §Standard response (snapshot 2026-09-28)"
+    confidence: high
+    requires: []
+    live: false
+    notes: R-PROTO-30/32. Exact value excludes entries. Local-only (CDN, C-5).
+    site:
+      files:
+        - path: "${P}/doc.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body><h1>Title</h1><p>Text</p></body></html>
+      rules:
+        - {actor: "*", resource: "${P}/*", method: [GET], action: Allow}
+    steps:
+      - name: fragment response
+        as: anonymous
+        request:
+          method: GET
+          path: "${P}/doc.html"
+          headers: {Range: "selector=h1"}
+        expect:
+          status: 206
+          headers: {Accept-Ranges: "selector, bytes", Content-Range: "selector h1"}
+      - name: HEAD carries the same advertisement
+        as: anonymous
+        request: {method: HEAD, path: "${P}/doc.html"}
+        expect:
+          status: 200
+          headers: {Accept-Ranges: "selector, bytes"}
+
+  - id: protocol.accept-ranges.sessel-unit-ignored
+    title: The removed sessel= range unit is ignored and the whole resource is returned
+    area: protocol
+    feature: Unrecognised range units
+    evidence: documented
+    source: "docs reference/protocol/Accept-Ranges §Standard response, last paragraph (snapshot 2026-09-28)"
+    confidence: high
+    requires: []
+    live: true
+    notes: R-PROTO-5/33. The expression value is arbitrary; it is never evaluated.
+    site:
+      files:
+        - path: "${P}/doc.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body><h1>Title</h1><p>Second element</p></body></html>
+      rules:
+        - {actor: "*", resource: "${P}/*", method: [GET], action: Allow}
+    steps:
+      - name: full document, no Content-Range
+        as: anonymous
+        request:
+          method: GET
+          path: "${P}/doc.html"
+          headers: {Range: "sessel=1 + 1"}
+        expect:
+          status: 200
+          headers_absent: [Content-Range]
+          body_contains: ["<h1>Title</h1>", "Second element"]
+
+  - id: protocol.accept-ranges.unknown-unit-ignored
+    title: Any unrecognised range unit is ignored and the whole resource is returned
+    area: protocol
+    feature: Unrecognised range units
+    evidence: documented
+    source: "docs reference/protocol/Accept-Ranges §Standard response (\"an unrecognised range unit is ignored\") (snapshot 2026-09-28)"
+    confidence: high
+    requires: []
+    live: true
+    notes: R-PROTO-5.
+    site:
+      files:
+        - path: "${P}/doc.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body><h1>Title</h1><p>Second element</p></body></html>
+      rules:
+        - {actor: "*", resource: "${P}/*", method: [GET], action: Allow}
+    steps:
+      - name: rows unit ignored
+        as: anonymous
+        request:
+          method: GET
+          path: "${P}/doc.html"
+          headers: {Range: "rows=0-1"}
+        expect:
+          status: 200
+          headers_absent: [Content-Range]
+          body_contains: ["<h1>Title</h1>", "Second element"]

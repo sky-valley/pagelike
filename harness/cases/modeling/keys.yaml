@@ -1,0 +1,310 @@
+# Modeling: @key primary keys, id emission on Pagelove.PUT and the auto-generated key default.
+# Spec: docs/spec/modeling.md §8 (R-MOD-33..R-MOD-36).
+cases:
+  - id: modeling.keys.auto-default-generated
+    title: "An honoured @key with no default gets an auto-generated value when absent"
+    area: modeling
+    feature: "primary key"
+    evidence: documented
+    source: "docs reference/modeling-data/Property §Primary key > Auto-generated default (snapshot 2026-09-28)"
+    confidence: medium
+    requires: []
+    live: true
+    notes: "spec: R-MOD-35. Documented 'at instance construction'; applying it to HTTP writes is inferred (C19). The value must match ^[a-z][a-z0-9]{7}$."
+    site:
+      settings:
+        default_get: allow
+      rules:
+        - actor: "*"
+          resource: "${P}/*"
+          method: [GET, HEAD, PUT, POST, DELETE, MOVE]
+          action: Allow
+        - actor: "*"
+          resource: "${P}/*/*"
+          method: [GET, HEAD, PUT, POST, DELETE, MOVE]
+          action: Allow
+    steps:
+      - name: "register declarations through the public plane (takes effect for the next request)"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/schema.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div hidden itemscope itemtype="https://pagelove.org/Schema">
+                <meta itemprop="type" content="https://pagelike.test${P}/Host">
+                <li itemprop="property" itemscope itemtype="https://pagelove.org/Property">
+                  <meta itemprop="name" content="hid">
+                  <meta itemprop="type" content="https://schema.host/Text">
+                  <meta itemprop="cardinality" content="1..1">
+                  <meta itemprop="unique" content="true">
+                  <meta itemprop="@key" content="true">
+                </li>
+                <li itemprop="property" itemscope itemtype="https://pagelove.org/Property">
+                  <meta itemprop="name" content="hostname">
+                  <meta itemprop="type" content="https://schema.host/Text">
+                  <meta itemprop="cardinality" content="0..1">
+                </li>
+              </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "host without hid satisfies 1..1 via the key default"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/h.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div itemscope itemtype="https://pagelike.test${P}/Host">
+                <meta itemprop="hostname" content="x.example.com">
+              </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "stored state of h.html (authoring plane, raw)"
+        as: author
+        plane: dav
+        request:
+          method: GET
+          path: "${P}/h.html"
+        expect:
+          status: 200
+          body_contains: ["itemprop=\"hid\""]
+  - id: modeling.keys.explicit-default-overrides-auto
+    title: "An explicit default replaces the auto-generated key default"
+    area: modeling
+    feature: "primary key"
+    evidence: documented
+    source: "docs reference/modeling-data/Property §Primary key > Auto-generated default (snapshot 2026-09-28)"
+    confidence: high
+    requires: []
+    live: true
+    notes: "spec: R-MOD-35."
+    site:
+      settings:
+        default_get: allow
+      rules:
+        - actor: "*"
+          resource: "${P}/*"
+          method: [GET, HEAD, PUT, POST, DELETE, MOVE]
+          action: Allow
+        - actor: "*"
+          resource: "${P}/*/*"
+          method: [GET, HEAD, PUT, POST, DELETE, MOVE]
+          action: Allow
+    steps:
+      - name: "register declarations through the public plane (takes effect for the next request)"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/schema.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div hidden itemscope itemtype="https://pagelove.org/Schema">
+                <meta itemprop="type" content="https://pagelike.test${P}/Host">
+                <div itemprop="property" itemscope itemtype="https://pagelove.org/Property">
+                  <meta itemprop="name" content="hid">
+                  <meta itemprop="type" content="https://schema.host/Text">
+                  <meta itemprop="cardinality" content="1..1">
+                  <meta itemprop="unique" content="true">
+                  <meta itemprop="@key" content="true">
+                  <meta itemprop="default" content="fixed1">
+                </div>
+              </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "host without hid"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/h.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div itemscope itemtype="https://pagelike.test${P}/Host"></div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "stored state of h.html (authoring plane, raw)"
+        as: author
+        plane: dav
+        request:
+          method: GET
+          path: "${P}/h.html"
+        expect:
+          status: 200
+          body_contains: ["content=\"fixed1\""]
+  - id: modeling.keys.not-honoured-without-unique
+    title: "@key without unique=true is ignored, so no auto default is synthesized"
+    area: modeling
+    feature: "primary key"
+    evidence: inferred
+    source: "docs reference/modeling-data/Property §Primary key > Requirements (snapshot 2026-09-28)"
+    confidence: medium
+    requires: []
+    live: true
+    notes: "spec: R-MOD-33, R-MOD-35."
+    site:
+      settings:
+        default_get: allow
+      rules:
+        - actor: "*"
+          resource: "${P}/*"
+          method: [GET, HEAD, PUT, POST, DELETE, MOVE]
+          action: Allow
+        - actor: "*"
+          resource: "${P}/*/*"
+          method: [GET, HEAD, PUT, POST, DELETE, MOVE]
+          action: Allow
+    steps:
+      - name: "register declarations through the public plane (takes effect for the next request)"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/schema.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div hidden itemscope itemtype="https://pagelove.org/Schema">
+                <meta itemprop="type" content="https://pagelike.test${P}/Host">
+                <div itemprop="property" itemscope itemtype="https://pagelove.org/Property">
+                  <meta itemprop="name" content="hid">
+                  <meta itemprop="type" content="https://schema.host/Text">
+                  <meta itemprop="cardinality" content="1..1">
+                  <meta itemprop="@key" content="true">
+                </div>
+              </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "host without hid fails cardinality"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/h.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div itemscope itemtype="https://pagelike.test${P}/Host"></div>
+            </body></html>
+        expect:
+          status: 422
+          header_matches:
+            Content-Type: "^text/html"
+          body_contains: ["https://pagelove.org/SchemaViolation", cardinality]
+  - id: modeling.keys.pagelove-put-emits-id
+    title: "Pagelove.PUT of a keyed instance writes the key as the root id (docs Host example)"
+    area: modeling
+    feature: "primary key"
+    evidence: documented
+    source: "docs reference/modeling-data/Property §Primary key (snapshot 2026-09-28); docs reference/reacting-to-changes/Trigger §Writing from triggers (snapshot 2026-09-28)"
+    confidence: medium
+    requires: [sessel]
+    live: true
+    notes: "spec: R-MOD-34. Also depends on the reactions area (Trigger side-effect writes)."
+    site:
+      settings:
+        default_get: allow
+      rules:
+        - actor: "*"
+          resource: "${P}/*"
+          method: [GET, HEAD, PUT, POST, DELETE, MOVE]
+          action: Allow
+        - actor: "*"
+          resource: "${P}/*/*"
+          method: [GET, HEAD, PUT, POST, DELETE, MOVE]
+          action: Allow
+    steps:
+      - name: "register declarations through the public plane (takes effect for the next request)"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/schema.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div hidden itemscope itemtype="https://pagelove.org/Schema">
+                <meta itemprop="type" content="https://pagelike.test${P}/Host">
+                <li itemprop="property" itemscope itemtype="https://pagelove.org/Property">
+                  <meta itemprop="name" content="hid">
+                  <meta itemprop="type" content="https://schema.host/Text">
+                  <meta itemprop="cardinality" content="1..1">
+                  <meta itemprop="unique" content="true">
+                  <meta itemprop="@key" content="true">
+                </li>
+                <li itemprop="property" itemscope itemtype="https://pagelove.org/Property">
+                  <meta itemprop="name" content="hostname">
+                  <meta itemprop="type" content="https://schema.host/Text">
+                  <meta itemprop="cardinality" content="1..1">
+                </li>
+              </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "register a trigger that materialises a Host"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/trigger.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div hidden itemscope itemtype="https://pagelove.org/Trigger">
+                <meta itemprop="resource" content="${P}/go.html">
+                <meta itemprop="method" content="PUT">
+                <div itemprop="action" itemscope itemtype="https://pagelove.org/Sessel">
+                  <script itemprop="source" type="text/sessel">
+                    @schema Pagelove url("https://pagelove.org/1.0");
+                    @schema Host url("https://pagelike.test${P}/Host");
+                    let h = new Host { hid: "abc123", hostname: "abc123.example.com" };
+                    Pagelove.PUT(h, "${P}/hosts/abc123.html")
+                  </script>
+                </div>
+              </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "fire the trigger"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/go.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <p>go</p>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "stored state of abc123.html (authoring plane, raw)"
+        as: author
+        plane: dav
+        request:
+          method: GET
+          path: "${P}/hosts/abc123.html"
+        expect:
+          status: 200
+          body_contains: ["id=\"abc123\"", "content=\"abc123\""]

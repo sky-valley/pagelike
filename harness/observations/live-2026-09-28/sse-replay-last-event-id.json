@@ -1,0 +1,101 @@
+{
+  "case": "sse.replay.last-event-id",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 2",
+      "events": [
+        {
+          "event": "pagelove-connection",
+          "data": "98e21a1e-fad3-46a8-991a-29862ecb53b0"
+        }
+      ]
+    },
+    {
+      "step": "step 3 (write seen live)",
+      "method": "PUT",
+      "path": "/_pl/sse-replay-last-event-id-195198/doc.html",
+      "status": 206,
+      "headers": {
+        "content-length": "23",
+        "content-range": "selector #a",
+        "content-type": "text/html",
+        "etag": "\"78f82eea51940fb31b68782ed7bbf4dc78a633a9006c56ec1daf520a7ded27fe-78f82eea51940fb31b68782ed7bbf4dc78a633a9006c56ec1daf520a7ded27fe-2\"",
+        "last-modified": "Mon, 28 Sep 2026 22:35:14 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003cp id=\"a\"\u003eseen-live\u003c/p\u003e"
+    },
+    {
+      "step": "step 4",
+      "events": [
+        {
+          "id": "v1~2337ffb74d47.1790634914373-0",
+          "event": "mutation",
+          "data": "\u003carticle itemscope itemtype=\"https://pagelove.org/Mutation\"\u003e\n  \u003cspan itemprop=\"method\"\u003ePUT\u003c/span\u003e\n  \u003cspan itemprop=\"selector\"\u003e#a\u003c/span\u003e\n  \u003cspan itemprop=\"etag\"\u003e5e584bd82bcc8f4f508e77922aa77685afc25b8884c54b21d7615c7cc6bebaf7\u003c/span\u003e\n  \u003cspan itemprop=\"path\"\u003e/_pl/sse-replay-last-event-id-195198/doc.html\u003c/span\u003e\n  \u003cspan itemprop=\"host\"\u003elive-test-host.onpagelove.com\u003c/span\u003e\n  \u003cdiv itemprop=\"body\"\u003e\u003cp id=\"a\"\u003eseen-live\u003c/p\u003e\u003c/div\u003e\n\u003c/article\u003e"
+        }
+      ]
+    },
+    {
+      "step": "step 6 (missed write one)",
+      "method": "PUT",
+      "path": "/_pl/sse-replay-last-event-id-195198/doc.html",
+      "status": 206,
+      "headers": {
+        "content-length": "24",
+        "content-range": "selector #b",
+        "content-type": "text/html",
+        "etag": "\"c9d0d27b4aa60182623d141c6106df50560075dca9917dc50a1a073486c9981a-c9d0d27b4aa60182623d141c6106df50560075dca9917dc50a1a073486c9981a-3\"",
+        "last-modified": "Mon, 28 Sep 2026 22:35:15 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003cp id=\"b\"\u003emissed-one\u003c/p\u003e"
+    },
+    {
+      "step": "step 7 (missed write two)",
+      "method": "PUT",
+      "path": "/_pl/sse-replay-last-event-id-195198/doc.html",
+      "status": 206,
+      "headers": {
+        "content-length": "24",
+        "content-range": "selector #c",
+        "content-type": "text/html",
+        "etag": "\"ab3820a3f2d85be3a38e03ebfad6ead4d5b02c6f52d3874ba37985de91ea9dfc-ab3820a3f2d85be3a38e03ebfad6ead4d5b02c6f52d3874ba37985de91ea9dfc-4\"",
+        "last-modified": "Mon, 28 Sep 2026 22:35:15 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003cp id=\"c\"\u003emissed-two\u003c/p\u003e"
+    },
+    {
+      "step": "step 9",
+      "events": [
+        {
+          "event": "pagelove-connection",
+          "data": "44cfc42a-3f50-475d-b466-33521e6b74ce"
+        }
+      ]
+    },
+    {
+      "step": "step 10",
+      "events": [
+        {
+          "id": "v1~2337ffb74d47.1790634915555-0",
+          "event": "mutation",
+          "data": "\u003carticle itemscope itemtype=\"https://pagelove.org/Mutation\"\u003e\n  \u003cspan itemprop=\"method\"\u003ePUT\u003c/span\u003e\n  \u003cspan itemprop=\"selector\"\u003e#b\u003c/span\u003e\n  \u003cspan itemprop=\"etag\"\u003e44ebc2c7ae05ff9942dfd4ed4d2ac17dce02159207afbd7a8aae468db8c08584\u003c/span\u003e\n  \u003cspan itemprop=\"path\"\u003e/_pl/sse-replay-last-event-id-195198/doc.html\u003c/span\u003e\n  \u003cspan itemprop=\"host\"\u003elive-test-host.onpagelove.com\u003c/span\u003e\n  \u003cdiv itemprop=\"body\"\u003e\u003cp id=\"b\"\u003emissed-one\u003c/p\u003e\u003c/div\u003e\n\u003c/article\u003e"
+        }
+      ]
+    },
+    {
+      "step": "step 11",
+      "events": [
+        {
+          "id": "v1~2337ffb74d47.1790634915800-0",
+          "event": "mutation",
+          "data": "\u003carticle itemscope itemtype=\"https://pagelove.org/Mutation\"\u003e\n  \u003cspan itemprop=\"method\"\u003ePUT\u003c/span\u003e\n  \u003cspan itemprop=\"selector\"\u003e#c\u003c/span\u003e\n  \u003cspan itemprop=\"etag\"\u003ed9a146486303cf56854ca0339f38d8ebde93bc285d031fdd865c9ad21029fa59\u003c/span\u003e\n  \u003cspan itemprop=\"path\"\u003e/_pl/sse-replay-last-event-id-195198/doc.html\u003c/span\u003e\n  \u003cspan itemprop=\"host\"\u003elive-test-host.onpagelove.com\u003c/span\u003e\n  \u003cdiv itemprop=\"body\"\u003e\u003cp id=\"c\"\u003emissed-two\u003c/p\u003e\u003c/div\u003e\n\u003c/article\u003e"
+        }
+      ]
+    }
+  ],
+  "outcome": "pass",
+  "target": "live"
+}

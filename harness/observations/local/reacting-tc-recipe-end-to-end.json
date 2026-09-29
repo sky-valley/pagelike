@@ -1,0 +1,130 @@
+{
+  "case": "reacting.tc.recipe-end-to-end",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (install the recipe's four rules (entry pending, pending-\u003eprocessing, processing-\u003esuccess, exit success))",
+      "method": "PUT",
+      "path": "/_pl/reacting-tc-recipe-end-to-end-c85be0/transitions/rules.html",
+      "status": 201,
+      "headers": {
+        "content-length": "1274",
+        "content-type": "text/html",
+        "etag": "\"cc600529aee65ddd2dc87487b6d2b461a27bd587d249a60c82c6df06c3f75264\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:49 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\n\u003cdiv itemscope itemtype=\"https://pagelove.org/TransitionConstraint\"\u003e\n  \u003cmeta itemprop=\"selector\" content=\"[itemtype='https://pagelike.test/_pl/reacting-tc-recipe-end-to-end-c85be0/Order']\"\u003e\n  \u003cmeta itemprop=\"property\" content=\"status\"\u003e\n  \u003cmeta itemprop=\"to\" content=\"pending\"\u003e\n\u003c/div\u003e\n\u003cdiv itemscope itemtype=\"https://pagelove.org/TransitionConstraint\"\u003e\n  \u003cmeta itemprop=\"selector\" content=\"[itemtype='https://pagelike.test/_pl/reacting-tc-recipe-end-to-end-c85be0/Order']\"\u003e\n  \u003cmeta itemprop=\"property\" content=\"status\"\u003e\n  \u003cmeta itemprop=\"from\" content=\"pending\"\u003e\n  \u003cmeta itemprop=\"to\" content=\"processing\"\u003e\n\u003c/div\u003e\n\u003cdiv itemscope itemtype=\"https://pagelove.org/TransitionConstraint\"\u003e\n  \u003cmeta itemprop=\"selector\" content=\"[itemtype='https://pagelike.test/_pl/reacting-tc-recipe-end-to-end-c85be0/Order']\"\u003e\n  \u003cmeta itemprop=\"property\" content=\"status\"\u003e\n  \u003cmeta itemprop=\"from\" content=\"processing\"\u003e\n  \u003cmeta itemprop=\"to\" content=\"success\"\u003e\n\u003c/div\u003e\n\u003cdiv itemscope itemtype=\"https://pagelove.org/TransitionConstraint\"\u003e\n  \u003cmeta itemprop=\"selector\" content=\"[itemtype='https://pagelike.test/_pl/reacting-tc-recipe-end-to-end-c85be0/Order']\"\u003e\n  \u003cmeta itemprop=\"property\" content=\"status\"\u003e\n  \u003cmeta itemprop=\"from\" content=\"success\"\u003e\n\u003c/div\u003e\n\u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 2 (seed order-1 at pending (entry rule permits it))",
+      "method": "PUT",
+      "path": "/_pl/reacting-tc-recipe-end-to-end-c85be0/orders/order-1.html",
+      "status": 201,
+      "headers": {
+        "content-length": "242",
+        "content-type": "text/html",
+        "etag": "\"03f41c342d9915a54d987e58b1de9324c0cca468461b27dd9996197bc8fe0331\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:49 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\n\u003cdiv id=\"order1\" itemscope itemtype=\"https://pagelike.test/_pl/reacting-tc-recipe-end-to-end-c85be0/Order\"\u003e\n  \u003cmeta itemprop=\"status\" content=\"pending\"\u003e\n  \u003cspan itemprop=\"total\"\u003e42.00\u003c/span\u003e\n\u003c/div\u003e\n\u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 3 (take the legal step pending -\u003e processing with a selector PUT)",
+      "method": "PUT",
+      "path": "/_pl/reacting-tc-recipe-end-to-end-c85be0/orders/order-1.html",
+      "status": 206,
+      "headers": {
+        "content-length": "200",
+        "content-range": "selector #order1",
+        "content-type": "text/html",
+        "etag": "\"c4c4e5eb151ce4c6e6f7dede73c213997ddcf1da29900def537a5b220292b98a-c4c4e5eb151ce4c6e6f7dede73c213997ddcf1da29900def537a5b220292b98a-2\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:49 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003cdiv id=\"order1\" itemscope itemtype=\"https://pagelike.test/_pl/reacting-tc-recipe-end-to-end-c85be0/Order\"\u003e\n  \u003cmeta itemprop=\"status\" content=\"processing\"\u003e\n  \u003cspan itemprop=\"total\"\u003e42.00\u003c/span\u003e\n\u003c/div\u003e"
+    },
+    {
+      "step": "step 4 (seed order-2 at pending)",
+      "method": "PUT",
+      "path": "/_pl/reacting-tc-recipe-end-to-end-c85be0/orders/order-2.html",
+      "status": 201,
+      "headers": {
+        "content-length": "242",
+        "content-type": "text/html",
+        "etag": "\"421e9735de1760f3b124fca700545b5c05d278fb2ffac8ad8af4435d4e47ef36\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:49 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\n\u003cdiv id=\"order2\" itemscope itemtype=\"https://pagelike.test/_pl/reacting-tc-recipe-end-to-end-c85be0/Order\"\u003e\n  \u003cmeta itemprop=\"status\" content=\"pending\"\u003e\n  \u003cspan itemprop=\"total\"\u003e10.00\u003c/span\u003e\n\u003c/div\u003e\n\u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 5 (the illegal step pending -\u003e success is rejected)",
+      "method": "PUT",
+      "path": "/_pl/reacting-tc-recipe-end-to-end-c85be0/orders/order-2.html",
+      "status": 422,
+      "headers": {
+        "content-length": "1159",
+        "content-type": "text/html; charset=utf-8",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\n  \u003chead\u003e\n    \u003ctitle\u003e422 Unprocessable Entity - Transition Constraint Violation\u003c/title\u003e\n  \u003c/head\u003e\n  \u003cbody itemscope itemtype=\"https://pagelove.org/ConstraintViolation\"\u003e\n    \u003ch1 itemprop=\"name\"\u003eUnprocessable Entity\u003c/h1\u003e\n    \u003cmeta itemprop=\"statusCode\" content=\"422\"\u003e\n    \u003cp itemprop=\"description\"\u003eTransition constraints violated\u003c/p\u003e\n    \u003cul\u003e\n      \u003cli itemprop=\"violations\" itemscope itemtype=\"https://pagelove.org/Violation\"\u003e\n        \u003cspan itemprop=\"constraintSelector\"\u003e[itemprop='status']\u003c/span\u003e\n        \u003cspan itemprop=\"failedConstraint\"\u003etransition(status)\u003c/span\u003e\n        \u003cspan itemprop=\"message\"\u003eTransition violation: 'https://pagelike.test/_pl/reacting-tc-recipe-end-to-end-c85be0/Order' property 'status' may not change from 'pending' to 'success' (constraint declared in '/_pl/reacting-tc-recipe-end-to-end-c85be0/transitions/rules.html')\u003c/span\u003e\n        \u003cspan itemprop=\"itemtype\"\u003ehttps://pagelike.test/_pl/reacting-tc-recipe-end-to-end-c85be0/Order\u003c/span\u003e\n        \u003cspan itemprop=\"property\"\u003estatus\u003c/span\u003e\n        \u003cspan itemprop=\"from\"\u003epending\u003c/span\u003e\n        \u003cspan itemprop=\"to\"\u003esuccess\u003c/span\u003e\n      \u003c/li\u003e\n    \u003c/ul\u003e\n  \u003c/body\u003e\n\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 6 (the document did not change)",
+      "method": "GET",
+      "path": "/_pl/reacting-tc-recipe-end-to-end-c85be0/orders/order-2.html",
+      "status": 200,
+      "headers": {
+        "accept-ranges": "selector, bytes",
+        "content-length": "242",
+        "content-type": "text/html",
+        "etag": "\"421e9735de1760f3b124fca700545b5c05d278fb2ffac8ad8af4435d4e47ef36\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:49 GMT",
+        "vary": "Host, Range, Accept"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\n\u003cdiv id=\"order2\" itemscope itemtype=\"https://pagelike.test/_pl/reacting-tc-recipe-end-to-end-c85be0/Order\"\u003e\n  \u003cmeta itemprop=\"status\" content=\"pending\"\u003e\n  \u003cspan itemprop=\"total\"\u003e10.00\u003c/span\u003e\n\u003c/div\u003e\n\u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 7 (report back processing -\u003e success)",
+      "method": "PUT",
+      "path": "/_pl/reacting-tc-recipe-end-to-end-c85be0/orders/order-1.html",
+      "status": 206,
+      "headers": {
+        "content-length": "197",
+        "content-range": "selector #order1",
+        "content-type": "text/html",
+        "etag": "\"5ad8075516850eb1e1e5e77397b79a4a4938be2b6e8e52e71d45c4c2c4cfff63-5ad8075516850eb1e1e5e77397b79a4a4938be2b6e8e52e71d45c4c2c4cfff63-3\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:49 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003cdiv id=\"order1\" itemscope itemtype=\"https://pagelike.test/_pl/reacting-tc-recipe-end-to-end-c85be0/Order\"\u003e\n  \u003cmeta itemprop=\"status\" content=\"success\"\u003e\n  \u003cspan itemprop=\"total\"\u003e42.00\u003c/span\u003e\n\u003c/div\u003e"
+    },
+    {
+      "step": "step 8 (success orders may be deleted (exit rule))",
+      "method": "DELETE",
+      "path": "/_pl/reacting-tc-recipe-end-to-end-c85be0/orders/order-1.html",
+      "status": 204,
+      "headers": {
+        "etag": "\"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:49 GMT",
+        "vary": "Host, Range"
+      }
+    },
+    {
+      "step": "step 9 (gone)",
+      "method": "GET",
+      "path": "/_pl/reacting-tc-recipe-end-to-end-c85be0/orders/order-1.html",
+      "status": 404,
+      "headers": {
+        "content-length": "359",
+        "content-type": "text/html",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\n  \u003chead\u003e\n    \u003ctitle\u003e404 Not Found - Error\u003c/title\u003e\n  \u003c/head\u003e\n  \u003cbody itemscope itemtype=\"http://pagelove.org/Error\"\u003e\n    \u003ch1 itemprop=\"name\"\u003eNot Found\u003c/h1\u003e\n    \u003cmeta itemprop=\"statusCode\" content=\"404\"\u003e\n    \u003cp itemprop=\"description\"\u003eDocument not found: /_pl/reacting-tc-recipe-end-to-end-c85be0/orders/order-1.html\u003c/p\u003e\n  \u003c/body\u003e\n\u003c/html\u003e\n"
+    }
+  ],
+  "outcome": "pass",
+  "target": "local"
+}

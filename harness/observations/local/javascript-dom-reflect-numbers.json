@@ -1,0 +1,37 @@
+{
+  "case": "javascript.dom.reflect-numbers",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (PUT the page (public plane; registers inline declarations))",
+      "method": "PUT",
+      "path": "/_pl/javascript-dom-reflect-numbers-b5808e/probe.html",
+      "status": 201,
+      "headers": {
+        "content-length": "1993",
+        "content-type": "text/html",
+        "etag": "\"f066776b6f776780f9cedf9b568b458563969b24ac255499dce8c26892723ba4\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:42 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml xmlns:t=\"https://pagelike.test/_pl/javascript-dom-reflect-numbers-b5808e/Dreflectnumbers\"\u003e\u003cbody\u003e\n\u003cmain\u003e\n\u003ct:probe\u003e\u003c/t:probe\u003e\n\u003c/main\u003e\n\u003cdiv hidden itemscope itemtype=\"https://pagelove.org/Schema\"\u003e\n\u003cmeta itemprop=\"type\" content=\"https://pagelike.test/_pl/javascript-dom-reflect-numbers-b5808e/Dreflectnumbers\"\u003e\n\u003cul\u003e\n\u003cli itemprop=\"property\" itemscope itemtype=\"https://pagelove.org/Method\"\u003e\n\u003cmeta itemprop=\"name\" content=\"probe\"\u003e\n\u003cdiv itemprop=\"implementation\" itemscope itemtype=\"https://pagelove.org/JavaScript/Module\"\u003e\n\u003cscript itemprop=\"source\" type=\"module\"\u003e\nconst S = (...a) =\u003e a.map(String).join('|');\nconst H = (x) =\u003e String(x).replace(/[\u003c\u003e\"]/g, (c) =\u003e ({ '\u003c': '[', '\u003e': ']', '\"': \"'\" })[c]);\nconst tryName = (f) =\u003e { try { f(); return 'ok'; } catch (e) { return e.name + ':' + e.code; } };\nexport default function () {\nconst d = new DOMParser().parseFromString('\u003ctable\u003e\u003ctr\u003e\u003ctd id=\"a\"\u003e\u003c/td\u003e\u003ctd id=\"b\" colspan=\"0\" rowspan=\"70000\"\u003e\u003c/td\u003e\u003ctd id=\"c\" colspan=\"5000\"\u003e\u003c/td\u003e\u003ctd id=\"e\" colspan=\"abc\"\u003e\u003c/td\u003e\u003c/tr\u003e\u003c/table\u003e\u003cimg\u003e\u003ccanvas\u003e\u003c/canvas\u003e\u003col start=\"-3\"\u003e\u003c/ol\u003e\u003col id=\"o2\"\u003e\u003c/ol\u003e\u003cul\u003e\u003cli id=\"li\"\u003e\u003c/li\u003e\u003c/ul\u003e\u003ctextarea rows=\"0\"\u003e\u003c/textarea\u003e\u003cprogress value=\"5\" max=\"3\"\u003e\u003c/progress\u003e\u003cprogress id=\"p2\" value=\"-1\" max=\"0\"\u003e\u003c/progress\u003e\u003cmeter value=\"20\" min=\"0\" max=\"10\"\u003e\u003c/meter\u003e\u003cmeter id=\"m2\"\u003e\u003c/meter\u003e\u003cvideo\u003e\u003c/video\u003e', 'text/html');\nconst q = (s) =\u003e d.querySelector(s);\nconst a = q('#a'), b = q('#b'), c = q('#c'), e = q('#e');\nconst out = [a.colSpan, a.rowSpan, b.colSpan, b.rowSpan, c.colSpan, e.colSpan, q('img').width, q('img').height, q('canvas').width, q('canvas').height, q('ol').start, q('#o2').start, q('#li').value, q('textarea').rows, q('textarea').cols, q('progress').value, q('progress').max, q('#p2').value, q('#p2').max, q('meter').value, q('#m2').value, q('#m2').min, q('#m2').max, q('#m2').low, q('#m2').high, q('#m2').optimum, q('video').width];\na.colSpan = 3;\nout.push(a.getAttribute('colspan'));\nreturn 'R:' + S(...out);\n}\n\u003c/script\u003e\n\u003c/div\u003e\n\u003c/li\u003e\n\u003c/ul\u003e\n\u003c/div\u003e\n\u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 2 (GET \u003cmain\u003e: the method result is inserted as text)",
+      "method": "GET",
+      "path": "/_pl/javascript-dom-reflect-numbers-b5808e/probe.html",
+      "status": 206,
+      "headers": {
+        "accept-ranges": "selector, bytes",
+        "content-length": "88",
+        "content-range": "selector main",
+        "content-type": "text/html",
+        "etag": "\"a82b709d049738c912bfbc854e4ea86427f507e0562b5b8c8710ee16c6c6c527-a82b709d049738c912bfbc854e4ea86427f507e0562b5b8c8710ee16c6c6c527-1\"",
+        "vary": "Host, Range, Accept"
+      },
+      "body": "\u003cmain\u003e\nR:1|1|1|65534|1000|1|0|0|300|150|-3|1|0|2|20|3|3|0|1|10|0|0|1|0|1|0.5|0|3\n\u003c/main\u003e"
+    }
+  ],
+  "outcome": "pass",
+  "target": "local"
+}

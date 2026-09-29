@@ -1,0 +1,350 @@
+# String filters: every example on docs languages/liquid/filters/string plus
+# edge cases. Spec: docs/spec/liquid.md §11 (R-LIQ-110..125).
+# Outputs are checked through microdata text values (entity-decoded, trimmed)
+# where escaping could differ, and with exact substrings where it cannot.
+defaults:
+  area: liquid
+  requires: [liquid]
+  evidence: documented
+  source: "docs languages/liquid/filters/string (snapshot 2026-09-28)"
+  confidence: high
+cases:
+  - id: liquid.filters-string.case
+    title: downcase, upcase and capitalize (docs examples)
+    feature: string filters
+    live: true
+    notes: R-LIQ-110.
+    site:
+      settings: {default_get: allow}
+      files:
+        - path: "${P}/case.html"
+          body: |
+            <!DOCTYPE html>
+            <html xmlns:p="https://pagelove.org/1.0"><body>
+              <div itemscope itemtype="urn:liquid:result" p:template="text/liquid">
+                <span itemprop="down">{{ "Hello, World" | downcase }}</span>
+                <span itemprop="up">{{ "Hello, World" | upcase }}</span>
+                <span itemprop="cap">{{ "hello WORLD" | capitalize }}</span>
+              </div>
+            </body></html>
+      rules: [{actor: "*", resource: "${P}/*", method: [GET, HEAD], action: Allow}]
+    steps:
+      - name: read
+        as: anonymous
+        request: {method: GET, path: "${P}/case.html"}
+        expect:
+          status: 200
+          microdata: {down: "hello, world", up: "HELLO, WORLD", cap: Hello world}
+
+  - id: liquid.filters-string.trimming
+    title: strip, lstrip, rstrip keep inner/outer whitespace exactly as documented
+    feature: string filters
+    live: true
+    notes: R-LIQ-111. Brackets make leading and trailing spaces visible.
+    site:
+      settings: {default_get: allow}
+      files:
+        - path: "${P}/trim.html"
+          body: |
+            <!DOCTYPE html>
+            <html xmlns:p="https://pagelove.org/1.0"><body>
+              <p id="o" p:template="text/liquid">[{{ "  hi  " | strip }}][{{ "  hi  " | lstrip }}][{{ "  hi  " | rstrip }}]</p>
+            </body></html>
+      rules: [{actor: "*", resource: "${P}/*", method: [GET, HEAD], action: Allow}]
+    steps:
+      - name: read
+        as: anonymous
+        request: {method: GET, path: "${P}/trim.html", headers: {Range: "selector=#o"}}
+        expect:
+          status: 206
+          body_contains: [">[hi][hi  ][  hi]</p>"]
+
+  - id: liquid.filters-string.newlines
+    title: strip_newlines, newline_to_br and normalize_whitespace on real newlines
+    feature: string filters
+    live: true
+    notes: R-LIQ-111. Inputs come from capture so literal-escape handling (C-11) does not matter.
+    site:
+      settings: {default_get: allow}
+      files:
+        - path: "${P}/nl.html"
+          body: |
+            <!DOCTYPE html>
+            <html xmlns:p="https://pagelove.org/1.0"><body>
+              <div p:template="text/liquid">{% capture abc %}a
+            b
+            c{% endcapture %}{% capture ab %}a
+            b{% endcapture %}{% capture ws %}a   b
+             c{% endcapture %}<p id="sn">{{ abc | strip_newlines }}</p><p id="br">{{ ab | newline_to_br }}</p><p id="nw">[{{ ws | normalize_whitespace }}]</p></div>
+            </body></html>
+      rules: [{actor: "*", resource: "${P}/*", method: [GET, HEAD], action: Allow}]
+    steps:
+      - name: read
+        as: anonymous
+        request: {method: GET, path: "${P}/nl.html"}
+        expect:
+          status: 200
+          body_contains: ['<p id="sn">abc</p>', "<p id=\"br\">a&lt;br /&gt;\nb</p>", '<p id="nw">[a b c]</p>']
+
+  - id: liquid.filters-string.literal-escapes
+    title: "The docs examples written with \\n in a double-quoted literal ({{ \"a\\nb\\nc\" | strip_newlines }} → abc)"
+    feature: string filters
+    confidence: medium
+    live: true
+    notes: R-LIQ-74, R-LIQ-124, spec C-11, P-LIQ-15. Shopify Liquid has no literal escapes; the docs examples need them.
+    site:
+      settings: {default_get: allow}
+      files:
+        - path: "${P}/lit.html"
+          body: |
+            <!DOCTYPE html>
+            <html xmlns:p="https://pagelove.org/1.0"><body>
+              <p id="o" p:template="text/liquid">{{ "a\nb\nc" | strip_newlines }}|{{ "a\nb" | size }}|{{ 'a\nb' | size }}</p>
+            </body></html>
+      rules: [{actor: "*", resource: "${P}/*", method: [GET, HEAD], action: Allow}]
+    steps:
+      - name: read
+        as: anonymous
+        request: {method: GET, path: "${P}/lit.html", headers: {Range: "selector=#o"}}
+        expect:
+          status: 206
+          body_contains: [">abc|3|4</p>"]
+
+  - id: liquid.filters-string.escaping-family
+    title: escape_once, xml_escape and strip_html (docs examples, with the markup in string literals escaped)
+    feature: string filters
+    evidence: live-observed
+    source: "docs reference/templating/Liquid filters (snapshot 2026-09-28); harness/observations/live-2026-09-29-serialize/liquid-filters-string-escaping-family.json (the docs' unescaped form fails, see .markup-in-output-500)"
+    live: true
+    notes: >-
+      R-LIQ-112, R-LIQ-114. Written in a stored HTML document, "<a>" inside a string literal is an
+      element, so the docs' examples are written with &lt; &gt;, which are decoded inside the
+      output before Liquid runs (LO-15). The composed page is serialized in PageLove's form:
+      U+00A9 and ' are written literally. PageLove double-encodes the © (Â©), a kept difference
+      measured by the .live sibling.
+    site:
+      settings: {default_get: allow}
+      files:
+        - path: "${P}/escf.html"
+          body: |
+            <!DOCTYPE html>
+            <html xmlns:p="https://pagelove.org/1.0"><body>
+              <p id="once" p:template="text/liquid">{{ "1 &amp;lt; 2 &amp;amp; 3" | escape_once }}|{{ "&copy; &amp; &lt;" | escape_once }}</p>
+              <p id="xml" p:template="text/liquid">{{ "&lt;a&gt;'x'&lt;/a&gt;" | xml_escape }}</p>
+              <p id="strip" p:template="text/liquid">[{{ "&lt;b&gt;hi&lt;/b&gt;&lt;script&gt;x()&lt;/script&gt;&lt;style&gt;p{}&lt;/style&gt;&lt;!-- c --&gt;" | strip_html }}]</p>
+            </body></html>
+      rules: [{actor: "*", resource: "${P}/*", method: [GET, HEAD], action: Allow}]
+    steps:
+      - name: read
+        as: anonymous
+        request: {method: GET, path: "${P}/escf.html"}
+        expect:
+          status: 200
+          body_contains: ['<p id="once">1 &lt; 2 &amp; 3|© &amp; &lt;</p>', "<p id=\"xml\">&lt;a&gt;'x'&lt;/a&gt;</p>", '<p id="strip">[hi]</p>']
+
+  - id: liquid.filters-string.escaping-family.live
+    title: "Live PageLove: escape_once double-encodes a non-ASCII character from a decoded reference (© becomes Â©)"
+    feature: string filters
+    status: live-divergence
+    evidence: live-observed
+    source: "harness/observations/live-2026-09-29-final/liquid-filters-string-escaping-family.json (host live-test-host, 2026-09-29)"
+    live: true
+    notes: >-
+      Measures a kept difference (keep-standard, docs/compat/decisions-2026-09-29/serialization.md, "Integration"):
+      PageLove renders {{ "&copy; ..." | escape_once }} as Â© (UTF-8 read as Latin-1). Runs only against --target live.
+    site:
+      settings: {default_get: allow}
+      files:
+        - path: "${P}/escf.html"
+          body: |
+            <!DOCTYPE html>
+            <html xmlns:p="https://pagelove.org/1.0"><body>
+              <p id="once" p:template="text/liquid">{{ "1 &amp;lt; 2 &amp;amp; 3" | escape_once }}|{{ "&copy; &amp; &lt;" | escape_once }}</p>
+              <p id="xml" p:template="text/liquid">{{ "&lt;a&gt;'x'&lt;/a&gt;" | xml_escape }}</p>
+              <p id="strip" p:template="text/liquid">[{{ "&lt;b&gt;hi&lt;/b&gt;&lt;script&gt;x()&lt;/script&gt;&lt;style&gt;p{}&lt;/style&gt;&lt;!-- c --&gt;" | strip_html }}]</p>
+            </body></html>
+      rules: [{actor: "*", resource: "${P}/*", method: [GET, HEAD], action: Allow}]
+    steps:
+      - name: read
+        as: anonymous
+        request: {method: GET, path: "${P}/escf.html"}
+        expect:
+          status: 200
+          body_contains: ['<p id="once">1 &lt; 2 &amp; 3|Â© &amp; &lt;</p>', "<p id=\"xml\">&lt;a&gt;'x'&lt;/a&gt;</p>", '<p id="strip">[hi]</p>']
+
+  - id: liquid.filters-string.markup-in-output-500
+    title: Markup inside a Liquid output (the docs' unescaped filter examples) leaves it unterminated, a template error
+    feature: string filters
+    evidence: live-observed
+    source: "harness/observations/live-2026-09-29-serialize/liquid-filters-string-escaping-family.json (host live-test-host, 2026-09-29): 500 'unterminated `{{` interpolation marker'"
+    live: true
+    notes: "LO-15: an output or tag must open and close within one run of text."
+    site:
+      settings: {default_get: allow}
+      files:
+        - path: "${P}/escm.html"
+          body: |
+            <!DOCTYPE html>
+            <html xmlns:p="https://pagelove.org/1.0"><body>
+              <p id="xml" p:template="text/liquid">{{ "<a>'x'</a>" | xml_escape }}</p>
+            </body></html>
+      rules: [{actor: "*", resource: "${P}/*", method: [GET, HEAD], action: Allow}]
+    steps:
+      - name: read
+        as: anonymous
+        request: {method: GET, path: "${P}/escm.html"}
+        expect:
+          status: 500
+
+  - id: liquid.filters-string.url-encoding
+    title: url_encode, url_decode, cgi_escape and uri_escape (docs examples)
+    feature: string filters
+    live: true
+    notes: R-LIQ-113. url_decode's result is checked as text because & may or may not be escaped (P-LIQ-1).
+    site:
+      settings: {default_get: allow}
+      files:
+        - path: "${P}/url.html"
+          body: |
+            <!DOCTYPE html>
+            <html xmlns:p="https://pagelove.org/1.0"><body>
+              <div itemscope itemtype="urn:liquid:result" p:template="text/liquid">
+                <span itemprop="enc">{{ "a b&c" | url_encode }}</span>
+                <span itemprop="dec">{{ "a+b%26c" | url_decode }}</span>
+                <span itemprop="cgi">{{ "a b & c" | cgi_escape }}</span>
+                <span itemprop="uri">{{ "http://x/a b?q=1&r=2" | uri_escape }}</span>
+                <span itemprop="utf8">{{ "é/ü" | url_encode }}</span>
+              </div>
+            </body></html>
+      rules: [{actor: "*", resource: "${P}/*", method: [GET, HEAD], action: Allow}]
+    steps:
+      - name: read
+        as: anonymous
+        request: {method: GET, path: "${P}/url.html"}
+        expect:
+          status: 200
+          microdata: {enc: "a+b%26c", dec: "a b&c", cgi: "a+b+%26+c", uri: "http://x/a%20b?q=1&r=2", utf8: "%C3%A9%2F%C3%BC"}
+
+  - id: liquid.filters-string.replace-remove
+    title: replace/replace_first/replace_last and remove/remove_first/remove_last (docs examples)
+    feature: string filters
+    live: true
+    notes: R-LIQ-115.
+    site:
+      settings: {default_get: allow}
+      files:
+        - path: "${P}/repl.html"
+          body: |
+            <!DOCTYPE html>
+            <html xmlns:p="https://pagelove.org/1.0"><body>
+              <div itemscope itemtype="urn:liquid:result" p:template="text/liquid">
+                <span itemprop="replace">{{ "a-b-c" | replace: "-", "+" }}</span>
+                <span itemprop="replace_first">{{ "a-b-c" | replace_first: "-", "+" }}</span>
+                <span itemprop="replace_last">{{ "a-b-c" | replace_last: "-", "+" }}</span>
+                <span itemprop="remove">{{ "a-b-c" | remove: "-" }}</span>
+                <span itemprop="remove_first">{{ "a-b-c" | remove_first: "-" }}</span>
+                <span itemprop="remove_last">{{ "a-b-c" | remove_last: "-" }}</span>
+              </div>
+            </body></html>
+      rules: [{actor: "*", resource: "${P}/*", method: [GET, HEAD], action: Allow}]
+    steps:
+      - name: read
+        as: anonymous
+        request: {method: GET, path: "${P}/repl.html"}
+        expect:
+          status: 200
+          microdata: {replace: a+b+c, replace_first: a+b-c, replace_last: a-b+c, remove: abc, remove_first: ab-c, remove_last: a-bc}
+
+  - id: liquid.filters-string.adding-joining
+    title: append, prepend and array_to_sentence_string (docs examples plus 1- and 2-item lists)
+    feature: string filters
+    live: true
+    notes: R-LIQ-116, R-LIQ-117. The 1- and 2-item forms follow Jekyll (inferred).
+    site:
+      settings: {default_get: allow}
+      files:
+        - path: "${P}/add.html"
+          body: |
+            <!DOCTYPE html>
+            <html xmlns:p="https://pagelove.org/1.0"><body>
+              <div itemscope itemtype="urn:liquid:result" p:template="text/liquid">{% assign tags = "a,b,c" | split: "," %}{% assign two = "a,b" | split: "," %}{% assign one = "a" | split: "," %}
+                <span itemprop="append">{{ "/page" | append: ".html" }}</span>
+                <span itemprop="prepend">{{ "world" | prepend: "hello " }}</span>
+                <span itemprop="and">{{ tags | array_to_sentence_string }}</span>
+                <span itemprop="or">{{ tags | array_to_sentence_string: "or" }}</span>
+                <span itemprop="two">{{ two | array_to_sentence_string }}</span>
+                <span itemprop="one">{{ one | array_to_sentence_string }}</span>
+              </div>
+            </body></html>
+      rules: [{actor: "*", resource: "${P}/*", method: [GET, HEAD], action: Allow}]
+    steps:
+      - name: read
+        as: anonymous
+        request: {method: GET, path: "${P}/add.html"}
+        expect:
+          status: 200
+          microdata: {append: /page.html, prepend: hello world, and: "a, b, and c", or: "a, b, or c", two: a and b, one: a}
+
+  - id: liquid.filters-string.slicing-splitting
+    title: slice, split, truncate and truncatewords (docs examples)
+    feature: string filters
+    live: true
+    notes: R-LIQ-118..120.
+    site:
+      settings: {default_get: allow}
+      files:
+        - path: "${P}/slice.html"
+          body: |
+            <!DOCTYPE html>
+            <html xmlns:p="https://pagelove.org/1.0"><body>
+              <div itemscope itemtype="urn:liquid:result" p:template="text/liquid">
+                <span itemprop="slice">{{ "hello" | slice: 1, 3 }}</span>
+                <span itemprop="slice_neg">{{ "hello" | slice: -1 }}</span>
+                <span itemprop="split">{{ "a,b,c" | split: "," | join: " · " }}</span>
+                <span itemprop="split_chars">{{ "abc" | split: "" | join: "-" }}</span>
+                <span itemprop="truncate">{{ "The quick brown fox" | truncate: 9 }}</span>
+                <span itemprop="truncate_short">{{ "fox" | truncate: 9 }}</span>
+                <span itemprop="truncatewords">{{ "The quick brown fox" | truncatewords: 2 }}</span>
+                <span itemprop="truncate_suffix">{{ "The quick brown fox" | truncate: 8, "…" }}</span>
+              </div>
+            </body></html>
+      rules: [{actor: "*", resource: "${P}/*", method: [GET, HEAD], action: Allow}]
+    steps:
+      - name: read
+        as: anonymous
+        request: {method: GET, path: "${P}/slice.html"}
+        expect:
+          status: 200
+          microdata: {slice: ell, slice_neg: o, split: "a · b · c", split_chars: a-b-c, truncate: The qu..., truncate_short: fox, truncatewords: The quick..., truncate_suffix: "The qui…"}
+
+  - id: liquid.filters-string.inspection
+    title: size, number_of_words, default and slugify (docs examples)
+    feature: string filters
+    live: true
+    notes: R-LIQ-121..123. default is exercised with a missing property via an undefined variable.
+    site:
+      settings: {default_get: allow}
+      files:
+        - path: "${P}/insp.html"
+          body: |
+            <!DOCTYPE html>
+            <html xmlns:p="https://pagelove.org/1.0"><body>
+              <div itemscope itemtype="urn:liquid:result" p:template="text/liquid">
+                <span itemprop="size">{{ "hello" | size }}</span>
+                <span itemprop="size_utf8">{{ "héllo" | size }}</span>
+                <span itemprop="words">{{ "the quick brown fox" | number_of_words }}</span>
+                <span itemprop="default">{{ user.nickname | default: "Anonymous" }}</span>
+                <span itemprop="default_empty">{{ "" | default: "E" }}</span>
+                <span itemprop="default_false">{{ false | default: "F" }}</span>
+                <span itemprop="default_keep">{{ "x" | default: "X" }}</span>
+                <span itemprop="slugify">{{ "Hello, World!" | slugify }}</span>
+              </div>
+            </body></html>
+      rules: [{actor: "*", resource: "${P}/*", method: [GET, HEAD], action: Allow}]
+    steps:
+      - name: read
+        as: anonymous
+        request: {method: GET, path: "${P}/insp.html"}
+        expect:
+          status: 200
+          microdata: {size: "5", size_utf8: "5", words: "4", default: Anonymous, default_empty: E, default_false: F, default_keep: x, slugify: hello-world}

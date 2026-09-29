@@ -1,0 +1,86 @@
+{
+  "case": "apps.blog.route-stamp-and-404",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (a real post is stamped in)",
+      "method": "GET",
+      "path": "/_pl/apps-blog-route-stamp-and-404-0312c2/posts/hello-world.html",
+      "status": 200,
+      "headers": {
+        "accept-ranges": "selector, bytes",
+        "cache-control": "public, max-age=5",
+        "content-length": "1310",
+        "content-type": "text/html",
+        "etag": "W/\"f3929ca0f94230dbc16898ce63eb030b8320c4845650ee45adc32b7687b12fb9\"",
+        "route-parameters": "slug=hello-world",
+        "vary": "Host, Range, Accept"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml lang=\"en\"\u003e\n\u003chead\u003e\n  \u003cmeta charset=\"UTF-8\"\u003e\n  \u003ctitle\u003eField Notes\u003c/title\u003e\n  \u003cstyle\u003e\n    main:has(article[itemscope]) .post-missing { display: none; }\n  \u003c/style\u003e\n\u003c/head\u003e\n\u003cbody\u003e\n  \u003cmain class=\"reading post\"\u003e\n    \u003carticle itemscope itemtype=\"https://pagelike.test/_pl/apps-blog-route-stamp-and-404-0312c2/Post\" id=\"post-hello-world\"\u003e\n    \u003cmeta itemprop=\"slug\" content=\"hello-world\"\u003e\n    \u003cmeta itemprop=\"status\" content=\"Published\"\u003e\n    \u003cmeta itemprop=\"excerpt\" content=\"The first post on Field Notes, and a look at how this blog works.\"\u003e\n    \u003cmeta itemprop=\"displayDate\" content=\"3 August 2026\"\u003e\n    \u003cmeta itemprop=\"monthLabel\" content=\"August 2026\"\u003e\n    \u003ch1 itemprop=\"title\"\u003eHello, world\u003c/h1\u003e\n    \u003cp class=\"byline\"\u003e\u003ctime itemprop=\"publishedAt\" datetime=\"2026-08-03\"\u003e3 August 2026\u003c/time\u003e · \u003cspan itemprop=\"author\"\u003eSam\u003c/span\u003e\u003c/p\u003e\n    \u003cdiv itemprop=\"body\"\u003e\n      \u003cp\u003eWelcome to Field Notes. This post is a single HTML file.\u003c/p\u003e\n    \u003c/div\u003e\n    \u003ch2 class=\"comments-title\"\u003eComments\u003c/h2\u003e\n    \u003cul itemprop=\"comments\" id=\"comments-hello-world\" class=\"comment-list\"\u003e\u003c/ul\u003e\n  \u003c/article\u003e\n    \u003cdiv class=\"post-missing\"\u003e\n      \u003ch1\u003eNot found\u003c/h1\u003e\n      \u003cp\u003eThis post doesn't exist, or it hasn't been published yet.\u003c/p\u003e\n    \u003c/div\u003e\n    \u003ca class=\"back\" href=\"/index.html\"\u003eAll posts\u003c/a\u003e\n  \u003c/main\u003e\n\u003c/body\u003e\n\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 2 (an unknown slug is a 404 whose body still says Not found)",
+      "method": "GET",
+      "path": "/_pl/apps-blog-route-stamp-and-404-0312c2/posts/nonsense.html",
+      "status": 404,
+      "headers": {
+        "accept-ranges": "selector, bytes",
+        "cache-control": "public, max-age=5",
+        "content-length": "448",
+        "content-type": "text/html",
+        "etag": "W/\"cd394ad713157d434a9018bb33fd78eb7df09f92abd1569891ff2c67fe0c669f\"",
+        "route-parameters": "slug=nonsense",
+        "vary": "Host, Range, Accept"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml lang=\"en\"\u003e\n\u003chead\u003e\n  \u003cmeta charset=\"UTF-8\"\u003e\n  \u003ctitle\u003eField Notes\u003c/title\u003e\n  \u003cstyle\u003e\n    main:has(article[itemscope]) .post-missing { display: none; }\n  \u003c/style\u003e\n\u003c/head\u003e\n\u003cbody\u003e\n  \u003cmain class=\"reading post\"\u003e\n    \n    \u003cdiv class=\"post-missing\"\u003e\n      \u003ch1\u003eNot found\u003c/h1\u003e\n      \u003cp\u003eThis post doesn't exist, or it hasn't been published yet.\u003c/p\u003e\n    \u003c/div\u003e\n    \u003ca class=\"back\" href=\"/index.html\"\u003eAll posts\u003c/a\u003e\n  \u003c/main\u003e\n\u003c/body\u003e\n\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 3 (curl -sI of the unknown slug: 404)",
+      "method": "HEAD",
+      "path": "/_pl/apps-blog-route-stamp-and-404-0312c2/posts/nonsense.html",
+      "status": 404,
+      "headers": {
+        "accept-ranges": "selector, bytes",
+        "cache-control": "public, max-age=5",
+        "content-length": "448",
+        "content-type": "text/html",
+        "etag": "W/\"cd394ad713157d434a9018bb33fd78eb7df09f92abd1569891ff2c67fe0c669f\"",
+        "route-parameters": "slug=nonsense",
+        "vary": "Host, Range, Accept"
+      }
+    },
+    {
+      "step": "step 4 (curl -sI of a real post: 200)",
+      "method": "HEAD",
+      "path": "/_pl/apps-blog-route-stamp-and-404-0312c2/posts/hello-world.html",
+      "status": 200,
+      "headers": {
+        "accept-ranges": "selector, bytes",
+        "cache-control": "public, max-age=5",
+        "content-length": "1310",
+        "content-type": "text/html",
+        "etag": "W/\"f3929ca0f94230dbc16898ce63eb030b8320c4845650ee45adc32b7687b12fb9\"",
+        "route-parameters": "slug=hello-world",
+        "vary": "Host, Range, Accept"
+      }
+    },
+    {
+      "step": "step 5 (a draft is not published through the route)",
+      "method": "GET",
+      "path": "/_pl/apps-blog-route-stamp-and-404-0312c2/posts/draft-post.html",
+      "status": 404,
+      "headers": {
+        "accept-ranges": "selector, bytes",
+        "cache-control": "public, max-age=5",
+        "content-length": "448",
+        "content-type": "text/html",
+        "etag": "W/\"cd394ad713157d434a9018bb33fd78eb7df09f92abd1569891ff2c67fe0c669f\"",
+        "route-parameters": "slug=draft-post",
+        "vary": "Host, Range, Accept"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml lang=\"en\"\u003e\n\u003chead\u003e\n  \u003cmeta charset=\"UTF-8\"\u003e\n  \u003ctitle\u003eField Notes\u003c/title\u003e\n  \u003cstyle\u003e\n    main:has(article[itemscope]) .post-missing { display: none; }\n  \u003c/style\u003e\n\u003c/head\u003e\n\u003cbody\u003e\n  \u003cmain class=\"reading post\"\u003e\n    \n    \u003cdiv class=\"post-missing\"\u003e\n      \u003ch1\u003eNot found\u003c/h1\u003e\n      \u003cp\u003eThis post doesn't exist, or it hasn't been published yet.\u003c/p\u003e\n    \u003c/div\u003e\n    \u003ca class=\"back\" href=\"/index.html\"\u003eAll posts\u003c/a\u003e\n  \u003c/main\u003e\n\u003c/body\u003e\n\u003c/html\u003e\n"
+    }
+  ],
+  "outcome": "pass",
+  "target": "local"
+}

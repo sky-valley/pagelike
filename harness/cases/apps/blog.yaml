@@ -1,0 +1,442 @@
+# Apps: "Build a blog" tutorial (docs learn/build-a-blog, snapshot 2026-09-28).
+# Spec: docs/spec/apps.md A2, §7.3 (ACC-BL-*), R-APPS-9/10/19, C-16.
+# Bindings search the whole site, so the Post type is made unique per run
+# (https://pagelike.test${P}/Post) and every rule/processor/constraint resource is
+# rewritten under ${P}. Everything else is the tutorial's markup.
+cases:
+  - id: apps.blog.home-composes-posts
+    title: "Home page lists published posts newest first, composed on the server"
+    area: apps
+    feature: "tutorial: blog"
+    evidence: documented
+    source: "docs learn/build-a-blog §A home page that finds posts by itself (lines 45-76) (snapshot 2026-09-28)"
+    confidence: high
+    requires: [liquid]
+    live: true
+    notes: "R-APPS-9 (stripping), R-APPS-10 (binding values; publishedAt from time@datetime). The Range read checks order on the composed page (composition before selector evaluation)."
+    site:
+      settings: {default_get: allow}
+      files:
+        - path: "${P}/data/posts/hello-world.html"
+          body: &hello |
+            <!DOCTYPE html>
+            <html lang="en">
+            <head><meta charset="UTF-8"><title>data: hello-world</title></head>
+            <body>
+              <article itemscope itemtype="https://pagelike.test${P}/Post" id="post-hello-world">
+                <meta itemprop="slug" content="hello-world">
+                <meta itemprop="status" content="Published">
+                <meta itemprop="excerpt" content="The first post on Field Notes, and a look at how this blog works.">
+                <meta itemprop="displayDate" content="3 August 2026">
+                <meta itemprop="monthLabel" content="August 2026">
+                <h1 itemprop="title">Hello, world</h1>
+                <p class="byline"><time itemprop="publishedAt" datetime="2026-08-03">3 August 2026</time> · <span itemprop="author">Sam</span></p>
+                <div itemprop="body">
+                  <p>Welcome to Field Notes. This post is a single HTML file.</p>
+                </div>
+                <h2 class="comments-title">Comments</h2>
+                <ul itemprop="comments" id="comments-hello-world" class="comment-list"></ul>
+              </article>
+            </body>
+            </html>
+        - path: "${P}/data/posts/second-thoughts.html"
+          body: &second |
+            <!DOCTYPE html>
+            <html lang="en">
+            <head><meta charset="UTF-8"><title>data: second-thoughts</title></head>
+            <body>
+              <article itemscope itemtype="https://pagelike.test${P}/Post" id="post-second-thoughts">
+                <meta itemprop="slug" content="second-thoughts">
+                <meta itemprop="status" content="Published">
+                <meta itemprop="excerpt" content="A second post, two days later.">
+                <meta itemprop="displayDate" content="5 August 2026">
+                <meta itemprop="monthLabel" content="August 2026">
+                <h1 itemprop="title">Second thoughts</h1>
+                <p class="byline"><time itemprop="publishedAt" datetime="2026-08-05">5 August 2026</time> · <span itemprop="author">Sam</span></p>
+                <div itemprop="body"><p>More notes.</p></div>
+                <h2 class="comments-title">Comments</h2>
+                <ul itemprop="comments" id="comments-second-thoughts" class="comment-list"></ul>
+              </article>
+            </body>
+            </html>
+        - path: "${P}/index.html"
+          body: |
+            <!DOCTYPE html>
+            <html lang="en" xmlns:p="https://pagelove.org/1.0" xmlns:r="https://pagelove.org/Binding/CSS">
+            <head>
+              <meta charset="UTF-8">
+              <title>Field Notes</title>
+            </head>
+            <body>
+              <h1>Field Notes</h1>
+              <section class="excerpts" r:posts="[itemtype='https://pagelike.test${P}/Post']" p:template="text/liquid">
+                {% assign recent = posts | where: "status", "Published" | sort: "publishedAt" | reverse %}
+                {% for post in recent limit: 4 %}
+                <article class="excerpt">
+                  <h2><a href="/posts/{{ post.slug }}.html">{{ post.title }}</a></h2>
+                  <p class="byline"><time datetime="{{ post.publishedAt }}">{{ post.displayDate }}</time> · {{ post.author }}</p>
+                  <p class="lede">{{ post.excerpt }}</p>
+                </article>
+                {% endfor %}
+              </section>
+            </body>
+            </html>
+    steps:
+      - name: the composed home page lists both posts
+        as: anonymous
+        request: {method: GET, path: "${P}/index.html"}
+        expect:
+          status: 200
+          body_contains: ["Hello, world", "Second thoughts", "The first post on Field Notes", 'href="/posts/hello-world.html"']
+          body_not_contains: ["{%", "{{", "r:posts", "p:template", "xmlns:p", "xmlns:r"]
+      - name: newest first
+        as: anonymous
+        request:
+          method: GET
+          path: "${P}/index.html"
+          headers: {Range: "selector=section.excerpts > article:first-of-type h2"}
+        expect: {status: 206, body_contains: ["Second thoughts"], body_not_contains: ["Hello, world"]}
+
+  - id: apps.blog.route-stamp-and-404
+    title: "One route answers every post; a Processor turns the Not-found page into a real 404 (GET and HEAD)"
+    area: apps
+    feature: "tutorial: blog"
+    evidence: documented
+    source: "docs learn/build-a-blog §One page for every post (84-114), §Making the 404 real (118-156, curl -sI) (snapshot 2026-09-28)"
+    confidence: medium
+    requires: [sessel]
+    live: true
+    notes: "R-APPS-19.5, R-REACT-13/26. The route's <style> is changed from the tutorial's main:has([itemtype=\"https://blog.example/Post\"]) to main:has(article[itemscope]) because, printed verbatim, the stylesheet itself contains the marker the processor searches for (C-16); the verbatim form is apps.blog.route-404-verbatim-template."
+    site:
+      settings: {default_get: allow}
+      files:
+        - {path: "${P}/data/posts/hello-world.html", body: *hello}
+        - path: "${P}/data/posts/draft-post.html"
+          body: |
+            <!DOCTYPE html>
+            <html lang="en"><head><meta charset="UTF-8"><title>data: draft</title></head>
+            <body>
+              <article itemscope itemtype="https://pagelike.test${P}/Post" id="post-draft-post">
+                <meta itemprop="slug" content="draft-post">
+                <meta itemprop="status" content="Draft">
+                <h1 itemprop="title">Not yet</h1>
+                <ul itemprop="comments" id="comments-draft-post" class="comment-list"></ul>
+              </article>
+            </body></html>
+        - path: "${P}/posts/:slug.html"
+          body: &route |
+            <!DOCTYPE html>
+            <html lang="en" xmlns:e="https://pagelove.org/Binding/Sessel" xmlns:p="https://pagelove.org/1.0">
+            <head>
+              <meta charset="UTF-8">
+              <title>Field Notes</title>
+              <style>
+                main:has(article[itemscope]) .post-missing { display: none; }
+              </style>
+            </head>
+            <body e:post="${[itemtype='https://pagelike.test${P}/Post']:has([itemprop='slug']:value-equals(request.params.slug)):has([itemprop='status']:value-equals('Published'))}.first()">
+              <main class="reading post">
+                <p:stamp post></p:stamp>
+                <div class="post-missing">
+                  <h1>Not found</h1>
+                  <p>This post doesn't exist, or it hasn't been published yet.</p>
+                </div>
+                <a class="back" href="/index.html">All posts</a>
+              </main>
+            </body>
+            </html>
+        - path: "${P}/processors.html"
+          body: &processors |
+            <!DOCTYPE html>
+            <html lang="en">
+            <head><meta charset="UTF-8"><title>processors</title></head>
+            <body>
+              <div itemscope itemtype="https://pagelove.org/Processor">
+                <meta itemprop="resource" content="${P}/posts/*">
+                <meta itemprop="method" content="GET">
+                <meta itemprop="status" content="200">
+                <div itemprop="when" itemscope itemtype="https://pagelove.org/Sessel">
+                  <script itemprop="source" type="text/sessel">
+            @schema Context url("https://pagelove.org/Context");
+            Context.response.body.contains("pagelike.test${P}/Post") == false
+                  </script>
+                </div>
+                <div itemprop="action" itemscope itemtype="https://pagelove.org/Sessel">
+                  <script itemprop="source" type="text/sessel">
+            @schema Context url("https://pagelove.org/Context");
+            Context.response.status = 404
+                  </script>
+                </div>
+              </div>
+            </body>
+            </html>
+    steps:
+      - name: a real post is stamped in
+        as: anonymous
+        request: {method: GET, path: "${P}/posts/hello-world.html"}
+        expect:
+          status: 200
+          body_contains: ["Hello, world", "Welcome to Field Notes", 'id="comments-hello-world"']
+          body_not_contains: ["p:stamp", "e:post"]
+      - name: an unknown slug is a 404 whose body still says Not found
+        as: anonymous
+        request: {method: GET, path: "${P}/posts/nonsense.html"}
+        expect: {status: 404, body_contains: ["Not found"]}
+      - name: "curl -sI of the unknown slug: 404"
+        as: anonymous
+        request: {method: HEAD, path: "${P}/posts/nonsense.html"}
+        expect: {status: 404}
+      - name: "curl -sI of a real post: 200"
+        as: anonymous
+        request: {method: HEAD, path: "${P}/posts/hello-world.html"}
+        expect: {status: 200}
+      - name: a draft is not published through the route
+        as: anonymous
+        request: {method: GET, path: "${P}/posts/draft-post.html"}
+        expect: {status: 404, body_not_contains: ["Not yet"]}
+
+  - id: apps.blog.route-404-verbatim-template
+    title: "Tutorial as printed: the Not-found page of posts/:slug.html answers 404"
+    area: apps
+    feature: "tutorial: blog"
+    evidence: documented
+    source: "docs learn/build-a-blog §One page for every post (route <style>, line 92), §Making the 404 real (lines 134, 153-156) (snapshot 2026-09-28)"
+    confidence: low
+    status: disputed
+    requires: [sessel]
+    live: true
+    notes: "C-16 / P-APPS-22. The printed route template keeps a <style> rule mentioning the Post itemtype, and the processor's when is a substring test for that itemtype on the composed body. Under documented String.contains semantics the test is always true and no 404 is produced; the tutorial claims 404. pagelike follows the documented semantics, so this case records the tutorial's claim and is expected to fail until the live probe decides."
+    site:
+      settings: {default_get: allow}
+      files:
+        - {path: "${P}/data/posts/hello-world.html", body: *hello}
+        - path: "${P}/posts/:slug.html"
+          body: |
+            <!DOCTYPE html>
+            <html lang="en" xmlns:e="https://pagelove.org/Binding/Sessel" xmlns:p="https://pagelove.org/1.0">
+            <head>
+              <meta charset="UTF-8">
+              <title>Field Notes</title>
+              <style>
+                main:has([itemtype="https://pagelike.test${P}/Post"]) .post-missing { display: none; }
+              </style>
+            </head>
+            <body e:post="${[itemtype='https://pagelike.test${P}/Post']:has([itemprop='slug']:value-equals(request.params.slug)):has([itemprop='status']:value-equals('Published'))}.first()">
+              <main class="reading post">
+                <p:stamp post></p:stamp>
+                <div class="post-missing"><h1>Not found</h1></div>
+              </main>
+            </body>
+            </html>
+        - {path: "${P}/processors.html", body: *processors}
+    steps:
+      - name: "tutorial claim: HTTP 404 for an unknown slug"
+        as: anonymous
+        request: {method: HEAD, path: "${P}/posts/nonsense.html"}
+        expect: {status: 404}
+
+  - id: apps.blog.comment-write-through-and-shape
+    title: "A comment POSTed to the route URL lands in the post's data file; the closed shape refuses a script"
+    area: apps
+    feature: "tutorial: blog"
+    evidence: documented
+    source: "docs learn/build-a-blog §Letting readers comment (216-298), §Making comments safe to accept (302-336) (snapshot 2026-09-28)"
+    confidence: high
+    requires: [sessel]
+    live: true
+    notes: "Write routing through a stamp on a route page (D-STAMP, D-ROUTE, R-COMP-91/92); authorization on the route page only; shape evaluated at the origin (R-MOD-65). The constraint exists from the start, so the tutorial's 'before' attack (2xx) is not repeated here."
+    site:
+      settings: {default_get: allow}
+      files:
+        - {path: "${P}/data/posts/hello-world.html", body: *hello}
+        - {path: "${P}/posts/:slug.html", body: *route}
+        - path: "${P}/rules.html"
+          body: |
+            <!DOCTYPE html>
+            <html lang="en">
+            <head><meta charset="UTF-8"><title>authorization rules</title></head>
+            <body>
+              <!-- Anyone may add a comment to a post page's comments list. -->
+              <div hidden itemscope itemtype="https://pagelove.org/AuthorizationRule">
+                <meta itemprop="actor" content="*">
+                <meta itemprop="resource" content="${P}/posts/*">
+                <meta itemprop="selector" content="[itemprop='comments']">
+                <meta itemprop="method" content="POST">
+                <meta itemprop="action" content="allow">
+              </div>
+            </body>
+            </html>
+        - path: "${P}/constraints.html"
+          body: |
+            <!DOCTYPE html>
+            <html lang="en">
+            <head><meta charset="UTF-8"><title>constraints</title></head>
+            <body>
+              <div itemscope itemtype="https://pagelove.org/ShapeConstraint">
+                <meta itemprop="resource" content="${P}/data/posts/*">
+                <meta itemprop="resource" content="${P}/posts/*">
+                <meta itemprop="selector" content="[itemprop='comments'][id][class]">
+                <code itemprop="permit">li[class="comment"][itemscope][itemtype="https://blog.example/Comment"]</code>
+                <code itemprop="permit">p[class="comment-meta"]</code>
+                <code itemprop="permit">strong[itemprop="author"]</code>
+                <code itemprop="permit">time[itemprop="createdAt"][datetime]</code>
+                <code itemprop="permit">div[itemprop="body"]</code>
+                <code itemprop="permit">p</code>
+              </div>
+            </body>
+            </html>
+    steps:
+      - name: an honest comment, exactly as the page script serializes it
+        as: anonymous
+        request:
+          method: POST
+          path: "${P}/posts/hello-world.html"
+          headers: {Range: "selector=#comments-hello-world", Content-Type: "text/html"}
+          body: '<li class="comment" itemscope="" itemtype="https://blog.example/Comment"><p class="comment-meta"><strong itemprop="author">Ada</strong> <time itemprop="createdAt" datetime="2026-09-28">just now</time></p><div itemprop="body"><p>Nice post.</p></div></li>'
+        expect: {status: [200, 201, 206]}
+      - name: it landed in the data file, not in the route template
+        as: author
+        plane: dav
+        request: {method: GET, path: "${P}/data/posts/hello-world.html"}
+        expect: {status: 200, body_contains: ["Nice post.", 'class="comment"']}
+      - name: the route template is untouched
+        as: author
+        plane: dav
+        request: {method: GET, path: "${P}/posts/:slug.html"}
+        expect: {status: 200, body_not_contains: ["Nice post."]}
+      - name: the page shows the comment
+        as: anonymous
+        request: {method: GET, path: "${P}/posts/hello-world.html"}
+        expect: {status: 200, body_contains: ["Nice post."]}
+      - name: "the tutorial's attack is refused"
+        as: anonymous
+        request:
+          method: POST
+          path: "${P}/posts/hello-world.html"
+          headers: {Range: "selector=#comments-hello-world", Content-Type: "text/html"}
+          body: '<li class="comment"><script>alert("gotcha")</script></li>'
+        expect: {status: 422}
+      - name: the data file has no script
+        as: author
+        plane: dav
+        request: {method: GET, path: "${P}/data/posts/hello-world.html"}
+        expect: {status: 200, body_not_contains: ["gotcha"]}
+      - name: the rule does not open other elements of the page
+        as: anonymous
+        request:
+          method: POST
+          path: "${P}/posts/hello-world.html"
+          headers: {Range: "selector=main", Content-Type: "text/html"}
+          body: "<p>spam</p>"
+        # No rule grants POST on <main> (401 for anonymous); <main> is also not a
+        # stamped element, which D-ROUTE answers with 416. Either refusal is fine.
+        expect: {status: [401, 416]}
+
+  - id: apps.blog.data-folder-locked
+    title: "Raw data files are refused to anonymous readers while composed pages still list the posts"
+    area: apps
+    feature: "tutorial: blog"
+    evidence: documented
+    source: "docs learn/build-a-blog §Locking the data folder (338-358) (snapshot 2026-09-28)"
+    confidence: high
+    requires: [liquid]
+    live: true
+    notes: "R-PERM-40 (users allow beats * deny by tier), R-PERM-54, R-PERM-77 (composition not filtered by rules). The signed-in half is apps.blog.data-folder-member."
+    site:
+      settings: {default_get: allow}
+      files:
+        - {path: "${P}/data/posts/hello-world.html", body: *hello}
+        - path: "${P}/index.html"
+          body: |
+            <!DOCTYPE html>
+            <html lang="en" xmlns:p="https://pagelove.org/1.0" xmlns:r="https://pagelove.org/Binding/CSS">
+            <head><meta charset="UTF-8"><title>Field Notes</title></head>
+            <body>
+              <section class="excerpts" r:posts="[itemtype='https://pagelike.test${P}/Post']" p:template="text/liquid">
+                {% for post in posts %}<h2>{{ post.title }}</h2>{% endfor %}
+              </section>
+            </body>
+            </html>
+        - path: "${P}/rules.html"
+          body: &lockrules |
+            <!DOCTYPE html>
+            <html lang="en">
+            <head><meta charset="UTF-8"><title>authorization rules</title></head>
+            <body>
+              <!-- The public reads composed pages, never raw data files. -->
+              <div hidden itemscope itemtype="https://pagelove.org/AuthorizationRule">
+                <meta itemprop="actor" content="*">
+                <meta itemprop="resource" content="${P}/data/*">
+                <meta itemprop="method" content="GET">
+                <meta itemprop="action" content="deny">
+              </div>
+              <div hidden itemscope itemtype="https://pagelove.org/AuthorizationRule">
+                <meta itemprop="actor" content="users">
+                <meta itemprop="resource" content="${P}/data/*">
+                <meta itemprop="method" content="GET">
+                <meta itemprop="action" content="allow">
+              </div>
+            </body>
+            </html>
+    steps:
+      - name: anonymous direct read of a data file
+        as: anonymous
+        request: {method: GET, path: "${P}/data/posts/hello-world.html"}
+        expect: {status: 401, body_not_contains: ["Welcome to Field Notes"]}
+      - name: the composed home page still lists the post
+        as: anonymous
+        request: {method: GET, path: "${P}/index.html"}
+        expect: {status: 200, body_contains: ["Hello, world"]}
+
+  - id: apps.blog.data-folder-member
+    title: "A signed-in user (the built-in users group) can read the data files"
+    area: apps
+    feature: "tutorial: blog"
+    evidence: documented
+    source: "docs learn/build-a-blog §Locking the data folder ('The users actor is a built-in group matching any signed-in person') (snapshot 2026-09-28)"
+    confidence: high
+    requires: [multi-actor]
+    live: false
+    notes: "R-PERM-15, R-PERM-40."
+    actors:
+      alice: {sub: alice, email: alice@example.com, email_verified: true, name: Alice}
+    site:
+      settings: {default_get: allow}
+      files:
+        - {path: "${P}/data/posts/hello-world.html", body: *hello}
+        - {path: "${P}/rules.html", body: *lockrules}
+    steps:
+      - name: signed-in read
+        as: alice
+        request: {method: GET, path: "${P}/data/posts/hello-world.html"}
+        expect: {status: 200, body_contains: ["Welcome to Field Notes"]}
+
+  - id: apps.blog.feed-xml
+    title: "feed.xml composes like HTML: one Atom entry per published post"
+    area: apps
+    feature: "tutorial: blog"
+    evidence: documented
+    source: "docs learn/build-a-blog §The feed (189-208) (snapshot 2026-09-28)"
+    confidence: high
+    requires: [liquid]
+    live: true
+    notes: "R-COMP-123..128 (XML keeps xmlns declarations, drops directive attributes). The absolute field-notes.onpagelove.com URLs are kept as printed (they are data)."
+    site:
+      settings: {default_get: allow}
+      files:
+        - {path: "${P}/data/posts/hello-world.html", body: *hello}
+        - {path: "${P}/data/posts/second-thoughts.html", body: *second}
+        - path: "${P}/feed.xml"
+          content_type: application/xml
+          body: |
+            <?xml version="1.0" encoding="UTF-8"?>
+            <feed xmlns="http://www.w3.org/2005/Atom" xmlns:p="https://pagelove.org/1.0" xmlns:r="https://pagelove.org/Binding/CSS" p:template="text/liquid" r:posts="[itemtype='https://pagelike.test${P}/Post']"><title>Field Notes</title><link href="https://field-notes.onpagelove.com/"/><id>https://field-notes.onpagelove.com/</id>{% assign pub = posts | where: "status", "Published" | sort: "publishedAt" | reverse %}{% if pub.size > 0 %}<updated>{{ pub.first.publishedAt }}T00:00:00Z</updated>{% endif %}{% for post in pub %}<entry><title>{{ post.title | escape }}</title><id>https://field-notes.onpagelove.com/posts/{{ post.slug }}.html</id><updated>{{ post.publishedAt }}T00:00:00Z</updated><summary>{{ post.excerpt | escape }}</summary></entry>{% endfor %}</feed>
+    steps:
+      - name: the feed
+        as: anonymous
+        request: {method: GET, path: "${P}/feed.xml"}
+        expect:
+          status: 200
+          header_matches: {Content-Type: "xml"}
+          body_contains: ["<entry>", "<title>Hello, world</title>", "<title>Second thoughts</title>", "<updated>2026-08-05T00:00:00Z</updated>"]
+          body_not_contains: ["{%", "{{", "p:template=", "r:posts="]

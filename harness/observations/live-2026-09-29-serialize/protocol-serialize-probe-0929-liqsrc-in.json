@@ -1,0 +1,47 @@
+{
+  "case": "protocol.serialize.probe-0929.liqsrc-in-tags",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (put template)",
+      "method": "PUT",
+      "path": "/_pl/protocol-serialize-probe-0929-liqsrc-in-14deff/tpl.html",
+      "status": 201,
+      "headers": {
+        "content-length": "258",
+        "content-type": "text/html",
+        "etag": "\"75f0deccadf589ce3822657bfe4c2681e0b38b93c0aba165130f111531e8fd1e\""
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml xmlns:p=\"https://pagelove.org/1.0\"\u003e\u003cbody\u003e\u003cdiv id=\"t\" p:template=\"text/liquid\"\u003e{% if 2 \u0026gt; 1 %}gt-ok{% endif %}|{{ \"x\" | append: \"\u0026amp;\" }}|{% if 1 \u0026lt; 2 %}lt-ok{% endif %}|{{ \"a\u0026amp;b\" | size }}|{{ \"q r\" | size }}\u003c/div\u003e\u003c/body\u003e\u003c/html\u003e"
+    },
+    {
+      "step": "step 2 (dav read)",
+      "method": "GET",
+      "path": "/_pl/protocol-serialize-probe-0929-liqsrc-in-14deff/tpl.html",
+      "status": 200,
+      "headers": {
+        "accept-ranges": "bytes",
+        "content-length": "258",
+        "content-type": "text/html",
+        "etag": "\"75f0deccadf589ce3822657bfe4c2681e0b38b93c0aba165130f111531e8fd1e\"",
+        "last-modified": "Tue, 29 Sep 2026 01:32:09 GMT"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml xmlns:p=\"https://pagelove.org/1.0\"\u003e\u003cbody\u003e\u003cdiv id=\"t\" p:template=\"text/liquid\"\u003e{% if 2 \u0026gt; 1 %}gt-ok{% endif %}|{{ \"x\" | append: \"\u0026amp;\" }}|{% if 1 \u0026lt; 2 %}lt-ok{% endif %}|{{ \"a\u0026amp;b\" | size }}|{{ \"q r\" | size }}\u003c/div\u003e\u003c/body\u003e\u003c/html\u003e"
+    },
+    {
+      "step": "step 3 (render)",
+      "method": "GET",
+      "path": "/_pl/protocol-serialize-probe-0929-liqsrc-in-14deff/tpl.html",
+      "status": 200,
+      "headers": {
+        "cache-control": "public, max-age=5",
+        "content-type": "text/html",
+        "etag": "W/\"1cc346efbe3606cdaf4ed769d0502be05536a8742181678fc55444431211c0d1\"",
+        "vary": "Host, Range, Accept"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\u003cdiv id=\"t\"\u003egt-ok|x\u0026amp;|lt-ok|3|3\u003c/div\u003e\n                \u003cdiv style=\"\n                            position: fixed;\n                            bottom: 0;\n                            left: 0;\n                            right: 0;\n                            padding: 8px;\n                            background: #f0f0f0;\n                            text-align: center;\n                            font-size: 12px;\n                            color: #666;\n                            z-index: 9999;\n                            opacity: 0.8;\n                            border-top: 1px solid #ddd;\n                        \"\u003e\n                    Powered by\n                    \u003ca href=\"https://pagelove.com/\" style=\"color: #4a90d9; text-decoration: none\"\u003ePagelove\u003c/a\u003e\n                \u003c/div\u003e\n            \u003c/body\u003e\u003c/html\u003e"
+    }
+  ],
+  "outcome": "pass",
+  "target": "live"
+}

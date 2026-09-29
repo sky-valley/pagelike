@@ -1,0 +1,35 @@
+{
+  "case": "javascript.dom.probe-0929.domparser-shape",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (PUT the page (public plane; registers inline declarations))",
+      "method": "PUT",
+      "path": "/_pl/javascript-dom-probe-0929-domparser-shap-684be6/probe.html",
+      "status": 201,
+      "headers": {
+        "content-type": "text/html",
+        "etag": "\"91a357f0c7721c6e560b57fc95efee223822c7d710520a25927b5176db5a96ab\"",
+        "last-modified": "Tue, 29 Sep 2026 01:31:43 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml xmlns:t=\"https://pagelike.test/_pl/javascript-dom-probe-0929-domparser-shap-684be6/Pdomparsershape\"\u003e\u003cbody\u003e\n\u003cmain\u003e\n\u003ct:probe\u003e\u003c/t:probe\u003e\n\u003c/main\u003e\n\u003cdiv hidden itemscope itemtype=\"https://pagelove.org/Schema\"\u003e\n\u003cmeta itemprop=\"type\" content=\"https://pagelike.test/_pl/javascript-dom-probe-0929-domparser-shap-684be6/Pdomparsershape\"\u003e\n\u003cul\u003e\n\u003cli itemprop=\"property\" itemscope itemtype=\"https://pagelove.org/Method\"\u003e\n\u003cmeta itemprop=\"name\" content=\"probe\"\u003e\n\u003cdiv itemprop=\"implementation\" itemscope itemtype=\"https://pagelove.org/JavaScript/Module\"\u003e\n\u003cscript itemprop=\"source\" type=\"module\"\u003e\nconst H = (x) =\u003e String(x).replace(/[\u003c\u003e\"]/g, (c) =\u003e ({ '\u003c': '[', '\u003e': ']', '\"': \"'\" })[c]);\nconst T = (f) =\u003e { try { return H(f()); } catch (e) { return 'E:' + e.name; } };\nconst J = (x) =\u003e JSON.stringify(x);\nconst X = (n) =\u003e new XMLSerializer().serializeToString(n);\nconst N = (n) =\u003e (n === null ? 'null' : n === undefined ? 'undef' : typeof n === 'object' ? 'node:' + n.nodeName : typeof n + ':' + n);\nexport default function () {\nconst P = new DOMParser();\nconst d1 = P.parseFromString('\u003cul id=\"l\"\u003e\u003cli\u003ea\u003c/li\u003e\u003c/ul\u003e\u003cp\u003ex\u003c/p\u003e', 'text/html');\nconst l = d1.querySelector('#l');\nconst a = [T(() =\u003e d1.documentElement \u0026\u0026 d1.documentElement.tagName), T(() =\u003e N(d1.head)), T(() =\u003e N(d1.body)), T(() =\u003e d1.childNodes.length), T(() =\u003e Array.from(d1.childNodes, (n) =\u003e n.nodeName).join(',')), T(() =\u003e l.parentNode === d1), T(() =\u003e l.parentNode \u0026\u0026 l.parentNode.nodeType), T(() =\u003e N(l.parentElement)), T(() =\u003e X(d1))];\nconst d2 = P.parseFromString('\u003c!DOCTYPE html\u003e\u003chtml\u003e\u003chead\u003e\u003ctitle\u003et\u003c/title\u003e\u003c/head\u003e\u003cbody\u003e\u003cp\u003ex\u003c/p\u003e\u003c/body\u003e\u003c/html\u003e', 'text/html');\nconst b = [T(() =\u003e d2.documentElement.tagName), T(() =\u003e d2.head \u0026\u0026 d2.head.tagName), T(() =\u003e d2.body \u0026\u0026 d2.body.tagName), T(() =\u003e d2.childNodes.length), T(() =\u003e d2.querySelector('p').parentElement.tagName)];\nconst d3 = P.parseFromString('\u003ctitle\u003et\u003c/title\u003e\u003cp\u003ex\u003c/p\u003e', 'text/html');\nconst c = [T(() =\u003e d3.documentElement.tagName), T(() =\u003e N(d3.head)), T(() =\u003e d3.childNodes.length), T(() =\u003e X(d3))];\nconst d4 = P.parseFromString('\u003cbody\u003e\u003cp\u003ex\u003c/p\u003e\u003c/body\u003e', 'text/html');\nconst e = [T(() =\u003e d4.documentElement.tagName), T(() =\u003e d4.body \u0026\u0026 d4.body.tagName), T(() =\u003e N(d4.head)), T(() =\u003e d4.childNodes.length)];\nconst d7 = P.parseFromString('', 'text/html');\nconst h = [T(() =\u003e N(d7.documentElement)), T(() =\u003e d7.childNodes.length), T(() =\u003e N(d7.body)), T(() =\u003e d7 instanceof Document)];\nconst d8 = P.parseFromString('text \u003cb\u003ebold\u003c/b\u003e', 'text/html');\nconst i = [T(() =\u003e d8.childNodes.length), T(() =\u003e d8.firstChild.nodeType), T(() =\u003e d8.documentElement.tagName), T(() =\u003e X(d8))];\nreturn 'R:' + [a.join('|'), b.join('|'), c.join('|'), e.join('|'), h.join('|'), i.join('|')].join(' ## ');\n}\n\u003c/script\u003e\n\u003c/div\u003e\n\u003c/li\u003e\n\u003c/ul\u003e\n\u003cmeta itemprop=\"@id\" content=\"https://schema.host/f6b3dbqp\"\u003e\u003cmeta itemprop=\"path\" content=\"/Schemahttps://schema.host/f6b3dbqp.html\"\u003e\u003c/div\u003e\n\n                \u003cdiv style=\"\n                            position: fixed;\n                            bottom: 0;\n                            left: 0;\n                            right: 0;\n                            padding: 8px;\n                            background: #f0f0f0;\n                            text-align: center;\n                            font-size: 12px;\n                            color: #666;\n                            z-index: 9999;\n                            opacity: 0.8;\n                            border-top: 1px solid #ddd;\n                        \"\u003e\n                    Powered by\n                    \u003ca href=\"https://pagelove.com/\" style=\"color: #4a90d9; text-decoration: none\"\u003ePagelove\u003c/a\u003e\n                \u003c/div\u003e\n            \u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 2 (GET \u003cmain\u003e: the method result is inserted as text)",
+      "method": "GET",
+      "path": "/_pl/javascript-dom-probe-0929-domparser-shap-684be6/probe.html",
+      "status": 206,
+      "headers": {
+        "content-length": "216",
+        "content-range": "selector main",
+        "content-type": "text/html",
+        "etag": "\"8d7a3554b8531e1cc7867913dc00574f1ee78eadb883c1a21011d5e87b0dda78-8d7a3554b8531e1cc7867913dc00574f1ee78eadb883c1a21011d5e87b0dda78-1\"",
+        "vary": "Host, Range, Accept"
+      },
+      "body": "\u003cmain\u003e\nR:UL|null|null|2|UL,P|false|9|null|[ul id='l'][li]a[/li][/ul][p]x[/p] ## HTML|HEAD|BODY|2|BODY ## TITLE|null|2|[title]t[/title][p]x[/p] ## BODY|BODY|null|1 ## null|0|null|true ## 2|3|B|text [b]bold[/b]\n\u003c/main\u003e"
+    }
+  ],
+  "outcome": "pass",
+  "target": "live"
+}

@@ -1,0 +1,74 @@
+{
+  "case": "rw.up.html-extension-forces-text-html",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (.html sent as octet-stream)",
+      "method": "PUT",
+      "path": "/_pl/rw-up-html-extension-forces-text-html-076b14/forced.html",
+      "status": 201,
+      "headers": {
+        "content-type": "text/html",
+        "etag": "\"660e766b52cf0e06f00c0c9827b55d4e6b58db92eda7f5a2af5d0bb4cfac6ccb\"",
+        "last-modified": "Mon, 28 Sep 2026 22:29:15 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\u003ch1\u003eForced HTML\u003c/h1\u003e\n                \u003cdiv style=\"\n                            position: fixed;\n                            bottom: 0;\n                            left: 0;\n                            right: 0;\n                            padding: 8px;\n                            background: #f0f0f0;\n                            text-align: center;\n                            font-size: 12px;\n                            color: #666;\n                            z-index: 9999;\n                            opacity: 0.8;\n                            border-top: 1px solid #ddd;\n                        \"\u003e\n                    Powered by\n                    \u003ca href=\"https://pagelove.com/\" style=\"color: #4a90d9; text-decoration: none\"\u003ePagelove\u003c/a\u003e\n                \u003c/div\u003e\n            \u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 2 (served as HTML)",
+      "method": "GET",
+      "path": "/_pl/rw-up-html-extension-forces-text-html-076b14/forced.html",
+      "status": 200,
+      "headers": {
+        "content-type": "text/html",
+        "etag": "\"660e766b52cf0e06f00c0c9827b55d4e6b58db92eda7f5a2af5d0bb4cfac6ccb\"",
+        "last-modified": "Mon, 28 Sep 2026 22:29:15 GMT",
+        "vary": "Host, Range, Accept"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\u003ch1\u003eForced HTML\u003c/h1\u003e\n                \u003cdiv style=\"\n                            position: fixed;\n                            bottom: 0;\n                            left: 0;\n                            right: 0;\n                            padding: 8px;\n                            background: #f0f0f0;\n                            text-align: center;\n                            font-size: 12px;\n                            color: #666;\n                            z-index: 9999;\n                            opacity: 0.8;\n                            border-top: 1px solid #ddd;\n                        \"\u003e\n                    Powered by\n                    \u003ca href=\"https://pagelove.com/\" style=\"color: #4a90d9; text-decoration: none\"\u003ePagelove\u003c/a\u003e\n                \u003c/div\u003e\n            \u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 3 (selector-addressable, so it is an HTML document)",
+      "method": "GET",
+      "path": "/_pl/rw-up-html-extension-forces-text-html-076b14/forced.html",
+      "status": 206,
+      "headers": {
+        "content-length": "20",
+        "content-range": "selector h1",
+        "content-type": "text/html",
+        "etag": "\"2b52674290b3de1f2d408a0353365e8cb1db56ac93de45d74029431fee652066-2b52674290b3de1f2d408a0353365e8cb1db56ac93de45d74029431fee652066-1\"",
+        "vary": "Host, Range, Accept"
+      },
+      "body": "\u003ch1\u003eForced HTML\u003c/h1\u003e"
+    },
+    {
+      "step": "step 4 (.htm sent as text/plain)",
+      "method": "PUT",
+      "path": "/_pl/rw-up-html-extension-forces-text-html-076b14/legacy.htm",
+      "status": 201,
+      "headers": {
+        "content-type": "text/html",
+        "etag": "\"5e47cb8bf1f2addfa92f4b064d13df0ce124c6ebd2926c3a1bc80f6e0edbe9e2\"",
+        "last-modified": "Mon, 28 Sep 2026 22:29:16 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\u003ch1\u003eLegacy\u003c/h1\u003e\n                \u003cdiv style=\"\n                            position: fixed;\n                            bottom: 0;\n                            left: 0;\n                            right: 0;\n                            padding: 8px;\n                            background: #f0f0f0;\n                            text-align: center;\n                            font-size: 12px;\n                            color: #666;\n                            z-index: 9999;\n                            opacity: 0.8;\n                            border-top: 1px solid #ddd;\n                        \"\u003e\n                    Powered by\n                    \u003ca href=\"https://pagelove.com/\" style=\"color: #4a90d9; text-decoration: none\"\u003ePagelove\u003c/a\u003e\n                \u003c/div\u003e\n            \u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 5 (.htm served as HTML)",
+      "method": "GET",
+      "path": "/_pl/rw-up-html-extension-forces-text-html-076b14/legacy.htm",
+      "status": 200,
+      "headers": {
+        "content-type": "text/html",
+        "etag": "\"5e47cb8bf1f2addfa92f4b064d13df0ce124c6ebd2926c3a1bc80f6e0edbe9e2\"",
+        "last-modified": "Mon, 28 Sep 2026 22:29:16 GMT",
+        "vary": "Host, Range, Accept"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\u003ch1\u003eLegacy\u003c/h1\u003e\n                \u003cdiv style=\"\n                            position: fixed;\n                            bottom: 0;\n                            left: 0;\n                            right: 0;\n                            padding: 8px;\n                            background: #f0f0f0;\n                            text-align: center;\n                            font-size: 12px;\n                            color: #666;\n                            z-index: 9999;\n                            opacity: 0.8;\n                            border-top: 1px solid #ddd;\n                        \"\u003e\n                    Powered by\n                    \u003ca href=\"https://pagelove.com/\" style=\"color: #4a90d9; text-decoration: none\"\u003ePagelove\u003c/a\u003e\n                \u003c/div\u003e\n            \u003c/body\u003e\u003c/html\u003e\n"
+    }
+  ],
+  "outcome": "pass",
+  "target": "live"
+}

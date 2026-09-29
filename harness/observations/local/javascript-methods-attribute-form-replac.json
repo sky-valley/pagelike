@@ -1,0 +1,37 @@
+{
+  "case": "javascript.methods.attribute-form-replaces-host",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (PUT the page (public plane; registers inline declarations))",
+      "method": "PUT",
+      "path": "/_pl/javascript-methods-attribute-form-replac-10af0d/m.html",
+      "status": 201,
+      "headers": {
+        "content-length": "1309",
+        "content-type": "text/html",
+        "etag": "\"de4c67868e3e70347911ad3afdf1febf16de1c74880cfccccb99edb679be694a\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:43 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml xmlns:t=\"https://pagelike.test/_pl/javascript-methods-attribute-form-replac-10af0d/Card\"\u003e\u003cbody\u003e\n\u003cmain\u003e\n\u003cdiv id=\"h\" class=\"host\" t:card=\"Ada\"\u003eold\u003c/div\u003e\n\u003c/main\u003e\n\u003cdiv hidden itemscope itemtype=\"https://pagelove.org/Schema\"\u003e\n\u003cmeta itemprop=\"type\" content=\"https://pagelike.test/_pl/javascript-methods-attribute-form-replac-10af0d/Card\"\u003e\n\u003cul\u003e\n\u003cli itemprop=\"property\" itemscope itemtype=\"https://pagelove.org/Method\"\u003e\n\u003cmeta itemprop=\"name\" content=\"card\"\u003e\n\u003cmeta itemprop=\"returns\" content=\"https://pagelove.org/Element\"\u003e\n\u003cdiv itemprop=\"parameter\" itemscope itemtype=\"https://pagelove.org/Parameter\"\u003e\u003cmeta itemprop=\"name\" content=\"title\"\u003e\u003cmeta itemprop=\"type\" content=\"https://schema.host/Text\"\u003e\u003c/div\u003e\n\u003cdiv itemprop=\"parameter\" itemscope itemtype=\"https://pagelove.org/Parameter\"\u003e\u003cmeta itemprop=\"name\" content=\"other\"\u003e\u003cmeta itemprop=\"type\" content=\"https://schema.host/Text\"\u003e\u003c/div\u003e\n\u003cdiv itemprop=\"implementation\" itemscope itemtype=\"https://pagelove.org/JavaScript/Module\"\u003e\n\u003cscript itemprop=\"source\" type=\"module\"\u003e\nexport default function (title, other) { const a = new DOMParser().parseFromString('\u003carticle class=\"card\"\u003e\u003c/article\u003e', 'text/html').querySelector('article'); a.textContent = 'CARD:' + title + ':' + (other === null); return a; }\n\u003c/script\u003e\n\u003c/div\u003e\n\u003c/li\u003e\n\u003c/ul\u003e\n\u003c/div\u003e\n\u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 2 (GET the composed page)",
+      "method": "GET",
+      "path": "/_pl/javascript-methods-attribute-form-replac-10af0d/m.html",
+      "status": 206,
+      "headers": {
+        "accept-ranges": "selector, bytes",
+        "content-length": "60",
+        "content-range": "selector main",
+        "content-type": "text/html",
+        "etag": "\"b6260aed384974646438c731313891a3f5bfecdbd98c041fc1577be6c483b6f8-b6260aed384974646438c731313891a3f5bfecdbd98c041fc1577be6c483b6f8-1\"",
+        "vary": "Host, Range, Accept"
+      },
+      "body": "\u003cmain\u003e\n\u003carticle class=\"card\"\u003eCARD:Ada:true\u003c/article\u003e\n\u003c/main\u003e"
+    }
+  ],
+  "outcome": "pass",
+  "target": "local"
+}

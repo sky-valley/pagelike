@@ -1,0 +1,52 @@
+Live reconciliation of the reacting area, 2026-09-29
+(docs/compat/decisions-2026-09-29/reacting.md)
+
+All runs: ./bin/harness run --target live --ids <ids>
+          --observations harness/observations/live-2026-09-29-reconcile-reacting
+The JSON files in this directory are the final run (run 4). run1/, run2/ and
+run3/ keep the earlier runs (each with RUN-OUTPUT.txt, the runner's output).
+A case id maps to its file by turning dots into dashes and cutting the name
+to 40 characters; reacting.actions.sessel-throw-303-location-pair and its
+.live sibling share one file name, which holds the sibling (the kept case is
+local only and is skipped live).
+
+Run 1 (9 cases): 5 passed, 4 failed
+  PASS reacting.context.header-lookup-lowercase (fixed: documented no-op action)
+  PASS reacting.context.js-auth-anonymous-null (adopted expectation)
+  PASS reacting.discovery.no-action-skipped (adopted: 422)
+  PASS reacting.filters.method-case-insensitive (adopted: 422)
+  PASS reacting.actions.actions-run-in-document-order (adopted: 422)
+  FAIL reacting.context.resource-binding-on-trigger (right token also 401)
+  FAIL reacting.actions.probe-0929.thrown-redirect (POST 3xx: 422 template; 201 loses Location)
+  FAIL reacting.filters.probe-0929.selector-scope (the filter never excludes)
+  FAIL reacting.discovery.probe-0929.handler-shape (when 0..1; TransitionHandler checked)
+
+Run 2 (4 probes, expectations updated to run 1): 3 passed, 1 failed
+  PASS reacting.actions.probe-0929.thrown-redirect (+ PUT, DELETE, selector POST: 303 sent)
+  PASS reacting.filters.probe-0929.selector-scope (+ POST, GET, DELETE, processor)
+  PASS reacting.discovery.probe-0929.handler-shape
+  FAIL reacting.context.probe-0929.trigger-bindings (r: names undefined; failing when is falsy)
+
+Run 3 (4 cases): 3 passed, 1 failed
+  PASS reacting.context.probe-0929.trigger-bindings (+ html-level binding, when, processor)
+  PASS reacting.context.resource-binding-on-trigger (rewritten: action reads the binding)
+  PASS reacting.actions.sessel-throw-303-location-pair.live
+  FAIL reacting.discovery.probe-0929.handler-shape (enclosing-item violations of selector
+       writes use the dombase Cardinality envelope; expectations relaxed to the common text)
+
+Run 4 (final, 13 ids): 12 passed, 0 failed, 1 skipped
+  PASS reacting.actions.actions-run-in-document-order
+  SKIP reacting.actions.sessel-throw-303-location-pair (live: false; keep-standard)
+  PASS reacting.actions.sessel-throw-303-location-pair.live
+  PASS reacting.context.header-lookup-lowercase
+  PASS reacting.context.js-auth-anonymous-null
+  PASS reacting.context.resource-binding-on-trigger
+  PASS reacting.discovery.no-action-skipped
+  PASS reacting.filters.method-case-insensitive
+  PASS reacting.filters.selector-semantic-match
+  PASS reacting.actions.probe-0929.thrown-redirect
+  PASS reacting.filters.probe-0929.selector-scope
+  PASS reacting.context.probe-0929.trigger-bindings
+  PASS reacting.discovery.probe-0929.handler-shape
+
+Cases sent live: 9 + 4 + 4 + 12 = 29, in 4 runs.

@@ -1,0 +1,48 @@
+{
+  "case": "javascript.slots.validate-sees-default",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (register declarations through the public plane (takes effect for the next request))",
+      "method": "PUT",
+      "path": "/_pl/javascript-slots-validate-sees-default-4c9af8/schema.html",
+      "status": 201,
+      "headers": {
+        "content-length": "673",
+        "content-type": "text/html",
+        "etag": "\"b3c288be2b553bfebe68af68aeb7f8d46b931402f31c1815f7fbcacf88ec6624\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:43 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\n\u003cdiv hidden itemscope itemtype=\"https://pagelove.org/Schema\"\u003e\n\u003cmeta itemprop=\"type\" content=\"https://pagelike.test/_pl/javascript-slots-validate-sees-default-4c9af8/Vsd\"\u003e\n\u003cdiv itemprop=\"property\" itemscope itemtype=\"https://pagelove.org/Property\"\u003e\n\u003cmeta itemprop=\"name\" content=\"status\"\u003e\n\u003cmeta itemprop=\"type\" content=\"https://schema.host/Text\"\u003e\n\u003cmeta itemprop=\"cardinality\" content=\"0..1\"\u003e\n\u003cmeta itemprop=\"default\" content=\"draft\"\u003e\n\u003cdiv itemprop=\"@validate\" itemscope itemtype=\"https://pagelove.org/JavaScript/Module\"\u003e\n\u003cscript itemprop=\"source\" type=\"module\"\u003e\nexport default (v) =\u003e v !== 'draft';\n\u003c/script\u003e\n\u003c/div\u003e\n\u003c/div\u003e\n\u003c/div\u003e\n\u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 2 (no status: default 'draft' is injected, then refused)",
+      "method": "PUT",
+      "path": "/_pl/javascript-slots-validate-sees-default-4c9af8/a.html",
+      "status": 422,
+      "headers": {
+        "content-length": "837",
+        "content-type": "text/html; charset=utf-8",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\n  \u003chead\u003e\n    \u003ctitle\u003e422 Unprocessable Entity - Schema Violation\u003c/title\u003e\n  \u003c/head\u003e\n  \u003cbody itemscope itemtype=\"https://pagelove.org/SchemaViolation\"\u003e\n    \u003ch1 itemprop=\"name\"\u003eUnprocessable Entity\u003c/h1\u003e\n    \u003cmeta itemprop=\"statusCode\" content=\"422\"\u003e\n    \u003cp itemprop=\"description\"\u003eSchema validation failed\u003c/p\u003e\n    \u003cul\u003e\n      \u003cli itemprop=\"violations\" itemscope itemtype=\"https://pagelove.org/Violation\"\u003e\n        \u003cspan itemprop=\"check\"\u003e@validate\u003c/span\u003e\n        \u003cspan itemprop=\"itemtype\"\u003ehttps://pagelike.test/_pl/javascript-slots-validate-sees-default-4c9af8/Vsd\u003c/span\u003e\n        \u003cspan itemprop=\"property\"\u003estatus\u003c/span\u003e\n        \u003cspan itemprop=\"message\"\u003e[https://pagelike.test/_pl/javascript-slots-validate-sees-default-4c9af8/Vsd].status: the value was rejected by @validate\u003c/span\u003e\n      \u003c/li\u003e\n    \u003c/ul\u003e\n  \u003c/body\u003e\n\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 3 (an explicit value passes)",
+      "method": "PUT",
+      "path": "/_pl/javascript-slots-validate-sees-default-4c9af8/b.html",
+      "status": 201,
+      "headers": {
+        "content-length": "194",
+        "content-type": "text/html",
+        "etag": "\"ded112af70d3d927b711ee45bf64a657a054314403c7908c957c6fc02b8ca89c\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:43 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\n\u003cdiv itemscope itemtype=\"https://pagelike.test/_pl/javascript-slots-validate-sees-default-4c9af8/Vsd\"\u003e\n\u003cmeta itemprop=\"status\" content=\"live\"\u003e\n\u003c/div\u003e\n\u003c/body\u003e\u003c/html\u003e\n"
+    }
+  ],
+  "outcome": "pass",
+  "target": "local"
+}

@@ -1,0 +1,208 @@
+{
+  "case": "protocol.serialize.probe-0929.dom-shape",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (put frag)",
+      "method": "PUT",
+      "path": "/_pl/protocol-serialize-probe-0929-dom-shape-8e2393/frag.html",
+      "status": 201,
+      "headers": {
+        "content-length": "13",
+        "content-type": "text/html",
+        "etag": "\"adff3d616634e0da6421338c38d43c41bcd2d2c12f3a317b5803b72ee839d5d8\""
+      },
+      "body": "  \n\u003cp\u003ehi\u003c/p\u003e\n"
+    },
+    {
+      "step": "step 2 (select body on frag)",
+      "method": "GET",
+      "path": "/_pl/protocol-serialize-probe-0929-dom-shape-8e2393/frag.html",
+      "status": 416,
+      "headers": {
+        "content-length": "355",
+        "content-type": "text/html",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\n  \u003chead\u003e\n    \u003ctitle\u003e416 Range Not Satisfiable - Error\u003c/title\u003e\n  \u003c/head\u003e\n  \u003cbody itemscope itemtype=\"http://pagelove.org/Error\"\u003e\n    \u003ch1 itemprop=\"name\"\u003eRange Not Satisfiable\u003c/h1\u003e\n    \u003cmeta itemprop=\"statusCode\" content=\"416\"\u003e\n    \u003cp itemprop=\"description\"\u003eHTML parsing error: No elements matched selector: body\u003c/p\u003e\n  \u003c/body\u003e\n\u003c/html\u003e"
+    },
+    {
+      "step": "step 3 (select html on frag)",
+      "method": "GET",
+      "path": "/_pl/protocol-serialize-probe-0929-dom-shape-8e2393/frag.html",
+      "status": 416,
+      "headers": {
+        "content-length": "355",
+        "content-type": "text/html",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\n  \u003chead\u003e\n    \u003ctitle\u003e416 Range Not Satisfiable - Error\u003c/title\u003e\n  \u003c/head\u003e\n  \u003cbody itemscope itemtype=\"http://pagelove.org/Error\"\u003e\n    \u003ch1 itemprop=\"name\"\u003eRange Not Satisfiable\u003c/h1\u003e\n    \u003cmeta itemprop=\"statusCode\" content=\"416\"\u003e\n    \u003cp itemprop=\"description\"\u003eHTML parsing error: No elements matched selector: html\u003c/p\u003e\n  \u003c/body\u003e\n\u003c/html\u003e"
+    },
+    {
+      "step": "step 4 (select head on frag)",
+      "method": "GET",
+      "path": "/_pl/protocol-serialize-probe-0929-dom-shape-8e2393/frag.html",
+      "status": 416,
+      "headers": {
+        "content-length": "355",
+        "content-type": "text/html",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\n  \u003chead\u003e\n    \u003ctitle\u003e416 Range Not Satisfiable - Error\u003c/title\u003e\n  \u003c/head\u003e\n  \u003cbody itemscope itemtype=\"http://pagelove.org/Error\"\u003e\n    \u003ch1 itemprop=\"name\"\u003eRange Not Satisfiable\u003c/h1\u003e\n    \u003cmeta itemprop=\"statusCode\" content=\"416\"\u003e\n    \u003cp itemprop=\"description\"\u003eHTML parsing error: No elements matched selector: head\u003c/p\u003e\n  \u003c/body\u003e\n\u003c/html\u003e"
+    },
+    {
+      "step": "step 5 (select :root on frag)",
+      "method": "GET",
+      "path": "/_pl/protocol-serialize-probe-0929-dom-shape-8e2393/frag.html",
+      "status": 206,
+      "headers": {
+        "content-length": "9",
+        "content-range": "selector :root",
+        "content-type": "text/html",
+        "etag": "\"0a4735281db700223af63abc387c351f64ea6961a1ef955631df08d96169e772-0a4735281db700223af63abc387c351f64ea6961a1ef955631df08d96169e772-1\"",
+        "vary": "Host, Range, Accept"
+      },
+      "body": "\u003cp\u003ehi\u003c/p\u003e"
+    },
+    {
+      "step": "step 6 (select body \u003e p on frag)",
+      "method": "GET",
+      "path": "/_pl/protocol-serialize-probe-0929-dom-shape-8e2393/frag.html",
+      "status": 416,
+      "headers": {
+        "content-length": "362",
+        "content-type": "text/html",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\n  \u003chead\u003e\n    \u003ctitle\u003e416 Range Not Satisfiable - Error\u003c/title\u003e\n  \u003c/head\u003e\n  \u003cbody itemscope itemtype=\"http://pagelove.org/Error\"\u003e\n    \u003ch1 itemprop=\"name\"\u003eRange Not Satisfiable\u003c/h1\u003e\n    \u003cmeta itemprop=\"statusCode\" content=\"416\"\u003e\n    \u003cp itemprop=\"description\"\u003eHTML parsing error: No elements matched selector: body \u0026gt; p\u003c/p\u003e\n  \u003c/body\u003e\n\u003c/html\u003e"
+    },
+    {
+      "step": "step 7 (put tbl)",
+      "method": "PUT",
+      "path": "/_pl/protocol-serialize-probe-0929-dom-shape-8e2393/tbl.html",
+      "status": 201,
+      "headers": {
+        "content-length": "34",
+        "content-type": "text/html",
+        "etag": "\"02bc2eb78fe3adaddee6ba2edd5c2ac53e9fa9f8cfe5a37b00f81801edecbc9e\""
+      },
+      "body": "\u003ctable\u003e\u003ctr\u003e\u003ctd\u003ex\u003c/td\u003e\u003c/tr\u003e\u003c/table\u003e"
+    },
+    {
+      "step": "step 8 (select table \u003e tr on tbl)",
+      "method": "GET",
+      "path": "/_pl/protocol-serialize-probe-0929-dom-shape-8e2393/tbl.html",
+      "status": 206,
+      "headers": {
+        "content-length": "19",
+        "content-range": "selector table \u003e tr",
+        "content-type": "text/html",
+        "etag": "\"23506f16e6cfb2a1913b855b7572c172aa3441a381483c4280e0973791a62579-23506f16e6cfb2a1913b855b7572c172aa3441a381483c4280e0973791a62579-1\"",
+        "vary": "Host, Range, Accept"
+      },
+      "body": "\u003ctr\u003e\u003ctd\u003ex\u003c/td\u003e\u003c/tr\u003e"
+    },
+    {
+      "step": "step 9 (select table \u003e tbody on tbl)",
+      "method": "GET",
+      "path": "/_pl/protocol-serialize-probe-0929-dom-shape-8e2393/tbl.html",
+      "status": 416,
+      "headers": {
+        "content-length": "367",
+        "content-type": "text/html",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\n  \u003chead\u003e\n    \u003ctitle\u003e416 Range Not Satisfiable - Error\u003c/title\u003e\n  \u003c/head\u003e\n  \u003cbody itemscope itemtype=\"http://pagelove.org/Error\"\u003e\n    \u003ch1 itemprop=\"name\"\u003eRange Not Satisfiable\u003c/h1\u003e\n    \u003cmeta itemprop=\"statusCode\" content=\"416\"\u003e\n    \u003cp itemprop=\"description\"\u003eHTML parsing error: No elements matched selector: table \u0026gt; tbody\u003c/p\u003e\n  \u003c/body\u003e\n\u003c/html\u003e"
+    },
+    {
+      "step": "step 10 (select tbody \u003e tr on tbl)",
+      "method": "GET",
+      "path": "/_pl/protocol-serialize-probe-0929-dom-shape-8e2393/tbl.html",
+      "status": 416,
+      "headers": {
+        "content-length": "364",
+        "content-type": "text/html",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\n  \u003chead\u003e\n    \u003ctitle\u003e416 Range Not Satisfiable - Error\u003c/title\u003e\n  \u003c/head\u003e\n  \u003cbody itemscope itemtype=\"http://pagelove.org/Error\"\u003e\n    \u003ch1 itemprop=\"name\"\u003eRange Not Satisfiable\u003c/h1\u003e\n    \u003cmeta itemprop=\"statusCode\" content=\"416\"\u003e\n    \u003cp itemprop=\"description\"\u003eHTML parsing error: No elements matched selector: tbody \u0026gt; tr\u003c/p\u003e\n  \u003c/body\u003e\n\u003c/html\u003e"
+    },
+    {
+      "step": "step 11 (put pdiv)",
+      "method": "PUT",
+      "path": "/_pl/protocol-serialize-probe-0929-dom-shape-8e2393/pdiv.html",
+      "status": 201,
+      "headers": {
+        "content-length": "20",
+        "content-type": "text/html",
+        "etag": "\"18c1649223cd3db94fd68b686163cbde2c71e4f252a54a6f07a527952a83c1c0\""
+      },
+      "body": "\u003cp\u003ea\u003cdiv\u003eb\u003c/div\u003e\u003c/p\u003e"
+    },
+    {
+      "step": "step 12 (select p \u003e div on pdiv)",
+      "method": "GET",
+      "path": "/_pl/protocol-serialize-probe-0929-dom-shape-8e2393/pdiv.html",
+      "status": 206,
+      "headers": {
+        "content-length": "12",
+        "content-range": "selector p \u003e div",
+        "content-type": "text/html",
+        "etag": "\"0b9232496003158cf206c4d1877d4dc73de0adb8d550de24054a3983df3b8b6d-0b9232496003158cf206c4d1877d4dc73de0adb8d550de24054a3983df3b8b6d-1\"",
+        "vary": "Host, Range, Accept"
+      },
+      "body": "\u003cdiv\u003eb\u003c/div\u003e"
+    },
+    {
+      "step": "step 13 (put lis)",
+      "method": "PUT",
+      "path": "/_pl/protocol-serialize-probe-0929-dom-shape-8e2393/lis.html",
+      "status": 201,
+      "headers": {
+        "content-length": "29",
+        "content-type": "text/html",
+        "etag": "\"17201c6142c29f01504508710f8c47afc5a6ced137df81167b91642874f5438c\""
+      },
+      "body": "\u003cul\u003e\u003cli\u003ea\u003cli\u003eb\u003c/li\u003e\u003c/li\u003e\u003c/ul\u003e"
+    },
+    {
+      "step": "step 14 (select li \u003e li on lis)",
+      "method": "GET",
+      "path": "/_pl/protocol-serialize-probe-0929-dom-shape-8e2393/lis.html",
+      "status": 206,
+      "headers": {
+        "content-length": "10",
+        "content-range": "selector li \u003e li",
+        "content-type": "text/html",
+        "etag": "\"c98d02c189f761062e7f9dd4510a1797da62dcac9027180a142cf281563c5e16-c98d02c189f761062e7f9dd4510a1797da62dcac9027180a142cf281563c5e16-1\"",
+        "vary": "Host, Range, Accept"
+      },
+      "body": "\u003cli\u003eb\u003c/li\u003e"
+    },
+    {
+      "step": "step 15 (select ul \u003e li:nth-child(2) on lis)",
+      "method": "GET",
+      "path": "/_pl/protocol-serialize-probe-0929-dom-shape-8e2393/lis.html",
+      "status": 416,
+      "headers": {
+        "content-length": "374",
+        "content-type": "text/html",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\n  \u003chead\u003e\n    \u003ctitle\u003e416 Range Not Satisfiable - Error\u003c/title\u003e\n  \u003c/head\u003e\n  \u003cbody itemscope itemtype=\"http://pagelove.org/Error\"\u003e\n    \u003ch1 itemprop=\"name\"\u003eRange Not Satisfiable\u003c/h1\u003e\n    \u003cmeta itemprop=\"statusCode\" content=\"416\"\u003e\n    \u003cp itemprop=\"description\"\u003eHTML parsing error: No elements matched selector: ul \u0026gt; li:nth-child(2)\u003c/p\u003e\n  \u003c/body\u003e\n\u003c/html\u003e"
+    },
+    {
+      "step": "step 16 (put misnest)",
+      "method": "PUT",
+      "path": "/_pl/protocol-serialize-probe-0929-dom-shape-8e2393/misnest.html",
+      "status": 201,
+      "headers": {
+        "content-length": "77",
+        "content-type": "text/html",
+        "etag": "\"adc53b20fb7b2d81daebb256e2e8ef180e8b428d7aa87d1d3d8d0333f4205f60\""
+      },
+      "body": "\u003cb\u003e\u003ci\u003ex\u003c/i\u003e\u003c/b\u003ey\u003cp\u003ez\u003c/p\u003e\u003cselect\u003e\u003coption\u003ea\u003coption\u003eb\u003c/option\u003e\u003c/option\u003e\u003c/select\u003e"
+    }
+  ],
+  "outcome": "pass",
+  "target": "live"
+}

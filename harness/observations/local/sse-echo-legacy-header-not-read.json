@@ -1,0 +1,63 @@
+{
+  "case": "sse.echo.legacy-header-not-read",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (sse open tab_a)",
+      "method": "GET",
+      "path": "/_pl/sse-echo-legacy-header-not-read-52b128/doc.html",
+      "status": 200,
+      "headers": {
+        "cache-control": "no-cache",
+        "content-type": "text/event-stream",
+        "x-accel-buffering": "no"
+      }
+    },
+    {
+      "step": "step 2 (sse open tab_b)",
+      "method": "GET",
+      "path": "/_pl/sse-echo-legacy-header-not-read-52b128/doc.html",
+      "status": 200,
+      "headers": {
+        "cache-control": "no-cache",
+        "content-type": "text/event-stream",
+        "x-accel-buffering": "no"
+      }
+    },
+    {
+      "step": "step 3",
+      "events": [
+        {
+          "event": "pagelove-connection",
+          "data": "0d257b67-e27e-4318-8e89-a3cf4373a781"
+        }
+      ]
+    },
+    {
+      "step": "step 4",
+      "events": [
+        {
+          "event": "pagelove-connection",
+          "data": "c75dc62a-166b-4100-9c48-7aafed266c3c"
+        }
+      ]
+    },
+    {
+      "step": "step 5 (tab A writes with only the legacy header)",
+      "method": "PUT",
+      "path": "/_pl/sse-echo-legacy-header-not-read-52b128/doc.html",
+      "status": 206,
+      "headers": {
+        "content-length": "15",
+        "content-range": "selector h1",
+        "content-type": "text/html",
+        "etag": "\"2b756e7fc2acc32a5979a37445dc079386ee5906b7b85c1354f7ba7ce757f172-2b756e7fc2acc32a5979a37445dc079386ee5906b7b85c1354f7ba7ce757f172-2\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:58 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003ch1\u003eLegacy\u003c/h1\u003e"
+    }
+  ],
+  "outcome": "pass",
+  "target": "local"
+}

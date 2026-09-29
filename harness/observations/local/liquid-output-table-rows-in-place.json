@@ -1,0 +1,38 @@
+{
+  "case": "liquid.output.table-rows-in-place",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (header cells in place)",
+      "method": "GET",
+      "path": "/_pl/liquid-output-table-rows-in-place-0e3cd4/table.html",
+      "status": 206,
+      "headers": {
+        "accept-ranges": "selector, bytes",
+        "content-length": "57",
+        "content-range": "selector #t thead tr",
+        "content-type": "text/html",
+        "etag": "\"3526c875c8d1c5bcbe4d3f11136132f72b7cfae6bcd13480496d7ab57fc1d339-3526c875c8d1c5bcbe4d3f11136132f72b7cfae6bcd13480496d7ab57fc1d339-1\"",
+        "vary": "Host, Range, Accept"
+      },
+      "body": "\u003ctr\u003e\u003cth\u003eWho\u003c/th\u003e\u003cth id=\"o1\"\u003e1\u003c/th\u003e\u003cth id=\"o2\"\u003e2\u003c/th\u003e\u003c/tr\u003e"
+    },
+    {
+      "step": "step 2 (body rows in place)",
+      "method": "GET",
+      "path": "/_pl/liquid-output-table-rows-in-place-0e3cd4/table.html",
+      "status": 206,
+      "headers": {
+        "accept-ranges": "selector, bytes",
+        "content-length": "63",
+        "content-range": "selector #rows",
+        "content-type": "text/html",
+        "etag": "\"5431223117d5e0004c9a1d439d3d80e1b5af5b85b4f674bf25b9465d73be50f2-5431223117d5e0004c9a1d439d3d80e1b5af5b85b4f674bf25b9465d73be50f2-1\"",
+        "vary": "Host, Range, Accept"
+      },
+      "body": "\u003ctbody id=\"rows\"\u003e\u003ctr\u003e\u003ctd\u003e1\u003c/td\u003e\u003c/tr\u003e\u003ctr\u003e\u003ctd\u003e2\u003c/td\u003e\u003c/tr\u003e\u003c/tbody\u003e"
+    }
+  ],
+  "outcome": "pass",
+  "target": "local"
+}

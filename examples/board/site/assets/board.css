@@ -1,0 +1,22 @@
+:root { color-scheme: light dark; --bg: #f4f5f7; --fg: #172b4d; --muted: #5e6c84; --lane: #ebecf0; --card: #fff; --accent: #0c66e4; }
+@media (prefers-color-scheme: dark) { :root { --bg: #1d2125; --fg: #dee4ea; --muted: #9fadbc; --lane: #22272b; --card: #2c333a; --accent: #579dff; } }
+body { margin: 0; background: var(--bg); color: var(--fg); font: 15px/1.45 system-ui, sans-serif; }
+.board-header { padding: 16px; max-width: 1000px; margin: 0 auto; }
+.board-header h1 { margin: 0; font-size: 26px; }
+.me, .hint { color: var(--muted); margin: 4px 0; font-size: 14px; }
+.me a { color: var(--accent); }
+.lanes { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 12px; padding: 0 16px 16px; max-width: 1000px; margin: 0 auto; }
+.lane { background: var(--lane); border-radius: 12px; padding: 10px; min-height: 120px; }
+.lane h2 { font-size: 14px; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); margin: 4px 6px 10px; }
+.card { background: var(--card); border-radius: 8px; padding: 10px 12px; margin-bottom: 8px; box-shadow: 0 1px 1px #0002; }
+.card h3 { font-size: 15px; margin: 0; font-weight: 600; }
+.who { margin: 2px 0 0; font-size: 12px; color: var(--muted); }
+.moves { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 8px; }
+.moves button { font: inherit; font-size: 12px; border: 1px solid #0002; background: none; color: var(--accent); border-radius: 6px; padding: 3px 8px; cursor: pointer; }
+.moves .illegal { color: #c9372c; }
+.new-card { max-width: 1000px; margin: 0 auto; padding: 0 16px 24px; display: flex; gap: 8px; flex-wrap: wrap; }
+.new-card input { flex: 1; min-width: 200px; font: inherit; padding: 8px 10px; border-radius: 8px; border: 1px solid #0003; }
+.new-card button { font: inherit; padding: 8px 14px; border-radius: 8px; border: 0; background: var(--accent); color: #fff; cursor: pointer; }
+#msg { width: 100%; margin: 0; color: #c9372c; font-size: 14px; }
+
+[hidden] { display: none !important; }

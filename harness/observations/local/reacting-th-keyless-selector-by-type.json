@@ -1,0 +1,63 @@
+{
+  "case": "reacting.th.keyless-selector-by-type",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (install a handler (Order.status becomes processing -\u003e POST ${SINK}/payments))",
+      "method": "PUT",
+      "path": "/_pl/reacting-th-keyless-selector-by-type-eed445/r/handlers.html",
+      "status": 201,
+      "headers": {
+        "content-length": "552",
+        "content-type": "text/html",
+        "etag": "\"9725f61be13865605a453346cca69f38047cac072540c6b4351c0506bd88881f\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:50 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\n\u003cdiv itemscope itemtype=\"https://pagelove.org/TransitionHandler\"\u003e\n  \u003cmeta itemprop=\"selector\" content=\"[itemtype='https://pagelike.test/_pl/reacting-th-keyless-selector-by-type-eed445/Order']\"\u003e\n  \u003cmeta itemprop=\"property\" content=\"status\"\u003e\n  \u003cmeta itemprop=\"becomes\" content=\"processing\"\u003e\n  \u003cdiv itemprop=\"action\" itemscope itemtype=\"https://pagelove.org/HttpRequest\"\u003e\n    \u003cmeta itemprop=\"url\" content=\"http://127.0.0.1:53633/c-23691016/payments\"\u003e\n    \u003cmeta itemprop=\"method\" content=\"POST\"\u003e\n  \u003c/div\u003e\n\u003c/div\u003e\n\u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 2 (seed order-1 at pending)",
+      "method": "PUT",
+      "path": "/_pl/reacting-th-keyless-selector-by-type-eed445/orders/order-1.html",
+      "status": 201,
+      "headers": {
+        "content-length": "240",
+        "content-type": "text/html",
+        "etag": "\"65dc2a7c26ffbddf52f4058ce6e12079eb5241be96b5732d93cc8d054719bfae\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:50 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\u003cdiv id=\"order1\" itemscope itemtype=\"https://pagelike.test/_pl/reacting-th-keyless-selector-by-type-eed445/Order\"\u003e\u003cmeta itemprop=\"status\" content=\"pending\"\u003e\u003cspan itemprop=\"total\"\u003e42.00\u003c/span\u003e\u003c/div\u003e\u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 3 (move order-1 to processing)",
+      "method": "PUT",
+      "path": "/_pl/reacting-th-keyless-selector-by-type-eed445/orders/order-1.html",
+      "status": 206,
+      "headers": {
+        "content-length": "200",
+        "content-range": "selector #order1",
+        "content-type": "text/html",
+        "etag": "\"6dc84224446ab9096be8acafd7c1530c159e647affdb110f36ca01be8fa8201d-6dc84224446ab9096be8acafd7c1530c159e647affdb110f36ca01be8fa8201d-2\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:50 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003cdiv id=\"order1\" itemscope itemtype=\"https://pagelike.test/_pl/reacting-th-keyless-selector-by-type-eed445/Order\"\u003e\u003cmeta itemprop=\"status\" content=\"processing\"\u003e\u003cspan itemprop=\"total\"\u003e42.00\u003c/span\u003e\u003c/div\u003e"
+    },
+    {
+      "step": "step 4",
+      "method": "POST",
+      "path": "${SINK}/payments",
+      "headers": {
+        "accept-encoding": "gzip",
+        "content-length": "611",
+        "content-type": "text/html",
+        "user-agent": "Go-http-client/1.1"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\n  \u003chead\u003e\u003ctitle\u003eTransition\u003c/title\u003e\u003c/head\u003e\n  \u003cbody itemscope itemtype=\"https://pagelove.org/Transition\"\u003e\n    \u003cmeta itemprop=\"path\" content=\"/_pl/reacting-th-keyless-selector-by-type-eed445/orders/order-1.html\"\u003e\n    \u003cmeta itemprop=\"selector\" content=\"[itemtype=\u0026quot;https://pagelike.test/_pl/reacting-th-keyless-selector-by-type-eed445/Order\u0026quot;]\"\u003e\n    \u003cdiv id=\"order1\" itemscope itemtype=\"https://pagelike.test/_pl/reacting-th-keyless-selector-by-type-eed445/Order\" itemprop=\"body\"\u003e\u003cmeta itemprop=\"status\" content=\"processing\"\u003e\u003cspan itemprop=\"total\"\u003e42.00\u003c/span\u003e\u003c/div\u003e\n  \u003c/body\u003e\n\u003c/html\u003e\n"
+    }
+  ],
+  "outcome": "pass",
+  "target": "local"
+}

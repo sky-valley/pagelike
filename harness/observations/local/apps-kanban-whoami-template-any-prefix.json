@@ -1,0 +1,53 @@
+{
+  "case": "apps.kanban.whoami-template-any-prefix",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (whole board (the app's sync read))",
+      "method": "GET",
+      "path": "/_pl/apps-kanban-whoami-template-any-prefix-c5e7d7/boards/w1.html?sync=1",
+      "status": 200,
+      "headers": {
+        "accept-ranges": "selector, bytes",
+        "cache-control": "private",
+        "content-length": "293",
+        "content-type": "text/html",
+        "etag": "W/\"bc33e3f10298c811329f9c1b5a0da72736cbce92df17a5b43d5ccddb7ed0a926\"",
+        "vary": "Host, Range, Accept"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml lang=\"en\"\u003e\n\u003chead\u003e\u003cmeta charset=\"utf-8\"\u003e\u003ctitle\u003eLaunch — Board\u003c/title\u003e\u003c/head\u003e\n\u003cbody class=\"board\" data-bg=\"ocean\" data-board=\"b-w1\" itemscope itemtype=\"urn:board:Board\"\u003e\n\u003cdiv id=\"whoami-server\" hidden\u003e||||\u003c/div\u003e\n\u003cmain class=\"lists-row\" id=\"lists\"\u003e\u003c/main\u003e\n\u003c/body\u003e\n\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 2 (the rendered identity line)",
+      "method": "GET",
+      "path": "/_pl/apps-kanban-whoami-template-any-prefix-c5e7d7/boards/w1.html",
+      "status": 206,
+      "headers": {
+        "accept-ranges": "selector, bytes",
+        "cache-control": "private",
+        "content-length": "41",
+        "content-range": "selector #whoami-server",
+        "content-type": "text/html",
+        "etag": "\"0ad868d5cddad649ce49004f76e0f31f410090ce204bcbf123211d6ebc0c365a-0ad868d5cddad649ce49004f76e0f31f410090ce204bcbf123211d6ebc0c365a-1\"",
+        "vary": "Host, Range, Accept"
+      },
+      "body": "\u003cdiv id=\"whoami-server\" hidden\u003e||||\u003c/div\u003e"
+    },
+    {
+      "step": "step 3 (the stored board keeps its template)",
+      "method": "GET",
+      "path": "/_pl/apps-kanban-whoami-template-any-prefix-c5e7d7/boards/w1.html",
+      "status": 200,
+      "headers": {
+        "accept-ranges": "bytes",
+        "content-length": "540",
+        "content-type": "text/html",
+        "etag": "\"9c26b6725f49360b87fb145cffb0bd3eb6fde8e0f8bcee59646330a2426cac20\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:41 GMT"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml lang=\"en\" xmlns:pagelove=\"https://pagelove.org/1.0\"\u003e\n\u003chead\u003e\u003cmeta charset=\"utf-8\"\u003e\u003ctitle\u003eLaunch — Board\u003c/title\u003e\u003c/head\u003e\n\u003cbody class=\"board\" data-bg=\"ocean\" data-board=\"b-w1\" itemscope itemtype=\"urn:board:Board\"\u003e\n\u003cdiv id=\"whoami-server\" hidden pagelove:template=\"text/liquid\"\u003e{{ request.auth.username }}|{{ request.auth.claims.name }}|{{ request.auth.claims.email }}|{{ request.auth.claims.picture }}|{% for r in request.auth.role %}{{ r }} {% endfor %}\u003c/div\u003e\n\u003cmain class=\"lists-row\" id=\"lists\"\u003e\u003c/main\u003e\n\u003c/body\u003e\n\u003c/html\u003e\n"
+    }
+  ],
+  "outcome": "pass",
+  "target": "local"
+}

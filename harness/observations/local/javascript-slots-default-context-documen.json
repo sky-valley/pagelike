@@ -1,0 +1,50 @@
+{
+  "case": "javascript.slots.default-context-document-html",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (register declarations through the public plane (takes effect for the next request))",
+      "method": "PUT",
+      "path": "/_pl/javascript-slots-default-context-documen-51abaf/schema.html",
+      "status": 201,
+      "headers": {
+        "content-length": "846",
+        "content-type": "text/html",
+        "etag": "\"631b1f38a879b73eb05217cd0ec0eb99a5c1fdf8c26c15a0fc983efb99d47b57\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:43 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\n\u003cdiv hidden itemscope itemtype=\"https://pagelove.org/Schema\"\u003e\n\u003cmeta itemprop=\"type\" content=\"https://pagelike.test/_pl/javascript-slots-default-context-documen-51abaf/Dfdefaultcontextdocumenthtml\"\u003e\n\u003cdiv itemprop=\"property\" itemscope itemtype=\"https://pagelove.org/Property\"\u003e\n\u003cmeta itemprop=\"name\" content=\"d\"\u003e\n\u003cmeta itemprop=\"type\" content=\"https://schema.host/Text\"\u003e\n\u003cmeta itemprop=\"cardinality\" content=\"0..1\"\u003e\n\u003cdiv itemprop=\"default\" itemscope itemtype=\"https://pagelove.org/JavaScript/Module\"\u003e\n\u003cscript itemprop=\"source\" type=\"module\"\u003e\nexport default function (context) {\n  const ok = context !== null \u0026\u0026 typeof context === 'object' \u0026\u0026 typeof context.document_html === 'string' \u0026\u0026 context.document_html.includes('ctx-marker-zq');\n  return ok ? 'has-doc' : 'no-doc';\n}\n\u003c/script\u003e\n\u003c/div\u003e\n\u003c/div\u003e\n\u003c/div\u003e\n\u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 2 (PUT an instance (a.html))",
+      "method": "PUT",
+      "path": "/_pl/javascript-slots-default-context-documen-51abaf/a.html",
+      "status": 201,
+      "headers": {
+        "content-length": "275",
+        "content-type": "text/html",
+        "etag": "\"bf3755e54653cdcb1c53f3abd343d67c99929e9fa3380847773efc11e5786f11\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:43 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\n\u003cp\u003ectx-marker-zq\u003c/p\u003e\n\u003cdiv itemscope itemtype=\"https://pagelike.test/_pl/javascript-slots-default-context-documen-51abaf/Dfdefaultcontextdocumenthtml\"\u003e\n\u003cmeta itemprop=\"other\" content=\"o\"\u003e\n\u003cmeta itemprop=\"d\" content=\"has-doc\"\u003e\u003c/div\u003e\n\u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 3 (stored state (authoring plane, raw))",
+      "method": "GET",
+      "path": "/_pl/javascript-slots-default-context-documen-51abaf/a.html",
+      "status": 200,
+      "headers": {
+        "accept-ranges": "bytes",
+        "content-length": "275",
+        "content-type": "text/html",
+        "etag": "\"bf3755e54653cdcb1c53f3abd343d67c99929e9fa3380847773efc11e5786f11\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:43 GMT"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\n\u003cp\u003ectx-marker-zq\u003c/p\u003e\n\u003cdiv itemscope itemtype=\"https://pagelike.test/_pl/javascript-slots-default-context-documen-51abaf/Dfdefaultcontextdocumenthtml\"\u003e\n\u003cmeta itemprop=\"other\" content=\"o\"\u003e\n\u003cmeta itemprop=\"d\" content=\"has-doc\"\u003e\u003c/div\u003e\n\u003c/body\u003e\u003c/html\u003e\n"
+    }
+  ],
+  "outcome": "pass",
+  "target": "local"
+}

@@ -1,0 +1,145 @@
+{
+  "case": "reacting.filters.probe-0929.selector-scope",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (install the selector-filtered triggers and processor)",
+      "method": "PUT",
+      "path": "/_pl/reacting-filters-probe-0929-selector-sco-4bbd0f/r/triggers.html",
+      "status": 201,
+      "headers": {
+        "content-type": "text/html",
+        "etag": "\"261540e9e01c1bd589f9e0d1ebddb5a87d24bb9cdef42fd2c868ded4f39799e7\"",
+        "last-modified": "Tue, 29 Sep 2026 01:40:45 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\n\u003cdiv hidden itemscope itemtype=\"https://pagelove.org/Trigger\"\u003e\n  \u003cmeta itemprop=\"resource\" content=\"/_pl/reacting-filters-probe-0929-selector-sco-4bbd0f/d/*\"\u003e\n  \u003cmeta itemprop=\"method\" content=\"PUT\"\u003e\n  \u003cmeta itemprop=\"selector\" content=\"article\"\u003e\n  \u003cdiv itemprop=\"action\" itemscope itemtype=\"https://pagelove.org/Sessel\"\u003e\n    \u003cscript itemprop=\"source\" type=\"text/sessel\"\u003e\n      @schema HTTPResponse url(\"https://pagelove.org/HTTPResponse\");\n      throw new HTTPResponse { status: 409, message: \"article-hit\" }\n    \u003c/script\u003e\n  \u003c/div\u003e\n\u003c/div\u003e\n\u003cdiv hidden itemscope itemtype=\"https://pagelove.org/Trigger\"\u003e\n  \u003cmeta itemprop=\"resource\" content=\"/_pl/reacting-filters-probe-0929-selector-sco-4bbd0f/m/*\"\u003e\n  \u003cmeta itemprop=\"method\" content=\"POST\"\u003e\n  \u003cmeta itemprop=\"selector\" content=\"#never-present\"\u003e\n  \u003cdiv itemprop=\"action\" itemscope itemtype=\"https://pagelove.org/Sessel\"\u003e\n    \u003cscript itemprop=\"source\" type=\"text/sessel\"\u003e\n      @schema HTTPResponse url(\"https://pagelove.org/HTTPResponse\");\n      throw new HTTPResponse { status: 409, body: \"post-hit\" }\n    \u003c/script\u003e\n  \u003c/div\u003e\n\u003c/div\u003e\n\u003cdiv hidden itemscope itemtype=\"https://pagelove.org/Trigger\"\u003e\n  \u003cmeta itemprop=\"resource\" content=\"/_pl/reacting-filters-probe-0929-selector-sco-4bbd0f/m/*\"\u003e\n  \u003cmeta itemprop=\"method\" content=\"GET\"\u003e\n  \u003cmeta itemprop=\"selector\" content=\"#never-present\"\u003e\n  \u003cdiv itemprop=\"action\" itemscope itemtype=\"https://pagelove.org/Sessel\"\u003e\n    \u003cscript itemprop=\"source\" type=\"text/sessel\"\u003e\n      @schema HTTPResponse url(\"https://pagelove.org/HTTPResponse\");\n      throw new HTTPResponse { status: 409, body: \"get-hit\" }\n    \u003c/script\u003e\n  \u003c/div\u003e\n\u003c/div\u003e\n\u003cdiv hidden itemscope itemtype=\"https://pagelove.org/Trigger\"\u003e\n  \u003cmeta itemprop=\"resource\" content=\"/_pl/reacting-filters-probe-0929-selector-sco-4bbd0f/m/*\"\u003e\n  \u003cmeta itemprop=\"method\" content=\"DELETE\"\u003e\n  \u003cmeta itemprop=\"selector\" content=\"#never-present\"\u003e\n  \u003cdiv itemprop=\"action\" itemscope itemtype=\"https://pagelove.org/Sessel\"\u003e\n    \u003cscript itemprop=\"source\" type=\"text/sessel\"\u003e\n      @schema HTTPResponse url(\"https://pagelove.org/HTTPResponse\");\n      throw new HTTPResponse { status: 409, body: \"delete-hit\" }\n    \u003c/script\u003e\n  \u003c/div\u003e\n\u003c/div\u003e\n\u003cdiv hidden itemscope itemtype=\"https://pagelove.org/Processor\"\u003e\n  \u003cmeta itemprop=\"resource\" content=\"/_pl/reacting-filters-probe-0929-selector-sco-4bbd0f/p/*\"\u003e\n  \u003cmeta itemprop=\"method\" content=\"GET\"\u003e\n  \u003cmeta itemprop=\"selector\" content=\"#never-present\"\u003e\n  \u003cdiv itemprop=\"action\" itemscope itemtype=\"https://pagelove.org/Sessel\"\u003e\n    \u003cscript itemprop=\"source\" type=\"text/sessel\"\u003e\n      @schema Context url(\"https://pagelove.org/Context\");\n      Context.response.status = 418\n    \u003c/script\u003e\n  \u003c/div\u003e\n\u003c/div\u003e\n\n                \u003cdiv style=\"\n                            position: fixed;\n                            bottom: 0;\n                            left: 0;\n                            right: 0;\n                            padding: 8px;\n                            background: #f0f0f0;\n                            text-align: center;\n                            font-size: 12px;\n                            color: #666;\n                            z-index: 9999;\n                            opacity: 0.8;\n                            border-top: 1px solid #ddd;\n                        \"\u003e\n                    Powered by\n                    \u003ca href=\"https://pagelove.com/\" style=\"color: #4a90d9; text-decoration: none\"\u003ePagelove\u003c/a\u003e\n                \u003c/div\u003e\n            \u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 2 (selector PUT of #h in a document without an article)",
+      "method": "PUT",
+      "path": "/_pl/reacting-filters-probe-0929-selector-sco-4bbd0f/d/noart.html",
+      "status": 409,
+      "headers": {
+        "content-length": "286",
+        "content-type": "text/html",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\n  \u003chead\u003e\n    \u003ctitle\u003e409 Conflict - Error\u003c/title\u003e\n  \u003c/head\u003e\n  \u003cbody itemscope itemtype=\"http://pagelove.org/Error\"\u003e\n    \u003ch1 itemprop=\"name\"\u003eConflict\u003c/h1\u003e\n    \u003cmeta itemprop=\"statusCode\" content=\"409\"\u003e\n    \u003cp itemprop=\"description\"\u003earticle-hit\u003c/p\u003e\n  \u003c/body\u003e\n\u003c/html\u003e"
+    },
+    {
+      "step": "step 3 (selector PUT of #h whose parent has no article (the article is elsewhere in the document))",
+      "method": "PUT",
+      "path": "/_pl/reacting-filters-probe-0929-selector-sco-4bbd0f/d/nested.html",
+      "status": 409,
+      "headers": {
+        "content-length": "286",
+        "content-type": "text/html",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\n  \u003chead\u003e\n    \u003ctitle\u003e409 Conflict - Error\u003c/title\u003e\n  \u003c/head\u003e\n  \u003cbody itemscope itemtype=\"http://pagelove.org/Error\"\u003e\n    \u003ch1 itemprop=\"name\"\u003eConflict\u003c/h1\u003e\n    \u003cmeta itemprop=\"statusCode\" content=\"409\"\u003e\n    \u003cp itemprop=\"description\"\u003earticle-hit\u003c/p\u003e\n  \u003c/body\u003e\n\u003c/html\u003e"
+    },
+    {
+      "step": "step 4 (selector PUT of #h beside an article)",
+      "method": "PUT",
+      "path": "/_pl/reacting-filters-probe-0929-selector-sco-4bbd0f/d/art.html",
+      "status": 409,
+      "headers": {
+        "content-length": "286",
+        "content-type": "text/html",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\n  \u003chead\u003e\n    \u003ctitle\u003e409 Conflict - Error\u003c/title\u003e\n  \u003c/head\u003e\n  \u003cbody itemscope itemtype=\"http://pagelove.org/Error\"\u003e\n    \u003ch1 itemprop=\"name\"\u003eConflict\u003c/h1\u003e\n    \u003cmeta itemprop=\"statusCode\" content=\"409\"\u003e\n    \u003cp itemprop=\"description\"\u003earticle-hit\u003c/p\u003e\n  \u003c/body\u003e\n\u003c/html\u003e"
+    },
+    {
+      "step": "step 5 (selector PUT of a missing element in a document without an article)",
+      "method": "PUT",
+      "path": "/_pl/reacting-filters-probe-0929-selector-sco-4bbd0f/d/noart.html",
+      "status": 409,
+      "headers": {
+        "content-length": "286",
+        "content-type": "text/html",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\n  \u003chead\u003e\n    \u003ctitle\u003e409 Conflict - Error\u003c/title\u003e\n  \u003c/head\u003e\n  \u003cbody itemscope itemtype=\"http://pagelove.org/Error\"\u003e\n    \u003ch1 itemprop=\"name\"\u003eConflict\u003c/h1\u003e\n    \u003cmeta itemprop=\"statusCode\" content=\"409\"\u003e\n    \u003cp itemprop=\"description\"\u003earticle-hit\u003c/p\u003e\n  \u003c/body\u003e\n\u003c/html\u003e"
+    },
+    {
+      "step": "step 6 (whole-document PUT of the document without an article (no request selector))",
+      "method": "PUT",
+      "path": "/_pl/reacting-filters-probe-0929-selector-sco-4bbd0f/d/noart.html",
+      "status": 409,
+      "headers": {
+        "content-length": "286",
+        "content-type": "text/html",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\n  \u003chead\u003e\n    \u003ctitle\u003e409 Conflict - Error\u003c/title\u003e\n  \u003c/head\u003e\n  \u003cbody itemscope itemtype=\"http://pagelove.org/Error\"\u003e\n    \u003ch1 itemprop=\"name\"\u003eConflict\u003c/h1\u003e\n    \u003cmeta itemprop=\"statusCode\" content=\"409\"\u003e\n    \u003cp itemprop=\"description\"\u003earticle-hit\u003c/p\u003e\n  \u003c/body\u003e\n\u003c/html\u003e"
+    },
+    {
+      "step": "step 7 (selector POST into #l, filter '#never-present')",
+      "method": "POST",
+      "path": "/_pl/reacting-filters-probe-0929-selector-sco-4bbd0f/m/doc.html",
+      "status": 409,
+      "headers": {
+        "content-length": "8",
+        "content-type": "text/html",
+        "vary": "Host, Range"
+      },
+      "body": "post-hit"
+    },
+    {
+      "step": "step 8 (selector GET of #h, filter '#never-present')",
+      "method": "GET",
+      "path": "/_pl/reacting-filters-probe-0929-selector-sco-4bbd0f/m/doc.html",
+      "status": 409,
+      "headers": {
+        "content-length": "7",
+        "content-type": "text/html",
+        "vary": "Host, Range"
+      },
+      "body": "get-hit"
+    },
+    {
+      "step": "step 9 (selector DELETE of #i1, filter '#never-present')",
+      "method": "DELETE",
+      "path": "/_pl/reacting-filters-probe-0929-selector-sco-4bbd0f/m/doc.html",
+      "status": 409,
+      "headers": {
+        "content-length": "10",
+        "content-type": "text/html",
+        "vary": "Host, Range"
+      },
+      "body": "delete-hit"
+    },
+    {
+      "step": "step 10 (processor, selector GET of #h, filter '#never-present')",
+      "method": "GET",
+      "path": "/_pl/reacting-filters-probe-0929-selector-sco-4bbd0f/p/doc.html",
+      "status": 418,
+      "headers": {
+        "content-length": "21",
+        "content-range": "selector #h",
+        "content-type": "text/html",
+        "etag": "\"6eb3a2730b01c399acd27b204e8b2472285ef9f1ba90db0e83bd2d2f7bb631fc-6eb3a2730b01c399acd27b204e8b2472285ef9f1ba90db0e83bd2d2f7bb631fc-1\"",
+        "vary": "Host, Range, Accept"
+      },
+      "body": "\u003ch1 id=\"h\"\u003eTitle\u003c/h1\u003e"
+    },
+    {
+      "step": "step 11 (processor, whole-document GET (no request selector))",
+      "method": "GET",
+      "path": "/_pl/reacting-filters-probe-0929-selector-sco-4bbd0f/p/doc.html",
+      "status": 418,
+      "headers": {
+        "content-length": "64",
+        "content-type": "text/html",
+        "etag": "\"f5b9ff8e937defa13c5dc3c17a22750733c7dda33ee358e27c2bd5ee4226f7a5\"",
+        "last-modified": "Tue, 29 Sep 2026 01:40:44 GMT",
+        "vary": "Host, Range, Accept"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\u003ch1 id=\"h\"\u003eTitle\u003c/h1\u003e\u003c/body\u003e\u003c/html\u003e\n"
+    }
+  ],
+  "outcome": "pass",
+  "target": "live"
+}

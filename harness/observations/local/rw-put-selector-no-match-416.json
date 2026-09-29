@@ -1,0 +1,35 @@
+{
+  "case": "rw.put.selector-no-match-416",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (PUT to an absent h2)",
+      "method": "PUT",
+      "path": "/_pl/rw-put-selector-no-match-416-964b6a/nomatch.html",
+      "status": 416,
+      "headers": {
+        "content-length": "425",
+        "content-type": "text/html",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\u003cdiv itemscope itemtype=\"http://pagelove.org/Error\"\u003e\u003cspan itemprop=\"statusCode\"\u003e416\u003c/span\u003e\u003cspan itemprop=\"message\"\u003e\u003cdiv itemscope itemtype=\"https://dombase.pagelove.team/ns/error/selector-no-match\"\u003e\u003cul itemprop=\"problems\"\u003e\u003cli itemprop=\"problem\"\u003e\u003cspan itemprop=\"message\"\u003eselector \"h2\": selector matched no elements at the request path or any origin\u003c/span\u003e\u003c/li\u003e\u003c/ul\u003e\u003c/div\u003e\u003c/span\u003e\u003c/div\u003e\u003c/body\u003e\u003c/html\u003e"
+    },
+    {
+      "step": "step 2 (document unchanged)",
+      "method": "GET",
+      "path": "/_pl/rw-put-selector-no-match-416-964b6a/nomatch.html",
+      "status": 200,
+      "headers": {
+        "accept-ranges": "selector, bytes",
+        "content-length": "59",
+        "content-type": "text/html",
+        "etag": "\"5e06d00920770ea1b0cb8a0b2d09ff8405a04cbd70d2d2a692aea3def7612379\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:56 GMT",
+        "vary": "Host, Range, Accept"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\u003ch1\u003eOnly h1\u003c/h1\u003e\u003c/body\u003e\u003c/html\u003e\n"
+    }
+  ],
+  "outcome": "pass",
+  "target": "local"
+}

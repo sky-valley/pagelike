@@ -1,0 +1,47 @@
+{
+  "case": "reacting.discovery.subtype-via-schema-parent",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (register a Guard type whose parent is Trigger)",
+      "method": "PUT",
+      "path": "/_pl/reacting-discovery-subtype-via-schema-pa-acdd56/r/schema.html",
+      "status": 201,
+      "headers": {
+        "content-length": "294",
+        "content-type": "text/html",
+        "etag": "\"bf295176f13e0eb79e29cf201e09fea804d67c64832c9d3bfe66c8f938c2f764\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:48 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\n\u003cdiv hidden itemscope itemtype=\"https://pagelove.org/Schema\"\u003e\n  \u003cmeta itemprop=\"type\" content=\"https://pagelike.test/_pl/reacting-discovery-subtype-via-schema-pa-acdd56/Guard\"\u003e\n  \u003cmeta itemprop=\"parent\" content=\"https://pagelove.org/Trigger\"\u003e\n\u003c/div\u003e\n\u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 2 (install a Guard item)",
+      "method": "PUT",
+      "path": "/_pl/reacting-discovery-subtype-via-schema-pa-acdd56/r/guards.html",
+      "status": 201,
+      "headers": {
+        "content-length": "590",
+        "content-type": "text/html",
+        "etag": "\"fedcc606e7183bc7b98dbb65e87471bf8213035e4f5924d4e261207650cf74a5\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:48 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\n\u003cdiv hidden itemscope itemtype=\"https://pagelike.test/_pl/reacting-discovery-subtype-via-schema-pa-acdd56/Guard\"\u003e\n  \u003cmeta itemprop=\"resource\" content=\"/_pl/reacting-discovery-subtype-via-schema-pa-acdd56/d/*\"\u003e\n  \u003cmeta itemprop=\"method\" content=\"PUT\"\u003e\n  \u003cdiv itemprop=\"action\" itemscope itemtype=\"https://pagelove.org/Sessel\"\u003e\n    \u003cscript itemprop=\"source\" type=\"text/sessel\"\u003e\n      @schema HTTPResponse url(\"https://pagelove.org/HTTPResponse\");\n      throw new HTTPResponse { status: 409, message: \"subtype-guard\" }\n    \u003c/script\u003e\n  \u003c/div\u003e\n\u003c/div\u003e\n\u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 3 (the subtype item fires)",
+      "method": "PUT",
+      "path": "/_pl/reacting-discovery-subtype-via-schema-pa-acdd56/d/x.html",
+      "status": 409,
+      "headers": {
+        "content-length": "13",
+        "content-type": "text/html; charset=utf-8"
+      },
+      "body": "subtype-guard"
+    }
+  ],
+  "outcome": "pass",
+  "target": "local"
+}

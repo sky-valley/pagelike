@@ -1,0 +1,46 @@
+{
+  "case": "reacting.discovery.subtype-via-schema-parent",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (register a Guard type whose parent is Trigger)",
+      "method": "PUT",
+      "path": "/_pl/reacting-discovery-subtype-via-schema-pa-3db1e8/r/schema.html",
+      "status": 201,
+      "headers": {
+        "content-type": "text/html",
+        "etag": "\"abef8bd7f83ba7598c55455913dd86d9274d928398c1d26cbb77cf693a26a4e9\"",
+        "last-modified": "Tue, 29 Sep 2026 00:49:25 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\n\u003cdiv hidden itemscope itemtype=\"https://pagelove.org/Schema\"\u003e\n  \u003cmeta itemprop=\"type\" content=\"https://pagelike.test/_pl/reacting-discovery-subtype-via-schema-pa-3db1e8/Guard\"\u003e\n  \u003cmeta itemprop=\"parent\" content=\"https://pagelove.org/Trigger\"\u003e\n\u003cmeta itemprop=\"@id\" content=\"https://schema.host/wn7gabtc\"\u003e\u003cmeta itemprop=\"path\" content=\"/Schemahttps://schema.host/wn7gabtc.html\"\u003e\u003c/div\u003e\n\n                \u003cdiv style=\"\n                            position: fixed;\n                            bottom: 0;\n                            left: 0;\n                            right: 0;\n                            padding: 8px;\n                            background: #f0f0f0;\n                            text-align: center;\n                            font-size: 12px;\n                            color: #666;\n                            z-index: 9999;\n                            opacity: 0.8;\n                            border-top: 1px solid #ddd;\n                        \"\u003e\n                    Powered by\n                    \u003ca href=\"https://pagelove.com/\" style=\"color: #4a90d9; text-decoration: none\"\u003ePagelove\u003c/a\u003e\n                \u003c/div\u003e\n            \u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 2 (install a Guard item)",
+      "method": "PUT",
+      "path": "/_pl/reacting-discovery-subtype-via-schema-pa-3db1e8/r/guards.html",
+      "status": 201,
+      "headers": {
+        "content-type": "text/html",
+        "etag": "\"0c1a7656d2810d5cb12368d779467c59c2da2739d8e42863a2b90fbfddf8a88c\"",
+        "last-modified": "Tue, 29 Sep 2026 00:49:25 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\n\u003cdiv hidden itemscope itemtype=\"https://pagelike.test/_pl/reacting-discovery-subtype-via-schema-pa-3db1e8/Guard\"\u003e\n  \u003cmeta itemprop=\"resource\" content=\"/_pl/reacting-discovery-subtype-via-schema-pa-3db1e8/d/*\"\u003e\n  \u003cmeta itemprop=\"method\" content=\"PUT\"\u003e\n  \u003cdiv itemprop=\"action\" itemscope itemtype=\"https://pagelove.org/Sessel\"\u003e\n    \u003cscript itemprop=\"source\" type=\"text/sessel\"\u003e\n      @schema HTTPResponse url(\"https://pagelove.org/HTTPResponse\");\n      throw new HTTPResponse { status: 409, message: \"subtype-guard\" }\n    \u003c/script\u003e\n  \u003c/div\u003e\n\u003c/div\u003e\n\n                \u003cdiv style=\"\n                            position: fixed;\n                            bottom: 0;\n                            left: 0;\n                            right: 0;\n                            padding: 8px;\n                            background: #f0f0f0;\n                            text-align: center;\n                            font-size: 12px;\n                            color: #666;\n                            z-index: 9999;\n                            opacity: 0.8;\n                            border-top: 1px solid #ddd;\n                        \"\u003e\n                    Powered by\n                    \u003ca href=\"https://pagelove.com/\" style=\"color: #4a90d9; text-decoration: none\"\u003ePagelove\u003c/a\u003e\n                \u003c/div\u003e\n            \u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 3 (the subtype item fires)",
+      "method": "PUT",
+      "path": "/_pl/reacting-discovery-subtype-via-schema-pa-3db1e8/d/x.html",
+      "status": 409,
+      "headers": {
+        "content-length": "288",
+        "content-type": "text/html",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\n  \u003chead\u003e\n    \u003ctitle\u003e409 Conflict - Error\u003c/title\u003e\n  \u003c/head\u003e\n  \u003cbody itemscope itemtype=\"http://pagelove.org/Error\"\u003e\n    \u003ch1 itemprop=\"name\"\u003eConflict\u003c/h1\u003e\n    \u003cmeta itemprop=\"statusCode\" content=\"409\"\u003e\n    \u003cp itemprop=\"description\"\u003esubtype-guard\u003c/p\u003e\n  \u003c/body\u003e\n\u003c/html\u003e"
+    }
+  ],
+  "outcome": "pass",
+  "target": "live"
+}

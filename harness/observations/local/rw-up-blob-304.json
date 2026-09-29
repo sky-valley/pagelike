@@ -1,0 +1,35 @@
+{
+  "case": "rw.up.blob-304",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (fetch)",
+      "method": "GET",
+      "path": "/_pl/rw-up-blob-304-673cd5/cached.css",
+      "status": 200,
+      "headers": {
+        "accept-ranges": "bytes",
+        "cache-control": "public, max-age=300",
+        "content-length": "19",
+        "content-type": "text/css",
+        "etag": "\"3a854b3a5696005d76aea1207d0ab771f2d83b41459736d7e06c598cf4620213\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:56 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "a { color: green; }"
+    },
+    {
+      "step": "step 2 (revalidate)",
+      "method": "GET",
+      "path": "/_pl/rw-up-blob-304-673cd5/cached.css",
+      "status": 304,
+      "headers": {
+        "etag": "\"3a854b3a5696005d76aea1207d0ab771f2d83b41459736d7e06c598cf4620213\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:56 GMT",
+        "vary": "Host, Range"
+      }
+    }
+  ],
+  "outcome": "pass",
+  "target": "local"
+}

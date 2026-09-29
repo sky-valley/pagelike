@@ -1,0 +1,34 @@
+{
+  "case": "reacting.processor.status-filter-non-matching-pass-through",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (install a 5xx processor)",
+      "method": "PUT",
+      "path": "/_pl/reacting-processor-status-filter-non-mat-3e1a53/r/processors.html",
+      "status": 201,
+      "headers": {
+        "content-length": "510",
+        "content-type": "text/html",
+        "etag": "\"2ef3ce127600023ebdc01a4d10d1b2ec74be6fe8ad98ce1a84efde62e71df89f\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:49 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\n\u003cdiv hidden itemscope itemtype=\"https://pagelove.org/Processor\"\u003e\n  \u003cmeta itemprop=\"resource\" content=\"/_pl/reacting-processor-status-filter-non-mat-3e1a53/d/*\"\u003e\n  \u003cmeta itemprop=\"status\" content=\"5xx\"\u003e\n  \u003cdiv itemprop=\"action\" itemscope itemtype=\"https://pagelove.org/Sessel\"\u003e\n    \u003cscript itemprop=\"source\" type=\"text/sessel\"\u003e\n      @schema Context url(\"https://pagelove.org/Context\");\n      Context.response.body = \"server-error-page\"\n    \u003c/script\u003e\n  \u003c/div\u003e\n\u003c/div\u003e\n\u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 2 (a 404 passes through)",
+      "method": "GET",
+      "path": "/_pl/reacting-processor-status-filter-non-mat-3e1a53/d/missing.html",
+      "status": 404,
+      "headers": {
+        "content-length": "365",
+        "content-type": "text/html",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\n  \u003chead\u003e\n    \u003ctitle\u003e404 Not Found - Error\u003c/title\u003e\n  \u003c/head\u003e\n  \u003cbody itemscope itemtype=\"http://pagelove.org/Error\"\u003e\n    \u003ch1 itemprop=\"name\"\u003eNot Found\u003c/h1\u003e\n    \u003cmeta itemprop=\"statusCode\" content=\"404\"\u003e\n    \u003cp itemprop=\"description\"\u003eDocument not found: /_pl/reacting-processor-status-filter-non-mat-3e1a53/d/missing.html\u003c/p\u003e\n  \u003c/body\u003e\n\u003c/html\u003e\n"
+    }
+  ],
+  "outcome": "pass",
+  "target": "local"
+}

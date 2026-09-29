@@ -1,0 +1,224 @@
+# Composing: JavaScript expression bindings (j:).
+# Spec: docs/spec/composing.md §8 (R-COMP-40..43).
+cases:
+  - id: comp.jb.reduce-example
+    title: "A j: binding computes with JavaScript and a later binding reads it as a bare identifier"
+    area: composing
+    feature: JavaScript binding
+    evidence: documented
+    source: "docs reference/composing-pages/JavaScript-Expression-Binding §Attribute form, §In action (snapshot 2026-09-28)"
+    confidence: high
+    requires: [server-js, liquid]
+    live: true
+    notes: "The docs example uses pagelove:template without a visible declaration; it is declared here to stay out of contradiction C-1."
+    site:
+      settings: {default_get: allow}
+      files:
+        - path: "${P}/js-expr-summary.html"
+          body: |
+            <!DOCTYPE html>
+            <html xmlns:j="https://pagelove.org/Binding/JavaScript" xmlns:pagelove="https://pagelove.org/1.0">
+            <body>
+              <ul j:total="[10, 20, 30].reduce((a, b) => a + b, 0)"
+                  j:doubled="total * 2"
+                  pagelove:template="text/liquid">
+                <li>Total: {{ total }}</li>
+                <li>Doubled: {{ doubled }}</li>
+              </ul>
+            </body>
+            </html>
+      rules:
+        - {actor: "*", resource: "${P}/*", method: [GET, HEAD], action: Allow}
+    steps:
+      - as: anonymous
+        request: {method: GET, path: "${P}/js-expr-summary.html"}
+        expect:
+          status: 200
+          body_contains: ["<li>Total: 60</li>", "<li>Doubled: 120</li>"]
+          body_not_contains: ["j:total", "reduce"]
+
+  - id: comp.jb.keyword-name-context
+    title: A binding named after a reserved word is readable through Context
+    area: composing
+    feature: JavaScript binding
+    evidence: documented
+    source: "docs reference/composing-pages/JavaScript-Expression-Binding §What the expression can see (snapshot 2026-09-28)"
+    confidence: high
+    requires: [server-js, liquid]
+    live: true
+    site:
+      settings: {default_get: allow}
+      files:
+        - path: "${P}/page.html"
+          body: |
+            <!DOCTYPE html>
+            <html xmlns:j="https://pagelove.org/Binding/JavaScript" xmlns:p="https://pagelove.org/1.0">
+            <body><div j:class="'x'" j:y="Context['class'] + 'y'" p:template="text/liquid">[{{ y }}]</div></body>
+            </html>
+      rules:
+        - {actor: "*", resource: "${P}/*", method: [GET, HEAD], action: Allow}
+    steps:
+      - as: anonymous
+        request: {method: GET, path: "${P}/page.html"}
+        expect: {status: 200, body_contains: ["[xy]"]}
+
+  - id: comp.jb.await
+    title: "A j: expression may await a promise before its value is bound"
+    area: composing
+    feature: JavaScript binding
+    evidence: documented
+    source: "docs reference/composing-pages/JavaScript-Expression-Binding §Attribute form ('The expression may also use await') (snapshot 2026-09-28)"
+    confidence: high
+    requires: [server-js, liquid]
+    live: true
+    site:
+      settings: {default_get: allow}
+      files:
+        - path: "${P}/page.html"
+          body: |
+            <!DOCTYPE html>
+            <html xmlns:j="https://pagelove.org/Binding/JavaScript" xmlns:p="https://pagelove.org/1.0">
+            <body><div j:v="await Promise.resolve(41 + 1)" p:template="text/liquid">[{{ v }}]</div></body>
+            </html>
+      rules:
+        - {actor: "*", resource: "${P}/*", method: [GET, HEAD], action: Allow}
+    steps:
+      - as: anonymous
+        request: {method: GET, path: "${P}/page.html"}
+        expect: {status: 200, body_contains: ["[42]"]}
+
+  - id: comp.jb.interleave-with-sessel
+    title: "e: and j: bindings interleave on one element in declaration order"
+    area: composing
+    feature: evaluation order
+    evidence: documented
+    source: "docs reference/composing-pages/JavaScript-Expression-Binding §What the expression can see ('every j: and e: … binding declared before this one'), §Sessel or JavaScript? (snapshot 2026-09-28)"
+    confidence: high
+    requires: [server-js, sessel, liquid]
+    live: true
+    site:
+      settings: {default_get: allow}
+      files:
+        - path: "${P}/page.html"
+          body: |
+            <!DOCTYPE html>
+            <html xmlns:e="https://pagelove.org/Binding/Sessel" xmlns:j="https://pagelove.org/Binding/JavaScript" xmlns:p="https://pagelove.org/1.0">
+            <body><div e:a="2" j:b="a * 10" e:c="b + 1" p:template="text/liquid">[{{ b }}|{{ c }}]</div></body>
+            </html>
+      rules:
+        - {actor: "*", resource: "${P}/*", method: [GET, HEAD], action: Allow}
+    steps:
+      - as: anonymous
+        request: {method: GET, path: "${P}/page.html"}
+        expect: {status: 200, body_contains: ["[20|21]"]}
+
+  - id: comp.jb.throw-fails
+    title: "A j: expression that throws fails the request"
+    area: composing
+    feature: JavaScript binding errors
+    evidence: documented
+    source: "docs reference/composing-pages/JavaScript-Expression-Binding §Error cases (snapshot 2026-09-28)"
+    confidence: medium
+    requires: [server-js]
+    live: true
+    notes: "R-COMP-42. The response is an HTML-Microdata error; pagelike answers 500."
+    site:
+      settings: {default_get: allow}
+      files:
+        - path: "${P}/page.html"
+          body: |
+            <!DOCTYPE html>
+            <html xmlns:j="https://pagelove.org/Binding/JavaScript"><body><div j:x="(() => { throw new Error('boom') })()">x</div></body></html>
+      rules:
+        - {actor: "*", resource: "${P}/*", method: [GET, HEAD], action: Allow}
+    steps:
+      - as: anonymous
+        request: {method: GET, path: "${P}/page.html"}
+        expect:
+          status: [400, 422, 500]
+          header_matches: {Content-Type: "^text/html"}
+
+  - id: comp.jb.request-query
+    title: "request.query is readable from a j: binding"
+    area: composing
+    feature: request object
+    evidence: documented
+    source: "docs reference/composing-pages/JavaScript-Expression-Binding §What the expression can see (request.query.q) (snapshot 2026-09-28)"
+    confidence: high
+    requires: [server-js, liquid]
+    live: true
+    site:
+      settings: {default_get: allow}
+      files:
+        - path: "${P}/page.html"
+          body: |
+            <!DOCTYPE html>
+            <html xmlns:j="https://pagelove.org/Binding/JavaScript" xmlns:p="https://pagelove.org/1.0">
+            <body><div j:q="request.query.q" p:template="text/liquid">[{{ q }}]</div></body>
+            </html>
+      rules:
+        - {actor: "*", resource: "${P}/*", method: [GET, HEAD], action: Allow}
+    steps:
+      - as: anonymous
+        request: {method: GET, path: "${P}/page.html?q=hello"}
+        expect: {status: 200, body_contains: ["[hello]"]}
+
+  - id: comp.jb.request-auth-private
+    title: Reading request.auth from JavaScript makes the response private
+    area: composing
+    feature: caching
+    evidence: documented
+    source: "docs reference/composing-pages/JavaScript-Expression-Binding §Caching note (snapshot 2026-09-28)"
+    confidence: high
+    requires: [server-js]
+    live: true
+    notes: "R-COMP-43/150."
+    site:
+      settings: {default_get: allow}
+      files:
+        - path: "${P}/page.html"
+          body: |
+            <!DOCTYPE html>
+            <html xmlns:j="https://pagelove.org/Binding/JavaScript" xmlns:p="https://pagelove.org/1.0">
+            <body j:who="request.auth && request.auth.username ? 'user' : 'anon'"><main><p:stamp who></p:stamp></main></body>
+            </html>
+      rules:
+        - {actor: "*", resource: "${P}/*", method: [GET, HEAD], action: Allow}
+    steps:
+      - as: anonymous
+        request: {method: GET, path: "${P}/page.html"}
+        expect:
+          status: 200
+          body_contains: ["anon"]
+          header_contains: {Cache-Control: private}
+
+  - id: comp.jb.wrong-namespace-ignored
+    title: "j: attributes under a non-exact namespace URI create no binding"
+    area: composing
+    feature: namespace URIs
+    evidence: documented
+    source: "docs reference/composing-pages/JavaScript-Expression-Binding §Error cases (snapshot 2026-09-28)"
+    confidence: high
+    requires: [server-js]
+    live: true
+    site:
+      settings: {default_get: allow}
+      files:
+        - path: "${P}/page.html"
+          body: |
+            <!DOCTYPE html>
+            <html xmlns:j="https://pagelove.org/Binding/Javascript" xmlns:p="https://pagelove.org/1.0">
+            <body j:v="'JS-MARK'"><main><p:stamp v></p:stamp><span>after</span></main></body>
+            </html>
+      rules:
+        - {actor: "*", resource: "${P}/*", method: [GET, HEAD], action: Allow}
+    steps:
+      - as: anonymous
+        request:
+          method: GET
+          path: "${P}/page.html"
+          headers: {Range: "selector=main"}
+        expect:
+          status: 206
+          body_contains: ["<span>after</span>"]
+          body_not_contains: ["JS-MARK"]

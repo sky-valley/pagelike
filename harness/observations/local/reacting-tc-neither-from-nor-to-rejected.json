@@ -1,0 +1,34 @@
+{
+  "case": "reacting.tc.neither-from-nor-to-rejected-on-serving-path",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (the rule document is refused)",
+      "method": "PUT",
+      "path": "/_pl/reacting-tc-neither-from-nor-to-rejected-743e2a/transitions/rules.html",
+      "status": 422,
+      "headers": {
+        "content-length": "736",
+        "content-type": "text/html; charset=utf-8",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\n  \u003chead\u003e\n    \u003ctitle\u003e422 Unprocessable Entity - Schema Violation\u003c/title\u003e\n  \u003c/head\u003e\n  \u003cbody itemscope itemtype=\"https://pagelove.org/SchemaViolation\"\u003e\n    \u003ch1 itemprop=\"name\"\u003eUnprocessable Entity\u003c/h1\u003e\n    \u003cmeta itemprop=\"statusCode\" content=\"422\"\u003e\n    \u003cp itemprop=\"description\"\u003eSchema validation failed\u003c/p\u003e\n    \u003cul\u003e\n      \u003cli itemprop=\"violations\" itemscope itemtype=\"https://pagelove.org/Violation\"\u003e\u003cspan itemprop=\"check\"\u003eschema\u003c/span\u003e\u003cspan itemprop=\"itemtype\"\u003ehttps://pagelove.org/TransitionConstraint\u003c/span\u003e\u003cspan itemprop=\"property\"\u003efrom\u003c/span\u003e\u003cspan itemprop=\"message\"\u003e[https://pagelove.org/TransitionConstraint].from: a transition constraint declares neither from nor to\u003c/span\u003e\u003c/li\u003e\n    \u003c/ul\u003e\n  \u003c/body\u003e\n\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 2 (orders are unconstrained)",
+      "method": "PUT",
+      "path": "/_pl/reacting-tc-neither-from-nor-to-rejected-743e2a/orders/o.html",
+      "status": 201,
+      "headers": {
+        "content-length": "196",
+        "content-type": "text/html",
+        "etag": "\"f3c88f1fe3c781d33e83506815b31e40f4eb7f1b0050f2b0823e7ade7d76112a\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:49 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\u003chtml\u003e\u003cbody\u003e\u003cdiv itemscope itemtype=\"https://pagelike.test/_pl/reacting-tc-neither-from-nor-to-rejected-743e2a/Order\"\u003e\u003cmeta itemprop=\"status\" content=\"anything\"\u003e\u003c/div\u003e\u003c/body\u003e\u003c/html\u003e"
+    }
+  ],
+  "outcome": "pass",
+  "target": "local"
+}

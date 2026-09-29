@@ -1,0 +1,638 @@
+# Variables in scope and the value model of bound elements.
+# Spec: docs/spec/liquid.md §5 (R-LIQ-40..45), §6 (R-LIQ-50..59), R-LIQ-94.
+# Live isolation: resource bindings query the whole site, so every itemtype
+# embeds the per-run prefix ${P}.
+defaults:
+  area: liquid
+  requires: [liquid]
+cases:
+  - id: liquid.bind.people-worked-example
+    title: "Worked example: a resource binding lists every Person across the site"
+    feature: resource binding in templates
+    evidence: documented
+    source: "docs languages/liquid/templating §Worked example: listing people (GET /sspi-tpl-listing.html → <li>Anna</li> <li>Ben</li>) (snapshot 2026-09-28)"
+    confidence: medium
+    live: true
+    notes: >-
+      R-LIQ-14, R-LIQ-30, R-LIQ-51. The docs lost the stored documents (spec C-15); the template
+      is reconstructed from the printed output's whitespace. The itemtype carries ${P} for isolation.
+      Order Anna, Ben assumes path-ordered binding results (X-1).
+    site:
+      settings: {default_get: allow}
+      files:
+        - path: "${P}/people/anna.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body><div itemscope itemtype="https://example.test${P}/Person"><span itemprop="name">Anna</span></div></body></html>
+        - path: "${P}/people/ben.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body><div itemscope itemtype="https://example.test${P}/Person"><span itemprop="name">Ben</span></div></body></html>
+        - path: "${P}/sspi-tpl-listing.html"
+          body: |
+            <!DOCTYPE html>
+            <html xmlns:p="https://pagelove.org/1.0" xmlns:r="https://pagelove.org/Binding/CSS">
+            <body>
+              <h1>People</h1>
+              <ul r:people="[itemtype='https://example.test${P}/Person']" p:template="text/liquid">
+                {% for person in people %}
+                <li>{{ person.name }}</li>
+                {% endfor %}
+              </ul>
+            </body>
+            </html>
+      rules: [{actor: "*", resource: "${P}/*", method: [GET, HEAD], action: Allow}]
+    steps:
+      - name: listing
+        as: anonymous
+        request: {method: GET, path: "${P}/sspi-tpl-listing.html"}
+        expect:
+          status: 200
+          body_contains: ["<h1>People</h1>", "<ul>\n    \n    <li>Anna</li>\n    \n    <li>Ben</li>\n    \n  </ul>"]
+          body_not_contains: ["r:people", "p:template", "xmlns:"]
+
+  - id: liquid.bind.teammember-sort-and-id
+    title: "Templating example: sort by a property, link with ['@id'], whitespace-controlled loop"
+    feature: resource binding in templates
+    evidence: documented
+    source: "docs languages/liquid/templating §Listing with resource binding (resource:users=\"[id][itemtype=...TeamMember]\", sort: 'fullname', user['@id'])"
+    confidence: medium
+    live: true
+    notes: "R-LIQ-44, R-LIQ-52, R-LIQ-53. @id asserted as '<path>#<id>' suffix so an absolute URL form also passes (P-LIQ-12)."
+    site:
+      settings: {default_get: allow}
+      files:
+        - path: "${P}/team.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div id="zoe" itemscope itemtype="https://example.test${P}/TeamMember"><span itemprop="fullname">Zoe Zed</span><meta itemprop="email" content="zoe@example.com"></div>
+              <div id="adam" itemscope itemtype="https://example.test${P}/TeamMember"><span itemprop="fullname">Adam Ant</span><meta itemprop="email" content="adam@example.com"></div>
+            </body></html>
+        - path: "${P}/team-list.html"
+          body: |
+            <!DOCTYPE html>
+            <html xmlns:pagelove="https://pagelove.org/1.0" xmlns:resource="https://pagelove.org/Binding/CSS"><body>
+            <ul id="users" pagelove:template="text/liquid"
+                resource:users="[id][itemtype='https://example.test${P}/TeamMember']">
+                {% assign users = users | sort: 'fullname' %}
+                {%- for user in users -%}
+                <li>
+                    <a href="{{ user['@id'] }}">{{ user.fullname }}</a> ({{ user.email }})
+                </li>
+                {%- endfor -%}
+            </ul>
+            </body></html>
+      rules: [{actor: "*", resource: "${P}/*", method: [GET, HEAD], action: Allow}]
+    steps:
+      - name: sorted with ids
+        as: anonymous
+        request: {method: GET, path: "${P}/team-list.html", headers: {Range: "selector=#users"}}
+        expect:
+          status: 206
+          body_contains: ['${P}/team.html#adam">Adam Ant</a> (adam@example.com)', '${P}/team.html#zoe">Zoe Zed</a> (zoe@example.com)']
+          body_matches: "(?s)Adam Ant.*Zoe Zed"
+          body_not_contains: ["resource:users"]
+
+  - id: liquid.bind.body-host-contacts
+    title: "Resource-Binding example: r: binding and p:template together on <body>"
+    feature: resource binding in templates
+    evidence: documented
+    source: "docs reference/composing-pages/Resource-Binding §Template rendering"
+    confidence: high
+    live: true
+    notes: R-LIQ-21 (binding dispatched before the template on the same element), R-LIQ-4.
+    site:
+      settings: {default_get: allow}
+      files:
+        - path: "${P}/c1.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body><p itemscope itemtype="https://example.test${P}/Person"><span itemprop="name">Grace Hopper</span></p></body></html>
+        - path: "${P}/contacts.html"
+          body: |
+            <!doctype html>
+            <html lang="en"
+                  xmlns:r="https://pagelove.org/Binding/CSS"
+                  xmlns:p="https://pagelove.org/1.0">
+            <head>
+                <title>Contacts List</title>
+            </head>
+            <body r:contacts="[itemtype='https://example.test${P}/Person']"
+                  p:template="text/liquid">
+                <ul id="contacts">
+                    {% for contact in contacts %}
+                    <li>{{ contact.name }}</li>
+                    {% endfor %}
+                </ul>
+            </body>
+            </html>
+      rules: [{actor: "*", resource: "${P}/*", method: [GET, HEAD], action: Allow}]
+    steps:
+      - name: read
+        as: anonymous
+        request: {method: GET, path: "${P}/contacts.html"}
+        expect:
+          status: 200
+          body_contains: ["<li>Grace Hopper</li>", "<title>Contacts List</title>"]
+          body_not_contains: ["r:contacts", "{%"]
+
+  - id: liquid.bind.multi-valued-route-shape
+    title: A property read off a bound element is a plain value when single and a list when repeated
+    feature: item property access
+    evidence: documented
+    source: "docs reference/modeling-data/Property §Reading a multi-valued property ('still gives you a plain value when there is exactly one'); pagelove-shop site/admin/products.html@d887054:20 (p.variant | join); site/data/products/{cap,tee}.html"
+    confidence: medium
+    live: true
+    notes: R-LIQ-52. cap.variant.size is the string length (8) — the documented pitfall; tee.variant.size is the list length.
+    site:
+      settings: {default_get: allow}
+      files:
+        - path: "${P}/products.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div id="cap" itemscope itemtype="https://example.test${P}/Product"><meta itemprop="slug" content="cap"><meta itemprop="variant" content="One size"></div>
+              <div id="tee" itemscope itemtype="https://example.test${P}/Product"><meta itemprop="slug" content="tee"><meta itemprop="variant" content="S"><meta itemprop="variant" content="M"><meta itemprop="variant" content="L"></div>
+            </body></html>
+        - path: "${P}/shape.html"
+          body: |
+            <!DOCTYPE html>
+            <html xmlns:p="https://pagelove.org/1.0" xmlns:r="https://pagelove.org/Binding/CSS"><body>
+              <div itemscope itemtype="urn:liquid:result" r:ps="[itemtype='https://example.test${P}/Product']" p:template="text/liquid">{% assign cap = ps | where: "slug", "cap" | first %}{% assign tee = ps | where: "slug", "tee" | first %}
+                <span itemprop="capjoin">{{ cap.variant | join: "," }}</span>
+                <span itemprop="capsize">{{ cap.variant.size }}</span>
+                <span itemprop="teejoin">{{ tee.variant | join: "," }}</span>
+                <span itemprop="teesize">{{ tee.variant.size }}</span>
+                <span itemprop="teefirst">{{ tee.variant.first }}</span>
+              </div>
+            </body></html>
+      rules: [{actor: "*", resource: "${P}/*", method: [GET, HEAD], action: Allow}]
+    steps:
+      - name: read
+        as: anonymous
+        request: {method: GET, path: "${P}/shape.html"}
+        expect:
+          status: 200
+          microdata: {capjoin: "One size", capsize: "8", teejoin: "S,M,L", teesize: "3", teefirst: "S"}
+
+  - id: liquid.bind.missing-property-shop-idiom
+    title: "Missing property is nil; nil | join | split | first is an empty string, which is truthy (shop)"
+    feature: item property access
+    evidence: demo-source
+    source: "pagelove-shop/site/index.html@d887054:17-26 (comment: 'yields an EMPTY STRING for shot, not nil ... TRUTHY'; test != blank)"
+    confidence: medium
+    live: true
+    notes: R-LIQ-52, R-LIQ-57, R-LIQ-58, R-LIQ-119.
+    site:
+      settings: {default_get: allow}
+      files:
+        - path: "${P}/shop-data.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div id="mug" itemscope itemtype="https://example.test${P}/Product"><meta itemprop="slug" content="mug"><meta itemprop="emoji" content="M"></div>
+              <div id="cap" itemscope itemtype="https://example.test${P}/Product"><meta itemprop="slug" content="cap"><meta itemprop="emoji" content="C"><meta itemprop="image" content="/img/cap.png"></div>
+            </body></html>
+        - path: "${P}/shop.html"
+          body: |
+            <!DOCTYPE html>
+            <html xmlns:p="https://pagelove.org/1.0" xmlns:r="https://pagelove.org/Binding/CSS"><body>
+              <div id="grid" r:products="[itemtype='https://example.test${P}/Product']" p:template="text/liquid">{% assign items = products | sort: "slug" %}{% for p in items %}{% assign shot = p.image | join: "," | split: "," | first %}[{{ p.slug }}:{% if shot %}truthy{% endif %}:{% if shot != blank %}img={{ shot }}{% else %}emoji={{ p.emoji }}{% endif %}]{% endfor %}</div>
+            </body></html>
+      rules: [{actor: "*", resource: "${P}/*", method: [GET, HEAD], action: Allow}]
+    steps:
+      - name: read
+        as: anonymous
+        request: {method: GET, path: "${P}/shop.html", headers: {Range: "selector=#grid"}}
+        expect:
+          status: 206
+          body_contains: ["[cap:truthy:img=/img/cap.png][mug:truthy:emoji=M]"]
+
+  - id: liquid.bind.microdata-value-kinds
+    title: Property values follow the microdata value rules (meta content, time datetime, a href, img src, data value, text)
+    feature: item property access
+    evidence: inferred
+    source: "docs reference/composing-pages/Selector-Extensions §Text content vs microdata values (shared value function, spec reading-writing R-RW-50); learn/build-a-blog (meta/time/h1 properties rendered)"
+    confidence: medium
+    live: true
+    notes: R-LIQ-52.
+    site:
+      settings: {default_get: allow}
+      files:
+        - path: "${P}/kinds-data.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <article id="k" itemscope itemtype="https://example.test${P}/Kinds">
+                <meta itemprop="m" content="meta-content">
+                <time itemprop="t" datetime="2026-08-03">3 August 2026</time>
+                <time itemprop="t2">no datetime</time>
+                <a itemprop="u" href="/about">About us</a>
+                <img itemprop="i" src="/img/x.png" alt="x">
+                <data itemprop="d" value="42">forty-two</data>
+                <h1 itemprop="h">Hello, <b>world</b></h1>
+              </article>
+            </body></html>
+        - path: "${P}/kinds.html"
+          body: |
+            <!DOCTYPE html>
+            <html xmlns:p="https://pagelove.org/1.0" xmlns:r="https://pagelove.org/Binding/CSS"><body>
+              <div itemscope itemtype="urn:liquid:result" r:ks="[itemtype='https://example.test${P}/Kinds']" p:template="text/liquid">{% assign k = ks | first %}
+                <span itemprop="m">{{ k.m }}</span><span itemprop="t">{{ k.t }}</span><span itemprop="t2">{{ k.t2 }}</span>
+                <span itemprop="u">{{ k.u }}</span><span itemprop="i">{{ k.i }}</span><span itemprop="d">{{ k.d }}</span>
+                <span itemprop="h">{{ k.h }}</span><span itemprop="missing">[{{ k.nosuch }}]</span>
+              </div>
+            </body></html>
+      rules: [{actor: "*", resource: "${P}/*", method: [GET, HEAD], action: Allow}]
+    steps:
+      - name: read
+        as: anonymous
+        request: {method: GET, path: "${P}/kinds.html"}
+        expect:
+          status: 200
+          microdata: {m: meta-content, t: "2026-08-03", t2: no datetime, u: /about, i: /img/x.png, d: "42", h: "Hello, world", missing: "[]"}
+
+  - id: liquid.bind.nested-item
+    title: A property whose element has itemscope is a nested item with its own properties
+    feature: item property access
+    evidence: inferred
+    source: "WHATWG microdata (nested items) + docs reference/modeling-data/Property (items read from bound elements); spec R-LIQ-52"
+    confidence: medium
+    live: true
+    site:
+      settings: {default_get: allow}
+      files:
+        - path: "${P}/post.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <article id="p1" itemscope itemtype="https://example.test${P}/Post">
+                <h1 itemprop="title">Nested</h1>
+                <div itemprop="author" itemscope itemtype="https://example.test${P}/Person"><span itemprop="name">Sam</span></div>
+                <span itemprop="name">not-the-author</span>
+              </article>
+            </body></html>
+        - path: "${P}/nested.html"
+          body: |
+            <!DOCTYPE html>
+            <html xmlns:p="https://pagelove.org/1.0" xmlns:r="https://pagelove.org/Binding/CSS"><body>
+              <p id="o" r:posts="[itemtype='https://example.test${P}/Post']" p:template="text/liquid">{% assign post = posts | first %}{{ post.title }} by {{ post.author.name }} / {{ post.name }}</p>
+            </body></html>
+      rules: [{actor: "*", resource: "${P}/*", method: [GET, HEAD], action: Allow}]
+    steps:
+      - name: read
+        as: anonymous
+        request: {method: GET, path: "${P}/nested.html", headers: {Range: "selector=#o"}}
+        expect:
+          status: 206
+          body_contains: [">Nested by Sam / not-the-author</p>"]
+
+  - id: liquid.bind.polls-id-to-url
+    title: "poll['@id'] | split: '#' | first yields the item's document path (polls listing)"
+    feature: item @id
+    evidence: demo-source
+    source: "pagelove-polls/site/index.html@c9270e5:84-96 ({% assign url = poll['@id'] | split: \"#\" | first %}, href=\"{{ url }}\")"
+    confidence: medium
+    live: true
+    notes: R-LIQ-53, P-LIQ-12. Asserts the path suffix so an absolute-URL @id also passes.
+    site:
+      settings: {default_get: allow}
+      files:
+        - path: "${P}/polls/p1.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body><article id="poll" itemscope itemtype="https://example.test${P}/Poll"><h1 itemprop="title">Lunch</h1><meta itemprop="listed" content="true"></article></body></html>
+        - path: "${P}/index.html"
+          body: |
+            <!DOCTYPE html>
+            <html xmlns:p="https://pagelove.org/1.0" xmlns:r="https://pagelove.org/Binding/CSS"><body>
+              <div id="recent" r:polls="[itemtype='https://example.test${P}/Poll']" p:template="text/liquid">{% assign listed = polls | where: "listed", "true" %}{% for poll in listed limit: 8 %}{% assign url = poll['@id'] | split: "#" | first %}<a class="poll-card" href="{{ url }}">{{ poll.title | escape }}</a>|{{ poll['@id'] | split: "#" | last }}{% endfor %}</div>
+            </body></html>
+      rules: [{actor: "*", resource: "${P}/*", method: [GET, HEAD], action: Allow}]
+    steps:
+      - name: read
+        as: anonymous
+        request: {method: GET, path: "${P}/index.html", headers: {Range: "selector=#recent"}}
+        expect:
+          status: 206
+          body_contains: ['${P}/polls/p1.html">Lunch</a>|poll']
+          body_not_contains: ['p1.html#poll"']
+
+  - id: liquid.bind.expression-count-sum
+    title: "Expression-Binding example: e: count() and sum() rendered by a template"
+    feature: expression binding in templates
+    evidence: documented
+    source: "docs reference/composing-pages/Expression-Binding §Count and sum from site data (Count: 2, Sum: 100.0) and §Attribute form ('{{ count }} products totalling ${{ total }}')"
+    confidence: medium
+    live: true
+    requires: [liquid, sessel]
+    notes: >-
+      R-LIQ-40, R-LIQ-59, R-LIQ-12 ($ before {{). Template reconstructed (spec C-15); selectors isolated by ${P}.
+      "Sum: 100" is asserted as a prefix so both 100 and 100.0 pass (float rendering is P-LIQ-13).
+    site:
+      settings: {default_get: allow}
+      files:
+        - path: "${P}/prod-a.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body><div itemscope itemtype="https://example.test${P}/Product"><meta itemprop="price" content="40"></div></body></html>
+        - path: "${P}/prod-b.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body><div itemscope itemtype="https://example.test${P}/Product"><meta itemprop="price" content="60"></div></body></html>
+        - path: "${P}/sessel-expr-summary.html"
+          body: |
+            <!DOCTYPE html>
+            <html xmlns:e="https://pagelove.org/Binding/Sessel" xmlns:pagelove="https://pagelove.org/1.0">
+            <body>
+              <div id="sum" e:total="${[itemtype='https://example.test${P}/Product'] [itemprop='price']}.sum()"
+                   e:count="${[itemtype='https://example.test${P}/Product'] [itemprop='price']}.count()"
+                   pagelove:template="text/liquid">
+                <p>Count: {{ count }}</p>
+                <p>Sum: {{ total }}</p>
+                <p>{{ count }} products totalling ${{ total }}</p>
+              </div>
+            </body>
+            </html>
+      rules: [{actor: "*", resource: "${P}/*", method: [GET, HEAD], action: Allow}]
+    steps:
+      - name: read
+        as: anonymous
+        request: {method: GET, path: "${P}/sessel-expr-summary.html", headers: {Range: "selector=#sum"}}
+        expect:
+          status: 206
+          body_contains: ["<p>Count: 2</p>", "<p>Sum: 100", "2 products totalling $100"]
+          body_not_contains: ["e:total", "{{"]
+
+  - id: liquid.bind.expression-declaration-order
+    title: "A later e: binding reads earlier ones; the template sees all three"
+    feature: expression binding in templates
+    evidence: documented
+    source: "docs reference/composing-pages/Expression-Binding §Declaration-order evaluation (e:average=\"total / count\", 'Average price: ${{ average }}')"
+    confidence: medium
+    live: true
+    requires: [liquid, sessel]
+    notes: R-LIQ-21, R-LIQ-40.
+    site:
+      settings: {default_get: allow}
+      files:
+        - path: "${P}/p1.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body><div itemscope itemtype="https://example.test${P}/Product"><meta itemprop="price" content="40"></div></body></html>
+        - path: "${P}/p2.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body><div itemscope itemtype="https://example.test${P}/Product"><meta itemprop="price" content="60"></div></body></html>
+        - path: "${P}/avg.html"
+          body: |
+            <!DOCTYPE html>
+            <html xmlns:e="https://pagelove.org/Binding/Sessel" xmlns:pagelove="https://pagelove.org/1.0"><body>
+              <div id="avg" e:total="${[itemtype='https://example.test${P}/Product'] [itemprop='price']}.sum()"
+                   e:count="${[itemtype='https://example.test${P}/Product'] [itemprop='price']}.count()"
+                   e:average="total / count"
+                   pagelove:template="text/liquid">
+                <p>Average price: ${{ average }}</p>
+              </div>
+            </body></html>
+      rules: [{actor: "*", resource: "${P}/*", method: [GET, HEAD], action: Allow}]
+    steps:
+      - name: read
+        as: anonymous
+        request: {method: GET, path: "${P}/avg.html", headers: {Range: "selector=#avg"}}
+        expect:
+          status: 206
+          body_contains: ["<p>Average price: $50"]
+
+  - id: liquid.bind.expression-scope-siblings
+    title: An ancestor's binding is visible to nested templates; a sibling's binding is not
+    feature: binding scope
+    evidence: documented
+    source: "docs reference/composing-pages/Expression-Binding §Scope (sitecount visible in both divs, localcount only in the declaring div)"
+    confidence: medium
+    live: true
+    requires: [liquid, sessel]
+    notes: "R-LIQ-40, R-LIQ-41, R-LIQ-203 (the invisible name renders empty). The docs' e:localcount expression has unbalanced parentheses (spec C-16); a valid one is used."
+    site:
+      settings: {default_get: allow}
+      files:
+        - path: "${P}/scope.html"
+          body: |
+            <!DOCTYPE html>
+            <html xmlns:e="https://pagelove.org/Binding/Sessel" xmlns:pagelove="https://pagelove.org/1.0"><body>
+            <section e:sitecount="5">
+              <div id="d1" e:localcount="2" pagelove:template="text/liquid"><p>{{ localcount }} of {{ sitecount }} items</p></div>
+              <div id="d2" pagelove:template="text/liquid"><p>[{{ localcount }}] {{ sitecount }} total items</p></div>
+            </section>
+            </body></html>
+      rules: [{actor: "*", resource: "${P}/*", method: [GET, HEAD], action: Allow}]
+    steps:
+      - name: declaring element
+        as: anonymous
+        request: {method: GET, path: "${P}/scope.html", headers: {Range: "selector=#d1"}}
+        expect:
+          status: 206
+          body_contains: ["<p>2 of 5 items</p>"]
+      - name: sibling
+        as: anonymous
+        request: {method: GET, path: "${P}/scope.html", headers: {Range: "selector=#d2"}}
+        expect:
+          status: 206
+          body_contains: ["<p>[] 5 total items</p>"]
+
+  - id: liquid.bind.javascript-binding-example
+    title: "JavaScript-binding example: j:total and j:doubled render as integers 60 and 120"
+    feature: expression binding in templates
+    evidence: documented
+    source: "docs reference/composing-pages/JavaScript-Expression-Binding §Attribute form and §In action (Total: 60, Doubled: 120)"
+    confidence: high
+    live: true
+    requires: [liquid, server-js]
+    notes: R-LIQ-59 (integral JS numbers are Liquid integers).
+    site:
+      settings: {default_get: allow}
+      files:
+        - path: "${P}/js-expr-summary.html"
+          body: |
+            <!DOCTYPE html>
+            <html xmlns:j="https://pagelove.org/Binding/JavaScript" xmlns:pagelove="https://pagelove.org/1.0">
+            <body>
+              <ul j:total="[10, 20, 30].reduce((a, b) => a + b, 0)"
+                  j:doubled="total * 2"
+                  pagelove:template="text/liquid">
+                <li>Total: {{ total }}</li>
+                <li>Doubled: {{ doubled }}</li>
+              </ul>
+            </body>
+            </html>
+      rules: [{actor: "*", resource: "${P}/*", method: [GET, HEAD], action: Allow}]
+    steps:
+      - name: read
+        as: anonymous
+        request: {method: GET, path: "${P}/js-expr-summary.html"}
+        expect:
+          status: 200
+          body_contains: ["<li>Total: 60</li>", "<li>Doubled: 120</li>"]
+          body_not_contains: ["j:total", "60.0"]
+
+  - id: liquid.bind.descendant-binding-not-visible
+    title: A binding declared inside the host's subtree is not visible to the host's template
+    feature: binding scope
+    evidence: inferred
+    source: "pagelike decision R-LIQ-22 (the host renders before directives in its subtree run); docs reference/composing-pages/Expression-Binding §Scope"
+    confidence: low
+    live: true
+    requires: [liquid, sessel]
+    notes: P-LIQ-9.
+    site:
+      settings: {default_get: allow}
+      files:
+        - path: "${P}/desc.html"
+          body: |
+            <!DOCTYPE html>
+            <html xmlns:e="https://pagelove.org/Binding/Sessel" xmlns:p="https://pagelove.org/1.0"><body>
+              <div id="o" p:template="text/liquid"><p e:x="1 + 1">[{{ x }}]</p></div>
+            </body></html>
+      rules: [{actor: "*", resource: "${P}/*", method: [GET, HEAD], action: Allow}]
+    steps:
+      - name: read
+        as: anonymous
+        request: {method: GET, path: "${P}/desc.html", headers: {Range: "selector=#o"}}
+        expect:
+          status: 206
+          body_contains: ["[]"]
+
+  - id: liquid.bind.sees-stored-template-source
+    title: Bindings read other documents as stored, so a template document's items carry raw Liquid
+    feature: bindings vs templates
+    evidence: demo-source
+    source: "pagelove-polls/site/templates/new-poll.html@c9270e5:34 (itemtype computed in Liquid so the template is not a Poll); pagelove-cursor SKILL.md@b97c3ef:422-431 ('resource binding will include it with raw Liquid tags as property values')"
+    confidence: medium
+    live: true
+    notes: R-LIQ-25. Output is not auto-escaped (R-LIQ-90), so the raw braces and quotes appear as written.
+    site:
+      settings: {default_get: allow}
+      files:
+        - path: "${P}/tpl-doc.html"
+          body: |
+            <!DOCTYPE html>
+            <html xmlns:p="https://pagelove.org/1.0"><body p:template="text/liquid">
+              <div itemscope itemtype="https://example.test${P}/Thing"><span itemprop="name">{{ 'rendered' | upcase }}</span></div>
+            </body></html>
+        - path: "${P}/lister.html"
+          body: |
+            <!DOCTYPE html>
+            <html xmlns:p="https://pagelove.org/1.0" xmlns:r="https://pagelove.org/Binding/CSS"><body>
+              <p id="o" r:things="[itemtype='https://example.test${P}/Thing']" p:template="text/liquid">{% for t in things %}[{{ t.name }}]{% endfor %}</p>
+            </body></html>
+      rules: [{actor: "*", resource: "${P}/*", method: [GET, HEAD], action: Allow}]
+    steps:
+      - name: template page itself renders
+        as: anonymous
+        request: {method: GET, path: "${P}/tpl-doc.html"}
+        expect:
+          status: 200
+          body_contains: ["RENDERED"]
+      - name: the binding sees the stored source
+        as: anonymous
+        request: {method: GET, path: "${P}/lister.html", headers: {Range: "selector=#o"}}
+        expect:
+          status: 206
+          body_contains: ["[{{ 'rendered' | upcase }}]"]
+          body_not_contains: ["[RENDERED]"]
+
+  - id: liquid.bind.denied-data-still-rendered
+    title: A binding renders data the requester may not GET directly (build-a-blog data lock)
+    feature: bindings vs authorization
+    evidence: documented
+    source: "docs learn/build-a-blog §Locking the data folder ('The server composes pages with its own authority'); reference/composing-pages/Resource-Binding §Security"
+    confidence: high
+    live: true
+    notes: R-LIQ-94.
+    site:
+      settings: {default_get: allow}
+      files:
+        - path: "${P}/data/posts/hello-world.html"
+          body: |
+            <!DOCTYPE html>
+            <html lang="en"><body>
+              <article itemscope itemtype="https://blog.example${P}/Post" id="post-hello-world">
+                <meta itemprop="slug" content="hello-world"><meta itemprop="status" content="Published">
+                <h1 itemprop="title">Hello, world</h1>
+              </article>
+            </body></html>
+        - path: "${P}/index.html"
+          body: |
+            <!DOCTYPE html>
+            <html lang="en" xmlns:p="https://pagelove.org/1.0" xmlns:r="https://pagelove.org/Binding/CSS"><body>
+              <section id="excerpts" r:posts="[itemtype='https://blog.example${P}/Post']" p:template="text/liquid">{% for post in posts %}<h2><a href="/posts/{{ post.slug }}.html">{{ post.title }}</a></h2>{% endfor %}</section>
+            </body></html>
+      rules:
+        - {actor: "*", resource: "${P}/*", method: [GET, HEAD], action: Allow}
+        - {actor: "*", resource: "${P}/data/*", method: [GET, HEAD], action: Deny}
+    steps:
+      - name: raw data is refused
+        as: anonymous
+        request: {method: GET, path: "${P}/data/posts/hello-world.html"}
+        expect:
+          status: [401, 403]
+      - name: the composed page still shows it
+        as: anonymous
+        request: {method: GET, path: "${P}/index.html"}
+        expect:
+          status: 200
+          body_contains: ['<h2><a href="/posts/hello-world.html">Hello, world</a></h2>']
+
+  - id: liquid.bind.no-match-empty-array
+    title: A binding that matches nothing is an empty array (size 0, for-else runs), not an error
+    feature: resource binding in templates
+    evidence: documented
+    source: "docs reference/composing-pages/Resource-Binding §Error cases ('Selector matches no elements | Empty collection (not an error)')"
+    confidence: high
+    live: true
+    notes: R-LIQ-51, R-LIQ-70.
+    site:
+      settings: {default_get: allow}
+      files:
+        - path: "${P}/none.html"
+          body: |
+            <!DOCTYPE html>
+            <html xmlns:p="https://pagelove.org/1.0" xmlns:r="https://pagelove.org/Binding/CSS"><body>
+              <p id="o" r:xs="[itemtype='https://example.test${P}/Absent']" p:template="text/liquid">{{ xs.size }}|{% for x in xs %}item{% else %}none{% endfor %}|{% if xs == empty %}empty{% endif %}</p>
+            </body></html>
+      rules: [{actor: "*", resource: "${P}/*", method: [GET, HEAD], action: Allow}]
+    steps:
+      - name: read
+        as: anonymous
+        request: {method: GET, path: "${P}/none.html", headers: {Range: "selector=#o"}}
+        expect:
+          status: 206
+          body_contains: [">0|none|empty</p>"]
+
+  - id: liquid.bind.locals-shadow-and-fresh-scope
+    title: assign shadows a binding inside one host; another host on the page starts with a fresh scope
+    feature: binding scope
+    evidence: documented
+    source: "docs languages/liquid/templating §Listing with resource binding ({% assign users = users | sort: 'fullname' %}); §Template scope ('scoped to the annotated element')"
+    confidence: medium
+    live: true
+    notes: R-LIQ-44, R-LIQ-45.
+    site:
+      settings: {default_get: allow}
+      files:
+        - path: "${P}/shadow.html"
+          body: |
+            <!DOCTYPE html>
+            <html xmlns:p="https://pagelove.org/1.0"><body>
+              <p id="a" p:template="text/liquid">{% assign v = "first" %}{{ v }}</p>
+              <p id="b" p:template="text/liquid">[{{ v }}]</p>
+            </body></html>
+      rules: [{actor: "*", resource: "${P}/*", method: [GET, HEAD], action: Allow}]
+    steps:
+      - name: read
+        as: anonymous
+        request: {method: GET, path: "${P}/shadow.html"}
+        expect:
+          status: 200
+          body_contains: ['<p id="a">first</p>', '<p id="b">[]</p>']

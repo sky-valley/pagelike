@@ -1,0 +1,1287 @@
+# Modeling: ShapeConstraint (open shapes: required structure), scope, statuses 422/409 and the error body.
+# Spec: docs/spec/modeling.md §15-16 (R-MOD-61..R-MOD-64, R-MOD-68, R-MOD-71).
+# Every shape declares a resource under ${P} so it cannot affect other data on a live host.
+# Error bodies (live 2026-09-29, docs/compat/decisions-2026-09-29/modeling.md): a 422 is the bare problems
+# item https://dombase.pagelove.team/ns/error/ShapeConstraint ("Shape constraints violated", then one
+# "https://pagelove.org/ShapeConstraint <selector>: <message>" problem per violation); a 409 (DELETE) is
+# a CascadeBlocked item. The documented ConstraintViolation page is not what PageLove serves.
+cases:
+  - id: modeling.shapes.required-properties-user
+    title: "Shape requiring username and email on User items (docs example)"
+    area: modeling
+    feature: "shape constraints"
+    evidence: live-observed
+    source: "harness/observations/live-2026-09-29/modeling-shapes-required-properties-user.json (status as documented in docs reference/modeling-data/ShapeConstraint §Examples, snapshot 2026-09-28; the body is PageLove's problems item, not the documented page)"
+    confidence: high
+    requires: []
+    live: true
+    notes: "spec: R-MOD-63, R-MOD-64, R-MOD-71. Adopt-live 2026-09-29 (error vocabulary)."
+    site:
+      settings:
+        default_get: allow
+      rules:
+        - actor: "*"
+          resource: "${P}/*"
+          method: [GET, HEAD, PUT, POST, DELETE, MOVE]
+          action: Allow
+        - actor: "*"
+          resource: "${P}/*/*"
+          method: [GET, HEAD, PUT, POST, DELETE, MOVE]
+          action: Allow
+    steps:
+      - name: "register declarations through the public plane (takes effect for the next request)"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/shapes.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div hidden itemscope itemtype="https://pagelove.org/ShapeConstraint">
+                <meta itemprop="resource" content="${P}/people/*">
+                <code itemprop="selector">[itemtype*=User]</code>
+                <code itemprop="constraint">:has([itemprop="username"])</code>
+                <code itemprop="constraint">:has([itemprop="email"])</code>
+              </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "complete user accepted"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/people/complete-user.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div itemscope itemtype="https://example.org/User">
+                <span itemprop="username">alice</span>
+                <span itemprop="email">alice@example.com</span>
+              </div>
+            </body></html>
+        expect:
+          status: [200, 201]
+      - name: "user missing email rejected"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/people/missing-email.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div itemscope itemtype="https://example.org/User">
+                <span itemprop="username">bob</span>
+              </div>
+            </body></html>
+        expect:
+          status: 422
+          header_matches:
+            Content-Type: "^text/html"
+          body_contains:
+            - "<div itemscope itemtype=\"https://dombase.pagelove.team/ns/error/ShapeConstraint\"><ul itemprop=\"problems\">"
+            - "<li itemprop=\"problem\"><span itemprop=\"message\">Shape constraints violated</span></li>"
+            - "<li itemprop=\"problem\"><span itemprop=\"message\">https://pagelove.org/ShapeConstraint [itemtype*=User]: Element matching '[itemtype*=User]' does not satisfy constraint ':has([itemprop=\"email\"])'</span></li>"
+          body_not_contains: ["username"]
+      - name: "missing-email.html was not stored"
+        as: author
+        plane: dav
+        request:
+          method: GET
+          path: "${P}/people/missing-email.html"
+        expect:
+          status: 404
+  - id: modeling.shapes.nav-structure-two-violations
+    title: "Every failing constraint is reported (docs nav example)"
+    area: modeling
+    feature: "shape constraints"
+    evidence: documented
+    source: "docs reference/modeling-data/ShapeConstraint §Examples (snapshot 2026-09-28)"
+    confidence: high
+    requires: []
+    live: true
+    notes: "spec: R-MOD-64, R-MOD-71."
+    site:
+      settings:
+        default_get: allow
+      rules:
+        - actor: "*"
+          resource: "${P}/*"
+          method: [GET, HEAD, PUT, POST, DELETE, MOVE]
+          action: Allow
+        - actor: "*"
+          resource: "${P}/*/*"
+          method: [GET, HEAD, PUT, POST, DELETE, MOVE]
+          action: Allow
+    steps:
+      - name: "register declarations through the public plane (takes effect for the next request)"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/shapes.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div hidden itemscope itemtype="https://pagelove.org/ShapeConstraint">
+                <meta itemprop="resource" content="${P}/site/*">
+                <code itemprop="selector">nav</code>
+                <code itemprop="constraint">:has(ul)</code>
+                <code itemprop="constraint">:has(ul li a)</code>
+              </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "valid navigation accepted"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/site/valid-nav.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <nav>
+                <ul>
+                  <li><a href="/">Home</a></li>
+                  <li><a href="/about">About</a></li>
+                </ul>
+              </nav>
+              <main><p>Page content.</p></main>
+            </body></html>
+        expect:
+          status: [200, 201]
+      - name: "navigation without a list rejected with two violations"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/site/invalid-nav.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <nav>
+                <p>Just a paragraph, no list.</p>
+              </nav>
+              <main><p>Page content.</p></main>
+            </body></html>
+        expect:
+          status: 422
+          header_matches:
+            Content-Type: "^text/html"
+          body_contains:
+            - "https://dombase.pagelove.team/ns/error/ShapeConstraint"
+            - "Shape constraints violated"
+            - "https://pagelove.org/ShapeConstraint nav: Element matching 'nav' does not satisfy constraint ':has(ul)'"
+            - "https://pagelove.org/ShapeConstraint nav: Element matching 'nav' does not satisfy constraint ':has(ul li a)'"
+  - id: modeling.shapes.resource-scoped
+    title: "A shape with resource only fires for matching paths (docs admin example)"
+    area: modeling
+    feature: "shape constraints"
+    evidence: documented
+    source: "docs reference/modeling-data/ShapeConstraint §Examples > Resource-scoped constraint (snapshot 2026-09-28); docs reference/modeling-data/ShapeConstraint §Error cases (snapshot 2026-09-28)"
+    confidence: high
+    requires: []
+    live: true
+    notes: "spec: R-MOD-62."
+    site:
+      settings:
+        default_get: allow
+      rules:
+        - actor: "*"
+          resource: "${P}/*"
+          method: [GET, HEAD, PUT, POST, DELETE, MOVE]
+          action: Allow
+        - actor: "*"
+          resource: "${P}/*/*"
+          method: [GET, HEAD, PUT, POST, DELETE, MOVE]
+          action: Allow
+    steps:
+      - name: "register declarations through the public plane (takes effect for the next request)"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/shapes.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div hidden itemscope itemtype="https://pagelove.org/ShapeConstraint">
+                <meta itemprop="resource" content="${P}/admin/*">
+                <code itemprop="selector">[itemtype*=Config]</code>
+                <code itemprop="constraint">:has([itemprop='apiKey'])</code>
+                <code itemprop="constraint">:has([itemprop='endpoint'])</code>
+              </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "config outside the resource accepted"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/other/c.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div itemscope itemtype="https://example.org/Config">
+                <meta itemprop="endpoint" content="https://x">
+              </div>
+            </body></html>
+        expect:
+          status: [200, 201]
+      - name: "same config inside the resource rejected"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/admin/c.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div itemscope itemtype="https://example.org/Config">
+                <meta itemprop="endpoint" content="https://x">
+              </div>
+            </body></html>
+        expect:
+          status: 422
+          header_matches:
+            Content-Type: "^text/html"
+          body_contains: ["https://dombase.pagelove.team/ns/error/ShapeConstraint", "Shape constraints violated"]
+  - id: modeling.shapes.multiple-resources
+    title: "Several resource values are alternatives"
+    area: modeling
+    feature: "shape constraints"
+    evidence: documented
+    source: "docs learn/build-a-blog §Making comments safe to accept (snapshot 2026-09-28); docs reference/modeling-data/ShapeConstraint §Fields (snapshot 2026-09-28)"
+    confidence: medium
+    requires: []
+    live: true
+    notes: "spec: R-MOD-62."
+    site:
+      settings:
+        default_get: allow
+      rules:
+        - actor: "*"
+          resource: "${P}/*"
+          method: [GET, HEAD, PUT, POST, DELETE, MOVE]
+          action: Allow
+        - actor: "*"
+          resource: "${P}/*/*"
+          method: [GET, HEAD, PUT, POST, DELETE, MOVE]
+          action: Allow
+    steps:
+      - name: "register declarations through the public plane (takes effect for the next request)"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/shapes.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div hidden itemscope itemtype="https://pagelove.org/ShapeConstraint">
+                <meta itemprop="resource" content="${P}/a/*">
+                <meta itemprop="resource" content="${P}/b/*">
+                <code itemprop="selector">[itemtype*=User]</code>
+                <code itemprop="constraint">:has([itemprop="email"])</code>
+              </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "rejected under the first resource"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/a/u.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div itemscope itemtype="https://example.org/User">
+                <span itemprop="username">x</span>
+              </div>
+            </body></html>
+        expect:
+          status: 422
+          header_matches:
+            Content-Type: "^text/html"
+          body_contains: ["https://dombase.pagelove.team/ns/error/ShapeConstraint", "Shape constraints violated"]
+      - name: "rejected under the second resource"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/b/u.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div itemscope itemtype="https://example.org/User">
+                <span itemprop="username">x</span>
+              </div>
+            </body></html>
+        expect:
+          status: 422
+          header_matches:
+            Content-Type: "^text/html"
+          body_contains: ["https://dombase.pagelove.team/ns/error/ShapeConstraint", "Shape constraints violated"]
+      - name: "accepted elsewhere"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/c/u.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div itemscope itemtype="https://example.org/User">
+                <span itemprop="username">x</span>
+              </div>
+            </body></html>
+        expect:
+          status: [200, 201]
+  - id: modeling.shapes.post-into-container-checks-new-children
+    title: "A POST into a list is checked against a shape whose selector matches the new child (descendant selector)"
+    area: modeling
+    feature: "shape constraints"
+    evidence: demo-source
+    source: "pagelove-cursor/plugins/pagelove/skills/pagelove-dev/SKILL.md@b97c3ef:141-150,473-479; pagelove-ats/site/admin/auth.html@8f200fc:340-348"
+    confidence: medium
+    requires: []
+    live: true
+    notes: "spec: R-MOD-63. Contradiction C8: the docs algorithm says the request target is checked against the selector; that reading never fires here."
+    site:
+      settings:
+        default_get: allow
+      rules:
+        - actor: "*"
+          resource: "${P}/*"
+          method: [GET, HEAD, PUT, POST, DELETE, MOVE]
+          action: Allow
+        - actor: "*"
+          resource: "${P}/*/*"
+          method: [GET, HEAD, PUT, POST, DELETE, MOVE]
+          action: Allow
+    steps:
+      - name: "register declarations through the public plane (takes effect for the next request)"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/shapes.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div hidden itemscope itemtype="https://pagelove.org/ShapeConstraint">
+                <meta itemprop="resource" content="${P}/lists/*">
+                <code itemprop="selector">#my-list li</code>
+                <code itemprop="constraint">:has([itemprop=name])</code>
+              </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "seed a list"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/lists/l.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <ul id="my-list"></ul>
+            </body></html>
+        expect:
+          status: [200, 201]
+      - name: "malformed item rejected"
+        as: anonymous
+        request:
+          method: POST
+          path: "${P}/lists/l.html"
+          headers:
+            Range: "selector=#my-list"
+            Content-Type: text/html
+          body: "<li>malformed</li>"
+        expect:
+          status: 422
+          header_matches:
+            Content-Type: "^text/html"
+          body_contains: ["https://dombase.pagelove.team/ns/error/ShapeConstraint", "Shape constraints violated"]
+      - name: "well-formed item accepted"
+        as: anonymous
+        request:
+          method: POST
+          path: "${P}/lists/l.html"
+          headers:
+            Range: "selector=#my-list"
+            Content-Type: text/html
+          body: "<li><span itemprop=\"name\">ok</span></li>"
+        expect:
+          status: [200, 204, 206]
+      - name: "stored state of l.html (authoring plane, raw)"
+        as: author
+        plane: dav
+        request:
+          method: GET
+          path: "${P}/lists/l.html"
+        expect:
+          status: 200
+          body_contains: [ok]
+          body_not_contains: [malformed]
+  - id: modeling.shapes.put-on-row-checks-row
+    title: "A selector PUT on a row is checked by a row-level shape (polls pattern)"
+    area: modeling
+    feature: "shape constraints"
+    evidence: demo-source
+    source: "pagelove-polls/site/admin/auth.html@c9270e5:76-93"
+    confidence: medium
+    requires: []
+    live: true
+    notes: "spec: R-MOD-63."
+    site:
+      settings:
+        default_get: allow
+      rules:
+        - actor: "*"
+          resource: "${P}/*"
+          method: [GET, HEAD, PUT, POST, DELETE, MOVE]
+          action: Allow
+        - actor: "*"
+          resource: "${P}/*/*"
+          method: [GET, HEAD, PUT, POST, DELETE, MOVE]
+          action: Allow
+    steps:
+      - name: "register declarations through the public plane (takes effect for the next request)"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/shapes.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div hidden itemscope itemtype="https://pagelove.org/ShapeConstraint">
+                <meta itemprop="resource" content="${P}/polls/*">
+                <code itemprop="selector">tbody#responses &gt; tr</code>
+                <code itemprop="constraint">:has(&gt; th[itemprop="name"])</code>
+              </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "seed a poll table"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/polls/p.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <table><tbody id="responses">
+                <tr id="r1"><th itemprop="name">Ann</th><td>yes</td></tr>
+              </tbody></table>
+            </body></html>
+        expect:
+          status: [200, 201]
+      - name: "row without a name header rejected"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/polls/p.html"
+          headers:
+            Range: "selector=#r1"
+            Content-Type: text/html
+          body: "<tr id=\"r1\"><td>yes</td></tr>"
+        expect:
+          status: 422
+          header_matches:
+            Content-Type: "^text/html"
+          body_contains: ["https://dombase.pagelove.team/ns/error/ShapeConstraint", "Shape constraints violated"]
+      - name: "row with a name header accepted"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/polls/p.html"
+          headers:
+            Range: "selector=#r1"
+            Content-Type: text/html
+          body: "<tr id=\"r1\"><th itemprop=\"name\">Ann</th><td>no</td></tr>"
+        expect:
+          status: [200, 204, 206]
+  - id: modeling.shapes.delete-leaving-violation-is-409
+    title: "A DELETE whose result would violate a shape is refused with 409"
+    area: modeling
+    feature: "shape constraints"
+    evidence: documented
+    source: "docs reference/modeling-data/ShapeConstraint §How shape constraints run (snapshot 2026-09-28); docs reference/modeling-data/ShapeConstraint §Error cases (snapshot 2026-09-28)"
+    confidence: high
+    requires: []
+    live: true
+    notes: "spec: R-MOD-63, R-MOD-68. Asserting the ConstraintViolation body on 409 is inferred; the status is documented."
+    site:
+      settings:
+        default_get: allow
+      rules:
+        - actor: "*"
+          resource: "${P}/*"
+          method: [GET, HEAD, PUT, POST, DELETE, MOVE]
+          action: Allow
+        - actor: "*"
+          resource: "${P}/*/*"
+          method: [GET, HEAD, PUT, POST, DELETE, MOVE]
+          action: Allow
+    steps:
+      - name: "register declarations through the public plane (takes effect for the next request)"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/shapes.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div hidden itemscope itemtype="https://pagelove.org/ShapeConstraint">
+                <meta itemprop="resource" content="${P}/site/*">
+                <code itemprop="selector">nav</code>
+                <code itemprop="constraint">:has(ul)</code>
+                <code itemprop="constraint">:has(ul li a)</code>
+              </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "navigation with one link"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/site/n.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <nav>
+                <ul>
+                  <li id="only"><a href="/">Home</a></li>
+                </ul>
+              </nav>
+            </body></html>
+        expect:
+          status: [200, 201]
+      - name: "removing the only link is refused"
+        as: anonymous
+        request:
+          method: DELETE
+          path: "${P}/site/n.html"
+          headers:
+            Range: "selector=#only"
+        expect:
+          status: 409
+          header_matches:
+            Content-Type: "^text/html"
+          body_contains: ["https://dombase.pagelove.team/ns/error/CascadeBlocked", "Operation refused by cascade constraint", "[https://pagelove.org/ShapeConstraint]"]
+      - name: "stored state of n.html (authoring plane, raw)"
+        as: author
+        plane: dav
+        request:
+          method: GET
+          path: "${P}/site/n.html"
+        expect:
+          status: 200
+          body_contains: ["href=\"/\""]
+  - id: modeling.shapes.delete-keeping-valid
+    title: "A DELETE that leaves the scope valid succeeds"
+    area: modeling
+    feature: "shape constraints"
+    evidence: documented
+    source: "docs reference/modeling-data/ShapeConstraint §How shape constraints run (snapshot 2026-09-28)"
+    confidence: high
+    requires: []
+    live: true
+    notes: "spec: R-MOD-63."
+    site:
+      settings:
+        default_get: allow
+      rules:
+        - actor: "*"
+          resource: "${P}/*"
+          method: [GET, HEAD, PUT, POST, DELETE, MOVE]
+          action: Allow
+        - actor: "*"
+          resource: "${P}/*/*"
+          method: [GET, HEAD, PUT, POST, DELETE, MOVE]
+          action: Allow
+    steps:
+      - name: "register declarations through the public plane (takes effect for the next request)"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/shapes.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div hidden itemscope itemtype="https://pagelove.org/ShapeConstraint">
+                <meta itemprop="resource" content="${P}/site/*">
+                <code itemprop="selector">nav</code>
+                <code itemprop="constraint">:has(ul)</code>
+                <code itemprop="constraint">:has(ul li a)</code>
+              </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "navigation with two links"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/site/n.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <nav>
+                <ul>
+                  <li id="l1"><a href="/">Home</a></li>
+                  <li id="l2"><a href="/about">About</a></li>
+                </ul>
+              </nav>
+            </body></html>
+        expect:
+          status: [200, 201]
+      - name: "remove one link"
+        as: anonymous
+        request:
+          method: DELETE
+          path: "${P}/site/n.html"
+          headers:
+            Range: "selector=#l2"
+        expect:
+          status: 204
+  - id: modeling.shapes.no-constraint-no-permit-ignored
+    title: "A shape with neither constraint nor permit is ignored"
+    area: modeling
+    feature: "shape constraints"
+    evidence: documented
+    source: "docs reference/modeling-data/ShapeConstraint §Fields (snapshot 2026-09-28); docs reference/modeling-data/ShapeConstraint §Error cases (snapshot 2026-09-28)"
+    confidence: high
+    requires: []
+    live: true
+    notes: "spec: R-MOD-61."
+    site:
+      settings:
+        default_get: allow
+      rules:
+        - actor: "*"
+          resource: "${P}/*"
+          method: [GET, HEAD, PUT, POST, DELETE, MOVE]
+          action: Allow
+        - actor: "*"
+          resource: "${P}/*/*"
+          method: [GET, HEAD, PUT, POST, DELETE, MOVE]
+          action: Allow
+    steps:
+      - name: "register declarations through the public plane (takes effect for the next request)"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/shapes.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div hidden itemscope itemtype="https://pagelove.org/ShapeConstraint">
+                <meta itemprop="resource" content="${P}/site/*">
+                <code itemprop="selector">nav</code>
+              </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "anything accepted"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/site/n.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <nav><script>x()</script></nav>
+            </body></html>
+        expect:
+          status: [200, 201]
+  - id: modeling.shapes.direct-child-constraint
+    title: ":has(> [itemprop=title]) requires a direct child"
+    area: modeling
+    feature: "shape constraints"
+    evidence: documented
+    source: "docs reference/modeling-data/ShapeConstraint §CSS selector patterns (snapshot 2026-09-28)"
+    confidence: high
+    requires: []
+    live: true
+    notes: "spec: R-MOD-64."
+    site:
+      settings:
+        default_get: allow
+      rules:
+        - actor: "*"
+          resource: "${P}/*"
+          method: [GET, HEAD, PUT, POST, DELETE, MOVE]
+          action: Allow
+        - actor: "*"
+          resource: "${P}/*/*"
+          method: [GET, HEAD, PUT, POST, DELETE, MOVE]
+          action: Allow
+    steps:
+      - name: "register declarations through the public plane (takes effect for the next request)"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/shapes.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div hidden itemscope itemtype="https://pagelove.org/ShapeConstraint">
+                <meta itemprop="resource" content="${P}/posts/*">
+                <code itemprop="selector">article</code>
+                <code itemprop="constraint">:has(&gt; [itemprop="title"])</code>
+              </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "title as direct child accepted"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/posts/a.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <article><h1 itemprop="title">T</h1></article>
+            </body></html>
+        expect:
+          status: [200, 201]
+      - name: "title nested deeper rejected"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/posts/b.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <article><header><h1 itemprop="title">T</h1></header></article>
+            </body></html>
+        expect:
+          status: 422
+          header_matches:
+            Content-Type: "^text/html"
+          body_contains: ["https://dombase.pagelove.team/ns/error/ShapeConstraint", "Shape constraints violated"]
+  - id: modeling.shapes.no-selector-applies-to-root
+    title: "Without selector, the constraint is evaluated on the document root"
+    area: modeling
+    feature: "shape constraints"
+    evidence: documented
+    source: "docs reference/modeling-data/ShapeConstraint §Fields (snapshot 2026-09-28)"
+    confidence: high
+    requires: []
+    live: true
+    notes: "spec: R-MOD-63."
+    site:
+      settings:
+        default_get: allow
+      rules:
+        - actor: "*"
+          resource: "${P}/*"
+          method: [GET, HEAD, PUT, POST, DELETE, MOVE]
+          action: Allow
+        - actor: "*"
+          resource: "${P}/*/*"
+          method: [GET, HEAD, PUT, POST, DELETE, MOVE]
+          action: Allow
+    steps:
+      - name: "register declarations through the public plane (takes effect for the next request)"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/shapes.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div hidden itemscope itemtype="https://pagelove.org/ShapeConstraint">
+                <meta itemprop="resource" content="${P}/pages/*">
+                <code itemprop="constraint">:has(main)</code>
+              </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "page with main accepted"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/pages/a.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <main><p>x</p></main>
+            </body></html>
+        expect:
+          status: [200, 201]
+      - name: "page without main rejected"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/pages/b.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div><p>x</p></div>
+            </body></html>
+        expect:
+          status: 422
+          header_matches:
+            Content-Type: "^text/html"
+          body_contains: ["https://dombase.pagelove.team/ns/error/ShapeConstraint", "Shape constraints violated"]
+  - id: modeling.shapes.global-example-root-semantics
+    title: "The 'every itemscope has an itemtype' example is vacuous when the shape only checks the root"
+    area: modeling
+    feature: "shape constraints"
+    evidence: inferred
+    source: "docs reference/modeling-data/ShapeConstraint §Fields (snapshot 2026-09-28) (root)"
+    confidence: low
+    requires: []
+    live: true
+    notes: "spec: R-MOD-63. Contradiction C7; probe P-MOD-29."
+    site:
+      settings:
+        default_get: allow
+      rules:
+        - actor: "*"
+          resource: "${P}/*"
+          method: [GET, HEAD, PUT, POST, DELETE, MOVE]
+          action: Allow
+        - actor: "*"
+          resource: "${P}/*/*"
+          method: [GET, HEAD, PUT, POST, DELETE, MOVE]
+          action: Allow
+    steps:
+      - name: "register declarations through the public plane (takes effect for the next request)"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/shapes.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div hidden itemscope itemtype="https://pagelove.org/ShapeConstraint">
+                <meta itemprop="resource" content="${P}/g/*">
+                <code itemprop="constraint">:not([itemscope]:not([itemtype]))</code>
+              </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "document containing an untyped itemscope accepted"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/g/a.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div itemscope><span itemprop="x">1</span></div>
+            </body></html>
+        expect:
+          status: [200, 201]
+  - id: modeling.shapes.global-example-all-elements
+    title: "Docs global example claim: no selector means the constraint applies to all elements"
+    area: modeling
+    feature: "shape constraints"
+    evidence: documented
+    source: "docs reference/modeling-data/ShapeConstraint §Examples > Global constraint (snapshot 2026-09-28)"
+    confidence: low
+    requires: []
+    live: true
+    status: disputed
+    notes: "spec: R-MOD-63. Contradiction C7."
+    site:
+      settings:
+        default_get: allow
+      rules:
+        - actor: "*"
+          resource: "${P}/*"
+          method: [GET, HEAD, PUT, POST, DELETE, MOVE]
+          action: Allow
+        - actor: "*"
+          resource: "${P}/*/*"
+          method: [GET, HEAD, PUT, POST, DELETE, MOVE]
+          action: Allow
+    steps:
+      - name: "register declarations through the public plane (takes effect for the next request)"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/shapes.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div hidden itemscope itemtype="https://pagelove.org/ShapeConstraint">
+                <meta itemprop="resource" content="${P}/g/*">
+                <code itemprop="constraint">:not([itemscope]:not([itemtype]))</code>
+              </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "document containing an untyped itemscope rejected"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/g/a.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div itemscope><span itemprop="x">1</span></div>
+            </body></html>
+        expect:
+          status: 422
+          header_matches:
+            Content-Type: "^text/html"
+          body_contains: ["https://dombase.pagelove.team/ns/error/ShapeConstraint", "Shape constraints violated"]
+  - id: modeling.shapes.evaluated-against-proposed-dom
+    title: "A write that repairs a stored violation is accepted: shapes judge the result, not stored state"
+    area: modeling
+    feature: "shape constraints"
+    evidence: documented
+    source: "docs reference/modeling-data/ShapeConstraint §How shape constraints run (snapshot 2026-09-28)"
+    confidence: high
+    requires: []
+    live: true
+    notes: "spec: R-MOD-63. The invalid seed document is written during setup, before the shape is registered."
+    site:
+      settings:
+        default_get: allow
+      files:
+        - path: "${P}/people/u.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div itemscope itemtype="https://example.org/User">
+                <span itemprop="username">a</span>
+              </div>
+            </body></html>
+      rules:
+        - actor: "*"
+          resource: "${P}/*"
+          method: [GET, HEAD, PUT, POST, DELETE, MOVE]
+          action: Allow
+        - actor: "*"
+          resource: "${P}/*/*"
+          method: [GET, HEAD, PUT, POST, DELETE, MOVE]
+          action: Allow
+    steps:
+      - name: "register declarations through the public plane (takes effect for the next request)"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/shapes.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div hidden itemscope itemtype="https://pagelove.org/ShapeConstraint">
+                <meta itemprop="resource" content="${P}/people/*">
+                <code itemprop="selector">[itemtype*=User]</code>
+                <code itemprop="constraint">:has([itemprop="username"])</code>
+                <code itemprop="constraint">:has([itemprop="email"])</code>
+              </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "fix the stored user by adding email"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/people/u.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div itemscope itemtype="https://example.org/User">
+                <span itemprop="username">a</span>
+                <span itemprop="email">a@x</span>
+              </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "break it again"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/people/u.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div itemscope itemtype="https://example.org/User">
+                <span itemprop="username">a</span>
+              </div>
+            </body></html>
+        expect:
+          status: 422
+          header_matches:
+            Content-Type: "^text/html"
+          body_contains: ["https://dombase.pagelove.team/ns/error/ShapeConstraint", "Shape constraints violated"]
+  - id: modeling.shapes.constraint-subject-semantics
+    title: "A constraint must match the scope element itself; a matching descendant is not enough"
+    area: modeling
+    feature: "shape constraints"
+    evidence: inferred
+    source: "docs reference/modeling-data/ShapeConstraint §Examples (snapshot 2026-09-28) (message wording)"
+    confidence: low
+    requires: []
+    live: true
+    notes: "spec: R-MOD-64. The docs' CSS-pattern table ('An element with the name property exists') suggests subtree semantics; probe P-MOD-28."
+    site:
+      settings:
+        default_get: allow
+      rules:
+        - actor: "*"
+          resource: "${P}/*"
+          method: [GET, HEAD, PUT, POST, DELETE, MOVE]
+          action: Allow
+        - actor: "*"
+          resource: "${P}/*/*"
+          method: [GET, HEAD, PUT, POST, DELETE, MOVE]
+          action: Allow
+    steps:
+      - name: "register declarations through the public plane (takes effect for the next request)"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/shapes.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div hidden itemscope itemtype="https://pagelove.org/ShapeConstraint">
+                <meta itemprop="resource" content="${P}/art/*">
+                <code itemprop="selector">article</code>
+                <code itemprop="constraint">[itemprop="name"]</code>
+              </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "article whose child carries the property is rejected"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/art/a.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <article><span itemprop="name">x</span></article>
+            </body></html>
+        expect:
+          status: 422
+          header_matches:
+            Content-Type: "^text/html"
+          body_contains: ["https://dombase.pagelove.team/ns/error/ShapeConstraint", "Shape constraints violated"]
+  - id: modeling.shapes.webdav-write-checked
+    title: "WebDAV authoring writes are checked by shapes"
+    area: modeling
+    feature: "shape constraints"
+    evidence: demo-source
+    source: "pagelove-shop/site/constraints.html@d887054:5-14 with worker/src/index.js@d887054:250-256; docs reference/protocol/WebDAV §When something goes wrong (snapshot 2026-09-28)"
+    confidence: medium
+    requires: [webdav]
+    live: true
+    notes: "spec: R-MOD-13, R-MOD-75. Contradiction C14: the pagelove-dev skill says WebDAV success does not test ShapeConstraint behaviour. Kept (keep-documented-security, docs/compat/decisions-2026-09-29/serialization.md, \"Integration\"): live PageLove stores a WebDAV PUT without schema or shape checks; pagelike keeps the documented check, which apps such as the shop rely on to keep scripts out of documents their workers write. Sibling: .live."
+    site:
+      settings:
+        default_get: allow
+      rules:
+        - actor: "*"
+          resource: "${P}/*"
+          method: [GET, HEAD, PUT, POST, DELETE, MOVE]
+          action: Allow
+        - actor: "*"
+          resource: "${P}/*/*"
+          method: [GET, HEAD, PUT, POST, DELETE, MOVE]
+          action: Allow
+    steps:
+      - name: "register declarations through the public plane (takes effect for the next request)"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/shapes.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div hidden itemscope itemtype="https://pagelove.org/ShapeConstraint">
+                <meta itemprop="resource" content="${P}/people/*">
+                <code itemprop="selector">[itemtype*=User]</code>
+                <code itemprop="constraint">:has([itemprop="username"])</code>
+                <code itemprop="constraint">:has([itemprop="email"])</code>
+              </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "author PUT of a user missing email is refused"
+        as: author
+        plane: dav
+        request:
+          method: PUT
+          path: "${P}/people/w.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div itemscope itemtype="https://example.org/User">
+                <span itemprop="username">w</span>
+              </div>
+            </body></html>
+        expect:
+          status: 422
+      - name: "w.html was not stored"
+        as: author
+        plane: dav
+        request:
+          method: GET
+          path: "${P}/people/w.html"
+        expect:
+          status: 404
+
+  - id: modeling.shapes.webdav-write-checked.live
+    title: "WebDAV authoring PUTs are not checked by shapes (the id predates the live answer)"
+    area: modeling
+    feature: "shape constraints"
+    status: live-divergence
+    evidence: live-observed
+    source: "harness/observations/live-2026-09-29-reconcile-modeling/modeling-probe-0929-write-envelopes.json and modeling-probe-0929-webdav-after-propaga.json (a WebDAV PUT that breaks a shape is stored, also 65 s after the shape was stored)"
+    confidence: high
+    requires: [webdav]
+    live: true
+    notes: "spec: R-MOD-13. Adopt-live 2026-09-29: it was documented (WebDAV §When something goes wrong) and inferred from the shop demo that dav writes are shape-checked; PageLove stores them unchecked, as the pagelove-dev skill says (C14)."
+    site:
+      settings:
+        default_get: allow
+      rules:
+        - actor: "*"
+          resource: "${P}/*"
+          method: [GET, HEAD, PUT, POST, DELETE, MOVE]
+          action: Allow
+        - actor: "*"
+          resource: "${P}/*/*"
+          method: [GET, HEAD, PUT, POST, DELETE, MOVE]
+          action: Allow
+    steps:
+      - name: "register declarations through the public plane (takes effect for the next request)"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/shapes.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div hidden itemscope itemtype="https://pagelove.org/ShapeConstraint">
+                <meta itemprop="resource" content="${P}/people/*">
+                <code itemprop="selector">[itemtype*=User]</code>
+                <code itemprop="constraint">:has([itemprop="username"])</code>
+                <code itemprop="constraint">:has([itemprop="email"])</code>
+              </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "author PUT of a user missing email is stored"
+        as: author
+        plane: dav
+        request:
+          method: PUT
+          path: "${P}/people/w.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div itemscope itemtype="https://example.org/User">
+                <span itemprop="username">w</span>
+              </div>
+            </body></html>
+        expect:
+          status: [200, 201]
+      - name: "w.html was stored"
+        as: author
+        plane: dav
+        request:
+          method: GET
+          path: "${P}/people/w.html"
+        expect:
+          status: 200
+          body_contains: ["<span itemprop=\"username\">w</span>"]
+      - name: "the same user is refused on the public plane"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/people/p.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div itemscope itemtype="https://example.org/User">
+                <span itemprop="username">w</span>
+              </div>
+            </body></html>
+        expect:
+          status: 422

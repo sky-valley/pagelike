@@ -1,0 +1,50 @@
+{
+  "case": "javascript.slots.default-document-writable",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (register declarations through the public plane (takes effect for the next request))",
+      "method": "PUT",
+      "path": "/_pl/javascript-slots-default-document-writab-3a2813/schema.html",
+      "status": 201,
+      "headers": {
+        "content-length": "1034",
+        "content-type": "text/html",
+        "etag": "\"0b6fa9a363783fec7c63e67589081be3e3238c276d7966e98396686294692053\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:43 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\n\u003cdiv hidden itemscope itemtype=\"https://pagelove.org/Schema\"\u003e\n\u003cmeta itemprop=\"type\" content=\"https://pagelike.test/_pl/javascript-slots-default-document-writab-3a2813/Dfdefaultdocumentwritable\"\u003e\n\u003cdiv itemprop=\"property\" itemscope itemtype=\"https://pagelove.org/Property\"\u003e\n\u003cmeta itemprop=\"name\" content=\"title\"\u003e\n\u003cmeta itemprop=\"type\" content=\"https://schema.host/Text\"\u003e\n\u003cmeta itemprop=\"cardinality\" content=\"0..1\"\u003e\n\u003c/div\u003e\n\u003cdiv itemprop=\"property\" itemscope itemtype=\"https://pagelove.org/Property\"\u003e\n\u003cmeta itemprop=\"name\" content=\"d\"\u003e\n\u003cmeta itemprop=\"type\" content=\"https://schema.host/Text\"\u003e\n\u003cmeta itemprop=\"cardinality\" content=\"0..1\"\u003e\n\u003cdiv itemprop=\"default\" itemscope itemtype=\"https://pagelove.org/JavaScript/Module\"\u003e\n\u003cscript itemprop=\"source\" type=\"module\"\u003e\nexport default function () {\n  const t = document.querySelector('[itemprop=\"title\"]');\n  if (t) t.setAttribute('data-seen', 'yes');\n  return t ? t.getAttribute('content').toLowerCase() : 'none';\n}\n\u003c/script\u003e\n\u003c/div\u003e\n\u003c/div\u003e\n\u003c/div\u003e\n\u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 2 (PUT an instance (a.html))",
+      "method": "PUT",
+      "path": "/_pl/javascript-slots-default-document-writab-3a2813/a.html",
+      "status": 201,
+      "headers": {
+        "content-length": "269",
+        "content-type": "text/html",
+        "etag": "\"bfbfbb4ba174d4b19187c5585f403486905a88f7c956243bcbd0bddc77ba0f8d\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:43 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\n\u003cdiv itemscope itemtype=\"https://pagelike.test/_pl/javascript-slots-default-document-writab-3a2813/Dfdefaultdocumentwritable\"\u003e\n\u003cmeta itemprop=\"title\" content=\"Hello\" data-seen=\"yes\"\u003e\n\u003cmeta itemprop=\"d\" content=\"hello\"\u003e\u003c/div\u003e\n\u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 3 (stored state (authoring plane, raw))",
+      "method": "GET",
+      "path": "/_pl/javascript-slots-default-document-writab-3a2813/a.html",
+      "status": 200,
+      "headers": {
+        "accept-ranges": "bytes",
+        "content-length": "269",
+        "content-type": "text/html",
+        "etag": "\"bfbfbb4ba174d4b19187c5585f403486905a88f7c956243bcbd0bddc77ba0f8d\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:43 GMT"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\n\u003cdiv itemscope itemtype=\"https://pagelike.test/_pl/javascript-slots-default-document-writab-3a2813/Dfdefaultdocumentwritable\"\u003e\n\u003cmeta itemprop=\"title\" content=\"Hello\" data-seen=\"yes\"\u003e\n\u003cmeta itemprop=\"d\" content=\"hello\"\u003e\u003c/div\u003e\n\u003c/body\u003e\u003c/html\u003e\n"
+    }
+  ],
+  "outcome": "pass",
+  "target": "local"
+}

@@ -1,0 +1,101 @@
+{
+  "case": "comp.sx.numeric",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 ( 9.99 is less than 10 (trimmed, decimal))",
+      "method": "GET",
+      "path": "/_pl/comp-sx-numeric-5fbe2b/sx.html",
+      "status": 206,
+      "headers": {
+        "accept-ranges": "selector, bytes",
+        "content-length": "39",
+        "content-range": "selector .num:less-than('10')",
+        "content-type": "text/html",
+        "etag": "\"0c3366bd939c38d315bb8497dd0557f8deb7c8ad1e7f7506b9626dc2f5ad497e-0c3366bd939c38d315bb8497dd0557f8deb7c8ad1e7f7506b9626dc2f5ad497e-1\"",
+        "vary": "Host, Range, Accept"
+      },
+      "body": "\u003cspan id=\"n1\" class=\"num\"\u003e 9.99 \u003c/span\u003e"
+    },
+    {
+      "step": "step 2",
+      "method": "GET",
+      "path": "/_pl/comp-sx-numeric-5fbe2b/sx.html",
+      "status": 206,
+      "headers": {
+        "accept-ranges": "selector, bytes",
+        "content-length": "35",
+        "content-range": "selector .num:greater-than('10')",
+        "content-type": "text/html",
+        "etag": "\"63d9f55a3bf5643d346d9f53d066c78ffa45c43bf9ac0116aa274a3c725d5c3c-63d9f55a3bf5643d346d9f53d066c78ffa45c43bf9ac0116aa274a3c725d5c3c-1\"",
+        "vary": "Host, Range, Accept"
+      },
+      "body": "\u003cspan id=\"n2\" class=\"num\"\u003e15\u003c/span\u003e"
+    },
+    {
+      "step": "step 3 (non-numeric text never matches)",
+      "method": "GET",
+      "path": "/_pl/comp-sx-numeric-5fbe2b/sx.html",
+      "status": 416,
+      "headers": {
+        "content-length": "373",
+        "content-type": "text/html",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\n  \u003chead\u003e\n    \u003ctitle\u003e416 Range Not Satisfiable - Error\u003c/title\u003e\n  \u003c/head\u003e\n  \u003cbody itemscope itemtype=\"http://pagelove.org/Error\"\u003e\n    \u003ch1 itemprop=\"name\"\u003eRange Not Satisfiable\u003c/h1\u003e\n    \u003cmeta itemprop=\"statusCode\" content=\"416\"\u003e\n    \u003cp itemprop=\"description\"\u003eHTML parsing error: No elements matched selector: #n3:less-than('1000')\u003c/p\u003e\n  \u003c/body\u003e\n\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 4 (empty text never matches)",
+      "method": "GET",
+      "path": "/_pl/comp-sx-numeric-5fbe2b/sx.html",
+      "status": 416,
+      "headers": {
+        "content-length": "374",
+        "content-type": "text/html",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\n  \u003chead\u003e\n    \u003ctitle\u003e416 Range Not Satisfiable - Error\u003c/title\u003e\n  \u003c/head\u003e\n  \u003cbody itemscope itemtype=\"http://pagelove.org/Error\"\u003e\n    \u003ch1 itemprop=\"name\"\u003eRange Not Satisfiable\u003c/h1\u003e\n    \u003cmeta itemprop=\"statusCode\" content=\"416\"\u003e\n    \u003cp itemprop=\"description\"\u003eHTML parsing error: No elements matched selector: #n4:greater-than('-1')\u003c/p\u003e\n  \u003c/body\u003e\n\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 5",
+      "method": "GET",
+      "path": "/_pl/comp-sx-numeric-5fbe2b/sx.html",
+      "status": 206,
+      "headers": {
+        "accept-ranges": "selector, bytes",
+        "content-length": "50",
+        "content-range": "selector [itemprop=price]:value-greater-than('100')",
+        "content-type": "text/html",
+        "etag": "\"bfccc4a4163b7791769109d8ce0ee1998f940b4c08c8d98ef6f58f33b808a2ee-bfccc4a4163b7791769109d8ce0ee1998f940b4c08c8d98ef6f58f33b808a2ee-1\"",
+        "vary": "Host, Range, Accept"
+      },
+      "body": "\u003cmeta id=\"m-price\" itemprop=\"price\" content=\"120\"\u003e"
+    },
+    {
+      "step": "step 6",
+      "method": "GET",
+      "path": "/_pl/comp-sx-numeric-5fbe2b/sx.html",
+      "status": 416,
+      "headers": {
+        "content-length": "391",
+        "content-type": "text/html",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\n  \u003chead\u003e\n    \u003ctitle\u003e416 Range Not Satisfiable - Error\u003c/title\u003e\n  \u003c/head\u003e\n  \u003cbody itemscope itemtype=\"http://pagelove.org/Error\"\u003e\n    \u003ch1 itemprop=\"name\"\u003eRange Not Satisfiable\u003c/h1\u003e\n    \u003cmeta itemprop=\"statusCode\" content=\"416\"\u003e\n    \u003cp itemprop=\"description\"\u003eHTML parsing error: No elements matched selector: [itemprop=price]:value-less-than('100')\u003c/p\u003e\n  \u003c/body\u003e\n\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 7 (comparison is strict)",
+      "method": "GET",
+      "path": "/_pl/comp-sx-numeric-5fbe2b/sx.html",
+      "status": 416,
+      "headers": {
+        "content-length": "371",
+        "content-type": "text/html",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\n  \u003chead\u003e\n    \u003ctitle\u003e416 Range Not Satisfiable - Error\u003c/title\u003e\n  \u003c/head\u003e\n  \u003cbody itemscope itemtype=\"http://pagelove.org/Error\"\u003e\n    \u003ch1 itemprop=\"name\"\u003eRange Not Satisfiable\u003c/h1\u003e\n    \u003cmeta itemprop=\"statusCode\" content=\"416\"\u003e\n    \u003cp itemprop=\"description\"\u003eHTML parsing error: No elements matched selector: #n2:less-than('15')\u003c/p\u003e\n  \u003c/body\u003e\n\u003c/html\u003e\n"
+    }
+  ],
+  "outcome": "pass",
+  "target": "local"
+}

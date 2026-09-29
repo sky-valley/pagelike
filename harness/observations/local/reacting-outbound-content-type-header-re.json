@@ -1,0 +1,48 @@
+{
+  "case": "reacting.outbound.content-type-header-replaces-property",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (install)",
+      "method": "PUT",
+      "path": "/_pl/reacting-outbound-content-type-header-re-dcf6f9/r/triggers.html",
+      "status": 201,
+      "headers": {
+        "content-length": "702",
+        "content-type": "text/html",
+        "etag": "\"36cde045f5cf3a386a75ec6ea1668e8fbace93b69e956446640c7160600ed706\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:48 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\n\u003cdiv hidden itemscope itemtype=\"https://pagelove.org/Trigger\"\u003e\n  \u003cmeta itemprop=\"resource\" content=\"/_pl/reacting-outbound-content-type-header-re-dcf6f9/d/*\"\u003e\n  \u003cmeta itemprop=\"method\" content=\"PUT\"\u003e\n  \u003cdiv itemprop=\"action\" itemscope itemtype=\"https://pagelove.org/HttpRequest\"\u003e\n    \u003cmeta itemprop=\"url\" content=\"http://127.0.0.1:53412/c-bfd153bb/ct\"\u003e\n    \u003cmeta itemprop=\"content-type\" content=\"text/plain\"\u003e\n    \u003cmeta itemprop=\"body\" content=\"x\"\u003e\n    \u003cdiv itemprop=\"header\" itemscope itemtype=\"https://pagelove.org/Pair\"\u003e\n      \u003cmeta itemprop=\"key\" content=\"Content-Type\"\u003e\n      \u003cmeta itemprop=\"value\" content=\"application/json\"\u003e\n    \u003c/div\u003e\n  \u003c/div\u003e\n\u003c/div\u003e\n\u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 2 (write)",
+      "method": "PUT",
+      "path": "/_pl/reacting-outbound-content-type-header-re-dcf6f9/d/x.html",
+      "status": 201,
+      "headers": {
+        "content-length": "8",
+        "content-type": "text/html",
+        "etag": "\"31d8e07ec305ac4e2515d1f0b1c8c603b3858044eb7d97807d6d0970838cb0be\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:48 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003cp\u003ex\u003c/p\u003e"
+    },
+    {
+      "step": "step 3",
+      "method": "POST",
+      "path": "${SINK}/ct",
+      "headers": {
+        "accept-encoding": "gzip",
+        "content-length": "1",
+        "content-type": "application/json",
+        "user-agent": "Go-http-client/1.1"
+      },
+      "body": "x"
+    }
+  ],
+  "outcome": "pass",
+  "target": "local"
+}

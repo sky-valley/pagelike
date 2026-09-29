@@ -1,0 +1,81 @@
+{
+  "case": "rw.up.html-extension-forces-text-html",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (.html sent as octet-stream)",
+      "method": "PUT",
+      "path": "/_pl/rw-up-html-extension-forces-text-html-3ce811/forced.html",
+      "status": 201,
+      "headers": {
+        "content-length": "63",
+        "content-type": "text/html",
+        "etag": "\"fa3cc51eaae3b1e8b85e5d0146732922cee4aed49234d4ffbc1b6e1df742e408\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:56 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\u003ch1\u003eForced HTML\u003c/h1\u003e\u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 2 (served as HTML)",
+      "method": "GET",
+      "path": "/_pl/rw-up-html-extension-forces-text-html-3ce811/forced.html",
+      "status": 200,
+      "headers": {
+        "accept-ranges": "selector, bytes",
+        "content-length": "63",
+        "content-type": "text/html",
+        "etag": "\"fa3cc51eaae3b1e8b85e5d0146732922cee4aed49234d4ffbc1b6e1df742e408\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:56 GMT",
+        "vary": "Host, Range, Accept"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\u003ch1\u003eForced HTML\u003c/h1\u003e\u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 3 (selector-addressable, so it is an HTML document)",
+      "method": "GET",
+      "path": "/_pl/rw-up-html-extension-forces-text-html-3ce811/forced.html",
+      "status": 206,
+      "headers": {
+        "accept-ranges": "selector, bytes",
+        "content-length": "20",
+        "content-range": "selector h1",
+        "content-type": "text/html",
+        "etag": "\"2b52674290b3de1f2d408a0353365e8cb1db56ac93de45d74029431fee652066-2b52674290b3de1f2d408a0353365e8cb1db56ac93de45d74029431fee652066-1\"",
+        "vary": "Host, Range, Accept"
+      },
+      "body": "\u003ch1\u003eForced HTML\u003c/h1\u003e"
+    },
+    {
+      "step": "step 4 (.htm sent as text/plain)",
+      "method": "PUT",
+      "path": "/_pl/rw-up-html-extension-forces-text-html-3ce811/legacy.htm",
+      "status": 201,
+      "headers": {
+        "content-length": "58",
+        "content-type": "text/html",
+        "etag": "\"f7457300c4c5765a4bd8393af05b1ff435ea19102e6c6f4a916cab22adbd52fe\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:56 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\u003ch1\u003eLegacy\u003c/h1\u003e\u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 5 (.htm served as HTML)",
+      "method": "GET",
+      "path": "/_pl/rw-up-html-extension-forces-text-html-3ce811/legacy.htm",
+      "status": 200,
+      "headers": {
+        "accept-ranges": "selector, bytes",
+        "content-length": "58",
+        "content-type": "text/html",
+        "etag": "\"f7457300c4c5765a4bd8393af05b1ff435ea19102e6c6f4a916cab22adbd52fe\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:56 GMT",
+        "vary": "Host, Range, Accept"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\u003ch1\u003eLegacy\u003c/h1\u003e\u003c/body\u003e\u003c/html\u003e\n"
+    }
+  ],
+  "outcome": "pass",
+  "target": "local"
+}

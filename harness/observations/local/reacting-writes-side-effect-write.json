@@ -1,0 +1,66 @@
+{
+  "case": "reacting.writes.side-effect-write",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (install the documented side-effect trigger)",
+      "method": "PUT",
+      "path": "/_pl/reacting-writes-side-effect-write-3f41ad/r/triggers.html",
+      "status": 201,
+      "headers": {
+        "content-length": "656",
+        "content-type": "text/html",
+        "etag": "\"132983b0d977f7910f321fde2767eca3c6e419db507af2813c7b5032ee36e948\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:55 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\n\u003cdiv hidden itemscope itemtype=\"https://pagelove.org/Trigger\"\u003e\n  \u003cmeta itemprop=\"resource\" content=\"/_pl/reacting-writes-side-effect-write-3f41ad/d/*\"\u003e\n  \u003cmeta itemprop=\"method\" content=\"PUT\"\u003e\n  \u003cdiv itemprop=\"action\" itemscope itemtype=\"https://pagelove.org/Sessel\"\u003e\n    \u003cscript itemprop=\"source\" type=\"text/sessel\"\u003e\n      @schema Pagelove url(\"https://pagelove.org/1.0\");\n      @schema Thing url(\"https://schema.org/Thing\");\n      let item = new Thing { name: \"side-effect-doc\" };\n      Pagelove.PUT(item, \"/_pl/reacting-writes-side-effect-write-3f41ad/side-effects/record.html\")\n    \u003c/script\u003e\n  \u003c/div\u003e\n\u003c/div\u003e\n\u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 2 (the triggering write proceeds)",
+      "method": "PUT",
+      "path": "/_pl/reacting-writes-side-effect-write-3f41ad/d/x.html",
+      "status": 201,
+      "headers": {
+        "content-length": "52",
+        "content-type": "text/html",
+        "etag": "\"b379c2369ff5008192f5b95692c14a23fb7d3cd427073c3b6c3e60fab0e82d2c\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:55 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\u003chtml\u003e\u003cbody\u003e\u003cp\u003emain\u003c/p\u003e\u003c/body\u003e\u003c/html\u003e"
+    },
+    {
+      "step": "step 3 (the side-effect document exists)",
+      "method": "GET",
+      "path": "/_pl/reacting-writes-side-effect-write-3f41ad/side-effects/record.html",
+      "status": 200,
+      "headers": {
+        "accept-ranges": "selector, bytes",
+        "content-length": "150",
+        "content-type": "text/html",
+        "etag": "\"1bf1534cb9049a56fa5053ea9870db34dcac0ce619a450b802d39cbe27fb5780\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:55 GMT",
+        "vary": "Host, Range, Accept"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\n\u003cdiv itemscope itemtype=\"https://schema.org/Thing\"\u003e\u003cmeta itemprop=\"name\" content=\"side-effect-doc\"\u003e\u003c/div\u003e\n\u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 4 (the main document was written too)",
+      "method": "GET",
+      "path": "/_pl/reacting-writes-side-effect-write-3f41ad/d/x.html",
+      "status": 200,
+      "headers": {
+        "accept-ranges": "selector, bytes",
+        "content-length": "52",
+        "content-type": "text/html",
+        "etag": "\"b379c2369ff5008192f5b95692c14a23fb7d3cd427073c3b6c3e60fab0e82d2c\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:55 GMT",
+        "vary": "Host, Range, Accept"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\u003chtml\u003e\u003cbody\u003e\u003cp\u003emain\u003c/p\u003e\u003c/body\u003e\u003c/html\u003e"
+    }
+  ],
+  "outcome": "pass",
+  "target": "local"
+}

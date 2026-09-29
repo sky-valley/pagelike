@@ -1,0 +1,165 @@
+# Composing: XML-family documents.
+# Spec: docs/spec/composing.md §18 (R-COMP-123..128).
+defaults:
+  area: composing
+  site:
+    settings: {default_get: allow}
+    files:
+      - path: "${P}/feed.xml"
+        content_type: application/atom+xml
+        body: |
+          <?xml version="1.0" encoding="UTF-8"?>
+          <feed xmlns="http://www.w3.org/2005/Atom" xmlns:e="https://pagelove.org/Binding/Sessel" xmlns:p="https://pagelove.org/1.0" e:site="'Pagelove Blog'">
+            <title><p:stamp site></p:stamp></title>
+            <entry><id>urn:1</id></entry>
+            <Entry></Entry>
+          </feed>
+    rules:
+      - {actor: "*", resource: "${P}/*", method: [GET, HEAD], action: Allow}
+cases:
+  - id: comp.xml.atom-stamp
+    title: An Atom feed is composed with the same directives and keeps its XML content type
+    feature: XML documents
+    evidence: documented
+    source: "docs reference/composing-pages/XML-Documents §Example (snapshot 2026-09-28)"
+    confidence: high
+    requires: [sessel]
+    live: true
+    notes: "The docs example also stores an AuthorizationRule inside the feed; the rules shorthand replaces it."
+    steps:
+      - as: anonymous
+        request: {method: GET, path: "${P}/feed.xml"}
+        expect:
+          status: 200
+          header_matches: {Content-Type: '^application/atom\+xml'}
+          body_contains: ["<title>Pagelove Blog</title>", "<id>urn:1</id>"]
+          body_not_contains: ["p:stamp", "e:site"]
+
+  - id: comp.xml.xmlns-preserved
+    title: XML output keeps every xmlns declaration and the XML declaration
+    feature: XML documents
+    evidence: documented
+    source: "docs reference/composing-pages/XML-Documents §Differences from HTML composition, §The XML dialect (snapshot 2026-09-28)"
+    confidence: high
+    requires: [sessel]
+    live: true
+    steps:
+      - as: anonymous
+        request: {method: GET, path: "${P}/feed.xml"}
+        expect:
+          status: 200
+          body_contains:
+            - "<?xml"
+            - 'xmlns="http://www.w3.org/2005/Atom"'
+            - 'xmlns:e="https://pagelove.org/Binding/Sessel"'
+            - 'xmlns:p="https://pagelove.org/1.0"'
+
+  - id: comp.xml.no-jsonld
+    title: An XML document ignores Accept application/ld+json
+    feature: XML documents
+    evidence: documented
+    source: "docs reference/composing-pages/XML-Documents §Differences from HTML composition (snapshot 2026-09-28)"
+    confidence: high
+    requires: [sessel]
+    live: true
+    steps:
+      - as: anonymous
+        request:
+          method: GET
+          path: "${P}/feed.xml"
+          headers: {Accept: "application/ld+json"}
+        expect:
+          status: 200
+          header_matches: {Content-Type: '^application/atom\+xml'}
+          body_contains: ["<title>Pagelove Blog</title>"]
+
+  - id: comp.xml.self-closing-case-preserved
+    title: Composed XML self-closes empty elements and preserves element-name case
+    feature: XML documents
+    evidence: documented
+    source: "docs reference/composing-pages/XML-Documents §The XML dialect (snapshot 2026-09-28)"
+    confidence: high
+    requires: [sessel]
+    live: true
+    steps:
+      - as: anonymous
+        request: {method: GET, path: "${P}/feed.xml"}
+        expect:
+          status: 200
+          body_matches: '<Entry\s*/>'
+          body_not_contains: ["<entry/>", "<entry />"]
+
+  - id: comp.xml.unchanged-without-directives
+    title: An XML document without Pagelove namespaces or microdata is served unchanged
+    feature: XML documents
+    evidence: documented
+    source: "docs reference/composing-pages/XML-Documents §Composition ('served unchanged') (snapshot 2026-09-28)"
+    confidence: medium
+    requires: []
+    live: true
+    notes: "R-COMP-128. Medium: 'unchanged' is read as byte-identical (the empty <Item> is not re-serialized as self-closing)."
+    site:
+      settings: {default_get: allow}
+      files:
+        - path: "${P}/plain.xml"
+          content_type: application/xml
+          body: |
+            <?xml version="1.0" encoding="UTF-8"?>
+            <root><Item a="1"></Item><item>lower</item></root>
+      rules:
+        - {actor: "*", resource: "${P}/*", method: [GET, HEAD], action: Allow}
+    steps:
+      - as: anonymous
+        request: {method: GET, path: "${P}/plain.xml"}
+        expect:
+          status: 200
+          header_matches: {Content-Type: '^application/xml'}
+          body: |
+            <?xml version="1.0" encoding="UTF-8"?>
+            <root><Item a="1"></Item><item>lower</item></root>
+
+  - id: comp.xml.liquid-feed
+    title: A Liquid template on the feed root renders one entry per bound item
+    feature: XML documents
+    evidence: documented
+    source: "docs learn/build-a-blog §The feed (snapshot 2026-09-28)"
+    confidence: high
+    requires: [liquid]
+    live: true
+    site:
+      settings: {default_get: allow}
+      files:
+        - path: "${P}/data/posts/one.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body><article itemscope itemtype="https://example.test${P}/Post" id="post-one">
+              <meta itemprop="slug" content="one"><meta itemprop="status" content="Published">
+              <h1 itemprop="title">Post &amp; One</h1>
+              <time itemprop="publishedAt" datetime="2026-08-03">3 August 2026</time>
+            </article></body></html>
+        - path: "${P}/data/posts/two.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body><article itemscope itemtype="https://example.test${P}/Post" id="post-two">
+              <meta itemprop="slug" content="two"><meta itemprop="status" content="Published">
+              <h1 itemprop="title">Post Two</h1>
+              <time itemprop="publishedAt" datetime="2026-08-05">5 August 2026</time>
+            </article></body></html>
+        - path: "${P}/feed.xml"
+          content_type: application/atom+xml
+          body: |
+            <?xml version="1.0" encoding="UTF-8"?>
+            <feed xmlns="http://www.w3.org/2005/Atom" xmlns:p="https://pagelove.org/1.0" xmlns:r="https://pagelove.org/Binding/CSS" p:template="text/liquid" r:posts="[itemtype='https://example.test${P}/Post']"><title>Field Notes</title>{% assign pub = posts | where: "status", "Published" | sort: "publishedAt" | reverse %}{% if pub.size > 0 %}<updated>{{ pub.first.publishedAt }}T00:00:00Z</updated>{% endif %}{% for post in pub %}<entry><title>{{ post.title | escape }}</title><id>urn:post:{{ post.slug }}</id></entry>{% endfor %}</feed>
+      rules:
+        - {actor: "*", resource: "${P}/*", method: [GET, HEAD], action: Allow}
+    steps:
+      - as: anonymous
+        request: {method: GET, path: "${P}/feed.xml"}
+        expect:
+          status: 200
+          header_matches: {Content-Type: '^application/atom\+xml'}
+          body_contains:
+            - "<updated>2026-08-05T00:00:00Z</updated>"
+            - "<entry><title>Post &amp; One</title><id>urn:post:one</id></entry>"
+            - "<entry><title>Post Two</title><id>urn:post:two</id></entry>"
+          body_not_contains: ["{%", "p:template", "r:posts"]

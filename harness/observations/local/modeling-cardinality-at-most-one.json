@@ -1,0 +1,62 @@
+{
+  "case": "modeling.cardinality.at-most-one",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (register declarations through the public plane (takes effect for the next request))",
+      "method": "PUT",
+      "path": "/_pl/modeling-cardinality-at-most-one-68508c/schema.html",
+      "status": 201,
+      "headers": {
+        "content-length": "473",
+        "content-type": "text/html",
+        "etag": "\"053a35793eefbbb7d432e350c5d22615152797405f5d6c3039cb5031f95938f6\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:44 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\n  \u003cdiv hidden itemscope itemtype=\"https://pagelove.org/Schema\"\u003e\n    \u003cmeta itemprop=\"type\" content=\"https://pagelike.test/_pl/modeling-cardinality-at-most-one-68508c/Note\"\u003e\n    \u003cdiv itemprop=\"property\" itemscope itemtype=\"https://pagelove.org/Property\"\u003e\n      \u003cmeta itemprop=\"name\" content=\"v\"\u003e\n      \u003cmeta itemprop=\"type\" content=\"https://schema.host/Text\"\u003e\n      \u003cmeta itemprop=\"cardinality\" content=\"0..1\"\u003e\n    \u003c/div\u003e\n  \u003c/div\u003e\n\u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 2 (zero values accepted)",
+      "method": "PUT",
+      "path": "/_pl/modeling-cardinality-at-most-one-68508c/n0.html",
+      "status": 201,
+      "headers": {
+        "content-length": "150",
+        "content-type": "text/html",
+        "etag": "\"647a5e0b5d91a6fa41acb6c58576c7520936fcb0fe6dbb467d11557667ff6cd5\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:44 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\n  \u003cdiv itemscope itemtype=\"https://pagelike.test/_pl/modeling-cardinality-at-most-one-68508c/Note\"\u003e\u003c/div\u003e\n\u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 3 (one value accepted)",
+      "method": "PUT",
+      "path": "/_pl/modeling-cardinality-at-most-one-68508c/n1.html",
+      "status": 201,
+      "headers": {
+        "content-length": "189",
+        "content-type": "text/html",
+        "etag": "\"e2aa1485151349f3d1c397f5acb84ea7a3af50e16d4c51b4b6c4f981bc08ae8a\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:44 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\n  \u003cdiv itemscope itemtype=\"https://pagelike.test/_pl/modeling-cardinality-at-most-one-68508c/Note\"\u003e\n    \u003cmeta itemprop=\"v\" content=\"a\"\u003e\n  \u003c/div\u003e\n\u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 4 (two values rejected)",
+      "method": "PUT",
+      "path": "/_pl/modeling-cardinality-at-most-one-68508c/n2.html",
+      "status": 422,
+      "headers": {
+        "content-length": "844",
+        "content-type": "text/html; charset=utf-8",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\n  \u003chead\u003e\n    \u003ctitle\u003e422 Unprocessable Entity - Schema Violation\u003c/title\u003e\n  \u003c/head\u003e\n  \u003cbody itemscope itemtype=\"https://pagelove.org/SchemaViolation\"\u003e\n    \u003ch1 itemprop=\"name\"\u003eUnprocessable Entity\u003c/h1\u003e\n    \u003cmeta itemprop=\"statusCode\" content=\"422\"\u003e\n    \u003cp itemprop=\"description\"\u003eSchema validation failed\u003c/p\u003e\n    \u003cul\u003e\n      \u003cli itemprop=\"violations\" itemscope itemtype=\"https://pagelove.org/Violation\"\u003e\n        \u003cspan itemprop=\"check\"\u003ecardinality\u003c/span\u003e\n        \u003cspan itemprop=\"itemtype\"\u003ehttps://pagelike.test/_pl/modeling-cardinality-at-most-one-68508c/Note\u003c/span\u003e\n        \u003cspan itemprop=\"property\"\u003ev\u003c/span\u003e\n        \u003cspan itemprop=\"message\"\u003e[https://pagelike.test/_pl/modeling-cardinality-at-most-one-68508c/Note].v: cardinality 0..1 violated: expected at most 1 value, found 2\u003c/span\u003e\n      \u003c/li\u003e\n    \u003c/ul\u003e\n  \u003c/body\u003e\n\u003c/html\u003e\n"
+    }
+  ],
+  "outcome": "pass",
+  "target": "local"
+}

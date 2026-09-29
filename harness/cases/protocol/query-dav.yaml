@@ -1,0 +1,588 @@
+# QUERY, CSS-selector mode, on the WebDAV authoring plane
+# (spec: docs/spec/protocol.md §4-§5, R-PROTO-40..57)
+cases:
+  - id: protocol.query-dav.single-document-multipart
+    title: Authoring QUERY on one document returns multipart/mixed even for a single match
+    area: protocol
+    feature: QUERY css (authoring plane)
+    evidence: documented
+    source: "docs reference/protocol/QUERY §CSS-selector mode, On the WebDAV authoring server (snapshot 2026-09-28)"
+    confidence: high
+    requires: [webdav]
+    live: true
+    notes: >-
+      R-PROTO-50/53/54. Status 200 follows the text; the page's example shows 201 with a
+      text/html body (C-7).
+    site:
+      files:
+        - path: "${P}/doc.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body><h1>Benji</h1><p>Text</p></body></html>
+    steps:
+      - name: one part carrying the match and its provenance
+        as: author
+        plane: dav
+        request:
+          method: QUERY
+          path: "${P}/doc.html"
+          headers: {Content-Type: "text/css-selector"}
+          body: "h1"
+        expect:
+          status: 200
+          header_matches: {Content-Type: '^multipart/mixed; *boundary=[^";]+$'}
+          headers_present: [ETag]
+          body_contains: ["<h1>Benji</h1>", "Content-Location", "${P}/doc.html", "Content-Range: selector "]
+          body_not_contains: ["<p>Text</p>"]
+
+  - id: protocol.query-dav.part-headers
+    title: Each authoring QUERY part carries Content-Location, Content-Range, ETag and Last-Modified
+    area: protocol
+    feature: QUERY css (authoring plane)
+    evidence: documented
+    source: "docs reference/protocol/QUERY §On the WebDAV authoring server, Each part carries (snapshot 2026-09-28)"
+    confidence: medium
+    requires: [webdav]
+    live: true
+    notes: >-
+      R-PROTO-54. Part-header casing is not normalized by HTTP stacks; the documented
+      spellings are asserted (P-26).
+    site:
+      files:
+        - path: "${P}/doc.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body><h1>Benji</h1></body></html>
+    steps:
+      - name: documented part headers present
+        as: author
+        plane: dav
+        request:
+          method: QUERY
+          path: "${P}/doc.html"
+          headers: {Content-Type: "text/css-selector"}
+          body: "h1"
+        expect:
+          status: 200
+          body_contains: ["Content-Location: ", "Content-Range: selector ", "ETag: ", "Last-Modified: "]
+
+  - id: protocol.query-dav.multiple-matches
+    title: Authoring QUERY returns every match in a document, not just the first
+    area: protocol
+    feature: QUERY css (authoring plane)
+    evidence: documented
+    source: "docs reference/protocol/QUERY intro (\"returning every matching element\") (snapshot 2026-09-28)"
+    confidence: high
+    requires: [webdav]
+    live: true
+    notes: R-PROTO-52.
+    site:
+      files:
+        - path: "${P}/doc.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body><ul><li>alpha</li><li>beta</li><li>gamma</li></ul></body></html>
+    steps:
+      - name: all three items
+        as: author
+        plane: dav
+        request:
+          method: QUERY
+          path: "${P}/doc.html"
+          headers: {Content-Type: "text/css-selector"}
+          body: "li"
+        expect:
+          status: 200
+          body_contains: ["<li>alpha</li>", "<li>beta</li>", "<li>gamma</li>"]
+
+  - id: protocol.query-dav.prefix-scope
+    title: Authoring QUERY on a path ending in / searches every document under that prefix only
+    area: protocol
+    feature: QUERY css scopes (authoring plane)
+    evidence: documented
+    source: "docs reference/protocol/QUERY §On the WebDAV authoring server, scope table (snapshot 2026-09-28)"
+    confidence: medium
+    requires: [webdav]
+    live: true
+    notes: >-
+      R-PROTO-50. "Under that prefix" is read as recursive (medium). Documents outside the
+      prefix must not appear.
+    site:
+      files:
+        - path: "${P}/sub/a.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body><h1>SubA</h1></body></html>
+        - path: "${P}/sub/deeper/b.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body><h1>SubB</h1></body></html>
+        - path: "${P}/other.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body><h1>Outside</h1></body></html>
+    steps:
+      - name: prefix query
+        as: author
+        plane: dav
+        request:
+          method: QUERY
+          path: "${P}/sub/"
+          headers: {Content-Type: "text/css-selector"}
+          body: "h1"
+        expect:
+          status: 200
+          header_matches: {Content-Type: '^multipart/mixed'}
+          body_contains: ["<h1>SubA</h1>", "<h1>SubB</h1>", "${P}/sub/a.html", "${P}/sub/deeper/b.html"]
+          body_not_contains: ["Outside"]
+
+  - id: protocol.query-dav.host-scope
+    title: Authoring QUERY on / searches every document on the host
+    area: protocol
+    feature: QUERY css scopes (authoring plane)
+    evidence: documented
+    source: "docs reference/protocol/QUERY §On the WebDAV authoring server, scope table and example (snapshot 2026-09-28)"
+    confidence: high
+    root: true
+    requires: [webdav]
+    live: false
+    notes: >-
+      R-PROTO-50. Root case (reads the whole host); local-only because a shared live host
+      contains unrelated documents.
+    site:
+      files:
+        - path: "${P}/one.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body><h1>HostWideOne</h1></body></html>
+        - path: "${P}/two/two.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body><h1>HostWideTwo</h1></body></html>
+    steps:
+      - name: both documents found from the root
+        as: author
+        plane: dav
+        request:
+          method: QUERY
+          path: "/"
+          headers: {Content-Type: "text/css-selector"}
+          body: "h1"
+        expect:
+          status: 200
+          body_contains: ["HostWideOne", "HostWideTwo"]
+
+  - id: protocol.query-dav.no-match
+    title: An authoring QUERY that matches nothing is 200 with an empty multipart body
+    area: protocol
+    feature: QUERY css (authoring plane)
+    evidence: documented
+    source: "docs reference/protocol/QUERY §On the WebDAV authoring server (\"A query that matches nothing still returns 200 OK\") (snapshot 2026-09-28)"
+    confidence: high
+    requires: [webdav]
+    live: true
+    notes: R-PROTO-55. Exact bytes of the empty multipart are not asserted (P-26).
+    site:
+      files:
+        - path: "${P}/doc.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body><h1>Benji</h1></body></html>
+    steps:
+      - name: no parts
+        as: author
+        plane: dav
+        request:
+          method: QUERY
+          path: "${P}/doc.html"
+          headers: {Content-Type: "text/css-selector"}
+          body: "table.none"
+        expect:
+          status: 200
+          header_matches: {Content-Type: '^multipart/mixed'}
+          body_not_contains: ["Content-Location", "Benji"]
+
+  - id: protocol.query-dav.conditional-304
+    title: Re-sending the top-level ETag as If-None-Match yields 304 while nothing changed
+    area: protocol
+    feature: QUERY conditional re-query
+    evidence: documented
+    source: "docs reference/protocol/QUERY §Conditional re-query (snapshot 2026-09-28)"
+    confidence: high
+    requires: [webdav]
+    live: true
+    notes: >-
+      R-PROTO-56. The page's example answer shows 200 with a new ETag while the text says
+      304 (C-7); the text is followed.
+    site:
+      files:
+        - path: "${P}/doc.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body><h1>Benji</h1></body></html>
+    steps:
+      - name: first query
+        as: author
+        plane: dav
+        request:
+          method: QUERY
+          path: "${P}/doc.html"
+          headers: {Content-Type: "text/css-selector"}
+          body: "h1"
+        expect: {status: 200, headers_present: [ETag]}
+        capture: {q1: header.ETag}
+      - name: conditional re-query
+        as: author
+        plane: dav
+        request:
+          method: QUERY
+          path: "${P}/doc.html"
+          headers: {Content-Type: "text/css-selector", If-None-Match: "${q1}"}
+          body: "h1"
+        expect: {status: 304, body: ""}
+
+  - id: protocol.query-dav.etag-changes-with-fragment
+    title: The top-level ETag changes when a matched fragment changes
+    area: protocol
+    feature: QUERY conditional re-query
+    evidence: documented
+    source: "docs reference/protocol/QUERY §Conditional re-query (snapshot 2026-09-28)"
+    confidence: high
+    requires: [webdav]
+    live: true
+    notes: R-PROTO-56.
+    site:
+      files:
+        - path: "${P}/doc.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body><h1>Benji</h1></body></html>
+    steps:
+      - name: first query
+        as: author
+        plane: dav
+        request:
+          method: QUERY
+          path: "${P}/doc.html"
+          headers: {Content-Type: "text/css-selector"}
+          body: "h1"
+        expect: {status: 200}
+        capture: {q1: header.ETag}
+      - name: change the matched heading
+        as: author
+        plane: dav
+        request:
+          method: PUT
+          path: "${P}/doc.html"
+          headers: {Content-Type: "text/html"}
+          body: |
+            <!DOCTYPE html>
+            <html><body><h1>James</h1></body></html>
+        expect: {status: [200, 201, 204]}
+      - name: conditional re-query is a full answer with a new ETag
+        as: author
+        plane: dav
+        request:
+          method: QUERY
+          path: "${P}/doc.html"
+          headers: {Content-Type: "text/css-selector", If-None-Match: "${q1}"}
+          body: "h1"
+        expect:
+          status: 200
+          etag_differs: "${q1}"
+          body_contains: ["<h1>James</h1>"]
+
+  - id: protocol.query-dav.etag-depends-on-selector-text
+    title: Two selectors with the same match set produce different top-level ETags
+    area: protocol
+    feature: QUERY conditional re-query
+    evidence: documented
+    source: "docs reference/protocol/QUERY §Conditional re-query (\"computed from the selector text plus every matched fragment's ETag\") (snapshot 2026-09-28)"
+    confidence: high
+    requires: [webdav]
+    live: true
+    notes: R-PROTO-56.
+    site:
+      files:
+        - path: "${P}/doc.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body><h1>Benji</h1></body></html>
+    steps:
+      - name: selector h1
+        as: author
+        plane: dav
+        request:
+          method: QUERY
+          path: "${P}/doc.html"
+          headers: {Content-Type: "text/css-selector"}
+          body: "h1"
+        expect: {status: 200}
+        capture: {q1: header.ETag}
+      - name: selector body h1 (same element) with the first ETag is not a 304
+        as: author
+        plane: dav
+        request:
+          method: QUERY
+          path: "${P}/doc.html"
+          headers: {Content-Type: "text/css-selector", If-None-Match: "${q1}"}
+          body: "body h1"
+        expect:
+          status: 200
+          etag_differs: "${q1}"
+
+  - id: protocol.query-dav.etag-ignores-unmatched-change
+    title: Any change to the document changes the top-level ETag, even outside the matched fragments
+    area: protocol
+    feature: QUERY conditional re-query
+    evidence: live-observed
+    source: "harness/observations/live-2026-09-28/protocol-query-dav-etag-ignores-unmatched-change.json (200 with a new tag; the part's ETag suffix went from -1 to -2); docs reference/protocol/QUERY §Conditional re-query (snapshot 2026-09-28)"
+    confidence: high
+    requires: [webdav]
+    live: true
+    notes: >-
+      The id keeps its original name. R-PROTO-56 held only if fragment tags were purely
+      content-derived; live fragment tags end with the document's version, so an unrelated
+      write changes them and the answer's tag (docs/compat/decisions.md).
+    site:
+      files:
+        - path: "${P}/doc.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body><h1>Benji</h1><p>one</p></body></html>
+    steps:
+      - name: first query
+        as: author
+        plane: dav
+        request:
+          method: QUERY
+          path: "${P}/doc.html"
+          headers: {Content-Type: "text/css-selector"}
+          body: "h1"
+        expect: {status: 200}
+        capture: {q1: header.ETag}
+      - name: change only the paragraph
+        as: author
+        plane: dav
+        request:
+          method: PUT
+          path: "${P}/doc.html"
+          headers: {Content-Type: "text/html"}
+          body: |
+            <!DOCTYPE html>
+            <html><body><h1>Benji</h1><p>two</p></body></html>
+        expect: {status: [200, 201, 204]}
+      - name: modified, although h1 is unchanged
+        as: author
+        plane: dav
+        request:
+          method: QUERY
+          path: "${P}/doc.html"
+          headers: {Content-Type: "text/css-selector", If-None-Match: "${q1}"}
+          body: "h1"
+        expect:
+          status: 200
+          etag_differs: "${q1}"
+          body_contains: ["<h1>Benji</h1>", "Content-Range: selector html:nth-child(1) > body:nth-child(1) > h1:nth-child(1)"]
+          body_matches: 'ETag: "([0-9a-f]{64})-[0-9a-f]{64}-2"'
+
+  - id: protocol.query-dav.raw-markup
+    title: Authoring QUERY evaluates the raw stored markup, not the composed page
+    area: protocol
+    feature: QUERY css (authoring plane)
+    evidence: documented
+    source: "docs reference/protocol/QUERY §On the edge proxy (contrast: the edge queries the composed page, not the raw stored markup) (snapshot 2026-09-28)"
+    confidence: high
+    requires: [webdav]
+    live: true
+    notes: R-PROTO-52. No Liquid support is needed to pass; the template source must come back verbatim.
+    site:
+      files:
+        - path: "${P}/calc.html"
+          body: |
+            <!DOCTYPE html>
+            <html xmlns:pagelove="https://pagelove.org/1.0"><body>
+              <main class="calc" pagelove:template="text/liquid">{{ 2 | plus: 3 }}</main>
+            </body></html>
+    steps:
+      - name: template source, not its output
+        as: author
+        plane: dav
+        request:
+          method: QUERY
+          path: "${P}/calc.html"
+          headers: {Content-Type: "text/css-selector"}
+          body: ".calc"
+        expect:
+          status: 200
+          body_contains: ["{{ 2 | plus: 3 }}"]
+
+  - id: protocol.query-dav.415-missing-content-type
+    title: Authoring QUERY without Content-Type is 415 with Accept-Query text/css-selector
+    area: protocol
+    feature: QUERY errors (authoring plane)
+    evidence: documented
+    source: "docs reference/protocol/QUERY §CSS-selector mode, Errors (snapshot 2026-09-28)"
+    confidence: high
+    requires: [webdav]
+    live: true
+    notes: R-PROTO-43/57.
+    site:
+      files:
+        - path: "${P}/doc.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body><h1>Benji</h1></body></html>
+    steps:
+      - name: missing type
+        as: author
+        plane: dav
+        request:
+          method: QUERY
+          path: "${P}/doc.html"
+          body: "h1"
+        expect:
+          status: 415
+          header_matches: {Accept-Query: 'text/css-selector'}
+      - name: wrong type
+        as: author
+        plane: dav
+        request:
+          method: QUERY
+          path: "${P}/doc.html"
+          headers: {Content-Type: "text/plain"}
+          body: "h1"
+        expect:
+          status: 415
+          header_matches: {Accept-Query: 'text/css-selector'}
+
+  - id: protocol.query-dav.415-sessel-not-served
+    title: The authoring plane does not serve text/sessel queries
+    area: protocol
+    feature: QUERY errors (authoring plane)
+    evidence: inferred
+    source: "docs reference/protocol/QUERY intro (text/sessel is \"Served by the edge proxy\") (snapshot 2026-09-28)"
+    confidence: medium
+    requires: [webdav]
+    live: true
+    notes: R-PROTO-43/44.
+    site:
+      files:
+        - path: "${P}/doc.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body><h1>Benji</h1></body></html>
+    steps:
+      - name: sessel on dav
+        as: author
+        plane: dav
+        request:
+          method: QUERY
+          path: "${P}/doc.html"
+          headers: {Content-Type: "text/sessel"}
+          body: "1 + 1"
+        expect:
+          status: 415
+          header_matches: {Accept-Query: 'text/css-selector'}
+
+  - id: protocol.query-dav.422-empty-or-invalid
+    title: An empty body or an unparseable selector is 422
+    area: protocol
+    feature: QUERY errors (authoring plane)
+    evidence: documented
+    source: "docs reference/protocol/QUERY §CSS-selector mode, Errors (snapshot 2026-09-28)"
+    confidence: high
+    requires: [webdav]
+    live: true
+    notes: R-PROTO-57.
+    site:
+      files:
+        - path: "${P}/doc.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body><h1>Benji</h1></body></html>
+    steps:
+      - name: empty body
+        as: author
+        plane: dav
+        request:
+          method: QUERY
+          path: "${P}/doc.html"
+          headers: {Content-Type: "text/css-selector"}
+          body: ""
+        expect: {status: 422}
+      - name: whitespace-only body
+        as: author
+        plane: dav
+        request:
+          method: QUERY
+          path: "${P}/doc.html"
+          headers: {Content-Type: "text/css-selector"}
+          body: "   "
+        expect: {status: 422}
+      - name: invalid selector
+        as: author
+        plane: dav
+        request:
+          method: QUERY
+          path: "${P}/doc.html"
+          headers: {Content-Type: "text/css-selector"}
+          body: "h1["
+        expect: {status: 422}
+
+  - id: protocol.query-dav.406-accept
+    title: An Accept header that excludes multipart/mixed is 406
+    area: protocol
+    feature: QUERY errors (authoring plane)
+    evidence: documented
+    source: "docs reference/protocol/QUERY §CSS-selector mode, Errors (snapshot 2026-09-28)"
+    confidence: high
+    requires: [webdav]
+    live: true
+    notes: R-PROTO-57. multipart/* and */* remain acceptable.
+    site:
+      files:
+        - path: "${P}/doc.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body><h1>Benji</h1></body></html>
+    steps:
+      - name: text/html only
+        as: author
+        plane: dav
+        request:
+          method: QUERY
+          path: "${P}/doc.html"
+          headers: {Content-Type: "text/css-selector", Accept: "text/html"}
+          body: "h1"
+        expect: {status: 406}
+      - name: wildcard accept is fine
+        as: author
+        plane: dav
+        request:
+          method: QUERY
+          path: "${P}/doc.html"
+          headers: {Content-Type: "text/css-selector", Accept: "*/*"}
+          body: "h1"
+        expect: {status: 200}
+
+  - id: protocol.query-dav.404-missing-target
+    title: Authoring QUERY on a document that does not exist is 404
+    area: protocol
+    feature: QUERY errors (authoring plane)
+    evidence: documented
+    source: "docs reference/protocol/QUERY §CSS-selector mode, Errors (snapshot 2026-09-28)"
+    confidence: high
+    requires: [webdav]
+    live: true
+    notes: R-PROTO-57.
+    steps:
+      - name: missing document
+        as: author
+        plane: dav
+        request:
+          method: QUERY
+          path: "${P}/nope.html"
+          headers: {Content-Type: "text/css-selector"}
+          body: "h1"
+        expect: {status: 404}

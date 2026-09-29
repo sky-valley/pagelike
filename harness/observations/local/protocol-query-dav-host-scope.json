@@ -1,0 +1,22 @@
+{
+  "case": "protocol.query-dav.host-scope",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (both documents found from the root)",
+      "method": "QUERY",
+      "path": "/",
+      "status": 200,
+      "headers": {
+        "accept-ranges": "bytes",
+        "content-length": "868",
+        "content-type": "multipart/mixed; boundary=boundaryUQnfgT9GE4qCIJRhnLDLeQRIp7VyzbKc",
+        "etag": "\"e0bc1b16f500648e4fbf004036af965eb407caf5b10a712bf0d06d921741bf59\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:48 GMT"
+      },
+      "body": "--boundaryUQnfgT9GE4qCIJRhnLDLeQRIp7VyzbKc\r\nContent-Type: text/html\r\nContent-Location: /one.html\r\nContent-Range: selector html:nth-child(1) \u003e body:nth-child(1) \u003e h1:nth-child(1)\r\nETag: \"c22a5f8e2e5836ac575acb8d8048e13c194c8305ab5b9bae59368d1cd642a97d-c22a5f8e2e5836ac575acb8d8048e13c194c8305ab5b9bae59368d1cd642a97d-1\"\r\nLast-Modified: Tue, 29 Sep 2026 02:40:48 GMT\r\nContent-Length: 20\r\n\r\n\u003ch1\u003eHostWideOne\u003c/h1\u003e\r\n--boundaryUQnfgT9GE4qCIJRhnLDLeQRIp7VyzbKc\r\nContent-Type: text/html\r\nContent-Location: /two/two.html\r\nContent-Range: selector html:nth-child(1) \u003e body:nth-child(1) \u003e h1:nth-child(1)\r\nETag: \"9291acc9edfbbed74407352c061095edd0bb07d81597d16f4d3d51d2c2bde634-9291acc9edfbbed74407352c061095edd0bb07d81597d16f4d3d51d2c2bde634-1\"\r\nLast-Modified: Tue, 29 Sep 2026 02:40:48 GMT\r\nContent-Length: 20\r\n\r\n\u003ch1\u003eHostWideTwo\u003c/h1\u003e\r\n--boundaryUQnfgT9GE4qCIJRhnLDLeQRIp7VyzbKc--"
+    }
+  ],
+  "outcome": "pass",
+  "target": "local"
+}

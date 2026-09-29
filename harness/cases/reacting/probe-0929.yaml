@@ -1,0 +1,791 @@
+# Reacting: minimised live probes of 2026-09-29 (docs/compat/decisions-2026-09-29/reacting.md).
+# Each probe isolates questions left open by the live run of 2026-09-29
+# (harness/observations/live-2026-09-29/). Their expectations record what
+# PageLove answered (harness/observations/live-2026-09-29-reconcile-reacting/),
+# so they are live-divergence cases wherever pagelike deliberately differs.
+anchors:
+  open_rules: &open_rules
+    - {actor: "*", resource: "${P}/*", method: [GET, HEAD, PUT, POST, DELETE], action: Allow}
+defaults:
+  area: reacting
+  site:
+    settings: {default_get: allow}
+    rules: *open_rules
+cases:
+  - id: reacting.actions.probe-0929.thrown-redirect
+    title: "Probe: PageLove answers a thrown 3xx HTTPResponse as such for GET, PUT, DELETE and selector POSTs, but a POST without Range takes its Location as a template"
+    feature: response headers (Pair)
+    evidence: live-observed
+    source: "harness/observations/live-2026-09-29-reconcile-reacting/reacting-actions-probe-0929-thrown-redir.json (2026-09-29); first run: run1/ in the same directory"
+    confidence: medium
+    status: live-divergence
+    requires: [sessel]
+    live: true
+    notes: "spec: R-REACT-31 (keep-standard for the POST-without-Range rows). One trigger per status/method pair (Handler.action is 1..1 on PageLove). The first run also threw a 303 to https://example.com/…, which a Cloudflare 403 page answered; that step was dropped."
+    site:
+      settings: {default_get: allow}
+      rules: *open_rules
+      files:
+        - path: "${P}/other.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body><h1>OTHER-PAGE</h1></body></html>
+        - path: "${P}/n/list.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body><ul id="box"><li>a</li></ul></body></html>
+    steps:
+      - name: install one redirecting trigger per directory
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/r/triggers.html"
+          headers: {Content-Type: text/html}
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+            <div hidden itemscope itemtype="https://pagelove.org/Trigger">
+              <meta itemprop="resource" content="${P}/d/*">
+              <meta itemprop="method" content="POST">
+              <div itemprop="action" itemscope itemtype="https://pagelove.org/Sessel">
+                <script itemprop="source" type="text/sessel">
+                  @schema HTTPResponse url("https://pagelove.org/HTTPResponse");
+                  @schema Pair url("https://pagelove.org/Pair");
+                  throw new HTTPResponse { status: 303, body: "redirect-body-303", header: new Pair { key: "Location", value: "${P}/other.html" } }
+                </script>
+              </div>
+            </div>
+            <div hidden itemscope itemtype="https://pagelove.org/Trigger">
+              <meta itemprop="resource" content="${P}/e/*">
+              <meta itemprop="method" content="POST">
+              <div itemprop="action" itemscope itemtype="https://pagelove.org/Sessel">
+                <script itemprop="source" type="text/sessel">
+                  @schema HTTPResponse url("https://pagelove.org/HTTPResponse");
+                  @schema Pair url("https://pagelove.org/Pair");
+                  throw new HTTPResponse { status: 302, header: new Pair { key: "Location", value: "${P}/other.html" } }
+                </script>
+              </div>
+            </div>
+            <div hidden itemscope itemtype="https://pagelove.org/Trigger">
+              <meta itemprop="resource" content="${P}/g/*">
+              <meta itemprop="method" content="GET">
+              <div itemprop="action" itemscope itemtype="https://pagelove.org/Sessel">
+                <script itemprop="source" type="text/sessel">
+                  @schema HTTPResponse url("https://pagelove.org/HTTPResponse");
+                  @schema Pair url("https://pagelove.org/Pair");
+                  throw new HTTPResponse { status: 303, header: new Pair { key: "Location", value: "${P}/other.html" } }
+                </script>
+              </div>
+            </div>
+            <div hidden itemscope itemtype="https://pagelove.org/Trigger">
+              <meta itemprop="resource" content="${P}/k/*">
+              <meta itemprop="method" content="POST">
+              <div itemprop="action" itemscope itemtype="https://pagelove.org/Sessel">
+                <script itemprop="source" type="text/sessel">
+                  @schema HTTPResponse url("https://pagelove.org/HTTPResponse");
+                  @schema Pair url("https://pagelove.org/Pair");
+                  throw new HTTPResponse { status: 201, body: "created-body", header: new Pair { key: "Location", value: "${P}/other.html" } }
+                </script>
+              </div>
+            </div>
+            <div hidden itemscope itemtype="https://pagelove.org/Trigger">
+              <meta itemprop="resource" content="${P}/m/*">
+              <meta itemprop="method" content="PUT">
+              <div itemprop="action" itemscope itemtype="https://pagelove.org/Sessel">
+                <script itemprop="source" type="text/sessel">
+                  @schema HTTPResponse url("https://pagelove.org/HTTPResponse");
+                  @schema Pair url("https://pagelove.org/Pair");
+                  throw new HTTPResponse { status: 303, header: new Pair { key: "Location", value: "${P}/other.html" } }
+                </script>
+              </div>
+            </div>
+            <div hidden itemscope itemtype="https://pagelove.org/Trigger">
+              <meta itemprop="resource" content="${P}/n/*">
+              <meta itemprop="method" content="POST">
+              <div itemprop="action" itemscope itemtype="https://pagelove.org/Sessel">
+                <script itemprop="source" type="text/sessel">
+                  @schema HTTPResponse url("https://pagelove.org/HTTPResponse");
+                  @schema Pair url("https://pagelove.org/Pair");
+                  throw new HTTPResponse { status: 303, header: new Pair { key: "Location", value: "${P}/other.html" } }
+                </script>
+              </div>
+            </div>
+            <div hidden itemscope itemtype="https://pagelove.org/Trigger">
+              <meta itemprop="resource" content="${P}/q/*">
+              <meta itemprop="method" content="DELETE">
+              <div itemprop="action" itemscope itemtype="https://pagelove.org/Sessel">
+                <script itemprop="source" type="text/sessel">
+                  @schema HTTPResponse url("https://pagelove.org/HTTPResponse");
+                  @schema Pair url("https://pagelove.org/Pair");
+                  throw new HTTPResponse { status: 303, header: new Pair { key: "Location", value: "${P}/other.html" } }
+                </script>
+              </div>
+            </div>
+            </body></html>
+        expect: {status: [200, 201, 204]}
+      - name: POST without Range, 303 to an existing page without a base element (templated creation, 422)
+        as: anonymous
+        request: {method: POST, path: "${P}/d/form.html", headers: {Content-Type: text/html}, body: "<p>x</p>"}
+        expect:
+          status: 422
+          headers_absent: [Location]
+          body_contains: ["Template must include a &lt;base href&gt; element specifying the target resource path"]
+      - name: POST without Range, 302 (the same)
+        as: anonymous
+        request: {method: POST, path: "${P}/e/form.html", headers: {Content-Type: text/html}, body: "<p>x</p>"}
+        expect:
+          status: 422
+          headers_absent: [Location]
+          body_contains: ["Template must include a &lt;base href&gt; element"]
+      - name: GET, 303 is sent with its Location
+        as: anonymous
+        request: {method: GET, path: "${P}/g/x.html"}
+        expect: {status: 303, headers: {Location: "${P}/other.html"}}
+      - name: POST without Range, a thrown 201 keeps its status and body but loses its Location
+        as: anonymous
+        request: {method: POST, path: "${P}/k/form.html", headers: {Content-Type: text/html}, body: "<p>x</p>"}
+        expect: {status: 201, headers_absent: [Location], body: "created-body"}
+      - name: PUT, 303 is sent with its Location
+        as: anonymous
+        request: {method: PUT, path: "${P}/m/x.html", headers: {Content-Type: text/html}, body: "<p>x</p>"}
+        expect: {status: 303, headers: {Location: "${P}/other.html"}}
+      - name: selector POST (Range), 303 is sent with its Location
+        as: anonymous
+        request: {method: POST, path: "${P}/n/list.html", headers: {Content-Type: text/html, Range: "selector=#box"}, body: "<li>b</li>"}
+        expect: {status: 303, headers: {Location: "${P}/other.html"}}
+      - name: DELETE, 303 is sent with its Location
+        as: anonymous
+        request: {method: DELETE, path: "${P}/q/x.html"}
+        expect: {status: 303, headers: {Location: "${P}/other.html"}}
+
+  - id: reacting.filters.probe-0929.selector-scope
+    title: "Probe: a trigger's selector filter excludes nothing (PUT, POST, GET, DELETE); a processor's likewise"
+    feature: selector filter
+    evidence: live-observed
+    source: "harness/observations/live-2026-09-29-reconcile-reacting/reacting-filters-probe-0929-selector-sco.json (2026-09-29); first run: run1/ in the same directory"
+    confidence: medium
+    requires: [sessel]
+    live: true
+    notes: "spec: R-REACT-14. art.html has an <article> beside #h; noart.html has none; nested.html has #h and the article under different parents. The /m/ triggers and the /p/ processor are filtered on a selector that matches nothing anywhere."
+    site:
+      settings: {default_get: allow}
+      rules: *open_rules
+      files:
+        - path: "${P}/d/art.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body><h1 id="h">Title</h1><article id="p1"><p>Body</p></article></body></html>
+        - path: "${P}/d/noart.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body><h1 id="h">Title</h1><p id="q">Body</p></body></html>
+        - path: "${P}/d/nested.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body><div id="a"><h1 id="h">Title</h1></div><div id="b"><article id="p1"><p>Body</p></article></div></body></html>
+        - path: "${P}/m/doc.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body><h1 id="h">Title</h1><ul id="l"><li id="i1">a</li></ul></body></html>
+        - path: "${P}/p/doc.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body><h1 id="h">Title</h1></body></html>
+    steps:
+      - name: install the selector-filtered triggers and processor
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/r/triggers.html"
+          headers: {Content-Type: text/html}
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+            <div hidden itemscope itemtype="https://pagelove.org/Trigger">
+              <meta itemprop="resource" content="${P}/d/*">
+              <meta itemprop="method" content="PUT">
+              <meta itemprop="selector" content="article">
+              <div itemprop="action" itemscope itemtype="https://pagelove.org/Sessel">
+                <script itemprop="source" type="text/sessel">
+                  @schema HTTPResponse url("https://pagelove.org/HTTPResponse");
+                  throw new HTTPResponse { status: 409, message: "article-hit" }
+                </script>
+              </div>
+            </div>
+            <div hidden itemscope itemtype="https://pagelove.org/Trigger">
+              <meta itemprop="resource" content="${P}/m/*">
+              <meta itemprop="method" content="POST">
+              <meta itemprop="selector" content="#never-present">
+              <div itemprop="action" itemscope itemtype="https://pagelove.org/Sessel">
+                <script itemprop="source" type="text/sessel">
+                  @schema HTTPResponse url("https://pagelove.org/HTTPResponse");
+                  throw new HTTPResponse { status: 409, body: "post-hit" }
+                </script>
+              </div>
+            </div>
+            <div hidden itemscope itemtype="https://pagelove.org/Trigger">
+              <meta itemprop="resource" content="${P}/m/*">
+              <meta itemprop="method" content="GET">
+              <meta itemprop="selector" content="#never-present">
+              <div itemprop="action" itemscope itemtype="https://pagelove.org/Sessel">
+                <script itemprop="source" type="text/sessel">
+                  @schema HTTPResponse url("https://pagelove.org/HTTPResponse");
+                  throw new HTTPResponse { status: 409, body: "get-hit" }
+                </script>
+              </div>
+            </div>
+            <div hidden itemscope itemtype="https://pagelove.org/Trigger">
+              <meta itemprop="resource" content="${P}/m/*">
+              <meta itemprop="method" content="DELETE">
+              <meta itemprop="selector" content="#never-present">
+              <div itemprop="action" itemscope itemtype="https://pagelove.org/Sessel">
+                <script itemprop="source" type="text/sessel">
+                  @schema HTTPResponse url("https://pagelove.org/HTTPResponse");
+                  throw new HTTPResponse { status: 409, body: "delete-hit" }
+                </script>
+              </div>
+            </div>
+            <div hidden itemscope itemtype="https://pagelove.org/Processor">
+              <meta itemprop="resource" content="${P}/p/*">
+              <meta itemprop="method" content="GET">
+              <meta itemprop="selector" content="#never-present">
+              <div itemprop="action" itemscope itemtype="https://pagelove.org/Sessel">
+                <script itemprop="source" type="text/sessel">
+                  @schema Context url("https://pagelove.org/Context");
+                  Context.response.status = 418
+                </script>
+              </div>
+            </div>
+            </body></html>
+        expect: {status: [200, 201, 204]}
+      - name: "selector PUT of #h in a document without an article"
+        as: anonymous
+        request: {method: PUT, path: "${P}/d/noart.html", headers: {Content-Type: text/html, Range: "selector=#h"}, body: '<h1 id="h">Title</h1>'}
+        expect: {status: 409, body_contains: ["article-hit"]}
+      - name: "selector PUT of #h whose parent has no article (the article is elsewhere in the document)"
+        as: anonymous
+        request: {method: PUT, path: "${P}/d/nested.html", headers: {Content-Type: text/html, Range: "selector=#h"}, body: '<h1 id="h">Title</h1>'}
+        expect: {status: 409, body_contains: ["article-hit"]}
+      - name: "selector PUT of #h beside an article"
+        as: anonymous
+        request: {method: PUT, path: "${P}/d/art.html", headers: {Content-Type: text/html, Range: "selector=#h"}, body: '<h1 id="h">Title</h1>'}
+        expect: {status: 409, body_contains: ["article-hit"]}
+      - name: selector PUT of a missing element in a document without an article
+        as: anonymous
+        request: {method: PUT, path: "${P}/d/noart.html", headers: {Content-Type: text/html, Range: "selector=#missing"}, body: '<p id="missing">x</p>'}
+        expect: {status: 409, body_contains: ["article-hit"]}
+      - name: whole-document PUT of the document without an article (no request selector)
+        as: anonymous
+        request: {method: PUT, path: "${P}/d/noart.html", headers: {Content-Type: text/html}, body: '<!DOCTYPE html><html><body><h1 id="h">Title</h1><p id="q">Body</p></body></html>'}
+        expect: {status: 409, body_contains: ["article-hit"]}
+      - name: "selector POST into #l, filter '#never-present'"
+        as: anonymous
+        request: {method: POST, path: "${P}/m/doc.html", headers: {Content-Type: text/html, Range: "selector=#l"}, body: "<li>b</li>"}
+        expect: {status: 409, body: "post-hit"}
+      - name: "selector GET of #h, filter '#never-present'"
+        as: anonymous
+        request: {method: GET, path: "${P}/m/doc.html", headers: {Range: "selector=#h"}}
+        expect: {status: 409, body: "get-hit"}
+      - name: "selector DELETE of #i1, filter '#never-present'"
+        as: anonymous
+        request: {method: DELETE, path: "${P}/m/doc.html", headers: {Range: "selector=#i1"}}
+        expect: {status: 409, body: "delete-hit"}
+      - name: "processor, selector GET of #h, filter '#never-present'"
+        as: anonymous
+        request: {method: GET, path: "${P}/p/doc.html", headers: {Range: "selector=#h"}}
+        expect: {status: 418}
+      - name: processor, whole-document GET (no request selector)
+        as: anonymous
+        request: {method: GET, path: "${P}/p/doc.html"}
+        expect: {status: 418}
+
+  - id: reacting.context.probe-0929.trigger-bindings
+    title: "Probe: trigger and processor code sees no r: resource binding (element, ancestor, html); a failing when is falsy"
+    feature: trigger context (resource bindings)
+    evidence: live-observed
+    source: "harness/observations/live-2026-09-29-reconcile-reacting/reacting-context-probe-0929-trigger-bind.json (2026-09-29); earlier runs: run1/reacting-context-resource-binding-on-tri.json, run2/ in the same directory"
+    confidence: high
+    status: live-divergence
+    requires: [sessel]
+    live: true
+    notes: "spec: R-REACT-24 (adopt-live: no r: bindings in reaction code), R-REACT-17/34 (keep-documented-security: pagelike fails the request when a when gate errors). Each directory has one reaction item with a diagnostic body. Run 2 also read the private document with an unquoted [itemprop=token] inside a Sessel ${…} selector, which Sessel parses as a variable (\"undefined variable: token\"); the step now quotes it."
+    site:
+      settings: {default_get: allow}
+      rules:
+        - {actor: "*", resource: "${P}/*", method: [GET, HEAD, PUT, POST, DELETE], action: Allow}
+        - {actor: "*", resource: "${P}/private/*", method: [GET, HEAD], action: Deny}
+      files:
+        - path: "${P}/private/secret.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+            <div itemscope itemtype="https://pagelike.test${P}/Secret"><meta itemprop="token" content="s3cret-test-token"></div>
+            </body></html>
+        - path: "${P}/pub/public.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+            <div itemscope itemtype="https://pagelike.test${P}/Public"><meta itemprop="token" content="public-token"></div>
+            </body></html>
+        - path: "${P}/p/doc.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body><h1>Doc</h1></body></html>
+    steps:
+      - name: install the diagnostic triggers and processor
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/r/triggers.html"
+          headers: {Content-Type: text/html}
+          body: |
+            <!DOCTYPE html>
+            <html xmlns:p="https://pagelove.org/1.0" xmlns:r="https://pagelove.org/Binding/CSS" r:top="[itemtype='https://pagelike.test${P}/Public'] [itemprop=token]"><body r:outer="[itemtype='https://pagelike.test${P}/Public'] [itemprop=token]">
+            <div hidden r:secret="[itemtype='https://pagelike.test${P}/Secret'] [itemprop=token]" itemscope itemtype="https://pagelove.org/Trigger">
+              <meta itemprop="resource" content="${P}/a/*">
+              <meta itemprop="method" content="PUT">
+              <div itemprop="action" itemscope itemtype="https://pagelove.org/Sessel">
+                <script itemprop="source" type="text/sessel">
+                  @schema HTTPResponse url("https://pagelove.org/HTTPResponse");
+                  throw new HTTPResponse { status: 409, body: "n=" + secret.count().String() }
+                </script>
+              </div>
+            </div>
+            <div hidden r:pub="[itemtype='https://pagelike.test${P}/Public'] [itemprop=token]" itemscope itemtype="https://pagelove.org/Trigger">
+              <meta itemprop="resource" content="${P}/b/*">
+              <meta itemprop="method" content="PUT">
+              <div itemprop="action" itemscope itemtype="https://pagelove.org/Sessel">
+                <script itemprop="source" type="text/sessel">
+                  @schema HTTPResponse url("https://pagelove.org/HTTPResponse");
+                  throw new HTTPResponse { status: 409, body: "n=" + pub.count().String() }
+                </script>
+              </div>
+            </div>
+            <div hidden itemscope itemtype="https://pagelove.org/Trigger">
+              <meta itemprop="resource" content="${P}/c/*">
+              <meta itemprop="method" content="PUT">
+              <div itemprop="action" itemscope itemtype="https://pagelove.org/Sessel">
+                <script itemprop="source" type="text/sessel">
+                  @schema HTTPResponse url("https://pagelove.org/HTTPResponse");
+                  throw new HTTPResponse { status: 409, body: "v=" + ${[itemtype='https://pagelike.test${P}/Secret'] [itemprop="token"]}.first().value() }
+                </script>
+              </div>
+            </div>
+            <div hidden itemscope itemtype="https://pagelove.org/Trigger">
+              <meta itemprop="resource" content="${P}/e/*">
+              <meta itemprop="method" content="PUT">
+              <div itemprop="action" itemscope itemtype="https://pagelove.org/Sessel">
+                <script itemprop="source" type="text/sessel">
+                  @schema HTTPResponse url("https://pagelove.org/HTTPResponse");
+                  throw new HTTPResponse { status: 409, body: "n=" + outer.count().String() }
+                </script>
+              </div>
+            </div>
+            <div hidden itemscope itemtype="https://pagelove.org/Trigger">
+              <meta itemprop="resource" content="${P}/h/*">
+              <meta itemprop="method" content="PUT">
+              <div itemprop="action" itemscope itemtype="https://pagelove.org/Sessel">
+                <script itemprop="source" type="text/sessel">
+                  @schema HTTPResponse url("https://pagelove.org/HTTPResponse");
+                  throw new HTTPResponse { status: 409, body: "n=" + top.count().String() }
+                </script>
+              </div>
+            </div>
+            <div hidden r:secret="[itemtype='https://pagelike.test${P}/Secret'] [itemprop=token]" itemscope itemtype="https://pagelove.org/Trigger">
+              <meta itemprop="resource" content="${P}/i/*">
+              <meta itemprop="method" content="PUT">
+              <div itemprop="when" itemscope itemtype="https://pagelove.org/Sessel">
+                <script itemprop="source" type="text/sessel">secret.count() == 1</script>
+              </div>
+              <div itemprop="action" itemscope itemtype="https://pagelove.org/Sessel">
+                <script itemprop="source" type="text/sessel">
+                  @schema HTTPResponse url("https://pagelove.org/HTTPResponse");
+                  throw new HTTPResponse { status: 409, body: "when-bound-one" }
+                </script>
+              </div>
+              <div itemprop="otherwise" itemscope itemtype="https://pagelove.org/Sessel">
+                <script itemprop="source" type="text/sessel">
+                  @schema HTTPResponse url("https://pagelove.org/HTTPResponse");
+                  throw new HTTPResponse { status: 409, body: "otherwise" }
+                </script>
+              </div>
+            </div>
+            <div hidden r:secret="[itemtype='https://pagelike.test${P}/Secret'] [itemprop=token]" itemscope itemtype="https://pagelove.org/Trigger">
+              <meta itemprop="resource" content="${P}/j/*">
+              <meta itemprop="method" content="PUT">
+              <div itemprop="when" itemscope itemtype="https://pagelove.org/Sessel">
+                <script itemprop="source" type="text/sessel">secret.count() == 0</script>
+              </div>
+              <div itemprop="action" itemscope itemtype="https://pagelove.org/Sessel">
+                <script itemprop="source" type="text/sessel">
+                  @schema HTTPResponse url("https://pagelove.org/HTTPResponse");
+                  throw new HTTPResponse { status: 409, body: "when-bound-zero" }
+                </script>
+              </div>
+              <div itemprop="otherwise" itemscope itemtype="https://pagelove.org/Sessel">
+                <script itemprop="source" type="text/sessel">
+                  @schema HTTPResponse url("https://pagelove.org/HTTPResponse");
+                  throw new HTTPResponse { status: 409, body: "otherwise" }
+                </script>
+              </div>
+            </div>
+            <div hidden itemscope itemtype="https://pagelove.org/Trigger">
+              <meta itemprop="resource" content="${P}/g/*">
+              <meta itemprop="method" content="PUT">
+              <div itemprop="when" itemscope itemtype="https://pagelove.org/Sessel">
+                <script itemprop="source" type="text/sessel">no_such_name == 1</script>
+              </div>
+              <div itemprop="action" itemscope itemtype="https://pagelove.org/Sessel">
+                <script itemprop="source" type="text/sessel">
+                  @schema HTTPResponse url("https://pagelove.org/HTTPResponse");
+                  throw new HTTPResponse { status: 409, body: "when-true" }
+                </script>
+              </div>
+              <div itemprop="otherwise" itemscope itemtype="https://pagelove.org/Sessel">
+                <script itemprop="source" type="text/sessel">
+                  @schema HTTPResponse url("https://pagelove.org/HTTPResponse");
+                  throw new HTTPResponse { status: 409, body: "when-false" }
+                </script>
+              </div>
+            </div>
+            <div hidden r:pub="[itemtype='https://pagelike.test${P}/Public'] [itemprop=token]" itemscope itemtype="https://pagelove.org/Processor">
+              <meta itemprop="resource" content="${P}/p/*">
+              <meta itemprop="method" content="GET">
+              <div itemprop="action" itemscope itemtype="https://pagelove.org/Sessel">
+                <script itemprop="source" type="text/sessel">
+                  @schema Context url("https://pagelove.org/Context");
+                  Context.response.status = 410 + pub.count()
+                </script>
+              </div>
+            </div>
+            </body></html>
+        expect: {status: [200, 201, 204]}
+      - name: r:secret on the trigger element is an undefined variable
+        as: anonymous
+        request: {method: PUT, path: "${P}/a/x.html", headers: {Content-Type: text/html}, body: "<p>x</p>"}
+        expect: {status: 500, body_contains: ["undefined variable: secret"]}
+      - name: r:pub on the trigger element (public document) is an undefined variable
+        as: anonymous
+        request: {method: PUT, path: "${P}/b/x.html", headers: {Content-Type: text/html}, body: "<p>x</p>"}
+        expect: {status: 500, body_contains: ["undefined variable: pub"]}
+      - name: a bare Sessel selector reads the private document
+        as: anonymous
+        request: {method: PUT, path: "${P}/c/x.html", headers: {Content-Type: text/html}, body: "<p>x</p>"}
+        expect: {status: 409, body: "v=s3cret-test-token"}
+      - name: r:outer on the body element is an undefined variable
+        as: anonymous
+        request: {method: PUT, path: "${P}/e/x.html", headers: {Content-Type: text/html}, body: "<p>x</p>"}
+        expect: {status: 500, body_contains: ["undefined variable: outer"]}
+      - name: r:top on the html element is an undefined variable
+        as: anonymous
+        request: {method: PUT, path: "${P}/h/x.html", headers: {Content-Type: text/html}, body: "<p>x</p>"}
+        expect: {status: 500, body_contains: ["undefined variable: top"]}
+      - name: a when gate using r:secret (count 1) takes the otherwise branch
+        as: anonymous
+        request: {method: PUT, path: "${P}/i/x.html", headers: {Content-Type: text/html}, body: "<p>x</p>"}
+        expect: {status: 409, body: "otherwise"}
+      - name: a when gate using r:secret (count 0) takes the otherwise branch too
+        as: anonymous
+        request: {method: PUT, path: "${P}/j/x.html", headers: {Content-Type: text/html}, body: "<p>x</p>"}
+        expect: {status: 409, body: "otherwise"}
+      - name: a when gate that fails at run time is falsy (pagelike keeps 500)
+        as: anonymous
+        request: {method: PUT, path: "${P}/g/x.html", headers: {Content-Type: text/html}, body: "<p>x</p>"}
+        expect: {status: 409, body: "when-false"}
+      - name: r:pub on a processor is an undefined variable
+        as: anonymous
+        request: {method: GET, path: "${P}/p/doc.html"}
+        expect: {status: 500, body_contains: ["undefined variable: pub"]}
+
+  - id: reacting.discovery.probe-0929.handler-shape
+    title: "Probe: the platform schema checks Trigger, Processor and TransitionHandler items on serving-path writes"
+    feature: malformed items
+    evidence: live-observed
+    source: "harness/observations/live-2026-09-29-reconcile-reacting/reacting-discovery-probe-0929-handler-sh.json (2026-09-29); first run: run1/ in the same directory"
+    confidence: high
+    requires: [sessel]
+    live: true
+    notes: "spec: R-REACT-4a. Handler (Trigger, Processor, TransitionHandler): action 1..1, when 0..1, otherwise unrestricted; RequestHandler (Trigger, Processor): method in GET, PUT, POST, DELETE, PATCH, MOVE, * (case-sensitive). w/stored.html holds an action-less trigger written over WebDAV (never validated)."
+    site:
+      settings: {default_get: allow}
+      rules: *open_rules
+      files:
+        - path: "${P}/w/stored.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+            <div hidden itemscope itemtype="https://pagelove.org/Trigger">
+              <meta itemprop="resource" content="${P}/nowhere/*">
+              <meta itemprop="method" content="PUT">
+            </div>
+            <p id="note">old</p>
+            </body></html>
+    steps:
+      - name: trigger with an action and two otherwise values is accepted
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/r/a.html"
+          headers: {Content-Type: text/html}
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+            <div hidden itemscope itemtype="https://pagelove.org/Trigger">
+              <meta itemprop="resource" content="${P}/d/*">
+              <meta itemprop="method" content="PUT">
+              <div itemprop="when" itemscope itemtype="https://pagelove.org/Sessel"><script itemprop="source" type="text/sessel">true</script></div>
+              <div itemprop="action" itemscope itemtype="https://pagelove.org/Sessel"><script itemprop="source" type="text/sessel">1</script></div>
+              <div itemprop="otherwise" itemscope itemtype="https://pagelove.org/Sessel"><script itemprop="source" type="text/sessel">2</script></div>
+              <div itemprop="otherwise" itemscope itemtype="https://pagelove.org/Sessel"><script itemprop="source" type="text/sessel">3</script></div>
+            </div>
+            </body></html>
+        expect: {status: [200, 201, 204]}
+      - name: trigger with two when values is refused
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/r/b.html"
+          headers: {Content-Type: text/html}
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+            <div hidden itemscope itemtype="https://pagelove.org/Trigger">
+              <meta itemprop="resource" content="${P}/d/*">
+              <meta itemprop="method" content="PUT">
+              <div itemprop="when" itemscope itemtype="https://pagelove.org/Sessel"><script itemprop="source" type="text/sessel">true</script></div>
+              <div itemprop="when" itemscope itemtype="https://pagelove.org/Sessel"><script itemprop="source" type="text/sessel">true</script></div>
+              <div itemprop="action" itemscope itemtype="https://pagelove.org/Sessel"><script itemprop="source" type="text/sessel">1</script></div>
+            </div>
+            </body></html>
+        expect:
+          status: 422
+          body_contains: ["https://pagelove.org/SchemaViolation", "[https://pagelove.org/Handler].when: cardinality 0..1 violated: expected at most 1 value, found 2"]
+      - name: trigger with method HEAD is refused
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/r/c.html"
+          headers: {Content-Type: text/html}
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+            <div hidden itemscope itemtype="https://pagelove.org/Trigger">
+              <meta itemprop="resource" content="${P}/d/*">
+              <meta itemprop="method" content="HEAD">
+              <div itemprop="action" itemscope itemtype="https://pagelove.org/Sessel"><script itemprop="source" type="text/sessel">1</script></div>
+            </div>
+            </body></html>
+        expect:
+          status: 422
+          body_contains: ['[https://pagelove.org/RequestHandler].method: Value "HEAD" is not a valid https://pagelove.org/HTTPMethod (expected one of: "GET", "PUT", "POST", "DELETE", "PATCH", "MOVE", "*")']
+      - name: trigger with method Put (mixed case) is refused
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/r/d.html"
+          headers: {Content-Type: text/html}
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+            <div hidden itemscope itemtype="https://pagelove.org/Trigger">
+              <meta itemprop="resource" content="${P}/d/*">
+              <meta itemprop="method" content="Put">
+              <div itemprop="action" itemscope itemtype="https://pagelove.org/Sessel"><script itemprop="source" type="text/sessel">1</script></div>
+            </div>
+            </body></html>
+        expect:
+          status: 422
+          body_contains: ['[https://pagelove.org/RequestHandler].method: Value "Put" is not a valid https://pagelove.org/HTTPMethod']
+      - name: trigger with neither action nor a valid method lists every problem
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/r/e.html"
+          headers: {Content-Type: text/html}
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+            <div hidden itemscope itemtype="https://pagelove.org/Trigger">
+              <meta itemprop="resource" content="${P}/d/*">
+              <meta itemprop="method" content="put">
+              <meta itemprop="method" content="options">
+            </div>
+            </body></html>
+        expect:
+          status: 422
+          body_contains:
+            - "[https://pagelove.org/Handler].action: cardinality 1..1 violated: expected exactly 1 value, found 0"
+            - '[https://pagelove.org/RequestHandler].method: Value "put" is not a valid'
+            - '[https://pagelove.org/RequestHandler].method: Value "options" is not a valid'
+      - name: processor with a when and no action is refused
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/r/f.html"
+          headers: {Content-Type: text/html}
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+            <div hidden itemscope itemtype="https://pagelove.org/Processor">
+              <meta itemprop="resource" content="${P}/d/*">
+              <meta itemprop="method" content="GET">
+              <div itemprop="when" itemscope itemtype="https://pagelove.org/Sessel"><script itemprop="source" type="text/sessel">true</script></div>
+            </div>
+            </body></html>
+        expect:
+          status: 422
+          body_contains: ["[https://pagelove.org/Handler].action: cardinality 1..1 violated: expected exactly 1 value, found 0"]
+      - name: processor with two actions is refused
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/r/g.html"
+          headers: {Content-Type: text/html}
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+            <div hidden itemscope itemtype="https://pagelove.org/Processor">
+              <meta itemprop="resource" content="${P}/d/*">
+              <meta itemprop="method" content="GET">
+              <div itemprop="action" itemscope itemtype="https://pagelove.org/Sessel"><script itemprop="source" type="text/sessel">1</script></div>
+              <div itemprop="action" itemscope itemtype="https://pagelove.org/Sessel"><script itemprop="source" type="text/sessel">2</script></div>
+            </div>
+            </body></html>
+        expect:
+          status: 422
+          body_contains: ["[https://pagelove.org/Handler].action: cardinality 1..1 violated: expected exactly 1 value, found 2"]
+      - name: processor with method get (lower case) is refused
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/r/h.html"
+          headers: {Content-Type: text/html}
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+            <div hidden itemscope itemtype="https://pagelove.org/Processor">
+              <meta itemprop="resource" content="${P}/d/*">
+              <meta itemprop="method" content="get">
+              <div itemprop="action" itemscope itemtype="https://pagelove.org/Sessel"><script itemprop="source" type="text/sessel">1</script></div>
+            </div>
+            </body></html>
+        expect:
+          status: 422
+          body_contains: ['[https://pagelove.org/RequestHandler].method: Value "get" is not a valid https://pagelove.org/HTTPMethod']
+      - name: transition handler with two actions is refused
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/r/i.html"
+          headers: {Content-Type: text/html}
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+            <div itemscope itemtype="https://pagelove.org/TransitionHandler">
+              <meta itemprop="selector" content="[itemtype='https://pagelike.test${P}/Order']">
+              <meta itemprop="property" content="status">
+              <meta itemprop="becomes" content="processing">
+              <div itemprop="action" itemscope itemtype="https://pagelove.org/HttpRequest">
+                <meta itemprop="url" content="https://example.com/pagelike-probe-1">
+                <meta itemprop="method" content="POST">
+              </div>
+              <div itemprop="action" itemscope itemtype="https://pagelove.org/HttpRequest">
+                <meta itemprop="url" content="https://example.com/pagelike-probe-2">
+                <meta itemprop="method" content="POST">
+              </div>
+            </div>
+            </body></html>
+        expect:
+          status: 422
+          body_contains: ["[https://pagelove.org/Handler].action: cardinality 1..1 violated: expected exactly 1 value, found 2"]
+      - name: transition handler without an action is refused
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/r/j.html"
+          headers: {Content-Type: text/html}
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+            <div itemscope itemtype="https://pagelove.org/TransitionHandler">
+              <meta itemprop="selector" content="[itemtype='https://pagelike.test${P}/Order']">
+              <meta itemprop="property" content="status">
+              <meta itemprop="becomes" content="processing">
+            </div>
+            </body></html>
+        expect:
+          status: 422
+          body_contains: ["[https://pagelove.org/Handler].action: cardinality 1..1 violated: expected exactly 1 value, found 0"]
+      - name: a host document for a selector write
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/r/k.html"
+          headers: {Content-Type: text/html}
+          body: '<!DOCTYPE html><html><body><div id="box"></div></body></html>'
+        expect: {status: [200, 201, 204]}
+      - name: a selector POST that inserts an action-less trigger is refused
+        as: anonymous
+        request:
+          method: POST
+          path: "${P}/r/k.html"
+          headers: {Content-Type: text/html, Range: "selector=#box"}
+          body: '<div hidden itemscope itemtype="https://pagelove.org/Trigger"><meta itemprop="resource" content="${P}/d/*"><meta itemprop="method" content="PUT"></div>'
+        expect:
+          status: 422
+          body_contains: ["[https://pagelove.org/Handler].action: cardinality 1..1 violated: expected exactly 1 value, found 0"]
+      - name: the refused selector POST changed nothing
+        as: anonymous
+        request: {method: GET, path: "${P}/r/k.html"}
+        expect: {status: 200, body_not_contains: ["pagelove.org/Trigger"]}
+      - name: a valid trigger with addressable method and action elements
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/r/l.html"
+          headers: {Content-Type: text/html}
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+            <div hidden itemscope itemtype="https://pagelove.org/Trigger">
+              <meta itemprop="resource" content="${P}/nowhere/*">
+              <meta id="m" itemprop="method" content="PUT">
+              <div id="act" itemprop="action" itemscope itemtype="https://pagelove.org/Sessel"><script itemprop="source" type="text/sessel">1</script></div>
+            </div>
+            <p id="note">old</p>
+            </body></html>
+        expect: {status: [200, 201, 204]}
+      - name: a selector PUT that makes the enclosing trigger's method invalid (PageLove answers in the dombase Cardinality envelope)
+        as: anonymous
+        request: {method: PUT, path: "${P}/r/l.html", headers: {Content-Type: text/html, Range: "selector=#m"}, body: '<meta id="m" itemprop="method" content="put">'}
+        expect:
+          status: 422
+          body_contains: ['https://pagelove.org/RequestHandler', 'method: Value "put" is not a valid https://pagelove.org/HTTPMethod']
+      - name: a selector DELETE of the enclosing trigger's only action (the same envelope)
+        as: anonymous
+        request: {method: DELETE, path: "${P}/r/l.html", headers: {Range: "selector=#act"}}
+        expect:
+          status: 422
+          body_contains: ["https://pagelove.org/Handler", "action: cardinality 1..1 violated: expected exactly 1 value, found 0"]
+      - name: a selector PUT elsewhere in a document whose stored trigger is invalid
+        as: anonymous
+        request: {method: PUT, path: "${P}/w/stored.html", headers: {Content-Type: text/html, Range: "selector=#note"}, body: '<p id="note">new</p>'}
+        expect: {status: [200, 204, 206]}
+      - name: a whole-document PUT that keeps the invalid trigger
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/w/stored.html"
+          headers: {Content-Type: text/html}
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+            <div hidden itemscope itemtype="https://pagelove.org/Trigger">
+              <meta itemprop="resource" content="${P}/nowhere/*">
+              <meta itemprop="method" content="PUT">
+            </div>
+            <p id="note">newer</p>
+            </body></html>
+        expect:
+          status: 422
+          body_contains: ["[https://pagelove.org/Handler].action: cardinality 1..1 violated: expected exactly 1 value, found 0"]

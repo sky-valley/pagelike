@@ -1,0 +1,360 @@
+# Identity, sessions, login endpoints, API keys, authoring plane, identity in
+# composition (spec R-PERM-64..77).
+cases:
+  - id: authz.identity.anonymous-session-cookie
+    title: The first anonymous request gets a session cookie
+    area: permissions-identity
+    feature: sessions
+    evidence: documented
+    source: "docs reference/composing-pages/Transient-Elements §Sessions and access control ('Every visitor has a session … cookie automatically on the first request')"
+    confidence: medium
+    requires: []
+    live: true
+    notes: Cookie name differs between sources (pagelove_session in docs, __Host-session in the orchestrator brief); only presence is asserted. Probe P-15.
+    site:
+      files:
+        - path: "${P}/doc.html"
+          body: '<!DOCTYPE html><html><body><h1>T</h1></body></html>'
+        - path: "${P}/rules.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div hidden itemscope itemtype="https://pagelove.org/AuthorizationRule">
+                <meta itemprop="actor" content="*"><meta itemprop="resource" content="${P}/doc.html">
+                <meta itemprop="method" content="GET"><meta itemprop="action" content="allow">
+              </div>
+            </body></html>
+    steps:
+      - name: cookie-less GET
+        as: anonymous
+        request: {method: GET, path: "${P}/doc.html"}
+        expect:
+          status: 200
+          headers_present: [Set-Cookie]
+
+  - id: authz.identity.login-path-redirects
+    title: The host login path starts an OpenID Connect authorization-code redirect
+    area: permissions-identity
+    feature: OIDC login endpoint
+    evidence: inferred
+    source: "demo links to /auth/login (pagelove-kanban/site/app.js@85109ab:173, pagelove-ats/site/index.html@8f200fc:403); console /auth/login?redirect-post=/console/ (console landing page, earlier notes console.mjs); standard OIDC code flow"
+    confidence: low
+    requires: [oidc-config]
+    root: true
+    live: false
+    notes: Location parameters are not asserted beyond presence. Probe P-16.
+    site:
+      settings:
+        oidc: stub
+    steps:
+      - name: login redirect
+        as: anonymous
+        request: {method: GET, path: "/auth/login?redirect-post=/"}
+        expect:
+          status: [302, 303]
+          headers_present: [Location]
+          header_matches: {Location: "response_type=code"}
+      - name: docs alias path behaves the same
+        as: anonymous
+        request: {method: GET, path: "/-pagelove/oidc/login"}
+        expect:
+          status: [302, 303]
+          headers_present: [Location]
+
+  - id: authz.identity.login-path-without-provider
+    title: Probe — what a host without an identity provider answers at /auth/login
+    area: permissions-identity
+    feature: OIDC login endpoint
+    evidence: inferred
+    source: "pagelove-shop/site/rules.html@d887054:5-7 (a host with no OIDC); spec R-PERM-67 (pagelike answers 404)"
+    confidence: low
+    requires: []
+    root: true
+    live: true
+    notes: Read-only probe of a host-wide path (hence root). pagelike answers 404; the recorded live answer settles the compatibility choice.
+    steps:
+      - name: login path on a host without OIDC
+        as: anonymous
+        request: {method: GET, path: "/auth/login"}
+        expect:
+          status: [302, 303, 404]
+
+  - id: authz.identity.api-key-not-end-user-identity
+    title: A console/authoring API key is not an end-user identity on the public plane
+    area: permissions-identity
+    feature: API keys vs end-user identity
+    evidence: client-source
+    source: "pagelove-dev/skills/pagelove-dev/SKILL.md@b489923:329 ('It's not an OIDC session'); references/cross-platform-command-recipes.md@b489923:538-540"
+    confidence: medium
+    requires: []
+    live: true
+    notes: >-
+      The runner must send the author's API key (Authorization Bearer) on this public-plane step.
+      The first live run failed only because the runner of the day sent every "as: author" request
+      to the WebDAV host, ignoring "plane: public" (a harness artifact, fixed since); the
+      confirmation run of 2026-09-29 (harness/observations/live-2026-09-29-confirm/) shows the
+      public plane refusing the key like an anonymous request (docs/compat/decisions.md).
+    site:
+      files:
+        - path: "${P}/members.html"
+          body: '<!DOCTYPE html><html><body><h1>Members only</h1></body></html>'
+        - path: "${P}/rules.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div hidden itemscope itemtype="https://pagelove.org/AuthorizationRule">
+                <meta itemprop="actor" content="*"><meta itemprop="resource" content="${P}/members.html">
+                <meta itemprop="method" content="GET"><meta itemprop="action" content="deny">
+              </div>
+              <div hidden itemscope itemtype="https://pagelove.org/AuthorizationRule">
+                <meta itemprop="actor" content="users"><meta itemprop="resource" content="${P}/members.html">
+                <meta itemprop="method" content="GET"><meta itemprop="action" content="allow">
+              </div>
+            </body></html>
+    steps:
+      - name: author key on the public plane
+        as: author
+        plane: public
+        request: {method: GET, path: "${P}/members.html"}
+        expect:
+          status: 401
+          body_not_contains: ['Members only']
+
+  - id: authz.identity.basic-authorization-header-not-identity
+    title: An Authorization Basic header does not authenticate a public-plane request
+    area: permissions-identity
+    feature: Authorization header vs identity
+    evidence: demo-source
+    source: "pagelove-shop/site/admin-auth.html@d887054:5-35 (Basic credential only checked by a Trigger; 'every actor is *'); pagelove-shop/site/rules.html@d887054:60-63"
+    confidence: medium
+    requires: []
+    live: true
+    notes: The credential is a throwaway test value (user:pass) that authenticates nothing anywhere.
+    site:
+      files:
+        - path: "${P}/doc.html"
+          body: '<!DOCTYPE html><html><body><h1>T</h1></body></html>'
+        - path: "${P}/rules.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div hidden itemscope itemtype="https://pagelove.org/AuthorizationRule">
+                <meta itemprop="actor" content="users"><meta itemprop="resource" content="${P}/doc.html">
+                <meta itemprop="method" content="PUT"><meta itemprop="action" content="allow">
+              </div>
+            </body></html>
+    steps:
+      - name: Basic header is ignored for identity (still anonymous, so 401)
+        as: anonymous
+        request: {method: PUT, path: "${P}/doc.html", headers: {Range: "selector=h1", Content-Type: text/html, Authorization: "Basic dXNlcjpwYXNz"}, body: '<h1>x</h1>'}
+        expect: {status: 401}
+
+  - id: authz.identity.webdav-bypasses-rules
+    title: The authoring plane is not subject to AuthorizationRules
+    area: permissions-identity
+    feature: authoring plane vs rules
+    evidence: demo-source
+    source: "demo-apps README.md@c4dd883:146 ('WebDAV bypasses rules, letting you write the very rules that govern subsequent access')"
+    confidence: medium
+    requires: []
+    live: true
+    notes: Contradiction C13 (WebDAV page see-also mentions rules applying to WebDAV). Probe P-25.
+    site:
+      files:
+        - path: "${P}/secret.html"
+          body: '<!DOCTYPE html><html><body><h1>Secret</h1></body></html>'
+        - path: "${P}/rules.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div hidden itemscope itemtype="https://pagelove.org/AuthorizationRule">
+                <meta itemprop="actor" content="*"><meta itemprop="resource" content="${P}/*">
+                <meta itemprop="method" content="*"><meta itemprop="action" content="deny">
+              </div>
+            </body></html>
+    steps:
+      - name: public read refused
+        as: anonymous
+        request: {method: GET, path: "${P}/secret.html"}
+        expect: {status: 401}
+      - name: authoring read allowed
+        as: author
+        plane: dav
+        request: {method: GET, path: "${P}/secret.html"}
+        expect: {status: 200, body_contains: ['Secret']}
+      - name: authoring write allowed
+        as: author
+        plane: dav
+        request: {method: PUT, path: "${P}/secret.html", headers: {Content-Type: text/html}, body: '<!DOCTYPE html><html><body><h1>Secret v2</h1></body></html>'}
+        expect: {status: [200, 201, 204]}
+
+  - id: authz.identity.composition-reads-despite-rules
+    title: A composed page can include content the visitor may not fetch directly
+    area: permissions-identity
+    feature: composition is not filtered by rules
+    evidence: documented
+    source: "docs reference/composing-pages/Resource-Binding §Security; learn/build-a-blog §Locking the data folder ('the post is still there')"
+    confidence: high
+    requires: []
+    live: true
+    site:
+      files:
+        - path: "${P}/data/post.html"
+          body: '<!DOCTYPE html><html><body><article id="post-body">Draft text</article></body></html>'
+        - path: "${P}/page.html"
+          body: |
+            <!DOCTYPE html>
+            <html xmlns:p="https://pagelove.org/1.0"><body>
+              <main><p:include resource="${P}/data/post.html" selector="#post-body"></p:include></main>
+            </body></html>
+        - path: "${P}/rules.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div hidden itemscope itemtype="https://pagelove.org/AuthorizationRule">
+                <meta itemprop="actor" content="*"><meta itemprop="resource" content="${P}/data/*">
+                <meta itemprop="method" content="GET"><meta itemprop="action" content="deny">
+              </div>
+              <div hidden itemscope itemtype="https://pagelove.org/AuthorizationRule">
+                <meta itemprop="actor" content="*"><meta itemprop="resource" content="${P}/page.html">
+                <meta itemprop="method" content="GET"><meta itemprop="action" content="allow">
+              </div>
+            </body></html>
+    steps:
+      - name: raw data refused
+        as: anonymous
+        request: {method: GET, path: "${P}/data/post.html"}
+        expect: {status: 401}
+      - name: composed page shows it
+        as: anonymous
+        request: {method: GET, path: "${P}/page.html"}
+        expect: {status: 200, body_contains: ['Draft text']}
+
+  - id: authz.identity.request-auth-in-liquid
+    title: Liquid sees request.auth.username, claims and the role list; the page becomes private
+    area: permissions-identity
+    feature: identity in composition
+    evidence: demo-source
+    source: "pagelove-kanban/site/app.js@85109ab:653 (Liquid whoami with request.auth.role); docs languages/sessel/reference/syntax §Authenticated identity in composition; reference/reading-and-writing/Request-Document §Shape (role list includes email, groups, users)"
+    confidence: medium
+    requires: [multi-actor, liquid]
+    live: false
+    site:
+      files:
+        - path: "${P}/whoami.html"
+          body: |
+            <!DOCTYPE html>
+            <html xmlns:pagelove="https://pagelove.org/1.0"><body>
+              <div id="who" pagelove:template="text/liquid">[{{ request.auth.username }}|{{ request.auth.claims.email }}|{% for r in request.auth.role %}{{ r }};{% endfor %}]</div>
+            </body></html>
+        - path: "${P}/groups.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body><div itemscope itemtype="https://pagelove.org/Group">
+              <meta itemprop="name" content="editors"><meta itemprop="member" content="alice@example.com">
+            </div></body></html>
+        - path: "${P}/rules.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div hidden itemscope itemtype="https://pagelove.org/AuthorizationRule">
+                <meta itemprop="actor" content="*"><meta itemprop="resource" content="${P}/whoami.html">
+                <meta itemprop="method" content="GET"><meta itemprop="action" content="allow">
+              </div>
+            </body></html>
+    actors:
+      alice: {sub: sub-alice, email: alice@example.com, email_verified: true, roles: [staff]}
+    steps:
+      - name: signed-in rendering
+        as: alice
+        request: {method: GET, path: "${P}/whoami.html"}
+        expect:
+          status: 200
+          header_matches: {Cache-Control: "private"}
+          body_contains: ['[sub-alice|alice@example.com|', 'alice@example.com;', 'editors;', 'staff;', 'users;']
+      - name: anonymous rendering is empty, not an error
+        as: anonymous
+        request: {method: GET, path: "${P}/whoami.html"}
+        expect:
+          status: 200
+          body_contains: ['[||]']
+
+  - id: authz.identity.request-auth-roles-alias
+    title: request.auth.roles is an alias of request.auth.role in composition
+    area: permissions-identity
+    feature: identity in composition
+    evidence: documented
+    source: "docs languages/sessel/reference/syntax §Context variables (request.auth.roles); pagelove-cursor SKILL.md@b97c3ef:187"
+    confidence: medium
+    requires: [multi-actor, liquid]
+    live: false
+    notes: Contradiction C9 (role vs roles); pagelike exposes both.
+    site:
+      files:
+        - path: "${P}/roles.html"
+          body: |
+            <!DOCTYPE html>
+            <html xmlns:pagelove="https://pagelove.org/1.0"><body>
+              <div id="r" pagelove:template="text/liquid">{% for r in request.auth.roles %}<{{ r }}>{% endfor %}</div>
+            </body></html>
+        - path: "${P}/rules.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div hidden itemscope itemtype="https://pagelove.org/AuthorizationRule">
+                <meta itemprop="actor" content="*"><meta itemprop="resource" content="${P}/roles.html">
+                <meta itemprop="method" content="GET"><meta itemprop="action" content="allow">
+              </div>
+            </body></html>
+    actors:
+      dave: {sub: sub-dave, email: dave@example.com, email_verified: true, roles: [staff]}
+    steps:
+      - name: role list rendered
+        as: dave
+        request: {method: GET, path: "${P}/roles.html"}
+        expect:
+          status: 200
+          body_contains: ['staff', 'users']
+
+  - id: authz.identity.request-document-auth-include
+    title: The request document's auth section can be included into a composed page
+    area: permissions-identity
+    feature: request document auth section
+    evidence: documented
+    source: "docs reference/reading-and-writing/Request-Document §Shape (auth / claims / username / role); reference/composing-pages/Resource-Binding (binding the request document)"
+    confidence: low
+    requires: [multi-actor]
+    live: false
+    notes: Include-by-selector of the request document is documented only in passing; asserting property presence only.
+    site:
+      files:
+        - path: "${P}/me.html"
+          body: |
+            <!DOCTYPE html>
+            <html xmlns:p="https://pagelove.org/1.0"><body>
+              <p:include selector="[itemtype='https://pagelove.org/Request'] > [itemprop='auth']"></p:include>
+            </body></html>
+        - path: "${P}/rules.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div hidden itemscope itemtype="https://pagelove.org/AuthorizationRule">
+                <meta itemprop="actor" content="*"><meta itemprop="resource" content="${P}/me.html">
+                <meta itemprop="method" content="GET"><meta itemprop="action" content="allow">
+              </div>
+            </body></html>
+    actors:
+      alice: {sub: sub-alice, email: alice@example.com, email_verified: true, roles: []}
+    steps:
+      - name: auth section with username, claims and roles
+        as: alice
+        request: {method: GET, path: "${P}/me.html"}
+        expect:
+          status: 200
+          header_matches: {Cache-Control: "private"}
+          body_contains:
+            - 'itemtype="https://pagelove.org/Authorization"'
+            - 'itemtype="https://pagelove.org/Claims"'
+            - '<meta itemprop="username" content="sub-alice">'
+            - '<meta itemprop="email" content="alice@example.com">'
+            - '<meta itemprop="role" content="users">'

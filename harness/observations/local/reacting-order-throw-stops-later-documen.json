@@ -1,0 +1,59 @@
+{
+  "case": "reacting.order.throw-stops-later-documents",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (install the logging trigger (writes a marker))",
+      "method": "PUT",
+      "path": "/_pl/reacting-order-throw-stops-later-documen-4211db/app/logging.html",
+      "status": 201,
+      "headers": {
+        "content-length": "630",
+        "content-type": "text/html",
+        "etag": "\"e51ef892a014c3563e5379765ea45611c177a1c9be0953f7569f6bd2e87d5826\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:48 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\n\u003cdiv hidden itemscope itemtype=\"https://pagelove.org/Trigger\"\u003e\n  \u003cmeta itemprop=\"resource\" content=\"/_pl/reacting-order-throw-stops-later-documen-4211db/d/*\"\u003e\n  \u003cmeta itemprop=\"method\" content=\"PUT\"\u003e\n  \u003cdiv itemprop=\"action\" itemscope itemtype=\"https://pagelove.org/Sessel\"\u003e\n    \u003cscript itemprop=\"source\" type=\"text/sessel\"\u003e\n      @schema Pagelove url(\"https://pagelove.org/1.0\");\n      @schema Thing url(\"https://schema.org/Thing\");\n      Pagelove.PUT(new Thing { name: \"logging-ran\" }, \"/_pl/reacting-order-throw-stops-later-documen-4211db/marker.html\")\n    \u003c/script\u003e\n  \u003c/div\u003e\n\u003c/div\u003e\n\u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 2 (install the auth trigger (throws 401))",
+      "method": "PUT",
+      "path": "/_pl/reacting-order-throw-stops-later-documen-4211db/app/auth.html",
+      "status": 201,
+      "headers": {
+        "content-length": "536",
+        "content-type": "text/html",
+        "etag": "\"8ec84e50b93632b681648e4a904d636493e11aed2e846f08b8af837dc522ef96\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:48 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\n\u003cdiv hidden itemscope itemtype=\"https://pagelove.org/Trigger\"\u003e\n  \u003cmeta itemprop=\"resource\" content=\"/_pl/reacting-order-throw-stops-later-documen-4211db/d/*\"\u003e\n  \u003cmeta itemprop=\"method\" content=\"PUT\"\u003e\n  \u003cdiv itemprop=\"action\" itemscope itemtype=\"https://pagelove.org/Sessel\"\u003e\n    \u003cscript itemprop=\"source\" type=\"text/sessel\"\u003e\n      @schema HTTPResponse url(\"https://pagelove.org/HTTPResponse\");\n      throw new HTTPResponse { status: 401, message: \"auth-first\" }\n    \u003c/script\u003e\n  \u003c/div\u003e\n\u003c/div\u003e\n\u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 3 (the auth trigger ends the chain)",
+      "method": "PUT",
+      "path": "/_pl/reacting-order-throw-stops-later-documen-4211db/d/x.html",
+      "status": 401,
+      "headers": {
+        "content-length": "10",
+        "content-type": "text/html; charset=utf-8"
+      },
+      "body": "auth-first"
+    },
+    {
+      "step": "step 4 (the logging trigger never ran)",
+      "method": "GET",
+      "path": "/_pl/reacting-order-throw-stops-later-documen-4211db/marker.html",
+      "status": 404,
+      "headers": {
+        "content-length": "362",
+        "content-type": "text/html",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\n  \u003chead\u003e\n    \u003ctitle\u003e404 Not Found - Error\u003c/title\u003e\n  \u003c/head\u003e\n  \u003cbody itemscope itemtype=\"http://pagelove.org/Error\"\u003e\n    \u003ch1 itemprop=\"name\"\u003eNot Found\u003c/h1\u003e\n    \u003cmeta itemprop=\"statusCode\" content=\"404\"\u003e\n    \u003cp itemprop=\"description\"\u003eDocument not found: /_pl/reacting-order-throw-stops-later-documen-4211db/marker.html\u003c/p\u003e\n  \u003c/body\u003e\n\u003c/html\u003e\n"
+    }
+  ],
+  "outcome": "pass",
+  "target": "local"
+}

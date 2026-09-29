@@ -1,0 +1,23 @@
+{
+  "case": "liquid.escape.query-value-not-evaluated",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (read)",
+      "method": "GET",
+      "path": "/_pl/liquid-escape-query-value-not-evaluated-99b4dd/inject.html?q=%7B%7B%206%20%7C%20times%3A%207%20%7D%7D",
+      "status": 200,
+      "headers": {
+        "accept-ranges": "selector, bytes",
+        "cache-control": "public, max-age=5",
+        "content-length": "79",
+        "content-type": "text/html",
+        "etag": "W/\"63bfa248f3cb68785f147fa12f78a42bfc3247dc7f1b9b79e0ecb40821794c1e\"",
+        "vary": "Host, Range, Accept"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\n  \u003cp id=\"o\"\u003e{{ 6 | times: 7 }}\u003c/p\u003e\n\u003c/body\u003e\u003c/html\u003e\n"
+    }
+  ],
+  "outcome": "pass",
+  "target": "local"
+}

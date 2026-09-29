@@ -1,0 +1,60 @@
+{
+  "case": "rw.cond.put-if-none-match-etag",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (read)",
+      "method": "GET",
+      "path": "/_pl/rw-cond-put-if-none-match-etag-985f77/inm.html",
+      "status": 200,
+      "headers": {
+        "content-type": "text/html",
+        "etag": "\"6878414cbe2bb0ccce69d19fde2eb53d77339c3bdd7803218e37380c6d63069b\"",
+        "last-modified": "Mon, 28 Sep 2026 22:25:38 GMT",
+        "vary": "Host, Range, Accept"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\u003cp\u003eone\u003c/p\u003e\n                \u003cdiv style=\"\n                            position: fixed;\n                            bottom: 0;\n                            left: 0;\n                            right: 0;\n                            padding: 8px;\n                            background: #f0f0f0;\n                            text-align: center;\n                            font-size: 12px;\n                            color: #666;\n                            z-index: 9999;\n                            opacity: 0.8;\n                            border-top: 1px solid #ddd;\n                        \"\u003e\n                    Powered by\n                    \u003ca href=\"https://pagelove.com/\" style=\"color: #4a90d9; text-decoration: none\"\u003ePagelove\u003c/a\u003e\n                \u003c/div\u003e\n            \u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 2 (blocked)",
+      "method": "PUT",
+      "path": "/_pl/rw-cond-put-if-none-match-etag-985f77/inm.html",
+      "status": 412,
+      "headers": {
+        "content-length": "179",
+        "content-type": "text/html",
+        "etag": "\"6878414cbe2bb0ccce69d19fde2eb53d77339c3bdd7803218e37380c6d63069b\"",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\u003cdiv itemscope itemtype=\"http://pagelove.org/Error\"\u003e\u003cspan itemprop=\"message\"\u003ePrecondition Failed: ETag matches If-None-Match\u003c/span\u003e\u003c/div\u003e\u003c/body\u003e\u003c/html\u003e"
+    },
+    {
+      "step": "step 3 (not blocked)",
+      "method": "PUT",
+      "path": "/_pl/rw-cond-put-if-none-match-etag-985f77/inm.html",
+      "status": 200,
+      "headers": {
+        "content-type": "text/html",
+        "etag": "\"ddd27cedeb532b418b897307bf2e8358791a5f7340caef9c10ffb42175a5d390\"",
+        "last-modified": "Mon, 28 Sep 2026 22:25:40 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\u003cp\u003etwo\u003c/p\u003e\n                \u003cdiv style=\"\n                            position: fixed;\n                            bottom: 0;\n                            left: 0;\n                            right: 0;\n                            padding: 8px;\n                            background: #f0f0f0;\n                            text-align: center;\n                            font-size: 12px;\n                            color: #666;\n                            z-index: 9999;\n                            opacity: 0.8;\n                            border-top: 1px solid #ddd;\n                        \"\u003e\n                    Powered by\n                    \u003ca href=\"https://pagelove.com/\" style=\"color: #4a90d9; text-decoration: none\"\u003ePagelove\u003c/a\u003e\n                \u003c/div\u003e\n            \u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 4 (result)",
+      "method": "GET",
+      "path": "/_pl/rw-cond-put-if-none-match-etag-985f77/inm.html",
+      "status": 200,
+      "headers": {
+        "content-type": "text/html",
+        "etag": "\"ddd27cedeb532b418b897307bf2e8358791a5f7340caef9c10ffb42175a5d390\"",
+        "last-modified": "Mon, 28 Sep 2026 22:25:40 GMT",
+        "vary": "Host, Range, Accept"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\u003cp\u003etwo\u003c/p\u003e\n                \u003cdiv style=\"\n                            position: fixed;\n                            bottom: 0;\n                            left: 0;\n                            right: 0;\n                            padding: 8px;\n                            background: #f0f0f0;\n                            text-align: center;\n                            font-size: 12px;\n                            color: #666;\n                            z-index: 9999;\n                            opacity: 0.8;\n                            border-top: 1px solid #ddd;\n                        \"\u003e\n                    Powered by\n                    \u003ca href=\"https://pagelove.com/\" style=\"color: #4a90d9; text-decoration: none\"\u003ePagelove\u003c/a\u003e\n                \u003c/div\u003e\n            \u003c/body\u003e\u003c/html\u003e\n"
+    }
+  ],
+  "outcome": "pass",
+  "target": "live"
+}

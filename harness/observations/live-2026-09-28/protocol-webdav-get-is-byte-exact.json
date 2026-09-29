@@ -1,0 +1,36 @@
+{
+  "case": "protocol.webdav.get-is-byte-exact",
+  "failures": [
+    "step 2 (read back) GET ${P}/raw.html: body = \"\u003chtml\u003e\u003cbody class=\\\"x\\\"\u003e\u003ch1 id=\\\"a\\\"\u003eHi\u003c/h1\u003e\u003cp\u003e{{ 1 | plus: 1 }}\u003c!-- keep --\u003e\u003c/p\u003e\u003c/body\u003e\u003c/html\u003e\", want \"\u003cHTML\u003e\u003cBody class=x \u003e\u003ch1   id='a'\u003eHi\u003c/h1\u003e\u003cp\u003e{{ 1 | plus: 1 }}\u003c!-- keep --\u003e\u003c/Body\u003e\u003c/HTML\u003e\""
+  ],
+  "observations": [
+    {
+      "step": "step 1 (upload irregular markup)",
+      "method": "PUT",
+      "path": "/_pl/protocol-webdav-get-is-byte-exact-1310b4/raw.html",
+      "status": 201,
+      "headers": {
+        "content-length": "91",
+        "content-type": "text/html",
+        "etag": "\"9bd681457030b858d6c90ca9764b391931dfa26408e2b81cc20bffce289f9d6f\""
+      },
+      "body": "\u003chtml\u003e\u003cbody class=\"x\"\u003e\u003ch1 id=\"a\"\u003eHi\u003c/h1\u003e\u003cp\u003e{{ 1 | plus: 1 }}\u003c!-- keep --\u003e\u003c/p\u003e\u003c/body\u003e\u003c/html\u003e"
+    },
+    {
+      "step": "step 2 (read back)",
+      "method": "GET",
+      "path": "/_pl/protocol-webdav-get-is-byte-exact-1310b4/raw.html",
+      "status": 200,
+      "headers": {
+        "accept-ranges": "bytes",
+        "content-length": "91",
+        "content-type": "text/html",
+        "etag": "\"9bd681457030b858d6c90ca9764b391931dfa26408e2b81cc20bffce289f9d6f\"",
+        "last-modified": "Mon, 28 Sep 2026 22:33:46 GMT"
+      },
+      "body": "\u003chtml\u003e\u003cbody class=\"x\"\u003e\u003ch1 id=\"a\"\u003eHi\u003c/h1\u003e\u003cp\u003e{{ 1 | plus: 1 }}\u003c!-- keep --\u003e\u003c/p\u003e\u003c/body\u003e\u003c/html\u003e"
+    }
+  ],
+  "outcome": "fail",
+  "target": "live"
+}

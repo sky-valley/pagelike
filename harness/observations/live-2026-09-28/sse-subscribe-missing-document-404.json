@@ -1,0 +1,21 @@
+{
+  "case": "sse.subscribe.missing-document-404",
+  "failures": [
+    "step 1 (subscribe to a path that has no document) GET ${P}/missing.html: status 200, want [404] (body: : connected\n\nevent: pagelove-connection\ndata: 061c847e-c5e9-424f-b0d0-ab8f709a4307\n\n: ping\n\n: ping\n\n)"
+  ],
+  "observations": [
+    {
+      "step": "step 1 (subscribe to a path that has no document)",
+      "method": "GET",
+      "path": "/_pl/sse-subscribe-missing-document-404-c50e33/missing.html",
+      "status": 200,
+      "headers": {
+        "cache-control": "no-cache",
+        "content-type": "text/event-stream"
+      },
+      "body": ": connected\n\nevent: pagelove-connection\ndata: 061c847e-c5e9-424f-b0d0-ab8f709a4307\n\n: ping\n\n: ping\n\n"
+    }
+  ],
+  "outcome": "fail",
+  "target": "live"
+}

@@ -1,0 +1,1205 @@
+# Modeling: individual and composite uniqueness.
+# Spec: docs/spec/modeling.md §7 (R-MOD-30..R-MOD-32). Uniqueness failures were documented as the
+# ConstraintViolation page ('the same shape as' transition violations); live 2026-09-29 PageLove answers the bare
+# problems item https://dombase.pagelove.team/ns/error/ConstraintViolation with a "Constraint violation: 1
+# violation(s):" list whose lines start "[uniqueness]" (docs/compat/decisions-2026-09-29/modeling.md). Demo apps
+# match /uniqueness/i on the body, which still holds.
+cases:
+  - id: modeling.uniqueness.duplicate-across-documents
+    title: "A second Project with an existing slug is rejected and the first is unaffected"
+    area: modeling
+    feature: uniqueness
+    evidence: live-observed
+    source: "harness/observations/live-2026-09-29/modeling-uniqueness-duplicate-across-doc.json (behaviour as documented in docs reference/modeling-data/Property §Uniqueness and recipes/linking-related-data §Unique constraints, snapshot 2026-09-28; the body is PageLove's problems item)"
+    confidence: high
+    requires: []
+    live: true
+    notes: "spec: R-MOD-30, R-MOD-72. Adopt-live 2026-09-29 for the body, except that pagelike does not name the document already holding the value (PageLove appends \" at '<path>'\"; keep-documented-security, measured by modeling.uniqueness.duplicate-across-documents.live)."
+    site:
+      settings:
+        default_get: allow
+      rules:
+        - actor: "*"
+          resource: "${P}/*"
+          method: [GET, HEAD, PUT, POST, DELETE, MOVE]
+          action: Allow
+        - actor: "*"
+          resource: "${P}/*/*"
+          method: [GET, HEAD, PUT, POST, DELETE, MOVE]
+          action: Allow
+    steps:
+      - name: "register declarations through the public plane (takes effect for the next request)"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/schema.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div hidden itemscope itemtype="https://pagelove.org/Schema">
+                <meta itemprop="type" content="https://pagelike.test${P}/Project">
+                <li itemprop="property" itemscope itemtype="https://pagelove.org/Property">
+                  <meta itemprop="name" content="slug">
+                  <meta itemprop="type" content="https://schema.host/Text">
+                  <meta itemprop="cardinality" content="1..1">
+                  <meta itemprop="unique" content="true">
+                </li>
+              </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "first project"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/p1.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div itemscope itemtype="https://pagelike.test${P}/Project">
+                <meta itemprop="slug" content="launch">
+              </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "second project with the same slug"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/p2.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div itemscope itemtype="https://pagelike.test${P}/Project">
+                <meta itemprop="slug" content="launch">
+              </div>
+            </body></html>
+        expect:
+          status: 422
+          header_matches:
+            Content-Type: "^text/html"
+          body_contains:
+            - "<div itemscope itemtype=\"https://dombase.pagelove.team/ns/error/ConstraintViolation\"><ul itemprop=\"problems\"><li itemprop=\"problem\"><span itemprop=\"message\">Constraint violation: 1 violation(s):"
+            - "\n  - [uniqueness] [itemprop='slug'] (unique(slug)): Uniqueness violation: value already exists for property 'slug'"
+      - name: "p2.html was not stored"
+        as: author
+        plane: dav
+        request:
+          method: GET
+          path: "${P}/p2.html"
+        expect:
+          status: 404
+      - name: "stored state of p1.html (authoring plane, raw)"
+        as: author
+        plane: dav
+        request:
+          method: GET
+          path: "${P}/p1.html"
+        expect:
+          status: 200
+          body_contains: ["content=\"launch\""]
+  - id: modeling.uniqueness.duplicate-across-documents.live
+    title: "Live PageLove names the document that already holds a unique value"
+    area: modeling
+    feature: uniqueness
+    status: live-divergence
+    evidence: live-observed
+    source: "harness/observations/live-2026-09-29/modeling-uniqueness-duplicate-across-doc.json (\"... already exists for property 'slug' at '/_pl/.../p1.html'\")"
+    confidence: high
+    requires: []
+    live: true
+    notes: "Measures a deliberate divergence (docs/compat/decisions-2026-09-29/modeling.md, keep-documented-security): pagelike withholds the path, which could name a document the writer cannot read. Runs only against --target live."
+    site:
+      settings:
+        default_get: allow
+      rules:
+        - actor: "*"
+          resource: "${P}/*"
+          method: [GET, HEAD, PUT]
+          action: Allow
+    steps:
+      - name: "register a Project schema with a unique slug"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/schema.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div hidden itemscope itemtype="https://pagelove.org/Schema">
+                <meta itemprop="type" content="https://pagelike.test${P}/Project">
+                <li itemprop="property" itemscope itemtype="https://pagelove.org/Property">
+                  <meta itemprop="name" content="slug">
+                  <meta itemprop="type" content="https://schema.host/Text">
+                  <meta itemprop="unique" content="true">
+                </li>
+              </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "first project"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/p1.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div itemscope itemtype="https://pagelike.test${P}/Project"><meta itemprop="slug" content="launch"></div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "the refusal names the first project's document"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/p2.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div itemscope itemtype="https://pagelike.test${P}/Project"><meta itemprop="slug" content="launch"></div>
+            </body></html>
+        expect:
+          status: 422
+          body_contains: ["Uniqueness violation: value already exists for property 'slug' at '${P}/p1.html'"]
+  - id: modeling.uniqueness.duplicate-within-document
+    title: "Two instances with the same unique value in one document are rejected"
+    area: modeling
+    feature: uniqueness
+    evidence: documented
+    source: "docs reference/modeling-data/Property §Uniqueness (snapshot 2026-09-28); docs recipes/linking-related-data §Unique constraints (snapshot 2026-09-28)"
+    confidence: high
+    requires: []
+    live: true
+    notes: "spec: R-MOD-30."
+    site:
+      settings:
+        default_get: allow
+      rules:
+        - actor: "*"
+          resource: "${P}/*"
+          method: [GET, HEAD, PUT, POST, DELETE, MOVE]
+          action: Allow
+        - actor: "*"
+          resource: "${P}/*/*"
+          method: [GET, HEAD, PUT, POST, DELETE, MOVE]
+          action: Allow
+    steps:
+      - name: "register declarations through the public plane (takes effect for the next request)"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/schema.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div hidden itemscope itemtype="https://pagelove.org/Schema">
+                <meta itemprop="type" content="https://pagelike.test${P}/Project">
+                <li itemprop="property" itemscope itemtype="https://pagelove.org/Property">
+                  <meta itemprop="name" content="slug">
+                  <meta itemprop="type" content="https://schema.host/Text">
+                  <meta itemprop="cardinality" content="1..1">
+                  <meta itemprop="unique" content="true">
+                </li>
+              </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "document with two launch projects"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/two.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div itemscope itemtype="https://pagelike.test${P}/Project">
+                <meta itemprop="slug" content="launch">
+              </div>
+              <div itemscope itemtype="https://pagelike.test${P}/Project">
+                <meta itemprop="slug" content="launch">
+              </div>
+            </body></html>
+        expect:
+          status: 422
+          header_matches:
+            Content-Type: "^text/html"
+          body_contains: ["https://dombase.pagelove.team/ns/error/ConstraintViolation", "[uniqueness]"]
+  - id: modeling.uniqueness.post-append-duplicate
+    title: "Appending a duplicate into a list with a selector POST is rejected (demo RSVP pattern)"
+    area: modeling
+    feature: uniqueness
+    evidence: demo-source
+    source: "demo-apps/demo-01-event/schema/event.html@c4dd883:35-45; demo-apps/demo-01-event/app.js@c4dd883:44-58"
+    confidence: high
+    requires: []
+    live: true
+    notes: "spec: R-MOD-30, R-MOD-32. The demo apps detect this failure by matching /uniqueness/i on the 422 body (demo-01 app.js:54)."
+    site:
+      settings:
+        default_get: allow
+      rules:
+        - actor: "*"
+          resource: "${P}/*"
+          method: [GET, HEAD, PUT, POST, DELETE, MOVE]
+          action: Allow
+        - actor: "*"
+          resource: "${P}/*/*"
+          method: [GET, HEAD, PUT, POST, DELETE, MOVE]
+          action: Allow
+    steps:
+      - name: "register declarations through the public plane (takes effect for the next request)"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/schema.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div hidden itemscope itemtype="https://pagelove.org/Schema">
+                <meta itemprop="type" content="https://pagelike.test${P}/RSVP">
+                <div itemprop="property" itemscope itemtype="https://pagelove.org/Property">
+                  <meta itemprop="name" content="rsvpKey">
+                  <meta itemprop="type" content="https://schema.host/Text">
+                  <meta itemprop="cardinality" content="1..1">
+                  <meta itemprop="unique" content="true">
+                </div>
+                <div itemprop="property" itemscope itemtype="https://pagelove.org/Property">
+                  <meta itemprop="name" content="attendee">
+                  <meta itemprop="type" content="https://schema.host/Text">
+                  <meta itemprop="cardinality" content="1..1">
+                </div>
+              </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "seed the list"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/event.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <ul id="rsvps">
+                <li itemscope itemtype="https://pagelike.test${P}/RSVP" id="rsvp-alice">
+                  <meta itemprop="rsvpKey" content="ev:alice">
+                  <meta itemprop="attendee" content="alice">
+                </li>
+              </ul>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "duplicate RSVP rejected"
+        as: anonymous
+        request:
+          method: POST
+          path: "${P}/event.html"
+          headers:
+            Range: "selector=#rsvps"
+            Content-Type: text/html
+          body: |
+            <li itemscope itemtype="https://pagelike.test${P}/RSVP" id="rsvp-alice2">
+              <meta itemprop="rsvpKey" content="ev:alice">
+              <meta itemprop="attendee" content="alice">
+            </li>
+        expect:
+          status: 422
+          header_matches:
+            Content-Type: "^text/html"
+          body_contains: ["https://dombase.pagelove.team/ns/error/ConstraintViolation", "[uniqueness]"]
+      - name: "different attendee accepted"
+        as: anonymous
+        request:
+          method: POST
+          path: "${P}/event.html"
+          headers:
+            Range: "selector=#rsvps"
+            Content-Type: text/html
+          body: |
+            <li itemscope itemtype="https://pagelike.test${P}/RSVP" id="rsvp-ben">
+              <meta itemprop="rsvpKey" content="ev:ben">
+              <meta itemprop="attendee" content="ben">
+            </li>
+        expect:
+          status: [200, 204, 206]
+      - name: "stored state of event.html (authoring plane, raw)"
+        as: author
+        plane: dav
+        request:
+          method: GET
+          path: "${P}/event.html"
+        expect:
+          status: 200
+          body_contains: [rsvp-ben]
+          body_not_contains: [rsvp-alice2]
+  - id: modeling.uniqueness.same-value-different-types
+    title: "Different types may share a value for their unique properties"
+    area: modeling
+    feature: uniqueness
+    evidence: documented
+    source: "docs recipes/linking-related-data §When to use these features (snapshot 2026-09-28); demo-apps/demo-03-resource-exchange/schema/listing.html@c4dd883:5-9,80-84"
+    confidence: high
+    requires: []
+    live: true
+    notes: "spec: R-MOD-30."
+    site:
+      settings:
+        default_get: allow
+      rules:
+        - actor: "*"
+          resource: "${P}/*"
+          method: [GET, HEAD, PUT, POST, DELETE, MOVE]
+          action: Allow
+        - actor: "*"
+          resource: "${P}/*/*"
+          method: [GET, HEAD, PUT, POST, DELETE, MOVE]
+          action: Allow
+    steps:
+      - name: "register declarations through the public plane (takes effect for the next request)"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/schema.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div hidden itemscope itemtype="https://pagelove.org/Schema">
+                <meta itemprop="type" content="https://pagelike.test${P}/Project">
+                <li itemprop="property" itemscope itemtype="https://pagelove.org/Property">
+                  <meta itemprop="name" content="slug">
+                  <meta itemprop="type" content="https://schema.host/Text">
+                  <meta itemprop="cardinality" content="1..1">
+                  <meta itemprop="unique" content="true">
+                </li>
+              </div>
+              <div hidden itemscope itemtype="https://pagelove.org/Schema">
+                <meta itemprop="type" content="https://pagelike.test${P}/Other">
+                <div itemprop="property" itemscope itemtype="https://pagelove.org/Property">
+                  <meta itemprop="name" content="slug">
+                  <meta itemprop="type" content="https://schema.host/Text">
+                  <meta itemprop="cardinality" content="1..1">
+                  <meta itemprop="unique" content="true">
+                </div>
+              </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "project launch"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/p.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div itemscope itemtype="https://pagelike.test${P}/Project">
+                <meta itemprop="slug" content="launch">
+              </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "other launch"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/o.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div itemscope itemtype="https://pagelike.test${P}/Other">
+                <meta itemprop="slug" content="launch">
+              </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+  - id: modeling.uniqueness.rewrite-own-value
+    title: "Re-writing an instance with its own unchanged value is not a conflict"
+    area: modeling
+    feature: uniqueness
+    evidence: inferred
+    source: "docs reference/modeling-data/Property §Uniqueness (snapshot 2026-09-28); docs recipes/linking-related-data §Unique constraints (snapshot 2026-09-28)"
+    confidence: high
+    requires: []
+    live: true
+    notes: "spec: R-MOD-30."
+    site:
+      settings:
+        default_get: allow
+      rules:
+        - actor: "*"
+          resource: "${P}/*"
+          method: [GET, HEAD, PUT, POST, DELETE, MOVE]
+          action: Allow
+        - actor: "*"
+          resource: "${P}/*/*"
+          method: [GET, HEAD, PUT, POST, DELETE, MOVE]
+          action: Allow
+    steps:
+      - name: "register declarations through the public plane (takes effect for the next request)"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/schema.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div hidden itemscope itemtype="https://pagelove.org/Schema">
+                <meta itemprop="type" content="https://pagelike.test${P}/Project">
+                <li itemprop="property" itemscope itemtype="https://pagelove.org/Property">
+                  <meta itemprop="name" content="slug">
+                  <meta itemprop="type" content="https://schema.host/Text">
+                  <meta itemprop="cardinality" content="1..1">
+                  <meta itemprop="unique" content="true">
+                </li>
+              </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: create
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/p.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div itemscope itemtype="https://pagelike.test${P}/Project">
+                <meta itemprop="slug" content="launch">
+              </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "replace the same document with the same slug"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/p.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div itemscope itemtype="https://pagelike.test${P}/Project">
+                <meta itemprop="slug" content="launch">
+              </div>
+              <p>edited</p>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+  - id: modeling.uniqueness.value-freed-by-delete
+    title: "Deleting the instance holding a value frees it for reuse (demo claim/release pattern)"
+    area: modeling
+    feature: uniqueness
+    evidence: demo-source
+    source: "demo-apps/demo-03-resource-exchange/app.js@c4dd883:105-137"
+    confidence: high
+    requires: []
+    live: true
+    notes: "spec: R-MOD-30."
+    site:
+      settings:
+        default_get: allow
+      rules:
+        - actor: "*"
+          resource: "${P}/*"
+          method: [GET, HEAD, PUT, POST, DELETE, MOVE]
+          action: Allow
+        - actor: "*"
+          resource: "${P}/*/*"
+          method: [GET, HEAD, PUT, POST, DELETE, MOVE]
+          action: Allow
+    steps:
+      - name: "register declarations through the public plane (takes effect for the next request)"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/schema.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div hidden itemscope itemtype="https://pagelove.org/Schema">
+                <meta itemprop="type" content="https://pagelike.test${P}/Claim">
+                <div itemprop="property" itemscope itemtype="https://pagelove.org/Property">
+                  <meta itemprop="name" content="listingId">
+                  <meta itemprop="type" content="https://schema.host/Text">
+                  <meta itemprop="cardinality" content="1..1">
+                  <meta itemprop="unique" content="true">
+                </div>
+              </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "seed an empty claims list"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/claims.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <ul id="claims"></ul>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "claim L1"
+        as: anonymous
+        request:
+          method: POST
+          path: "${P}/claims.html"
+          headers:
+            Range: "selector=#claims"
+            Content-Type: text/html
+          body: |
+            <li itemscope itemtype="https://pagelike.test${P}/Claim" id="claim-L1">
+              <meta itemprop="listingId" content="L1">
+            </li>
+        expect:
+          status: [200, 204, 206]
+      - name: "second claim on L1 rejected"
+        as: anonymous
+        request:
+          method: POST
+          path: "${P}/claims.html"
+          headers:
+            Range: "selector=#claims"
+            Content-Type: text/html
+          body: |
+            <li itemscope itemtype="https://pagelike.test${P}/Claim" id="claim-L1b">
+              <meta itemprop="listingId" content="L1">
+            </li>
+        expect:
+          status: 422
+          header_matches:
+            Content-Type: "^text/html"
+          body_contains: ["https://dombase.pagelove.team/ns/error/ConstraintViolation", "[uniqueness]"]
+      - name: "release the claim"
+        as: anonymous
+        request:
+          method: DELETE
+          path: "${P}/claims.html"
+          headers:
+            Range: "selector=#claim-L1"
+        expect:
+          status: 204
+      - name: "claim L1 again"
+        as: anonymous
+        request:
+          method: POST
+          path: "${P}/claims.html"
+          headers:
+            Range: "selector=#claims"
+            Content-Type: text/html
+          body: |
+            <li itemscope itemtype="https://pagelike.test${P}/Claim" id="claim-L1c">
+              <meta itemprop="listingId" content="L1">
+            </li>
+        expect:
+          status: [200, 204, 206]
+  - id: modeling.uniqueness.selector-put-to-duplicate
+    title: "A selector PUT that changes a value to one held by another instance is rejected"
+    area: modeling
+    feature: uniqueness
+    evidence: inferred
+    source: "docs reference/modeling-data/Property §Uniqueness (snapshot 2026-09-28); docs recipes/linking-related-data §Unique constraints (snapshot 2026-09-28)"
+    confidence: high
+    requires: []
+    live: true
+    notes: "spec: R-MOD-30, R-MOD-32."
+    site:
+      settings:
+        default_get: allow
+      rules:
+        - actor: "*"
+          resource: "${P}/*"
+          method: [GET, HEAD, PUT, POST, DELETE, MOVE]
+          action: Allow
+        - actor: "*"
+          resource: "${P}/*/*"
+          method: [GET, HEAD, PUT, POST, DELETE, MOVE]
+          action: Allow
+    steps:
+      - name: "register declarations through the public plane (takes effect for the next request)"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/schema.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div hidden itemscope itemtype="https://pagelove.org/Schema">
+                <meta itemprop="type" content="https://pagelike.test${P}/Project">
+                <li itemprop="property" itemscope itemtype="https://pagelove.org/Property">
+                  <meta itemprop="name" content="slug">
+                  <meta itemprop="type" content="https://schema.host/Text">
+                  <meta itemprop="cardinality" content="1..1">
+                  <meta itemprop="unique" content="true">
+                </li>
+              </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "project a"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/a.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div itemscope itemtype="https://pagelike.test${P}/Project">
+                <meta itemprop="slug" content="alpha">
+              </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "project b"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/b.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div itemscope itemtype="https://pagelike.test${P}/Project" id="pb">
+                <meta itemprop="slug" content="beta">
+              </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "rename b to alpha"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/b.html"
+          headers:
+            Range: "selector=#pb > meta[itemprop=\"slug\"]"
+            Content-Type: text/html
+          body: "<meta itemprop=\"slug\" content=\"alpha\">"
+        expect:
+          status: 422
+          header_matches:
+            Content-Type: "^text/html"
+          body_contains: ["https://dombase.pagelove.team/ns/error/ConstraintViolation", "[uniqueness]"]
+      - name: "stored state of b.html (authoring plane, raw)"
+        as: author
+        plane: dav
+        request:
+          method: GET
+          path: "${P}/b.html"
+        expect:
+          status: 200
+          body_contains: ["content=\"beta\""]
+  - id: modeling.uniqueness.case-sensitive
+    title: "Values that differ only by case are distinct"
+    area: modeling
+    feature: uniqueness
+    evidence: inferred
+    source: "docs reference/modeling-data/Property §Uniqueness (snapshot 2026-09-28); docs recipes/linking-related-data §Unique constraints (snapshot 2026-09-28)"
+    confidence: medium
+    requires: []
+    live: true
+    notes: "spec: R-MOD-30."
+    site:
+      settings:
+        default_get: allow
+      rules:
+        - actor: "*"
+          resource: "${P}/*"
+          method: [GET, HEAD, PUT, POST, DELETE, MOVE]
+          action: Allow
+        - actor: "*"
+          resource: "${P}/*/*"
+          method: [GET, HEAD, PUT, POST, DELETE, MOVE]
+          action: Allow
+    steps:
+      - name: "register declarations through the public plane (takes effect for the next request)"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/schema.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div hidden itemscope itemtype="https://pagelove.org/Schema">
+                <meta itemprop="type" content="https://pagelike.test${P}/Project">
+                <li itemprop="property" itemscope itemtype="https://pagelove.org/Property">
+                  <meta itemprop="name" content="slug">
+                  <meta itemprop="type" content="https://schema.host/Text">
+                  <meta itemprop="cardinality" content="1..1">
+                  <meta itemprop="unique" content="true">
+                </li>
+              </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: launch
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/a.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div itemscope itemtype="https://pagelike.test${P}/Project">
+                <meta itemprop="slug" content="launch">
+              </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: Launch
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/b.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div itemscope itemtype="https://pagelike.test${P}/Project">
+                <meta itemprop="slug" content="Launch">
+              </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+  - id: modeling.uniqueness.empty-text-values-never-conflict
+    title: "Text-content values that are empty are null and do not conflict"
+    area: modeling
+    feature: uniqueness
+    evidence: documented
+    source: "docs languages/sessel/reference/element §.value() (snapshot 2026-09-28) ('empty text is treated as absent ... matches the value used by uniqueness')"
+    confidence: medium
+    requires: []
+    live: true
+    notes: "spec: R-MOD-19, R-MOD-30. Probe P-MOD-19 covers content=\"\" (pagelike compares it as a string)."
+    site:
+      settings:
+        default_get: allow
+      rules:
+        - actor: "*"
+          resource: "${P}/*"
+          method: [GET, HEAD, PUT, POST, DELETE, MOVE]
+          action: Allow
+        - actor: "*"
+          resource: "${P}/*/*"
+          method: [GET, HEAD, PUT, POST, DELETE, MOVE]
+          action: Allow
+    steps:
+      - name: "register declarations through the public plane (takes effect for the next request)"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/schema.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div hidden itemscope itemtype="https://pagelove.org/Schema">
+                <meta itemprop="type" content="https://pagelike.test${P}/Project">
+                <div itemprop="property" itemscope itemtype="https://pagelove.org/Property">
+                  <meta itemprop="name" content="slug">
+                  <meta itemprop="type" content="https://schema.host/Text">
+                  <meta itemprop="cardinality" content="0..1">
+                  <meta itemprop="unique" content="true">
+                </div>
+              </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "first empty slug"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/a.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div itemscope itemtype="https://pagelike.test${P}/Project">
+                <span itemprop="slug"></span>
+              </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "second empty slug"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/b.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div itemscope itemtype="https://pagelike.test${P}/Project">
+                <span itemprop="slug"></span>
+              </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+  - id: modeling.uniqueness.composite-recipe
+    title: "Composite uniqueness: a pair must be unique while each value may repeat (docs Membership recipe)"
+    area: modeling
+    feature: "composite uniqueness"
+    evidence: live-observed
+    source: "harness/observations/live-2026-09-29/modeling-uniqueness-composite-recipe.json (behaviour as documented in docs recipes/composite-uniqueness §A worked example and reference/modeling-data/Property §Uniqueness, snapshot 2026-09-28; the body is PageLove's problems item)"
+    confidence: high
+    requires: []
+    live: true
+    notes: "spec: R-MOD-31, R-MOD-72. Contradiction C15 settled live 2026-09-29: composite groups work. Adopt-live 2026-09-29 for the body (members in alphabetical order, unique-group(<name>))."
+    site:
+      settings:
+        default_get: allow
+      rules:
+        - actor: "*"
+          resource: "${P}/*"
+          method: [GET, HEAD, PUT, POST, DELETE, MOVE]
+          action: Allow
+        - actor: "*"
+          resource: "${P}/*/*"
+          method: [GET, HEAD, PUT, POST, DELETE, MOVE]
+          action: Allow
+    steps:
+      - name: "register declarations through the public plane (takes effect for the next request)"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/schema.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div hidden itemscope itemtype="https://pagelove.org/Schema">
+                <meta itemprop="type" content="https://pagelike.test${P}/Membership">
+                <li itemprop="property" itemscope itemtype="https://pagelove.org/Property">
+                  <meta itemprop="name" content="user-id">
+                  <meta itemprop="type" content="https://schema.host/Text">
+                  <meta itemprop="cardinality" content="1..1">
+                  <meta itemprop="unique" content="membership-pair">
+                </li>
+                <li itemprop="property" itemscope itemtype="https://pagelove.org/Property">
+                  <meta itemprop="name" content="org-id">
+                  <meta itemprop="type" content="https://schema.host/Text">
+                  <meta itemprop="cardinality" content="1..1">
+                  <meta itemprop="unique" content="membership-pair">
+                </li>
+              </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "alice at acme"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/m1.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div itemscope itemtype="https://pagelike.test${P}/Membership">
+                <meta itemprop="user-id" content="alice">
+                <meta itemprop="org-id" content="acme">
+              </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "alice at globex"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/m2.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div itemscope itemtype="https://pagelike.test${P}/Membership">
+                <meta itemprop="user-id" content="alice">
+                <meta itemprop="org-id" content="globex">
+              </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "bob at acme"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/m3.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div itemscope itemtype="https://pagelike.test${P}/Membership">
+                <meta itemprop="user-id" content="bob">
+                <meta itemprop="org-id" content="acme">
+              </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "alice at acme again"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/m4.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div itemscope itemtype="https://pagelike.test${P}/Membership">
+                <meta itemprop="user-id" content="alice">
+                <meta itemprop="org-id" content="acme">
+              </div>
+            </body></html>
+        expect:
+          status: 422
+          header_matches:
+            Content-Type: "^text/html"
+          body: "<div itemscope itemtype=\"https://dombase.pagelove.team/ns/error/ConstraintViolation\"><ul itemprop=\"problems\"><li itemprop=\"problem\"><span itemprop=\"message\">Constraint violation: 1 violation(s):\n  - [uniqueness] [itemprop='org-id'], [itemprop='user-id'] (unique-group(membership-pair)): Composite uniqueness violation: value combination already exists for properties 'org-id, user-id'</span></li></ul></div>"
+      - name: "m4.html was not stored"
+        as: author
+        plane: dav
+        request:
+          method: GET
+          path: "${P}/m4.html"
+        expect:
+          status: 404
+  - id: modeling.uniqueness.individual-and-composite
+    title: "A property can be individually unique and part of a composite group"
+    area: modeling
+    feature: "composite uniqueness"
+    evidence: documented
+    source: "docs reference/modeling-data/Property §Uniqueness (snapshot 2026-09-28)"
+    confidence: high
+    requires: []
+    live: true
+    notes: "spec: R-MOD-30, R-MOD-31."
+    site:
+      settings:
+        default_get: allow
+      rules:
+        - actor: "*"
+          resource: "${P}/*"
+          method: [GET, HEAD, PUT, POST, DELETE, MOVE]
+          action: Allow
+        - actor: "*"
+          resource: "${P}/*/*"
+          method: [GET, HEAD, PUT, POST, DELETE, MOVE]
+          action: Allow
+    steps:
+      - name: "register declarations through the public plane (takes effect for the next request)"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/schema.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div hidden itemscope itemtype="https://pagelove.org/Schema">
+                <meta itemprop="type" content="https://pagelike.test${P}/Account">
+                <div itemprop="property" itemscope itemtype="https://pagelove.org/Property">
+                  <meta itemprop="name" content="email">
+                  <meta itemprop="type" content="https://schema.host/Text">
+                  <meta itemprop="cardinality" content="1..1">
+                  <meta itemprop="unique" content="true">
+                  <meta itemprop="unique" content="email-org">
+                </div>
+                <div itemprop="property" itemscope itemtype="https://pagelove.org/Property">
+                  <meta itemprop="name" content="org">
+                  <meta itemprop="type" content="https://schema.host/Text">
+                  <meta itemprop="cardinality" content="1..1">
+                  <meta itemprop="unique" content="email-org">
+                </div>
+              </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "a@x in o1"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/a.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div itemscope itemtype="https://pagelike.test${P}/Account">
+                <meta itemprop="email" content="a@x">
+                <meta itemprop="org" content="o1">
+              </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "b@x in o1"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/b.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div itemscope itemtype="https://pagelike.test${P}/Account">
+                <meta itemprop="email" content="b@x">
+                <meta itemprop="org" content="o1">
+              </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "a@x in o2 violates individual uniqueness of email"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/c.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div itemscope itemtype="https://pagelike.test${P}/Account">
+                <meta itemprop="email" content="a@x">
+                <meta itemprop="org" content="o2">
+              </div>
+            </body></html>
+        expect:
+          status: 422
+          header_matches:
+            Content-Type: "^text/html"
+          body_contains: ["https://dombase.pagelove.team/ns/error/ConstraintViolation", "[uniqueness]"]
+  - id: modeling.uniqueness.composite-missing-member
+    title: "An instance missing a composite member does not participate in that group"
+    area: modeling
+    feature: "composite uniqueness"
+    evidence: inferred
+    source: "pagelike decision (docs/spec/modeling.md R-MOD-31)"
+    confidence: low
+    requires: []
+    live: true
+    notes: "spec: R-MOD-31. Probe P-MOD-20."
+    site:
+      settings:
+        default_get: allow
+      rules:
+        - actor: "*"
+          resource: "${P}/*"
+          method: [GET, HEAD, PUT, POST, DELETE, MOVE]
+          action: Allow
+        - actor: "*"
+          resource: "${P}/*/*"
+          method: [GET, HEAD, PUT, POST, DELETE, MOVE]
+          action: Allow
+    steps:
+      - name: "register declarations through the public plane (takes effect for the next request)"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/schema.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div hidden itemscope itemtype="https://pagelove.org/Schema">
+                <meta itemprop="type" content="https://pagelike.test${P}/Membership">
+                <div itemprop="property" itemscope itemtype="https://pagelove.org/Property">
+                  <meta itemprop="name" content="user-id">
+                  <meta itemprop="type" content="https://schema.host/Text">
+                  <meta itemprop="cardinality" content="1..1">
+                  <meta itemprop="unique" content="pair">
+                </div>
+                <div itemprop="property" itemscope itemtype="https://pagelove.org/Property">
+                  <meta itemprop="name" content="org-id">
+                  <meta itemprop="type" content="https://schema.host/Text">
+                  <meta itemprop="cardinality" content="0..1">
+                  <meta itemprop="unique" content="pair">
+                </div>
+              </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "alice without org"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/a.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div itemscope itemtype="https://pagelike.test${P}/Membership">
+                <meta itemprop="user-id" content="alice">
+              </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "alice without org again"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/b.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div itemscope itemtype="https://pagelike.test${P}/Membership">
+                <meta itemprop="user-id" content="alice">
+              </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]

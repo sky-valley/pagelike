@@ -1,0 +1,53 @@
+{
+  "case": "sse.mutation.put-properties",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (sse open s1)",
+      "method": "GET",
+      "path": "/_pl/sse-mutation-put-properties-279d53/doc.html",
+      "status": 200,
+      "headers": {
+        "cache-control": "no-cache",
+        "content-type": "text/event-stream",
+        "x-accel-buffering": "no"
+      }
+    },
+    {
+      "step": "step 2",
+      "events": [
+        {
+          "event": "pagelove-connection",
+          "data": "a4c5602d-d7d8-43f6-8047-1c34421808c6"
+        }
+      ]
+    },
+    {
+      "step": "step 3 (replace the heading)",
+      "method": "PUT",
+      "path": "/_pl/sse-mutation-put-properties-279d53/doc.html",
+      "status": 206,
+      "headers": {
+        "content-length": "16",
+        "content-range": "selector h1",
+        "content-type": "text/html",
+        "etag": "\"b3b2a5dc287b075fa1775a6dbeae43f51096f56bf49733b4faf0701a182a77f7-b3b2a5dc287b075fa1775a6dbeae43f51096f56bf49733b4faf0701a182a77f7-2\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:59 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003ch1\u003eUpdated\u003c/h1\u003e"
+    },
+    {
+      "step": "step 4",
+      "events": [
+        {
+          "id": "v1~b3d544be8c7c.1790649659926-1",
+          "event": "mutation",
+          "data": "\u003carticle itemscope itemtype=\"https://pagelove.org/Mutation\"\u003e\n  \u003cspan itemprop=\"method\"\u003ePUT\u003c/span\u003e\n  \u003cspan itemprop=\"selector\"\u003eh1\u003c/span\u003e\n  \u003cspan itemprop=\"etag\"\u003e6b7ec8789c9c9f6d547f404cc2a0dec8dbf2d458505fe1c203dfc694151863ca\u003c/span\u003e\n  \u003cspan itemprop=\"path\"\u003e/_pl/sse-mutation-put-properties-279d53/doc.html\u003c/span\u003e\n  \u003cspan itemprop=\"host\"\u003et.localhost\u003c/span\u003e\n  \u003cdiv itemprop=\"body\"\u003e\u003ch1\u003eUpdated\u003c/h1\u003e\u003c/div\u003e\n\u003c/article\u003e"
+        }
+      ]
+    }
+  ],
+  "outcome": "pass",
+  "target": "local"
+}

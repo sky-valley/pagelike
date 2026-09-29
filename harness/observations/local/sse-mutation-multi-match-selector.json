@@ -1,0 +1,68 @@
+{
+  "case": "sse.mutation.multi-match-selector",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (sse open s1)",
+      "method": "GET",
+      "path": "/_pl/sse-mutation-multi-match-selector-00a0b5/doc.html",
+      "status": 200,
+      "headers": {
+        "cache-control": "no-cache",
+        "content-type": "text/event-stream",
+        "x-accel-buffering": "no"
+      }
+    },
+    {
+      "step": "step 2",
+      "events": [
+        {
+          "event": "pagelove-connection",
+          "data": "5e41b366-0783-4c46-bda8-6032ab49a46f"
+        }
+      ]
+    },
+    {
+      "step": "step 3 (replace the first li)",
+      "method": "PUT",
+      "path": "/_pl/sse-mutation-multi-match-selector-00a0b5/doc.html",
+      "status": 206,
+      "headers": {
+        "content-length": "14",
+        "content-range": "selector li",
+        "content-type": "text/html",
+        "etag": "\"aeb2e107870bbb733f65cbc4b6a5fbfcc7b76ab3829c21e699e382888676fce9-aeb2e107870bbb733f65cbc4b6a5fbfcc7b76ab3829c21e699e382888676fce9-2\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:59 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003cli\u003eFIRST\u003c/li\u003e"
+    },
+    {
+      "step": "step 4",
+      "events": [
+        {
+          "id": "v1~85fb9d80a946.1790649659976-1",
+          "event": "mutation",
+          "data": "\u003carticle itemscope itemtype=\"https://pagelove.org/Mutation\"\u003e\n  \u003cspan itemprop=\"method\"\u003ePUT\u003c/span\u003e\n  \u003cspan itemprop=\"selector\"\u003eli\u003c/span\u003e\n  \u003cspan itemprop=\"etag\"\u003e8fb9af3531384fd62a9335eb8e32df07698cc1cb92616a7c30438b9b24959304\u003c/span\u003e\n  \u003cspan itemprop=\"path\"\u003e/_pl/sse-mutation-multi-match-selector-00a0b5/doc.html\u003c/span\u003e\n  \u003cspan itemprop=\"host\"\u003et.localhost\u003c/span\u003e\n  \u003cdiv itemprop=\"body\"\u003e\u003cli\u003eFIRST\u003c/li\u003e\u003c/div\u003e\n\u003c/article\u003e"
+        }
+      ]
+    },
+    {
+      "step": "step 5 (document shows only the first match replaced)",
+      "method": "GET",
+      "path": "/_pl/sse-mutation-multi-match-selector-00a0b5/doc.html",
+      "status": 200,
+      "headers": {
+        "accept-ranges": "selector, bytes",
+        "content-length": "81",
+        "content-type": "text/html",
+        "etag": "\"8fb9af3531384fd62a9335eb8e32df07698cc1cb92616a7c30438b9b24959304\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:59 GMT",
+        "vary": "Host, Range, Accept"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\u003cul\u003e\u003cli\u003eFIRST\u003c/li\u003e\u003cli\u003esecond\u003c/li\u003e\u003c/ul\u003e\u003c/body\u003e\u003c/html\u003e\n"
+    }
+  ],
+  "outcome": "pass",
+  "target": "local"
+}

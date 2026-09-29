@@ -1,0 +1,36 @@
+{
+  "case": "liquid.bind.sees-stored-template-source",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (template page itself renders)",
+      "method": "GET",
+      "path": "/_pl/liquid-bind-sees-stored-template-source-5df447/tpl-doc.html",
+      "status": 200,
+      "headers": {
+        "cache-control": "public, max-age=5",
+        "content-type": "text/html",
+        "etag": "W/\"4ed6d0e972f6ef37db84e47056b49d2207b5cbb33cc03961e88f874681dcb348\"",
+        "vary": "Host, Range, Accept"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\n  \u003cdiv itemscope itemtype=\"https://example.test/_pl/liquid-bind-sees-stored-template-source-5df447/Thing\"\u003e\u003cspan itemprop=\"name\"\u003eRENDERED\u003c/span\u003e\u003c/div\u003e\n\n                \u003cdiv style=\"\n                            position: fixed;\n                            bottom: 0;\n                            left: 0;\n                            right: 0;\n                            padding: 8px;\n                            background: #f0f0f0;\n                            text-align: center;\n                            font-size: 12px;\n                            color: #666;\n                            z-index: 9999;\n                            opacity: 0.8;\n                            border-top: 1px solid #ddd;\n                        \"\u003e\n                    Powered by\n                    \u003ca href=\"https://pagelove.com/\" style=\"color: #4a90d9; text-decoration: none\"\u003ePagelove\u003c/a\u003e\n                \u003c/div\u003e\n            \u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 2 (the binding sees the stored source)",
+      "method": "GET",
+      "path": "/_pl/liquid-bind-sees-stored-template-source-5df447/lister.html",
+      "status": 206,
+      "headers": {
+        "cache-control": "private",
+        "content-length": "41",
+        "content-range": "selector #o",
+        "content-type": "text/html",
+        "etag": "\"1744b2e87068a2d13220649ebfa72cc24e22e1dd6e3e4709ee70f96b3ba7bdd1-1744b2e87068a2d13220649ebfa72cc24e22e1dd6e3e4709ee70f96b3ba7bdd1-1\"",
+        "vary": "Host, Range, Accept"
+      },
+      "body": "\u003cp id=\"o\"\u003e[{{ 'rendered' | upcase }}]\u003c/p\u003e"
+    }
+  ],
+  "outcome": "pass",
+  "target": "live"
+}

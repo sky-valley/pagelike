@@ -1,0 +1,49 @@
+{
+  "case": "reacting.processor.custom-404",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (install the documented processor)",
+      "method": "PUT",
+      "path": "/_pl/reacting-processor-custom-404-127087/r/processors.html",
+      "status": 201,
+      "headers": {
+        "content-length": "577",
+        "content-type": "text/html",
+        "etag": "\"7a3ce1ed1f44733ff2681064e3a65ab61fa73c5ae8d8e9fb627acfec9c0008b5\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:48 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\n\u003cdiv itemscope itemtype=\"https://pagelove.org/Processor\"\u003e\n  \u003cmeta itemprop=\"resource\" content=\"/_pl/reacting-processor-custom-404-127087/d/*\"\u003e\n  \u003cmeta itemprop=\"method\" content=\"GET\"\u003e\n  \u003cmeta itemprop=\"status\" content=\"404\"\u003e\n  \u003cdiv itemprop=\"action\" itemscope itemtype=\"https://pagelove.org/Sessel\"\u003e\n    \u003cscript itemprop=\"source\" type=\"text/sessel\"\u003e\n      @schema Context url(\"https://pagelove.org/Context\");\n      Context.response.body = \"\u003ch1\u003ePage not found\u003c/h1\u003e\u003cp\u003eSorry, that page doesn't exist.\u003c/p\u003e\"\n    \u003c/script\u003e\n  \u003c/div\u003e\n\u003c/div\u003e\n\u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 2 (a missing page gets the custom body and keeps its status)",
+      "method": "GET",
+      "path": "/_pl/reacting-processor-custom-404-127087/d/missing.html",
+      "status": 404,
+      "headers": {
+        "content-length": "61",
+        "content-type": "text/html",
+        "vary": "Host, Range"
+      },
+      "body": "\u003ch1\u003ePage not found\u003c/h1\u003e\u003cp\u003eSorry, that page doesn't exist.\u003c/p\u003e"
+    },
+    {
+      "step": "step 3 (an existing page is untouched)",
+      "method": "GET",
+      "path": "/_pl/reacting-processor-custom-404-127087/d/doc.html",
+      "status": 200,
+      "headers": {
+        "accept-ranges": "selector, bytes",
+        "content-length": "61",
+        "content-type": "text/html",
+        "etag": "\"c157ad921b14f66de238811003ae2ff22fdeab3735266c6aecd6351e0027e1fe\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:48 GMT",
+        "vary": "Host, Range, Accept"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\u003ch1\u003eReal page\u003c/h1\u003e\u003c/body\u003e\u003c/html\u003e\n"
+    }
+  ],
+  "outcome": "pass",
+  "target": "local"
+}

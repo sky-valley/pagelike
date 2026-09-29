@@ -1,0 +1,65 @@
+{
+  "case": "comp.sx.case-flag-ascii-only",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1",
+      "method": "GET",
+      "path": "/_pl/comp-sx-case-flag-ascii-only-da524a/sx.html",
+      "status": 206,
+      "headers": {
+        "accept-ranges": "selector, bytes",
+        "content-length": "29",
+        "content-range": "selector #h2a:equals('HELLO WORLD', i)",
+        "content-type": "text/html",
+        "etag": "\"bd51b8606ca70590b1bf0dc7580c71d3d83b080dc9dab0a898e7809ee36c30aa-bd51b8606ca70590b1bf0dc7580c71d3d83b080dc9dab0a898e7809ee36c30aa-1\"",
+        "vary": "Host, Range, Accept"
+      },
+      "body": "\u003ch2 id=\"h2a\"\u003ehello world\u003c/h2\u003e"
+    },
+    {
+      "step": "step 2",
+      "method": "GET",
+      "path": "/_pl/comp-sx-case-flag-ascii-only-da524a/sx.html",
+      "status": 416,
+      "headers": {
+        "content-length": "382",
+        "content-type": "text/html",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\n  \u003chead\u003e\n    \u003ctitle\u003e416 Range Not Satisfiable - Error\u003c/title\u003e\n  \u003c/head\u003e\n  \u003cbody itemscope itemtype=\"http://pagelove.org/Error\"\u003e\n    \u003ch1 itemprop=\"name\"\u003eRange Not Satisfiable\u003c/h1\u003e\n    \u003cmeta itemprop=\"statusCode\" content=\"416\"\u003e\n    \u003cp itemprop=\"description\"\u003eHTML parsing error: No elements matched selector: #cafe-upper:equals('café', i)\u003c/p\u003e\n  \u003c/body\u003e\n\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 3",
+      "method": "GET",
+      "path": "/_pl/comp-sx-case-flag-ascii-only-da524a/sx.html",
+      "status": 206,
+      "headers": {
+        "accept-ranges": "selector, bytes",
+        "content-length": "28",
+        "content-range": "selector #cafe-upper:equals('CAFÉ')",
+        "content-type": "text/html",
+        "etag": "\"733783ba9769703dac313031c6c23f3f887b03128028f7fda97c97d363da42cd-733783ba9769703dac313031c6c23f3f887b03128028f7fda97c97d363da42cd-1\"",
+        "vary": "Host, Range, Accept"
+      },
+      "body": "\u003cp id=\"cafe-upper\"\u003eCAFÉ\u003c/p\u003e"
+    },
+    {
+      "step": "step 4",
+      "method": "GET",
+      "path": "/_pl/comp-sx-case-flag-ascii-only-da524a/sx.html",
+      "status": 206,
+      "headers": {
+        "accept-ranges": "selector, bytes",
+        "content-length": "28",
+        "content-range": "selector #cafe-upper:equals('cafÉ', i)",
+        "content-type": "text/html",
+        "etag": "\"733783ba9769703dac313031c6c23f3f887b03128028f7fda97c97d363da42cd-733783ba9769703dac313031c6c23f3f887b03128028f7fda97c97d363da42cd-1\"",
+        "vary": "Host, Range, Accept"
+      },
+      "body": "\u003cp id=\"cafe-upper\"\u003eCAFÉ\u003c/p\u003e"
+    }
+  ],
+  "outcome": "pass",
+  "target": "local"
+}

@@ -1,0 +1,44 @@
+{
+  "case": "modeling.shapes.webdav-write-checked",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (register declarations through the public plane (takes effect for the next request))",
+      "method": "PUT",
+      "path": "/_pl/modeling-shapes-webdav-write-checked-684136/shapes.html",
+      "status": 201,
+      "headers": {
+        "content-length": "410",
+        "content-type": "text/html",
+        "etag": "\"76e0889a7f94bbaeeb151aa1f68fdd3b3b72a578fbf54dbf140a76f4ce19766e\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:45 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\n  \u003cdiv hidden itemscope itemtype=\"https://pagelove.org/ShapeConstraint\"\u003e\n    \u003cmeta itemprop=\"resource\" content=\"/_pl/modeling-shapes-webdav-write-checked-684136/people/*\"\u003e\n    \u003ccode itemprop=\"selector\"\u003e[itemtype*=User]\u003c/code\u003e\n    \u003ccode itemprop=\"constraint\"\u003e:has([itemprop=\"username\"])\u003c/code\u003e\n    \u003ccode itemprop=\"constraint\"\u003e:has([itemprop=\"email\"])\u003c/code\u003e\n  \u003c/div\u003e\n\u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 2 (author PUT of a user missing email is refused)",
+      "method": "PUT",
+      "path": "/_pl/modeling-shapes-webdav-write-checked-684136/people/w.html",
+      "status": 422,
+      "headers": {
+        "content-length": "678",
+        "content-type": "text/html; charset=utf-8"
+      },
+      "body": "\u003carticle itemscope itemtype=\"https://pagelove.org/Error\"\u003e\u003cmeta itemprop=\"status\" content=\"422\"\u003e\u003cmeta itemprop=\"kind\" content=\"Internal\"\u003e\u003cdiv itemprop=\"type\" itemscope itemtype=\"https://dombase.pagelove.team/ns/error/Internal\"\u003e\u003c/div\u003e\u003cdiv itemprop=\"detail\"\u003e\u003cdiv itemscope itemtype=\"https://dombase.pagelove.team/ns/error/ShapeConstraint\"\u003e\u003cul itemprop=\"problems\"\u003e\u003cli itemprop=\"problem\"\u003e\u003cspan itemprop=\"message\"\u003eShape constraints violated\u003c/span\u003e\u003c/li\u003e\u003cli itemprop=\"problem\"\u003e\u003cspan itemprop=\"message\"\u003ehttps://pagelove.org/ShapeConstraint [itemtype*=User]: Element matching '[itemtype*=User]' does not satisfy constraint ':has([itemprop=\"email\"])'\u003c/span\u003e\u003c/li\u003e\u003c/ul\u003e\u003c/div\u003e\u003c/div\u003e\u003c/article\u003e"
+    },
+    {
+      "step": "step 3 (w.html was not stored)",
+      "method": "GET",
+      "path": "/_pl/modeling-shapes-webdav-write-checked-684136/people/w.html",
+      "status": 404,
+      "headers": {
+        "content-length": "213",
+        "content-type": "text/html; charset=utf-8"
+      },
+      "body": "\u003carticle itemscope itemtype=\"https://pagelove.org/Error/NotFound\"\u003e\u003cmeta itemprop=\"status\" content=\"404\"\u003e\u003cp itemprop=\"message\"\u003eNot found: /_pl/modeling-shapes-webdav-write-checked-684136/people/w.html\u003c/p\u003e\u003c/article\u003e"
+    }
+  ],
+  "outcome": "pass",
+  "target": "local"
+}

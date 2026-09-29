@@ -1,0 +1,34 @@
+{
+  "case": "modeling.shapes-closed.inner-root-checked-by-outer",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (register declarations through the public plane (takes effect for the next request))",
+      "method": "PUT",
+      "path": "/_pl/modeling-shapes-closed-inner-root-checke-8ae98c/shapes.html",
+      "status": 201,
+      "headers": {
+        "content-length": "746",
+        "content-type": "text/html",
+        "etag": "\"62e453ae254facdc615b9e89eff372c2399936906c42d606e832a43ba6acac4d\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:45 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\n  \u003cdiv hidden itemscope itemtype=\"https://pagelove.org/ShapeConstraint\"\u003e\n    \u003cmeta itemprop=\"resource\" content=\"/_pl/modeling-shapes-closed-inner-root-checke-8ae98c/notes/*\"\u003e\n    \u003ccode itemprop=\"selector\"\u003earticle[itemtype*=Note]\u003c/code\u003e\n    \u003ccode itemprop=\"permit\"\u003e[id]\u003c/code\u003e\n    \u003ccode itemprop=\"permit\"\u003e[itemprop=\"title\"]\u003c/code\u003e\n    \u003ccode itemprop=\"permit\"\u003e[itemprop=\"content\"]\u003c/code\u003e\n  \u003c/div\u003e\n  \u003cdiv hidden itemscope itemtype=\"https://pagelove.org/ShapeConstraint\"\u003e\n    \u003cmeta itemprop=\"resource\" content=\"/_pl/modeling-shapes-closed-inner-root-checke-8ae98c/notes/*\"\u003e\n    \u003ccode itemprop=\"selector\"\u003earticle[itemtype*=Note] \u0026gt; [itemprop='title']\u003c/code\u003e\n    \u003ccode itemprop=\"permit\"\u003eem\u003c/code\u003e\n  \u003c/div\u003e\n\u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 2 (title with an uncovered class rejected)",
+      "method": "PUT",
+      "path": "/_pl/modeling-shapes-closed-inner-root-checke-8ae98c/notes/a.html",
+      "status": 422,
+      "headers": {
+        "content-length": "734",
+        "content-type": "text/html",
+        "vary": "Host, Range"
+      },
+      "body": "\u003cdiv itemscope itemtype=\"https://dombase.pagelove.team/ns/error/ShapeConstraint\"\u003e\u003cul itemprop=\"problems\"\u003e\u003cli itemprop=\"problem\"\u003e\u003cspan itemprop=\"message\"\u003eShape constraints violated\u003c/span\u003e\u003c/li\u003e\u003cli itemprop=\"problem\"\u003e\u003cspan itemprop=\"message\"\u003ehttps://pagelove.org/ShapeConstraint article[itemtype*=Note]: Attribute \u0026lt;class\u0026gt; on \u0026lt;h2\u0026gt; inside 'article[itemtype*=Note]' is not permitted by any matching permit\u003c/span\u003e\u003c/li\u003e\u003cli itemprop=\"problem\"\u003e\u003cspan itemprop=\"message\"\u003ehttps://pagelove.org/ShapeConstraint article[itemtype*=Note] \u0026gt; [itemprop='title']: Attribute \u0026lt;class\u0026gt; on \u0026lt;h2\u0026gt; matched by 'article[itemtype*=Note] \u0026gt; [itemprop='title']' is not permitted by the selector or any matching permit\u003c/span\u003e\u003c/li\u003e\u003c/ul\u003e\u003c/div\u003e"
+    }
+  ],
+  "outcome": "pass",
+  "target": "local"
+}

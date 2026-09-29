@@ -1,0 +1,61 @@
+{
+  "case": "reacting.processor.status-class-4xx",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (install a 4xx processor)",
+      "method": "PUT",
+      "path": "/_pl/reacting-processor-status-class-4xx-50450a/r/processors.html",
+      "status": 201,
+      "headers": {
+        "content-length": "505",
+        "content-type": "text/html",
+        "etag": "\"5a580c70eaaf1b9f2187d827052192eb623d6e4231ee23bbe3119cbccd624cd4\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:48 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\n\u003cdiv hidden itemscope itemtype=\"https://pagelove.org/Processor\"\u003e\n  \u003cmeta itemprop=\"resource\" content=\"/_pl/reacting-processor-status-class-4xx-50450a/d/*\"\u003e\n  \u003cmeta itemprop=\"status\" content=\"4xx\"\u003e\n  \u003cdiv itemprop=\"action\" itemscope itemtype=\"https://pagelove.org/Sessel\"\u003e\n    \u003cscript itemprop=\"source\" type=\"text/sessel\"\u003e\n      @schema Context url(\"https://pagelove.org/Context\");\n      Context.response.body = \"client-error-page\"\n    \u003c/script\u003e\n  \u003c/div\u003e\n\u003c/div\u003e\n\u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 2 (404 is in the class)",
+      "method": "GET",
+      "path": "/_pl/reacting-processor-status-class-4xx-50450a/d/missing.html",
+      "status": 404,
+      "headers": {
+        "content-length": "17",
+        "content-type": "text/html",
+        "vary": "Host, Range"
+      },
+      "body": "client-error-page"
+    },
+    {
+      "step": "step 3 (416 is in the class)",
+      "method": "GET",
+      "path": "/_pl/reacting-processor-status-class-4xx-50450a/d/doc.html",
+      "status": 416,
+      "headers": {
+        "content-length": "17",
+        "content-type": "text/html",
+        "vary": "Host, Range"
+      },
+      "body": "client-error-page"
+    },
+    {
+      "step": "step 4 (200 is not)",
+      "method": "GET",
+      "path": "/_pl/reacting-processor-status-class-4xx-50450a/d/doc.html",
+      "status": 200,
+      "headers": {
+        "accept-ranges": "selector, bytes",
+        "content-length": "61",
+        "content-type": "text/html",
+        "etag": "\"c157ad921b14f66de238811003ae2ff22fdeab3735266c6aecd6351e0027e1fe\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:48 GMT",
+        "vary": "Host, Range, Accept"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\u003ch1\u003eReal page\u003c/h1\u003e\u003c/body\u003e\u003c/html\u003e\n"
+    }
+  ],
+  "outcome": "pass",
+  "target": "local"
+}

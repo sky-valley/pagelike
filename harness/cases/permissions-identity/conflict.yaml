@@ -1,0 +1,583 @@
+# Conflict resolution: specificity tiers, deny wins at equal tier, order independence
+# (spec R-PERM-11, 38..40). Actors are defined per case (see spec §19).
+cases:
+  - id: authz.conflict.deny-wins-at-equal-tier-wildcard
+    title: "* Allow and * Deny on the same request resolve to deny"
+    area: permissions-identity
+    feature: conflict resolution (equal tier)
+    evidence: documented
+    source: "docs reference/permissions/AuthorizationRule §Conflict resolution (2: 'Among equally-specific rules, deny wins')"
+    confidence: high
+    requires: []
+    live: true
+    site:
+      files:
+        - path: "${P}/doc.html"
+          body: '<!DOCTYPE html><html><body><h1>T</h1></body></html>'
+        - path: "${P}/rules.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div hidden itemscope itemtype="https://pagelove.org/AuthorizationRule">
+                <meta itemprop="actor" content="*"><meta itemprop="resource" content="${P}/doc.html">
+                <meta itemprop="method" content="PUT"><meta itemprop="action" content="Allow">
+              </div>
+              <div hidden itemscope itemtype="https://pagelove.org/AuthorizationRule">
+                <meta itemprop="actor" content="*"><meta itemprop="resource" content="${P}/*">
+                <meta itemprop="method" content="PUT"><meta itemprop="action" content="Deny">
+              </div>
+            </body></html>
+    steps:
+      - name: PUT refused
+        as: anonymous
+        request: {method: PUT, path: "${P}/doc.html", headers: {Range: "selector=h1", Content-Type: text/html}, body: '<h1>U</h1>'}
+        expect: {status: 401}
+
+  - id: authz.conflict.order-independent
+    title: The outcome does not depend on rule order within or across documents
+    area: permissions-identity
+    feature: conflict resolution (order independence)
+    evidence: documented
+    source: "docs reference/permissions/AuthorizationRule §Conflict resolution ('order-independent')"
+    confidence: high
+    requires: []
+    live: true
+    site:
+      files:
+        - path: "${P}/a.html"
+          body: '<!DOCTYPE html><html><body><h1>A</h1></body></html>'
+        - path: "${P}/b.html"
+          body: '<!DOCTYPE html><html><body><h1>B</h1></body></html>'
+        - path: "${P}/rules-1.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div hidden itemscope itemtype="https://pagelove.org/AuthorizationRule">
+                <meta itemprop="actor" content="*"><meta itemprop="resource" content="${P}/a.html">
+                <meta itemprop="method" content="PUT"><meta itemprop="action" content="deny">
+              </div>
+              <div hidden itemscope itemtype="https://pagelove.org/AuthorizationRule">
+                <meta itemprop="actor" content="*"><meta itemprop="resource" content="${P}/a.html">
+                <meta itemprop="method" content="PUT"><meta itemprop="action" content="allow">
+              </div>
+              <div hidden itemscope itemtype="https://pagelove.org/AuthorizationRule">
+                <meta itemprop="actor" content="*"><meta itemprop="resource" content="${P}/b.html">
+                <meta itemprop="method" content="PUT"><meta itemprop="action" content="allow">
+              </div>
+            </body></html>
+        - path: "${P}/rules-2.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div hidden itemscope itemtype="https://pagelove.org/AuthorizationRule">
+                <meta itemprop="actor" content="*"><meta itemprop="resource" content="${P}/b.html">
+                <meta itemprop="method" content="PUT"><meta itemprop="action" content="deny">
+              </div>
+            </body></html>
+    steps:
+      - name: deny listed before allow in one document
+        as: anonymous
+        request: {method: PUT, path: "${P}/a.html", headers: {Range: "selector=h1", Content-Type: text/html}, body: '<h1>X</h1>'}
+        expect: {status: 401}
+      - name: allow and deny in different documents
+        as: anonymous
+        request: {method: PUT, path: "${P}/b.html", headers: {Range: "selector=h1", Content-Type: text/html}, body: '<h1>X</h1>'}
+        expect: {status: 401}
+
+  - id: authz.conflict.users-allow-star-deny-anonymous
+    title: "* Deny + users Allow keeps anonymous readers out (members-only page)"
+    area: permissions-identity
+    feature: conflict resolution (group over wildcard)
+    evidence: documented
+    source: "docs learn/build-a-blog §Locking the data folder; demo-apps README.md@c4dd883:45-66 and demo-04-accountability/feed.html@c4dd883:79-89; scripts/check-live.py@c4dd883:58-61"
+    confidence: high
+    requires: []
+    live: true
+    site:
+      files:
+        - path: "${P}/feed.html"
+          body: '<!DOCTYPE html><html><body><h1>Members feed</h1></body></html>'
+        - path: "${P}/rules.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div hidden itemscope itemtype="https://pagelove.org/AuthorizationRule">
+                <meta itemprop="actor" content="*"><meta itemprop="resource" content="${P}/feed.html">
+                <meta itemprop="method" content="GET"><meta itemprop="action" content="Deny">
+              </div>
+              <div hidden itemscope itemtype="https://pagelove.org/AuthorizationRule">
+                <meta itemprop="actor" content="users"><meta itemprop="resource" content="${P}/feed.html">
+                <meta itemprop="method" content="GET"><meta itemprop="action" content="Allow">
+              </div>
+            </body></html>
+    steps:
+      - name: anonymous refused
+        as: anonymous
+        request: {method: GET, path: "${P}/feed.html"}
+        expect: {status: 401, body_not_contains: ['Members feed']}
+
+  - id: authz.conflict.users-allow-star-deny-signed-in
+    title: "* Deny + users Allow admits any signed-in principal"
+    area: permissions-identity
+    feature: conflict resolution (group over wildcard)
+    evidence: documented
+    source: "docs learn/build-a-blog §Locking the data folder; reference/permissions/AuthorizationRule §actor ('users' built-in group)"
+    confidence: high
+    requires: [multi-actor]
+    live: false
+    site:
+      files:
+        - path: "${P}/feed.html"
+          body: '<!DOCTYPE html><html><body><h1>Members feed</h1></body></html>'
+        - path: "${P}/rules.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div hidden itemscope itemtype="https://pagelove.org/AuthorizationRule">
+                <meta itemprop="actor" content="*"><meta itemprop="resource" content="${P}/feed.html">
+                <meta itemprop="method" content="GET"><meta itemprop="action" content="Deny">
+              </div>
+              <div hidden itemscope itemtype="https://pagelove.org/AuthorizationRule">
+                <meta itemprop="actor" content="users"><meta itemprop="resource" content="${P}/feed.html">
+                <meta itemprop="method" content="GET"><meta itemprop="action" content="Allow">
+              </div>
+            </body></html>
+    actors:
+      nomail: {sub: sub-nomail, email_verified: false, roles: []}
+    steps:
+      - name: a principal without any email or role is still a user
+        as: nomail
+        request: {method: GET, path: "${P}/feed.html"}
+        expect: {status: 200, body_contains: ['Members feed']}
+
+  - id: authz.conflict.user-beats-wildcard-deny
+    title: A specific user Allow beats a blanket * Deny
+    area: permissions-identity
+    feature: conflict resolution (user over wildcard)
+    evidence: documented
+    source: "docs reference/permissions/AuthorizationRule §Conflict resolution (1: 'a specific allow alice beats a blanket deny *')"
+    confidence: high
+    requires: [multi-actor]
+    live: false
+    site:
+      files:
+        - path: "${P}/doc.html"
+          body: '<!DOCTYPE html><html><body><h1>T</h1></body></html>'
+        - path: "${P}/rules.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div hidden itemscope itemtype="https://pagelove.org/AuthorizationRule">
+                <meta itemprop="actor" content="*"><meta itemprop="resource" content="${P}/doc.html">
+                <meta itemprop="method" content="PUT"><meta itemprop="action" content="deny">
+              </div>
+              <div hidden itemscope itemtype="https://pagelove.org/AuthorizationRule">
+                <meta itemprop="actor" content="sub-alice"><meta itemprop="resource" content="${P}/doc.html">
+                <meta itemprop="method" content="PUT"><meta itemprop="action" content="allow">
+              </div>
+            </body></html>
+    actors:
+      alice: {sub: sub-alice, email: alice@example.com, email_verified: true, roles: []}
+      bob: {sub: sub-bob, email: bob@example.com, email_verified: true, roles: []}
+    steps:
+      - name: alice allowed
+        as: alice
+        request: {method: PUT, path: "${P}/doc.html", headers: {Range: "selector=h1", Content-Type: text/html}, body: '<h1>alice</h1>'}
+        expect: {status: 206}
+      - name: bob refused (authenticated, so 403)
+        as: bob
+        request: {method: PUT, path: "${P}/doc.html", headers: {Range: "selector=h1", Content-Type: text/html}, body: '<h1>bob</h1>'}
+        expect: {status: 403}
+      - name: anonymous refused (401)
+        as: anonymous
+        request: {method: PUT, path: "${P}/doc.html", headers: {Range: "selector=h1", Content-Type: text/html}, body: '<h1>anon</h1>'}
+        expect: {status: 401}
+
+  - id: authz.conflict.group-beats-wildcard
+    title: Allow-list pattern — * Deny plus editors Allow grants the group and no one else
+    area: permissions-identity
+    feature: conflict resolution (group over wildcard)
+    evidence: documented
+    source: "docs reference/permissions/AuthorizationRule §Groups and membership; reference/permissions/Group §How a group actor is matched; recipes/group-based-permissions"
+    confidence: high
+    requires: [multi-actor]
+    live: false
+    site:
+      files:
+        - path: "${P}/blog/post.html"
+          body: '<!DOCTYPE html><html><body><h1>Post</h1></body></html>'
+        - path: "${P}/groups.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div itemscope itemtype="https://pagelove.org/Group">
+                <meta itemprop="name" content="editors">
+                <meta itemprop="member" content="alice@example.com">
+              </div>
+            </body></html>
+        - path: "${P}/rules.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div hidden itemscope itemtype="https://pagelove.org/AuthorizationRule">
+                <meta itemprop="actor" content="*"><meta itemprop="resource" content="${P}/blog/*">
+                <meta itemprop="method" content="GET"><meta itemprop="action" content="Deny">
+              </div>
+              <div hidden itemscope itemtype="https://pagelove.org/AuthorizationRule">
+                <meta itemprop="actor" content="editors"><meta itemprop="resource" content="${P}/blog/*">
+                <meta itemprop="method" content="GET"><meta itemprop="action" content="Allow">
+              </div>
+            </body></html>
+    actors:
+      alice: {sub: sub-alice, email: alice@example.com, email_verified: true, roles: []}
+      bob: {sub: sub-bob, email: bob@example.com, email_verified: true, roles: []}
+    steps:
+      - name: member reads
+        as: alice
+        request: {method: GET, path: "${P}/blog/post.html"}
+        expect: {status: 200}
+      - name: non-member refused
+        as: bob
+        request: {method: GET, path: "${P}/blog/post.html"}
+        expect: {status: 403}
+      - name: anonymous refused
+        as: anonymous
+        request: {method: GET, path: "${P}/blog/post.html"}
+        expect: {status: 401}
+
+  - id: authz.conflict.equal-tier-group-deny-wins
+    title: allow editors + deny suspended for a member of both resolves to deny
+    area: permissions-identity
+    feature: conflict resolution (equal tier)
+    evidence: documented
+    source: "docs reference/permissions/AuthorizationRule §Conflict resolution (example with editors and suspended)"
+    confidence: high
+    requires: [multi-actor]
+    live: false
+    site:
+      files:
+        - path: "${P}/doc.html"
+          body: '<!DOCTYPE html><html><body><h1>T</h1></body></html>'
+        - path: "${P}/groups.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div itemscope itemtype="https://pagelove.org/Group">
+                <meta itemprop="name" content="editors">
+                <meta itemprop="member" content="alice@example.com">
+                <meta itemprop="member" content="bob@example.com">
+              </div>
+              <div itemscope itemtype="https://pagelove.org/Group">
+                <meta itemprop="name" content="suspended">
+                <meta itemprop="member" content="alice@example.com">
+              </div>
+            </body></html>
+        - path: "${P}/rules.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div hidden itemscope itemtype="https://pagelove.org/AuthorizationRule">
+                <meta itemprop="actor" content="editors"><meta itemprop="resource" content="${P}/doc.html">
+                <meta itemprop="method" content="PUT"><meta itemprop="action" content="allow">
+              </div>
+              <div hidden itemscope itemtype="https://pagelove.org/AuthorizationRule">
+                <meta itemprop="actor" content="suspended"><meta itemprop="resource" content="${P}/doc.html">
+                <meta itemprop="method" content="PUT"><meta itemprop="action" content="deny">
+              </div>
+            </body></html>
+    actors:
+      alice: {sub: sub-alice, email: alice@example.com, email_verified: true, roles: []}
+      bob: {sub: sub-bob, email: bob@example.com, email_verified: true, roles: []}
+    steps:
+      - name: member of both is refused
+        as: alice
+        request: {method: PUT, path: "${P}/doc.html", headers: {Range: "selector=h1", Content-Type: text/html}, body: '<h1>A</h1>'}
+        expect: {status: 403}
+      - name: member of editors only is allowed
+        as: bob
+        request: {method: PUT, path: "${P}/doc.html", headers: {Range: "selector=h1", Content-Type: text/html}, body: '<h1>B</h1>'}
+        expect: {status: 206}
+
+  - id: authz.conflict.user-beats-group-deny
+    title: An exact user-name Allow beats a group Deny the user belongs to
+    area: permissions-identity
+    feature: conflict resolution (user over group)
+    evidence: documented
+    source: "docs reference/permissions/AuthorizationRule §Conflict resolution (1: specific actor outranks a group or role that actor belongs to)"
+    confidence: high
+    requires: [multi-actor]
+    live: false
+    site:
+      files:
+        - path: "${P}/doc.html"
+          body: '<!DOCTYPE html><html><body><h1>T</h1></body></html>'
+        - path: "${P}/groups.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body><div itemscope itemtype="https://pagelove.org/Group">
+              <meta itemprop="name" content="editors"><meta itemprop="member" content="alice@example.com">
+            </div></body></html>
+        - path: "${P}/rules.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div hidden itemscope itemtype="https://pagelove.org/AuthorizationRule">
+                <meta itemprop="actor" content="editors"><meta itemprop="resource" content="${P}/doc.html">
+                <meta itemprop="method" content="PUT"><meta itemprop="action" content="deny">
+              </div>
+              <div hidden itemscope itemtype="https://pagelove.org/AuthorizationRule">
+                <meta itemprop="actor" content="sub-alice"><meta itemprop="resource" content="${P}/doc.html">
+                <meta itemprop="method" content="PUT"><meta itemprop="action" content="allow">
+              </div>
+            </body></html>
+    actors:
+      alice: {sub: sub-alice, email: alice@example.com, email_verified: true, roles: []}
+    steps:
+      - name: alice allowed
+        as: alice
+        request: {method: PUT, path: "${P}/doc.html", headers: {Range: "selector=h1", Content-Type: text/html}, body: '<h1>A</h1>'}
+        expect: {status: 206}
+
+  - id: authz.conflict.email-same-tier-as-group
+    title: A verified-email Allow and a group Deny are the same tier, so deny wins
+    area: permissions-identity
+    feature: conflict resolution (email tier)
+    evidence: documented
+    source: "docs reference/permissions/AuthorizationRule §actor ('An email address and a group name are matched at the same specificity tier')"
+    confidence: high
+    requires: [multi-actor]
+    live: false
+    site:
+      files:
+        - path: "${P}/doc.html"
+          body: '<!DOCTYPE html><html><body><h1>T</h1></body></html>'
+        - path: "${P}/groups.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body><div itemscope itemtype="https://pagelove.org/Group">
+              <meta itemprop="name" content="editors"><meta itemprop="member" content="alice@example.com">
+            </div></body></html>
+        - path: "${P}/rules.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div hidden itemscope itemtype="https://pagelove.org/AuthorizationRule">
+                <meta itemprop="actor" content="alice@example.com"><meta itemprop="resource" content="${P}/doc.html">
+                <meta itemprop="method" content="PUT"><meta itemprop="action" content="allow">
+              </div>
+              <div hidden itemscope itemtype="https://pagelove.org/AuthorizationRule">
+                <meta itemprop="actor" content="editors"><meta itemprop="resource" content="${P}/doc.html">
+                <meta itemprop="method" content="PUT"><meta itemprop="action" content="deny">
+              </div>
+            </body></html>
+    actors:
+      alice: {sub: sub-alice, email: alice@example.com, email_verified: true, roles: []}
+    steps:
+      - name: alice refused
+        as: alice
+        request: {method: PUT, path: "${P}/doc.html", headers: {Range: "selector=h1", Content-Type: text/html}, body: '<h1>A</h1>'}
+        expect: {status: 403}
+
+  - id: authz.conflict.user-name-beats-email
+    title: An exact user-name Allow beats a verified-email Deny for the same principal
+    area: permissions-identity
+    feature: conflict resolution (user over email)
+    evidence: documented
+    source: "docs reference/permissions/AuthorizationRule §actor (email tier is below an exact user name)"
+    confidence: high
+    requires: [multi-actor]
+    live: false
+    site:
+      files:
+        - path: "${P}/doc.html"
+          body: '<!DOCTYPE html><html><body><h1>T</h1></body></html>'
+        - path: "${P}/rules.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div hidden itemscope itemtype="https://pagelove.org/AuthorizationRule">
+                <meta itemprop="actor" content="alice@example.com"><meta itemprop="resource" content="${P}/doc.html">
+                <meta itemprop="method" content="PUT"><meta itemprop="action" content="deny">
+              </div>
+              <div hidden itemscope itemtype="https://pagelove.org/AuthorizationRule">
+                <meta itemprop="actor" content="sub-alice"><meta itemprop="resource" content="${P}/doc.html">
+                <meta itemprop="method" content="PUT"><meta itemprop="action" content="allow">
+              </div>
+            </body></html>
+    actors:
+      alice: {sub: sub-alice, email: alice@example.com, email_verified: true, roles: []}
+    steps:
+      - name: alice allowed
+        as: alice
+        request: {method: PUT, path: "${P}/doc.html", headers: {Range: "selector=h1", Content-Type: text/html}, body: '<h1>A</h1>'}
+        expect: {status: 206}
+
+  - id: authz.conflict.role-same-tier-as-group
+    title: An OIDC-role Allow and a Group-document Deny are the same tier
+    area: permissions-identity
+    feature: conflict resolution (role tier)
+    evidence: documented
+    source: "docs reference/permissions/Group §How a group actor is matched ('same specificity tier as a role or a verified email')"
+    confidence: high
+    requires: [multi-actor]
+    live: false
+    site:
+      files:
+        - path: "${P}/doc.html"
+          body: '<!DOCTYPE html><html><body><h1>T</h1></body></html>'
+        - path: "${P}/groups.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body><div itemscope itemtype="https://pagelove.org/Group">
+              <meta itemprop="name" content="blocked"><meta itemprop="member" content="dave@example.com">
+            </div></body></html>
+        - path: "${P}/rules.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div hidden itemscope itemtype="https://pagelove.org/AuthorizationRule">
+                <meta itemprop="actor" content="staff"><meta itemprop="resource" content="${P}/doc.html">
+                <meta itemprop="method" content="PUT"><meta itemprop="action" content="allow">
+              </div>
+              <div hidden itemscope itemtype="https://pagelove.org/AuthorizationRule">
+                <meta itemprop="actor" content="blocked"><meta itemprop="resource" content="${P}/doc.html">
+                <meta itemprop="method" content="PUT"><meta itemprop="action" content="deny">
+              </div>
+            </body></html>
+    actors:
+      dave: {sub: sub-dave, email: dave@example.com, email_verified: true, roles: [staff]}
+      erin: {sub: sub-erin, email: erin@example.com, email_verified: true, roles: [staff]}
+    steps:
+      - name: staff member who is also blocked is refused
+        as: dave
+        request: {method: PUT, path: "${P}/doc.html", headers: {Range: "selector=h1", Content-Type: text/html}, body: '<h1>D</h1>'}
+        expect: {status: 403}
+      - name: staff member not blocked is allowed
+        as: erin
+        request: {method: PUT, path: "${P}/doc.html", headers: {Range: "selector=h1", Content-Type: text/html}, body: '<h1>E</h1>'}
+        expect: {status: 206}
+
+  - id: authz.conflict.selector-level-user-over-wildcard
+    title: Tiers also decide among selector-level rules on the same element
+    area: permissions-identity
+    feature: conflict resolution (selector granularity)
+    evidence: documented
+    source: "docs reference/permissions/AuthorizationRule §Conflict resolution ('The same resolution applies at both granularities')"
+    confidence: high
+    requires: [multi-actor]
+    live: false
+    site:
+      files:
+        - path: "${P}/doc.html"
+          body: '<!DOCTYPE html><html><body><p id="l" class="locked">x</p></body></html>'
+        - path: "${P}/rules.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div hidden itemscope itemtype="https://pagelove.org/AuthorizationRule">
+                <meta itemprop="actor" content="*"><meta itemprop="resource" content="${P}/doc.html">
+                <meta itemprop="method" content="PUT"><meta itemprop="selector" content=".locked">
+                <meta itemprop="action" content="deny">
+              </div>
+              <div hidden itemscope itemtype="https://pagelove.org/AuthorizationRule">
+                <meta itemprop="actor" content="sub-alice"><meta itemprop="resource" content="${P}/doc.html">
+                <meta itemprop="method" content="PUT"><meta itemprop="selector" content=".locked">
+                <meta itemprop="action" content="allow">
+              </div>
+            </body></html>
+    actors:
+      alice: {sub: sub-alice, email: alice@example.com, email_verified: true, roles: []}
+      bob: {sub: sub-bob, email: bob@example.com, email_verified: true, roles: []}
+    steps:
+      - name: alice allowed on the locked element
+        as: alice
+        request: {method: PUT, path: "${P}/doc.html", headers: {Range: "selector=#l", Content-Type: text/html}, body: '<p id="l" class="locked">a</p>'}
+        expect: {status: 206}
+      - name: bob refused
+        as: bob
+        request: {method: PUT, path: "${P}/doc.html", headers: {Range: "selector=#l", Content-Type: text/html}, body: '<p id="l" class="locked">b</p>'}
+        expect: {status: 403}
+
+  - id: authz.conflict.cross-granularity-tier
+    title: A user-tier selector Allow beats a wildcard resource-level Deny
+    area: permissions-identity
+    feature: conflict resolution (mixed granularity)
+    evidence: inferred
+    source: "docs reference/permissions/AuthorizationRule §Conflict resolution (one candidate set, highest tier wins); spec R-PERM-38"
+    confidence: medium
+    requires: [multi-actor]
+    live: false
+    site:
+      files:
+        - path: "${P}/doc.html"
+          body: '<!DOCTYPE html><html><body><h1>T</h1><p id="m" class="mine">x</p></body></html>'
+        - path: "${P}/rules.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div hidden itemscope itemtype="https://pagelove.org/AuthorizationRule">
+                <meta itemprop="actor" content="*"><meta itemprop="resource" content="${P}/doc.html">
+                <meta itemprop="method" content="PUT"><meta itemprop="action" content="deny">
+              </div>
+              <div hidden itemscope itemtype="https://pagelove.org/AuthorizationRule">
+                <meta itemprop="actor" content="sub-alice"><meta itemprop="resource" content="${P}/doc.html">
+                <meta itemprop="method" content="PUT"><meta itemprop="selector" content=".mine">
+                <meta itemprop="action" content="allow">
+              </div>
+            </body></html>
+    actors:
+      alice: {sub: sub-alice, email: alice@example.com, email_verified: true, roles: []}
+    steps:
+      - name: alice may PUT her element
+        as: alice
+        request: {method: PUT, path: "${P}/doc.html", headers: {Range: "selector=#m", Content-Type: text/html}, body: '<p id="m" class="mine">y</p>'}
+        expect: {status: 206}
+      - name: alice may not PUT other elements
+        as: alice
+        request: {method: PUT, path: "${P}/doc.html", headers: {Range: "selector=h1", Content-Type: text/html}, body: '<h1>y</h1>'}
+        expect: {status: 403}
+
+  - id: authz.conflict.users-group-tier
+    title: users is a group-tier actor, so an equal-tier group Deny beats it
+    area: permissions-identity
+    feature: conflict resolution (users tier)
+    evidence: documented
+    source: "docs reference/permissions/AuthorizationRule §:username as an actor is deprecated ('users is a group name')"
+    confidence: high
+    requires: [multi-actor]
+    live: false
+    site:
+      files:
+        - path: "${P}/doc.html"
+          body: '<!DOCTYPE html><html><body><h1>T</h1></body></html>'
+        - path: "${P}/groups.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body><div itemscope itemtype="https://pagelove.org/Group">
+              <meta itemprop="name" content="readonly"><meta itemprop="member" content="alice@example.com">
+            </div></body></html>
+        - path: "${P}/rules.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div hidden itemscope itemtype="https://pagelove.org/AuthorizationRule">
+                <meta itemprop="actor" content="users"><meta itemprop="resource" content="${P}/doc.html">
+                <meta itemprop="method" content="PUT"><meta itemprop="action" content="allow">
+              </div>
+              <div hidden itemscope itemtype="https://pagelove.org/AuthorizationRule">
+                <meta itemprop="actor" content="readonly"><meta itemprop="resource" content="${P}/doc.html">
+                <meta itemprop="method" content="PUT"><meta itemprop="action" content="deny">
+              </div>
+            </body></html>
+    actors:
+      alice: {sub: sub-alice, email: alice@example.com, email_verified: true, roles: []}
+      bob: {sub: sub-bob, email: bob@example.com, email_verified: true, roles: []}
+    steps:
+      - name: member of readonly refused
+        as: alice
+        request: {method: PUT, path: "${P}/doc.html", headers: {Range: "selector=h1", Content-Type: text/html}, body: '<h1>A</h1>'}
+        expect: {status: 403}
+      - name: other user allowed
+        as: bob
+        request: {method: PUT, path: "${P}/doc.html", headers: {Range: "selector=h1", Content-Type: text/html}, body: '<h1>B</h1>'}
+        expect: {status: 206}

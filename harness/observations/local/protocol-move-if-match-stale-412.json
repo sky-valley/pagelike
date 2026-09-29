@@ -1,0 +1,66 @@
+{
+  "case": "protocol.move.if-match-stale-412",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (read document ETag)",
+      "method": "GET",
+      "path": "/_pl/protocol-move-if-match-stale-412-0cbb76/board.html",
+      "status": 200,
+      "headers": {
+        "accept-ranges": "selector, bytes",
+        "content-length": "331",
+        "content-type": "text/html",
+        "etag": "\"cc761173d18644decace0c4764f7abc75ef31f9fe18225d17db7ac9f51b828da\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:48 GMT",
+        "vary": "Host, Range, Accept"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\n\u003csection class=\"lane\" id=\"lane-todo\"\u003e\u003carticle class=\"card\" id=\"card-1\"\u003eOne\u003c/article\u003e\u003carticle class=\"card\" id=\"card-2\"\u003eTwo\u003c/article\u003e\u003carticle class=\"card\" id=\"card-3\"\u003eThree\u003c/article\u003e\u003c/section\u003e\n\u003csection class=\"lane\" id=\"lane-done\"\u003e\u003carticle class=\"card\" id=\"card-4\"\u003eFour\u003c/article\u003e\u003c/section\u003e\n\u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 2 (someone else edits the document)",
+      "method": "POST",
+      "path": "/_pl/protocol-move-if-match-stale-412-0cbb76/board.html",
+      "status": 206,
+      "headers": {
+        "content-length": "48",
+        "content-range": "selector #lane-done",
+        "content-type": "text/html",
+        "etag": "\"0add39b1831a4087be0a7e7b8eebf7719dcc92c03cb8d857922b6cf783376f36-0add39b1831a4087be0a7e7b8eebf7719dcc92c03cb8d857922b6cf783376f36-2\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:48 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003carticle class=\"card\" id=\"card-5\"\u003eFive\u003c/article\u003e"
+    },
+    {
+      "step": "step 3 (stale conditional move)",
+      "method": "MOVE",
+      "path": "/_pl/protocol-move-if-match-stale-412-0cbb76/board.html",
+      "status": 412,
+      "headers": {
+        "content-length": "172",
+        "content-type": "text/html",
+        "etag": "\"8fc199dfe88bd859db172be3b70f1dade97ee98fa1a150bcf0120692507a9343-8fc199dfe88bd859db172be3b70f1dade97ee98fa1a150bcf0120692507a9343-2\"",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\u003cdiv itemscope itemtype=\"http://pagelove.org/Error\"\u003e\u003cspan itemprop=\"message\"\u003ePrecondition Failed: ETag does not match\u003c/span\u003e\u003c/div\u003e\u003c/body\u003e\u003c/html\u003e"
+    },
+    {
+      "step": "step 4 (card 3 not moved)",
+      "method": "GET",
+      "path": "/_pl/protocol-move-if-match-stale-412-0cbb76/board.html",
+      "status": 206,
+      "headers": {
+        "accept-ranges": "selector, bytes",
+        "content-length": "190",
+        "content-range": "selector #lane-todo",
+        "content-type": "text/html",
+        "etag": "\"d90c29204f276cf47c317794655fce214e63b474a3c86245437cf3b7de13b11c-d90c29204f276cf47c317794655fce214e63b474a3c86245437cf3b7de13b11c-2\"",
+        "vary": "Host, Range, Accept"
+      },
+      "body": "\u003csection class=\"lane\" id=\"lane-todo\"\u003e\u003carticle class=\"card\" id=\"card-1\"\u003eOne\u003c/article\u003e\u003carticle class=\"card\" id=\"card-2\"\u003eTwo\u003c/article\u003e\u003carticle class=\"card\" id=\"card-3\"\u003eThree\u003c/article\u003e\u003c/section\u003e"
+    }
+  ],
+  "outcome": "pass",
+  "target": "local"
+}

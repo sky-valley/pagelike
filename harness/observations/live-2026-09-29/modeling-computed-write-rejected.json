@@ -1,0 +1,64 @@
+{
+  "case": "modeling.computed.write-rejected",
+  "failures": [
+    "step 3 (person carrying a display-name value rejected) PUT ${P}/b.html: status 201, want [400 409 422] (body: \u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\n  \u003cdiv itemscope itemtype=\"https://pagelike.test/_pl/modeling-computed-write-rejected-716058/Person\"\u003e\n    \u003cmeta itemprop=\"first-name\" content=\"Ada\"\u003e\n    \u003cmeta itemprop=\"last-name\" content=\"Lovelace\"\u003e\n    \u003cmeta i…)",
+    "step 4 (b.html was not stored) GET ${P}/b.html: status 200, want [404] (body: \u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\n  \u003cdiv itemscope itemtype=\"https://pagelike.test/_pl/modeling-computed-write-rejected-716058/Person\"\u003e\n    \u003cmeta itemprop=\"first-name\" content=\"Ada\"\u003e\n    \u003cmeta itemprop=\"last-name\" content=\"Lovelace\"\u003e\n    \u003cmeta i…)"
+  ],
+  "observations": [
+    {
+      "step": "step 1 (register declarations through the public plane (takes effect for the next request))",
+      "method": "PUT",
+      "path": "/_pl/modeling-computed-write-rejected-716058/schema.html",
+      "status": 201,
+      "headers": {
+        "content-type": "text/html",
+        "etag": "\"d8da2856eb980a75f215e8f46608e7a4514e13e9a8df4e9337f7d73749a5f2de\"",
+        "last-modified": "Tue, 29 Sep 2026 00:47:43 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\n  \u003cdiv hidden itemscope itemtype=\"https://pagelove.org/Schema\"\u003e\n    \u003cmeta itemprop=\"type\" content=\"https://pagelike.test/_pl/modeling-computed-write-rejected-716058/Person\"\u003e\n    \u003cdiv itemprop=\"property\" itemscope itemtype=\"https://pagelove.org/Property\"\u003e\n      \u003cmeta itemprop=\"name\" content=\"first-name\"\u003e\n      \u003cmeta itemprop=\"type\" content=\"https://schema.host/Text\"\u003e\n      \u003cmeta itemprop=\"cardinality\" content=\"1..1\"\u003e\n    \u003c/div\u003e\n    \u003cdiv itemprop=\"property\" itemscope itemtype=\"https://pagelove.org/Property\"\u003e\n      \u003cmeta itemprop=\"name\" content=\"last-name\"\u003e\n      \u003cmeta itemprop=\"type\" content=\"https://schema.host/Text\"\u003e\n      \u003cmeta itemprop=\"cardinality\" content=\"1..1\"\u003e\n    \u003c/div\u003e\n    \u003cdiv itemprop=\"property\" itemscope itemtype=\"https://pagelove.org/Property\"\u003e\n      \u003cmeta itemprop=\"name\" content=\"display-name\"\u003e\n      \u003cdiv itemprop=\"@computed\" itemscope itemtype=\"https://pagelove.org/Sessel\"\u003e\n        \u003cscript itemprop=\"source\" type=\"text/sessel\"\u003eself.first-name + \" \" + self.last-name\u003c/script\u003e\n      \u003c/div\u003e\n    \u003c/div\u003e\n  \u003cmeta itemprop=\"@id\" content=\"https://schema.host/6clkek85\"\u003e\u003cmeta itemprop=\"path\" content=\"/Schemahttps://schema.host/6clkek85.html\"\u003e\u003c/div\u003e\n\n                \u003cdiv style=\"\n                            position: fixed;\n                            bottom: 0;\n                            left: 0;\n                            right: 0;\n                            padding: 8px;\n                            background: #f0f0f0;\n                            text-align: center;\n                            font-size: 12px;\n                            color: #666;\n                            z-index: 9999;\n                            opacity: 0.8;\n                            border-top: 1px solid #ddd;\n                        \"\u003e\n                    Powered by\n                    \u003ca href=\"https://pagelove.com/\" style=\"color: #4a90d9; text-decoration: none\"\u003ePagelove\u003c/a\u003e\n                \u003c/div\u003e\n            \u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 2 (person without display-name accepted)",
+      "method": "PUT",
+      "path": "/_pl/modeling-computed-write-rejected-716058/a.html",
+      "status": 201,
+      "headers": {
+        "content-type": "text/html",
+        "etag": "\"c053f784a05e0cf4e46eeda1484f7d091c0edc6bfe14e12853c56c8c438ef52c\"",
+        "last-modified": "Tue, 29 Sep 2026 00:47:44 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\n  \u003cdiv itemscope itemtype=\"https://pagelike.test/_pl/modeling-computed-write-rejected-716058/Person\"\u003e\n    \u003cmeta itemprop=\"first-name\" content=\"Ada\"\u003e\n    \u003cmeta itemprop=\"last-name\" content=\"Lovelace\"\u003e\n  \u003c/div\u003e\n\n                \u003cdiv style=\"\n                            position: fixed;\n                            bottom: 0;\n                            left: 0;\n                            right: 0;\n                            padding: 8px;\n                            background: #f0f0f0;\n                            text-align: center;\n                            font-size: 12px;\n                            color: #666;\n                            z-index: 9999;\n                            opacity: 0.8;\n                            border-top: 1px solid #ddd;\n                        \"\u003e\n                    Powered by\n                    \u003ca href=\"https://pagelove.com/\" style=\"color: #4a90d9; text-decoration: none\"\u003ePagelove\u003c/a\u003e\n                \u003c/div\u003e\n            \u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 3 (person carrying a display-name value rejected)",
+      "method": "PUT",
+      "path": "/_pl/modeling-computed-write-rejected-716058/b.html",
+      "status": 201,
+      "headers": {
+        "content-type": "text/html",
+        "etag": "\"27e7116f22302fedefe40a117ea8fed748ac66b9a530232f78a5fe8b79150575\"",
+        "last-modified": "Tue, 29 Sep 2026 00:47:44 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\n  \u003cdiv itemscope itemtype=\"https://pagelike.test/_pl/modeling-computed-write-rejected-716058/Person\"\u003e\n    \u003cmeta itemprop=\"first-name\" content=\"Ada\"\u003e\n    \u003cmeta itemprop=\"last-name\" content=\"Lovelace\"\u003e\n    \u003cmeta itemprop=\"display-name\" content=\"Countess\"\u003e\n  \u003c/div\u003e\n\n                \u003cdiv style=\"\n                            position: fixed;\n                            bottom: 0;\n                            left: 0;\n                            right: 0;\n                            padding: 8px;\n                            background: #f0f0f0;\n                            text-align: center;\n                            font-size: 12px;\n                            color: #666;\n                            z-index: 9999;\n                            opacity: 0.8;\n                            border-top: 1px solid #ddd;\n                        \"\u003e\n                    Powered by\n                    \u003ca href=\"https://pagelove.com/\" style=\"color: #4a90d9; text-decoration: none\"\u003ePagelove\u003c/a\u003e\n                \u003c/div\u003e\n            \u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 4 (b.html was not stored)",
+      "method": "GET",
+      "path": "/_pl/modeling-computed-write-rejected-716058/b.html",
+      "status": 200,
+      "headers": {
+        "accept-ranges": "bytes",
+        "content-length": "307",
+        "content-type": "text/html",
+        "etag": "\"27e7116f22302fedefe40a117ea8fed748ac66b9a530232f78a5fe8b79150575\"",
+        "last-modified": "Tue, 29 Sep 2026 00:47:44 GMT"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\n  \u003cdiv itemscope itemtype=\"https://pagelike.test/_pl/modeling-computed-write-rejected-716058/Person\"\u003e\n    \u003cmeta itemprop=\"first-name\" content=\"Ada\"\u003e\n    \u003cmeta itemprop=\"last-name\" content=\"Lovelace\"\u003e\n    \u003cmeta itemprop=\"display-name\" content=\"Countess\"\u003e\n  \u003c/div\u003e\n\u003c/body\u003e\u003c/html\u003e\n"
+    }
+  ],
+  "outcome": "fail",
+  "target": "live"
+}

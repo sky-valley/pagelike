@@ -1,0 +1,37 @@
+{
+  "case": "rw.up.wrong-header-stored-verbatim",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (PDF sent as a form body)",
+      "method": "PUT",
+      "path": "/_pl/rw-up-wrong-header-stored-verbatim-521a7b/cv.pdf",
+      "status": 201,
+      "headers": {
+        "content-length": "25",
+        "content-type": "application/x-www-form-urlencoded",
+        "etag": "\"831fb532af945a1753654723284f16983acd3e245d6b82d77e5ac9cd1c65efa3\"",
+        "last-modified": "Mon, 28 Sep 2026 22:29:20 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "%PDF-1.4 not really a pdf"
+    },
+    {
+      "step": "step 2 (served with the wrong type)",
+      "method": "GET",
+      "path": "/_pl/rw-up-wrong-header-stored-verbatim-521a7b/cv.pdf",
+      "status": 200,
+      "headers": {
+        "accept-ranges": "bytes",
+        "content-length": "25",
+        "content-type": "application/x-www-form-urlencoded",
+        "etag": "\"831fb532af945a1753654723284f16983acd3e245d6b82d77e5ac9cd1c65efa3\"",
+        "last-modified": "Mon, 28 Sep 2026 22:29:20 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "%PDF-1.4 not really a pdf"
+    }
+  ],
+  "outcome": "pass",
+  "target": "live"
+}

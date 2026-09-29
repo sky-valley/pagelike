@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head><meta charset="utf-8"><title>Poll · rules</title></head>
+<body>
+<h1>Rules for the shared poll</h1>
+<table><tbody>
+  <tr itemscope itemtype="https://pagelove.org/AuthorizationRule">
+    <td itemprop="actor">*</td>
+    <td><ul><li itemprop="resource">/</li><li itemprop="resource">/index.html</li><li itemprop="resource">/assets/*</li></ul></td>
+    <td><ul><li itemprop="method">GET</li><li itemprop="method">HEAD</li><li itemprop="method">OPTIONS</li></ul></td>
+    <td itemprop="selector"></td>
+    <td itemprop="action">Allow</td>
+  </tr>
+  <!-- Signed-in people cast a vote... -->
+  <tr itemscope itemtype="https://pagelove.org/AuthorizationRule">
+    <td itemprop="actor">users</td>
+    <td itemprop="resource">/index.html</td>
+    <td itemprop="method">POST</td>
+    <td itemprop="selector">#votes</td>
+    <td itemprop="action">Allow</td>
+  </tr>
+  <!-- ...and change or withdraw only their own vote. -->
+  <tr itemscope itemtype="https://pagelove.org/AuthorizationRule">
+    <td itemprop="actor">users</td>
+    <td itemprop="resource">/index.html</td>
+    <td><ul><li itemprop="method">PUT</li><li itemprop="method">DELETE</li></ul></td>
+    <td itemprop="selector">#votes &gt; tr[data-voter="${request.auth.username}"]</td>
+    <td itemprop="action">Allow</td>
+  </tr>
+</tbody></table>
+
+<!-- A vote is cast as yourself, for an existing option, at most once. -->
+<div itemscope itemtype="https://pagelove.org/Trigger">
+  <meta itemprop="resource" content="/index.html">
+  <meta itemprop="method" content="POST">
+  <meta itemprop="method" content="PUT">
+  <div itemprop="action" itemscope itemtype="https://pagelove.org/Sessel">
+    <script itemprop="source" type="text/sessel">
+      @schema Context url("https://pagelove.org/Context");
+      @schema HTTPResponse url("https://pagelove.org/HTTPResponse");
+      let me = Context.request.auth.username;
+      if (Context.request.headers["range"] == null) {
+        throw new HTTPResponse { status: 403, message: "Only the author can replace the poll." }
+      }
+      // A bare <tr> only parses inside a table (HTML fragment parsing rules).
+      let vote = Element.fromString("<table><tbody>" + Context.request.body + "</tbody></table>").${tr}.first();
+      if (vote == null) {
+        throw new HTTPResponse { status: 422, message: "A vote is one table row." }
+      }
+      if (vote.attr("data-voter") != me) {
+        throw new HTTPResponse { status: 403, message: "Votes are cast as yourself." }
+      }
+      let choice = vote.attr("data-choice");
+      if ((${#options li} from "/index.html").any(o => o.attr("data-choice") == choice) == false) {
+        throw new HTTPResponse { status: 422, message: "That is not one of the options." }
+      }
+      if (Context.request.method == "POST" && (${#votes tr} from "/index.html").any(v => v.attr("data-voter") == me)) {
+        throw new HTTPResponse { status: 409, message: "You have already voted; change your vote instead." }
+      }
+    </script>
+  </div>
+</div>
+
+<div itemscope itemtype="https://pagelove.org/ShapeConstraint">
+  <meta itemprop="resource" content="/index.html">
+  <meta itemprop="selector" content="#votes">
+  <!-- Closed shapes check the root too, so the container itself is permitted. -->
+  <code itemprop="permit">tbody[id]</code>
+  <code itemprop="permit">tr[id][itemscope][itemtype="https://example.org/Vote"][data-voter][data-choice]</code>
+  <code itemprop="permit">td[itemprop="choice"]</code>
+</div>
+<div itemscope itemtype="https://pagelove.org/ShapeConstraint">
+  <meta itemprop="resource" content="/index.html">
+  <meta itemprop="selector" content="#votes &gt; tr">
+  <code itemprop="permit">tr[id][itemscope][itemtype="https://example.org/Vote"][data-voter][data-choice]</code>
+  <code itemprop="permit">td[itemprop="choice"]</code>
+</div>
+</body>
+</html>

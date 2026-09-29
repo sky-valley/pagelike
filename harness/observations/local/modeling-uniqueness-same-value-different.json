@@ -1,0 +1,50 @@
+{
+  "case": "modeling.uniqueness.same-value-different-types",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (register declarations through the public plane (takes effect for the next request))",
+      "method": "PUT",
+      "path": "/_pl/modeling-uniqueness-same-value-different-ca217e/schema.html",
+      "status": 201,
+      "headers": {
+        "content-length": "1018",
+        "content-type": "text/html",
+        "etag": "\"4993f0853d9982b2dd096c224613d5bb0cce51e54558a0a5634c4dde02beadc4\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:45 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\n  \u003cdiv hidden itemscope itemtype=\"https://pagelove.org/Schema\"\u003e\n    \u003cmeta itemprop=\"type\" content=\"https://pagelike.test/_pl/modeling-uniqueness-same-value-different-ca217e/Project\"\u003e\n    \u003cli itemprop=\"property\" itemscope itemtype=\"https://pagelove.org/Property\"\u003e\n      \u003cmeta itemprop=\"name\" content=\"slug\"\u003e\n      \u003cmeta itemprop=\"type\" content=\"https://schema.host/Text\"\u003e\n      \u003cmeta itemprop=\"cardinality\" content=\"1..1\"\u003e\n      \u003cmeta itemprop=\"unique\" content=\"true\"\u003e\n    \u003c/li\u003e\n  \u003c/div\u003e\n  \u003cdiv hidden itemscope itemtype=\"https://pagelove.org/Schema\"\u003e\n    \u003cmeta itemprop=\"type\" content=\"https://pagelike.test/_pl/modeling-uniqueness-same-value-different-ca217e/Other\"\u003e\n    \u003cdiv itemprop=\"property\" itemscope itemtype=\"https://pagelove.org/Property\"\u003e\n      \u003cmeta itemprop=\"name\" content=\"slug\"\u003e\n      \u003cmeta itemprop=\"type\" content=\"https://schema.host/Text\"\u003e\n      \u003cmeta itemprop=\"cardinality\" content=\"1..1\"\u003e\n      \u003cmeta itemprop=\"unique\" content=\"true\"\u003e\n    \u003c/div\u003e\n  \u003c/div\u003e\n\u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 2 (project launch)",
+      "method": "PUT",
+      "path": "/_pl/modeling-uniqueness-same-value-different-ca217e/p.html",
+      "status": 201,
+      "headers": {
+        "content-length": "208",
+        "content-type": "text/html",
+        "etag": "\"e8b2a9fe80dfb761c9d9944f01b41bc2fb828bc90be2c8362de5cdfb916534f8\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:45 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\n  \u003cdiv itemscope itemtype=\"https://pagelike.test/_pl/modeling-uniqueness-same-value-different-ca217e/Project\"\u003e\n    \u003cmeta itemprop=\"slug\" content=\"launch\"\u003e\n  \u003c/div\u003e\n\u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 3 (other launch)",
+      "method": "PUT",
+      "path": "/_pl/modeling-uniqueness-same-value-different-ca217e/o.html",
+      "status": 201,
+      "headers": {
+        "content-length": "206",
+        "content-type": "text/html",
+        "etag": "\"4e8f4f128739c81a1c8d89492a5eb889fffb7c19530c335049af90e42fca395e\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:45 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\n  \u003cdiv itemscope itemtype=\"https://pagelike.test/_pl/modeling-uniqueness-same-value-different-ca217e/Other\"\u003e\n    \u003cmeta itemprop=\"slug\" content=\"launch\"\u003e\n  \u003c/div\u003e\n\u003c/body\u003e\u003c/html\u003e\n"
+    }
+  ],
+  "outcome": "pass",
+  "target": "local"
+}

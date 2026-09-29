@@ -1,0 +1,77 @@
+{
+  "case": "modeling.uniqueness.post-append-duplicate",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (register declarations through the public plane (takes effect for the next request))",
+      "method": "PUT",
+      "path": "/_pl/modeling-uniqueness-post-append-duplicat-d659bf/schema.html",
+      "status": 201,
+      "headers": {
+        "content-length": "788",
+        "content-type": "text/html",
+        "etag": "\"75911f83d2dc46a29cd9a76b3aba0f30111af1fc94ecf64657b64e58def06987\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:45 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\n  \u003cdiv hidden itemscope itemtype=\"https://pagelove.org/Schema\"\u003e\n    \u003cmeta itemprop=\"type\" content=\"https://pagelike.test/_pl/modeling-uniqueness-post-append-duplicat-d659bf/RSVP\"\u003e\n    \u003cdiv itemprop=\"property\" itemscope itemtype=\"https://pagelove.org/Property\"\u003e\n      \u003cmeta itemprop=\"name\" content=\"rsvpKey\"\u003e\n      \u003cmeta itemprop=\"type\" content=\"https://schema.host/Text\"\u003e\n      \u003cmeta itemprop=\"cardinality\" content=\"1..1\"\u003e\n      \u003cmeta itemprop=\"unique\" content=\"true\"\u003e\n    \u003c/div\u003e\n    \u003cdiv itemprop=\"property\" itemscope itemtype=\"https://pagelove.org/Property\"\u003e\n      \u003cmeta itemprop=\"name\" content=\"attendee\"\u003e\n      \u003cmeta itemprop=\"type\" content=\"https://schema.host/Text\"\u003e\n      \u003cmeta itemprop=\"cardinality\" content=\"1..1\"\u003e\n    \u003c/div\u003e\n  \u003c/div\u003e\n\u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 2 (seed the list)",
+      "method": "PUT",
+      "path": "/_pl/modeling-uniqueness-post-append-duplicat-d659bf/event.html",
+      "status": 201,
+      "headers": {
+        "content-length": "305",
+        "content-type": "text/html",
+        "etag": "\"b0fc2698c156446c84962d0758ba610a1bb6edac32fe1a8662fe5d1b3ff17aea\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:45 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\n  \u003cul id=\"rsvps\"\u003e\n    \u003cli itemscope itemtype=\"https://pagelike.test/_pl/modeling-uniqueness-post-append-duplicat-d659bf/RSVP\" id=\"rsvp-alice\"\u003e\n      \u003cmeta itemprop=\"rsvpKey\" content=\"ev:alice\"\u003e\n      \u003cmeta itemprop=\"attendee\" content=\"alice\"\u003e\n    \u003c/li\u003e\n  \u003c/ul\u003e\n\u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 3 (duplicate RSVP rejected)",
+      "method": "POST",
+      "path": "/_pl/modeling-uniqueness-post-append-duplicat-d659bf/event.html",
+      "status": 422,
+      "headers": {
+        "content-length": "463",
+        "content-type": "text/html",
+        "vary": "Host, Range"
+      },
+      "body": "\u003cdiv itemscope itemtype=\"https://dombase.pagelove.team/ns/error/ConstraintViolation\"\u003e\u003cul itemprop=\"problems\"\u003e\u003cli itemprop=\"problem\"\u003e\u003cspan itemprop=\"message\"\u003eConstraint violation: 1 violation(s):\n  - [uniqueness] [itemprop='rsvpKey'] (unique(rsvpKey)): Uniqueness violation: another item in '/_pl/modeling-uniqueness-post-append-duplicat-d659bf/event.html' already claims this value for property 'rsvpKey' (first claimed by item '0.2.0.1.1')\u003c/span\u003e\u003c/li\u003e\u003c/ul\u003e\u003c/div\u003e"
+    },
+    {
+      "step": "step 4 (different attendee accepted)",
+      "method": "POST",
+      "path": "/_pl/modeling-uniqueness-post-append-duplicat-d659bf/event.html",
+      "status": 206,
+      "headers": {
+        "content-length": "212",
+        "content-range": "selector #rsvps",
+        "content-type": "text/html",
+        "etag": "\"9287d62c4eb8e856843321941a91f2243d5cfec4f522d7647476cb8e544f1792-9287d62c4eb8e856843321941a91f2243d5cfec4f522d7647476cb8e544f1792-2\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:45 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003cli itemscope itemtype=\"https://pagelike.test/_pl/modeling-uniqueness-post-append-duplicat-d659bf/RSVP\" id=\"rsvp-ben\"\u003e\n  \u003cmeta itemprop=\"rsvpKey\" content=\"ev:ben\"\u003e\n  \u003cmeta itemprop=\"attendee\" content=\"ben\"\u003e\n\u003c/li\u003e"
+    },
+    {
+      "step": "step 5 (stored state of event.html (authoring plane, raw))",
+      "method": "GET",
+      "path": "/_pl/modeling-uniqueness-post-append-duplicat-d659bf/event.html",
+      "status": 200,
+      "headers": {
+        "accept-ranges": "bytes",
+        "content-length": "518",
+        "content-type": "text/html",
+        "etag": "\"fac94232733bec01e071173685b43d999d6a9a52c077d319ee01f0708257133d\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:45 GMT"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\n  \u003cul id=\"rsvps\"\u003e\n    \u003cli itemscope itemtype=\"https://pagelike.test/_pl/modeling-uniqueness-post-append-duplicat-d659bf/RSVP\" id=\"rsvp-alice\"\u003e\n      \u003cmeta itemprop=\"rsvpKey\" content=\"ev:alice\"\u003e\n      \u003cmeta itemprop=\"attendee\" content=\"alice\"\u003e\n    \u003c/li\u003e\n  \u003cli itemscope itemtype=\"https://pagelike.test/_pl/modeling-uniqueness-post-append-duplicat-d659bf/RSVP\" id=\"rsvp-ben\"\u003e\n  \u003cmeta itemprop=\"rsvpKey\" content=\"ev:ben\"\u003e\n  \u003cmeta itemprop=\"attendee\" content=\"ben\"\u003e\n\u003c/li\u003e\n\u003c/ul\u003e\n\u003c/body\u003e\u003c/html\u003e\n"
+    }
+  ],
+  "outcome": "pass",
+  "target": "local"
+}

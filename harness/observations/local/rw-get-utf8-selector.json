@@ -1,0 +1,38 @@
+{
+  "case": "rw.get.utf8-selector",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (raw UTF-8 in header)",
+      "method": "GET",
+      "path": "/_pl/rw-get-utf8-selector-21d579/utf8.html",
+      "status": 206,
+      "headers": {
+        "accept-ranges": "selector, bytes",
+        "content-length": "20",
+        "content-range": "selector p:contains('café')",
+        "content-type": "text/html",
+        "etag": "\"49d9aaf66e40d7f47580a21e890cb246699b7486fa203867975ef112c9576ca7-49d9aaf66e40d7f47580a21e890cb246699b7486fa203867975ef112c9576ca7-1\"",
+        "vary": "Host, Range, Accept"
+      },
+      "body": "\u003cp\u003ecafé au lait\u003c/p\u003e"
+    },
+    {
+      "step": "step 2 (CSS escape equivalent)",
+      "method": "GET",
+      "path": "/_pl/rw-get-utf8-selector-21d579/utf8.html",
+      "status": 206,
+      "headers": {
+        "accept-ranges": "selector, bytes",
+        "content-length": "20",
+        "content-range": "selector p:contains('caf\\E9 ')",
+        "content-type": "text/html",
+        "etag": "\"49d9aaf66e40d7f47580a21e890cb246699b7486fa203867975ef112c9576ca7-49d9aaf66e40d7f47580a21e890cb246699b7486fa203867975ef112c9576ca7-1\"",
+        "vary": "Host, Range, Accept"
+      },
+      "body": "\u003cp\u003ecafé au lait\u003c/p\u003e"
+    }
+  ],
+  "outcome": "pass",
+  "target": "local"
+}

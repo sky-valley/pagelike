@@ -1,0 +1,74 @@
+{
+  "case": "modeling.probe-0929.computed-value",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (register Person with a computed display-name)",
+      "method": "PUT",
+      "path": "/_pl/modeling-probe-0929-computed-value-efd35e/schema.html",
+      "status": 201,
+      "headers": {
+        "content-type": "text/html",
+        "etag": "\"47eb15d54d1f7167d041f6b6a8eea11d0c9109cec55ecc1db69d1f0cd0b54a79\"",
+        "last-modified": "Tue, 29 Sep 2026 02:08:26 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\n  \u003cdiv hidden itemscope itemtype=\"https://pagelove.org/Schema\"\u003e\n    \u003cmeta itemprop=\"type\" content=\"https://pagelike.test/_pl/modeling-probe-0929-computed-value-efd35e/Person\"\u003e\n    \u003cdiv itemprop=\"property\" itemscope itemtype=\"https://pagelove.org/Property\"\u003e\n      \u003cmeta itemprop=\"name\" content=\"first-name\"\u003e\n      \u003cmeta itemprop=\"type\" content=\"https://schema.host/Text\"\u003e\n      \u003cmeta itemprop=\"cardinality\" content=\"1..1\"\u003e\n    \u003c/div\u003e\n    \u003cdiv itemprop=\"property\" itemscope itemtype=\"https://pagelove.org/Property\"\u003e\n      \u003cmeta itemprop=\"name\" content=\"last-name\"\u003e\n      \u003cmeta itemprop=\"type\" content=\"https://schema.host/Text\"\u003e\n      \u003cmeta itemprop=\"cardinality\" content=\"1..1\"\u003e\n    \u003c/div\u003e\n    \u003cdiv itemprop=\"property\" itemscope itemtype=\"https://pagelove.org/Property\"\u003e\n      \u003cmeta itemprop=\"name\" content=\"display-name\"\u003e\n      \u003cmeta itemprop=\"type\" content=\"https://schema.host/Integer\"\u003e\n      \u003cdiv itemprop=\"@computed\" itemscope itemtype=\"https://pagelove.org/Sessel\"\u003e\n        \u003cscript itemprop=\"source\" type=\"text/sessel\"\u003eself.first-name + \" \" + self.last-name\u003c/script\u003e\n      \u003c/div\u003e\n    \u003c/div\u003e\n  \u003cmeta itemprop=\"@id\" content=\"https://schema.host/a1l4gaie\"\u003e\u003cmeta itemprop=\"path\" content=\"/Schemahttps://schema.host/a1l4gaie.html\"\u003e\u003c/div\u003e\n\n                \u003cdiv style=\"\n                            position: fixed;\n                            bottom: 0;\n                            left: 0;\n                            right: 0;\n                            padding: 8px;\n                            background: #f0f0f0;\n                            text-align: center;\n                            font-size: 12px;\n                            color: #666;\n                            z-index: 9999;\n                            opacity: 0.8;\n                            border-top: 1px solid #ddd;\n                        \"\u003e\n                    Powered by\n                    \u003ca href=\"https://pagelove.com/\" style=\"color: #4a90d9; text-decoration: none\"\u003ePagelove\u003c/a\u003e\n                \u003c/div\u003e\n            \u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 2 (a display-name value that is not an Integer is refused like any other property value)",
+      "method": "PUT",
+      "path": "/_pl/modeling-probe-0929-computed-value-efd35e/b.html",
+      "status": 422,
+      "headers": {
+        "content-length": "288",
+        "content-type": "text/html",
+        "vary": "Host, Range"
+      },
+      "body": "\u003cdiv itemscope itemtype=\"https://pagelove.org/SchemaViolation\"\u003e\u003cul itemprop=\"problems\"\u003e\u003cli itemprop=\"problem\"\u003e\u003cspan itemprop=\"message\"\u003e[https://pagelike.test/_pl/modeling-probe-0929-computed-value-efd35e/Person].display-name: Value \"Countess\" is not a valid integer\u003c/span\u003e\u003c/li\u003e\u003c/ul\u003e\u003c/div\u003e"
+    },
+    {
+      "step": "step 3 (a display-name value that is an Integer is accepted and stored)",
+      "method": "PUT",
+      "path": "/_pl/modeling-probe-0929-computed-value-efd35e/c.html",
+      "status": 201,
+      "headers": {
+        "content-type": "text/html",
+        "etag": "\"41bb294ad39a298d55f84da1dce787be3e7f6ad26840f0623934a6143073c2dc\"",
+        "last-modified": "Tue, 29 Sep 2026 02:08:26 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\n  \u003cdiv itemscope itemtype=\"https://pagelike.test/_pl/modeling-probe-0929-computed-value-efd35e/Person\"\u003e\n    \u003cmeta itemprop=\"first-name\" content=\"Ada\"\u003e\n    \u003cmeta itemprop=\"last-name\" content=\"Lovelace\"\u003e\n    \u003cmeta itemprop=\"display-name\" content=\"42\"\u003e\n  \u003c/div\u003e\n\n                \u003cdiv style=\"\n                            position: fixed;\n                            bottom: 0;\n                            left: 0;\n                            right: 0;\n                            padding: 8px;\n                            background: #f0f0f0;\n                            text-align: center;\n                            font-size: 12px;\n                            color: #666;\n                            z-index: 9999;\n                            opacity: 0.8;\n                            border-top: 1px solid #ddd;\n                        \"\u003e\n                    Powered by\n                    \u003ca href=\"https://pagelove.com/\" style=\"color: #4a90d9; text-decoration: none\"\u003ePagelove\u003c/a\u003e\n                \u003c/div\u003e\n            \u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 4 (a person without display-name)",
+      "method": "PUT",
+      "path": "/_pl/modeling-probe-0929-computed-value-efd35e/a.html",
+      "status": 201,
+      "headers": {
+        "content-type": "text/html",
+        "etag": "\"9d792d3f73a58fc726900b627d0bfc3d0490aa6de73eeba7e3720d0bbb2e201d\"",
+        "last-modified": "Tue, 29 Sep 2026 02:08:27 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\n  \u003cdiv itemscope itemtype=\"https://pagelike.test/_pl/modeling-probe-0929-computed-value-efd35e/Person\"\u003e\n    \u003cmeta itemprop=\"first-name\" content=\"Ada\"\u003e\n    \u003cmeta itemprop=\"last-name\" content=\"Lovelace\"\u003e\n  \u003c/div\u003e\n\n                \u003cdiv style=\"\n                            position: fixed;\n                            bottom: 0;\n                            left: 0;\n                            right: 0;\n                            padding: 8px;\n                            background: #f0f0f0;\n                            text-align: center;\n                            font-size: 12px;\n                            color: #666;\n                            z-index: 9999;\n                            opacity: 0.8;\n                            border-top: 1px solid #ddd;\n                        \"\u003e\n                    Powered by\n                    \u003ca href=\"https://pagelove.com/\" style=\"color: #4a90d9; text-decoration: none\"\u003ePagelove\u003c/a\u003e\n                \u003c/div\u003e\n            \u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 5 (JSON-LD of the person without a value)",
+      "method": "GET",
+      "path": "/_pl/modeling-probe-0929-computed-value-efd35e/a.html",
+      "status": 200,
+      "headers": {
+        "accept-ranges": "bytes",
+        "content-length": "159",
+        "content-type": "application/ld+json; charset=utf-8",
+        "etag": "\"7fd8bcfceba89895263bf473b4a445d8cfdbc736b5300d23b049cd0e223026ea\"",
+        "last-modified": "Tue, 29 Sep 2026 02:08:27 GMT",
+        "vary": "Host, Range, Accept"
+      },
+      "body": "{\n  \"@context\": \"https://pagelike.test/_pl/modeling-probe-0929-computed-value-efd35e/\",\n  \"@type\": \"Person\",\n  \"first-name\": \"Ada\",\n  \"last-name\": \"Lovelace\"\n}"
+    }
+  ],
+  "outcome": "pass",
+  "target": "live"
+}

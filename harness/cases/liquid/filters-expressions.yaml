@@ -1,0 +1,208 @@
+# Expression-variant array filters (*_exp).
+# Spec: docs/spec/liquid.md §14 (R-LIQ-160..166).
+defaults:
+  area: liquid
+  requires: [liquid]
+  evidence: documented
+  source: "docs languages/liquid/filters/expressions (snapshot 2026-09-28)"
+  confidence: high
+cases:
+  - id: liquid.filters-exp.where-reject-find
+    title: where_exp, reject_exp, find_exp, find_index_exp and has_exp with string predicates; map over find_exp's single result renders nothing
+    feature: expression filters
+    live: true
+    evidence: live-observed
+    source: "harness/observations/live-2026-09-29/liquid-filters-exp-where-reject-find.json; harness/observations/live-2026-09-29-reconcile-composing-liquid/run1-probes/liquid-filters-exp-probe-0929-map-single.json (live 2026-09-29); docs languages/liquid/filters/expressions"
+    notes: >-
+      R-LIQ-160, R-LIQ-161, R-LIQ-145 as reconciled. Predicates avoid numeric comparisons (those are
+      liquid.filters-exp.numeric-predicates). find_exp returns the item (found.name is Retro), but live
+      PageLove's map does not wrap a single item or hash in an array: `find_exp … | map: "name"` renders
+      nothing (docs/compat/decisions-2026-09-29/composing-liquid.md, adopt-live).
+    site:
+      settings: {default_get: allow}
+      files:
+        - path: "${P}/edata.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div itemscope itemtype="https://example.test${P}/Event"><meta itemprop="name" content="Launch"><meta itemprop="kind" content="public"></div>
+              <div itemscope itemtype="https://example.test${P}/Event"><meta itemprop="name" content="Retro"><meta itemprop="kind" content="internal"><meta itemprop="cancelled" content="yes"></div>
+              <div itemscope itemtype="https://example.test${P}/Event"><meta itemprop="name" content="Demo"><meta itemprop="kind" content="public"></div>
+            </body></html>
+        - path: "${P}/exp.html"
+          body: |
+            <!DOCTYPE html>
+            <html xmlns:p="https://pagelove.org/1.0" xmlns:r="https://pagelove.org/Binding/CSS"><body>
+              <div itemscope itemtype="urn:liquid:result" r:events="[itemtype='https://example.test${P}/Event']" p:template="text/liquid">{% assign events = events | sort: "name" %}
+                <span itemprop="where">{{ events | where_exp: "e", "e.kind == 'public'" | map: "name" | join: ", " }}</span>
+                <span itemprop="reject">{% assign upcoming = events | reject_exp: "e", "e.cancelled" %}{{ upcoming | map: "name" | join: ", " }}</span>
+                <span itemprop="find">{% assign found = events | find_exp: "e", "e.kind == 'internal'" %}{{ found.name }}</span>
+                <span itemprop="find_map">{{ events | find_exp: "e", "e.kind == 'internal'" | map: "name" }}</span>
+                <span itemprop="find_index">{{ events | find_index_exp: "e", "e.name == 'Launch'" }}</span>
+                <span itemprop="find_none">[{{ events | find_index_exp: "e", "e.name == 'Nope'" }}]</span>
+                <span itemprop="has">{% if events | has_exp: "e", "e.cancelled" %}some cancelled{% endif %}</span>
+                <span itemprop="outer">{% assign wanted = "Demo" %}{{ events | where_exp: "e", "e.name == wanted" | map: "name" | join: "," }}</span>
+                <span itemprop="logic">{{ events | where_exp: "e", "e.kind == 'public' and e.name contains 'L'" | map: "name" | join: "," }}</span>
+              </div>
+            </body></html>
+      rules: [{actor: "*", resource: "${P}/*", method: [GET, HEAD], action: Allow}]
+    steps:
+      - name: read
+        as: anonymous
+        request: {method: GET, path: "${P}/exp.html"}
+        expect:
+          status: 200
+          microdata: {where: "Demo, Launch", reject: "Demo, Launch", find: Retro, find_map: "", find_index: "1", find_none: "[]", has: some cancelled, outer: Demo, logic: Launch}
+
+  - id: liquid.filters-exp.group-by-exp-date
+    title: "group_by_exp groups by a computed key (orders by year via \"o.date | date: '%Y'\")"
+    feature: expression filters
+    live: true
+    notes: R-LIQ-161, R-LIQ-171 (filters inside the predicate string).
+    site:
+      settings: {default_get: allow}
+      files:
+        - path: "${P}/odata.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div itemscope itemtype="https://example.test${P}/Order"><meta itemprop="ref" content="A1"><time itemprop="date" datetime="2025-03-01">1 Mar</time></div>
+              <div itemscope itemtype="https://example.test${P}/Order"><meta itemprop="ref" content="A2"><time itemprop="date" datetime="2026-01-10">10 Jan</time></div>
+              <div itemscope itemtype="https://example.test${P}/Order"><meta itemprop="ref" content="A3"><time itemprop="date" datetime="2025-11-30T23:00:00Z">30 Nov</time></div>
+            </body></html>
+        - path: "${P}/byyear.html"
+          body: |
+            <!DOCTYPE html>
+            <html xmlns:p="https://pagelove.org/1.0" xmlns:r="https://pagelove.org/Binding/CSS"><body>
+              <p id="o" r:orders="[itemtype='https://example.test${P}/Order']" p:template="text/liquid">{% assign by_year = orders | group_by_exp: "o", "o.date | date: '%Y'" %}{% for group in by_year %}<b>{{ group.name }}</b>{% for order in group.items %}{{ order.ref }};{% endfor %}{% endfor %}</p>
+            </body></html>
+      rules: [{actor: "*", resource: "${P}/*", method: [GET, HEAD], action: Allow}]
+    steps:
+      - name: read
+        as: anonymous
+        request: {method: GET, path: "${P}/byyear.html", headers: {Range: "selector=#o"}}
+        expect:
+          status: 206
+          body_contains: ["<b>2025</b>A1;A3;<b>2026</b>A2;"]
+
+  - id: liquid.filters-exp.nested
+    title: A predicate may itself use an expression filter (nested where_exp / has_exp)
+    feature: expression filters
+    live: true
+    notes: R-LIQ-162. Uses nested microdata items for g.items.
+    site:
+      settings: {default_get: allow}
+      files:
+        - path: "${P}/gdata.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div itemscope itemtype="https://example.test${P}/Group"><meta itemprop="name" content="g1">
+                <div itemprop="items" itemscope><meta itemprop="active" content=""></div>
+                <div itemprop="items" itemscope><meta itemprop="active" content="yes"></div>
+              </div>
+              <div itemscope itemtype="https://example.test${P}/Group"><meta itemprop="name" content="g2">
+                <div itemprop="items" itemscope><meta itemprop="label" content="x"></div>
+                <div itemprop="items" itemscope><meta itemprop="label" content="y"></div>
+              </div>
+            </body></html>
+        - path: "${P}/nested.html"
+          body: |
+            <!DOCTYPE html>
+            <html xmlns:p="https://pagelove.org/1.0" xmlns:r="https://pagelove.org/Binding/CSS"><body>
+              <p id="o" r:groups="[itemtype='https://example.test${P}/Group']" p:template="text/liquid">{{ groups | where_exp: "g", "g.items | has_exp: 'i', 'i.active'" | map: "name" | join: "," }}</p>
+            </body></html>
+      rules: [{actor: "*", resource: "${P}/*", method: [GET, HEAD], action: Allow}]
+    steps:
+      - name: read
+        as: anonymous
+        request: {method: GET, path: "${P}/nested.html", headers: {Range: "selector=#o"}}
+        expect:
+          status: 206
+          body_contains: [">g1</p>"]
+
+  - id: liquid.filters-exp.self-reference-output-degrades
+    title: A self-referencing predicate is refused after 32 levels; in {{ }} it degrades to an inline Error item
+    feature: expression filter depth
+    live: true
+    notes: R-LIQ-163, R-LIQ-164, R-LIQ-200. The docs' example; the list must be non-empty for the predicate to run.
+    site:
+      settings: {default_get: allow}
+      files:
+        - path: "${P}/selfref.html"
+          body: |
+            <!DOCTYPE html>
+            <html xmlns:p="https://pagelove.org/1.0"><body>
+              <div p:template="text/liquid">{% assign users = "a,b" | split: "," %}{% assign pred = "users | where_exp: 'x', pred" %}<p id="bad">{{ users | where_exp: "u", pred }}</p><p id="after">still here</p></div>
+            </body></html>
+      rules: [{actor: "*", resource: "${P}/*", method: [GET, HEAD], action: Allow}]
+    steps:
+      - name: read
+        as: anonymous
+        request: {method: GET, path: "${P}/selfref.html"}
+        expect:
+          status: 200
+          body_matches: '<p id="bad">[^<]*<[a-z]+ [^>]*itemtype="https?://pagelove.org/(1\.0/)?Error"'
+          body_contains: ['<p id="after">still here</p>']
+
+  - id: liquid.filters-exp.self-reference-assign-fails
+    title: The same self-reference inside {% assign %} stops the render; the page does not appear
+    feature: expression filter depth
+    live: true
+    notes: "R-LIQ-164, R-LIQ-204, R-LIQ-206. Status 500 is a pagelike decision (P-LIQ-4); only 'not 2xx and no partial page' is documented."
+    site:
+      settings: {default_get: allow}
+      files:
+        - path: "${P}/selfref2.html"
+          body: |
+            <!DOCTYPE html>
+            <html xmlns:p="https://pagelove.org/1.0"><body>
+              <p id="before">BEFORE-MARKER</p>
+              <div p:template="text/liquid">{% assign users = "a,b" | split: "," %}{% assign pred = "users | where_exp: 'x', pred" %}{% assign bad = users | where_exp: "u", pred %}never</div>
+            </body></html>
+      rules: [{actor: "*", resource: "${P}/*", method: [GET, HEAD], action: Allow}]
+    steps:
+      - name: read
+        as: anonymous
+        request: {method: GET, path: "${P}/selfref2.html"}
+        expect:
+          status: [500]
+          body_not_contains: ["BEFORE-MARKER", "never"]
+
+  - id: liquid.filters-exp.numeric-predicates
+    title: "Docs predicates \"u.age >= 18\" and \"p.price < 10\" work over microdata (string) values"
+    feature: expression filters
+    confidence: low
+    live: true
+    notes: >-
+      R-LIQ-76 (numeric-string coercion), P-LIQ-5, docs/decisions/0002-liquid.md gap G1. find_exp's
+      result is read as a property: live PageLove's map does not wrap a single item (R-LIQ-145 as
+      reconciled, docs/compat/decisions-2026-09-29/composing-liquid.md). This case was not run live
+      itself.
+    site:
+      settings: {default_get: allow}
+      files:
+        - path: "${P}/ndata.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div itemscope itemtype="https://example.test${P}/User"><meta itemprop="name" content="Ann"><meta itemprop="age" content="34"></div>
+              <div itemscope itemtype="https://example.test${P}/User"><meta itemprop="name" content="Ben"><meta itemprop="age" content="9"></div>
+              <div itemscope itemtype="https://example.test${P}/User"><meta itemprop="name" content="Cat"><meta itemprop="age" content="18"></div>
+              <div itemscope itemtype="https://example.test${P}/Product"><meta itemprop="title" content="Mug"><meta itemprop="price" content="12.50"></div>
+              <div itemscope itemtype="https://example.test${P}/Product"><meta itemprop="title" content="Sticker"><meta itemprop="price" content="3"></div>
+            </body></html>
+        - path: "${P}/npred.html"
+          body: |
+            <!DOCTYPE html>
+            <html xmlns:p="https://pagelove.org/1.0" xmlns:r="https://pagelove.org/Binding/CSS"><body>
+              <p id="o" r:users="[itemtype='https://example.test${P}/User']" r:products="[itemtype='https://example.test${P}/Product']" p:template="text/liquid">{{ users | where_exp: "u", "u.age >= 18" | map: "name" | join: ", " }}|{% assign cheap = products | find_exp: "p", "p.price < 10" %}{{ cheap.title }}</p>
+            </body></html>
+      rules: [{actor: "*", resource: "${P}/*", method: [GET, HEAD], action: Allow}]
+    steps:
+      - name: read
+        as: anonymous
+        request: {method: GET, path: "${P}/npred.html", headers: {Range: "selector=#o"}}
+        expect:
+          status: 206
+          body_contains: [">Ann, Cat|Sticker</p>"]

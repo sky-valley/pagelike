@@ -1,0 +1,87 @@
+{
+  "case": "apps.ats.staff-row-echo",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (staff can open the admin (directory path))",
+      "method": "GET",
+      "path": "/_pl/apps-ats-staff-row-echo-29c4d5/admin/",
+      "status": 200,
+      "headers": {
+        "accept-ranges": "selector, bytes",
+        "content-length": "2117",
+        "content-type": "text/html",
+        "etag": "\"9c13a70b3383b2fa033d84c046a446f3f0d012ec60af22ac73acc80c7734cb31\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:41 GMT",
+        "vary": "Host, Range, Accept"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml lang=\"en\"\u003e\u003chead\u003e\u003cmeta charset=\"UTF-8\"\u003e\u003ctitle\u003eHiring · Example Co\u003c/title\u003e\u003c/head\u003e\n\u003cbody\u003e\n\u003csection id=\"roles\" class=\"view\"\u003e\n  \u003ctable\u003e\u003ctbody id=\"roles-body\"\u003e\n    \u003ctr id=\"R-001\" itemscope itemtype=\"https://pagelove.org/Role\"\u003e\n      \u003ctd class=\"id\" itemprop=\"id\"\u003eR-001\u003c/td\u003e\n      \u003ctd\u003e\u003cdiv class=\"name\" itemprop=\"title\"\u003eFounding Engineer\u003c/div\u003e\u003c/td\u003e\n      \u003ctd itemprop=\"department\"\u003eEngineering\u003c/td\u003e\n      \u003ctd itemprop=\"hiringManager\"\u003eAlex\u003c/td\u003e\n      \u003ctd itemprop=\"employmentType\"\u003eFull-time\u003c/td\u003e\n      \u003ctd itemprop=\"status\"\u003eOpen\u003c/td\u003e\n      \u003ctd hidden itemprop=\"location\"\u003eGlobal\u003c/td\u003e\n      \u003ctd hidden itemprop=\"slug\"\u003efounding-engineer\u003c/td\u003e\n      \u003ctd hidden itemprop=\"tldr\"\u003eJoin us as one of the first three engineers.\u003c/td\u003e\n    \u003c/tr\u003e\n    \u003ctr id=\"R-003\" itemscope itemtype=\"https://pagelove.org/Role\"\u003e\n      \u003ctd class=\"id\" itemprop=\"id\"\u003eR-003\u003c/td\u003e\n      \u003ctd\u003e\u003cdiv class=\"name\" itemprop=\"title\"\u003eProduct Designer\u003c/div\u003e\u003c/td\u003e\n      \u003ctd itemprop=\"department\"\u003eDesign\u003c/td\u003e\n      \u003ctd itemprop=\"hiringManager\"\u003eAlex\u003c/td\u003e\n      \u003ctd itemprop=\"employmentType\"\u003eFull-time\u003c/td\u003e\n      \u003ctd itemprop=\"status\"\u003eOn Hold\u003c/td\u003e\n      \u003ctd hidden itemprop=\"slug\"\u003eproduct-designer\u003c/td\u003e\n    \u003c/tr\u003e\n  \u003c/tbody\u003e\u003c/table\u003e\n\u003c/section\u003e\n\u003csection id=\"candidates\" class=\"view\"\u003e\n  \u003ctable id=\"candidateTable\"\u003e\u003ctbody id=\"candidates-body\"\u003e\n    \u003ctr id=\"C-a1001x\" itemscope itemtype=\"https://pagelove.org/Candidate\"\u003e\n      \u003ctd class=\"id\" itemprop=\"id\"\u003eC-a1001x\u003c/td\u003e\n      \u003ctd\u003e\u003cdiv class=\"name\" itemprop=\"name\"\u003eAda Lovelace\u003c/div\u003e\u003c/td\u003e\n      \u003ctd\u003e\u003ca href=\"#R-001\" class=\"role-link\"\u003e\u003cspan class=\"role-title\"\u003eFounding Engineer\u003c/span\u003e\u003cspan class=\"role-id\" itemprop=\"roleId\"\u003eR-001\u003c/span\u003e\u003c/a\u003e\u003c/td\u003e\n      \u003ctd\u003e\u003cspan class=\"stage\" itemprop=\"stage\" data-stage=\"Applied\"\u003eApplied\u003c/span\u003e\u003c/td\u003e\n      \u003ctd\u003e\u003ctime class=\"applied-date\" datetime=\"2026-08-01\"\u003e1 Aug 2026\u003c/time\u003e\u003c/td\u003e\n      \u003ctd hidden\u003e\u003ctime itemprop=\"firstContact\" datetime=\"2026-08-01\"\u003e2026-08-01\u003c/time\u003e\u003c/td\u003e\n      \u003ctd hidden itemprop=\"owner\"\u003eAlex\u003c/td\u003e\n    \u003c/tr\u003e\n  \u003c/tbody\u003e\u003c/table\u003e\n\u003c/section\u003e\n\u003csection id=\"interviews\" class=\"view\"\u003e\n  \u003ctable\u003e\u003ctbody id=\"interviews-body\"\u003e\u003c/tbody\u003e\u003c/table\u003e\n\u003c/section\u003e\n\u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 2 (move the candidate to Interview 1)",
+      "method": "PUT",
+      "path": "/_pl/apps-ats-staff-row-echo-29c4d5/admin/index.html",
+      "status": 206,
+      "headers": {
+        "content-length": "450",
+        "content-range": "selector #C-a1001x",
+        "content-type": "text/html",
+        "etag": "\"37c1f6bdd671ca7b9a37da92ba366798f525c2a2813dcadfb98f51f38b88abd2-37c1f6bdd671ca7b9a37da92ba366798f525c2a2813dcadfb98f51f38b88abd2-2\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:41 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003ctr id=\"C-a1001x\" itemscope itemtype=\"https://pagelove.org/Candidate\"\u003e\u003ctd class=\"id\" itemprop=\"id\"\u003eC-a1001x\u003c/td\u003e\u003ctd\u003e\u003cdiv class=\"name\" itemprop=\"name\"\u003eAda Lovelace\u003c/div\u003e\u003c/td\u003e\u003ctd\u003e\u003cspan class=\"role-id\" itemprop=\"roleId\"\u003eR-001\u003c/span\u003e\u003c/td\u003e\u003ctd\u003e\u003cspan class=\"stage\" itemprop=\"stage\" data-stage=\"Interview 1\"\u003eInterview 1\u003c/span\u003e\u003c/td\u003e\u003ctd hidden\u003e\u003ctime itemprop=\"firstContact\" datetime=\"2026-08-01\"\u003e2026-08-01\u003c/time\u003e\u003c/td\u003e\u003ctd hidden itemprop=\"owner\"\u003eAlex\u003c/td\u003e\u003c/tr\u003e"
+    },
+    {
+      "step": "step 3 (add an interview row)",
+      "method": "POST",
+      "path": "/_pl/apps-ats-staff-row-echo-29c4d5/admin/index.html",
+      "status": 206,
+      "headers": {
+        "content-length": "252",
+        "content-range": "selector #interviews-body",
+        "content-type": "text/html",
+        "etag": "\"f2a474b8cfa50e80ff8806724b061090719344b2b5cd367df93a73d105fbf53b-f2a474b8cfa50e80ff8806724b061090719344b2b5cd367df93a73d105fbf53b-3\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:41 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003ctr id=\"I-001\" itemscope itemtype=\"https://pagelove.org/Interview\"\u003e\u003ctd class=\"id\" itemprop=\"id\"\u003eI-001\u003c/td\u003e\u003ctd itemprop=\"candidateId\"\u003eC-a1001x\u003c/td\u003e\u003ctd itemprop=\"type\"\u003eScreen Call\u003c/td\u003e\u003ctd\u003e\u003ctime itemprop=\"date\" datetime=\"2026-10-01\"\u003e1 Oct\u003c/time\u003e\u003c/td\u003e\u003c/tr\u003e"
+    },
+    {
+      "step": "step 4 (an interview row missing its date fails the open shape)",
+      "method": "POST",
+      "path": "/_pl/apps-ats-staff-row-echo-29c4d5/admin/index.html",
+      "status": 422,
+      "headers": {
+        "content-length": "496",
+        "content-type": "text/html",
+        "vary": "Host, Range"
+      },
+      "body": "\u003cdiv itemscope itemtype=\"https://dombase.pagelove.team/ns/error/ShapeConstraint\"\u003e\u003cul itemprop=\"problems\"\u003e\u003cli itemprop=\"problem\"\u003e\u003cspan itemprop=\"message\"\u003eShape constraints violated\u003c/span\u003e\u003c/li\u003e\u003cli itemprop=\"problem\"\u003e\u003cspan itemprop=\"message\"\u003ehttps://pagelove.org/ShapeConstraint #interviews-body tr[itemtype=\"https://pagelove.org/Interview\"]: Element matching '#interviews-body tr[itemtype=\"https://pagelove.org/Interview\"]' does not satisfy constraint ':has([itemprop=date])'\u003c/span\u003e\u003c/li\u003e\u003c/ul\u003e\u003c/div\u003e"
+    },
+    {
+      "step": "step 5 (delete the interview)",
+      "method": "DELETE",
+      "path": "/_pl/apps-ats-staff-row-echo-29c4d5/admin/index.html",
+      "status": 204,
+      "headers": {
+        "etag": "\"58d1407700d30f8ec88721b8e940b611ac715e81fb26746b95db41aaffcd1497\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:41 GMT",
+        "vary": "Host, Range"
+      }
+    },
+    {
+      "step": "step 6 (a signed-in non-member is refused)",
+      "method": "GET",
+      "path": "/_pl/apps-ats-staff-row-echo-29c4d5/admin/index.html",
+      "status": 403,
+      "headers": {
+        "content-length": "463",
+        "content-type": "text/html; charset=utf-8"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\n\u003chead\u003e\n    \u003cmeta charset=\"UTF-8\"\u003e\n    \u003ctitle\u003e403 Forbidden\u003c/title\u003e\n\u003c/head\u003e\n\u003cbody itemscope itemtype=\"https://pagelove.org/1.0/Error\"\u003e\n    \u003ch1\u003e403 Forbidden\u003c/h1\u003e\n    \u003cp itemprop=\"message\"\u003eYou do not have permission to access this resource.\u003c/p\u003e\n    \u003cdl\u003e\n        \u003cdt\u003eResource\u003c/dt\u003e\n        \u003cdd itemprop=\"resource\"\u003e/_pl/apps-ats-staff-row-echo-29c4d5/admin/index.html\u003c/dd\u003e\n    \u003c/dl\u003e\n    \u003cp\u003e\u003ca href=\"/auth/logout\"\u003eLog out\u003c/a\u003e\u003c/p\u003e\n\u003c/body\u003e\n\u003c/html\u003e\n"
+    }
+  ],
+  "outcome": "pass",
+  "target": "local"
+}

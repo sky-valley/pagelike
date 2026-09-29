@@ -1,0 +1,62 @@
+{
+  "case": "reacting.th.when-gate-path",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (install a gated handler)",
+      "method": "PUT",
+      "path": "/_pl/reacting-th-when-gate-path-9b38d8/r/handlers.html",
+      "status": 201,
+      "headers": {
+        "content-length": "703",
+        "content-type": "text/html",
+        "etag": "\"7156a7e2f025dc0a543cb2c2a4d5ff256d921a4a1c28ff19f371cc56c3935f67\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:51 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\n\u003cdiv itemscope itemtype=\"https://pagelove.org/TransitionHandler\"\u003e\n  \u003cmeta itemprop=\"selector\" content=\"[itemtype='https://pagelike.test/_pl/reacting-th-when-gate-path-9b38d8/Order']\"\u003e\n  \u003cmeta itemprop=\"property\" content=\"status\"\u003e\n  \u003cmeta itemprop=\"becomes\" content=\"processing\"\u003e\n  \u003cdiv itemprop=\"when\" itemscope itemtype=\"https://pagelove.org/Sessel\"\u003e\n    \u003cscript itemprop=\"source\" type=\"text/sessel\"\u003eself.path == \"/_pl/reacting-th-when-gate-path-9b38d8/orders/a.html\"\u003c/script\u003e\n  \u003c/div\u003e\n  \u003cdiv itemprop=\"action\" itemscope itemtype=\"https://pagelove.org/HttpRequest\"\u003e\n    \u003cmeta itemprop=\"url\" content=\"http://127.0.0.1:53650/c-17e9eb24/gated\"\u003e\n  \u003c/div\u003e\n\u003c/div\u003e\n\u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 2 (an order in b.html becomes processing (gate false))",
+      "method": "PUT",
+      "path": "/_pl/reacting-th-when-gate-path-9b38d8/orders/b.html",
+      "status": 201,
+      "headers": {
+        "content-length": "184",
+        "content-type": "text/html",
+        "etag": "\"710ff71e719a1f7666f53a70f31deafc917bbfea9ec7108e1ac9fe3c1ebf0f95\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:51 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\u003chtml\u003e\u003cbody\u003e\u003cdiv itemscope itemtype=\"https://pagelike.test/_pl/reacting-th-when-gate-path-9b38d8/Order\"\u003e\u003cmeta itemprop=\"status\" content=\"processing\"\u003e\u003c/div\u003e\u003c/body\u003e\u003c/html\u003e"
+    },
+    {
+      "step": "step 4 (an order in a.html becomes processing (gate true))",
+      "method": "PUT",
+      "path": "/_pl/reacting-th-when-gate-path-9b38d8/orders/a.html",
+      "status": 201,
+      "headers": {
+        "content-length": "184",
+        "content-type": "text/html",
+        "etag": "\"710ff71e719a1f7666f53a70f31deafc917bbfea9ec7108e1ac9fe3c1ebf0f95\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:54 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\u003chtml\u003e\u003cbody\u003e\u003cdiv itemscope itemtype=\"https://pagelike.test/_pl/reacting-th-when-gate-path-9b38d8/Order\"\u003e\u003cmeta itemprop=\"status\" content=\"processing\"\u003e\u003c/div\u003e\u003c/body\u003e\u003c/html\u003e"
+    },
+    {
+      "step": "step 5",
+      "method": "POST",
+      "path": "${SINK}/gated",
+      "headers": {
+        "accept-encoding": "gzip",
+        "content-length": "528",
+        "content-type": "text/html",
+        "user-agent": "Go-http-client/1.1"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\n  \u003chead\u003e\u003ctitle\u003eTransition\u003c/title\u003e\u003c/head\u003e\n  \u003cbody itemscope itemtype=\"https://pagelove.org/Transition\"\u003e\n    \u003cmeta itemprop=\"path\" content=\"/_pl/reacting-th-when-gate-path-9b38d8/orders/a.html\"\u003e\n    \u003cmeta itemprop=\"selector\" content=\"[itemtype=\u0026quot;https://pagelike.test/_pl/reacting-th-when-gate-path-9b38d8/Order\u0026quot;]\"\u003e\n    \u003cdiv itemscope itemtype=\"https://pagelike.test/_pl/reacting-th-when-gate-path-9b38d8/Order\" itemprop=\"body\"\u003e\u003cmeta itemprop=\"status\" content=\"processing\"\u003e\u003c/div\u003e\n  \u003c/body\u003e\n\u003c/html\u003e\n"
+    }
+  ],
+  "outcome": "pass",
+  "target": "local"
+}

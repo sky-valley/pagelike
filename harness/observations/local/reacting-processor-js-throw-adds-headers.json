@@ -1,0 +1,46 @@
+{
+  "case": "reacting.processor.js-throw-adds-headers",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (install the CORS processor)",
+      "method": "PUT",
+      "path": "/_pl/reacting-processor-js-throw-adds-headers-521b89/r/cors.html",
+      "status": 201,
+      "headers": {
+        "content-length": "823",
+        "content-type": "text/html",
+        "etag": "\"15f2eafd5d5c944cdb8df8106a99ab1e41bbef470bff7ee61cd57bc753566f6f\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:49 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003chead\u003e\u003ctitle\u003eResponse processors\u003c/title\u003e\u003c/head\u003e\u003cbody\u003e\n\u003cdiv itemscope itemtype=\"https://pagelove.org/Processor\"\u003e\n  \u003cmeta itemprop=\"resource\" content=\"/_pl/reacting-processor-js-throw-adds-headers-521b89/lib/*\"\u003e\n  \u003cmeta itemprop=\"method\" content=\"GET\"\u003e\n  \u003cmeta itemprop=\"status\" content=\"2xx\"\u003e\n  \u003cdiv itemprop=\"action\" itemscope itemtype=\"https://pagelove.org/JavaScript/Module\"\u003e\n    \u003cscript type=\"module\" itemprop=\"source\"\u003e\n      export default function (ctx) {\n        throw {\n          schema_url: \"https://pagelove.org/HTTPResponse\",\n          status: ctx.response.status,\n          body: ctx.response.body,\n          headers: {\n            \"Access-Control-Allow-Origin\": \"*\",\n            \"Content-Type\": \"text/javascript\"\n          }\n        };\n      }\n    \u003c/script\u003e\n  \u003c/div\u003e\n\u003c/div\u003e\n\u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 2 (the module is served with the CORS header and its type)",
+      "method": "GET",
+      "path": "/_pl/reacting-processor-js-throw-adds-headers-521b89/lib/mod.mjs",
+      "status": 200,
+      "headers": {
+        "access-control-allow-origin": "*",
+        "content-length": "34",
+        "content-type": "text/javascript"
+      },
+      "body": "export const f = (a, b) =\u003e a \u0026\u0026 b;"
+    },
+    {
+      "step": "step 3 (a missing module keeps its 404 and gets no CORS header)",
+      "method": "GET",
+      "path": "/_pl/reacting-processor-js-throw-adds-headers-521b89/lib/missing.mjs",
+      "status": 404,
+      "headers": {
+        "content-length": "366",
+        "content-type": "text/html",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\n  \u003chead\u003e\n    \u003ctitle\u003e404 Not Found - Error\u003c/title\u003e\n  \u003c/head\u003e\n  \u003cbody itemscope itemtype=\"http://pagelove.org/Error\"\u003e\n    \u003ch1 itemprop=\"name\"\u003eNot Found\u003c/h1\u003e\n    \u003cmeta itemprop=\"statusCode\" content=\"404\"\u003e\n    \u003cp itemprop=\"description\"\u003eDocument not found: /_pl/reacting-processor-js-throw-adds-headers-521b89/lib/missing.mjs\u003c/p\u003e\n  \u003c/body\u003e\n\u003c/html\u003e\n"
+    }
+  ],
+  "outcome": "pass",
+  "target": "local"
+}

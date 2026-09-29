@@ -1,0 +1,45 @@
+{
+  "case": "reacting.gates.js-when",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (install a trigger with the documented JS gate)",
+      "method": "PUT",
+      "path": "/_pl/reacting-gates-js-when-818f48/r/triggers.html",
+      "status": 201,
+      "headers": {
+        "content-type": "text/html",
+        "etag": "\"278b1df981b57f4b0b7f905f3bd7f65d058271fad4101e08d599e73f6db0ae0d\"",
+        "last-modified": "Tue, 29 Sep 2026 00:49:47 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\n\u003cdiv hidden itemscope itemtype=\"https://pagelove.org/Trigger\"\u003e\n  \u003cmeta itemprop=\"resource\" content=\"/_pl/reacting-gates-js-when-818f48/d/*\"\u003e\n  \u003cdiv itemprop=\"when\" itemscope itemtype=\"https://pagelove.org/JavaScript/Module\"\u003e\n    \u003cscript type=\"module\" itemprop=\"source\"\u003e\n      export default function(ctx) {\n        return ctx.request.method === \"PUT\";\n      }\n    \u003c/script\u003e\n  \u003c/div\u003e\n  \u003cdiv itemprop=\"action\" itemscope itemtype=\"https://pagelove.org/Sessel\"\u003e\n    \u003cscript itemprop=\"source\" type=\"text/sessel\"\u003e\n      @schema HTTPResponse url(\"https://pagelove.org/HTTPResponse\");\n      throw new HTTPResponse { status: 409, message: \"js-gate-open\" }\n    \u003c/script\u003e\n  \u003c/div\u003e\n\u003c/div\u003e\n\n                \u003cdiv style=\"\n                            position: fixed;\n                            bottom: 0;\n                            left: 0;\n                            right: 0;\n                            padding: 8px;\n                            background: #f0f0f0;\n                            text-align: center;\n                            font-size: 12px;\n                            color: #666;\n                            z-index: 9999;\n                            opacity: 0.8;\n                            border-top: 1px solid #ddd;\n                        \"\u003e\n                    Powered by\n                    \u003ca href=\"https://pagelove.com/\" style=\"color: #4a90d9; text-decoration: none\"\u003ePagelove\u003c/a\u003e\n                \u003c/div\u003e\n            \u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 2 (PUT passes the JS gate)",
+      "method": "PUT",
+      "path": "/_pl/reacting-gates-js-when-818f48/d/x.html",
+      "status": 409,
+      "headers": {
+        "content-length": "287",
+        "content-type": "text/html",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\n  \u003chead\u003e\n    \u003ctitle\u003e409 Conflict - Error\u003c/title\u003e\n  \u003c/head\u003e\n  \u003cbody itemscope itemtype=\"http://pagelove.org/Error\"\u003e\n    \u003ch1 itemprop=\"name\"\u003eConflict\u003c/h1\u003e\n    \u003cmeta itemprop=\"statusCode\" content=\"409\"\u003e\n    \u003cp itemprop=\"description\"\u003ejs-gate-open\u003c/p\u003e\n  \u003c/body\u003e\n\u003c/html\u003e"
+    },
+    {
+      "step": "step 3 (GET does not)",
+      "method": "GET",
+      "path": "/_pl/reacting-gates-js-when-818f48/d/x.html",
+      "status": 404,
+      "headers": {
+        "content-length": "340",
+        "content-type": "text/html",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\n  \u003chead\u003e\n    \u003ctitle\u003e404 Not Found - Error\u003c/title\u003e\n  \u003c/head\u003e\n  \u003cbody itemscope itemtype=\"http://pagelove.org/Error\"\u003e\n    \u003ch1 itemprop=\"name\"\u003eNot Found\u003c/h1\u003e\n    \u003cmeta itemprop=\"statusCode\" content=\"404\"\u003e\n    \u003cp itemprop=\"description\"\u003eDocument not found: /_pl/reacting-gates-js-when-818f48/d/x.html\u003c/p\u003e\n  \u003c/body\u003e\n\u003c/html\u003e"
+    }
+  ],
+  "outcome": "pass",
+  "target": "live"
+}

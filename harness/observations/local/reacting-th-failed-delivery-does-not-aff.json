@@ -1,0 +1,78 @@
+{
+  "case": "reacting.th.failed-delivery-does-not-affect-write",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 2 (install a handler (Order.status becomes processing -\u003e POST ${SINK}/payments))",
+      "method": "PUT",
+      "path": "/_pl/reacting-th-failed-delivery-does-not-aff-bf0b28/r/handlers.html",
+      "status": 201,
+      "headers": {
+        "content-length": "556",
+        "content-type": "text/html",
+        "etag": "\"bde2eb1ab2b0ec8cd14d3dd16a3fbe3ef5bcad0910df3786cb1df1d57a2bb281\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:53 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\n\u003cdiv itemscope itemtype=\"https://pagelove.org/TransitionHandler\"\u003e\n  \u003cmeta itemprop=\"selector\" content=\"[itemtype='https://pagelike.test/_pl/reacting-th-failed-delivery-does-not-aff-bf0b28/Order']\"\u003e\n  \u003cmeta itemprop=\"property\" content=\"status\"\u003e\n  \u003cmeta itemprop=\"becomes\" content=\"processing\"\u003e\n  \u003cdiv itemprop=\"action\" itemscope itemtype=\"https://pagelove.org/HttpRequest\"\u003e\n    \u003cmeta itemprop=\"url\" content=\"http://127.0.0.1:53676/c-0fae1213/payments\"\u003e\n    \u003cmeta itemprop=\"method\" content=\"POST\"\u003e\n  \u003c/div\u003e\n\u003c/div\u003e\n\u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 3 (seed order-1 at pending)",
+      "method": "PUT",
+      "path": "/_pl/reacting-th-failed-delivery-does-not-aff-bf0b28/orders/order-1.html",
+      "status": 201,
+      "headers": {
+        "content-length": "244",
+        "content-type": "text/html",
+        "etag": "\"0ad0314daa65be689d81409f0031681441eed7cebf9454b4887e525e124f467c\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:53 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\u003cdiv id=\"order1\" itemscope itemtype=\"https://pagelike.test/_pl/reacting-th-failed-delivery-does-not-aff-bf0b28/Order\"\u003e\u003cmeta itemprop=\"status\" content=\"pending\"\u003e\u003cspan itemprop=\"total\"\u003e42.00\u003c/span\u003e\u003c/div\u003e\u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 4 (move order-1 to processing)",
+      "method": "PUT",
+      "path": "/_pl/reacting-th-failed-delivery-does-not-aff-bf0b28/orders/order-1.html",
+      "status": 206,
+      "headers": {
+        "content-length": "204",
+        "content-range": "selector #order1",
+        "content-type": "text/html",
+        "etag": "\"96b836a6b993e3bae8a7c9d953bf1f67e5b55c6f38e7607a7a08aedc639a31bd-96b836a6b993e3bae8a7c9d953bf1f67e5b55c6f38e7607a7a08aedc639a31bd-2\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:53 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003cdiv id=\"order1\" itemscope itemtype=\"https://pagelike.test/_pl/reacting-th-failed-delivery-does-not-aff-bf0b28/Order\"\u003e\u003cmeta itemprop=\"status\" content=\"processing\"\u003e\u003cspan itemprop=\"total\"\u003e42.00\u003c/span\u003e\u003c/div\u003e"
+    },
+    {
+      "step": "step 5",
+      "method": "POST",
+      "path": "${SINK}/payments",
+      "headers": {
+        "accept-encoding": "gzip",
+        "content-length": "623",
+        "content-type": "text/html",
+        "user-agent": "Go-http-client/1.1"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\n  \u003chead\u003e\u003ctitle\u003eTransition\u003c/title\u003e\u003c/head\u003e\n  \u003cbody itemscope itemtype=\"https://pagelove.org/Transition\"\u003e\n    \u003cmeta itemprop=\"path\" content=\"/_pl/reacting-th-failed-delivery-does-not-aff-bf0b28/orders/order-1.html\"\u003e\n    \u003cmeta itemprop=\"selector\" content=\"[itemtype=\u0026quot;https://pagelike.test/_pl/reacting-th-failed-delivery-does-not-aff-bf0b28/Order\u0026quot;]\"\u003e\n    \u003cdiv id=\"order1\" itemscope itemtype=\"https://pagelike.test/_pl/reacting-th-failed-delivery-does-not-aff-bf0b28/Order\" itemprop=\"body\"\u003e\u003cmeta itemprop=\"status\" content=\"processing\"\u003e\u003cspan itemprop=\"total\"\u003e42.00\u003c/span\u003e\u003c/div\u003e\n  \u003c/body\u003e\n\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 6 (committed)",
+      "method": "GET",
+      "path": "/_pl/reacting-th-failed-delivery-does-not-aff-bf0b28/orders/order-1.html",
+      "status": 200,
+      "headers": {
+        "accept-ranges": "selector, bytes",
+        "content-length": "247",
+        "content-type": "text/html",
+        "etag": "\"862070cd49cbb1da6e517e2096454b437f6a789c17e88f896d5c0d6798c81d43\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:53 GMT",
+        "vary": "Host, Range, Accept"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\u003cdiv id=\"order1\" itemscope itemtype=\"https://pagelike.test/_pl/reacting-th-failed-delivery-does-not-aff-bf0b28/Order\"\u003e\u003cmeta itemprop=\"status\" content=\"processing\"\u003e\u003cspan itemprop=\"total\"\u003e42.00\u003c/span\u003e\u003c/div\u003e\u003c/body\u003e\u003c/html\u003e\n"
+    }
+  ],
+  "outcome": "pass",
+  "target": "local"
+}

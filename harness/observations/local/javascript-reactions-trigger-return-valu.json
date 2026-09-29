@@ -1,0 +1,47 @@
+{
+  "case": "javascript.reactions.trigger-return-value-discarded",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (register the trigger/processor (public plane))",
+      "method": "PUT",
+      "path": "/_pl/javascript-reactions-trigger-return-valu-4f3991/reactions.html",
+      "status": 201,
+      "headers": {
+        "content-length": "996",
+        "content-type": "text/html",
+        "etag": "\"429f91e5d8a6c831f00ab2c2f004425633c229b7c1363410beb5f8ce0836940d\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:43 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\n\u003cdiv itemscope itemtype=\"https://pagelove.org/Trigger\"\u003e\n\u003cmeta itemprop=\"resource\" content=\"/_pl/javascript-reactions-trigger-return-valu-4f3991/guarded/*\"\u003e\n\u003cmeta itemprop=\"method\" content=\"PUT\"\u003e\n\u003cdiv itemprop=\"action\" itemscope itemtype=\"https://pagelove.org/JavaScript/Module\"\u003e\n\u003cscript itemprop=\"source\" type=\"module\"\u003e\nexport default function() { return { schema_url: 'https://pagelove.org/HTTPResponse', status: 400, message: 'returned-not-thrown' }; }\n\u003c/script\u003e\n\u003c/div\u003e\n\u003c/div\u003e\n\u003cdiv itemscope itemtype=\"https://pagelove.org/Trigger\"\u003e\n\u003cmeta itemprop=\"resource\" content=\"/_pl/javascript-reactions-trigger-return-valu-4f3991/control/*\"\u003e\n\u003cmeta itemprop=\"method\" content=\"PUT\"\u003e\n\u003cdiv itemprop=\"action\" itemscope itemtype=\"https://pagelove.org/JavaScript/Module\"\u003e\n\u003cscript itemprop=\"source\" type=\"module\"\u003e\nexport default function() { throw { schema_url: 'https://pagelove.org/HTTPResponse', status: 418, message: 'control-thrown' }; }\n\u003c/script\u003e\n\u003c/div\u003e\n\u003c/div\u003e\n\u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 2 (control: a thrown response takes effect (triggers run))",
+      "method": "PUT",
+      "path": "/_pl/javascript-reactions-trigger-return-valu-4f3991/control/a.html",
+      "status": 418,
+      "headers": {
+        "content-length": "14",
+        "content-type": "text/html; charset=utf-8"
+      },
+      "body": "control-thrown"
+    },
+    {
+      "step": "step 3 (the returned object is ignored and the write proceeds)",
+      "method": "PUT",
+      "path": "/_pl/javascript-reactions-trigger-return-valu-4f3991/guarded/a.html",
+      "status": 201,
+      "headers": {
+        "content-length": "59",
+        "content-type": "text/html",
+        "etag": "\"fb173d342e15f4921871b67b1e9587b68572f7d967aad3b7571823cf8fbf5800\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:43 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\n\u003cp\u003econtent\u003c/p\u003e\n\u003c/body\u003e\u003c/html\u003e\n"
+    }
+  ],
+  "outcome": "pass",
+  "target": "local"
+}

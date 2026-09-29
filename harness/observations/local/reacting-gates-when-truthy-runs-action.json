@@ -1,0 +1,45 @@
+{
+  "case": "reacting.gates.when-truthy-runs-action",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (install a gated trigger (no method filter; the gate selects PUT))",
+      "method": "PUT",
+      "path": "/_pl/reacting-gates-when-truthy-runs-action-d2d272/r/triggers.html",
+      "status": 201,
+      "headers": {
+        "content-length": "735",
+        "content-type": "text/html",
+        "etag": "\"18fc5fcd4cf15df18d1a4d6f70ac6d67402dc029ecec789aba55419501c07dfc\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:48 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\n\u003cdiv hidden itemscope itemtype=\"https://pagelove.org/Trigger\"\u003e\n  \u003cmeta itemprop=\"resource\" content=\"/_pl/reacting-gates-when-truthy-runs-action-d2d272/d/*\"\u003e\n  \u003cdiv itemprop=\"when\" itemscope itemtype=\"https://pagelove.org/Sessel\"\u003e\n    \u003cscript itemprop=\"source\" type=\"text/sessel\"\u003e\n      @schema Context url(\"https://pagelove.org/Context\");\n      Context.request.method == \"PUT\"\n    \u003c/script\u003e\n  \u003c/div\u003e\n  \u003cdiv itemprop=\"action\" itemscope itemtype=\"https://pagelove.org/Sessel\"\u003e\n    \u003cscript itemprop=\"source\" type=\"text/sessel\"\u003e\n      @schema HTTPResponse url(\"https://pagelove.org/HTTPResponse\");\n      throw new HTTPResponse { status: 409, message: \"gate-open\" }\n    \u003c/script\u003e\n  \u003c/div\u003e\n\u003c/div\u003e\n\u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 2 (PUT passes the gate and the action throws)",
+      "method": "PUT",
+      "path": "/_pl/reacting-gates-when-truthy-runs-action-d2d272/d/x.html",
+      "status": 409,
+      "headers": {
+        "content-length": "9",
+        "content-type": "text/html; charset=utf-8"
+      },
+      "body": "gate-open"
+    },
+    {
+      "step": "step 3 (GET fails the gate, the trigger is skipped (404 from core))",
+      "method": "GET",
+      "path": "/_pl/reacting-gates-when-truthy-runs-action-d2d272/d/x.html",
+      "status": 404,
+      "headers": {
+        "content-length": "357",
+        "content-type": "text/html",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\n  \u003chead\u003e\n    \u003ctitle\u003e404 Not Found - Error\u003c/title\u003e\n  \u003c/head\u003e\n  \u003cbody itemscope itemtype=\"http://pagelove.org/Error\"\u003e\n    \u003ch1 itemprop=\"name\"\u003eNot Found\u003c/h1\u003e\n    \u003cmeta itemprop=\"statusCode\" content=\"404\"\u003e\n    \u003cp itemprop=\"description\"\u003eDocument not found: /_pl/reacting-gates-when-truthy-runs-action-d2d272/d/x.html\u003c/p\u003e\n  \u003c/body\u003e\n\u003c/html\u003e\n"
+    }
+  ],
+  "outcome": "pass",
+  "target": "local"
+}

@@ -1,0 +1,82 @@
+{
+  "case": "comp.tr.identity-preserved-tag-change-ok",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1",
+      "method": "GET",
+      "path": "/_pl/comp-tr-identity-preserved-tag-change-ok-0be620/cart.html",
+      "status": 200,
+      "headers": {
+        "accept-ranges": "selector, bytes",
+        "cache-control": "private",
+        "content-length": "85",
+        "content-type": "text/html",
+        "etag": "W/\"1333e763a93481c59ee8dcd60afeaab9346e98f89c7d7d481a7688da2e8af8a4\"",
+        "vary": "Host, Range, Accept"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\n\u003cbody\u003e\u003cul id=\"cart\"\u003e\u003cli\u003eDefault item\u003c/li\u003e\u003c/ul\u003e\u003c/body\u003e\n\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 2 (change the tag, keep the id)",
+      "method": "PUT",
+      "path": "/_pl/comp-tr-identity-preserved-tag-change-ok-0be620/cart.html",
+      "status": 206,
+      "headers": {
+        "cache-control": "private",
+        "content-length": "36",
+        "content-range": "selector #cart",
+        "content-type": "text/html",
+        "etag": "\"5514087f98e095df26914345c0c685d4bca7aaa85a07e350098ade3fc81757c8-5514087f98e095df26914345c0c685d4bca7aaa85a07e350098ade3fc81757c8-1\"",
+        "vary": "Host, Range"
+      },
+      "body": "\u003cdiv id=\"cart\"\u003e\u003cp\u003eDiv cart\u003c/p\u003e\u003c/div\u003e"
+    },
+    {
+      "step": "step 3",
+      "method": "GET",
+      "path": "/_pl/comp-tr-identity-preserved-tag-change-ok-0be620/cart.html",
+      "status": 200,
+      "headers": {
+        "accept-ranges": "selector, bytes",
+        "cache-control": "private",
+        "content-length": "81",
+        "content-type": "text/html",
+        "etag": "W/\"ffa75bdd5e4e8631fd08e4c95e0ebf5835c06c7ea237a75908ae957bd2e055aa\"",
+        "vary": "Host, Range, Accept"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\n\u003cbody\u003e\u003cdiv id=\"cart\"\u003e\u003cp\u003eDiv cart\u003c/p\u003e\u003c/div\u003e\u003c/body\u003e\n\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 4 (a second write still goes to the session (marker kept))",
+      "method": "PUT",
+      "path": "/_pl/comp-tr-identity-preserved-tag-change-ok-0be620/cart.html",
+      "status": 206,
+      "headers": {
+        "cache-control": "private",
+        "content-length": "33",
+        "content-range": "selector #cart",
+        "content-type": "text/html",
+        "etag": "\"f468d38951f84dcfa9373da960142daeef9154fe1f0ffb151a7e4511f5ba8d17-f468d38951f84dcfa9373da960142daeef9154fe1f0ffb151a7e4511f5ba8d17-1\"",
+        "vary": "Host, Range"
+      },
+      "body": "\u003cul id=\"cart\"\u003e\u003cli\u003eAgain\u003c/li\u003e\u003c/ul\u003e"
+    },
+    {
+      "step": "step 5",
+      "method": "GET",
+      "path": "/_pl/comp-tr-identity-preserved-tag-change-ok-0be620/cart.html",
+      "status": 200,
+      "headers": {
+        "accept-ranges": "bytes",
+        "content-length": "132",
+        "content-type": "text/html",
+        "etag": "\"d0acdedc1c5d90f5504476c7c07a2d3d85ebb3f2b11511c204b05a464b9d833d\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:42 GMT"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml xmlns:p=\"https://pagelove.org/1.0\"\u003e\n\u003cbody\u003e\u003cul id=\"cart\" p:transient\u003e\u003cli\u003eDefault item\u003c/li\u003e\u003c/ul\u003e\u003c/body\u003e\n\u003c/html\u003e\n"
+    }
+  ],
+  "outcome": "pass",
+  "target": "local"
+}

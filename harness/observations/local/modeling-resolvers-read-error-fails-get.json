@@ -1,0 +1,62 @@
+{
+  "case": "modeling.resolvers.read-error-fails-get",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (register declarations through the public plane (takes effect for the next request))",
+      "method": "PUT",
+      "path": "/_pl/modeling-resolvers-read-error-fails-get-9afb1f/schema.html",
+      "status": 201,
+      "headers": {
+        "content-length": "698",
+        "content-type": "text/html",
+        "etag": "\"6b9aa8ce8fe196c22632c58db5bf5db91f06df1c4bc132bac9a981e81dd6fbf0\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:44 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\n  \u003cdiv hidden itemscope itemtype=\"https://pagelove.org/Schema\"\u003e\n    \u003cmeta itemprop=\"type\" content=\"https://pagelike.test/_pl/modeling-resolvers-read-error-fails-get-9afb1f/Doc\"\u003e\n    \u003cdiv itemprop=\"property\" itemscope itemtype=\"https://pagelove.org/Property\"\u003e\n      \u003cmeta itemprop=\"name\" content=\"title\"\u003e\n      \u003cmeta itemprop=\"type\" content=\"https://schema.host/Text\"\u003e\n      \u003cmeta itemprop=\"cardinality\" content=\"1..1\"\u003e\n      \u003cdiv itemprop=\"@read\" itemscope itemtype=\"https://pagelove.org/JavaScript/Module\"\u003e\n        \u003cscript itemprop=\"source\" type=\"module\"\u003eexport default () =\u003e { throw new Error(\"read boom\"); };\u003c/script\u003e\n      \u003c/div\u003e\n    \u003c/div\u003e\n  \u003c/div\u003e\n\u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 2 (store)",
+      "method": "PUT",
+      "path": "/_pl/modeling-resolvers-read-error-fails-get-9afb1f/d.html",
+      "status": 201,
+      "headers": {
+        "content-length": "199",
+        "content-type": "text/html",
+        "etag": "\"79f3c0980c24167a4050d416afe30868f1716230eebeb8fd28320f4f24cdf7d4\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:44 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\n  \u003cdiv itemscope itemtype=\"https://pagelike.test/_pl/modeling-resolvers-read-error-fails-get-9afb1f/Doc\"\u003e\n    \u003cmeta itemprop=\"title\" content=\"t\"\u003e\n  \u003c/div\u003e\n\u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 3 (public GET fails)",
+      "method": "GET",
+      "path": "/_pl/modeling-resolvers-read-error-fails-get-9afb1f/d.html",
+      "status": 500,
+      "headers": {
+        "content-length": "656",
+        "content-type": "text/html; charset=utf-8",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\n  \u003chead\u003e\n    \u003ctitle\u003e500 Internal Server Error - Error\u003c/title\u003e\n  \u003c/head\u003e\n  \u003cbody\u003e\n    \u003carticle itemscope itemtype=\"https://pagelove.org/Error\"\u003e\n      \u003cmeta itemprop=\"status\" content=\"500\"\u003e\n      \u003cp itemprop=\"message\"\u003e@read failed: Error: read boom\u003c/p\u003e\n      \u003cdiv itemprop=\"failure\" itemscope itemtype=\"https://pagelove.org/BindingFailure\"\u003e\n        \u003cmeta itemprop=\"language\" content=\"https://pagelove.org/JavaScript/Module\"\u003e\n        \u003cmeta itemprop=\"variant\" content=\"threw\"\u003e\n        \u003cp itemprop=\"message\"\u003eError: read boom\u003c/p\u003e\n        \u003cpre itemprop=\"stack\"\u003e    at default (eval:1:39)\u003c/pre\u003e\n      \u003c/div\u003e\n    \u003c/article\u003e\n  \u003c/body\u003e\n\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 4 (stored state of d.html (authoring plane, raw))",
+      "method": "GET",
+      "path": "/_pl/modeling-resolvers-read-error-fails-get-9afb1f/d.html",
+      "status": 200,
+      "headers": {
+        "accept-ranges": "bytes",
+        "content-length": "199",
+        "content-type": "text/html",
+        "etag": "\"79f3c0980c24167a4050d416afe30868f1716230eebeb8fd28320f4f24cdf7d4\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:44 GMT"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\n  \u003cdiv itemscope itemtype=\"https://pagelike.test/_pl/modeling-resolvers-read-error-fails-get-9afb1f/Doc\"\u003e\n    \u003cmeta itemprop=\"title\" content=\"t\"\u003e\n  \u003c/div\u003e\n\u003c/body\u003e\u003c/html\u003e\n"
+    }
+  ],
+  "outcome": "pass",
+  "target": "local"
+}

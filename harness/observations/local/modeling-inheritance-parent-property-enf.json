@@ -1,0 +1,48 @@
+{
+  "case": "modeling.inheritance.parent-property-enforced-on-child",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (register declarations through the public plane (takes effect for the next request))",
+      "method": "PUT",
+      "path": "/_pl/modeling-inheritance-parent-property-enf-a49cea/schema.html",
+      "status": 201,
+      "headers": {
+        "content-length": "1101",
+        "content-type": "text/html",
+        "etag": "\"9cea4f7529521ef273da73a62170cb6cbd4d67a01aba0a0e4b6cb7e500881f36\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:44 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\n  \u003cdiv hidden itemscope itemtype=\"https://pagelove.org/Schema\"\u003e\n    \u003cmeta itemprop=\"type\" content=\"https://pagelike.test/_pl/modeling-inheritance-parent-property-enf-a49cea/Entity\"\u003e\n    \u003cdiv itemprop=\"property\" itemscope itemtype=\"https://pagelove.org/Property\"\u003e\n      \u003cmeta itemprop=\"name\" content=\"identifier\"\u003e\n      \u003cmeta itemprop=\"type\" content=\"https://schema.host/Text\"\u003e\n      \u003cmeta itemprop=\"cardinality\" content=\"1..1\"\u003e\n      \u003cmeta itemprop=\"unique\" content=\"true\"\u003e\n    \u003c/div\u003e\n  \u003c/div\u003e\n  \u003cdiv hidden itemscope itemtype=\"https://pagelove.org/Schema\"\u003e\n    \u003cmeta itemprop=\"type\" content=\"https://pagelike.test/_pl/modeling-inheritance-parent-property-enf-a49cea/Person\"\u003e\n    \u003cmeta itemprop=\"parent\" content=\"https://pagelike.test/_pl/modeling-inheritance-parent-property-enf-a49cea/Entity\"\u003e\n    \u003cdiv itemprop=\"property\" itemscope itemtype=\"https://pagelove.org/Property\"\u003e\n      \u003cmeta itemprop=\"name\" content=\"email\"\u003e\n      \u003cmeta itemprop=\"type\" content=\"https://schema.host/Text\"\u003e\n      \u003cmeta itemprop=\"cardinality\" content=\"1..1\"\u003e\n    \u003c/div\u003e\n  \u003c/div\u003e\n\u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 2 (Person without the inherited identifier is rejected)",
+      "method": "PUT",
+      "path": "/_pl/modeling-inheritance-parent-property-enf-a49cea/p1.html",
+      "status": 422,
+      "headers": {
+        "content-length": "882",
+        "content-type": "text/html; charset=utf-8",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\n  \u003chead\u003e\n    \u003ctitle\u003e422 Unprocessable Entity - Schema Violation\u003c/title\u003e\n  \u003c/head\u003e\n  \u003cbody itemscope itemtype=\"https://pagelove.org/SchemaViolation\"\u003e\n    \u003ch1 itemprop=\"name\"\u003eUnprocessable Entity\u003c/h1\u003e\n    \u003cmeta itemprop=\"statusCode\" content=\"422\"\u003e\n    \u003cp itemprop=\"description\"\u003eSchema validation failed\u003c/p\u003e\n    \u003cul\u003e\n      \u003cli itemprop=\"violations\" itemscope itemtype=\"https://pagelove.org/Violation\"\u003e\n        \u003cspan itemprop=\"check\"\u003ecardinality\u003c/span\u003e\n        \u003cspan itemprop=\"itemtype\"\u003ehttps://pagelike.test/_pl/modeling-inheritance-parent-property-enf-a49cea/Person\u003c/span\u003e\n        \u003cspan itemprop=\"property\"\u003eidentifier\u003c/span\u003e\n        \u003cspan itemprop=\"message\"\u003e[https://pagelike.test/_pl/modeling-inheritance-parent-property-enf-a49cea/Person].identifier: cardinality 1..1 violated: expected exactly 1 value, found 0\u003c/span\u003e\n      \u003c/li\u003e\n    \u003c/ul\u003e\n  \u003c/body\u003e\n\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 3 (Person with identifier and email is accepted)",
+      "method": "PUT",
+      "path": "/_pl/modeling-inheritance-parent-property-enf-a49cea/p2.html",
+      "status": 201,
+      "headers": {
+        "content-length": "264",
+        "content-type": "text/html",
+        "etag": "\"b6de4c35b6bda72343289ae4b93562d862f338cbe8276d2f6d83d25ec31b752c\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:44 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\n  \u003cdiv itemscope itemtype=\"https://pagelike.test/_pl/modeling-inheritance-parent-property-enf-a49cea/Person\"\u003e\n    \u003cmeta itemprop=\"identifier\" content=\"ada\"\u003e\n    \u003cmeta itemprop=\"email\" content=\"ada@example.com\"\u003e\n  \u003c/div\u003e\n\u003c/body\u003e\u003c/html\u003e\n"
+    }
+  ],
+  "outcome": "pass",
+  "target": "local"
+}

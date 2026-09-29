@@ -1,0 +1,50 @@
+{
+  "case": "modeling.resolvers.js-write-trim-lower",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (register declarations through the public plane (takes effect for the next request))",
+      "method": "PUT",
+      "path": "/_pl/modeling-resolvers-js-write-trim-lower-e0c0cd/schema.html",
+      "status": 201,
+      "headers": {
+        "content-length": "728",
+        "content-type": "text/html",
+        "etag": "\"0f3e0d8c0d19224b892e7fbcb60084b36519ee679a271400017f61eb43ae3aac\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:44 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\n  \u003cdiv hidden itemscope itemtype=\"https://pagelove.org/Schema\"\u003e\n    \u003cmeta itemprop=\"type\" content=\"https://pagelike.test/_pl/modeling-resolvers-js-write-trim-lower-e0c0cd/Account\"\u003e\n    \u003cdiv itemprop=\"property\" itemscope itemtype=\"https://pagelove.org/Property\"\u003e\n      \u003cmeta itemprop=\"name\" content=\"email\"\u003e\n      \u003cmeta itemprop=\"type\" content=\"https://schema.host/Text\"\u003e\n      \u003cmeta itemprop=\"cardinality\" content=\"1..1\"\u003e\n      \u003cdiv itemprop=\"@write\" itemscope itemtype=\"https://pagelove.org/JavaScript/Module\"\u003e\n        \u003cscript itemprop=\"source\" type=\"module\"\u003eexport default (val) =\u003e typeof val === 'string' ? val.trim().toLowerCase() : val;\u003c/script\u003e\n      \u003c/div\u003e\n    \u003c/div\u003e\n  \u003c/div\u003e\n\u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 2 (submit a messy email)",
+      "method": "PUT",
+      "path": "/_pl/modeling-resolvers-js-write-trim-lower-e0c0cd/a.html",
+      "status": 201,
+      "headers": {
+        "content-length": "218",
+        "content-type": "text/html",
+        "etag": "\"bb98f1a41d09561542c268ede70a271c2eadbaa4e42a45e91349c54057f257f4\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:44 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\n  \u003cdiv itemscope itemtype=\"https://pagelike.test/_pl/modeling-resolvers-js-write-trim-lower-e0c0cd/Account\"\u003e\n    \u003cmeta itemprop=\"email\" content=\"alice@example.com\"\u003e\n  \u003c/div\u003e\n\u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 3 (stored state of a.html (authoring plane, raw))",
+      "method": "GET",
+      "path": "/_pl/modeling-resolvers-js-write-trim-lower-e0c0cd/a.html",
+      "status": 200,
+      "headers": {
+        "accept-ranges": "bytes",
+        "content-length": "218",
+        "content-type": "text/html",
+        "etag": "\"bb98f1a41d09561542c268ede70a271c2eadbaa4e42a45e91349c54057f257f4\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:44 GMT"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\n  \u003cdiv itemscope itemtype=\"https://pagelike.test/_pl/modeling-resolvers-js-write-trim-lower-e0c0cd/Account\"\u003e\n    \u003cmeta itemprop=\"email\" content=\"alice@example.com\"\u003e\n  \u003c/div\u003e\n\u003c/body\u003e\u003c/html\u003e\n"
+    }
+  ],
+  "outcome": "pass",
+  "target": "local"
+}

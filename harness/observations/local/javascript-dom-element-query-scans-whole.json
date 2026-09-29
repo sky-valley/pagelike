@@ -1,0 +1,37 @@
+{
+  "case": "javascript.dom.element-query-scans-whole-document",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (PUT the page (public plane; registers inline declarations))",
+      "method": "PUT",
+      "path": "/_pl/javascript-dom-element-query-scans-whole-19ff96/probe.html",
+      "status": 201,
+      "headers": {
+        "content-length": "1328",
+        "content-type": "text/html",
+        "etag": "\"c2c281812c9aa3f423893365402c6cdf7d380134a2e898fed4c33d6b98b9d4db\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:43 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml xmlns:t=\"https://pagelike.test/_pl/javascript-dom-element-query-scans-whole-19ff96/Delementqueryscanswholedo\"\u003e\u003cbody\u003e\n\u003cmain\u003e\n\u003ct:probe\u003e\u003c/t:probe\u003e\n\u003c/main\u003e\n\u003cdiv hidden itemscope itemtype=\"https://pagelove.org/Schema\"\u003e\n\u003cmeta itemprop=\"type\" content=\"https://pagelike.test/_pl/javascript-dom-element-query-scans-whole-19ff96/Delementqueryscanswholedo\"\u003e\n\u003cul\u003e\n\u003cli itemprop=\"property\" itemscope itemtype=\"https://pagelove.org/Method\"\u003e\n\u003cmeta itemprop=\"name\" content=\"probe\"\u003e\n\u003cdiv itemprop=\"implementation\" itemscope itemtype=\"https://pagelove.org/JavaScript/Module\"\u003e\n\u003cscript itemprop=\"source\" type=\"module\"\u003e\nconst S = (...a) =\u003e a.map(String).join('|');\nconst H = (x) =\u003e String(x).replace(/[\u003c\u003e\"]/g, (c) =\u003e ({ '\u003c': '[', '\u003e': ']', '\"': \"'\" })[c]);\nconst tryName = (f) =\u003e { try { f(); return 'ok'; } catch (e) { return e.name + ':' + e.code; } };\nexport default function () {\nconst d = new DOMParser().parseFromString('\u003cul id=\"a\"\u003e\u003cli\u003e1\u003c/li\u003e\u003c/ul\u003e\u003cul id=\"b\"\u003e\u003cli\u003e2\u003c/li\u003e\u003cli\u003e3\u003c/li\u003e\u003c/ul\u003e', 'text/html');\nconst b = d.getElementById('b');\nreturn 'R:' + S(b.querySelectorAll('li').length, b.querySelector('li').textContent, b.getElementsByTagNameNS('*', 'li').length, b.children.length, b.getElementsByTagNameNS('*', 'ul').length, d.getElementsByTagNameNS('*', 'ul').length);\n}\n\u003c/script\u003e\n\u003c/div\u003e\n\u003c/li\u003e\n\u003c/ul\u003e\n\u003c/div\u003e\n\u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 2 (GET \u003cmain\u003e: the method result is inserted as text)",
+      "method": "GET",
+      "path": "/_pl/javascript-dom-element-query-scans-whole-19ff96/probe.html",
+      "status": 206,
+      "headers": {
+        "accept-ranges": "selector, bytes",
+        "content-length": "28",
+        "content-range": "selector main",
+        "content-type": "text/html",
+        "etag": "\"aeca6986de18d46f794cc5d00b39276bcd76e93327fc89615527c5cdfb2e9848-aeca6986de18d46f794cc5d00b39276bcd76e93327fc89615527c5cdfb2e9848-1\"",
+        "vary": "Host, Range, Accept"
+      },
+      "body": "\u003cmain\u003e\nR:3|1|2|2|0|2\n\u003c/main\u003e"
+    }
+  ],
+  "outcome": "pass",
+  "target": "local"
+}

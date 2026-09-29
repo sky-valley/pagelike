@@ -1,0 +1,108 @@
+{
+  "case": "protocol.serialize.probe-0929.public-writes",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (read seeded)",
+      "method": "GET",
+      "path": "/_pl/protocol-serialize-probe-0929-public-wri-d1407b/list.html",
+      "status": 200,
+      "headers": {
+        "accept-ranges": "selector, bytes",
+        "content-length": "101",
+        "content-type": "text/html",
+        "etag": "\"33fef13f4b41ff25d27b4bff7f569128c2e0df0bc027ed6ace173a2ca71d1616\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:48 GMT",
+        "vary": "Host, Range, Accept"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\n  \u003cul id=\"l\"\u003e\n    \u003cli\u003eone\u003c/li\u003e\n  \u003c/ul\u003e\n  \u003cp id=\"q\"\u003eq\u003c/p\u003e\n\u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 2 (post irregular fragment)",
+      "method": "POST",
+      "path": "/_pl/protocol-serialize-probe-0929-public-wri-d1407b/list.html",
+      "status": 206,
+      "headers": {
+        "content-length": "49",
+        "content-range": "selector #l",
+        "content-type": "text/html",
+        "etag": "\"389c80acb2e9d9c5987be564a0d8d3de0fd087e30c0a79a1ddd7513b45390426-389c80acb2e9d9c5987be564a0d8d3de0fd087e30c0a79a1ddd7513b45390426-2\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:48 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003cli class=\"a\" data-x=\"1\"\u003etwo\u003cinput disabled\u003e\u003c/li\u003e"
+    },
+    {
+      "step": "step 3 (read after post)",
+      "method": "GET",
+      "path": "/_pl/protocol-serialize-probe-0929-public-wri-d1407b/list.html",
+      "status": 200,
+      "headers": {
+        "accept-ranges": "selector, bytes",
+        "content-length": "150",
+        "content-type": "text/html",
+        "etag": "\"59d684eec93bade072370f761a5fcc5871599f55f5a160cc1badbc4605ac7b74\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:48 GMT",
+        "vary": "Host, Range, Accept"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\n  \u003cul id=\"l\"\u003e\n    \u003cli\u003eone\u003c/li\u003e\n  \u003cli class=\"a\" data-x=\"1\"\u003etwo\u003cinput disabled\u003e\u003c/li\u003e\u003c/ul\u003e\n  \u003cp id=\"q\"\u003eq\u003c/p\u003e\n\u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 4 (delete one item)",
+      "method": "DELETE",
+      "path": "/_pl/protocol-serialize-probe-0929-public-wri-d1407b/list.html",
+      "status": 204,
+      "headers": {
+        "etag": "\"59f7c905974cbb0d08dfd3e389263173409c1ba19b4b5375d06682ba7a539b3a\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:48 GMT",
+        "vary": "Host, Range"
+      }
+    },
+    {
+      "step": "step 5 (read after delete)",
+      "method": "GET",
+      "path": "/_pl/protocol-serialize-probe-0929-public-wri-d1407b/list.html",
+      "status": 200,
+      "headers": {
+        "accept-ranges": "selector, bytes",
+        "content-length": "138",
+        "content-type": "text/html",
+        "etag": "\"59f7c905974cbb0d08dfd3e389263173409c1ba19b4b5375d06682ba7a539b3a\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:48 GMT",
+        "vary": "Host, Range, Accept"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\n  \u003cul id=\"l\"\u003e\n    \n  \u003cli class=\"a\" data-x=\"1\"\u003etwo\u003cinput disabled\u003e\u003c/li\u003e\u003c/ul\u003e\n  \u003cp id=\"q\"\u003eq\u003c/p\u003e\n\u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 6 (whole-document public put)",
+      "method": "PUT",
+      "path": "/_pl/protocol-serialize-probe-0929-public-wri-d1407b/whole.html",
+      "status": 201,
+      "headers": {
+        "content-length": "94",
+        "content-type": "text/html",
+        "etag": "\"11ef5008b91a0242cab15bd4eec28f63c6de0639acf3b9f700d9177e04c399f8\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:48 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003chtml\u003e\u003cbody class=\"x\"\u003e\u003ch1 id=\"a\"\u003eHi\u003c/h1\u003e\u003cp\u003e{{ 1 | plus: 1 }}\u003cinput disabled\u003e\u003c/p\u003e\u003c/body\u003e\u003c/html\u003e"
+    },
+    {
+      "step": "step 7 (read whole)",
+      "method": "GET",
+      "path": "/_pl/protocol-serialize-probe-0929-public-wri-d1407b/whole.html",
+      "status": 200,
+      "headers": {
+        "accept-ranges": "selector, bytes",
+        "content-length": "94",
+        "content-type": "text/html",
+        "etag": "\"11ef5008b91a0242cab15bd4eec28f63c6de0639acf3b9f700d9177e04c399f8\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:48 GMT",
+        "vary": "Host, Range, Accept"
+      },
+      "body": "\u003chtml\u003e\u003cbody class=\"x\"\u003e\u003ch1 id=\"a\"\u003eHi\u003c/h1\u003e\u003cp\u003e{{ 1 | plus: 1 }}\u003cinput disabled\u003e\u003c/p\u003e\u003c/body\u003e\u003c/html\u003e"
+    }
+  ],
+  "outcome": "pass",
+  "target": "local"
+}

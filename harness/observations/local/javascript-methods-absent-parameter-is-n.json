@@ -1,0 +1,37 @@
+{
+  "case": "javascript.methods.absent-parameter-is-null",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (PUT the page (public plane; registers inline declarations))",
+      "method": "PUT",
+      "path": "/_pl/javascript-methods-absent-parameter-is-n-af6cf1/m.html",
+      "status": 201,
+      "headers": {
+        "content-length": "1076",
+        "content-type": "text/html",
+        "etag": "\"0291287635fef1cc3fbccca90959c11eac5bf4130b13ebd79fb54bd0d4800589\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:43 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml xmlns:t=\"https://pagelike.test/_pl/javascript-methods-absent-parameter-is-n-af6cf1/Absent\"\u003e\u003cbody\u003e\n\u003cmain\u003e\n\u003ct:pair first=\"A\"\u003e\u003c/t:pair\u003e\n\u003c/main\u003e\n\u003cdiv hidden itemscope itemtype=\"https://pagelove.org/Schema\"\u003e\n\u003cmeta itemprop=\"type\" content=\"https://pagelike.test/_pl/javascript-methods-absent-parameter-is-n-af6cf1/Absent\"\u003e\n\u003cul\u003e\n\u003cli itemprop=\"property\" itemscope itemtype=\"https://pagelove.org/Method\"\u003e\n\u003cmeta itemprop=\"name\" content=\"pair\"\u003e\n\u003cdiv itemprop=\"parameter\" itemscope itemtype=\"https://pagelove.org/Parameter\"\u003e\u003cmeta itemprop=\"name\" content=\"first\"\u003e\u003cmeta itemprop=\"type\" content=\"https://schema.host/Text\"\u003e\u003c/div\u003e\n\u003cdiv itemprop=\"parameter\" itemscope itemtype=\"https://pagelove.org/Parameter\"\u003e\u003cmeta itemprop=\"name\" content=\"second\"\u003e\u003cmeta itemprop=\"type\" content=\"https://schema.host/Text\"\u003e\u003c/div\u003e\n\u003cdiv itemprop=\"implementation\" itemscope itemtype=\"https://pagelove.org/JavaScript/Module\"\u003e\n\u003cscript itemprop=\"source\" type=\"module\"\u003e\nexport default function (p, q) { return 'ABS:' + p + '-' + (q === null); }\n\u003c/script\u003e\n\u003c/div\u003e\n\u003c/li\u003e\n\u003c/ul\u003e\n\u003c/div\u003e\n\u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 2 (GET the composed page)",
+      "method": "GET",
+      "path": "/_pl/javascript-methods-absent-parameter-is-n-af6cf1/m.html",
+      "status": 206,
+      "headers": {
+        "accept-ranges": "selector, bytes",
+        "content-length": "25",
+        "content-range": "selector main",
+        "content-type": "text/html",
+        "etag": "\"927bd530c77186dbc73eee9016b06147fa2a9249323cf23448ef5dbab2159bd2-927bd530c77186dbc73eee9016b06147fa2a9249323cf23448ef5dbab2159bd2-1\"",
+        "vary": "Host, Range, Accept"
+      },
+      "body": "\u003cmain\u003e\nABS:A-true\n\u003c/main\u003e"
+    }
+  ],
+  "outcome": "pass",
+  "target": "local"
+}

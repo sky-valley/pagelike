@@ -1,0 +1,36 @@
+{
+  "case": "rw.cn.representations-have-distinct-etags",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (HTML)",
+      "method": "GET",
+      "path": "/_pl/rw-cn-representations-have-distinct-etag-343bc9/two-reps.html",
+      "status": 200,
+      "headers": {
+        "content-type": "text/html",
+        "etag": "\"52dbf2d00357239d0248138b77aabc7484df7fd93615c51424310581782648bb\"",
+        "last-modified": "Mon, 28 Sep 2026 22:27:41 GMT",
+        "vary": "Host, Range, Accept"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\u003cdiv itemscope itemtype=\"http://schema.org/Person\"\u003e\u003cspan itemprop=\"name\"\u003eAlice\u003c/span\u003e\u003c/div\u003e\n                \u003cdiv style=\"\n                            position: fixed;\n                            bottom: 0;\n                            left: 0;\n                            right: 0;\n                            padding: 8px;\n                            background: #f0f0f0;\n                            text-align: center;\n                            font-size: 12px;\n                            color: #666;\n                            z-index: 9999;\n                            opacity: 0.8;\n                            border-top: 1px solid #ddd;\n                        \"\u003e\n                    Powered by\n                    \u003ca href=\"https://pagelove.com/\" style=\"color: #4a90d9; text-decoration: none\"\u003ePagelove\u003c/a\u003e\n                \u003c/div\u003e\n            \u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 2 (JSON-LD)",
+      "method": "GET",
+      "path": "/_pl/rw-cn-representations-have-distinct-etag-343bc9/two-reps.html",
+      "status": 200,
+      "headers": {
+        "accept-ranges": "bytes",
+        "content-length": "78",
+        "content-type": "application/ld+json; charset=utf-8",
+        "etag": "\"583b788732d129a603d110e33cb55dec3e262360bafcfdc17c96b048dc86bb23\"",
+        "last-modified": "Mon, 28 Sep 2026 22:27:41 GMT",
+        "vary": "Host, Range, Accept"
+      },
+      "body": "{\n  \"@context\": \"http://schema.org/\",\n  \"@type\": \"Person\",\n  \"name\": \"Alice\"\n}"
+    }
+  ],
+  "outcome": "pass",
+  "target": "live"
+}

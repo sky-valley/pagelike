@@ -1,0 +1,886 @@
+# Modeling: schema inheritance (parent chains and how inherited members combine).
+# Spec: docs/spec/modeling.md §2 (R-MOD-10..R-MOD-12).
+cases:
+  - id: modeling.inheritance.parent-property-enforced-on-child
+    title: "A child schema inherits the parent's properties (docs Entity/Person example)"
+    area: modeling
+    feature: inheritance
+    evidence: documented
+    source: "docs reference/modeling-data/Schema §Inheritance (snapshot 2026-09-28); docs reference/modeling-data/Schema §Examples (snapshot 2026-09-28)"
+    confidence: high
+    requires: []
+    live: true
+    notes: "spec: R-MOD-10, R-MOD-11."
+    site:
+      settings:
+        default_get: allow
+      rules:
+        - actor: "*"
+          resource: "${P}/*"
+          method: [GET, HEAD, PUT, POST, DELETE, MOVE]
+          action: Allow
+        - actor: "*"
+          resource: "${P}/*/*"
+          method: [GET, HEAD, PUT, POST, DELETE, MOVE]
+          action: Allow
+    steps:
+      - name: "register declarations through the public plane (takes effect for the next request)"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/schema.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div hidden itemscope itemtype="https://pagelove.org/Schema">
+                <meta itemprop="type" content="https://pagelike.test${P}/Entity">
+                <div itemprop="property" itemscope itemtype="https://pagelove.org/Property">
+                  <meta itemprop="name" content="identifier">
+                  <meta itemprop="type" content="https://schema.host/Text">
+                  <meta itemprop="cardinality" content="1..1">
+                  <meta itemprop="unique" content="true">
+                </div>
+              </div>
+              <div hidden itemscope itemtype="https://pagelove.org/Schema">
+                <meta itemprop="type" content="https://pagelike.test${P}/Person">
+                <meta itemprop="parent" content="https://pagelike.test${P}/Entity">
+                <div itemprop="property" itemscope itemtype="https://pagelove.org/Property">
+                  <meta itemprop="name" content="email">
+                  <meta itemprop="type" content="https://schema.host/Text">
+                  <meta itemprop="cardinality" content="1..1">
+                </div>
+              </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "Person without the inherited identifier is rejected"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/p1.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div itemscope itemtype="https://pagelike.test${P}/Person">
+                <meta itemprop="email" content="ada@example.com">
+              </div>
+            </body></html>
+        expect:
+          status: 422
+          header_matches:
+            Content-Type: "^text/html"
+          body_contains: ["https://pagelove.org/SchemaViolation", cardinality]
+      - name: "Person with identifier and email is accepted"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/p2.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div itemscope itemtype="https://pagelike.test${P}/Person">
+                <meta itemprop="identifier" content="ada">
+                <meta itemprop="email" content="ada@example.com">
+              </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+  - id: modeling.inheritance.child-overrides-property-by-name
+    title: "A child property with the same name overrides the parent's declaration"
+    area: modeling
+    feature: inheritance
+    evidence: documented
+    source: "docs reference/modeling-data/Schema §How inherited members combine (snapshot 2026-09-28)"
+    confidence: high
+    requires: []
+    live: true
+    notes: "spec: R-MOD-11."
+    site:
+      settings:
+        default_get: allow
+      rules:
+        - actor: "*"
+          resource: "${P}/*"
+          method: [GET, HEAD, PUT, POST, DELETE, MOVE]
+          action: Allow
+        - actor: "*"
+          resource: "${P}/*/*"
+          method: [GET, HEAD, PUT, POST, DELETE, MOVE]
+          action: Allow
+    steps:
+      - name: "register declarations through the public plane (takes effect for the next request)"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/schema.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div hidden itemscope itemtype="https://pagelove.org/Schema">
+                <meta itemprop="type" content="https://pagelike.test${P}/Base">
+                <div itemprop="property" itemscope itemtype="https://pagelove.org/Property">
+                  <meta itemprop="name" content="label">
+                  <meta itemprop="type" content="https://schema.host/Integer">
+                  <meta itemprop="cardinality" content="1..1">
+                </div>
+              </div>
+              <div hidden itemscope itemtype="https://pagelove.org/Schema">
+                <meta itemprop="type" content="https://pagelike.test${P}/Derived">
+                <meta itemprop="parent" content="https://pagelike.test${P}/Base">
+                <div itemprop="property" itemscope itemtype="https://pagelove.org/Property">
+                  <meta itemprop="name" content="label">
+                  <meta itemprop="type" content="https://schema.host/Text">
+                  <meta itemprop="cardinality" content="0..1">
+                </div>
+              </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "Derived accepts a text label"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/d1.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div itemscope itemtype="https://pagelike.test${P}/Derived">
+                <meta itemprop="label" content="abc">
+              </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "Derived accepts a missing label"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/d2.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div itemscope itemtype="https://pagelike.test${P}/Derived"></div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "Base still requires an Integer label"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/b1.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div itemscope itemtype="https://pagelike.test${P}/Base">
+                <meta itemprop="label" content="abc">
+              </div>
+            </body></html>
+        expect:
+          status: 422
+          header_matches:
+            Content-Type: "^text/html"
+          body_contains: ["https://pagelove.org/SchemaViolation", type]
+  - id: modeling.inheritance.override-is-whole-declaration
+    title: "Fields omitted by an overriding child declaration are not inherited"
+    area: modeling
+    feature: inheritance
+    evidence: inferred
+    source: "docs reference/modeling-data/Schema §Inheritance (snapshot 2026-09-28) ('overrides the parent's declaration for that property')"
+    confidence: low
+    requires: []
+    live: true
+    notes: "spec: R-MOD-11. pagelike decision; probe P-MOD-39. unique, group, @read/@write do merge across the chain."
+    site:
+      settings:
+        default_get: allow
+      rules:
+        - actor: "*"
+          resource: "${P}/*"
+          method: [GET, HEAD, PUT, POST, DELETE, MOVE]
+          action: Allow
+        - actor: "*"
+          resource: "${P}/*/*"
+          method: [GET, HEAD, PUT, POST, DELETE, MOVE]
+          action: Allow
+    steps:
+      - name: "register declarations through the public plane (takes effect for the next request)"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/schema.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div hidden itemscope itemtype="https://pagelove.org/Schema">
+                <meta itemprop="type" content="https://pagelike.test${P}/Base">
+                <div itemprop="property" itemscope itemtype="https://pagelove.org/Property">
+                  <meta itemprop="name" content="label">
+                  <meta itemprop="type" content="https://schema.host/Integer">
+                  <meta itemprop="cardinality" content="1..1">
+                </div>
+              </div>
+              <div hidden itemscope itemtype="https://pagelove.org/Schema">
+                <meta itemprop="type" content="https://pagelike.test${P}/Derived">
+                <meta itemprop="parent" content="https://pagelike.test${P}/Base">
+                <div itemprop="property" itemscope itemtype="https://pagelove.org/Property">
+                  <meta itemprop="name" content="label">
+                  <meta itemprop="description" content="redeclared with no type or cardinality">
+                </div>
+              </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "Derived item without label is accepted"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/d.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div itemscope itemtype="https://pagelike.test${P}/Derived"></div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "Derived item with a non-integer label is accepted"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/e.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div itemscope itemtype="https://pagelike.test${P}/Derived">
+                <meta itemprop="label" content="x">
+              </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+  - id: modeling.inheritance.unknown-parent-stops-silently
+    title: "An unknown parent URL is not an error; the schema's own properties still apply"
+    area: modeling
+    feature: inheritance
+    evidence: documented
+    source: "docs reference/modeling-data/Schema §Inheritance (snapshot 2026-09-28); docs reference/modeling-data/Schema §Error cases (snapshot 2026-09-28)"
+    confidence: high
+    requires: []
+    live: true
+    notes: "spec: R-MOD-10."
+    site:
+      settings:
+        default_get: allow
+      rules:
+        - actor: "*"
+          resource: "${P}/*"
+          method: [GET, HEAD, PUT, POST, DELETE, MOVE]
+          action: Allow
+        - actor: "*"
+          resource: "${P}/*/*"
+          method: [GET, HEAD, PUT, POST, DELETE, MOVE]
+          action: Allow
+    steps:
+      - name: "register declarations through the public plane (takes effect for the next request)"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/schema.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div hidden itemscope itemtype="https://pagelove.org/Schema">
+                <meta itemprop="type" content="https://pagelike.test${P}/Orphan">
+                <meta itemprop="parent" content="https://pagelike.test${P}/DoesNotExist">
+                <div itemprop="property" itemscope itemtype="https://pagelove.org/Property">
+                  <meta itemprop="name" content="label">
+                  <meta itemprop="type" content="https://schema.host/Text">
+                  <meta itemprop="cardinality" content="1..1">
+                </div>
+              </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "own required property still enforced"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/o1.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div itemscope itemtype="https://pagelike.test${P}/Orphan"></div>
+            </body></html>
+        expect:
+          status: 422
+          header_matches:
+            Content-Type: "^text/html"
+          body_contains: ["https://pagelove.org/SchemaViolation", cardinality]
+      - name: "valid instance accepted"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/o2.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div itemscope itemtype="https://pagelike.test${P}/Orphan">
+                <meta itemprop="label" content="x">
+              </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+  - id: modeling.inheritance.cycle-rejects-writes
+    title: "A cyclic parent chain makes every write to items of schemas in the cycle fail with 422"
+    area: modeling
+    feature: inheritance
+    evidence: documented
+    source: "docs reference/modeling-data/Schema §Inheritance (snapshot 2026-09-28); docs reference/modeling-data/Schema §Error cases (snapshot 2026-09-28)"
+    confidence: high
+    requires: []
+    live: true
+    notes: "spec: R-MOD-10."
+    site:
+      settings:
+        default_get: allow
+      rules:
+        - actor: "*"
+          resource: "${P}/*"
+          method: [GET, HEAD, PUT, POST, DELETE, MOVE]
+          action: Allow
+        - actor: "*"
+          resource: "${P}/*/*"
+          method: [GET, HEAD, PUT, POST, DELETE, MOVE]
+          action: Allow
+    steps:
+      - name: "register declarations through the public plane (takes effect for the next request)"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/schema.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div hidden itemscope itemtype="https://pagelove.org/Schema">
+                <meta itemprop="type" content="https://pagelike.test${P}/CycleA">
+                <meta itemprop="parent" content="https://pagelike.test${P}/CycleB">
+                <div itemprop="property" itemscope itemtype="https://pagelove.org/Property">
+                  <meta itemprop="name" content="note">
+                  <meta itemprop="type" content="https://schema.host/Text">
+                  <meta itemprop="cardinality" content="0..1">
+                </div>
+              </div>
+              <div hidden itemscope itemtype="https://pagelove.org/Schema">
+                <meta itemprop="type" content="https://pagelike.test${P}/CycleB">
+                <meta itemprop="parent" content="https://pagelike.test${P}/CycleA">
+                <div itemprop="property" itemscope itemtype="https://pagelove.org/Property">
+                  <meta itemprop="name" content="note">
+                  <meta itemprop="type" content="https://schema.host/Text">
+                  <meta itemprop="cardinality" content="0..1">
+                </div>
+              </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "write to CycleA item rejected"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/a.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div itemscope itemtype="https://pagelike.test${P}/CycleA"></div>
+            </body></html>
+        expect:
+          status: 422
+          header_matches:
+            Content-Type: "^text/html"
+          body_contains: ["https://pagelove.org/SchemaViolation"]
+      - name: "write to CycleB item rejected"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/b.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div itemscope itemtype="https://pagelike.test${P}/CycleB">
+                <meta itemprop="note" content="x">
+              </div>
+            </body></html>
+        expect:
+          status: 422
+          header_matches:
+            Content-Type: "^text/html"
+          body_contains: ["https://pagelove.org/SchemaViolation"]
+      - name: "items of other types are unaffected"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/c.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div itemscope itemtype="https://pagelike.test${P}/Unrelated"></div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+  - id: modeling.inheritance.unique-inherited
+    title: "unique declared on an ancestor applies to the leaf type"
+    area: modeling
+    feature: inheritance
+    evidence: documented
+    source: "docs reference/modeling-data/Schema §How inherited members combine (snapshot 2026-09-28); docs reference/modeling-data/Property §Uniqueness (snapshot 2026-09-28)"
+    confidence: high
+    requires: []
+    live: true
+    notes: "spec: R-MOD-11, R-MOD-30."
+    site:
+      settings:
+        default_get: allow
+      rules:
+        - actor: "*"
+          resource: "${P}/*"
+          method: [GET, HEAD, PUT, POST, DELETE, MOVE]
+          action: Allow
+        - actor: "*"
+          resource: "${P}/*/*"
+          method: [GET, HEAD, PUT, POST, DELETE, MOVE]
+          action: Allow
+    steps:
+      - name: "register declarations through the public plane (takes effect for the next request)"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/schema.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div hidden itemscope itemtype="https://pagelove.org/Schema">
+                <meta itemprop="type" content="https://pagelike.test${P}/Entity">
+                <div itemprop="property" itemscope itemtype="https://pagelove.org/Property">
+                  <meta itemprop="name" content="identifier">
+                  <meta itemprop="type" content="https://schema.host/Text">
+                  <meta itemprop="cardinality" content="1..1">
+                  <meta itemprop="unique" content="true">
+                </div>
+              </div>
+              <div hidden itemscope itemtype="https://pagelove.org/Schema">
+                <meta itemprop="type" content="https://pagelike.test${P}/Person">
+                <meta itemprop="parent" content="https://pagelike.test${P}/Entity">
+                <div itemprop="property" itemscope itemtype="https://pagelove.org/Property">
+                  <meta itemprop="name" content="email">
+                  <meta itemprop="type" content="https://schema.host/Text">
+                  <meta itemprop="cardinality" content="1..1">
+                </div>
+              </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "first Person with identifier ada"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/p1.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div itemscope itemtype="https://pagelike.test${P}/Person">
+                <meta itemprop="identifier" content="ada">
+                <meta itemprop="email" content="a@example.com">
+              </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "second Person with identifier ada is rejected"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/p2.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div itemscope itemtype="https://pagelike.test${P}/Person">
+                <meta itemprop="identifier" content="ada">
+                <meta itemprop="email" content="b@example.com">
+              </div>
+            </body></html>
+        expect:
+          status: 422
+          header_matches:
+            Content-Type: "^text/html"
+          body_contains: ["https://dombase.pagelove.team/ns/error/ConstraintViolation", "[uniqueness]"]
+      - name: "p2.html was not stored"
+        as: author
+        plane: dav
+        request:
+          method: GET
+          path: "${P}/p2.html"
+        expect:
+          status: 404
+  - id: modeling.inheritance.unique-scoped-to-leaf-type
+    title: "Instances of a subtype and its supertype do not conflict on an inherited unique value"
+    area: modeling
+    feature: inheritance
+    evidence: inferred
+    source: "docs recipes/linking-related-data §When to use these features (snapshot 2026-09-28) ('scoped per host and per type')"
+    confidence: low
+    requires: []
+    live: true
+    notes: "spec: R-MOD-30. pagelike decision; probe P-MOD-19."
+    site:
+      settings:
+        default_get: allow
+      rules:
+        - actor: "*"
+          resource: "${P}/*"
+          method: [GET, HEAD, PUT, POST, DELETE, MOVE]
+          action: Allow
+        - actor: "*"
+          resource: "${P}/*/*"
+          method: [GET, HEAD, PUT, POST, DELETE, MOVE]
+          action: Allow
+    steps:
+      - name: "register declarations through the public plane (takes effect for the next request)"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/schema.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div hidden itemscope itemtype="https://pagelove.org/Schema">
+                <meta itemprop="type" content="https://pagelike.test${P}/Entity">
+                <div itemprop="property" itemscope itemtype="https://pagelove.org/Property">
+                  <meta itemprop="name" content="identifier">
+                  <meta itemprop="type" content="https://schema.host/Text">
+                  <meta itemprop="cardinality" content="1..1">
+                  <meta itemprop="unique" content="true">
+                </div>
+              </div>
+              <div hidden itemscope itemtype="https://pagelove.org/Schema">
+                <meta itemprop="type" content="https://pagelike.test${P}/Person">
+                <meta itemprop="parent" content="https://pagelike.test${P}/Entity">
+                <div itemprop="property" itemscope itemtype="https://pagelove.org/Property">
+                  <meta itemprop="name" content="email">
+                  <meta itemprop="type" content="https://schema.host/Text">
+                  <meta itemprop="cardinality" content="1..1">
+                </div>
+              </div>
+              <div hidden itemscope itemtype="https://pagelove.org/Schema">
+                <meta itemprop="type" content="https://pagelike.test${P}/Employee">
+                <meta itemprop="parent" content="https://pagelike.test${P}/Person">
+                <div itemprop="property" itemscope itemtype="https://pagelove.org/Property">
+                  <meta itemprop="name" content="staffNo">
+                  <meta itemprop="type" content="https://schema.host/Text">
+                  <meta itemprop="cardinality" content="0..1">
+                </div>
+              </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "Person with identifier x"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/p.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div itemscope itemtype="https://pagelike.test${P}/Person">
+                <meta itemprop="identifier" content="x">
+                <meta itemprop="email" content="p@example.com">
+              </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "Employee with identifier x"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/e.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div itemscope itemtype="https://pagelike.test${P}/Employee">
+                <meta itemprop="identifier" content="x">
+                <meta itemprop="email" content="e@example.com">
+              </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+  - id: modeling.inheritance.schema-validate-chain-runs-all
+    title: "Every schema-level @validate in the chain runs; a failing ancestor validator rejects the child item"
+    area: modeling
+    feature: inheritance
+    evidence: documented
+    source: "docs reference/modeling-data/Schema §How inherited members combine (snapshot 2026-09-28)"
+    confidence: medium
+    requires: [sessel]
+    live: true
+    notes: "spec: R-MOD-11, R-MOD-46. Contradiction C3: Property/JS pages say validators do not chain; resolved as schema-level chain vs property-level most-derived."
+    site:
+      settings:
+        default_get: allow
+      rules:
+        - actor: "*"
+          resource: "${P}/*"
+          method: [GET, HEAD, PUT, POST, DELETE, MOVE]
+          action: Allow
+        - actor: "*"
+          resource: "${P}/*/*"
+          method: [GET, HEAD, PUT, POST, DELETE, MOVE]
+          action: Allow
+    steps:
+      - name: "register declarations through the public plane (takes effect for the next request)"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/schema.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div hidden itemscope itemtype="https://pagelove.org/Schema">
+                <meta itemprop="type" content="https://pagelike.test${P}/Strict">
+                <script type="text/sessel" itemprop="@validate">false</script>
+              </div>
+              <div hidden itemscope itemtype="https://pagelove.org/Schema">
+                <meta itemprop="type" content="https://pagelike.test${P}/Lenient">
+                <meta itemprop="parent" content="https://pagelike.test${P}/Strict">
+                <script type="text/sessel" itemprop="@validate">true</script>
+              </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "child item rejected by the ancestor's validator"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/l.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div itemscope itemtype="https://pagelike.test${P}/Lenient"></div>
+            </body></html>
+        expect:
+          status: 422
+          header_matches:
+            Content-Type: "^text/html"
+          body_contains: ["https://pagelove.org/SchemaViolation", "@validate"]
+  - id: modeling.inheritance.property-validate-most-derived
+    title: "A property-level @validate on the child replaces the parent's (no chaining)"
+    area: modeling
+    feature: inheritance
+    evidence: documented
+    source: "docs reference/modeling-data/Property §Validators (snapshot 2026-09-28); docs languages/javascript/server/javascript-in-schemas §Chaining order (snapshot 2026-09-28)"
+    confidence: high
+    requires: [sessel]
+    live: true
+    notes: "spec: R-MOD-11, R-MOD-45."
+    site:
+      settings:
+        default_get: allow
+      rules:
+        - actor: "*"
+          resource: "${P}/*"
+          method: [GET, HEAD, PUT, POST, DELETE, MOVE]
+          action: Allow
+        - actor: "*"
+          resource: "${P}/*/*"
+          method: [GET, HEAD, PUT, POST, DELETE, MOVE]
+          action: Allow
+    steps:
+      - name: "register declarations through the public plane (takes effect for the next request)"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/schema.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div hidden itemscope itemtype="https://pagelove.org/Schema">
+                <meta itemprop="type" content="https://pagelike.test${P}/Base">
+                <div itemprop="property" itemscope itemtype="https://pagelove.org/Property">
+                  <meta itemprop="name" content="code">
+                  <meta itemprop="type" content="https://schema.host/Text">
+                  <meta itemprop="cardinality" content="0..1">
+                  <script type="text/sessel" itemprop="@validate">false</script>
+                </div>
+              </div>
+              <div hidden itemscope itemtype="https://pagelove.org/Schema">
+                <meta itemprop="type" content="https://pagelike.test${P}/Derived">
+                <meta itemprop="parent" content="https://pagelike.test${P}/Base">
+                <div itemprop="property" itemscope itemtype="https://pagelove.org/Property">
+                  <meta itemprop="name" content="code">
+                  <meta itemprop="type" content="https://schema.host/Text">
+                  <meta itemprop="cardinality" content="0..1">
+                  <script type="text/sessel" itemprop="@validate">true</script>
+                </div>
+              </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "Derived item with code accepted"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/d.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div itemscope itemtype="https://pagelike.test${P}/Derived">
+                <meta itemprop="code" content="x">
+              </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "Base item with code rejected"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/b.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div itemscope itemtype="https://pagelike.test${P}/Base">
+                <meta itemprop="code" content="x">
+              </div>
+            </body></html>
+        expect:
+          status: 422
+          header_matches:
+            Content-Type: "^text/html"
+          body_contains: ["https://pagelove.org/SchemaViolation", "@validate"]
+  - id: modeling.inheritance.child-default-overrides-parent
+    title: "A child's default for a property overrides the parent's default"
+    area: modeling
+    feature: inheritance
+    evidence: documented
+    source: "docs reference/modeling-data/Property §Defaults (snapshot 2026-09-28) ('Child defaults override parent defaults')"
+    confidence: high
+    requires: []
+    live: true
+    notes: "spec: R-MOD-11, R-MOD-27."
+    site:
+      settings:
+        default_get: allow
+      rules:
+        - actor: "*"
+          resource: "${P}/*"
+          method: [GET, HEAD, PUT, POST, DELETE, MOVE]
+          action: Allow
+        - actor: "*"
+          resource: "${P}/*/*"
+          method: [GET, HEAD, PUT, POST, DELETE, MOVE]
+          action: Allow
+    steps:
+      - name: "register declarations through the public plane (takes effect for the next request)"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/schema.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div hidden itemscope itemtype="https://pagelove.org/Schema">
+                <meta itemprop="type" content="https://pagelike.test${P}/Base">
+                <div itemprop="property" itemscope itemtype="https://pagelove.org/Property">
+                  <meta itemprop="name" content="status">
+                  <meta itemprop="type" content="https://schema.host/Text">
+                  <meta itemprop="cardinality" content="0..1">
+                  <meta itemprop="default" content="parent-default">
+                </div>
+              </div>
+              <div hidden itemscope itemtype="https://pagelove.org/Schema">
+                <meta itemprop="type" content="https://pagelike.test${P}/Derived">
+                <meta itemprop="parent" content="https://pagelike.test${P}/Base">
+                <div itemprop="property" itemscope itemtype="https://pagelove.org/Property">
+                  <meta itemprop="name" content="status">
+                  <meta itemprop="type" content="https://schema.host/Text">
+                  <meta itemprop="cardinality" content="0..1">
+                  <meta itemprop="default" content="child-default">
+                </div>
+              </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "Derived item without status"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/d.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div itemscope itemtype="https://pagelike.test${P}/Derived"></div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "stored state of d.html (authoring plane, raw)"
+        as: author
+        plane: dav
+        request:
+          method: GET
+          path: "${P}/d.html"
+        expect:
+          status: 200
+          body_contains: ["content=\"child-default\""]
+          body_not_contains: [parent-default]

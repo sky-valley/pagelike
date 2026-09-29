@@ -1,0 +1,304 @@
+# Array filters: docs languages/liquid/filters/array examples plus edges.
+# Spec: docs/spec/liquid.md §13 (R-LIQ-140..156).
+defaults:
+  area: liquid
+  requires: [liquid]
+  evidence: documented
+  source: "docs languages/liquid/filters/array (snapshot 2026-09-28)"
+  confidence: high
+cases:
+  - id: liquid.filters-array.ordering-strings
+    title: first, last, reverse, sort, sort_natural and uniq on split lists (docs examples)
+    feature: array filters
+    live: true
+    notes: R-LIQ-140..144.
+    site:
+      settings: {default_get: allow}
+      files:
+        - path: "${P}/order.html"
+          body: |
+            <!DOCTYPE html>
+            <html xmlns:p="https://pagelove.org/1.0"><body>
+              <div itemscope itemtype="urn:liquid:result" p:template="text/liquid">{% assign items = "x,y,z" | split: "," %}
+                <span itemprop="first">{{ items | first }}</span>
+                <span itemprop="last">{{ items | last }}</span>
+                <span itemprop="first_str">{{ "hello" | first }}</span>
+                <span itemprop="last_str">{{ "hello" | last }}</span>
+                <span itemprop="reverse">{{ "a,b,c" | split: "," | reverse | join: "," }}</span>
+                <span itemprop="sort">{{ "banana,apple,cherry" | split: "," | sort | join: ", " }}</span>
+                <span itemprop="sort_natural">{{ "b,A,c" | split: "," | sort_natural | join: "" }}</span>
+                <span itemprop="sort_case">{{ "b,A,c" | split: "," | sort | join: "" }}</span>
+                <span itemprop="uniq">{{ "a,b,a,c" | split: "," | uniq | join: "," }}</span>
+                <span itemprop="first_empty">[{{ "" | split: "," | pop | first }}]</span>
+              </div>
+            </body></html>
+      rules: [{actor: "*", resource: "${P}/*", method: [GET, HEAD], action: Allow}]
+    steps:
+      - name: read
+        as: anonymous
+        request: {method: GET, path: "${P}/order.html"}
+        expect:
+          status: 200
+          microdata: {first: x, last: z, first_str: h, last_str: o, reverse: "c,b,a", sort: "apple, banana, cherry", sort_natural: Abc, sort_case: Abc, uniq: "a,b,c", first_empty: "[]"}
+
+  - id: liquid.filters-array.sort-missing-last-empty-is-value
+    title: "sort by a field: items with nothing to sort on go last; an empty value sorts with the text"
+    feature: array filters
+    live: true
+    notes: R-LIQ-156. Docs example 'Sorting people by nickname'. p4 has an empty nickname, p2 none.
+    site:
+      settings: {default_get: allow}
+      files:
+        - path: "${P}/people.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div itemscope itemtype="https://example.test${P}/Person"><meta itemprop="name" content="p1"><meta itemprop="nickname" content="Zed"></div>
+              <div itemscope itemtype="https://example.test${P}/Person"><meta itemprop="name" content="p2"></div>
+              <div itemscope itemtype="https://example.test${P}/Person"><meta itemprop="name" content="p3"><meta itemprop="nickname" content="Amy"></div>
+              <div itemscope itemtype="https://example.test${P}/Person"><meta itemprop="name" content="p4"><meta itemprop="nickname" content=""></div>
+            </body></html>
+        - path: "${P}/sorted.html"
+          body: |
+            <!DOCTYPE html>
+            <html xmlns:p="https://pagelove.org/1.0" xmlns:r="https://pagelove.org/Binding/CSS"><body>
+              <p id="o" r:people="[itemtype='https://example.test${P}/Person']" p:template="text/liquid">{{ people | sort: "nickname" | map: "name" | join: "," }}|{{ people | sort_natural: "nickname" | map: "name" | join: "," }}</p>
+            </body></html>
+      rules: [{actor: "*", resource: "${P}/*", method: [GET, HEAD], action: Allow}]
+    steps:
+      - name: read
+        as: anonymous
+        request: {method: GET, path: "${P}/sorted.html", headers: {Range: "selector=#o"}}
+        expect:
+          status: 206
+          body_contains: [">p4,p3,p1,p2|p4,p3,p1,p2</p>"]
+
+  - id: liquid.filters-array.sort-numeric-vs-natural
+    title: "sort orders numeric strings numerically; sort_natural compares text (\"10\" before \"9\")"
+    feature: array filters
+    confidence: medium
+    live: true
+    notes: "R-LIQ-143, R-LIQ-156. The docs contrast the two ('use sort when you want numeric order')."
+    site:
+      settings: {default_get: allow}
+      files:
+        - path: "${P}/numsort.html"
+          body: |
+            <!DOCTYPE html>
+            <html xmlns:p="https://pagelove.org/1.0"><body>
+              <p id="o" p:template="text/liquid">{{ "10,9" | split: "," | sort | join: "," }}|{{ "10,9" | split: "," | sort_natural | join: "," }}</p>
+            </body></html>
+      rules: [{actor: "*", resource: "${P}/*", method: [GET, HEAD], action: Allow}]
+    steps:
+      - name: read
+        as: anonymous
+        request: {method: GET, path: "${P}/numsort.html", headers: {Range: "selector=#o"}}
+        expect:
+          status: 206
+          body_contains: [">9,10|10,9</p>"]
+
+  - id: liquid.filters-array.sort-mixed-kinds-grouped
+    title: A mixed list of numbers and words comes back grouped by kind, each group in order
+    feature: array filters
+    confidence: medium
+    live: true
+    notes: "R-LIQ-156. Which group comes first is unspecified in the docs (P-LIQ-6); both orders are accepted."
+    site:
+      settings: {default_get: allow}
+      files:
+        - path: "${P}/mixed.html"
+          body: |
+            <!DOCTYPE html>
+            <html xmlns:p="https://pagelove.org/1.0"><body>
+              <p id="o" p:template="text/liquid">[{{ nothing | push: 2 | push: "banana" | push: 1 | push: "apple" | sort | join: "," }}]</p>
+            </body></html>
+      rules: [{actor: "*", resource: "${P}/*", method: [GET, HEAD], action: Allow}]
+    steps:
+      - name: read
+        as: anonymous
+        request: {method: GET, path: "${P}/mixed.html", headers: {Range: "selector=#o"}}
+        expect:
+          status: 206
+          body_matches: '\[(1,2,apple,banana|apple,banana,1,2)\]'
+
+  - id: liquid.filters-array.transforming
+    title: "map, join (default separator a space), concat and compact"
+    feature: array filters
+    live: true
+    notes: R-LIQ-144, R-LIQ-145.
+    site:
+      settings: {default_get: allow}
+      files:
+        - path: "${P}/tdata.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div itemscope itemtype="https://example.test${P}/Person"><meta itemprop="name" content="Ada"><meta itemprop="nickname" content="A"></div>
+              <div itemscope itemtype="https://example.test${P}/Person"><meta itemprop="name" content="Bob"></div>
+            </body></html>
+        - path: "${P}/transform.html"
+          body: |
+            <!DOCTYPE html>
+            <html xmlns:p="https://pagelove.org/1.0" xmlns:r="https://pagelove.org/Binding/CSS"><body>
+              <div itemscope itemtype="urn:liquid:result" r:people="[itemtype='https://example.test${P}/Person']" p:template="text/liquid">{% assign people = people | sort: "name" %}{% assign drafts = "d1" | split: "," %}{% assign published = "p1,p2" | split: "," %}
+                <span itemprop="map">{{ people | map: "name" | join: ", " }}</span>
+                <span itemprop="join_default">{{ "a,b" | split: "," | join }}</span>
+                <span itemprop="concat">{% assign all = drafts | concat: published %}{{ all | join: "," }}</span>
+                <span itemprop="compact">{{ people | map: "nickname" | compact | join: "," }}</span>
+                <span itemprop="map_size">{{ people | map: "nickname" | size }}</span>
+              </div>
+            </body></html>
+      rules: [{actor: "*", resource: "${P}/*", method: [GET, HEAD], action: Allow}]
+    steps:
+      - name: read
+        as: anonymous
+        request: {method: GET, path: "${P}/transform.html"}
+        expect:
+          status: 200
+          microdata: {map: "Ada, Bob", join_default: a b, concat: "d1,p1,p2", compact: A, map_size: "2"}
+
+  - id: liquid.filters-array.querying-objects
+    title: where (with value and truthy form), reject, find, find_index and has over bound items
+    feature: array filters
+    live: true
+    notes: >-
+      R-LIQ-146, R-LIQ-147. Data mirrors the docs examples (role admin, sku A-1, suspended). find's
+      result is read as a property: live PageLove's map does not wrap a single item, so the docs form
+      `find: "sku", "A-1" | map: "name"` renders nothing (find_map; R-LIQ-145 as reconciled,
+      harness/observations/live-2026-09-29-reconcile-composing-liquid/run2/liquid-filters-exp-probe-0929-map-single.json,
+      docs/compat/decisions-2026-09-29/composing-liquid.md). This case was not run live itself.
+    site:
+      settings: {default_get: allow}
+      files:
+        - path: "${P}/qdata.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div itemscope itemtype="https://example.test${P}/User"><meta itemprop="name" content="Ada"><meta itemprop="role" content="admin"><meta itemprop="sku" content="A-1"></div>
+              <div itemscope itemtype="https://example.test${P}/User"><meta itemprop="name" content="Bob"><meta itemprop="role" content="user"><meta itemprop="suspended" content="yes"><meta itemprop="sku" content="B-2"></div>
+              <div itemscope itemtype="https://example.test${P}/User"><meta itemprop="name" content="Cy"><meta itemprop="role" content="admin"><meta itemprop="sku" content="C-3"></div>
+            </body></html>
+        - path: "${P}/query.html"
+          body: |
+            <!DOCTYPE html>
+            <html xmlns:p="https://pagelove.org/1.0" xmlns:r="https://pagelove.org/Binding/CSS"><body>
+              <div itemscope itemtype="urn:liquid:result" r:users="[itemtype='https://example.test${P}/User']" p:template="text/liquid">{% assign users = users | sort: "name" %}
+                <span itemprop="where">{{ users | where: "role", "admin" | map: "name" | join: ", " }}</span>
+                <span itemprop="where_truthy">{{ users | where: "suspended" | map: "name" | join: ", " }}</span>
+                <span itemprop="reject">{% assign active = users | reject: "suspended", "yes" %}{{ active | map: "name" | join: ", " }}</span>
+                <span itemprop="find">{% assign found = users | find: "sku", "A-1" %}{{ found.name }}</span>
+                <span itemprop="find_map">{{ users | find: "sku", "A-1" | map: "name" }}</span>
+                <span itemprop="find_none">[{{ users | find: "sku", "Z-9" }}]</span>
+                <span itemprop="find_index">{{ users | find_index: "sku", "A-1" }}</span>
+                <span itemprop="find_index_none">[{{ users | find_index: "sku", "Z-9" }}]</span>
+                <span itemprop="has">{{ users | has: "role", "user" }}|{{ users | has: "role", "root" }}</span>
+                <span itemprop="non_objects">{{ "a,b" | split: "," | where: "size" | size }}</span>
+              </div>
+            </body></html>
+      rules: [{actor: "*", resource: "${P}/*", method: [GET, HEAD], action: Allow}]
+    steps:
+      - name: read
+        as: anonymous
+        request: {method: GET, path: "${P}/query.html"}
+        expect:
+          status: 200
+          microdata: {where: "Ada, Cy", where_truthy: Bob, reject: "Ada, Cy", find: Ada, find_map: "", find_none: "[]", find_index: "0", find_index_none: "[]", has: "true|false", non_objects: "0"}
+
+  - id: liquid.filters-array.where-boolean-matches-string
+    title: "A boolean argument matches the strings \"true\"/\"false\" of microdata (has: \"onsale\", true)"
+    feature: array filters
+    evidence: inferred
+    source: "docs languages/liquid/filters/array §has ({% if products | has: \"onsale\", true %}) + reference/modeling-data/Property (bound values are strings); docs/decisions/0002-liquid.md (assumption)"
+    confidence: low
+    live: true
+    notes: R-LIQ-76, R-LIQ-146, spec C-10.
+    site:
+      settings: {default_get: allow}
+      files:
+        - path: "${P}/bdata.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div itemscope itemtype="https://example.test${P}/Product"><meta itemprop="title" content="Mug"><meta itemprop="onsale" content="false"></div>
+              <div itemscope itemtype="https://example.test${P}/Product"><meta itemprop="title" content="Cap"><meta itemprop="onsale" content="true"></div>
+            </body></html>
+        - path: "${P}/bool.html"
+          body: |
+            <!DOCTYPE html>
+            <html xmlns:p="https://pagelove.org/1.0" xmlns:r="https://pagelove.org/Binding/CSS"><body>
+              <p id="o" r:products="[itemtype='https://example.test${P}/Product']" p:template="text/liquid">{% if products | has: "onsale", true %}Sale on now!{% endif %}|{{ products | where: "onsale", true | map: "title" | join: "," }}|{{ products | reject: "onsale", true | map: "title" | join: "," }}</p>
+            </body></html>
+      rules: [{actor: "*", resource: "${P}/*", method: [GET, HEAD], action: Allow}]
+    steps:
+      - name: read
+        as: anonymous
+        request: {method: GET, path: "${P}/bool.html", headers: {Range: "selector=#o"}}
+        expect:
+          status: 206
+          body_contains: [">Sale on now!|Cap|Mug</p>"]
+
+  - id: liquid.filters-array.group-by-and-sum
+    title: "group_by returns {name, items} in first-seen order; sum totals numbers or a field, integer when whole"
+    feature: array filters
+    live: true
+    notes: R-LIQ-148, R-LIQ-149. Microdata prices are numeric strings (they count, R-LIQ-149).
+    site:
+      settings: {default_get: allow}
+      files:
+        - path: "${P}/gdata.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div itemscope itemtype="https://example.test${P}/Post"><meta itemprop="title" content="One"><meta itemprop="year" content="2026"><meta itemprop="price" content="1.5"></div>
+              <div itemscope itemtype="https://example.test${P}/Post"><meta itemprop="title" content="Two"><meta itemprop="year" content="2025"><meta itemprop="price" content="10"></div>
+              <div itemscope itemtype="https://example.test${P}/Post"><meta itemprop="title" content="Three"><meta itemprop="year" content="2026"><meta itemprop="price" content="1.5"></div>
+            </body></html>
+        - path: "${P}/group.html"
+          body: |
+            <!DOCTYPE html>
+            <html xmlns:p="https://pagelove.org/1.0" xmlns:r="https://pagelove.org/Binding/CSS"><body>
+              <div itemscope itemtype="urn:liquid:result" r:posts="[itemtype='https://example.test${P}/Post']" p:template="text/liquid">
+                <span itemprop="groups">{% assign by_year = posts | group_by: "year" %}{% for group in by_year %}{{ group.name }}:{% for post in group.items %}{{ post.title }};{% endfor %}/{% endfor %}</span>
+                <span itemprop="sum_field">{{ posts | sum: "price" }}</span>
+                <span itemprop="sum_numbers">{{ nothing | push: 1 | push: 2 | push: 3 | sum }}</span>
+                <span itemprop="sum_nonnumeric">{{ "2,3,x" | split: "," | sum }}</span>
+              </div>
+            </body></html>
+      rules: [{actor: "*", resource: "${P}/*", method: [GET, HEAD], action: Allow}]
+    steps:
+      - name: read
+        as: anonymous
+        request: {method: GET, path: "${P}/group.html"}
+        expect:
+          status: 200
+          microdata: {groups: "2026:One;Three;/2025:Two;/", sum_field: "13", sum_numbers: "6", sum_nonnumeric: "5"}
+
+  - id: liquid.filters-array.mutation
+    title: "push onto an unassigned variable builds a list; unshift/pop/shift return new arrays; \"\" | split is [\"\"]"
+    feature: array filters
+    live: true
+    notes: R-LIQ-150..152, R-LIQ-119, R-LIQ-203 (unassigned variable is nil).
+    site:
+      settings: {default_get: allow}
+      files:
+        - path: "${P}/mut.html"
+          body: |
+            <!DOCTYPE html>
+            <html xmlns:p="https://pagelove.org/1.0"><body>
+              <div itemscope itemtype="urn:liquid:result" p:template="text/liquid">{% assign terms = "x,y" | split: "," %}{% for term in terms %}{% assign wanted = wanted | push: term %}{% endfor %}{% assign items = "x,y,z" | split: "," %}{% assign crumbs = "Blog,Post" | split: "," %}
+                <span itemprop="push_loop">{{ wanted | join: ", " }}</span>
+                <span itemprop="push_scalar">{{ "a" | push: "b" | join: "," }}</span>
+                <span itemprop="footgun">{% assign a = "" | split: "," %}{{ a.size }}</span>
+                <span itemprop="unshift">{% assign crumbs = crumbs | unshift: "Home" %}{{ crumbs | join: " > " }}</span>
+                <span itemprop="pop">{% assign rest = items | pop %}{{ rest | join: "," }}|{{ items | join: "," }}</span>
+                <span itemprop="shift">{% assign tail = items | shift %}{{ tail | join: "," }}</span>
+              </div>
+            </body></html>
+      rules: [{actor: "*", resource: "${P}/*", method: [GET, HEAD], action: Allow}]
+    steps:
+      - name: read
+        as: anonymous
+        request: {method: GET, path: "${P}/mut.html"}
+        expect:
+          status: 200
+          microdata: {push_loop: "x, y", push_scalar: "a,b", footgun: "1", unshift: "Home > Blog > Post", pop: "x,y|x,y,z", shift: "y,z"}

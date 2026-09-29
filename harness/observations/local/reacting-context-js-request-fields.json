@@ -1,0 +1,33 @@
+{
+  "case": "reacting.context.js-request-fields",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (install a JS echo trigger)",
+      "method": "PUT",
+      "path": "/_pl/reacting-context-js-request-fields-6a9f8a/r/triggers.html",
+      "status": 201,
+      "headers": {
+        "content-length": "928",
+        "content-type": "text/html",
+        "etag": "\"9dc0b7de40bf2d8d2b81db05754eabb7092332bde019ef15b2d8734070ca5932\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:48 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\n\u003cdiv hidden itemscope itemtype=\"https://pagelove.org/Trigger\"\u003e\n  \u003cmeta itemprop=\"resource\" content=\"/_pl/reacting-context-js-request-fields-6a9f8a/d/*\"\u003e\n  \u003cmeta itemprop=\"method\" content=\"PUT\"\u003e\n  \u003cdiv itemprop=\"action\" itemscope itemtype=\"https://pagelove.org/JavaScript/Module\"\u003e\n    \u003cscript type=\"module\" itemprop=\"source\"\u003e\n      export default function(ctx) {\n        const r = ctx.request;\n        throw {\n          schema_url: \"https://pagelove.org/HTTPResponse\",\n          status: 409,\n          headers: { \"Content-Type\": \"application/json\" },\n          body: JSON.stringify({\n            m: r.method,\n            p: r.path,\n            h: r.headers[\"x-test\"] ?? null,\n            q: (r.query || {}).a ?? null,\n            b: r.body ?? null,\n            hostIsString: typeof r.host === \"string\" \u0026\u0026 r.host.length \u003e 0\n          })\n        };\n      }\n    \u003c/script\u003e\n  \u003c/div\u003e\n\u003c/div\u003e\n\u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 2 (every field is visible)",
+      "method": "PUT",
+      "path": "/_pl/reacting-context-js-request-fields-6a9f8a/d/note.txt?a=1",
+      "status": 409,
+      "headers": {
+        "content-length": "130",
+        "content-type": "application/json"
+      },
+      "body": "{\"m\":\"PUT\",\"p\":\"/_pl/reacting-context-js-request-fields-6a9f8a/d/note.txt\",\"h\":\"yes\",\"q\":\"1\",\"b\":\"hello-body\",\"hostIsString\":true}"
+    }
+  ],
+  "outcome": "pass",
+  "target": "local"
+}

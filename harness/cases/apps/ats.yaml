@@ -1,0 +1,424 @@
+# Apps: pagelove-ats "Hiring by Pagelove" (research/upstream/pagelove-ats@8f200fc).
+# Spec: docs/spec/apps.md A6, §7.6 (ACC-AT-*), R-APPS-7/8/9, W-9, W-10.
+# The host runs in the locked-down mode the template's README recommends
+# (default-get-authz-mode: deny), so these cases need host-config. Paths in rules
+# are rewritten under ${P}; the shapes keep the template's lack of a resource.
+cases:
+  - id: apps.ats.public-apply-window
+    title: "Anonymous applicants can append one candidate row to the private admin page and upload a CV, and nothing else"
+    area: apps
+    feature: "template: ats"
+    evidence: demo-source
+    source: "pagelove-ats site/admin/auth.html@8f200fc:31-35, 213-227, 324-380; site/apply.html:495-515 (row markup), 620-631 (CV PUT), 680-683 (POST)"
+    confidence: high
+    requires: [host-config]
+    live: false
+    notes: "R-PERM-44/51/54, R-MOD-65/66 (a[class]+a[href] and td[class]+td[itemprop] cover elements carrying both attributes: union of matching permits), R-APPS-18 (write without read). W-11: selector rules are enforced on writes."
+    site:
+      settings: {default_get: deny}
+      files:
+        - path: "${P}/admin/index.html"
+          body: &admin |
+            <!DOCTYPE html>
+            <html lang="en"><head><meta charset="UTF-8"><title>Hiring · Example Co</title></head>
+            <body>
+            <section id="roles" class="view">
+              <table><tbody id="roles-body">
+                <tr id="R-001" itemscope itemtype="https://pagelove.org/Role">
+                  <td class="id" itemprop="id">R-001</td>
+                  <td><div class="name" itemprop="title">Founding Engineer</div></td>
+                  <td itemprop="department">Engineering</td>
+                  <td itemprop="hiringManager">Alex</td>
+                  <td itemprop="employmentType">Full-time</td>
+                  <td itemprop="status">Open</td>
+                  <td hidden itemprop="location">Global</td>
+                  <td hidden itemprop="slug">founding-engineer</td>
+                  <td hidden itemprop="tldr">Join us as one of the first three engineers.</td>
+                </tr>
+                <tr id="R-003" itemscope itemtype="https://pagelove.org/Role">
+                  <td class="id" itemprop="id">R-003</td>
+                  <td><div class="name" itemprop="title">Product Designer</div></td>
+                  <td itemprop="department">Design</td>
+                  <td itemprop="hiringManager">Alex</td>
+                  <td itemprop="employmentType">Full-time</td>
+                  <td itemprop="status">On Hold</td>
+                  <td hidden itemprop="slug">product-designer</td>
+                </tr>
+              </tbody></table>
+            </section>
+            <section id="candidates" class="view">
+              <table id="candidateTable"><tbody id="candidates-body">
+                <tr id="C-a1001x" itemscope itemtype="https://pagelove.org/Candidate">
+                  <td class="id" itemprop="id">C-a1001x</td>
+                  <td><div class="name" itemprop="name">Ada Lovelace</div></td>
+                  <td><a href="#R-001" class="role-link"><span class="role-title">Founding Engineer</span><span class="role-id" itemprop="roleId">R-001</span></a></td>
+                  <td><span class="stage" itemprop="stage" data-stage="Applied">Applied</span></td>
+                  <td><time class="applied-date" datetime="2026-08-01">1 Aug 2026</time></td>
+                  <td hidden><time itemprop="firstContact" datetime="2026-08-01">2026-08-01</time></td>
+                  <td hidden itemprop="owner">Alex</td>
+                </tr>
+              </tbody></table>
+            </section>
+            <section id="interviews" class="view">
+              <table><tbody id="interviews-body"></tbody></table>
+            </section>
+            </body></html>
+        - path: "${P}/admin/auth.html"
+          body: &auth |
+            <!DOCTYPE html>
+            <html lang="en"><head><meta charset="UTF-8"><title>ATS · Authorization</title></head>
+            <body>
+            <div itemscope itemtype="https://pagelove.org/Group">
+              <meta itemprop="name" content="admins">
+              <meta itemprop="member" content="admin2@example.com">
+              <meta itemprop="member" content="admin1@example.com">
+              <meta itemprop="member" content="admin2@example.com">
+              <meta itemprop="member" content="admin1@example.com">
+            </div>
+            <table>
+              <tbody>
+                <tr itemscope itemtype="https://pagelove.org/AuthorizationRule">
+                  <td itemprop="actor">admins</td>
+                  <td itemprop="resource">${P}/admin/index.html</td>
+                  <td><ul><li itemprop="method">GET</li><li itemprop="method">OPTIONS</li></ul></td>
+                  <td itemprop="selector"></td>
+                  <td itemprop="action">allow</td>
+                </tr>
+                <tr itemscope itemtype="https://pagelove.org/AuthorizationRule">
+                  <td itemprop="actor">admins</td>
+                  <td itemprop="resource">${P}/admin/</td>
+                  <td><ul><li itemprop="method">GET</li><li itemprop="method">OPTIONS</li></ul></td>
+                  <td itemprop="selector"></td>
+                  <td itemprop="action">allow</td>
+                </tr>
+                <tr itemscope itemtype="https://pagelove.org/AuthorizationRule">
+                  <td itemprop="actor">admins</td>
+                  <td itemprop="resource">${P}/admin/index.html</td>
+                  <td><ul><li itemprop="method">POST</li><li itemprop="method">PUT</li><li itemprop="method">DELETE</li></ul></td>
+                  <td itemprop="selector">tbody, tr[itemtype]</td>
+                  <td itemprop="action">allow</td>
+                </tr>
+                <tr itemscope itemtype="https://pagelove.org/AuthorizationRule">
+                  <td itemprop="actor">*</td>
+                  <td itemprop="resource">${P}/uploads/*</td>
+                  <td><ul><li itemprop="method">PUT</li></ul></td>
+                  <td itemprop="selector"></td>
+                  <td itemprop="action">allow</td>
+                </tr>
+                <tr itemscope itemtype="https://pagelove.org/AuthorizationRule">
+                  <td itemprop="actor">admins</td>
+                  <td itemprop="resource">${P}/uploads/*</td>
+                  <td><ul><li itemprop="method">GET</li><li itemprop="method">PUT</li><li itemprop="method">DELETE</li><li itemprop="method">OPTIONS</li></ul></td>
+                  <td itemprop="selector"></td>
+                  <td itemprop="action">allow</td>
+                </tr>
+                <tr itemscope itemtype="https://pagelove.org/AuthorizationRule">
+                  <td itemprop="actor">*</td>
+                  <td><ul><li itemprop="resource">${P}/roles.html</li><li itemprop="resource">${P}/roles/*</li></ul></td>
+                  <td><ul><li itemprop="method">GET</li><li itemprop="method">OPTIONS</li></ul></td>
+                  <td itemprop="selector"></td>
+                  <td itemprop="action">allow</td>
+                </tr>
+                <tr itemscope itemtype="https://pagelove.org/AuthorizationRule">
+                  <td itemprop="actor">*</td>
+                  <td itemprop="resource">${P}/admin/index.html</td>
+                  <td><ul><li itemprop="method">POST</li></ul></td>
+                  <td itemprop="selector">tbody#candidates-body</td>
+                  <td itemprop="action">allow</td>
+                </tr>
+              </tbody>
+            </table>
+            <div class="constraint" itemscope itemtype="https://pagelove.org/ShapeConstraint">
+              <strong>Candidate row</strong>
+              <code itemprop="selector">#candidates-body tr[itemtype="https://pagelove.org/Candidate"]</code>
+              <code itemprop="constraint">:has([itemprop=id])</code>
+              <code itemprop="constraint">:has([itemprop=name])</code>
+              <code itemprop="constraint">:has([itemprop=roleId])</code>
+              <code itemprop="constraint">:has([itemprop=stage])</code>
+              <code itemprop="constraint">:has([itemprop=owner])</code>
+              <code itemprop="constraint">:has([itemprop=firstContact])</code>
+            </div>
+            <div class="constraint" itemscope itemtype="https://pagelove.org/ShapeConstraint">
+              <strong>Candidates table — CLOSED</strong>
+              <code itemprop="selector">#candidates-body</code>
+              <code itemprop="permit">tr[id][itemscope][itemtype]</code>
+              <code itemprop="permit">td</code>
+              <code itemprop="permit">td[class]</code>
+              <code itemprop="permit">td[hidden]</code>
+              <code itemprop="permit">td[itemprop]</code>
+              <code itemprop="permit">div[class]</code>
+              <code itemprop="permit">div[itemprop]</code>
+              <code itemprop="permit">span[class]</code>
+              <code itemprop="permit">span[itemprop]</code>
+              <code itemprop="permit">span[data-stage]</code>
+              <code itemprop="permit">span[data-priority]</code>
+              <code itemprop="permit">a[class]</code>
+              <code itemprop="permit">a[href]</code>
+              <code itemprop="permit">a[itemprop]</code>
+              <code itemprop="permit">time[class]</code>
+              <code itemprop="permit">time[datetime]</code>
+              <code itemprop="permit">time[itemprop]</code>
+            </div>
+            <div class="constraint" itemscope itemtype="https://pagelove.org/ShapeConstraint">
+              <strong>Interview row</strong>
+              <code itemprop="selector">#interviews-body tr[itemtype="https://pagelove.org/Interview"]</code>
+              <code itemprop="constraint">:has([itemprop=id])</code>
+              <code itemprop="constraint">:has([itemprop=candidateId])</code>
+              <code itemprop="constraint">:has([itemprop=type])</code>
+              <code itemprop="constraint">:has([itemprop=date])</code>
+            </div>
+            </body></html>
+    steps:
+      - name: the admin page is private (file path)
+        as: anonymous
+        request: {method: GET, path: "${P}/admin/index.html"}
+        expect: {status: 401, body_not_contains: ["Ada Lovelace"]}
+      - name: the admin page is private (directory path)
+        as: anonymous
+        request: {method: GET, path: "${P}/admin/"}
+        expect: {status: 401, body_not_contains: ["Ada Lovelace"]}
+      - name: no fragment of it is public either
+        as: anonymous
+        request:
+          method: GET
+          path: "${P}/admin/index.html"
+          headers: {Range: "selector=#roles-body"}
+        expect: {status: 401}
+      - name: upload a CV (anonymous PUT is granted)
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/uploads/C-x1y2z3-cv.pdf"
+          headers: {Content-Type: "application/pdf"}
+          body: "%PDF-1.4 minimal test document"
+        expect: {status: [200, 201, 204]}
+      - name: but cannot read it back
+        as: anonymous
+        request: {method: GET, path: "${P}/uploads/C-x1y2z3-cv.pdf"}
+        expect: {status: 401}
+      - name: submit the application row exactly as apply.html renders it
+        as: anonymous
+        request:
+          method: POST
+          path: "${P}/admin/index.html"
+          headers: {Range: "selector=tbody#candidates-body", Content-Type: "text/html"}
+          body: |
+            <tr id="C-x1y2z3" itemscope itemtype="https://pagelove.org/Candidate">
+                <td class="id" itemprop="id">C-x1y2z3</td>
+                <td><div class="name" itemprop="name">Grace Hopper</div></td>
+                <td><a href="#R-001" class="role-link"><span class="role-title">Founding Engineer</span><span class="role-id" itemprop="roleId">R-001</span></a></td>
+                <td><span class="stage" itemprop="stage" data-stage="Applied">Applied</span></td>
+                <td><time class="applied-date" datetime="2026-09-28">28 Sept 2026</time></td>
+                <td class="col-last-activity"><time class="last-activity" datetime>—</time></td>
+                <td hidden><a itemprop="email" href="mailto:grace@example.com">grace@example.com</a></td>
+                <td hidden itemprop="phone"></td>
+                <td hidden><a itemprop="linkedin" href=""></a></td>
+                <td hidden itemprop="location"></td>
+                <td hidden><time itemprop="firstContact" datetime="2026-09-28">2026-09-28</time></td>
+                <td hidden itemprop="salaryExpectation"></td>
+                <td hidden itemprop="noticePeriod"></td>
+                <td hidden itemprop="notes">Keen.</td>
+                <td hidden><a itemprop="cvLink" href="/uploads/C-x1y2z3-cv.pdf">/uploads/C-x1y2z3-cv.pdf</a></td>
+                <td hidden><a itemprop="coverLetterLink" href=""></a></td>
+                <td hidden itemprop="duplicateOf"></td>
+                <td hidden itemprop="owner">Alex</td>
+              </tr>
+        expect: {status: [200, 201, 206]}
+      - name: markup outside the permits is refused
+        as: anonymous
+        request:
+          method: POST
+          path: "${P}/admin/index.html"
+          headers: {Range: "selector=tbody#candidates-body", Content-Type: "text/html"}
+          body: '<tr id="C-evil01" itemscope itemtype="https://pagelove.org/Candidate"><td class="id" itemprop="id">C-evil01</td><td><div class="name" itemprop="name">Mallory<img src="x" onerror="alert(1)"></div></td><td><span itemprop="roleId">R-001</span></td><td><span itemprop="stage">Applied</span></td><td hidden itemprop="owner">Alex</td><td hidden><time itemprop="firstContact" datetime="2026-09-28">2026-09-28</time></td></tr>'
+        expect: {status: 422}
+      - name: the window is POST into the candidates body only
+        as: anonymous
+        request:
+          method: POST
+          path: "${P}/admin/index.html"
+          headers: {Range: "selector=#roles-body", Content-Type: "text/html"}
+          body: '<tr id="R-999" itemscope itemtype="https://pagelove.org/Role"><td itemprop="id">R-999</td></tr>'
+        expect: {status: 401}
+      - name: and never PUT
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/admin/index.html"
+          headers: {Range: "selector=#C-a1001x", Content-Type: "text/html"}
+          body: '<tr id="C-a1001x" itemscope itemtype="https://pagelove.org/Candidate"><td itemprop="id">C-a1001x</td></tr>'
+        expect: {status: 401}
+      - name: the stored admin page holds the new candidate and nothing else new
+        as: author
+        plane: dav
+        request: {method: GET, path: "${P}/admin/index.html"}
+        expect:
+          status: 200
+          body_contains: ['id="C-x1y2z3"', "Grace Hopper", 'id="C-a1001x"']
+          body_not_contains: ["Mallory", "R-999"]
+
+  - id: apps.ats.roles-include-in-table
+    title: "The public roles feed includes #roles-body from the private admin page, inside its <table>"
+    area: apps
+    feature: "template: ats"
+    evidence: demo-source
+    source: "pagelove-ats site/roles.html@8f200fc:13-15, site/roles/:role_name/index.html:75, 128-129, site/index.html:412-418; live-observed: ats.pagelove.com/roles/founding-software-engineer/ served <table id=\"all-roles-data\" hidden> immediately followed by <tbody id=\"roles-body\"> (capture 2026-09-28)"
+    confidence: medium
+    requires: [host-config]
+    live: false
+    notes: "R-APPS-7, R-APPS-8 (= R-COMP-5), R-COMP-86 (Range reads of included elements), R-COMP-103 (directory route), R-PERM-77 (elevated composition). W-9: the separate page exists because an old build leaked every selector once one public selector read was allowed."
+    site:
+      settings: {default_get: deny}
+      files:
+        - {path: "${P}/admin/index.html", body: *admin}
+        - {path: "${P}/admin/auth.html", body: *auth}
+        - path: "${P}/roles.html"
+          body: |
+            <!DOCTYPE html>
+            <html lang="en" xmlns:p="https://pagelove.org/1.0">
+            <head>
+            <meta charset="UTF-8">
+            <title>Open roles - data</title>
+            </head>
+            <body>
+            <table>
+              <p:include resource="${P}/admin/index.html" selector="#roles-body"></p:include>
+            </table>
+            </body>
+            </html>
+        - path: "${P}/roles/:role_name/index.html"
+          body: |
+            <!DOCTYPE html>
+            <html lang="en" xmlns:p="https://pagelove.org/1.0">
+            <head><meta charset="UTF-8"><title>Careers · Example Co</title></head>
+            <body>
+            <table id="all-roles-data" hidden><p:include resource="${P}/admin/index.html" selector="#roles-body"></p:include></table>
+            <main id="role-view"><div class="not-found" id="role-loading"><h2>Loading role…</h2></div></main>
+            <footer>EXAMPLE CO · CAREERS<a href="/auth/login">Staff sign-in</a></footer>
+            </body>
+            </html>
+    steps:
+      - name: "careers page read: GET /roles.html?t=… with Range #roles-body"
+        as: anonymous
+        request:
+          method: GET
+          path: "${P}/roles.html?t=1789423173000"
+          headers: {Range: "selector=#roles-body"}
+        expect: {status: 206, body_contains: ['id="R-001"', "Founding Engineer", "founding-engineer"], body_not_contains: ["Ada Lovelace"]}
+      - name: the included tbody sits inside the table
+        as: anonymous
+        request:
+          method: GET
+          path: "${P}/roles.html"
+          headers: {Range: "selector=table > tbody#roles-body"}
+        expect: {status: 206, body_contains: ['id="R-001"']}
+      - name: the whole feed page has no include element left
+        as: anonymous
+        request: {method: GET, path: "${P}/roles.html"}
+        expect: {status: 200, body_contains: ['id="roles-body"'], body_not_contains: ["p:include", "Ada Lovelace", "candidates-body"]}
+      - name: one route answers every role page (directory form)
+        as: anonymous
+        request: {method: GET, path: "${P}/roles/founding-engineer/"}
+        expect:
+          status: 200
+          body_contains: ['id="all-roles-data"', 'id="R-001"', 'id="R-003"']
+          body_matches: 'id="all-roles-data"[^>]*>\s*<tbody id="roles-body"'
+          body_not_contains: ["p:include", "Ada Lovelace"]
+      - name: an unknown slug still gets the page (the script shows Role not found)
+        as: anonymous
+        request: {method: GET, path: "${P}/roles/nope/"}
+        expect: {status: 200, body_contains: ['id="all-roles-data"']}
+      - name: the source stays private
+        as: anonymous
+        request: {method: GET, path: "${P}/admin/index.html"}
+        expect: {status: 401}
+
+  - id: apps.ats.route-malformed-xmlns
+    title: "The role route's broken 'xmlns:example co=…' attribute does not stop composition"
+    area: apps
+    feature: "template: ats"
+    evidence: demo-source
+    source: "pagelove-ats site/roles/:role_name/index.html@8f200fc:2 (<html lang=\"en\" xmlns:example co=\"https://pagelove.org/1.0\" xmlns:p=\"https://pagelove.org/1.0\">)"
+    confidence: low
+    requires: []
+    live: true
+    notes: "R-APPS-9. HTML tokenization yields attributes xmlns:example (empty) and co; p stays bound by the later xmlns:p. Probe P-APPS-12."
+    site:
+      settings: {default_get: allow}
+      files:
+        - path: "${P}/src.html"
+          body: '<!DOCTYPE html><html><body><table><tbody id="rb"><tr><td>Role one</td></tr></tbody></table></body></html>'
+        - path: "${P}/page.html"
+          body: |
+            <!DOCTYPE html>
+            <html lang="en" xmlns:example co="https://pagelove.org/1.0" xmlns:p="https://pagelove.org/1.0">
+            <head><meta charset="UTF-8"><title>role</title></head>
+            <body><table id="data" hidden><p:include resource="${P}/src.html" selector="#rb"></p:include></table></body>
+            </html>
+    steps:
+      - name: composed normally
+        as: anonymous
+        request: {method: GET, path: "${P}/page.html"}
+        expect:
+          status: 200
+          body_contains: ["Role one"]
+          body_not_contains: ["p:include", "xmlns:p=", "xmlns:example"]
+
+  - id: apps.ats.staff-row-echo
+    title: "Staff writes are granted through the admins Group and the response body is the stored row the UI swaps in"
+    area: apps
+    feature: "template: ats"
+    evidence: demo-source
+    source: "pagelove-ats site/admin/index.html@8f200fc:1855-1899 (httpPUT/httpPOST parse the response body as the new <tr>), site/admin/auth.html:56-64, 128-134"
+    confidence: high
+    requires: [multi-actor, host-config]
+    live: false
+    notes: "R-RW-64/72 (response echo), R-PERM-58 (Group by verified email; duplicated member metas are harmless), W-10 (the template also carries per-email fallback rules because an old build did not resolve the group; they are omitted here so only the Group path can grant)."
+    actors:
+      admin1: {sub: admin1, email: admin1@example.com, email_verified: true, name: Admin One}
+      bob: {sub: bob, email: bob@example.com, email_verified: true, name: Bob}
+    site:
+      settings: {default_get: deny}
+      files:
+        - {path: "${P}/admin/index.html", body: *admin}
+        - {path: "${P}/admin/auth.html", body: *auth}
+    steps:
+      - name: staff can open the admin (directory path)
+        as: admin1
+        request: {method: GET, path: "${P}/admin/"}
+        expect: {status: 200, body_contains: ["Ada Lovelace"]}
+      - name: move the candidate to Interview 1
+        as: admin1
+        request:
+          method: PUT
+          path: "${P}/admin/index.html"
+          headers: {Range: "selector=#C-a1001x", Content-Type: "text/html"}
+          body: '<tr id="C-a1001x" itemscope itemtype="https://pagelove.org/Candidate"><td class="id" itemprop="id">C-a1001x</td><td><div class="name" itemprop="name">Ada Lovelace</div></td><td><span class="role-id" itemprop="roleId">R-001</span></td><td><span class="stage" itemprop="stage" data-stage="Interview 1">Interview 1</span></td><td hidden><time itemprop="firstContact" datetime="2026-08-01">2026-08-01</time></td><td hidden itemprop="owner">Alex</td></tr>'
+        expect: {status: 206, body_contains: ['<tr id="C-a1001x"', 'data-stage="Interview 1"']}
+      - name: add an interview row
+        as: admin1
+        request:
+          method: POST
+          path: "${P}/admin/index.html"
+          headers: {Range: "selector=#interviews-body", Content-Type: "text/html"}
+          body: '<tr id="I-001" itemscope itemtype="https://pagelove.org/Interview"><td class="id" itemprop="id">I-001</td><td itemprop="candidateId">C-a1001x</td><td itemprop="type">Screen Call</td><td><time itemprop="date" datetime="2026-10-01">1 Oct</time></td></tr>'
+        expect: {status: 206, body_contains: ['<tr id="I-001"']}
+      - name: an interview row missing its date fails the open shape
+        as: admin1
+        request:
+          method: POST
+          path: "${P}/admin/index.html"
+          headers: {Range: "selector=#interviews-body", Content-Type: "text/html"}
+          body: '<tr id="I-002" itemscope itemtype="https://pagelove.org/Interview"><td itemprop="id">I-002</td><td itemprop="candidateId">C-a1001x</td><td itemprop="type">Final</td></tr>'
+        expect: {status: 422}
+      - name: delete the interview
+        as: admin1
+        request:
+          method: DELETE
+          path: "${P}/admin/index.html"
+          headers: {Range: "selector=#I-001"}
+        expect: {status: [200, 204]}
+      - name: a signed-in non-member is refused
+        as: bob
+        request: {method: GET, path: "${P}/admin/index.html"}
+        expect: {status: 403}

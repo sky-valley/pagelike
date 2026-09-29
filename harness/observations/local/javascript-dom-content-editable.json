@@ -1,0 +1,37 @@
+{
+  "case": "javascript.dom.content-editable",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (PUT the page (public plane; registers inline declarations))",
+      "method": "PUT",
+      "path": "/_pl/javascript-dom-content-editable-59fd6e/probe.html",
+      "status": 201,
+      "headers": {
+        "content-length": "1732",
+        "content-type": "text/html",
+        "etag": "\"3e4f1339c806ae3407fd234a29a0dbb73d9bb66a687ad2e6accf0fcd622fe855\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:42 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml xmlns:t=\"https://pagelike.test/_pl/javascript-dom-content-editable-59fd6e/Dcontenteditable\"\u003e\u003cbody\u003e\n\u003cmain\u003e\n\u003ct:probe\u003e\u003c/t:probe\u003e\n\u003c/main\u003e\n\u003cdiv hidden itemscope itemtype=\"https://pagelove.org/Schema\"\u003e\n\u003cmeta itemprop=\"type\" content=\"https://pagelike.test/_pl/javascript-dom-content-editable-59fd6e/Dcontenteditable\"\u003e\n\u003cul\u003e\n\u003cli itemprop=\"property\" itemscope itemtype=\"https://pagelove.org/Method\"\u003e\n\u003cmeta itemprop=\"name\" content=\"probe\"\u003e\n\u003cdiv itemprop=\"implementation\" itemscope itemtype=\"https://pagelove.org/JavaScript/Module\"\u003e\n\u003cscript itemprop=\"source\" type=\"module\"\u003e\nconst S = (...a) =\u003e a.map(String).join('|');\nconst H = (x) =\u003e String(x).replace(/[\u003c\u003e\"]/g, (c) =\u003e ({ '\u003c': '[', '\u003e': ']', '\"': \"'\" })[c]);\nconst tryName = (f) =\u003e { try { f(); return 'ok'; } catch (e) { return e.name + ':' + e.code; } };\nexport default function () {\nconst d = new DOMParser().parseFromString('\u003cdiv id=\"a\"\u003e\u003c/div\u003e\u003cdiv id=\"b\" contenteditable\u003e\u003cp id=\"bp\"\u003ex\u003c/p\u003e\u003c/div\u003e\u003cdiv id=\"c\" contenteditable=\"FALSE\"\u003e\u003cp id=\"cp\"\u003ey\u003c/p\u003e\u003c/div\u003e\u003cdiv id=\"e\" contenteditable=\"plaintext-only\"\u003e\u003c/div\u003e\u003cdiv id=\"f\" contenteditable=\"bogus\"\u003e\u003c/div\u003e', 'text/html');\nconst q = (s) =\u003e d.querySelector(s);\nconst g = S(q('#a').contentEditable, q('#b').contentEditable, q('#c').contentEditable, q('#e').contentEditable, q('#f').contentEditable, q('#bp').isContentEditable, q('#cp').isContentEditable, q('#a').isContentEditable);\nconst a = q('#a');\na.contentEditable = 'TRUE'; const s1 = a.getAttribute('contenteditable');\na.contentEditable = 'inherit'; const s2 = a.hasAttribute('contenteditable');\nlet s3 = 'no-throw'; try { a.contentEditable = 'bogus'; } catch (e) { s3 = e.name; }\nreturn 'R:' + g + '|' + S(s1, s2, s3);\n}\n\u003c/script\u003e\n\u003c/div\u003e\n\u003c/li\u003e\n\u003c/ul\u003e\n\u003c/div\u003e\n\u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 2 (GET \u003cmain\u003e: the method result is inserted as text)",
+      "method": "GET",
+      "path": "/_pl/javascript-dom-content-editable-59fd6e/probe.html",
+      "status": 206,
+      "headers": {
+        "accept-ranges": "selector, bytes",
+        "content-length": "98",
+        "content-range": "selector main",
+        "content-type": "text/html",
+        "etag": "\"bb95a8d29da09958451eafd9665646485808197c96f4d42b1f1f798cc278c304-bb95a8d29da09958451eafd9665646485808197c96f4d42b1f1f798cc278c304-1\"",
+        "vary": "Host, Range, Accept"
+      },
+      "body": "\u003cmain\u003e\nR:inherit|true|false|plaintext-only|inherit|true|false|false|true|false|SyntaxError\n\u003c/main\u003e"
+    }
+  ],
+  "outcome": "pass",
+  "target": "local"
+}

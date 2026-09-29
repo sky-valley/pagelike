@@ -1,0 +1,61 @@
+{
+  "case": "modeling.shapes.required-properties-user",
+  "failures": [
+    "step 3 (user missing email rejected) PUT ${P}/people/missing-email.html: body does not contain \"https://pagelove.org/ConstraintViolation\" (body: \u003cdiv itemscope itemtype=\"https://dombase.pagelove.team/ns/error/ShapeConstraint\"\u003e\u003cul itemprop=\"problems\"\u003e\u003cli itemprop=\"problem\"\u003e\u003cspan itemprop=\"message\"\u003eShape constraints violated\u003c/span\u003e\u003c/li\u003e\u003cli itemprop=\"problem\"\u003e\u003cspan itemprop=\"message\"\u003ehttps://pagelove.org/ShapeConstraint [itemtype*=User]: Element matching '[itemtype*=User]' does not satisfy constraint ':has([itemprop=\"email\"])'\u003c/span\u003e\u003c/li\u003e\u003c/ul…)",
+    "step 3 (user missing email rejected) PUT ${P}/people/missing-email.html: body does not contain \"constraintSelector\" (body: \u003cdiv itemscope itemtype=\"https://dombase.pagelove.team/ns/error/ShapeConstraint\"\u003e\u003cul itemprop=\"problems\"\u003e\u003cli itemprop=\"problem\"\u003e\u003cspan itemprop=\"message\"\u003eShape constraints violated\u003c/span\u003e\u003c/li\u003e\u003cli itemprop=\"problem\"\u003e\u003cspan itemprop=\"message\"\u003ehttps://pagelove.org/ShapeConstraint [itemtype*=User]: Element matching '[itemtype*=User]' does not satisfy constraint ':has([itemprop=\"email\"])'\u003c/span\u003e\u003c/li\u003e\u003c/ul…)",
+    "step 3 (user missing email rejected) PUT ${P}/people/missing-email.html: body does not contain \"failedConstraint\" (body: \u003cdiv itemscope itemtype=\"https://dombase.pagelove.team/ns/error/ShapeConstraint\"\u003e\u003cul itemprop=\"problems\"\u003e\u003cli itemprop=\"problem\"\u003e\u003cspan itemprop=\"message\"\u003eShape constraints violated\u003c/span\u003e\u003c/li\u003e\u003cli itemprop=\"problem\"\u003e\u003cspan itemprop=\"message\"\u003ehttps://pagelove.org/ShapeConstraint [itemtype*=User]: Element matching '[itemtype*=User]' does not satisfy constraint ':has([itemprop=\"email\"])'\u003c/span\u003e\u003c/li\u003e\u003c/ul…)"
+  ],
+  "observations": [
+    {
+      "step": "step 1 (register declarations through the public plane (takes effect for the next request))",
+      "method": "PUT",
+      "path": "/_pl/modeling-shapes-required-properties-user-5b5663/shapes.html",
+      "status": 201,
+      "headers": {
+        "content-type": "text/html",
+        "etag": "\"bdaf00f267bcd2d0431a95587748c9276070695ad545a65a83b415be5673b413\"",
+        "last-modified": "Tue, 29 Sep 2026 00:48:25 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\n  \u003cdiv hidden itemscope itemtype=\"https://pagelove.org/ShapeConstraint\"\u003e\n    \u003cmeta itemprop=\"resource\" content=\"/_pl/modeling-shapes-required-properties-user-5b5663/people/*\"\u003e\n    \u003ccode itemprop=\"selector\"\u003e[itemtype*=User]\u003c/code\u003e\n    \u003ccode itemprop=\"constraint\"\u003e:has([itemprop=\"username\"])\u003c/code\u003e\n    \u003ccode itemprop=\"constraint\"\u003e:has([itemprop=\"email\"])\u003c/code\u003e\n  \u003c/div\u003e\n\n                \u003cdiv style=\"\n                            position: fixed;\n                            bottom: 0;\n                            left: 0;\n                            right: 0;\n                            padding: 8px;\n                            background: #f0f0f0;\n                            text-align: center;\n                            font-size: 12px;\n                            color: #666;\n                            z-index: 9999;\n                            opacity: 0.8;\n                            border-top: 1px solid #ddd;\n                        \"\u003e\n                    Powered by\n                    \u003ca href=\"https://pagelove.com/\" style=\"color: #4a90d9; text-decoration: none\"\u003ePagelove\u003c/a\u003e\n                \u003c/div\u003e\n            \u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 2 (complete user accepted)",
+      "method": "PUT",
+      "path": "/_pl/modeling-shapes-required-properties-user-5b5663/people/complete-user.html",
+      "status": 201,
+      "headers": {
+        "content-type": "text/html",
+        "etag": "\"187e2747cfcadc60e62a178f8531186553e08a553192289de4ef26732d6607c2\"",
+        "last-modified": "Tue, 29 Sep 2026 00:48:25 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\n  \u003cdiv itemscope itemtype=\"https://example.org/User\"\u003e\n    \u003cspan itemprop=\"username\"\u003ealice\u003c/span\u003e\n    \u003cspan itemprop=\"email\"\u003ealice@example.com\u003c/span\u003e\n  \u003c/div\u003e\n\n                \u003cdiv style=\"\n                            position: fixed;\n                            bottom: 0;\n                            left: 0;\n                            right: 0;\n                            padding: 8px;\n                            background: #f0f0f0;\n                            text-align: center;\n                            font-size: 12px;\n                            color: #666;\n                            z-index: 9999;\n                            opacity: 0.8;\n                            border-top: 1px solid #ddd;\n                        \"\u003e\n                    Powered by\n                    \u003ca href=\"https://pagelove.com/\" style=\"color: #4a90d9; text-decoration: none\"\u003ePagelove\u003c/a\u003e\n                \u003c/div\u003e\n            \u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 3 (user missing email rejected)",
+      "method": "PUT",
+      "path": "/_pl/modeling-shapes-required-properties-user-5b5663/people/missing-email.html",
+      "status": 422,
+      "headers": {
+        "content-length": "407",
+        "content-type": "text/html",
+        "vary": "Host, Range"
+      },
+      "body": "\u003cdiv itemscope itemtype=\"https://dombase.pagelove.team/ns/error/ShapeConstraint\"\u003e\u003cul itemprop=\"problems\"\u003e\u003cli itemprop=\"problem\"\u003e\u003cspan itemprop=\"message\"\u003eShape constraints violated\u003c/span\u003e\u003c/li\u003e\u003cli itemprop=\"problem\"\u003e\u003cspan itemprop=\"message\"\u003ehttps://pagelove.org/ShapeConstraint [itemtype*=User]: Element matching '[itemtype*=User]' does not satisfy constraint ':has([itemprop=\"email\"])'\u003c/span\u003e\u003c/li\u003e\u003c/ul\u003e\u003c/div\u003e"
+    },
+    {
+      "step": "step 4 (missing-email.html was not stored)",
+      "method": "GET",
+      "path": "/_pl/modeling-shapes-required-properties-user-5b5663/people/missing-email.html",
+      "status": 404,
+      "headers": {
+        "content-length": "229",
+        "content-type": "text/html; charset=utf-8"
+      },
+      "body": "\u003carticle itemscope itemtype=\"https://pagelove.org/Error/NotFound\"\u003e\u003cmeta itemprop=\"status\" content=\"404\"\u003e\u003cp itemprop=\"message\"\u003eNot found: /_pl/modeling-shapes-required-properties-user-5b5663/people/missing-email.html\u003c/p\u003e\u003c/article\u003e"
+    }
+  ],
+  "outcome": "fail",
+  "target": "live"
+}

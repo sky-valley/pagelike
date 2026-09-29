@@ -1,0 +1,36 @@
+{
+  "case": "reacting.th.multi-valued-commits-without-firing",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (install a handler (Order.status becomes processing -\u003e POST ${SINK}/payments))",
+      "method": "PUT",
+      "path": "/_pl/reacting-th-multi-valued-commits-without-4c3e53/r/handlers.html",
+      "status": 201,
+      "headers": {
+        "content-length": "556",
+        "content-type": "text/html",
+        "etag": "\"f96f870d6c2d425cc5284dcdd00bbaf589c76633c109637fe7dffe0eb0df989e\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:53 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\n\u003cdiv itemscope itemtype=\"https://pagelove.org/TransitionHandler\"\u003e\n  \u003cmeta itemprop=\"selector\" content=\"[itemtype='https://pagelike.test/_pl/reacting-th-multi-valued-commits-without-4c3e53/Order']\"\u003e\n  \u003cmeta itemprop=\"property\" content=\"status\"\u003e\n  \u003cmeta itemprop=\"becomes\" content=\"processing\"\u003e\n  \u003cdiv itemprop=\"action\" itemscope itemtype=\"https://pagelove.org/HttpRequest\"\u003e\n    \u003cmeta itemprop=\"url\" content=\"http://127.0.0.1:53683/c-b2cd32a0/payments\"\u003e\n    \u003cmeta itemprop=\"method\" content=\"POST\"\u003e\n  \u003c/div\u003e\n\u003c/div\u003e\n\u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 2 (create an order with two status values)",
+      "method": "PUT",
+      "path": "/_pl/reacting-th-multi-valued-commits-without-4c3e53/orders/o.html",
+      "status": 201,
+      "headers": {
+        "content-length": "240",
+        "content-type": "text/html",
+        "etag": "\"47ea10bafc95f4b99cbb0ca305eb31e5b63469fc5d45fcdb9e44e7ed88371afd\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:53 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\u003chtml\u003e\u003cbody\u003e\u003cdiv itemscope itemtype=\"https://pagelike.test/_pl/reacting-th-multi-valued-commits-without-4c3e53/Order\"\u003e\u003cmeta itemprop=\"status\" content=\"processing\"\u003e\u003cmeta itemprop=\"status\" content=\"pending\"\u003e\u003c/div\u003e\u003c/body\u003e\u003c/html\u003e"
+    }
+  ],
+  "outcome": "pass",
+  "target": "local"
+}

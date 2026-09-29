@@ -1,0 +1,37 @@
+{
+  "case": "liquid.compose.dav-serves-raw-template",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (author reads the source)",
+      "method": "GET",
+      "path": "/_pl/liquid-compose-dav-serves-raw-template-cd58ba/raw.html",
+      "status": 200,
+      "headers": {
+        "accept-ranges": "bytes",
+        "content-length": "138",
+        "content-type": "text/html",
+        "etag": "\"6f0ff37e2f5a0287dc614188f6497b5d0acfdc4ea0a4aae1d74fddf70aded1b0\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:43 GMT"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml xmlns:p=\"https://pagelove.org/1.0\"\u003e\u003cbody\u003e\n  \u003cp id=\"o\" p:template=\"text/liquid\"\u003e{{ 2 | plus: 3 }}\u003c/p\u003e\n\u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 2 (the public plane renders it)",
+      "method": "GET",
+      "path": "/_pl/liquid-compose-dav-serves-raw-template-cd58ba/raw.html",
+      "status": 200,
+      "headers": {
+        "accept-ranges": "selector, bytes",
+        "cache-control": "public, max-age=5",
+        "content-length": "62",
+        "content-type": "text/html",
+        "etag": "W/\"f8d58c9e72ac78fc9824b97284452568e2063cf3e0b92cf380496fbbd506a9fb\"",
+        "vary": "Host, Range, Accept"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\n  \u003cp id=\"o\"\u003e5\u003c/p\u003e\n\u003c/body\u003e\u003c/html\u003e\n"
+    }
+  ],
+  "outcome": "pass",
+  "target": "local"
+}

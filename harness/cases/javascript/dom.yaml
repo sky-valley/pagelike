@@ -1,0 +1,2248 @@
+# JavaScript area: the server DOM API (docs/spec/javascript.md A10, R-JS-61..R-JS-80).
+# Each case dispatches one JavaScript method element (<t:probe>) whose body exercises the DOM,
+# mostly on a writable document from DOMParser, and returns a '|'-joined string that is
+# inserted into <main> as text. Helpers in every probe: S(...) joins String(x) with '|';
+# H(x) replaces < > " with [ ] ' so markup can be returned as plain text.
+# Spec: docs/spec/javascript.md. Generated; edit by hand freely.
+defaults:
+  area: "javascript"
+  evidence: "documented"
+  confidence: "medium"
+  requires: ["server-js"]
+  site:
+    settings:
+      default_get: "allow"
+    rules:
+      - actor: "*"
+        resource: "${P}/*"
+        method: ["GET", "HEAD", "PUT", "POST", "DELETE", "MOVE"]
+        action: "Allow"
+      - actor: "*"
+        resource: "${P}/*/*"
+        method: ["GET", "HEAD", "PUT", "POST", "DELETE", "MOVE"]
+        action: "Allow"
+      - actor: "*"
+        resource: "${P}/*/*/*"
+        method: ["GET", "HEAD", "PUT", "POST", "DELETE", "MOVE"]
+        action: "Allow"
+cases:
+  - id: "javascript.dom.instanceof-hierarchy"
+    title: "Node interfaces are real classes with instanceof and constructor.name, including per-tag interfaces"
+    feature: "DOM interfaces"
+    source: "docs languages/javascript/server/dom §Interfaces and instanceof (snapshot 2026-09-28)"
+    confidence: "high"
+    live: true
+    notes: "spec: R-JS-64; contradiction C-JS-11."
+    steps:
+      - name: "PUT the page (public plane; registers inline declarations)"
+        as: "anonymous"
+        request:
+          method: "PUT"
+          path: "${P}/probe.html"
+          headers:
+            Content-Type: "text/html"
+          body: |
+            <!DOCTYPE html>
+            <html xmlns:t="https://pagelike.test${P}/Dinstanceofhierarchy"><body>
+            <main>
+            <t:probe></t:probe>
+            </main>
+            <div hidden itemscope itemtype="https://pagelove.org/Schema">
+            <meta itemprop="type" content="https://pagelike.test${P}/Dinstanceofhierarchy">
+            <ul>
+            <li itemprop="property" itemscope itemtype="https://pagelove.org/Method">
+            <meta itemprop="name" content="probe">
+            <div itemprop="implementation" itemscope itemtype="https://pagelove.org/JavaScript/Module">
+            <script itemprop="source" type="module">
+            const S = (...a) => a.map(String).join('|');
+            const H = (x) => String(x).replace(/[<>"]/g, (c) => ({ '<': '[', '>': ']', '"': "'" })[c]);
+            const tryName = (f) => { try { f(); return 'ok'; } catch (e) { return e.name + ':' + e.code; } };
+            export default function () {
+            const d = new DOMParser().parseFromString('<a href="/x">x</a><input><section></section><video></video><audio></audio><foo-bar></foo-bar>', 'text/html');
+            const q = (s) => d.querySelector(s);
+            const a = q('a'), i = q('input'), s = q('section'), v = q('video'), au = q('audio'), c = q('foo-bar');
+            const t = d.createTextNode('x'), m = d.createComment('y');
+            const ns = d.createElementNS('http://www.w3.org/2000/svg', 'g');
+            return 'R:' + S(a instanceof HTMLAnchorElement, a instanceof HTMLElement, a instanceof Element, a instanceof Node, a.constructor.name,
+              i.constructor.name, s.constructor.name, c.constructor.name,
+              v instanceof HTMLVideoElement, v instanceof HTMLMediaElement, au instanceof HTMLMediaElement, au.constructor.name,
+              t instanceof CharacterData, t instanceof Text, m instanceof Comment, t.constructor.name,
+              ns instanceof HTMLElement, ns instanceof Element, ns.constructor.name,
+              d instanceof Document, d.createDocumentFragment() instanceof DocumentFragment);
+            }
+            </script>
+            </div>
+            </li>
+            </ul>
+            </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "GET <main>: the method result is inserted as text"
+        as: "anonymous"
+        request:
+          method: "GET"
+          path: "${P}/probe.html"
+          headers:
+            Range: "selector=main"
+        expect:
+          status: 206
+          body_contains: ["R:true|true|true|true|HTMLAnchorElement|HTMLInputElement|HTMLElement|HTMLElement|true|true|true|HTMLAudioElement|true|true|true|Text|false|true|Element|true|true"]
+  - id: "javascript.dom.interface-scoping"
+    title: "Members outside a node's interface read as undefined; accessors with no value return null"
+    feature: "DOM interfaces"
+    source: "docs languages/javascript/server/dom §Interfaces and instanceof; docs languages/javascript/server/dom/element §Reflected properties: shared semantics (snapshot 2026-09-28)"
+    confidence: "high"
+    live: true
+    notes: "spec: R-JS-64."
+    steps:
+      - name: "PUT the page (public plane; registers inline declarations)"
+        as: "anonymous"
+        request:
+          method: "PUT"
+          path: "${P}/probe.html"
+          headers:
+            Content-Type: "text/html"
+          body: |
+            <!DOCTYPE html>
+            <html xmlns:t="https://pagelike.test${P}/Dinterfacescoping"><body>
+            <main>
+            <t:probe></t:probe>
+            </main>
+            <div hidden itemscope itemtype="https://pagelove.org/Schema">
+            <meta itemprop="type" content="https://pagelike.test${P}/Dinterfacescoping">
+            <ul>
+            <li itemprop="property" itemscope itemtype="https://pagelove.org/Method">
+            <meta itemprop="name" content="probe">
+            <div itemprop="implementation" itemscope itemtype="https://pagelove.org/JavaScript/Module">
+            <script itemprop="source" type="module">
+            const S = (...a) => a.map(String).join('|');
+            const H = (x) => String(x).replace(/[<>"]/g, (c) => ({ '<': '[', '>': ']', '"': "'" })[c]);
+            const tryName = (f) => { try { f(); return 'ok'; } catch (e) { return e.name + ':' + e.code; } };
+            export default function () {
+            const d = new DOMParser().parseFromString('<img src="a.png"><section></section><audio></audio><p>t</p>', 'text/html');
+            const q = (s) => d.querySelector(s);
+            const p = q('p'), t = p.firstChild, det = d.createElement('div');
+            return 'R:' + S(t.tagName, p.data, p.length, q('img').href, q('section').href, q('audio').poster, det.parentNode, det.firstChild, det.nextElementSibling);
+            }
+            </script>
+            </div>
+            </li>
+            </ul>
+            </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "GET <main>: the method result is inserted as text"
+        as: "anonymous"
+        request:
+          method: "GET"
+          path: "${P}/probe.html"
+          headers:
+            Range: "selector=main"
+        expect:
+          status: 206
+          body_contains: ["R:undefined|undefined|undefined|undefined|undefined|undefined|null|null|null"]
+  - id: "javascript.dom.unlisted-members-absent"
+    title: "Members the DOM pages do not list (innerText, dataset, style, hidden, getElementsByTagName, ...) are absent"
+    feature: "DOM interfaces"
+    source: "docs languages/javascript/server/dom intro ('anything not listed in these pages is not available server-side') (snapshot 2026-09-28)"
+    confidence: "medium"
+    live: true
+    notes: "spec: R-JS-64, R-JS-79 (not-present list). Probe P-JS-13 covers members PageLove might add."
+    steps:
+      - name: "PUT the page (public plane; registers inline declarations)"
+        as: "anonymous"
+        request:
+          method: "PUT"
+          path: "${P}/probe.html"
+          headers:
+            Content-Type: "text/html"
+          body: |
+            <!DOCTYPE html>
+            <html xmlns:t="https://pagelike.test${P}/Dunlistedmembersabsent"><body>
+            <main>
+            <t:probe></t:probe>
+            </main>
+            <div hidden itemscope itemtype="https://pagelove.org/Schema">
+            <meta itemprop="type" content="https://pagelike.test${P}/Dunlistedmembersabsent">
+            <ul>
+            <li itemprop="property" itemscope itemtype="https://pagelove.org/Method">
+            <meta itemprop="name" content="probe">
+            <div itemprop="implementation" itemscope itemtype="https://pagelove.org/JavaScript/Module">
+            <script itemprop="source" type="module">
+            const S = (...a) => a.map(String).join('|');
+            const H = (x) => String(x).replace(/[<>"]/g, (c) => ({ '<': '[', '>': ']', '"': "'" })[c]);
+            const tryName = (f) => { try { f(); return 'ok'; } catch (e) { return e.name + ':' + e.code; } };
+            export default function () {
+            const d = new DOMParser().parseFromString('<p id="a">t</p>', 'text/html');
+            const p = d.querySelector('p');
+            return 'R:' + S(typeof p.innerText, typeof p.dataset, typeof p.style, typeof p.hidden, typeof p.title, typeof p.lang, typeof p.tabIndex, typeof d.getElementsByTagName, typeof d.getElementsByClassName, typeof p.replaceChildren, typeof p.toggleAttribute, typeof p.getAttributeNames, typeof p.addEventListener, typeof p.insertAdjacentElement);
+            }
+            </script>
+            </div>
+            </li>
+            </ul>
+            </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "GET <main>: the method result is inserted as text"
+        as: "anonymous"
+        request:
+          method: "GET"
+          path: "${P}/probe.html"
+          headers:
+            Range: "selector=main"
+        expect:
+          status: 206
+          body_contains: ["R:undefined|undefined|undefined|undefined|undefined|undefined|undefined|undefined|undefined|undefined|undefined|undefined|undefined|undefined"]
+  - id: "javascript.dom.names-and-node-types"
+    title: "tagName, localName, prefix, namespaceURI, nodeName and nodeType follow the documented rules"
+    feature: "DOM Element identity"
+    source: "docs languages/javascript/server/dom/element §Identity; docs languages/javascript/server/dom/node §Metadata; docs languages/javascript/server/dom/document §createElement, §createElementNS (snapshot 2026-09-28)"
+    confidence: "medium"
+    live: true
+    notes: "spec: R-JS-64, R-JS-66, R-JS-68. 'svg > g' reports 'G' per the DELEM Identity example."
+    steps:
+      - name: "PUT the page (public plane; registers inline declarations)"
+        as: "anonymous"
+        request:
+          method: "PUT"
+          path: "${P}/probe.html"
+          headers:
+            Content-Type: "text/html"
+          body: |
+            <!DOCTYPE html>
+            <html xmlns:t="https://pagelike.test${P}/Dnamesandnodetypes"><body>
+            <main>
+            <t:probe></t:probe>
+            </main>
+            <div hidden itemscope itemtype="https://pagelove.org/Schema">
+            <meta itemprop="type" content="https://pagelike.test${P}/Dnamesandnodetypes">
+            <ul>
+            <li itemprop="property" itemscope itemtype="https://pagelove.org/Method">
+            <meta itemprop="name" content="probe">
+            <div itemprop="implementation" itemscope itemtype="https://pagelove.org/JavaScript/Module">
+            <script itemprop="source" type="module">
+            const S = (...a) => a.map(String).join('|');
+            const H = (x) => String(x).replace(/[<>"]/g, (c) => ({ '<': '[', '>': ']', '"': "'" })[c]);
+            const tryName = (f) => { try { f(); return 'ok'; } catch (e) { return e.name + ':' + e.code; } };
+            export default function () {
+            const d = new DOMParser().parseFromString('<!DOCTYPE html><section></section><svg><g></g></svg>', 'text/html');
+            const sec = d.querySelector('section'), g = d.querySelector('g');
+            const li = d.createElement('li');
+            const lg = d.createElementNS('http://www.w3.org/2000/svg', 'linearGradient');
+            const tf = d.createElementNS('urn:x', 't:foo');
+            return 'R:' + S(sec.tagName, sec.localName, g.tagName, li.tagName, li.nodeName, lg.tagName, tf.localName, tf.prefix, tf.namespaceURI, sec.prefix, sec.namespaceURI,
+              d.createTextNode('a').nodeName, d.createComment('b').nodeName, d.nodeName, d.createDocumentFragment().nodeName,
+              sec.nodeType, d.createTextNode('a').nodeType, d.createComment('b').nodeType, d.nodeType, d.createDocumentFragment().nodeType, d.firstChild.nodeType);
+            }
+            </script>
+            </div>
+            </li>
+            </ul>
+            </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "GET <main>: the method result is inserted as text"
+        as: "anonymous"
+        request:
+          method: "GET"
+          path: "${P}/probe.html"
+          headers:
+            Range: "selector=main"
+        expect:
+          status: 206
+          body_contains: ["R:SECTION|section|G|LI|LI|linearGradient|foo|t|urn:x|null|null|#text|#comment|#document|#document-fragment|1|3|8|9|11|10"]
+  - id: "javascript.dom.namespace-errors"
+    title: "createElementNS/setAttributeNS raise NamespaceError for malformed names but skip the reserved xml/xmlns checks"
+    feature: "DOM Document"
+    source: "docs languages/javascript/server/dom/document §createElementNS; docs languages/javascript/server/dom §Divergences (snapshot 2026-09-28)"
+    confidence: "high"
+    live: true
+    notes: "spec: R-JS-65, R-JS-68, R-JS-77."
+    steps:
+      - name: "PUT the page (public plane; registers inline declarations)"
+        as: "anonymous"
+        request:
+          method: "PUT"
+          path: "${P}/probe.html"
+          headers:
+            Content-Type: "text/html"
+          body: |
+            <!DOCTYPE html>
+            <html xmlns:t="https://pagelike.test${P}/Dnamespaceerrors"><body>
+            <main>
+            <t:probe></t:probe>
+            </main>
+            <div hidden itemscope itemtype="https://pagelove.org/Schema">
+            <meta itemprop="type" content="https://pagelike.test${P}/Dnamespaceerrors">
+            <ul>
+            <li itemprop="property" itemscope itemtype="https://pagelove.org/Method">
+            <meta itemprop="name" content="probe">
+            <div itemprop="implementation" itemscope itemtype="https://pagelove.org/JavaScript/Module">
+            <script itemprop="source" type="module">
+            const S = (...a) => a.map(String).join('|');
+            const H = (x) => String(x).replace(/[<>"]/g, (c) => ({ '<': '[', '>': ']', '"': "'" })[c]);
+            const tryName = (f) => { try { f(); return 'ok'; } catch (e) { return e.name + ':' + e.code; } };
+            export default function () {
+            const d = new DOMParser().parseFromString('', 'text/html');
+            return 'R:' + S(tryName(() => d.createElementNS('urn:x', '')), tryName(() => d.createElementNS('urn:x', 'a:b:c')), tryName(() => d.createElementNS('urn:x', ':a')), tryName(() => d.createElementNS('urn:x', 'a:')), tryName(() => d.createElementNS('', 'p:x')), tryName(() => d.createElementNS('urn:x', 'xmlns:x')), tryName(() => d.createElement('div').setAttributeNS('urn:x', 'a:b:c', 'v')));
+            }
+            </script>
+            </div>
+            </li>
+            </ul>
+            </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "GET <main>: the method result is inserted as text"
+        as: "anonymous"
+        request:
+          method: "GET"
+          path: "${P}/probe.html"
+          headers:
+            Range: "selector=main"
+        expect:
+          status: 206
+          body_contains: ["R:NamespaceError:14|NamespaceError:14|NamespaceError:14|NamespaceError:14|NamespaceError:14|ok|NamespaceError:14"]
+  - id: "javascript.dom.attributes-ns"
+    title: "setAttributeNS stores the qualified name verbatim; getAttributeNS/removeAttributeNS resolve an in-scope xmlns: prefix"
+    feature: "DOM Element attributes"
+    source: "docs languages/javascript/server/dom/element §getAttributeNS / setAttributeNS / removeAttributeNS (snapshot 2026-09-28)"
+    confidence: "high"
+    live: true
+    notes: "spec: R-JS-68."
+    steps:
+      - name: "PUT the page (public plane; registers inline declarations)"
+        as: "anonymous"
+        request:
+          method: "PUT"
+          path: "${P}/probe.html"
+          headers:
+            Content-Type: "text/html"
+          body: |
+            <!DOCTYPE html>
+            <html xmlns:t="https://pagelike.test${P}/Dattributesns"><body>
+            <main>
+            <t:probe></t:probe>
+            </main>
+            <div hidden itemscope itemtype="https://pagelove.org/Schema">
+            <meta itemprop="type" content="https://pagelike.test${P}/Dattributesns">
+            <ul>
+            <li itemprop="property" itemscope itemtype="https://pagelove.org/Method">
+            <meta itemprop="name" content="probe">
+            <div itemprop="implementation" itemscope itemtype="https://pagelove.org/JavaScript/Module">
+            <script itemprop="source" type="module">
+            const S = (...a) => a.map(String).join('|');
+            const H = (x) => String(x).replace(/[<>"]/g, (c) => ({ '<': '[', '>': ']', '"': "'" })[c]);
+            const tryName = (f) => { try { f(); return 'ok'; } catch (e) { return e.name + ':' + e.code; } };
+            export default function () {
+            const d = new DOMParser().parseFromString('<div xmlns:xl="http://www.w3.org/1999/xlink"><span></span></div>', 'text/html');
+            const s = d.querySelector('span');
+            s.setAttributeNS('http://www.w3.org/1999/xlink', 'xl:href', '#icon');
+            const a = s.getAttribute('xl:href'), b = s.getAttributeNS('http://www.w3.org/1999/xlink', 'href'), c = s.getAttributeNS('urn:none', 'href');
+            s.removeAttributeNS('http://www.w3.org/1999/xlink', 'href');
+            return 'R:' + S(a, b, c, s.hasAttribute('xl:href'), s.getAttribute('missing'), s.hasAttribute('missing'));
+            }
+            </script>
+            </div>
+            </li>
+            </ul>
+            </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "GET <main>: the method result is inserted as text"
+        as: "anonymous"
+        request:
+          method: "GET"
+          path: "${P}/probe.html"
+          headers:
+            Range: "selector=main"
+        expect:
+          status: 206
+          body_contains: ["R:#icon|#icon|null|false|null|false"]
+  - id: "javascript.dom.reflect-strings-and-urls"
+    title: "String and URL reflections are verbatim (no base-URL resolution); value-like properties reflect the content attribute"
+    feature: "DOM reflected attributes"
+    source: "docs languages/javascript/server/dom/element §Reflected IDL attributes; per-interface pages (HTMLAnchorElement, HTMLLabelElement, HTMLMetaElement, HTMLInputElement, HTMLOptionElement, HTMLFormElement) (snapshot 2026-09-28)"
+    confidence: "high"
+    live: true
+    notes: "spec: R-JS-78, R-JS-79."
+    steps:
+      - name: "PUT the page (public plane; registers inline declarations)"
+        as: "anonymous"
+        request:
+          method: "PUT"
+          path: "${P}/probe.html"
+          headers:
+            Content-Type: "text/html"
+          body: |
+            <!DOCTYPE html>
+            <html xmlns:t="https://pagelike.test${P}/Dreflectstringsandurls"><body>
+            <main>
+            <t:probe></t:probe>
+            </main>
+            <div hidden itemscope itemtype="https://pagelove.org/Schema">
+            <meta itemprop="type" content="https://pagelike.test${P}/Dreflectstringsandurls">
+            <ul>
+            <li itemprop="property" itemscope itemtype="https://pagelove.org/Method">
+            <meta itemprop="name" content="probe">
+            <div itemprop="implementation" itemscope itemtype="https://pagelove.org/JavaScript/Module">
+            <script itemprop="source" type="module">
+            const S = (...a) => a.map(String).join('|');
+            const H = (x) => String(x).replace(/[<>"]/g, (c) => ({ '<': '[', '>': ']', '"': "'" })[c]);
+            const tryName = (f) => { try { f(); return 'ok'; } catch (e) { return e.name + ':' + e.code; } };
+            export default function () {
+            const d = new DOMParser().parseFromString('<a href="../x">x</a><img src="i.png"><label for="f"></label><meta http-equiv="refresh"><input value="v1"><option value="o1">O</option><form action="/go"></form>', 'text/html');
+            const q = (s) => d.querySelector(s);
+            const a = q('a'), inp = q('input'), lab = q('label');
+            const before = S(a.href, a.target, q('img').src, q('img').alt, lab.htmlFor, q('meta').httpEquiv, inp.value, q('option').value, q('form').action);
+            a.href = '/next'; inp.value = 'v2'; lab.htmlFor = 'g';
+            return 'R:' + before + '|' + S(a.getAttribute('href'), inp.getAttribute('value'), lab.getAttribute('for'));
+            }
+            </script>
+            </div>
+            </li>
+            </ul>
+            </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "GET <main>: the method result is inserted as text"
+        as: "anonymous"
+        request:
+          method: "GET"
+          path: "${P}/probe.html"
+          headers:
+            Range: "selector=main"
+        expect:
+          status: 206
+          body_contains: ["R:../x||i.png||f|refresh|v1|o1|/go|/next|v2|g"]
+  - id: "javascript.dom.reflect-booleans"
+    title: "Boolean reflections read attribute presence; writing true sets it (empty value), false removes it"
+    feature: "DOM reflected attributes"
+    source: "docs languages/javascript/server/dom/element §Reflected IDL attributes; HTMLInputElement, HTMLDetailsElement pages (snapshot 2026-09-28)"
+    confidence: "medium"
+    live: true
+    notes: "spec: R-JS-78 (the empty attribute value on set is a pagelike decision matching browsers)."
+    steps:
+      - name: "PUT the page (public plane; registers inline declarations)"
+        as: "anonymous"
+        request:
+          method: "PUT"
+          path: "${P}/probe.html"
+          headers:
+            Content-Type: "text/html"
+          body: |
+            <!DOCTYPE html>
+            <html xmlns:t="https://pagelike.test${P}/Dreflectbooleans"><body>
+            <main>
+            <t:probe></t:probe>
+            </main>
+            <div hidden itemscope itemtype="https://pagelove.org/Schema">
+            <meta itemprop="type" content="https://pagelike.test${P}/Dreflectbooleans">
+            <ul>
+            <li itemprop="property" itemscope itemtype="https://pagelove.org/Method">
+            <meta itemprop="name" content="probe">
+            <div itemprop="implementation" itemscope itemtype="https://pagelove.org/JavaScript/Module">
+            <script itemprop="source" type="module">
+            const S = (...a) => a.map(String).join('|');
+            const H = (x) => String(x).replace(/[<>"]/g, (c) => ({ '<': '[', '>': ']', '"': "'" })[c]);
+            const tryName = (f) => { try { f(); return 'ok'; } catch (e) { return e.name + ':' + e.code; } };
+            export default function () {
+            const d = new DOMParser().parseFromString('<input><details open></details>', 'text/html');
+            const i = d.querySelector('input'), det = d.querySelector('details');
+            const r1 = i.required; i.required = true; const r2 = i.hasAttribute('required'); const v = i.getAttribute('required'); const r3 = i.required;
+            i.required = false; const r4 = i.hasAttribute('required');
+            const o1 = det.open; det.open = false; const o2 = det.hasAttribute('open');
+            i.readOnly = true; const ro = i.hasAttribute('readonly');
+            return 'R:' + S(r1, r2, v, r3, r4, o1, o2, ro);
+            }
+            </script>
+            </div>
+            </li>
+            </ul>
+            </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "GET <main>: the method result is inserted as text"
+        as: "anonymous"
+        request:
+          method: "GET"
+          path: "${P}/probe.html"
+          headers:
+            Range: "selector=main"
+        expect:
+          status: 206
+          body_contains: ["R:false|true||true|false|true|false|true"]
+  - id: "javascript.dom.reflect-numbers"
+    title: "Numeric reflections apply per-attribute defaults and clamping (td, img, canvas, ol, li, textarea, progress, meter, video)"
+    feature: "DOM reflected attributes"
+    source: "docs languages/javascript/server/dom/element §Reflected properties: shared semantics; HTMLTableCellElement, HTMLImageElement, HTMLCanvasElement, HTMLOListElement, HTMLLIElement, HTMLTextAreaElement, HTMLProgressElement, HTMLMeterElement, HTMLVideoElement pages (snapshot 2026-09-28)"
+    confidence: "medium"
+    live: true
+    notes: "spec: R-JS-78, R-JS-79. Unparsable and out-of-range inputs follow WHATWG parsing (not spelled out by the docs)."
+    steps:
+      - name: "PUT the page (public plane; registers inline declarations)"
+        as: "anonymous"
+        request:
+          method: "PUT"
+          path: "${P}/probe.html"
+          headers:
+            Content-Type: "text/html"
+          body: |
+            <!DOCTYPE html>
+            <html xmlns:t="https://pagelike.test${P}/Dreflectnumbers"><body>
+            <main>
+            <t:probe></t:probe>
+            </main>
+            <div hidden itemscope itemtype="https://pagelove.org/Schema">
+            <meta itemprop="type" content="https://pagelike.test${P}/Dreflectnumbers">
+            <ul>
+            <li itemprop="property" itemscope itemtype="https://pagelove.org/Method">
+            <meta itemprop="name" content="probe">
+            <div itemprop="implementation" itemscope itemtype="https://pagelove.org/JavaScript/Module">
+            <script itemprop="source" type="module">
+            const S = (...a) => a.map(String).join('|');
+            const H = (x) => String(x).replace(/[<>"]/g, (c) => ({ '<': '[', '>': ']', '"': "'" })[c]);
+            const tryName = (f) => { try { f(); return 'ok'; } catch (e) { return e.name + ':' + e.code; } };
+            export default function () {
+            const d = new DOMParser().parseFromString('<table><tr><td id="a"></td><td id="b" colspan="0" rowspan="70000"></td><td id="c" colspan="5000"></td><td id="e" colspan="abc"></td></tr></table><img><canvas></canvas><ol start="-3"></ol><ol id="o2"></ol><ul><li id="li"></li></ul><textarea rows="0"></textarea><progress value="5" max="3"></progress><progress id="p2" value="-1" max="0"></progress><meter value="20" min="0" max="10"></meter><meter id="m2"></meter><video></video>', 'text/html');
+            const q = (s) => d.querySelector(s);
+            const a = q('#a'), b = q('#b'), c = q('#c'), e = q('#e');
+            const out = [a.colSpan, a.rowSpan, b.colSpan, b.rowSpan, c.colSpan, e.colSpan, q('img').width, q('img').height, q('canvas').width, q('canvas').height, q('ol').start, q('#o2').start, q('#li').value, q('textarea').rows, q('textarea').cols, q('progress').value, q('progress').max, q('#p2').value, q('#p2').max, q('meter').value, q('#m2').value, q('#m2').min, q('#m2').max, q('#m2').low, q('#m2').high, q('#m2').optimum, q('video').width];
+            a.colSpan = 3;
+            out.push(a.getAttribute('colspan'));
+            return 'R:' + S(...out);
+            }
+            </script>
+            </div>
+            </li>
+            </ul>
+            </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "GET <main>: the method result is inserted as text"
+        as: "anonymous"
+        request:
+          method: "GET"
+          path: "${P}/probe.html"
+          headers:
+            Range: "selector=main"
+        expect:
+          status: 206
+          body_contains: ["R:1|1|1|65534|1000|1|0|0|300|150|-3|1|0|2|20|3|3|0|1|10|0|0|1|0|1|0.5|0|3"]
+  - id: "javascript.dom.reflect-enums"
+    title: "Enumerated reflections canonicalize to keywords with the documented missing and invalid defaults"
+    feature: "DOM reflected attributes"
+    source: "docs languages/javascript/server/dom/element §Reflected properties: shared semantics; HTMLInputElement, HTMLFormElement, HTMLButtonElement, HTMLImageElement, HTMLTrackElement, HTMLTableCellElement, HTMLTextAreaElement, HTMLAnchorElement, HTMLIFrameElement pages (snapshot 2026-09-28)"
+    confidence: "high"
+    live: true
+    notes: "spec: R-JS-78, R-JS-79."
+    steps:
+      - name: "PUT the page (public plane; registers inline declarations)"
+        as: "anonymous"
+        request:
+          method: "PUT"
+          path: "${P}/probe.html"
+          headers:
+            Content-Type: "text/html"
+          body: |
+            <!DOCTYPE html>
+            <html xmlns:t="https://pagelike.test${P}/Dreflectenums"><body>
+            <main>
+            <t:probe></t:probe>
+            </main>
+            <div hidden itemscope itemtype="https://pagelove.org/Schema">
+            <meta itemprop="type" content="https://pagelike.test${P}/Dreflectenums">
+            <ul>
+            <li itemprop="property" itemscope itemtype="https://pagelove.org/Method">
+            <meta itemprop="name" content="probe">
+            <div itemprop="implementation" itemscope itemtype="https://pagelove.org/JavaScript/Module">
+            <script itemprop="source" type="module">
+            const S = (...a) => a.map(String).join('|');
+            const H = (x) => String(x).replace(/[<>"]/g, (c) => ({ '<': '[', '>': ']', '"': "'" })[c]);
+            const tryName = (f) => { try { f(); return 'ok'; } catch (e) { return e.name + ':' + e.code; } };
+            export default function () {
+            const d = new DOMParser().parseFromString('<input id="i1"><input id="i2" type="BOGUS"><input id="i3" type="Email"><form id="f1"></form><form id="f2" method="POST" enctype="bogus"></form><button></button><img><track><track id="t2" kind="bogus"><table><tr><td></td></tr></table><textarea></textarea><a referrerpolicy="bogus"></a><iframe loading="LAZY"></iframe><img id="im2" decoding="sync">', 'text/html');
+            const q = (s) => d.querySelector(s);
+            return 'R:' + S(q('#i1').type, q('#i2').type, q('#i3').type, q('#f1').method, q('#f2').method, q('#f2').enctype, q('button').type, q('img').loading, q('img').decoding, q('track').kind, q('#t2').kind, q('td').scope, q('textarea').wrap, q('a').referrerPolicy, q('iframe').loading, q('#im2').decoding);
+            }
+            </script>
+            </div>
+            </li>
+            </ul>
+            </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "GET <main>: the method result is inserted as text"
+        as: "anonymous"
+        request:
+          method: "GET"
+          path: "${P}/probe.html"
+          headers:
+            Range: "selector=main"
+        expect:
+          status: 206
+          body_contains: ["R:text|text|email|get|post|application/x-www-form-urlencoded|submit|eager|auto|subtitles|metadata||soft||lazy|sync"]
+  - id: "javascript.dom.reflect-htmlelement-globals"
+    title: "HTMLElement reflects dir, inputMode, enterKeyHint and autocapitalize (with its off/on synonyms)"
+    feature: "DOM reflected attributes"
+    source: "docs languages/javascript/server/dom/element/HTMLElement §Reflected properties (snapshot 2026-09-28)"
+    confidence: "high"
+    live: true
+    notes: "spec: R-JS-79."
+    steps:
+      - name: "PUT the page (public plane; registers inline declarations)"
+        as: "anonymous"
+        request:
+          method: "PUT"
+          path: "${P}/probe.html"
+          headers:
+            Content-Type: "text/html"
+          body: |
+            <!DOCTYPE html>
+            <html xmlns:t="https://pagelike.test${P}/Dreflecthtmlelementglobal"><body>
+            <main>
+            <t:probe></t:probe>
+            </main>
+            <div hidden itemscope itemtype="https://pagelove.org/Schema">
+            <meta itemprop="type" content="https://pagelike.test${P}/Dreflecthtmlelementglobal">
+            <ul>
+            <li itemprop="property" itemscope itemtype="https://pagelove.org/Method">
+            <meta itemprop="name" content="probe">
+            <div itemprop="implementation" itemscope itemtype="https://pagelove.org/JavaScript/Module">
+            <script itemprop="source" type="module">
+            const S = (...a) => a.map(String).join('|');
+            const H = (x) => String(x).replace(/[<>"]/g, (c) => ({ '<': '[', '>': ']', '"': "'" })[c]);
+            const tryName = (f) => { try { f(); return 'ok'; } catch (e) { return e.name + ':' + e.code; } };
+            export default function () {
+            const d = new DOMParser().parseFromString('<p id="a"></p><p id="b" dir="RTL" inputmode="bogus" enterkeyhint="go" autocapitalize="off"></p><p id="c" autocapitalize="on"></p><p id="e" autocapitalize=""></p><p id="f" autocapitalize="bogus"></p>', 'text/html');
+            const q = (s) => d.querySelector(s);
+            return 'R:' + S(q('#a').dir, q('#a').inputMode, q('#a').enterKeyHint, q('#a').autocapitalize, q('#b').dir, q('#b').inputMode, q('#b').enterKeyHint, q('#b').autocapitalize, q('#c').autocapitalize, q('#e').autocapitalize, q('#f').autocapitalize);
+            }
+            </script>
+            </div>
+            </li>
+            </ul>
+            </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "GET <main>: the method result is inserted as text"
+        as: "anonymous"
+        request:
+          method: "GET"
+          path: "${P}/probe.html"
+          headers:
+            Range: "selector=main"
+        expect:
+          status: 206
+          body_contains: ["R:||||rtl||go|none|sentences||sentences"]
+  - id: "javascript.dom.crossorigin-nullable-enum"
+    title: "crossOrigin is a nullable enum: missing is null, any other value but use-credentials is anonymous, null removes"
+    feature: "DOM reflected attributes"
+    source: "docs languages/javascript/server/dom/element §Reflected properties: shared semantics; HTMLImageElement, HTMLScriptElement pages (snapshot 2026-09-28)"
+    confidence: "high"
+    live: true
+    notes: "spec: R-JS-78. The markup string writes the inner script end tag as <\\/script>: a literal one would end the module's own <script> element (HTML raw-text rule)."
+    steps:
+      - name: "PUT the page (public plane; registers inline declarations)"
+        as: "anonymous"
+        request:
+          method: "PUT"
+          path: "${P}/probe.html"
+          headers:
+            Content-Type: "text/html"
+          body: |
+            <!DOCTYPE html>
+            <html xmlns:t="https://pagelike.test${P}/Dcrossoriginnullableenum"><body>
+            <main>
+            <t:probe></t:probe>
+            </main>
+            <div hidden itemscope itemtype="https://pagelove.org/Schema">
+            <meta itemprop="type" content="https://pagelike.test${P}/Dcrossoriginnullableenum">
+            <ul>
+            <li itemprop="property" itemscope itemtype="https://pagelove.org/Method">
+            <meta itemprop="name" content="probe">
+            <div itemprop="implementation" itemscope itemtype="https://pagelove.org/JavaScript/Module">
+            <script itemprop="source" type="module">
+            const S = (...a) => a.map(String).join('|');
+            const H = (x) => String(x).replace(/[<>"]/g, (c) => ({ '<': '[', '>': ']', '"': "'" })[c]);
+            const tryName = (f) => { try { f(); return 'ok'; } catch (e) { return e.name + ':' + e.code; } };
+            export default function () {
+            const d = new DOMParser().parseFromString('<img id="a"><img id="b" crossorigin><img id="c" crossorigin="USE-CREDENTIALS"><img id="e" crossorigin="bogus"><script id="s" crossorigin="anonymous"><\/script>', 'text/html');
+            const q = (s) => d.querySelector(s);
+            const before = S(q('#a').crossOrigin, q('#b').crossOrigin, q('#c').crossOrigin, q('#e').crossOrigin, q('#s').crossOrigin);
+            q('#e').crossOrigin = null;
+            return 'R:' + before + '|' + S(q('#e').hasAttribute('crossorigin'));
+            }
+            </script>
+            </div>
+            </li>
+            </ul>
+            </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "GET <main>: the method result is inserted as text"
+        as: "anonymous"
+        request:
+          method: "GET"
+          path: "${P}/probe.html"
+          headers:
+            Range: "selector=main"
+        expect:
+          status: 206
+          body_contains: ["R:null|anonymous|use-credentials|anonymous|anonymous|false"]
+  - id: "javascript.dom.content-editable"
+    title: "contentEditable uses a bespoke accessor; isContentEditable walks ancestors; invalid values throw SyntaxError"
+    feature: "DOM reflected attributes"
+    source: "docs languages/javascript/server/dom/element/HTMLElement §Reflected properties (contentEditable, isContentEditable) (snapshot 2026-09-28)"
+    confidence: "medium"
+    live: true
+    notes: "spec: R-JS-79. That the setter writes the lower-cased keyword is a pagelike decision."
+    steps:
+      - name: "PUT the page (public plane; registers inline declarations)"
+        as: "anonymous"
+        request:
+          method: "PUT"
+          path: "${P}/probe.html"
+          headers:
+            Content-Type: "text/html"
+          body: |
+            <!DOCTYPE html>
+            <html xmlns:t="https://pagelike.test${P}/Dcontenteditable"><body>
+            <main>
+            <t:probe></t:probe>
+            </main>
+            <div hidden itemscope itemtype="https://pagelove.org/Schema">
+            <meta itemprop="type" content="https://pagelike.test${P}/Dcontenteditable">
+            <ul>
+            <li itemprop="property" itemscope itemtype="https://pagelove.org/Method">
+            <meta itemprop="name" content="probe">
+            <div itemprop="implementation" itemscope itemtype="https://pagelove.org/JavaScript/Module">
+            <script itemprop="source" type="module">
+            const S = (...a) => a.map(String).join('|');
+            const H = (x) => String(x).replace(/[<>"]/g, (c) => ({ '<': '[', '>': ']', '"': "'" })[c]);
+            const tryName = (f) => { try { f(); return 'ok'; } catch (e) { return e.name + ':' + e.code; } };
+            export default function () {
+            const d = new DOMParser().parseFromString('<div id="a"></div><div id="b" contenteditable><p id="bp">x</p></div><div id="c" contenteditable="FALSE"><p id="cp">y</p></div><div id="e" contenteditable="plaintext-only"></div><div id="f" contenteditable="bogus"></div>', 'text/html');
+            const q = (s) => d.querySelector(s);
+            const g = S(q('#a').contentEditable, q('#b').contentEditable, q('#c').contentEditable, q('#e').contentEditable, q('#f').contentEditable, q('#bp').isContentEditable, q('#cp').isContentEditable, q('#a').isContentEditable);
+            const a = q('#a');
+            a.contentEditable = 'TRUE'; const s1 = a.getAttribute('contenteditable');
+            a.contentEditable = 'inherit'; const s2 = a.hasAttribute('contenteditable');
+            let s3 = 'no-throw'; try { a.contentEditable = 'bogus'; } catch (e) { s3 = e.name; }
+            return 'R:' + g + '|' + S(s1, s2, s3);
+            }
+            </script>
+            </div>
+            </li>
+            </ul>
+            </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "GET <main>: the method result is inserted as text"
+        as: "anonymous"
+        request:
+          method: "GET"
+          path: "${P}/probe.html"
+          headers:
+            Range: "selector=main"
+        expect:
+          status: 206
+          body_contains: ["R:inherit|true|false|plaintext-only|inherit|true|false|false|true|false|SyntaxError"]
+  - id: "javascript.dom.textarea-value-reflects-attribute"
+    title: "textarea.value reflects the content attribute (DOM divergence list)"
+    feature: "DOM reflected attributes"
+    source: "docs languages/javascript/server/dom §Divergences from the browser DOM; docs languages/javascript/server/dom/element §Reflected properties: shared semantics (snapshot 2026-09-28)"
+    confidence: "low"
+    live: true
+    notes: "spec: R-JS-78; contradiction C-JS-14 (the HTMLTextAreaElement page lists no value)."
+    steps:
+      - name: "PUT the page (public plane; registers inline declarations)"
+        as: "anonymous"
+        request:
+          method: "PUT"
+          path: "${P}/probe.html"
+          headers:
+            Content-Type: "text/html"
+          body: |
+            <!DOCTYPE html>
+            <html xmlns:t="https://pagelike.test${P}/Dtextareavaluereflectsatt"><body>
+            <main>
+            <t:probe></t:probe>
+            </main>
+            <div hidden itemscope itemtype="https://pagelove.org/Schema">
+            <meta itemprop="type" content="https://pagelike.test${P}/Dtextareavaluereflectsatt">
+            <ul>
+            <li itemprop="property" itemscope itemtype="https://pagelove.org/Method">
+            <meta itemprop="name" content="probe">
+            <div itemprop="implementation" itemscope itemtype="https://pagelove.org/JavaScript/Module">
+            <script itemprop="source" type="module">
+            const S = (...a) => a.map(String).join('|');
+            const H = (x) => String(x).replace(/[<>"]/g, (c) => ({ '<': '[', '>': ']', '"': "'" })[c]);
+            const tryName = (f) => { try { f(); return 'ok'; } catch (e) { return e.name + ':' + e.code; } };
+            export default function () {
+            const d = new DOMParser().parseFromString('<textarea value="tv">body</textarea>', 'text/html');
+            return 'R:' + S(d.querySelector('textarea').value);
+            }
+            </script>
+            </div>
+            </li>
+            </ul>
+            </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "GET <main>: the method result is inserted as text"
+        as: "anonymous"
+        request:
+          method: "GET"
+          path: "${P}/probe.html"
+          headers:
+            Range: "selector=main"
+        expect:
+          status: 206
+          body_contains: ["R:tv"]
+  - id: "javascript.dom.textarea-value-absent"
+    title: "HTMLTextAreaElement page claim: textarea has no value property"
+    feature: "DOM reflected attributes"
+    source: "docs languages/javascript/server/dom/element/HTMLTextAreaElement §Reflected properties (snapshot 2026-09-28)"
+    confidence: "low"
+    live: true
+    status: "disputed"
+    notes: "Losing claim of C-JS-14."
+    steps:
+      - name: "PUT the page (public plane; registers inline declarations)"
+        as: "anonymous"
+        request:
+          method: "PUT"
+          path: "${P}/probe.html"
+          headers:
+            Content-Type: "text/html"
+          body: |
+            <!DOCTYPE html>
+            <html xmlns:t="https://pagelike.test${P}/DTextareaAbsent"><body>
+            <main>
+            <t:probe></t:probe>
+            </main>
+            <div hidden itemscope itemtype="https://pagelove.org/Schema">
+            <meta itemprop="type" content="https://pagelike.test${P}/DTextareaAbsent">
+            <ul>
+            <li itemprop="property" itemscope itemtype="https://pagelove.org/Method">
+            <meta itemprop="name" content="probe">
+            <div itemprop="implementation" itemscope itemtype="https://pagelove.org/JavaScript/Module">
+            <script itemprop="source" type="module">
+            const S = (...a) => a.map(String).join('|');
+            const H = (x) => String(x).replace(/[<>"]/g, (c) => ({ '<': '[', '>': ']', '"': "'" })[c]);
+            const tryName = (f) => { try { f(); return 'ok'; } catch (e) { return e.name + ':' + e.code; } };
+            export default function () {
+            const d = new DOMParser().parseFromString('<textarea value="tv">body</textarea>', 'text/html');
+            return 'R:' + S(typeof d.querySelector('textarea').value);
+            }
+            </script>
+            </div>
+            </li>
+            </ul>
+            </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "GET <main>: the method result is inserted as text"
+        as: "anonymous"
+        request:
+          method: "GET"
+          path: "${P}/probe.html"
+          headers:
+            Range: "selector=main"
+        expect:
+          status: 206
+          body_contains: ["R:undefined"]
+  - id: "javascript.dom.classlist"
+    title: "classList is a live DOMTokenList over class that keeps duplicate tokens; emptying it removes the class attribute"
+    feature: "DOM classList"
+    evidence: "live-observed"
+    source: "harness/observations/live-2026-09-29/javascript-dom-classlist.json and harness/observations/live-2026-09-29-reconcile-javascript/javascript-dom-classlist.json; docs languages/javascript/server/dom/element §classList (snapshot 2026-09-28)"
+    confidence: "high"
+    live: true
+    notes: >-
+      spec: R-JS-70 as reconciled with live PageLove on 2026-09-29 (docs/compat/decisions-2026-09-29/javascript.md, adopt-live): tokens are
+      not de-duplicated ("a b a" has length 3; add keeps the copies; replace changes the first copy
+      only), and item() out of range is undefined. Attribute removal on empty is a documented
+      divergence, confirmed live.
+    steps:
+      - name: "PUT the page (public plane; registers inline declarations)"
+        as: "anonymous"
+        request:
+          method: "PUT"
+          path: "${P}/probe.html"
+          headers:
+            Content-Type: "text/html"
+          body: |
+            <!DOCTYPE html>
+            <html xmlns:t="https://pagelike.test${P}/Dclasslist"><body>
+            <main>
+            <t:probe></t:probe>
+            </main>
+            <div hidden itemscope itemtype="https://pagelove.org/Schema">
+            <meta itemprop="type" content="https://pagelike.test${P}/Dclasslist">
+            <ul>
+            <li itemprop="property" itemscope itemtype="https://pagelove.org/Method">
+            <meta itemprop="name" content="probe">
+            <div itemprop="implementation" itemscope itemtype="https://pagelove.org/JavaScript/Module">
+            <script itemprop="source" type="module">
+            const S = (...a) => a.map(String).join('|');
+            const H = (x) => String(x).replace(/[<>"]/g, (c) => ({ '<': '[', '>': ']', '"': "'" })[c]);
+            const tryName = (f) => { try { f(); return 'ok'; } catch (e) { return e.name + ':' + e.code; } };
+            export default function () {
+            const d = new DOMParser().parseFromString('<p class="a b a"></p>', 'text/html');
+            const p = d.querySelector('p'), cl = p.classList;
+            const out = [cl.length, cl.contains('a'), cl.value];
+            cl.add('c', 'a'); out.push(p.getAttribute('class'));
+            out.push(cl.toggle('b')); out.push(cl.toggle('z', false)); out.push(cl.toggle('z', true)); out.push(p.className);
+            out.push(cl.replace('a', 'x')); out.push(cl.replace('nope', 'y')); out.push(p.className);
+            out.push(cl.item(0), cl.item(-1), cl.item(99), [...cl].join(','));
+            cl.remove('x', 'c', 'z'); out.push(p.hasAttribute('class'), cl.length);
+            cl.value = 'm n'; out.push(p.className);
+            return 'R:' + S(...out);
+            }
+            </script>
+            </div>
+            </li>
+            </ul>
+            </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "GET <main>: the method result is inserted as text"
+        as: "anonymous"
+        request:
+          method: "GET"
+          path: "${P}/probe.html"
+          headers:
+            Range: "selector=main"
+        expect:
+          status: 206
+          body_contains: ["R:3|true|a b a|a b a c|false|false|true|a a c z|true|false|x a c z|x|undefined|undefined|x,a,c,z|true|1|m n"]
+  - id: "javascript.dom.nodelist-static-snapshot"
+    title: "Query results, children and childNodes are static NodeList snapshots with length, item() and iteration"
+    feature: "DOM NodeList"
+    source: "docs languages/javascript/server/dom/nodelist §Members; docs languages/javascript/server/dom/element §Element traversal (snapshot 2026-09-28)"
+    confidence: "high"
+    live: true
+    notes: "spec: R-JS-72."
+    steps:
+      - name: "PUT the page (public plane; registers inline declarations)"
+        as: "anonymous"
+        request:
+          method: "PUT"
+          path: "${P}/probe.html"
+          headers:
+            Content-Type: "text/html"
+          body: |
+            <!DOCTYPE html>
+            <html xmlns:t="https://pagelike.test${P}/Dnodeliststaticsnapshot"><body>
+            <main>
+            <t:probe></t:probe>
+            </main>
+            <div hidden itemscope itemtype="https://pagelove.org/Schema">
+            <meta itemprop="type" content="https://pagelike.test${P}/Dnodeliststaticsnapshot">
+            <ul>
+            <li itemprop="property" itemscope itemtype="https://pagelove.org/Method">
+            <meta itemprop="name" content="probe">
+            <div itemprop="implementation" itemscope itemtype="https://pagelove.org/JavaScript/Module">
+            <script itemprop="source" type="module">
+            const S = (...a) => a.map(String).join('|');
+            const H = (x) => String(x).replace(/[<>"]/g, (c) => ({ '<': '[', '>': ']', '"': "'" })[c]);
+            const tryName = (f) => { try { f(); return 'ok'; } catch (e) { return e.name + ':' + e.code; } };
+            export default function () {
+            const d = new DOMParser().parseFromString('<ul><li>1</li><li>2</li></ul>', 'text/html');
+            const ul = d.querySelector('ul'); const lis = d.querySelectorAll('li'); const kids = ul.children; const nodes = ul.childNodes;
+            ul.removeChild(ul.firstElementChild);
+            return 'R:' + S(lis.length, kids.length, nodes.length, ul.children.length, d.querySelectorAll('li').length, lis.item(0).textContent, lis.item(-1), lis.item(5), Array.from(lis, (x) => x.textContent).join(','), [...kids].length);
+            }
+            </script>
+            </div>
+            </li>
+            </ul>
+            </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "GET <main>: the method result is inserted as text"
+        as: "anonymous"
+        request:
+          method: "GET"
+          path: "${P}/probe.html"
+          headers:
+            Range: "selector=main"
+        expect:
+          status: 206
+          body_contains: ["R:2|2|2|1|1|1|null|null|1,2|2"]
+  - id: "javascript.dom.mutation-errors"
+    title: "Tree and selector errors are DOMExceptions with the standard names and codes"
+    feature: "DOM errors"
+    source: "docs languages/javascript/server/dom §Errors; docs languages/javascript/server/dom/node §Tree mutation; docs languages/javascript/server/dom/element §closest, §matches (snapshot 2026-09-28)"
+    confidence: "high"
+    live: true
+    notes: "spec: R-JS-66, R-JS-71, R-JS-73, R-JS-77."
+    steps:
+      - name: "PUT the page (public plane; registers inline declarations)"
+        as: "anonymous"
+        request:
+          method: "PUT"
+          path: "${P}/probe.html"
+          headers:
+            Content-Type: "text/html"
+          body: |
+            <!DOCTYPE html>
+            <html xmlns:t="https://pagelike.test${P}/Dmutationerrors"><body>
+            <main>
+            <t:probe></t:probe>
+            </main>
+            <div hidden itemscope itemtype="https://pagelove.org/Schema">
+            <meta itemprop="type" content="https://pagelike.test${P}/Dmutationerrors">
+            <ul>
+            <li itemprop="property" itemscope itemtype="https://pagelove.org/Method">
+            <meta itemprop="name" content="probe">
+            <div itemprop="implementation" itemscope itemtype="https://pagelove.org/JavaScript/Module">
+            <script itemprop="source" type="module">
+            const S = (...a) => a.map(String).join('|');
+            const H = (x) => String(x).replace(/[<>"]/g, (c) => ({ '<': '[', '>': ']', '"': "'" })[c]);
+            const tryName = (f) => { try { f(); return 'ok'; } catch (e) { return e.name + ':' + e.code; } };
+            export default function () {
+            const d = new DOMParser().parseFromString('<div id="o"><div id="i"></div></div><p id="x"></p>', 'text/html');
+            const o = d.querySelector('#o'), i = d.querySelector('#i'), x = d.querySelector('#x');
+            const r = (f) => { try { f(); return 'ok'; } catch (e) { return e.name + ':' + e.code + ':' + (e instanceof DOMException); } };
+            return 'R:' + S(r(() => o.appendChild(o)), r(() => i.appendChild(o)), r(() => o.removeChild(x)), r(() => o.insertBefore(d.createElement('b'), x)), r(() => o.replaceChild(d.createElement('b'), x)), r(() => d.querySelector('p[')), r(() => o.matches('div[')), r(() => o.closest('div[')));
+            }
+            </script>
+            </div>
+            </li>
+            </ul>
+            </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "GET <main>: the method result is inserted as text"
+        as: "anonymous"
+        request:
+          method: "GET"
+          path: "${P}/probe.html"
+          headers:
+            Range: "selector=main"
+        expect:
+          status: 206
+          body_contains: ["R:HierarchyRequestError:3:true|HierarchyRequestError:3:true|NotFoundError:8:true|NotFoundError:8:true|NotFoundError:8:true|SyntaxError:12:true|SyntaxError:12:true|SyntaxError:12:true"]
+  - id: "javascript.dom.tree-operations"
+    title: "appendChild/insertBefore/removeChild/replaceChild/cloneNode/contains, fragments and textContent behave as documented"
+    feature: "DOM Node"
+    source: "docs languages/javascript/server/dom/node §Traversal, §Character data, §Tree mutation; docs languages/javascript/server/dom/document §createDocumentFragment (snapshot 2026-09-28); harness/observations/live-2026-09-29-reconcile-javascript/javascript-dom-tree-operations.json"
+    confidence: "high"
+    live: true
+    notes: >-
+      spec: R-JS-65, R-JS-66, R-JS-71. Reworked on 2026-09-29 (docs/compat/decisions-2026-09-29/javascript.md, harness artifact): the parsed
+      markup has its own root (div#root), because the case used to read l.parentElement of a
+      top-level parsed element, which is null on PageLove (R-JS-74); and it reads
+      l.ownerDocument.nodeType instead of comparing l.ownerDocument === d, because node identity is
+      a separate divergence (javascript.dom.node-identity, keep-standard).
+    steps:
+      - name: "PUT the page (public plane; registers inline declarations)"
+        as: "anonymous"
+        request:
+          method: "PUT"
+          path: "${P}/probe.html"
+          headers:
+            Content-Type: "text/html"
+          body: |
+            <!DOCTYPE html>
+            <html xmlns:t="https://pagelike.test${P}/Dtreeoperations"><body>
+            <main>
+            <t:probe></t:probe>
+            </main>
+            <div hidden itemscope itemtype="https://pagelove.org/Schema">
+            <meta itemprop="type" content="https://pagelike.test${P}/Dtreeoperations">
+            <ul>
+            <li itemprop="property" itemscope itemtype="https://pagelove.org/Method">
+            <meta itemprop="name" content="probe">
+            <div itemprop="implementation" itemscope itemtype="https://pagelove.org/JavaScript/Module">
+            <script itemprop="source" type="module">
+            const S = (...a) => a.map(String).join('|');
+            const H = (x) => String(x).replace(/[<>"]/g, (c) => ({ '<': '[', '>': ']', '"': "'" })[c]);
+            const tryName = (f) => { try { f(); return 'ok'; } catch (e) { return e.name + ':' + e.code; } };
+            export default function () {
+            const d = new DOMParser().parseFromString('<div id="root"><ul id="l"><li>a</li><li>b</li></ul></div>', 'text/html');
+            const l = d.querySelector('#l');
+            const n = d.createElement('li'); n.textContent = 'top';
+            const r1 = l.insertBefore(n, l.firstChild) === n;
+            const tail = d.createElement('li'); tail.textContent = 'tail';
+            l.insertBefore(tail, null);
+            const removed = l.removeChild(l.lastChild);
+            const r2 = removed.parentNode === null && removed.textContent === 'tail';
+            const repl = d.createElement('li'); repl.textContent = 'B';
+            const old = l.replaceChild(repl, l.children.item(2));
+            const frag = d.createDocumentFragment(); ['x', 'y'].forEach((t) => { const e = d.createElement('li'); e.textContent = t; frag.appendChild(e); });
+            l.appendChild(frag);
+            const shallow = l.cloneNode(); const deep = l.cloneNode(true);
+            const other = new DOMParser().parseFromString('<p>q</p>', 'text/html');
+            const box = d.createElement('div'); box.textContent = 'z'; box.textContent = '';
+            return 'R:' + S(r1, r2, old.textContent, frag.childNodes.length, Array.from(l.children, (e) => e.textContent).join(','), shallow.hasChildNodes(), deep.children.length, l.contains(l.firstChild), l.contains(other.querySelector('p')), box.hasChildNodes(), d.ownerDocument, l.ownerDocument.nodeType, l.firstElementChild.textContent, l.childElementCount, l.lastElementChild.previousElementSibling.textContent, l.parentElement.tagName);
+            }
+            </script>
+            </div>
+            </li>
+            </ul>
+            </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "GET <main>: the method result is inserted as text"
+        as: "anonymous"
+        request:
+          method: "GET"
+          path: "${P}/probe.html"
+          headers:
+            Range: "selector=main"
+        expect:
+          status: 206
+          body_contains: ["R:true|true|b|0|top,a,B,x,y|false|5|true|false|false|null|9|top|5|x|DIV"]
+  - id: "javascript.dom.adoption-deep-copies"
+    title: "Appending a node from another document adopts a deep copy; the original stays in its document"
+    feature: "DOM Node"
+    source: "docs languages/javascript/server/dom/node §Tree mutation ('A node from another document is adopted (deep-copied)') (snapshot 2026-09-28)"
+    confidence: "low"
+    live: true
+    notes: "spec: R-JS-66 (a divergence from browsers, which move the node)."
+    steps:
+      - name: "PUT the page (public plane; registers inline declarations)"
+        as: "anonymous"
+        request:
+          method: "PUT"
+          path: "${P}/probe.html"
+          headers:
+            Content-Type: "text/html"
+          body: |
+            <!DOCTYPE html>
+            <html xmlns:t="https://pagelike.test${P}/Dadoptiondeepcopies"><body>
+            <main>
+            <t:probe></t:probe>
+            </main>
+            <div hidden itemscope itemtype="https://pagelove.org/Schema">
+            <meta itemprop="type" content="https://pagelike.test${P}/Dadoptiondeepcopies">
+            <ul>
+            <li itemprop="property" itemscope itemtype="https://pagelove.org/Method">
+            <meta itemprop="name" content="probe">
+            <div itemprop="implementation" itemscope itemtype="https://pagelove.org/JavaScript/Module">
+            <script itemprop="source" type="module">
+            const S = (...a) => a.map(String).join('|');
+            const H = (x) => String(x).replace(/[<>"]/g, (c) => ({ '<': '[', '>': ']', '"': "'" })[c]);
+            const tryName = (f) => { try { f(); return 'ok'; } catch (e) { return e.name + ':' + e.code; } };
+            export default function () {
+            const d1 = new DOMParser().parseFromString('<div id="t"></div>', 'text/html');
+            const d2 = new DOMParser().parseFromString('<span id="s">k</span>', 'text/html');
+            const s = d2.querySelector('#s');
+            d1.querySelector('#t').appendChild(s);
+            return 'R:' + S(d1.querySelectorAll('span').length, d2.querySelectorAll('span').length, d1.querySelector('span') === s);
+            }
+            </script>
+            </div>
+            </li>
+            </ul>
+            </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "GET <main>: the method result is inserted as text"
+        as: "anonymous"
+        request:
+          method: "GET"
+          path: "${P}/probe.html"
+          headers:
+            Range: "selector=main"
+        expect:
+          status: 206
+          body_contains: ["R:1|1|false"]
+  - id: "javascript.dom.inner-outer-adjacent-html"
+    title: "innerHTML/outerHTML get and set, insertAdjacentHTML positions (case-insensitive), and their error cases"
+    feature: "DOM Element content"
+    source: "docs languages/javascript/server/dom/element §Content (snapshot 2026-09-28); harness/observations/live-2026-09-29-reconcile-javascript/javascript-dom-inner-outer-adjacent-html.json"
+    confidence: "high"
+    live: true
+    notes: >-
+      spec: R-JS-69, R-JS-77. Reworked on 2026-09-29 (docs/compat/decisions-2026-09-29/javascript.md, harness artifact): the parsed markup has
+      its own root (div#root) and the sequence is read from it; the case used to read
+      d.body.children, and PageLove's DOMParser makes no body for markup that does not write one
+      (R-JS-74).
+    steps:
+      - name: "PUT the page (public plane; registers inline declarations)"
+        as: "anonymous"
+        request:
+          method: "PUT"
+          path: "${P}/probe.html"
+          headers:
+            Content-Type: "text/html"
+          body: |
+            <!DOCTYPE html>
+            <html xmlns:t="https://pagelike.test${P}/Dinnerouteradjacenthtml"><body>
+            <main>
+            <t:probe></t:probe>
+            </main>
+            <div hidden itemscope itemtype="https://pagelove.org/Schema">
+            <meta itemprop="type" content="https://pagelike.test${P}/Dinnerouteradjacenthtml">
+            <ul>
+            <li itemprop="property" itemscope itemtype="https://pagelove.org/Method">
+            <meta itemprop="name" content="probe">
+            <div itemprop="implementation" itemscope itemtype="https://pagelove.org/JavaScript/Module">
+            <script itemprop="source" type="module">
+            const S = (...a) => a.map(String).join('|');
+            const H = (x) => String(x).replace(/[<>"]/g, (c) => ({ '<': '[', '>': ']', '"': "'" })[c]);
+            const tryName = (f) => { try { f(); return 'ok'; } catch (e) { return e.name + ':' + e.code; } };
+            export default function () {
+            const d = new DOMParser().parseFromString('<div id="root"><section id="s"><p>Old</p></section><ul id="l"><li>1</li></ul></div>', 'text/html');
+            const s = d.querySelector('#s'), l = d.querySelector('#l');
+            const i1 = s.innerHTML; s.innerHTML = '<p>Loaded.</p>'; const i2 = s.innerHTML;
+            const o1 = l.outerHTML;
+            l.insertAdjacentHTML('beforeend', '<li>2</li>'); l.insertAdjacentHTML('AfterBegin', '<li>0</li>');
+            l.insertAdjacentHTML('beforebegin', '<hr>'); l.insertAdjacentHTML('afterend', '<br>');
+            const seq = Array.from(d.querySelector('#root').children, (e) => e.tagName).join(',');
+            const items = Array.from(l.children, (e) => e.textContent).join(',');
+            let bad = 'no-throw'; try { l.insertAdjacentHTML('middle', '<li>x</li>'); } catch (e) { bad = e.name; }
+            const det = d.createElement('div'); let nop = 'ok'; try { det.insertAdjacentHTML('beforebegin', '<i>x</i>'); } catch (e) { nop = e.name; }
+            let orphan = 'no-throw'; try { det.outerHTML = '<b>x</b>'; } catch (e) { orphan = e.name; }
+            d.querySelector('hr').outerHTML = '<span id="sp">S</span>';
+            return 'R:' + S(H(i1), H(i2), H(o1), seq, items, bad, nop, orphan, d.querySelector('#sp').textContent, d.querySelectorAll('hr').length);
+            }
+            </script>
+            </div>
+            </li>
+            </ul>
+            </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "GET <main>: the method result is inserted as text"
+        as: "anonymous"
+        request:
+          method: "GET"
+          path: "${P}/probe.html"
+          headers:
+            Range: "selector=main"
+        expect:
+          status: 206
+          body_contains: ["R:[p]Old[/p]|[p]Loaded.[/p]|[ul id='l'][li]1[/li][/ul]|SECTION,HR,UL,BR|0,1,2|SyntaxError|ok|NoModificationAllowedError|S|0"]
+  - id: "javascript.dom.insertion-conveniences"
+    title: "append/prepend/before/after/replaceWith/remove: strings become text nodes; sibling inserts are no-ops when detached"
+    feature: "DOM Element insertion"
+    source: "docs languages/javascript/server/dom/element §Insertion convenience (snapshot 2026-09-28)"
+    confidence: "high"
+    live: true
+    notes: "spec: R-JS-71."
+    steps:
+      - name: "PUT the page (public plane; registers inline declarations)"
+        as: "anonymous"
+        request:
+          method: "PUT"
+          path: "${P}/probe.html"
+          headers:
+            Content-Type: "text/html"
+          body: |
+            <!DOCTYPE html>
+            <html xmlns:t="https://pagelike.test${P}/Dinsertionconveniences"><body>
+            <main>
+            <t:probe></t:probe>
+            </main>
+            <div hidden itemscope itemtype="https://pagelove.org/Schema">
+            <meta itemprop="type" content="https://pagelike.test${P}/Dinsertionconveniences">
+            <ul>
+            <li itemprop="property" itemscope itemtype="https://pagelove.org/Method">
+            <meta itemprop="name" content="probe">
+            <div itemprop="implementation" itemscope itemtype="https://pagelove.org/JavaScript/Module">
+            <script itemprop="source" type="module">
+            const S = (...a) => a.map(String).join('|');
+            const H = (x) => String(x).replace(/[<>"]/g, (c) => ({ '<': '[', '>': ']', '"': "'" })[c]);
+            const tryName = (f) => { try { f(); return 'ok'; } catch (e) { return e.name + ':' + e.code; } };
+            export default function () {
+            const d = new DOMParser().parseFromString('<div id="b"><p id="m">m</p></div>', 'text/html');
+            const b = d.querySelector('#b'), m = d.querySelector('#m');
+            b.append('t1', d.createElement('hr')); b.prepend('t0');
+            m.before('B'); m.after('A');
+            const det = d.createElement('i'); det.before('x'); det.after('y'); det.replaceWith('z');
+            const old = d.createElement('em'); b.append(old); old.replaceWith('plain');
+            const gone = d.createElement('s'); b.append(gone); gone.remove();
+            return 'R:' + S(Array.from(b.childNodes, (n) => n.nodeType === 1 ? n.tagName : n.data).join(','), det.parentNode, gone.parentNode);
+            }
+            </script>
+            </div>
+            </li>
+            </ul>
+            </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "GET <main>: the method result is inserted as text"
+        as: "anonymous"
+        request:
+          method: "GET"
+          path: "${P}/probe.html"
+          headers:
+            Range: "selector=main"
+        expect:
+          status: 206
+          body_contains: ["R:t0,B,P,A,t1,HR,plain|null|null"]
+  - id: "javascript.dom.closest-and-matches"
+    title: "closest is inclusive and receiver-scoped; matches tests one element"
+    feature: "DOM Element traversal"
+    source: "docs languages/javascript/server/dom/element §closest, §matches (snapshot 2026-09-28); harness/observations/live-2026-09-29-reconcile-javascript/javascript-dom-closest-and-matches.json"
+    confidence: "high"
+    live: true
+    notes: >-
+      spec: R-JS-71. Reworked on 2026-09-29 (docs/compat/decisions-2026-09-29/javascript.md, harness artifact): inclusiveness is read as
+      b.closest('button').id; the case used to compare b.closest('button') === b, which is false on
+      PageLove although its closest is inclusive, because every node access there returns a new
+      object (javascript.dom.node-identity, keep-standard).
+    steps:
+      - name: "PUT the page (public plane; registers inline declarations)"
+        as: "anonymous"
+        request:
+          method: "PUT"
+          path: "${P}/probe.html"
+          headers:
+            Content-Type: "text/html"
+          body: |
+            <!DOCTYPE html>
+            <html xmlns:t="https://pagelike.test${P}/Dclosestandmatches"><body>
+            <main>
+            <t:probe></t:probe>
+            </main>
+            <div hidden itemscope itemtype="https://pagelove.org/Schema">
+            <meta itemprop="type" content="https://pagelike.test${P}/Dclosestandmatches">
+            <ul>
+            <li itemprop="property" itemscope itemtype="https://pagelove.org/Method">
+            <meta itemprop="name" content="probe">
+            <div itemprop="implementation" itemscope itemtype="https://pagelove.org/JavaScript/Module">
+            <script itemprop="source" type="module">
+            const S = (...a) => a.map(String).join('|');
+            const H = (x) => String(x).replace(/[<>"]/g, (c) => ({ '<': '[', '>': ']', '"': "'" })[c]);
+            const tryName = (f) => { try { f(); return 'ok'; } catch (e) { return e.name + ':' + e.code; } };
+            export default function () {
+            const d = new DOMParser().parseFromString('<form id="f"><div class="row"><button id="b">x</button></div></form><a href="https://e.com">e</a>', 'text/html');
+            const b = d.querySelector('#b');
+            return 'R:' + S(b.closest('form').id, b.closest('button').id, b.closest('table'), d.querySelector('a').matches("a[href^='https://']"), b.matches('.row > button'), b.matches('form > button'));
+            }
+            </script>
+            </div>
+            </li>
+            </ul>
+            </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "GET <main>: the method result is inserted as text"
+        as: "anonymous"
+        request:
+          method: "GET"
+          path: "${P}/probe.html"
+          headers:
+            Range: "selector=main"
+        expect:
+          status: 206
+          body_contains: ["R:f|b|null|true|true|false"]
+  - id: "javascript.dom.node-identity"
+    title: "The same node is the same object however it is reached (===, Set membership), and classList is one object per element"
+    feature: "DOM interfaces"
+    evidence: "inferred"
+    source: "WHATWG DOM (a node is one object); docs languages/javascript/server/dom §Interfaces and instanceof ('real classes'); live divergence: harness/observations/live-2026-09-29/javascript-dom-closest-and-matches.json, harness/observations/live-2026-09-29-reconcile-javascript/javascript-dom-node-identity-live.json"
+    confidence: "high"
+    live: true
+    notes: >-
+      spec: R-JS-64 (node identity). Live PageLove returns a new object for every node access, so
+      all but the appendChild comparison are false there; pagelike keeps node identity
+      (docs/compat/decisions-2026-09-29/javascript.md, keep-standard; sibling
+      javascript.dom.node-identity.live). Runs live as a record of the divergence, where it fails.
+    steps:
+      - name: "PUT the page (public plane; registers inline declarations)"
+        as: "anonymous"
+        request:
+          method: "PUT"
+          path: "${P}/probe.html"
+          headers:
+            Content-Type: "text/html"
+          body: |
+            <!DOCTYPE html>
+            <html xmlns:t="https://pagelike.test${P}/Dnodeidentity"><body>
+            <main>
+            <t:probe></t:probe>
+            </main>
+            <div hidden itemscope itemtype="https://pagelove.org/Schema">
+            <meta itemprop="type" content="https://pagelike.test${P}/Dnodeidentity">
+            <ul>
+            <li itemprop="property" itemscope itemtype="https://pagelove.org/Method">
+            <meta itemprop="name" content="probe">
+            <div itemprop="implementation" itemscope itemtype="https://pagelove.org/JavaScript/Module">
+            <script itemprop="source" type="module">
+            const S = (...a) => a.map(String).join('|');
+            export default function () {
+            const d = new DOMParser().parseFromString('<form id="f"><div class="row"><button id="b" class="k">x</button></div></form>', 'text/html');
+            const b = d.querySelector('#b'), n = d.createElement('i');
+            return 'R:' + S(b.closest('button') === b, d.querySelector('#b') === b, d.getElementById('b') === b, b.parentNode.firstChild === b, b.parentElement === b.parentNode, b.ownerDocument === d,
+              d.documentElement === d.firstChild, new Set([b, d.querySelector('#b')]).size, b.classList === b.classList, b.appendChild(n) === n, b.closest('button').id);
+            }
+            </script>
+            </div>
+            </li>
+            </ul>
+            </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "GET <main>: the method result is inserted as text"
+        as: "anonymous"
+        request:
+          method: "GET"
+          path: "${P}/probe.html"
+          headers:
+            Range: "selector=main"
+        expect:
+          status: 206
+          body_contains: ["R:true|true|true|true|true|true|true|1|true|true|b"]
+  - id: "javascript.dom.node-identity.live"
+    title: "Live PageLove: every node access returns a new object, so === between two reads of the same node is false"
+    feature: "DOM interfaces"
+    status: "live-divergence"
+    evidence: "live-observed"
+    source: "harness/observations/live-2026-09-29-reconcile-javascript/javascript-dom-node-identity-live.json; first seen in harness/observations/live-2026-09-29/javascript-dom-closest-and-matches.json, harness/observations/live-2026-09-29-reconcile-javascript/exploratory/javascript-dom-probe-0929-closest-identi.json and exploratory/javascript-dom-tree-operations.json"
+    confidence: "high"
+    live: true
+    notes: >-
+      Measures a deliberate divergence (docs/compat/decisions-2026-09-29/javascript.md, keep-standard:
+      node identity). A method's return value is the object it was given (appendChild(n) === n).
+      Runs only against --target live.
+    steps:
+      - name: "PUT the page (public plane; registers inline declarations)"
+        as: "anonymous"
+        request:
+          method: "PUT"
+          path: "${P}/probe.html"
+          headers:
+            Content-Type: "text/html"
+          body: |
+            <!DOCTYPE html>
+            <html xmlns:t="https://pagelike.test${P}/Dnodeidentity"><body>
+            <main>
+            <t:probe></t:probe>
+            </main>
+            <div hidden itemscope itemtype="https://pagelove.org/Schema">
+            <meta itemprop="type" content="https://pagelike.test${P}/Dnodeidentity">
+            <ul>
+            <li itemprop="property" itemscope itemtype="https://pagelove.org/Method">
+            <meta itemprop="name" content="probe">
+            <div itemprop="implementation" itemscope itemtype="https://pagelove.org/JavaScript/Module">
+            <script itemprop="source" type="module">
+            const S = (...a) => a.map(String).join('|');
+            export default function () {
+            const d = new DOMParser().parseFromString('<form id="f"><div class="row"><button id="b" class="k">x</button></div></form>', 'text/html');
+            const b = d.querySelector('#b'), n = d.createElement('i');
+            return 'R:' + S(b.closest('button') === b, d.querySelector('#b') === b, d.getElementById('b') === b, b.parentNode.firstChild === b, b.parentElement === b.parentNode, b.ownerDocument === d,
+              d.documentElement === d.firstChild, new Set([b, d.querySelector('#b')]).size, b.classList === b.classList, b.appendChild(n) === n, b.closest('button').id);
+            }
+            </script>
+            </div>
+            </li>
+            </ul>
+            </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "GET <main>: the method result is inserted as text"
+        as: "anonymous"
+        request:
+          method: "GET"
+          path: "${P}/probe.html"
+          headers:
+            Range: "selector=main"
+        expect:
+          status: 206
+          body_contains: ["R:false|false|false|false|false|false|false|2|false|true|b"]
+  - id: "javascript.dom.element-query-scans-whole-document"
+    title: "querySelector(All) on an element scans the whole document; getElementsByTagNameNS is receiver-scoped"
+    feature: "DOM divergences"
+    source: "docs languages/javascript/server/dom/document §querySelector, §getElementsByTagNameNS; docs languages/javascript/server/dom §Divergences (snapshot 2026-09-28)"
+    confidence: "high"
+    live: true
+    notes: "spec: R-JS-71, R-JS-80."
+    steps:
+      - name: "PUT the page (public plane; registers inline declarations)"
+        as: "anonymous"
+        request:
+          method: "PUT"
+          path: "${P}/probe.html"
+          headers:
+            Content-Type: "text/html"
+          body: |
+            <!DOCTYPE html>
+            <html xmlns:t="https://pagelike.test${P}/Delementqueryscanswholedo"><body>
+            <main>
+            <t:probe></t:probe>
+            </main>
+            <div hidden itemscope itemtype="https://pagelove.org/Schema">
+            <meta itemprop="type" content="https://pagelike.test${P}/Delementqueryscanswholedo">
+            <ul>
+            <li itemprop="property" itemscope itemtype="https://pagelove.org/Method">
+            <meta itemprop="name" content="probe">
+            <div itemprop="implementation" itemscope itemtype="https://pagelove.org/JavaScript/Module">
+            <script itemprop="source" type="module">
+            const S = (...a) => a.map(String).join('|');
+            const H = (x) => String(x).replace(/[<>"]/g, (c) => ({ '<': '[', '>': ']', '"': "'" })[c]);
+            const tryName = (f) => { try { f(); return 'ok'; } catch (e) { return e.name + ':' + e.code; } };
+            export default function () {
+            const d = new DOMParser().parseFromString('<ul id="a"><li>1</li></ul><ul id="b"><li>2</li><li>3</li></ul>', 'text/html');
+            const b = d.getElementById('b');
+            return 'R:' + S(b.querySelectorAll('li').length, b.querySelector('li').textContent, b.getElementsByTagNameNS('*', 'li').length, b.children.length, b.getElementsByTagNameNS('*', 'ul').length, d.getElementsByTagNameNS('*', 'ul').length);
+            }
+            </script>
+            </div>
+            </li>
+            </ul>
+            </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "GET <main>: the method result is inserted as text"
+        as: "anonymous"
+        request:
+          method: "GET"
+          path: "${P}/probe.html"
+          headers:
+            Range: "selector=main"
+        expect:
+          status: 206
+          body_contains: ["R:3|1|2|2|0|2"]
+  - id: "javascript.dom.get-element-by-id"
+    title: "getElementById matches the id literally and, on an element, searches its subtree"
+    feature: "DOM Document"
+    source: "docs languages/javascript/server/dom/document §getElementById; docs languages/javascript/server/dom §Divergences (snapshot 2026-09-28)"
+    confidence: "medium"
+    live: true
+    notes: "spec: R-JS-65, R-JS-71."
+    steps:
+      - name: "PUT the page (public plane; registers inline declarations)"
+        as: "anonymous"
+        request:
+          method: "PUT"
+          path: "${P}/probe.html"
+          headers:
+            Content-Type: "text/html"
+          body: |
+            <!DOCTYPE html>
+            <html xmlns:t="https://pagelike.test${P}/Dgetelementbyid"><body>
+            <main>
+            <t:probe></t:probe>
+            </main>
+            <div hidden itemscope itemtype="https://pagelove.org/Schema">
+            <meta itemprop="type" content="https://pagelike.test${P}/Dgetelementbyid">
+            <ul>
+            <li itemprop="property" itemscope itemtype="https://pagelove.org/Method">
+            <meta itemprop="name" content="probe">
+            <div itemprop="implementation" itemscope itemtype="https://pagelove.org/JavaScript/Module">
+            <script itemprop="source" type="module">
+            const S = (...a) => a.map(String).join('|');
+            const H = (x) => String(x).replace(/[<>"]/g, (c) => ({ '<': '[', '>': ']', '"': "'" })[c]);
+            const tryName = (f) => { try { f(); return 'ok'; } catch (e) { return e.name + ':' + e.code; } };
+            export default function () {
+            const d = new DOMParser().parseFromString('<p id="a.b:c[1]">L</p><div id="w"><span id="in">i</span></div><span id="out">o</span>', 'text/html');
+            const w = d.getElementById('w');
+            return 'R:' + S(d.getElementById('a.b:c[1]').textContent, d.getElementById('missing'), w.getElementById('in').textContent, w.getElementById('out'));
+            }
+            </script>
+            </div>
+            </li>
+            </ul>
+            </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "GET <main>: the method result is inserted as text"
+        as: "anonymous"
+        request:
+          method: "GET"
+          path: "${P}/probe.html"
+          headers:
+            Range: "selector=main"
+        expect:
+          status: 206
+          body_contains: ["R:L|null|i|null"]
+  - id: "javascript.dom.namespace-pipe-selectors"
+    title: "Namespace-pipe selectors: prefix|tag throws SyntaxError; *|tag is tag in any namespace; |tag is tag without a namespace"
+    feature: "DOM selectors"
+    evidence: "live-observed"
+    source: "harness/observations/live-2026-09-29/javascript-dom-namespace-pipe-selectors.json (*|p matched) and harness/observations/live-2026-09-29-reconcile-javascript/javascript-dom-namespace-pipe-selectors.json; docs languages/javascript/server/dom §Divergences (snapshot 2026-09-28) says *|tag matches nothing"
+    confidence: "high"
+    live: true
+    notes: >-
+      spec: R-JS-73 as reconciled with live PageLove on 2026-09-29 (docs/compat/decisions-2026-09-29/javascript.md, adopt-live). The svg
+      circle is made by createElementNS, so it has a namespace; every HTML-parsed element (the svg
+      g included) has none.
+    steps:
+      - name: "PUT the page (public plane; registers inline declarations)"
+        as: "anonymous"
+        request:
+          method: "PUT"
+          path: "${P}/probe.html"
+          headers:
+            Content-Type: "text/html"
+          body: |
+            <!DOCTYPE html>
+            <html xmlns:t="https://pagelike.test${P}/Dnamespacepipeselectors"><body>
+            <main>
+            <t:probe></t:probe>
+            </main>
+            <div hidden itemscope itemtype="https://pagelove.org/Schema">
+            <meta itemprop="type" content="https://pagelike.test${P}/Dnamespacepipeselectors">
+            <ul>
+            <li itemprop="property" itemscope itemtype="https://pagelove.org/Method">
+            <meta itemprop="name" content="probe">
+            <div itemprop="implementation" itemscope itemtype="https://pagelove.org/JavaScript/Module">
+            <script itemprop="source" type="module">
+            const S = (...a) => a.map(String).join('|');
+            const H = (x) => String(x).replace(/[<>"]/g, (c) => ({ '<': '[', '>': ']', '"': "'" })[c]);
+            const tryName = (f) => { try { f(); return 'ok'; } catch (e) { return e.name + ':' + e.code; } };
+            export default function () {
+            const d = new DOMParser().parseFromString('<div id="r"><p>x</p><div><p>y</p></div><svg><g></g></svg></div>', 'text/html');
+            d.querySelector('#r').appendChild(d.createElementNS('http://www.w3.org/2000/svg', 'circle'));
+            let e1 = 'no-throw'; try { d.querySelector('svg|g'); } catch (e) { e1 = e.name; }
+            const n = (sel) => { try { return d.querySelectorAll(sel).length; } catch (e) { return e.name; } };
+            const p = d.querySelector('p');
+            return 'R:' + S(e1, n('*|p'), n('p'), n('*|*'), n('*'), n('|p'), n('*|circle'), n('|circle'), n('|*'), n('[*|id]'), p.matches('*|p'), p.closest('*|div').id);
+            }
+            </script>
+            </div>
+            </li>
+            </ul>
+            </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "GET <main>: the method result is inserted as text"
+        as: "anonymous"
+        request:
+          method: "GET"
+          path: "${P}/probe.html"
+          headers:
+            Range: "selector=main"
+        expect:
+          status: 206
+          body_contains: ["R:SyntaxError|2|2|7|7|2|1|0|6|1|true|r"]
+  - id: "javascript.dom.character-data"
+    title: "Text and Comment expose data and length; element textContent ignores comments"
+    feature: "DOM CharacterData"
+    source: "docs languages/javascript/server/dom/node §textContent, §data / length (snapshot 2026-09-28)"
+    confidence: "high"
+    live: true
+    notes: "spec: R-JS-66, R-JS-67."
+    steps:
+      - name: "PUT the page (public plane; registers inline declarations)"
+        as: "anonymous"
+        request:
+          method: "PUT"
+          path: "${P}/probe.html"
+          headers:
+            Content-Type: "text/html"
+          body: |
+            <!DOCTYPE html>
+            <html xmlns:t="https://pagelike.test${P}/Dcharacterdata"><body>
+            <main>
+            <t:probe></t:probe>
+            </main>
+            <div hidden itemscope itemtype="https://pagelove.org/Schema">
+            <meta itemprop="type" content="https://pagelike.test${P}/Dcharacterdata">
+            <ul>
+            <li itemprop="property" itemscope itemtype="https://pagelove.org/Method">
+            <meta itemprop="name" content="probe">
+            <div itemprop="implementation" itemscope itemtype="https://pagelove.org/JavaScript/Module">
+            <script itemprop="source" type="module">
+            const S = (...a) => a.map(String).join('|');
+            const H = (x) => String(x).replace(/[<>"]/g, (c) => ({ '<': '[', '>': ']', '"': "'" })[c]);
+            const tryName = (f) => { try { f(); return 'ok'; } catch (e) { return e.name + ':' + e.code; } };
+            export default function () {
+            const d = new DOMParser().parseFromString('<p>t</p>', 'text/html');
+            const c = d.createComment('draft'); const t = d.createTextNode('héllo');
+            const r = [c.data, c.length, t.length, c.textContent];
+            c.data = 'final'; r.push(c.data, c.length);
+            const p = d.querySelector('p'); p.appendChild(c); r.push(p.textContent);
+            return 'R:' + S(...r);
+            }
+            </script>
+            </div>
+            </li>
+            </ul>
+            </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "GET <main>: the method result is inserted as text"
+        as: "anonymous"
+        request:
+          method: "GET"
+          path: "${P}/probe.html"
+          headers:
+            Range: "selector=main"
+        expect:
+          status: 206
+          body_contains: ["R:draft|5|5|draft|final|5|t"]
+  - id: "javascript.dom.character-data-length-code-points"
+    title: "CharacterData.length counts Unicode code points, not UTF-16 units"
+    feature: "DOM CharacterData"
+    source: "docs languages/javascript/server/dom/node §data / length ('its Unicode character count') (snapshot 2026-09-28)"
+    confidence: "low"
+    live: true
+    notes: "spec: R-JS-67 (divergence from browsers, where length is 3)."
+    steps:
+      - name: "PUT the page (public plane; registers inline declarations)"
+        as: "anonymous"
+        request:
+          method: "PUT"
+          path: "${P}/probe.html"
+          headers:
+            Content-Type: "text/html"
+          body: |
+            <!DOCTYPE html>
+            <html xmlns:t="https://pagelike.test${P}/Dcharacterdatalengthcodep"><body>
+            <main>
+            <t:probe></t:probe>
+            </main>
+            <div hidden itemscope itemtype="https://pagelove.org/Schema">
+            <meta itemprop="type" content="https://pagelike.test${P}/Dcharacterdatalengthcodep">
+            <ul>
+            <li itemprop="property" itemscope itemtype="https://pagelove.org/Method">
+            <meta itemprop="name" content="probe">
+            <div itemprop="implementation" itemscope itemtype="https://pagelove.org/JavaScript/Module">
+            <script itemprop="source" type="module">
+            const S = (...a) => a.map(String).join('|');
+            const H = (x) => String(x).replace(/[<>"]/g, (c) => ({ '<': '[', '>': ']', '"': "'" })[c]);
+            const tryName = (f) => { try { f(); return 'ok'; } catch (e) { return e.name + ':' + e.code; } };
+            export default function () {
+            const d = new DOMParser().parseFromString('', 'text/html');
+            const s = 'a\u{1F600}';
+            return 'R:' + S(d.createTextNode(s).length, s.length);
+            }
+            </script>
+            </div>
+            </li>
+            </ul>
+            </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "GET <main>: the method result is inserted as text"
+        as: "anonymous"
+        request:
+          method: "GET"
+          path: "${P}/probe.html"
+          headers:
+            Range: "selector=main"
+        expect:
+          status: 206
+          body_contains: ["R:2|3"]
+  - id: "javascript.dom.domparser-ignores-type"
+    title: "DOMParser.parseFromString ignores the MIME type and parses HTML, leaving out the html, head and body elements the markup does not write"
+    feature: "DOM parsing"
+    evidence: "live-observed"
+    source: "harness/observations/live-2026-09-29/javascript-dom-domparser-ignores-type.json (500: d.body was null) and harness/observations/live-2026-09-29-reconcile-javascript/javascript-dom-domparser-ignores-type.json; docs languages/javascript/server/dom/parsing §parseFromString (snapshot 2026-09-28)"
+    confidence: "high"
+    live: true
+    notes: >-
+      spec: R-JS-74 as reconciled with live PageLove on 2026-09-29 (docs/compat/decisions-2026-09-29/javascript.md, adopt-live). The type is
+      still ignored (tag names are HTML's), but the document holds only what the markup wrote: '<p>x</p>'
+      gives a document whose only child is the p (no head, no body). Until 2026-09-29 the case
+      read d.body.firstElementChild, which is a TypeError on PageLove. Probe:
+      javascript.dom.probe-0929.domparser-shape.
+    steps:
+      - name: "PUT the page (public plane; registers inline declarations)"
+        as: "anonymous"
+        request:
+          method: "PUT"
+          path: "${P}/probe.html"
+          headers:
+            Content-Type: "text/html"
+          body: |
+            <!DOCTYPE html>
+            <html xmlns:t="https://pagelike.test${P}/Ddomparserignorestype"><body>
+            <main>
+            <t:probe></t:probe>
+            </main>
+            <div hidden itemscope itemtype="https://pagelove.org/Schema">
+            <meta itemprop="type" content="https://pagelike.test${P}/Ddomparserignorestype">
+            <ul>
+            <li itemprop="property" itemscope itemtype="https://pagelove.org/Method">
+            <meta itemprop="name" content="probe">
+            <div itemprop="implementation" itemscope itemtype="https://pagelove.org/JavaScript/Module">
+            <script itemprop="source" type="module">
+            const S = (...a) => a.map(String).join('|');
+            const H = (x) => String(x).replace(/[<>"]/g, (c) => ({ '<': '[', '>': ']', '"': "'" })[c]);
+            const tryName = (f) => { try { f(); return 'ok'; } catch (e) { return e.name + ':' + e.code; } };
+            export default function () {
+            const P = new DOMParser(), xs = new XMLSerializer();
+            const d = P.parseFromString('<p>x</p>', 'application/xml');
+            const s = P.parseFromString('<svg><g/></svg>', 'image/svg+xml');
+            return 'R:' + S(d.documentElement.tagName, d.head, d.body, d.childNodes.length, d instanceof Document, H(xs.serializeToString(d)), s.documentElement.tagName, H(xs.serializeToString(s)));
+            }
+            </script>
+            </div>
+            </li>
+            </ul>
+            </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "GET <main>: the method result is inserted as text"
+        as: "anonymous"
+        request:
+          method: "GET"
+          path: "${P}/probe.html"
+          headers:
+            Range: "selector=main"
+        expect:
+          status: 206
+          body_contains: ["R:P|null|null|1|true|[p]x[/p]|SVG|[svg][g][/g][/svg]"]
+  - id: "javascript.dom.xmlserializer"
+    title: "XMLSerializer: elements serialize as outer HTML, fragments as their children, documents whole"
+    feature: "DOM parsing"
+    source: "docs languages/javascript/server/dom/parsing §serializeToString (snapshot 2026-09-28)"
+    confidence: "medium"
+    live: true
+    notes: "spec: R-JS-75. '<br>' (not '<br />') is the inferred HTML-serialization reading."
+    steps:
+      - name: "PUT the page (public plane; registers inline declarations)"
+        as: "anonymous"
+        request:
+          method: "PUT"
+          path: "${P}/probe.html"
+          headers:
+            Content-Type: "text/html"
+          body: |
+            <!DOCTYPE html>
+            <html xmlns:t="https://pagelike.test${P}/Dxmlserializer"><body>
+            <main>
+            <t:probe></t:probe>
+            </main>
+            <div hidden itemscope itemtype="https://pagelove.org/Schema">
+            <meta itemprop="type" content="https://pagelike.test${P}/Dxmlserializer">
+            <ul>
+            <li itemprop="property" itemscope itemtype="https://pagelove.org/Method">
+            <meta itemprop="name" content="probe">
+            <div itemprop="implementation" itemscope itemtype="https://pagelove.org/JavaScript/Module">
+            <script itemprop="source" type="module">
+            const S = (...a) => a.map(String).join('|');
+            const H = (x) => String(x).replace(/[<>"]/g, (c) => ({ '<': '[', '>': ']', '"': "'" })[c]);
+            const tryName = (f) => { try { f(); return 'ok'; } catch (e) { return e.name + ':' + e.code; } };
+            export default function () {
+            const d = new DOMParser().parseFromString('<!DOCTYPE html><p id="a">x</p>', 'text/html');
+            const xs = new XMLSerializer();
+            const f = d.createDocumentFragment(); f.appendChild(d.createElement('i')); f.appendChild(d.createTextNode('t'));
+            return 'R:' + S(H(xs.serializeToString(d.querySelector('p'))), H(xs.serializeToString(f)), H(xs.serializeToString(d.createElement('br'))), xs.serializeToString(d).includes('html'), xs.serializeToString(d.createComment('c')).length);
+            }
+            </script>
+            </div>
+            </li>
+            </ul>
+            </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "GET <main>: the method result is inserted as text"
+        as: "anonymous"
+        request:
+          method: "GET"
+          path: "${P}/probe.html"
+          headers:
+            Range: "selector=main"
+        expect:
+          status: 206
+          body_contains: ["R:[p id='a']x[/p]|[i][/i]t|[br]|true|8"]
+  - id: "javascript.dom.domexception"
+    title: "DOMException constructor defaults, legacy codes and the 'DOMException: name: message' toString"
+    feature: "DOM errors"
+    source: "docs languages/javascript/server/dom/dom-exception §Constructor, §Members, §toString, §Name and legacy code (snapshot 2026-09-28)"
+    confidence: "high"
+    live: true
+    notes: "spec: R-JS-76."
+    steps:
+      - name: "PUT the page (public plane; registers inline declarations)"
+        as: "anonymous"
+        request:
+          method: "PUT"
+          path: "${P}/probe.html"
+          headers:
+            Content-Type: "text/html"
+          body: |
+            <!DOCTYPE html>
+            <html xmlns:t="https://pagelike.test${P}/Ddomexception"><body>
+            <main>
+            <t:probe></t:probe>
+            </main>
+            <div hidden itemscope itemtype="https://pagelove.org/Schema">
+            <meta itemprop="type" content="https://pagelike.test${P}/Ddomexception">
+            <ul>
+            <li itemprop="property" itemscope itemtype="https://pagelove.org/Method">
+            <meta itemprop="name" content="probe">
+            <div itemprop="implementation" itemscope itemtype="https://pagelove.org/JavaScript/Module">
+            <script itemprop="source" type="module">
+            const S = (...a) => a.map(String).join('|');
+            const H = (x) => String(x).replace(/[<>"]/g, (c) => ({ '<': '[', '>': ']', '"': "'" })[c]);
+            const tryName = (f) => { try { f(); return 'ok'; } catch (e) { return e.name + ':' + e.code; } };
+            export default function () {
+            const a = new DOMException(); const b = new DOMException('m', 'NotFoundError'); const c = new DOMException('q', 'Custom');
+            return 'R:' + S(a.name, a.message === '', a.code, a.toString(), b.code, b.toString(), c.code, c.name, b instanceof DOMException, new DOMException('', 'IndexSizeError').code, new DOMException('', 'DataCloneError').code, new DOMException('', 'TimeoutError').code, new DOMException('', 'NamespaceError').code);
+            }
+            </script>
+            </div>
+            </li>
+            </ul>
+            </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "GET <main>: the method result is inserted as text"
+        as: "anonymous"
+        request:
+          method: "GET"
+          path: "${P}/probe.html"
+          headers:
+            Range: "selector=main"
+        expect:
+          status: 206
+          body_contains: ["R:Error|true|0|DOMException: Error|8|DOMException: NotFoundError: m|0|Custom|true|1|25|23|14"]
+  - id: "javascript.dom.readonly-boundary"
+    title: "Every path to a node of the read-only tree is guarded: mutations throw NoModificationAllowedError (code 7) and leave it unchanged"
+    feature: "DOM read-only boundary"
+    source: "docs languages/javascript/server/dom §Availability and the read-only boundary; docs languages/javascript/server/dom/dom-exception §toString (snapshot 2026-09-28)"
+    confidence: "high"
+    live: true
+    notes: "spec: R-JS-61."
+    steps:
+      - name: "PUT the page (public plane; registers inline declarations)"
+        as: "anonymous"
+        request:
+          method: "PUT"
+          path: "${P}/probe.html"
+          headers:
+            Content-Type: "text/html"
+          body: |
+            <!DOCTYPE html>
+            <html xmlns:t="https://pagelike.test${P}/Ro"><body>
+            <main>
+            <t:probe><p id="p1" class="c">keep</p><ul><li>i</li></ul></t:probe>
+            </main>
+            <div hidden itemscope itemtype="https://pagelove.org/Schema">
+            <meta itemprop="type" content="https://pagelike.test${P}/Ro">
+            <ul>
+            <li itemprop="property" itemscope itemtype="https://pagelove.org/Method">
+            <meta itemprop="name" content="probe">
+            <div itemprop="implementation" itemscope itemtype="https://pagelove.org/JavaScript/Module">
+            <script itemprop="source" type="module">
+            const S = (...a) => a.map(String).join('|');
+            const H = (x) => String(x).replace(/[<>"]/g, (c) => ({ '<': '[', '>': ']', '"': "'" })[c]);
+            const tryName = (f) => { try { f(); return 'ok'; } catch (e) { return e.name + ':' + e.code; } };
+            export default function () {
+            const p = document.querySelector('#p1');
+            return 'RO:' + [tryName(() => p.setAttribute('id', 'x')), tryName(() => { p.textContent = 'y'; }), tryName(() => p.classList.add('d')), tryName(() => p.parentNode.appendChild(document.createElement('b'))), tryName(() => document.querySelectorAll('li').item(0).remove()), tryName(() => { p.innerHTML = '<b>z</b>'; }), p.getAttribute('id'), p.textContent].join('|');
+            }
+            </script>
+            </div>
+            </li>
+            </ul>
+            </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "GET <main>: the method result is inserted as text"
+        as: "anonymous"
+        request:
+          method: "GET"
+          path: "${P}/probe.html"
+          headers:
+            Range: "selector=main"
+        expect:
+          status: 206
+          body_contains: ["RO:NoModificationAllowedError:7|NoModificationAllowedError:7|NoModificationAllowedError:7|NoModificationAllowedError:7|NoModificationAllowedError:7|NoModificationAllowedError:7|p1|keep"]
+  - id: "javascript.dom.readonly-error-message"
+    title: "The read-only error stringifies as 'DOMException: NoModificationAllowedError: document is read-only in this binding context'"
+    feature: "DOM read-only boundary"
+    source: "docs languages/javascript/server/dom/dom-exception §toString (example); docs languages/javascript/server/dom §Availability and the read-only boundary (snapshot 2026-09-28)"
+    confidence: "high"
+    live: true
+    notes: "spec: R-JS-61, R-JS-76."
+    steps:
+      - name: "PUT the page (public plane; registers inline declarations)"
+        as: "anonymous"
+        request:
+          method: "PUT"
+          path: "${P}/probe.html"
+          headers:
+            Content-Type: "text/html"
+          body: |
+            <!DOCTYPE html>
+            <html xmlns:t="https://pagelike.test${P}/RoMsg"><body>
+            <main>
+            <t:probe><p id="p1">keep</p></t:probe>
+            </main>
+            <div hidden itemscope itemtype="https://pagelove.org/Schema">
+            <meta itemprop="type" content="https://pagelike.test${P}/RoMsg">
+            <ul>
+            <li itemprop="property" itemscope itemtype="https://pagelove.org/Method">
+            <meta itemprop="name" content="probe">
+            <div itemprop="implementation" itemscope itemtype="https://pagelove.org/JavaScript/Module">
+            <script itemprop="source" type="module">
+            const S = (...a) => a.map(String).join('|');
+            const H = (x) => String(x).replace(/[<>"]/g, (c) => ({ '<': '[', '>': ']', '"': "'" })[c]);
+            const tryName = (f) => { try { f(); return 'ok'; } catch (e) { return e.name + ':' + e.code; } };
+            export default function () {
+            try { document.querySelector('#p1').setAttribute('id', 'x'); return 'MSG:none'; } catch (e) { return 'MSG:' + e.toString() + '|' + (e instanceof DOMException); }
+            }
+            </script>
+            </div>
+            </li>
+            </ul>
+            </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "GET <main>: the method result is inserted as text"
+        as: "anonymous"
+        request:
+          method: "GET"
+          path: "${P}/probe.html"
+          headers:
+            Range: "selector=main"
+        expect:
+          status: 206
+          body_contains: ["MSG:DOMException: NoModificationAllowedError: document is read-only in this binding context|true"]
+  - id: "javascript.dom.readonly-move-throws-clone-writable"
+    title: "Moving a read-only node into a constructed subtree throws; cloneNode(true) gives a writable copy"
+    feature: "DOM read-only boundary"
+    source: "docs languages/javascript/server/dom §Availability and the read-only boundary (snapshot 2026-09-28)"
+    confidence: "medium"
+    live: true
+    notes: "spec: R-JS-61, R-JS-62; depends on C-JS-10 (DNODE says cloneNode is rejected on a read-only document)."
+    steps:
+      - name: "PUT the page (public plane; registers inline declarations)"
+        as: "anonymous"
+        request:
+          method: "PUT"
+          path: "${P}/probe.html"
+          headers:
+            Content-Type: "text/html"
+          body: |
+            <!DOCTYPE html>
+            <html xmlns:t="https://pagelike.test${P}/RoMove"><body>
+            <main>
+            <t:probe><p id="p1">keep</p></t:probe>
+            </main>
+            <div hidden itemscope itemtype="https://pagelove.org/Schema">
+            <meta itemprop="type" content="https://pagelike.test${P}/RoMove">
+            <ul>
+            <li itemprop="property" itemscope itemtype="https://pagelove.org/Method">
+            <meta itemprop="name" content="probe">
+            <div itemprop="implementation" itemscope itemtype="https://pagelove.org/JavaScript/Module">
+            <script itemprop="source" type="module">
+            const S = (...a) => a.map(String).join('|');
+            const H = (x) => String(x).replace(/[<>"]/g, (c) => ({ '<': '[', '>': ']', '"': "'" })[c]);
+            const tryName = (f) => { try { f(); return 'ok'; } catch (e) { return e.name + ':' + e.code; } };
+            export default function () {
+            const p = document.querySelector('#p1');
+            const d = new DOMParser().parseFromString('<div id="box"></div>', 'text/html');
+            const box = d.querySelector('#box');
+            let mv = 'ok'; try { box.appendChild(p); } catch (e) { mv = e.name; }
+            const copy = p.cloneNode(true); copy.setAttribute('id', 'p2'); box.appendChild(copy);
+            return 'MV:' + [mv, box.children.length, box.firstElementChild.textContent, box.firstElementChild.id, document.querySelectorAll('#p1').length].join('|');
+            }
+            </script>
+            </div>
+            </li>
+            </ul>
+            </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "GET <main>: the method result is inserted as text"
+        as: "anonymous"
+        request:
+          method: "GET"
+          path: "${P}/probe.html"
+          headers:
+            Range: "selector=main"
+        expect:
+          status: 206
+          body_contains: ["MV:NoModificationAllowedError|1|keep|p2|1"]
+  - id: "javascript.dom.readonly-factories-allowed"
+    title: "Documented example: createElement on the read-only ambient document returns a writable node that can be returned"
+    feature: "DOM read-only boundary"
+    source: "docs languages/javascript/server/dom §Availability and the read-only boundary (createElement example) (snapshot 2026-09-28)"
+    confidence: "medium"
+    live: true
+    notes: "spec: R-JS-62; contradiction C-JS-10 (primary claim)."
+    steps:
+      - name: "PUT the page (public plane; registers inline declarations)"
+        as: "anonymous"
+        request:
+          method: "PUT"
+          path: "${P}/fac.html"
+          headers:
+            Content-Type: "text/html"
+          body: |
+            <!DOCTYPE html>
+            <html xmlns:t="https://pagelike.test${P}/Fac"><body>
+            <main>
+            <ul id="list"><t:item title="Buy milk"></t:item></ul>
+            </main>
+            <div hidden itemscope itemtype="https://pagelove.org/Schema">
+            <meta itemprop="type" content="https://pagelike.test${P}/Fac">
+            <ul>
+            <li itemprop="property" itemscope itemtype="https://pagelove.org/Method">
+            <meta itemprop="name" content="item">
+            <meta itemprop="returns" content="https://pagelove.org/Element">
+            <div itemprop="parameter" itemscope itemtype="https://pagelove.org/Parameter"><meta itemprop="name" content="title"><meta itemprop="type" content="https://schema.host/Text"></div>
+            <div itemprop="implementation" itemscope itemtype="https://pagelove.org/JavaScript/Module">
+            <script itemprop="source" type="module">
+            export default (title) => {
+              const li = document.createElement("li");
+              li.textContent = title;
+              return li;
+            };
+            </script>
+            </div>
+            </li>
+            </ul>
+            </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "GET the composed page"
+        as: "anonymous"
+        request:
+          method: "GET"
+          path: "${P}/fac.html"
+          headers:
+            Range: "selector=main"
+        expect:
+          status: 206
+          body_contains: ["<ul id=\"list\"><li>Buy milk</li></ul>"]
+  - id: "javascript.dom.readonly-factories-throw"
+    title: "Document page claim: node factories are mutation-guarded on a read-only document (composition fails)"
+    feature: "DOM read-only boundary"
+    source: "docs languages/javascript/server/dom/document intro ('The factories are mutation-guarded'); docs languages/javascript/server/dom/node §cloneNode (snapshot 2026-09-28)"
+    confidence: "low"
+    live: true
+    status: "disputed"
+    notes: "Losing claim of C-JS-10."
+    steps:
+      - name: "PUT the page (public plane; registers inline declarations)"
+        as: "anonymous"
+        request:
+          method: "PUT"
+          path: "${P}/fac.html"
+          headers:
+            Content-Type: "text/html"
+          body: |
+            <!DOCTYPE html>
+            <html xmlns:t="https://pagelike.test${P}/Fac2"><body>
+            <main>
+            <ul id="list"><t:item title="Buy milk"></t:item></ul>
+            </main>
+            <div hidden itemscope itemtype="https://pagelove.org/Schema">
+            <meta itemprop="type" content="https://pagelike.test${P}/Fac2">
+            <ul>
+            <li itemprop="property" itemscope itemtype="https://pagelove.org/Method">
+            <meta itemprop="name" content="item">
+            <meta itemprop="returns" content="https://pagelove.org/Element">
+            <div itemprop="parameter" itemscope itemtype="https://pagelove.org/Parameter"><meta itemprop="name" content="title"><meta itemprop="type" content="https://schema.host/Text"></div>
+            <div itemprop="implementation" itemscope itemtype="https://pagelove.org/JavaScript/Module">
+            <script itemprop="source" type="module">
+            export default (title) => {
+              const li = document.createElement("li");
+              li.textContent = title;
+              return li;
+            };
+            </script>
+            </div>
+            </li>
+            </ul>
+            </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "GET the composed page"
+        as: "anonymous"
+        request:
+          method: "GET"
+          path: "${P}/fac.html"
+          headers:
+            Range: "selector=main"
+        expect:
+          status: 500
+  - id: "javascript.dom.id-and-classname-read-only"
+    title: "Element id and className are read-only accessors (assignment throws TypeError in strict module code)"
+    feature: "DOM Element identity"
+    source: "docs languages/javascript/server/dom/element §Identity ('Read-only accessors') (snapshot 2026-09-28)"
+    confidence: "low"
+    live: true
+    notes: "spec: R-JS-68; contradiction C-JS-12 (browsers allow assignment). Probe P-JS-13."
+    steps:
+      - name: "PUT the page (public plane; registers inline declarations)"
+        as: "anonymous"
+        request:
+          method: "PUT"
+          path: "${P}/probe.html"
+          headers:
+            Content-Type: "text/html"
+          body: |
+            <!DOCTYPE html>
+            <html xmlns:t="https://pagelike.test${P}/Didandclassnamereadonly"><body>
+            <main>
+            <t:probe></t:probe>
+            </main>
+            <div hidden itemscope itemtype="https://pagelove.org/Schema">
+            <meta itemprop="type" content="https://pagelike.test${P}/Didandclassnamereadonly">
+            <ul>
+            <li itemprop="property" itemscope itemtype="https://pagelove.org/Method">
+            <meta itemprop="name" content="probe">
+            <div itemprop="implementation" itemscope itemtype="https://pagelove.org/JavaScript/Module">
+            <script itemprop="source" type="module">
+            const S = (...a) => a.map(String).join('|');
+            const H = (x) => String(x).replace(/[<>"]/g, (c) => ({ '<': '[', '>': ']', '"': "'" })[c]);
+            const tryName = (f) => { try { f(); return 'ok'; } catch (e) { return e.name + ':' + e.code; } };
+            export default function () {
+            const d = new DOMParser().parseFromString('<p id="a" class="k"></p>', 'text/html');
+            const p = d.querySelector('p');
+            let r = 'ok'; try { p.id = 'b'; } catch (e) { r = e.name; }
+            return 'R:' + S(r, p.getAttribute('id'), p.className, p.id);
+            }
+            </script>
+            </div>
+            </li>
+            </ul>
+            </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "GET <main>: the method result is inserted as text"
+        as: "anonymous"
+        request:
+          method: "GET"
+          path: "${P}/probe.html"
+          headers:
+            Range: "selector=main"
+        expect:
+          status: 206
+          body_contains: ["R:TypeError|a|k|a"]

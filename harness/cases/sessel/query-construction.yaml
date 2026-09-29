@@ -1,0 +1,255 @@
+# Sessel element construction through QUERY: results are text/html (single element) or tagged
+# elements inside application/sessel+json.
+# Spec: docs/spec/sessel.md §12-§13 (R-SESSEL-234..265), §18 (R-SESSEL-370).
+defaults:
+  area: sessel
+  evidence: documented
+  confidence: medium
+  requires: [sessel]
+  site:
+    files:
+      - path: "${P}/product.html"
+        body: |
+          <!DOCTYPE html>
+          <html><body><h1 class="t">Title</h1><span itemprop="name">Widget</span><data itemprop="price" value="29.99">$29.99</data><a itemprop="url" href="/p/widget">x</a><span itemprop="category">news</span><span itemprop="category">sport</span></body></html>
+    rules:
+      - {actor: "*", resource: "${P}/*", method: [GET, QUERY], action: Allow}
+cases:
+  - id: sessel.query.new.shorthand
+    title: new tag.class#id { text } builds an element served as text/html
+    feature: construction
+    source: "docs languages/sessel/learn/construction §ID and classes (snapshot 2026-09-28)"
+    confidence: high
+    live: true
+    notes: R-SESSEL-260, R-SESSEL-261.
+    steps:
+      - name: paragraph
+        as: anonymous
+        request:
+          method: QUERY
+          path: "${P}/product.html"
+          headers: {Content-Type: "text/sessel"}
+          body: 'new p.intro#main { text: "Welcome" }'
+        expect:
+          status: [200, 206]
+          header_matches: {Content-Type: '^text/html'}
+          body_html: '<p class="intro" id="main">Welcome</p>'
+
+  - id: sessel.query.new.attributes-and-void
+    title: Literal, boolean and namespaced attributes; void elements
+    feature: construction
+    source: "docs languages/sessel/learn/construction §Attributes, §Namespaced attributes, §Void elements (snapshot 2026-09-28)"
+    confidence: high
+    live: true
+    notes: R-SESSEL-262, R-SESSEL-264.
+    steps:
+      - name: input
+        as: anonymous
+        request:
+          method: QUERY
+          path: "${P}/product.html"
+          headers: {Content-Type: "text/sessel"}
+          body: 'new input[type="text"][name="email"][required] {}'
+        expect:
+          status: [200, 206]
+          body_html: '<input type="text" name="email" required>'
+      - name: namespaced attributes
+        as: anonymous
+        request:
+          method: QUERY
+          path: "${P}/product.html"
+          headers: {Content-Type: "text/sessel"}
+          body: 'new div[p|transient][p|ttl="3600"] {}'
+        expect:
+          status: [200, 206]
+          body_html: '<div p:transient p:ttl="3600"></div>'
+
+  - id: sessel.query.new.children-null-and-lists
+    title: Children are comma-separated; null children are skipped; list children are flattened one level
+    feature: construction
+    source: "docs languages/sessel/learn/construction §Children, §Null skipping, §List flattening (snapshot 2026-09-28)"
+    confidence: high
+    live: true
+    notes: R-SESSEL-263.
+    steps:
+      - name: conditional and mapped children
+        as: anonymous
+        request:
+          method: QUERY
+          path: "${P}/product.html"
+          headers: {Content-Type: "text/sessel"}
+          body: |
+            let showDrafts = false;
+            new ul {
+              showDrafts ? new li { text: "Drafts" } : null,
+              (${[itemprop="category"]} from self).map(el => new li { text: el.text() }),
+              if (showDrafts) { new li { text: "never" } }
+            }
+        expect:
+          status: [200, 206]
+          body_html: '<ul><li>news</li><li>sport</li></ul>'
+
+  - id: sessel.query.new.product-card
+    title: The documented product card built from the document's microdata
+    feature: construction
+    source: "docs languages/sessel/learn/construction §A complete example (snapshot 2026-09-28)"
+    confidence: high
+    live: true
+    notes: R-SESSEL-262 (dynamic attribute), R-SESSEL-222 (value rules).
+    steps:
+      - name: card
+        as: anonymous
+        request:
+          method: QUERY
+          path: "${P}/product.html"
+          headers: {Content-Type: "text/sessel"}
+          body: |
+            from self {
+              new div.card {
+                new h2 { text: ${[itemprop="name"]}.first().text() },
+                new span.price { text: ${[itemprop="price"]}.first().value() },
+                new a[href=${[itemprop="url"]}.first().value()] { text: "View product" }
+              }
+            }
+        expect:
+          status: [200, 206]
+          body_html: '<div class="card"><h2>Widget</h2><span class="price">29.99</span><a href="/p/widget">View product</a></div>'
+
+  - id: sessel.query.new.queried-child-embedded
+    title: A queried element used as a child is embedded verbatim
+    feature: construction
+    source: "docs languages/sessel/learn/construction §Mixing queried and constructed elements (snapshot 2026-09-28)"
+    confidence: high
+    live: true
+    notes: R-SESSEL-263.
+    steps:
+      - name: wrapper
+        as: anonymous
+        request:
+          method: QUERY
+          path: "${P}/product.html"
+          headers: {Content-Type: "text/sessel"}
+          body: 'new div.wrapper { (${h1} from self).first(), new p { text: "Added content" } }'
+        expect:
+          status: [200, 206]
+          body_html: '<div class="wrapper"><h1 class="t">Title</h1><p>Added content</p></div>'
+
+  - id: sessel.query.new.setters-and-mutation
+    title: Setter chains and mutation methods on constructed elements; sub-select results are stored elements
+    feature: element setters
+    evidence: live-observed
+    source: "harness/observations/live-2026-09-29/sessel-query-new-setters-and-mutation.json; harness/observations/live-2026-09-29-reconcile-sessel/sessel-query-probe-0929-mutation-and-sel.json (steps 1-6)"
+    live: true
+    notes: >-
+      R-SESSEL-234..240. The docs pass `el.${ li }` results to insertBefore; live refuses them (a sub-select yields
+      stored, immutable elements even under a constructed element), while children() handles are live and mutable.
+    steps:
+      - name: setter chain
+        as: anonymous
+        request:
+          method: QUERY
+          path: "${P}/product.html"
+          headers: {Content-Type: "text/sessel"}
+          body: 'new img {}.value("/images/banner.jpg").attr("alt", "Banner")'
+        expect:
+          status: [200, 206]
+          body_html: '<img src="/images/banner.jpg" alt="Banner">'
+      - name: prepend, insertBefore, getHTML
+        as: anonymous
+        request:
+          method: QUERY
+          path: "${P}/product.html"
+          headers: {Content-Type: "text/sessel"}
+          body: |
+            let el = new ul { new li { text: "c" } };
+            el.prepend(new li { text: "a" });
+            new li { text: "b" }.insertBefore(el.children().last());
+            el.getHTML()
+        expect:
+          status: 200
+          body_json: "<li>a</li><li>b</li><li>c</li>"
+      - name: a sub-selected reference is a stored element
+        as: anonymous
+        request:
+          method: QUERY
+          path: "${P}/product.html"
+          headers: {Content-Type: "text/sessel"}
+          body: |
+            let el = new ul { new li { text: "c" } };
+            new li { text: "b" }.insertBefore(el.${ li }.last());
+            el.getHTML()
+        expect:
+          status: 400
+          body_contains: ["type error: insertBefore() reference must be a mutable child element, not a stored element"]
+
+  - id: sessel.query.new.constructed-in-json
+    title: Constructed elements inside a list are tagged objects without $source
+    feature: construction
+    source: "docs reference/protocol/QUERY §Sessel mode (application/sessel+json) (snapshot 2026-09-28)"
+    confidence: high
+    live: true
+    notes: R-SESSEL-97.
+    steps:
+      - name: two constructed elements
+        as: anonymous
+        request:
+          method: QUERY
+          path: "${P}/product.html"
+          headers: {Content-Type: "text/sessel"}
+          body: '[new br {}, new p { "Hello, " + "Ada" + "!" }]'
+        expect:
+          status: 200
+          header_matches: {Content-Type: '^application/sessel\+json'}
+          body_json:
+            - {"$type": "element", "$html": "<br>"}
+            - {"$type": "element", "$html": "<p>Hello, Ada!</p>"}
+
+  - id: sessel.query.new.parse-helpers
+    title: Element.fromString and Document.parse build constructed trees
+    feature: element parsing
+    source: "docs languages/sessel/reference/element §Element.fromString; reference/types §Document (snapshot 2026-09-28)"
+    live: true
+    notes: R-SESSEL-243, R-SESSEL-244.
+    steps:
+      - name: parse helpers
+        as: anonymous
+        request:
+          method: QUERY
+          path: "${P}/product.html"
+          headers: {Content-Type: "text/sessel"}
+          body: |
+            let el = Document.parse("<div class='card'><p>Hello</p></div>");
+            [Element.fromString("<p>hello</p>").getHTML(), el.${p}.first()?.text(), el.attr("class")]
+        expect:
+          status: 200
+          body_json: [hello, Hello, card]
+      - name: empty fromString is a TypeError
+        as: anonymous
+        request:
+          method: QUERY
+          path: "${P}/product.html"
+          headers: {Content-Type: "text/sessel"}
+          body: 'try { Element.fromString("") } catch (e) { e.type }'
+        expect:
+          status: 200
+          body_json: TypeError
+
+  - id: sessel.query.new.unquoted-ident-fallback
+    title: "An unbound unquoted attribute value falls back to the literal ([type=checkbox])"
+    feature: construction
+    evidence: inferred
+    source: "docs languages/sessel/reference/syntax §Construction syntax example (snapshot 2026-09-28)"
+    confidence: low
+    live: true
+    notes: SC-2 / SP-2.
+    steps:
+      - name: checkbox
+        as: anonymous
+        request:
+          method: QUERY
+          path: "${P}/product.html"
+          headers: {Content-Type: "text/sessel"}
+          body: 'new input[type=checkbox][checked] {}'
+        expect:
+          status: [200, 206]
+          body_html: '<input type="checkbox" checked>'

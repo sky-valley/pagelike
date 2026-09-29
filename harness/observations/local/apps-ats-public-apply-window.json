@@ -1,0 +1,129 @@
+{
+  "case": "apps.ats.public-apply-window",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (the admin page is private (file path))",
+      "method": "GET",
+      "path": "/_pl/apps-ats-public-apply-window-d6deb1/admin/index.html",
+      "status": 401,
+      "headers": {
+        "content-length": "425",
+        "content-type": "text/html; charset=utf-8"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\n\u003chead\u003e\n    \u003cmeta charset=\"UTF-8\"\u003e\n    \u003ctitle\u003e401 Unauthorized\u003c/title\u003e\n\u003c/head\u003e\n\u003cbody itemscope itemtype=\"https://pagelove.org/1.0/Error\"\u003e\n    \u003ch1\u003e401 Unauthorized\u003c/h1\u003e\n    \u003cp itemprop=\"message\"\u003eAuthentication required to access this resource.\u003c/p\u003e\n    \u003cdl\u003e\n        \u003cdt\u003eResource\u003c/dt\u003e\n        \u003cdd itemprop=\"resource\"\u003e/_pl/apps-ats-public-apply-window-d6deb1/admin/index.html\u003c/dd\u003e\n    \u003c/dl\u003e\n\u003c/body\u003e\n\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 2 (the admin page is private (directory path))",
+      "method": "GET",
+      "path": "/_pl/apps-ats-public-apply-window-d6deb1/admin/",
+      "status": 401,
+      "headers": {
+        "content-length": "425",
+        "content-type": "text/html; charset=utf-8"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\n\u003chead\u003e\n    \u003cmeta charset=\"UTF-8\"\u003e\n    \u003ctitle\u003e401 Unauthorized\u003c/title\u003e\n\u003c/head\u003e\n\u003cbody itemscope itemtype=\"https://pagelove.org/1.0/Error\"\u003e\n    \u003ch1\u003e401 Unauthorized\u003c/h1\u003e\n    \u003cp itemprop=\"message\"\u003eAuthentication required to access this resource.\u003c/p\u003e\n    \u003cdl\u003e\n        \u003cdt\u003eResource\u003c/dt\u003e\n        \u003cdd itemprop=\"resource\"\u003e/_pl/apps-ats-public-apply-window-d6deb1/admin/index.html\u003c/dd\u003e\n    \u003c/dl\u003e\n\u003c/body\u003e\n\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 3 (no fragment of it is public either)",
+      "method": "GET",
+      "path": "/_pl/apps-ats-public-apply-window-d6deb1/admin/index.html",
+      "status": 401,
+      "headers": {
+        "content-length": "425",
+        "content-type": "text/html; charset=utf-8"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\n\u003chead\u003e\n    \u003cmeta charset=\"UTF-8\"\u003e\n    \u003ctitle\u003e401 Unauthorized\u003c/title\u003e\n\u003c/head\u003e\n\u003cbody itemscope itemtype=\"https://pagelove.org/1.0/Error\"\u003e\n    \u003ch1\u003e401 Unauthorized\u003c/h1\u003e\n    \u003cp itemprop=\"message\"\u003eAuthentication required to access this resource.\u003c/p\u003e\n    \u003cdl\u003e\n        \u003cdt\u003eResource\u003c/dt\u003e\n        \u003cdd itemprop=\"resource\"\u003e/_pl/apps-ats-public-apply-window-d6deb1/admin/index.html\u003c/dd\u003e\n    \u003c/dl\u003e\n\u003c/body\u003e\n\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 4 (upload a CV (anonymous PUT is granted))",
+      "method": "PUT",
+      "path": "/_pl/apps-ats-public-apply-window-d6deb1/uploads/C-x1y2z3-cv.pdf",
+      "status": 201,
+      "headers": {
+        "content-length": "30",
+        "content-type": "application/pdf",
+        "etag": "\"a5d903b85252cc2a0502905147e5719d2bab15d0fc01c34bd0e26040d2ad7ae1\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:41 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "%PDF-1.4 minimal test document"
+    },
+    {
+      "step": "step 5 (but cannot read it back)",
+      "method": "GET",
+      "path": "/_pl/apps-ats-public-apply-window-d6deb1/uploads/C-x1y2z3-cv.pdf",
+      "status": 401,
+      "headers": {
+        "content-length": "432",
+        "content-type": "text/html; charset=utf-8"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\n\u003chead\u003e\n    \u003cmeta charset=\"UTF-8\"\u003e\n    \u003ctitle\u003e401 Unauthorized\u003c/title\u003e\n\u003c/head\u003e\n\u003cbody itemscope itemtype=\"https://pagelove.org/1.0/Error\"\u003e\n    \u003ch1\u003e401 Unauthorized\u003c/h1\u003e\n    \u003cp itemprop=\"message\"\u003eAuthentication required to access this resource.\u003c/p\u003e\n    \u003cdl\u003e\n        \u003cdt\u003eResource\u003c/dt\u003e\n        \u003cdd itemprop=\"resource\"\u003e/_pl/apps-ats-public-apply-window-d6deb1/uploads/C-x1y2z3-cv.pdf\u003c/dd\u003e\n    \u003c/dl\u003e\n\u003c/body\u003e\n\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 6 (submit the application row exactly as apply.html renders it)",
+      "method": "POST",
+      "path": "/_pl/apps-ats-public-apply-window-d6deb1/admin/index.html",
+      "status": 206,
+      "headers": {
+        "content-length": "1302",
+        "content-range": "selector tbody#candidates-body",
+        "content-type": "text/html",
+        "etag": "\"a60572b4c206b866586e913f712d00e6715d280299cab07c768fa9b5785e544c-a60572b4c206b866586e913f712d00e6715d280299cab07c768fa9b5785e544c-2\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:41 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003ctr id=\"C-x1y2z3\" itemscope itemtype=\"https://pagelove.org/Candidate\"\u003e\n    \u003ctd class=\"id\" itemprop=\"id\"\u003eC-x1y2z3\u003c/td\u003e\n    \u003ctd\u003e\u003cdiv class=\"name\" itemprop=\"name\"\u003eGrace Hopper\u003c/div\u003e\u003c/td\u003e\n    \u003ctd\u003e\u003ca href=\"#R-001\" class=\"role-link\"\u003e\u003cspan class=\"role-title\"\u003eFounding Engineer\u003c/span\u003e\u003cspan class=\"role-id\" itemprop=\"roleId\"\u003eR-001\u003c/span\u003e\u003c/a\u003e\u003c/td\u003e\n    \u003ctd\u003e\u003cspan class=\"stage\" itemprop=\"stage\" data-stage=\"Applied\"\u003eApplied\u003c/span\u003e\u003c/td\u003e\n    \u003ctd\u003e\u003ctime class=\"applied-date\" datetime=\"2026-09-28\"\u003e28 Sept 2026\u003c/time\u003e\u003c/td\u003e\n    \u003ctd class=\"col-last-activity\"\u003e\u003ctime class=\"last-activity\" datetime\u003e—\u003c/time\u003e\u003c/td\u003e\n    \u003ctd hidden\u003e\u003ca itemprop=\"email\" href=\"mailto:grace@example.com\"\u003egrace@example.com\u003c/a\u003e\u003c/td\u003e\n    \u003ctd hidden itemprop=\"phone\"\u003e\u003c/td\u003e\n    \u003ctd hidden\u003e\u003ca itemprop=\"linkedin\" href\u003e\u003c/a\u003e\u003c/td\u003e\n    \u003ctd hidden itemprop=\"location\"\u003e\u003c/td\u003e\n    \u003ctd hidden\u003e\u003ctime itemprop=\"firstContact\" datetime=\"2026-09-28\"\u003e2026-09-28\u003c/time\u003e\u003c/td\u003e\n    \u003ctd hidden itemprop=\"salaryExpectation\"\u003e\u003c/td\u003e\n    \u003ctd hidden itemprop=\"noticePeriod\"\u003e\u003c/td\u003e\n    \u003ctd hidden itemprop=\"notes\"\u003eKeen.\u003c/td\u003e\n    \u003ctd hidden\u003e\u003ca itemprop=\"cvLink\" href=\"/uploads/C-x1y2z3-cv.pdf\"\u003e/uploads/C-x1y2z3-cv.pdf\u003c/a\u003e\u003c/td\u003e\n    \u003ctd hidden\u003e\u003ca itemprop=\"coverLetterLink\" href\u003e\u003c/a\u003e\u003c/td\u003e\n    \u003ctd hidden itemprop=\"duplicateOf\"\u003e\u003c/td\u003e\n    \u003ctd hidden itemprop=\"owner\"\u003eAlex\u003c/td\u003e\n  \u003c/tr\u003e"
+    },
+    {
+      "step": "step 7 (markup outside the permits is refused)",
+      "method": "POST",
+      "path": "/_pl/apps-ats-public-apply-window-d6deb1/admin/index.html",
+      "status": 422,
+      "headers": {
+        "content-length": "393",
+        "content-type": "text/html",
+        "vary": "Host, Range"
+      },
+      "body": "\u003cdiv itemscope itemtype=\"https://dombase.pagelove.team/ns/error/ShapeConstraint\"\u003e\u003cul itemprop=\"problems\"\u003e\u003cli itemprop=\"problem\"\u003e\u003cspan itemprop=\"message\"\u003eShape constraints violated\u003c/span\u003e\u003c/li\u003e\u003cli itemprop=\"problem\"\u003e\u003cspan itemprop=\"message\"\u003ehttps://pagelove.org/ShapeConstraint #candidates-body: Element \u0026lt;img\u0026gt; inside '#candidates-body' is not permitted by any permit\u003c/span\u003e\u003c/li\u003e\u003c/ul\u003e\u003c/div\u003e"
+    },
+    {
+      "step": "step 8 (the window is POST into the candidates body only)",
+      "method": "POST",
+      "path": "/_pl/apps-ats-public-apply-window-d6deb1/admin/index.html",
+      "status": 401,
+      "headers": {
+        "content-length": "425",
+        "content-type": "text/html; charset=utf-8"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\n\u003chead\u003e\n    \u003cmeta charset=\"UTF-8\"\u003e\n    \u003ctitle\u003e401 Unauthorized\u003c/title\u003e\n\u003c/head\u003e\n\u003cbody itemscope itemtype=\"https://pagelove.org/1.0/Error\"\u003e\n    \u003ch1\u003e401 Unauthorized\u003c/h1\u003e\n    \u003cp itemprop=\"message\"\u003eAuthentication required to access this resource.\u003c/p\u003e\n    \u003cdl\u003e\n        \u003cdt\u003eResource\u003c/dt\u003e\n        \u003cdd itemprop=\"resource\"\u003e/_pl/apps-ats-public-apply-window-d6deb1/admin/index.html\u003c/dd\u003e\n    \u003c/dl\u003e\n\u003c/body\u003e\n\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 9 (and never PUT)",
+      "method": "PUT",
+      "path": "/_pl/apps-ats-public-apply-window-d6deb1/admin/index.html",
+      "status": 401,
+      "headers": {
+        "content-length": "425",
+        "content-type": "text/html; charset=utf-8"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\n\u003chead\u003e\n    \u003cmeta charset=\"UTF-8\"\u003e\n    \u003ctitle\u003e401 Unauthorized\u003c/title\u003e\n\u003c/head\u003e\n\u003cbody itemscope itemtype=\"https://pagelove.org/1.0/Error\"\u003e\n    \u003ch1\u003e401 Unauthorized\u003c/h1\u003e\n    \u003cp itemprop=\"message\"\u003eAuthentication required to access this resource.\u003c/p\u003e\n    \u003cdl\u003e\n        \u003cdt\u003eResource\u003c/dt\u003e\n        \u003cdd itemprop=\"resource\"\u003e/_pl/apps-ats-public-apply-window-d6deb1/admin/index.html\u003c/dd\u003e\n    \u003c/dl\u003e\n\u003c/body\u003e\n\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 10 (the stored admin page holds the new candidate and nothing else new)",
+      "method": "GET",
+      "path": "/_pl/apps-ats-public-apply-window-d6deb1/admin/index.html",
+      "status": 200,
+      "headers": {
+        "accept-ranges": "bytes",
+        "content-length": "3420",
+        "content-type": "text/html",
+        "etag": "\"a8e57d46deed3460f12be7e2d574d220e3d70a8c60ae87d1f054ea5d492d533b\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:41 GMT"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml lang=\"en\"\u003e\u003chead\u003e\u003cmeta charset=\"UTF-8\"\u003e\u003ctitle\u003eHiring · Example Co\u003c/title\u003e\u003c/head\u003e\n\u003cbody\u003e\n\u003csection id=\"roles\" class=\"view\"\u003e\n  \u003ctable\u003e\u003ctbody id=\"roles-body\"\u003e\n    \u003ctr id=\"R-001\" itemscope itemtype=\"https://pagelove.org/Role\"\u003e\n      \u003ctd class=\"id\" itemprop=\"id\"\u003eR-001\u003c/td\u003e\n      \u003ctd\u003e\u003cdiv class=\"name\" itemprop=\"title\"\u003eFounding Engineer\u003c/div\u003e\u003c/td\u003e\n      \u003ctd itemprop=\"department\"\u003eEngineering\u003c/td\u003e\n      \u003ctd itemprop=\"hiringManager\"\u003eAlex\u003c/td\u003e\n      \u003ctd itemprop=\"employmentType\"\u003eFull-time\u003c/td\u003e\n      \u003ctd itemprop=\"status\"\u003eOpen\u003c/td\u003e\n      \u003ctd hidden itemprop=\"location\"\u003eGlobal\u003c/td\u003e\n      \u003ctd hidden itemprop=\"slug\"\u003efounding-engineer\u003c/td\u003e\n      \u003ctd hidden itemprop=\"tldr\"\u003eJoin us as one of the first three engineers.\u003c/td\u003e\n    \u003c/tr\u003e\n    \u003ctr id=\"R-003\" itemscope itemtype=\"https://pagelove.org/Role\"\u003e\n      \u003ctd class=\"id\" itemprop=\"id\"\u003eR-003\u003c/td\u003e\n      \u003ctd\u003e\u003cdiv class=\"name\" itemprop=\"title\"\u003eProduct Designer\u003c/div\u003e\u003c/td\u003e\n      \u003ctd itemprop=\"department\"\u003eDesign\u003c/td\u003e\n      \u003ctd itemprop=\"hiringManager\"\u003eAlex\u003c/td\u003e\n      \u003ctd itemprop=\"employmentType\"\u003eFull-time\u003c/td\u003e\n      \u003ctd itemprop=\"status\"\u003eOn Hold\u003c/td\u003e\n      \u003ctd hidden itemprop=\"slug\"\u003eproduct-designer\u003c/td\u003e\n    \u003c/tr\u003e\n  \u003c/tbody\u003e\u003c/table\u003e\n\u003c/section\u003e\n\u003csection id=\"candidates\" class=\"view\"\u003e\n  \u003ctable id=\"candidateTable\"\u003e\u003ctbody id=\"candidates-body\"\u003e\n    \u003ctr id=\"C-a1001x\" itemscope itemtype=\"https://pagelove.org/Candidate\"\u003e\n      \u003ctd class=\"id\" itemprop=\"id\"\u003eC-a1001x\u003c/td\u003e\n      \u003ctd\u003e\u003cdiv class=\"name\" itemprop=\"name\"\u003eAda Lovelace\u003c/div\u003e\u003c/td\u003e\n      \u003ctd\u003e\u003ca href=\"#R-001\" class=\"role-link\"\u003e\u003cspan class=\"role-title\"\u003eFounding Engineer\u003c/span\u003e\u003cspan class=\"role-id\" itemprop=\"roleId\"\u003eR-001\u003c/span\u003e\u003c/a\u003e\u003c/td\u003e\n      \u003ctd\u003e\u003cspan class=\"stage\" itemprop=\"stage\" data-stage=\"Applied\"\u003eApplied\u003c/span\u003e\u003c/td\u003e\n      \u003ctd\u003e\u003ctime class=\"applied-date\" datetime=\"2026-08-01\"\u003e1 Aug 2026\u003c/time\u003e\u003c/td\u003e\n      \u003ctd hidden\u003e\u003ctime itemprop=\"firstContact\" datetime=\"2026-08-01\"\u003e2026-08-01\u003c/time\u003e\u003c/td\u003e\n      \u003ctd hidden itemprop=\"owner\"\u003eAlex\u003c/td\u003e\n    \u003c/tr\u003e\n  \u003ctr id=\"C-x1y2z3\" itemscope itemtype=\"https://pagelove.org/Candidate\"\u003e\n    \u003ctd class=\"id\" itemprop=\"id\"\u003eC-x1y2z3\u003c/td\u003e\n    \u003ctd\u003e\u003cdiv class=\"name\" itemprop=\"name\"\u003eGrace Hopper\u003c/div\u003e\u003c/td\u003e\n    \u003ctd\u003e\u003ca href=\"#R-001\" class=\"role-link\"\u003e\u003cspan class=\"role-title\"\u003eFounding Engineer\u003c/span\u003e\u003cspan class=\"role-id\" itemprop=\"roleId\"\u003eR-001\u003c/span\u003e\u003c/a\u003e\u003c/td\u003e\n    \u003ctd\u003e\u003cspan class=\"stage\" itemprop=\"stage\" data-stage=\"Applied\"\u003eApplied\u003c/span\u003e\u003c/td\u003e\n    \u003ctd\u003e\u003ctime class=\"applied-date\" datetime=\"2026-09-28\"\u003e28 Sept 2026\u003c/time\u003e\u003c/td\u003e\n    \u003ctd class=\"col-last-activity\"\u003e\u003ctime class=\"last-activity\" datetime\u003e—\u003c/time\u003e\u003c/td\u003e\n    \u003ctd hidden\u003e\u003ca itemprop=\"email\" href=\"mailto:grace@example.com\"\u003egrace@example.com\u003c/a\u003e\u003c/td\u003e\n    \u003ctd hidden itemprop=\"phone\"\u003e\u003c/td\u003e\n    \u003ctd hidden\u003e\u003ca itemprop=\"linkedin\" href\u003e\u003c/a\u003e\u003c/td\u003e\n    \u003ctd hidden itemprop=\"location\"\u003e\u003c/td\u003e\n    \u003ctd hidden\u003e\u003ctime itemprop=\"firstContact\" datetime=\"2026-09-28\"\u003e2026-09-28\u003c/time\u003e\u003c/td\u003e\n    \u003ctd hidden itemprop=\"salaryExpectation\"\u003e\u003c/td\u003e\n    \u003ctd hidden itemprop=\"noticePeriod\"\u003e\u003c/td\u003e\n    \u003ctd hidden itemprop=\"notes\"\u003eKeen.\u003c/td\u003e\n    \u003ctd hidden\u003e\u003ca itemprop=\"cvLink\" href=\"/uploads/C-x1y2z3-cv.pdf\"\u003e/uploads/C-x1y2z3-cv.pdf\u003c/a\u003e\u003c/td\u003e\n    \u003ctd hidden\u003e\u003ca itemprop=\"coverLetterLink\" href\u003e\u003c/a\u003e\u003c/td\u003e\n    \u003ctd hidden itemprop=\"duplicateOf\"\u003e\u003c/td\u003e\n    \u003ctd hidden itemprop=\"owner\"\u003eAlex\u003c/td\u003e\n  \u003c/tr\u003e\n\u003c/tbody\u003e\u003c/table\u003e\n\u003c/section\u003e\n\u003csection id=\"interviews\" class=\"view\"\u003e\n  \u003ctable\u003e\u003ctbody id=\"interviews-body\"\u003e\u003c/tbody\u003e\u003c/table\u003e\n\u003c/section\u003e\n\u003c/body\u003e\u003c/html\u003e\n"
+    }
+  ],
+  "outcome": "pass",
+  "target": "local"
+}

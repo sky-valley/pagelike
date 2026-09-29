@@ -1,0 +1,802 @@
+# Modeling: minimised live probes written for the 2026-09-29 reconciliation
+# (docs/compat/decisions-2026-09-29/modeling.md). Each isolates one question
+# raised by a diverging case of the live run of 2026-09-29.
+cases:
+  - id: modeling.probe-0929.resolver-forms
+    title: "Probe: of four Sessel @write forms that normalise an email, PageLove runs only a constructed element with .lower()"
+    area: modeling
+    status: live-divergence
+    feature: resolvers
+    evidence: live-observed
+    source: "probe for harness/observations/live-2026-09-29/modeling-resolvers-sessel-write-normalis.json (unknown function: set_text)"
+    confidence: medium
+    requires: [sessel, webdav]
+    live: true
+    notes: "spec: R-MOD-49, R-SESSEL-113, R-SESSEL-241, R-SESSEL-242. PageLove has no lowercase() alias, and its .text(x) setter refuses a stored element; pagelike accepts all four forms. Unresolved and deferred to the Sessel area (docs/compat/decisions-2026-09-29/modeling.md), so this probe runs only against --target live."
+    site:
+      settings:
+        default_get: allow
+      rules:
+        - actor: "*"
+          resource: "${P}/*"
+          method: [GET, HEAD, PUT, POST, DELETE, MOVE]
+          action: Allow
+    steps:
+      - name: "register four resolver forms"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/schema.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div hidden itemscope itemtype="https://pagelove.org/Schema">
+                <meta itemprop="type" content="https://pagelike.test${P}/A">
+                <div itemprop="property" itemscope itemtype="https://pagelove.org/Property">
+                  <meta itemprop="name" content="email">
+                  <meta itemprop="type" content="https://schema.host/Text">
+                  <div itemprop="@write" itemscope itemtype="https://pagelove.org/Sessel">
+                    <script itemprop="source" type="text/sessel">self.map((el) => el.text(el.text().trim().lowercase()))</script>
+                  </div>
+                </div>
+              </div>
+              <div hidden itemscope itemtype="https://pagelove.org/Schema">
+                <meta itemprop="type" content="https://pagelike.test${P}/B">
+                <div itemprop="property" itemscope itemtype="https://pagelove.org/Property">
+                  <meta itemprop="name" content="email">
+                  <meta itemprop="type" content="https://schema.host/Text">
+                  <div itemprop="@write" itemscope itemtype="https://pagelove.org/Sessel">
+                    <script itemprop="source" type="text/sessel">self.map((el) => new span[itemprop="email"] { el.text().trim().lowercase() })</script>
+                  </div>
+                </div>
+              </div>
+              <div hidden itemscope itemtype="https://pagelove.org/Schema">
+                <meta itemprop="type" content="https://pagelike.test${P}/C">
+                <div itemprop="property" itemscope itemtype="https://pagelove.org/Property">
+                  <meta itemprop="name" content="email">
+                  <meta itemprop="type" content="https://schema.host/Text">
+                  <div itemprop="@write" itemscope itemtype="https://pagelove.org/Sessel">
+                    <script itemprop="source" type="text/sessel">self.map((el) => new span[itemprop="email"] { el.text().trim().lower() })</script>
+                  </div>
+                </div>
+              </div>
+              <div hidden itemscope itemtype="https://pagelove.org/Schema">
+                <meta itemprop="type" content="https://pagelike.test${P}/D">
+                <div itemprop="property" itemscope itemtype="https://pagelove.org/Property">
+                  <meta itemprop="name" content="email">
+                  <meta itemprop="type" content="https://schema.host/Text">
+                  <div itemprop="@write" itemscope itemtype="https://pagelove.org/Sessel">
+                    <script itemprop="source" type="text/sessel">self.map((el) => el.text(el.text().trim().lower()))</script>
+                  </div>
+                </div>
+              </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "A: setter .text(x) with lowercase()"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/a.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div itemscope itemtype="https://pagelike.test${P}/A">
+                <span itemprop="email"> Alice@Example.COM </span>
+              </div>
+            </body></html>
+        expect:
+          status: 500
+          body_contains: ["https://dombase.pagelove.team/ns/error/Internal", "resolver pipeline error: sessel binding threw: unknown function: lowercase"]
+      - name: "A was not stored"
+        as: author
+        plane: dav
+        request:
+          method: GET
+          path: "${P}/a.html"
+        expect:
+          status: 404
+      - name: "B: constructed span with lowercase()"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/b.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div itemscope itemtype="https://pagelike.test${P}/B">
+                <span itemprop="email"> Alice@Example.COM </span>
+              </div>
+            </body></html>
+        expect:
+          status: 500
+          body_contains: ["unknown function: lowercase"]
+      - name: "B was not stored"
+        as: author
+        plane: dav
+        request:
+          method: GET
+          path: "${P}/b.html"
+        expect:
+          status: 404
+      - name: "C: constructed span with lower()"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/c.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div itemscope itemtype="https://pagelike.test${P}/C">
+                <span itemprop="email"> Alice@Example.COM </span>
+              </div>
+            </body></html>
+        expect:
+          status: 201
+      - name: "C stored"
+        as: author
+        plane: dav
+        request:
+          method: GET
+          path: "${P}/c.html"
+        expect:
+          status: 200
+          body_contains: ["<span itemprop=\"email\">alice@example.com</span>"]
+      - name: "D: setter .text(x) with lower()"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/d.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div itemscope itemtype="https://pagelike.test${P}/D">
+                <span itemprop="email"> Alice@Example.COM </span>
+              </div>
+            </body></html>
+        expect:
+          status: 500
+          body_contains: ["type error: text(value) setter requires a constructed element, got element"]
+      - name: "D was not stored"
+        as: author
+        plane: dav
+        request:
+          method: GET
+          path: "${P}/d.html"
+        expect:
+          status: 404
+
+  - id: modeling.probe-0929.nested-scope
+    title: "Probe: which nested items PageLove validates against their own schema"
+    area: modeling
+    feature: "nested types"
+    evidence: live-observed
+    source: "probe for harness/observations/live-2026-09-29/modeling-nested-recursive-validation.json (nested Address missing city accepted)"
+    confidence: medium
+    requires: []
+    live: true
+    notes: "spec: R-MOD-14, R-MOD-24."
+    site:
+      settings:
+        default_get: allow
+      rules:
+        - actor: "*"
+          resource: "${P}/*"
+          method: [GET, HEAD, PUT, POST, DELETE, MOVE]
+          action: Allow
+    steps:
+      - name: "register Address and Person"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/schema.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div hidden itemscope itemtype="https://pagelove.org/Schema">
+                <meta itemprop="type" content="https://pagelike.test${P}/Address">
+                <div itemprop="property" itemscope itemtype="https://pagelove.org/Property">
+                  <meta itemprop="name" content="street">
+                  <meta itemprop="type" content="https://schema.host/Text">
+                  <meta itemprop="cardinality" content="1..1">
+                </div>
+                <div itemprop="property" itemscope itemtype="https://pagelove.org/Property">
+                  <meta itemprop="name" content="city">
+                  <meta itemprop="type" content="https://schema.host/Text">
+                  <meta itemprop="cardinality" content="1..1">
+                </div>
+              </div>
+              <div hidden itemscope itemtype="https://pagelove.org/Schema">
+                <meta itemprop="type" content="https://pagelike.test${P}/Person">
+                <div itemprop="property" itemscope itemtype="https://pagelove.org/Property">
+                  <meta itemprop="name" content="name">
+                  <meta itemprop="type" content="https://schema.host/Text">
+                  <meta itemprop="cardinality" content="1..1">
+                </div>
+                <div itemprop="property" itemscope itemtype="https://pagelove.org/Property">
+                  <meta itemprop="name" content="address">
+                  <meta itemprop="type" content="https://pagelike.test${P}/Address">
+                  <meta itemprop="cardinality" content="0..1">
+                </div>
+              </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "a top-level Address missing city is refused (the Address schema is live)"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/top.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div itemscope itemtype="https://pagelike.test${P}/Address">
+                <span itemprop="street">1 Main St</span>
+              </div>
+            </body></html>
+        expect:
+          status: 422
+          body_contains: ["https://pagelove.org/SchemaViolation", "Address].city"]
+      - name: "an Address item inside the Person's markup (not a property value), missing city, is accepted"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/dom-nested.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div itemscope itemtype="https://pagelike.test${P}/Person">
+                <span itemprop="name">Alice</span>
+                <div itemscope itemtype="https://pagelike.test${P}/Address">
+                  <span itemprop="street">1 Main St</span>
+                </div>
+              </div>
+            </body></html>
+        expect:
+          status: [200, 201]
+      - name: "an address value typed as another schema is accepted"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/wrong-type.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div itemscope itemtype="https://pagelike.test${P}/Person">
+                <span itemprop="name">Alice</span>
+                <div itemprop="address" itemscope itemtype="https://pagelike.test${P}/Person">
+                  <span itemprop="name">Bob</span>
+                </div>
+              </div>
+            </body></html>
+        expect:
+          status: [200, 201]
+      - name: "an address value that is plain text, not an item, is accepted"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/text-address.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div itemscope itemtype="https://pagelike.test${P}/Person">
+                <span itemprop="name">Alice</span>
+                <span itemprop="address">1 Main St, Springfield</span>
+              </div>
+            </body></html>
+        expect:
+          status: [200, 201]
+      - name: "a Person missing its name, holding an Address missing city: only the name is reported"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/both.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div itemscope itemtype="https://pagelike.test${P}/Person">
+                <div itemprop="address" itemscope itemtype="https://pagelike.test${P}/Address">
+                  <span itemprop="street">1 Main St</span>
+                </div>
+              </div>
+            </body></html>
+        expect:
+          status: 422
+          body_contains: ["Person].name"]
+          body_not_contains: ["city"]
+      - name: "an Address item inside an item whose type has no schema, missing city"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/wrapped.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div itemscope itemtype="https://example.org/Wrapper">
+                <span itemprop="label">w</span>
+                <div itemscope itemtype="https://pagelike.test${P}/Address">
+                  <span itemprop="street">1 Main St</span>
+                </div>
+              </div>
+            </body></html>
+        expect:
+          status: [200, 201]
+
+  - id: modeling.probe-0929.computed-value
+    title: "Probe: what PageLove does with a value written to a @computed property"
+    area: modeling
+    feature: "computed properties"
+    evidence: live-observed
+    source: "probe for harness/observations/live-2026-09-29/modeling-computed-write-rejected.json (write accepted and stored)"
+    confidence: medium
+    requires: [sessel]
+    live: true
+    notes: "spec: R-MOD-44. A @computed property is validated like any other on write (its declared type applies to a written value), and its value is not added to the JSON-LD of a stored instance."
+    site:
+      settings:
+        default_get: allow
+      rules:
+        - actor: "*"
+          resource: "${P}/*"
+          method: [GET, HEAD, PUT, POST, DELETE, MOVE]
+          action: Allow
+    steps:
+      - name: "register Person with a computed display-name"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/schema.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div hidden itemscope itemtype="https://pagelove.org/Schema">
+                <meta itemprop="type" content="https://pagelike.test${P}/Person">
+                <div itemprop="property" itemscope itemtype="https://pagelove.org/Property">
+                  <meta itemprop="name" content="first-name">
+                  <meta itemprop="type" content="https://schema.host/Text">
+                  <meta itemprop="cardinality" content="1..1">
+                </div>
+                <div itemprop="property" itemscope itemtype="https://pagelove.org/Property">
+                  <meta itemprop="name" content="last-name">
+                  <meta itemprop="type" content="https://schema.host/Text">
+                  <meta itemprop="cardinality" content="1..1">
+                </div>
+                <div itemprop="property" itemscope itemtype="https://pagelove.org/Property">
+                  <meta itemprop="name" content="display-name">
+                  <meta itemprop="type" content="https://schema.host/Integer">
+                  <div itemprop="@computed" itemscope itemtype="https://pagelove.org/Sessel">
+                    <script itemprop="source" type="text/sessel">self.first-name + " " + self.last-name</script>
+                  </div>
+                </div>
+              </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "a display-name value that is not an Integer is refused like any other property value"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/b.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div itemscope itemtype="https://pagelike.test${P}/Person">
+                <meta itemprop="first-name" content="Ada">
+                <meta itemprop="last-name" content="Lovelace">
+                <meta itemprop="display-name" content="Countess">
+              </div>
+            </body></html>
+        expect:
+          status: 422
+          body_contains: ["https://pagelove.org/SchemaViolation", "Person].display-name: Value ", "Countess", " is not a valid "]
+      - name: "a display-name value that is an Integer is accepted and stored"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/c.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div itemscope itemtype="https://pagelike.test${P}/Person">
+                <meta itemprop="first-name" content="Ada">
+                <meta itemprop="last-name" content="Lovelace">
+                <meta itemprop="display-name" content="42">
+              </div>
+            </body></html>
+        expect:
+          status: 201
+          body_contains: ["<meta itemprop=\"display-name\" content=\"42\">"]
+      - name: "a person without display-name"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/a.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div itemscope itemtype="https://pagelike.test${P}/Person">
+                <meta itemprop="first-name" content="Ada">
+                <meta itemprop="last-name" content="Lovelace">
+              </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "JSON-LD of the person without a value"
+        as: anonymous
+        request:
+          method: GET
+          path: "${P}/a.html"
+          headers:
+            Accept: application/ld+json
+        expect:
+          status: 200
+          header_matches:
+            Content-Type: "^application/ld\\+json"
+          body_contains: ["\"first-name\": \"Ada\""]
+          body_not_contains: ["display-name", "Ada Lovelace"]
+
+  - id: modeling.probe-0929.write-envelopes
+    title: "Probe: error bodies of selector writes that break cardinality; WebDAV PUTs are not validated, even 65 s after the declarations"
+    area: modeling
+    feature: "validated operations"
+    status: live-divergence
+    evidence: live-observed
+    source: "probe for harness/observations/live-2026-09-29/modeling-write-paths-failed-write-change.json and modeling-write-paths-webdav-put-validate.json; the 65 s wait was first run as modeling.probe-0929.webdav-after-propagation (live-2026-09-29-reconcile-modeling/modeling-probe-0929-webdav-after-propaga.json), then merged here"
+    confidence: medium
+    requires: [webdav, slow]
+    live: true
+    notes: "spec: R-MOD-13, R-MOD-70, R-MOD-75. The 65 s wait rules out the documented 60 s constraint propagation as the reason a WebDAV PUT is stored unvalidated."
+    site:
+      settings:
+        default_get: allow
+      rules:
+        - actor: "*"
+          resource: "${P}/*"
+          method: [GET, HEAD, PUT, POST, DELETE, MOVE]
+          action: Allow
+    steps:
+      - name: "register Tag and a Widget shape"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/schema.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div hidden itemscope itemtype="https://pagelove.org/Schema">
+                <meta itemprop="type" content="https://pagelike.test${P}/Tag">
+                <div itemprop="property" itemscope itemtype="https://pagelove.org/Property">
+                  <meta itemprop="name" content="label">
+                  <meta itemprop="type" content="https://schema.host/Text">
+                  <meta itemprop="cardinality" content="1..1">
+                </div>
+              </div>
+              <div hidden itemscope itemtype="https://pagelove.org/ShapeConstraint">
+                <meta itemprop="resource" content="${P}/*">
+                <code itemprop="selector">[itemtype*=Widget]</code>
+                <code itemprop="constraint">:has([itemprop="name"])</code>
+              </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "valid tag"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/t.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div itemscope itemtype="https://pagelike.test${P}/Tag" id="t1">
+                <meta itemprop="label" content="a">
+              </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "selector PUT replacing the label with another property"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/t.html"
+          headers:
+            Content-Type: text/html
+            Range: "selector=#t1 > meta[itemprop=\"label\"]"
+          body: '<meta itemprop="note" content="x">'
+        expect:
+          status: 422
+          body: "<div itemscope itemtype=\"https://dombase.pagelove.team/ns/error/Cardinality\"><ul itemprop=\"problems\"><li itemprop=\"problem\"><span itemprop=\"message\">https://pagelike.test${P}/Tag /label: cardinality 1..1 violated: expected exactly 1 value, found 0 (cardinality)</span></li></ul></div>"
+      - name: "selector POST adding a second label"
+        as: anonymous
+        request:
+          method: POST
+          path: "${P}/t.html"
+          headers:
+            Content-Type: text/html
+            Range: "selector=#t1"
+          body: '<meta itemprop="label" content="b">'
+        expect:
+          status: 422
+          body: "<div itemscope itemtype=\"https://dombase.pagelove.team/ns/error/Cardinality\"><ul itemprop=\"problems\"><li itemprop=\"problem\"><span itemprop=\"message\">https://pagelike.test${P}/Tag /label: cardinality 1..1 violated: expected exactly 1 value, found 2 (cardinality)</span></li></ul></div>"
+      - name: "whole PUT with two labels"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/t2.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div itemscope itemtype="https://pagelike.test${P}/Tag">
+                <meta itemprop="label" content="a">
+                <meta itemprop="label" content="b">
+              </div>
+            </body></html>
+        expect:
+          status: 422
+          body_contains: ["https://pagelove.org/SchemaViolation", "[https://pagelike.test${P}/Tag].label: cardinality 1..1 violated: expected exactly 1 value, found 2"]
+      - name: "public PUT of a widget without a name"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/w1.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div itemscope itemtype="https://example.org/Widget"><span itemprop="colour">red</span></div>
+            </body></html>
+        expect:
+          status: 422
+          body: "<div itemscope itemtype=\"https://dombase.pagelove.team/ns/error/ShapeConstraint\"><ul itemprop=\"problems\"><li itemprop=\"problem\"><span itemprop=\"message\">Shape constraints violated</span></li><li itemprop=\"problem\"><span itemprop=\"message\">https://pagelove.org/ShapeConstraint [itemtype*=Widget]: Element matching '[itemtype*=Widget]' does not satisfy constraint ':has([itemprop=\"name\"])'</span></li></ul></div>"
+      - sleep_ms: 65000
+      - name: "the public plane still refuses a Tag without a label"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/t3.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div itemscope itemtype="https://pagelike.test${P}/Tag"></div>
+            </body></html>
+        expect:
+          status: 422
+          body_contains: ["https://pagelove.org/SchemaViolation", "Tag].label: cardinality 1..1 violated: expected exactly 1 value, found 0"]
+      - name: "WebDAV PUT of a Tag without a label"
+        as: author
+        plane: dav
+        request:
+          method: PUT
+          path: "${P}/t4.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div itemscope itemtype="https://pagelike.test${P}/Tag"></div>
+            </body></html>
+        expect:
+          status: [200, 201]
+      - name: "t4.html was stored"
+        as: author
+        plane: dav
+        request:
+          method: GET
+          path: "${P}/t4.html"
+        expect:
+          status: 200
+          body_contains: ["<div itemscope itemtype=\"https://pagelike.test${P}/Tag\"></div>"]
+      - name: "WebDAV PUT of a widget without a name is stored"
+        as: author
+        plane: dav
+        request:
+          method: PUT
+          path: "${P}/w2.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div itemscope itemtype="https://example.org/Widget"><span itemprop="colour">red</span></div>
+            </body></html>
+        expect:
+          status: 201
+      - name: "w2.html was stored"
+        as: author
+        plane: dav
+        request:
+          method: GET
+          path: "${P}/w2.html"
+        expect:
+          status: 200
+          body_contains: ["<span itemprop=\"colour\">red</span>"]
+
+  - id: modeling.probe-0929.constraint-envelopes
+    title: "Probe: shape and uniqueness error bodies with two violations, and a shape broken by DELETE"
+    area: modeling
+    feature: "error documents"
+    evidence: live-observed
+    source: "probe for harness/observations/live-2026-09-29/modeling-shapes-required-properties-user.json and modeling-uniqueness-composite-recipe.json"
+    confidence: medium
+    requires: []
+    live: true
+    notes: "spec: R-MOD-71, R-MOD-72."
+    site:
+      settings:
+        default_get: allow
+      rules:
+        - actor: "*"
+          resource: "${P}/*"
+          method: [GET, HEAD, PUT, POST, DELETE, MOVE]
+          action: Allow
+        - actor: "*"
+          resource: "${P}/*/*"
+          method: [GET, HEAD, PUT, POST, DELETE, MOVE]
+          action: Allow
+    steps:
+      - name: "register a User shape and a Project schema with two unique properties"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/schema.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div hidden itemscope itemtype="https://pagelove.org/ShapeConstraint">
+                <meta itemprop="resource" content="${P}/people/*">
+                <code itemprop="selector">[itemtype*=User]</code>
+                <code itemprop="constraint">:has([itemprop="username"])</code>
+                <code itemprop="constraint">:has([itemprop="email"])</code>
+              </div>
+              <div hidden itemscope itemtype="https://pagelove.org/Schema">
+                <meta itemprop="type" content="https://pagelike.test${P}/Project">
+                <div itemprop="property" itemscope itemtype="https://pagelove.org/Property">
+                  <meta itemprop="name" content="slug">
+                  <meta itemprop="type" content="https://schema.host/Text">
+                  <meta itemprop="unique" content="true">
+                </div>
+                <div itemprop="property" itemscope itemtype="https://pagelove.org/Property">
+                  <meta itemprop="name" content="code">
+                  <meta itemprop="type" content="https://schema.host/Text">
+                  <meta itemprop="unique" content="true">
+                </div>
+              </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "a user with neither username nor email"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/people/u0.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div itemscope itemtype="https://example.org/User"><span itemprop="name">x</span></div>
+            </body></html>
+        expect:
+          status: 422
+          body: "<div itemscope itemtype=\"https://dombase.pagelove.team/ns/error/ShapeConstraint\"><ul itemprop=\"problems\"><li itemprop=\"problem\"><span itemprop=\"message\">Shape constraints violated</span></li><li itemprop=\"problem\"><span itemprop=\"message\">https://pagelove.org/ShapeConstraint [itemtype*=User]: Element matching '[itemtype*=User]' does not satisfy constraint ':has([itemprop=\"username\"])'</span></li><li itemprop=\"problem\"><span itemprop=\"message\">https://pagelove.org/ShapeConstraint [itemtype*=User]: Element matching '[itemtype*=User]' does not satisfy constraint ':has([itemprop=\"email\"])'</span></li></ul></div>"
+      - name: "a complete user"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/people/u1.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div itemscope itemtype="https://example.org/User" id="u1">
+                <span itemprop="username">alice</span>
+                <span itemprop="email">alice@example.com</span>
+              </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "selector DELETE of the email"
+        as: anonymous
+        request:
+          method: DELETE
+          path: "${P}/people/u1.html"
+          headers:
+            Range: "selector=#u1 > [itemprop=\"email\"]"
+        expect:
+          status: 409
+          body: "<div itemscope itemtype=\"https://dombase.pagelove.team/ns/error/CascadeBlocked\"><ul itemprop=\"problems\"><li itemprop=\"problem\"><span itemprop=\"message\">Operation refused by cascade constraint: Constraint violation: 1 violation(s):\n  - [https://pagelove.org/ShapeConstraint] [itemtype*=User] (:has([itemprop=\"email\"])): Element matching '[itemtype*=User]' does not satisfy constraint ':has([itemprop=\"email\"])'</span></li></ul></div>"
+      - name: "first project"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/p1.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div itemscope itemtype="https://pagelike.test${P}/Project">
+                <meta itemprop="slug" content="launch">
+                <meta itemprop="code" content="L1">
+              </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "second project repeating both values"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/p2.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div itemscope itemtype="https://pagelike.test${P}/Project">
+                <meta itemprop="slug" content="launch">
+                <meta itemprop="code" content="L1">
+              </div>
+            </body></html>
+        expect:
+          status: 422
+          body_contains: ["<div itemscope itemtype=\"https://dombase.pagelove.team/ns/error/ConstraintViolation\"><ul itemprop=\"problems\"><li itemprop=\"problem\"><span itemprop=\"message\">Constraint violation: 1 violation(s):\n  - [uniqueness] [itemprop='slug'] (unique(slug)): Uniqueness violation: value already exists for property 'slug'"]
+          body_not_contains: ["[itemprop='code']"]
+      - name: "two projects sharing a slug in one new document"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/p3.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div itemscope itemtype="https://pagelike.test${P}/Project"><meta itemprop="slug" content="twin"></div>
+              <div itemscope itemtype="https://pagelike.test${P}/Project"><meta itemprop="slug" content="twin"></div>
+            </body></html>
+        expect:
+          status: 422
+          body_contains: ["Constraint violation: 1 violation(s):\n  - [uniqueness] [itemprop='slug'] (unique(slug)): Uniqueness violation: another item in '${P}/p3.html' already claims this value for property 'slug' (first claimed by item '0.2.0.1')"]

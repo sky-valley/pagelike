@@ -1,0 +1,35 @@
+{
+  "case": "javascript.dom.probe-0929.namespace-pipe",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (PUT the page (public plane; registers inline declarations))",
+      "method": "PUT",
+      "path": "/_pl/javascript-dom-probe-0929-namespace-pipe-3a8097/probe.html",
+      "status": 201,
+      "headers": {
+        "content-type": "text/html",
+        "etag": "\"9a795b741c7572b39b6471e5ce2403ecc2ad5c157ef2a046acb642966ba1645c\"",
+        "last-modified": "Tue, 29 Sep 2026 01:35:50 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml xmlns:t=\"https://pagelike.test/_pl/javascript-dom-probe-0929-namespace-pipe-3a8097/Pnamespacepipe\"\u003e\u003cbody\u003e\n\u003cmain\u003e\n\u003ct:probe\u003e\u003c/t:probe\u003e\n\u003c/main\u003e\n\u003cdiv hidden itemscope itemtype=\"https://pagelove.org/Schema\"\u003e\n\u003cmeta itemprop=\"type\" content=\"https://pagelike.test/_pl/javascript-dom-probe-0929-namespace-pipe-3a8097/Pnamespacepipe\"\u003e\n\u003cul\u003e\n\u003cli itemprop=\"property\" itemscope itemtype=\"https://pagelove.org/Method\"\u003e\n\u003cmeta itemprop=\"name\" content=\"probe\"\u003e\n\u003cdiv itemprop=\"implementation\" itemscope itemtype=\"https://pagelove.org/JavaScript/Module\"\u003e\n\u003cscript itemprop=\"source\" type=\"module\"\u003e\nconst H = (x) =\u003e String(x).replace(/[\u003c\u003e\"]/g, (c) =\u003e ({ '\u003c': '[', '\u003e': ']', '\"': \"'\" })[c]);\nconst T = (f) =\u003e { try { return H(f()); } catch (e) { return 'E:' + e.name; } };\nconst J = (x) =\u003e JSON.stringify(x);\nconst X = (n) =\u003e new XMLSerializer().serializeToString(n);\nconst N = (n) =\u003e (n === null ? 'null' : n === undefined ? 'undef' : typeof n === 'object' ? 'node:' + n.nodeName : typeof n + ':' + n);\nexport default function () {\nconst d = new DOMParser().parseFromString('\u003cdiv id=\"r\"\u003e\u003cp\u003ex\u003c/p\u003e\u003cdiv\u003e\u003cp\u003ey\u003c/p\u003e\u003c/div\u003e\u003csvg\u003e\u003cg\u003e\u003c/g\u003e\u003c/svg\u003e\u003c/div\u003e', 'text/html');\nconst r = d.querySelector('#r');\nconst c = d.createElementNS('http://www.w3.org/2000/svg', 'circle'); r.appendChild(c);\nconst q = (s) =\u003e T(() =\u003e d.querySelectorAll(s).length);\nconst out = [q('*|p'), q('p'), q('*|*'), q('*'), q('|p'), q('svg|g'), q('*|g'), q('*|circle'), q('circle'), q('div \u003e *|p'), q('*|P'), q('[*|id]'), q('|circle'), q('|*'), q('|g'),\n  T(() =\u003e d.querySelector('p').matches('*|p')), T(() =\u003e d.querySelector('p').closest('*|div') \u0026\u0026 d.querySelector('p').closest('*|div').id)];\nreturn 'R:' + out.join('|');\n}\n\u003c/script\u003e\n\u003c/div\u003e\n\u003c/li\u003e\n\u003c/ul\u003e\n\u003cmeta itemprop=\"@id\" content=\"https://schema.host/lzv7zthw\"\u003e\u003cmeta itemprop=\"path\" content=\"/Schemahttps://schema.host/lzv7zthw.html\"\u003e\u003c/div\u003e\n\n                \u003cdiv style=\"\n                            position: fixed;\n                            bottom: 0;\n                            left: 0;\n                            right: 0;\n                            padding: 8px;\n                            background: #f0f0f0;\n                            text-align: center;\n                            font-size: 12px;\n                            color: #666;\n                            z-index: 9999;\n                            opacity: 0.8;\n                            border-top: 1px solid #ddd;\n                        \"\u003e\n                    Powered by\n                    \u003ca href=\"https://pagelove.com/\" style=\"color: #4a90d9; text-decoration: none\"\u003ePagelove\u003c/a\u003e\n                \u003c/div\u003e\n            \u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 2 (GET \u003cmain\u003e: the method result is inserted as text)",
+      "method": "GET",
+      "path": "/_pl/javascript-dom-probe-0929-namespace-pipe-3a8097/probe.html",
+      "status": 206,
+      "headers": {
+        "content-length": "65",
+        "content-range": "selector main",
+        "content-type": "text/html",
+        "etag": "\"0196e3785adb46ff0ecc5d04715ad9d2a6379a7c16b59cf8efcb8a4d6a130433-0196e3785adb46ff0ecc5d04715ad9d2a6379a7c16b59cf8efcb8a4d6a130433-1\"",
+        "vary": "Host, Range, Accept"
+      },
+      "body": "\u003cmain\u003e\nR:2|2|7|7|2|E:SyntaxError|1|1|1|2|2|1|0|6|1|true|r\n\u003c/main\u003e"
+    }
+  ],
+  "outcome": "pass",
+  "target": "live"
+}

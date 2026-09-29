@@ -1,0 +1,35 @@
+{
+  "case": "authz.multimatch.all-matches-read-denied-if-any-denied.live",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (multipart includes the denied element)",
+      "method": "GET",
+      "path": "/_pl/authz-multimatch-all-matches-read-denied-7f6346/list.html",
+      "status": 200,
+      "headers": {
+        "accept-ranges": "bytes",
+        "content-length": "1478",
+        "content-type": "multipart/mixed; boundary=boundary8PxfVxExJ5V4BRAKdMzDWrSm2GmY4Jpf",
+        "vary": "Host, Range, Accept, Paginate"
+      },
+      "body": "--boundary8PxfVxExJ5V4BRAKdMzDWrSm2GmY4Jpf\r\nContent-Disposition: attachment; filename=\"/_pl/authz-multimatch-all-matches-read-denied-7f6346/list.html\"\r\nContent-Type: text/html\r\nContent-Range: selector .item\r\nETag: \"d9df3211015e75f9dfbb3dfa7361a1e4dd5ee891313cffdf722c4d8da59c3735-d9df3211015e75f9dfbb3dfa7361a1e4dd5ee891313cffdf722c4d8da59c3735-1\"\r\nContent-Length: 101\r\n\r\n\u003cli class=\"item\" itemscope itemtype=\"http://schema.org/Thing\"\u003e\u003cspan itemprop=\"name\"\u003eAlpha\u003c/span\u003e\u003c/li\u003e\r\n--boundary8PxfVxExJ5V4BRAKdMzDWrSm2GmY4Jpf\r\nContent-Disposition: attachment; filename=\"/_pl/authz-multimatch-all-matches-read-denied-7f6346/list.html\"\r\nContent-Type: text/html\r\nContent-Range: selector .item\r\nETag: \"b758178b90676b3ad86f4119a363084d2fd8f16ef24f05cd87d6d80375314289-b758178b90676b3ad86f4119a363084d2fd8f16ef24f05cd87d6d80375314289-1\"\r\nContent-Length: 108\r\n\r\n\u003cli class=\"item secret\" itemscope itemtype=\"http://schema.org/Thing\"\u003e\u003cspan itemprop=\"name\"\u003eBravo\u003c/span\u003e\u003c/li\u003e\r\n--boundary8PxfVxExJ5V4BRAKdMzDWrSm2GmY4Jpf\r\nContent-Disposition: attachment; filename=\"/_pl/authz-multimatch-all-matches-read-denied-7f6346/list.html\"\r\nContent-Type: text/html\r\nContent-Range: selector .item\r\nETag: \"2da795fe83386c7aee30ec9080308bcaef31316a67e8ae7e01af9a5696689dc4-2da795fe83386c7aee30ec9080308bcaef31316a67e8ae7e01af9a5696689dc4-1\"\r\nContent-Length: 103\r\n\r\n\u003cli class=\"item\" itemscope itemtype=\"http://schema.org/Thing\"\u003e\u003cspan itemprop=\"name\"\u003eCharlie\u003c/span\u003e\u003c/li\u003e\r\n--boundary8PxfVxExJ5V4BRAKdMzDWrSm2GmY4Jpf--"
+    },
+    {
+      "step": "step 2 (JSON-LD includes the denied element)",
+      "method": "GET",
+      "path": "/_pl/authz-multimatch-all-matches-read-denied-7f6346/list.html",
+      "status": 206,
+      "headers": {
+        "content-length": "235",
+        "content-range": "selector .item",
+        "content-type": "application/ld+json; charset=utf-8",
+        "etag": "W/\"5fd423461b2b401ab1a68b1a55007bf64af401c4c9c195b061938820fd24a57f\"",
+        "vary": "Host, Range, Accept, Paginate"
+      },
+      "body": "{\n  \"@context\": \"http://schema.org/\",\n  \"@graph\": [\n    {\n      \"@type\": \"Thing\",\n      \"name\": \"Alpha\"\n    },\n    {\n      \"@type\": \"Thing\",\n      \"name\": \"Bravo\"\n    },\n    {\n      \"@type\": \"Thing\",\n      \"name\": \"Charlie\"\n    }\n  ]\n}"
+    }
+  ],
+  "outcome": "pass",
+  "target": "live"
+}

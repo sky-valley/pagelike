@@ -1,0 +1,33 @@
+{
+  "case": "reacting.processor.js-throw-preserves-bytes",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (install a JS re-throwing processor)",
+      "method": "PUT",
+      "path": "/_pl/reacting-processor-js-throw-preserves-by-345fd6/r/processors.html",
+      "status": 201,
+      "headers": {
+        "content-length": "665",
+        "content-type": "text/html",
+        "etag": "\"683ab32109caa3e42299ebcea17eb3b79c689a71d2b82b6fbb9d97f022d859fe\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:49 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\n\u003cdiv hidden itemscope itemtype=\"https://pagelove.org/Processor\"\u003e\n  \u003cmeta itemprop=\"resource\" content=\"/_pl/reacting-processor-js-throw-preserves-by-345fd6/lib/*\"\u003e\n  \u003cmeta itemprop=\"method\" content=\"GET\"\u003e\n  \u003cmeta itemprop=\"status\" content=\"2xx\"\u003e\n  \u003cdiv itemprop=\"action\" itemscope itemtype=\"https://pagelove.org/JavaScript/Module\"\u003e\n    \u003cscript type=\"module\" itemprop=\"source\"\u003e\n      export default function (ctx) {\n        throw { schema_url: \"https://pagelove.org/HTTPResponse\", status: ctx.response.status, body: ctx.response.body, headers: { \"Content-Type\": \"text/javascript\" } };\n      }\n    \u003c/script\u003e\n  \u003c/div\u003e\n\u003c/div\u003e\n\u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 2 (the module text is intact)",
+      "method": "GET",
+      "path": "/_pl/reacting-processor-js-throw-preserves-by-345fd6/lib/mod.mjs",
+      "status": 200,
+      "headers": {
+        "content-length": "34",
+        "content-type": "text/javascript"
+      },
+      "body": "export const f = (a, b) =\u003e a \u0026\u0026 b;"
+    }
+  ],
+  "outcome": "pass",
+  "target": "local"
+}

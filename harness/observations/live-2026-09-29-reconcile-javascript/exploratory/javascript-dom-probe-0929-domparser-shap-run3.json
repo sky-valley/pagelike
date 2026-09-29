@@ -1,0 +1,37 @@
+{
+  "case": "javascript.dom.probe-0929.domparser-shape",
+  "failures": [
+    "step 2 (GET \u003cmain\u003e: the method result is inserted as text) GET ${P}/probe.html: body does not contain \"R:UL,P|9|null|true ## [ul id='l'][li]a[/li][/ul][p]x[/p]/UL/-/-/2 ## [!DOCTYPE html][html][head][title]t[/title][/head][body][p]x[/p][/body][/html]/HTML/HEAD/BODY/2 ## [title]t[/title][p]x[/p]/TITLE/-/-/2 ## [body][p]x[/p][/body]/BODY/-/BODY/1 ## [head][title]t[/title][/head][p]x[/p]/HEAD/HEAD/-/2 ## [html][p]x[/p][/html]/HTML/-/-/1 ## /-/-/-/0 ## text [b]bold[/b]/B/-/-/2 ## [p]a[/p][p]b[table][tbody][tr][td]x[/td][/tr][/tbody][/table][/p]/P/-/-/2 ## [t:x][/t:x][i]t[/i]/T:X/-/-/2\" (body: \u003cmain\u003e\nR:UL,P|9|null|true ## [ul id='l'][li]a[/li][/ul][p]x[/p]/UL/-/-/2 ## [!DOCTYPE html][html][head][title]t[/title][/head][body][p]x[/p][/body][/html]/HTML/HEAD/BODY/2 ## [title]t[/title][p]x[/p]/TITLE/-/-/2 ## [body][p]x[/p][/body]/BODY/-/BODY/1 ## [head][title]t[/title][/head][p]x[/p]/HEAD/HEAD/-/2 ## [html][p]x[/p][/html]/HTML/-/-/1 ## /-/-/-/0 ## text [b]bold[/b]/B/-/-/2 ## [p]a[p]b[table]…)"
+  ],
+  "observations": [
+    {
+      "step": "step 1 (PUT the page (public plane; registers inline declarations))",
+      "method": "PUT",
+      "path": "/_pl/javascript-dom-probe-0929-domparser-shap-f4eb0d/probe.html",
+      "status": 201,
+      "headers": {
+        "content-type": "text/html",
+        "etag": "\"f75e266ef23d01965f59c8eeadc4ea4dc369bfa9ff2f3bc0a1ed19fa2d8cc8b6\"",
+        "last-modified": "Tue, 29 Sep 2026 01:47:04 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml xmlns:t=\"https://pagelike.test/_pl/javascript-dom-probe-0929-domparser-shap-f4eb0d/Pdomparsershape\"\u003e\u003cbody\u003e\n\u003cmain\u003e\n\u003ct:probe\u003e\u003c/t:probe\u003e\n\u003c/main\u003e\n\u003cdiv hidden itemscope itemtype=\"https://pagelove.org/Schema\"\u003e\n\u003cmeta itemprop=\"type\" content=\"https://pagelike.test/_pl/javascript-dom-probe-0929-domparser-shap-f4eb0d/Pdomparsershape\"\u003e\n\u003cul\u003e\n\u003cli itemprop=\"property\" itemscope itemtype=\"https://pagelove.org/Method\"\u003e\n\u003cmeta itemprop=\"name\" content=\"probe\"\u003e\n\u003cdiv itemprop=\"implementation\" itemscope itemtype=\"https://pagelove.org/JavaScript/Module\"\u003e\n\u003cscript itemprop=\"source\" type=\"module\"\u003e\nconst H = (x) =\u003e String(x).replace(/[\u003c\u003e\"]/g, (c) =\u003e ({ '\u003c': '[', '\u003e': ']', '\"': \"'\" })[c]);\nconst T = (f) =\u003e { try { return H(f()); } catch (e) { return 'E:' + e.name; } };\nconst J = (x) =\u003e JSON.stringify(x);\nconst X = (n) =\u003e new XMLSerializer().serializeToString(n);\nconst N = (n) =\u003e (n === null ? 'null' : n === undefined ? 'undef' : typeof n === 'object' ? 'node:' + n.nodeName : typeof n + ':' + n);\nexport default function () {\nconst P = new DOMParser();\nconst K = (n) =\u003e (n === null ? '-' : n.nodeName);\nconst G = (m) =\u003e T(() =\u003e { const d = P.parseFromString(m, 'text/html'); return X(d) + '/' + K(d.documentElement) + '/' + K(d.head) + '/' + K(d.body) + '/' + d.childNodes.length; });\nconst d1 = P.parseFromString('\u003cul id=\"l\"\u003e\u003cli\u003ea\u003c/li\u003e\u003c/ul\u003e\u003cp\u003ex\u003c/p\u003e', 'text/html');\nconst l = d1.querySelector('#l');\nconst a = [T(() =\u003e Array.from(d1.childNodes, (n) =\u003e n.nodeName).join(',')), T(() =\u003e l.parentNode.nodeType), T(() =\u003e N(l.parentElement)), T(() =\u003e d1 instanceof Document)];\nconst g = [G('\u003cul id=\"l\"\u003e\u003cli\u003ea\u003c/li\u003e\u003c/ul\u003e\u003cp\u003ex\u003c/p\u003e'), G('\u003c!DOCTYPE html\u003e\u003chtml\u003e\u003chead\u003e\u003ctitle\u003et\u003c/title\u003e\u003c/head\u003e\u003cbody\u003e\u003cp\u003ex\u003c/p\u003e\u003c/body\u003e\u003c/html\u003e'), G('\u003ctitle\u003et\u003c/title\u003e\u003cp\u003ex\u003c/p\u003e'), G('\u003cbody\u003e\u003cp\u003ex\u003c/p\u003e\u003c/body\u003e'),\n  G('\u003chead\u003e\u003ctitle\u003et\u003c/title\u003e\u003c/head\u003e\u003cp\u003ex\u003c/p\u003e'), G('\u003chtml\u003e\u003cp\u003ex\u003c/p\u003e\u003c/html\u003e'), G(''), G('text \u003cb\u003ebold\u003c/b\u003e'), G('\u003cp\u003ea\u003cp\u003eb\u003ctable\u003e\u003ctr\u003e\u003ctd\u003ex\u003c/td\u003e\u003c/tr\u003e\u003c/table\u003e'), G('\u003ct:x/\u003e\u003ci\u003et\u003c/i\u003e')];\nreturn ['R:', a.join('|'), ' ## ', g.join(' ## ')].join('');\n}\n\u003c/script\u003e\n\u003c/div\u003e\n\u003c/li\u003e\n\u003c/ul\u003e\n\u003cmeta itemprop=\"@id\" content=\"https://schema.host/hj40qxcq\"\u003e\u003cmeta itemprop=\"path\" content=\"/Schemahttps://schema.host/hj40qxcq.html\"\u003e\u003c/div\u003e\n\n                \u003cdiv style=\"\n                            position: fixed;\n                            bottom: 0;\n                            left: 0;\n                            right: 0;\n                            padding: 8px;\n                            background: #f0f0f0;\n                            text-align: center;\n                            font-size: 12px;\n                            color: #666;\n                            z-index: 9999;\n                            opacity: 0.8;\n                            border-top: 1px solid #ddd;\n                        \"\u003e\n                    Powered by\n                    \u003ca href=\"https://pagelove.com/\" style=\"color: #4a90d9; text-decoration: none\"\u003ePagelove\u003c/a\u003e\n                \u003c/div\u003e\n            \u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 2 (GET \u003cmain\u003e: the method result is inserted as text)",
+      "method": "GET",
+      "path": "/_pl/javascript-dom-probe-0929-domparser-shap-f4eb0d/probe.html",
+      "status": 206,
+      "headers": {
+        "content-length": "484",
+        "content-range": "selector main",
+        "content-type": "text/html",
+        "etag": "\"e300e2b27c38df42ef717b342b4636099ccea10a8c2538f51d1d485b7611c2b8-e300e2b27c38df42ef717b342b4636099ccea10a8c2538f51d1d485b7611c2b8-1\"",
+        "vary": "Host, Range, Accept"
+      },
+      "body": "\u003cmain\u003e\nR:UL,P|9|null|true ## [ul id='l'][li]a[/li][/ul][p]x[/p]/UL/-/-/2 ## [!DOCTYPE html][html][head][title]t[/title][/head][body][p]x[/p][/body][/html]/HTML/HEAD/BODY/2 ## [title]t[/title][p]x[/p]/TITLE/-/-/2 ## [body][p]x[/p][/body]/BODY/-/BODY/1 ## [head][title]t[/title][/head][p]x[/p]/HEAD/HEAD/-/2 ## [html][p]x[/p][/html]/HTML/-/-/1 ## /-/-/-/0 ## text [b]bold[/b]/B/-/-/2 ## [p]a[p]b[table][tr][td]x[/td][/tr][/table][/p][/p]/P/-/-/1 ## [t:x][/t:x][i]t[/i]/T:X/-/-/2\n\u003c/main\u003e"
+    }
+  ],
+  "outcome": "fail",
+  "target": "live"
+}

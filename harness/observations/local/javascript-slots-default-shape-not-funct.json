@@ -1,0 +1,45 @@
+{
+  "case": "javascript.slots.default-shape-not-function",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (register declarations through the public plane (takes effect for the next request))",
+      "method": "PUT",
+      "path": "/_pl/javascript-slots-default-shape-not-funct-2fdd2d/schema.html",
+      "status": 201,
+      "headers": {
+        "content-length": "630",
+        "content-type": "text/html",
+        "etag": "\"7e0787cbdd0f85cb95e8f012c88cd545fccf4b65967e52dcf0a29704efcff421\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:43 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\n\u003cdiv hidden itemscope itemtype=\"https://pagelove.org/Schema\"\u003e\n\u003cmeta itemprop=\"type\" content=\"https://pagelike.test/_pl/javascript-slots-default-shape-not-funct-2fdd2d/Dfdefaultshapenotfunction\"\u003e\n\u003cdiv itemprop=\"property\" itemscope itemtype=\"https://pagelove.org/Property\"\u003e\n\u003cmeta itemprop=\"name\" content=\"d\"\u003e\n\u003cmeta itemprop=\"type\" content=\"https://schema.host/Text\"\u003e\n\u003cmeta itemprop=\"cardinality\" content=\"0..1\"\u003e\n\u003cdiv itemprop=\"default\" itemscope itemtype=\"https://pagelove.org/JavaScript/Module\"\u003e\n\u003cscript itemprop=\"source\" type=\"module\"\u003e\nexport default 42;\n\u003c/script\u003e\n\u003c/div\u003e\n\u003c/div\u003e\n\u003c/div\u003e\n\u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 2 (PUT an instance (a.html))",
+      "method": "PUT",
+      "path": "/_pl/javascript-slots-default-shape-not-funct-2fdd2d/a.html",
+      "status": 422,
+      "headers": {
+        "content-length": "1225",
+        "content-type": "text/html; charset=utf-8",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\n  \u003chead\u003e\n    \u003ctitle\u003e422 Unprocessable Entity - Schema Violation\u003c/title\u003e\n  \u003c/head\u003e\n  \u003cbody itemscope itemtype=\"https://pagelove.org/SchemaViolation\"\u003e\n    \u003ch1 itemprop=\"name\"\u003eUnprocessable Entity\u003c/h1\u003e\n    \u003cmeta itemprop=\"statusCode\" content=\"422\"\u003e\n    \u003cp itemprop=\"description\"\u003eSchema validation failed\u003c/p\u003e\n    \u003cul\u003e\n      \u003cli itemprop=\"violations\" itemscope itemtype=\"https://pagelove.org/Violation\"\u003e\n        \u003cspan itemprop=\"check\"\u003edefault\u003c/span\u003e\n        \u003cspan itemprop=\"itemtype\"\u003ehttps://pagelike.test/_pl/javascript-slots-default-shape-not-funct-2fdd2d/Dfdefaultshapenotfunction\u003c/span\u003e\n        \u003cspan itemprop=\"property\"\u003ed\u003c/span\u003e\n        \u003cspan itemprop=\"message\"\u003e[https://pagelike.test/_pl/javascript-slots-default-shape-not-funct-2fdd2d/Dfdefaultshapenotfunction].d: the default could not be computed: the default export is not a function\u003c/span\u003e\n        \u003cdiv itemprop=\"failure\" itemscope itemtype=\"https://pagelove.org/BindingFailure\"\u003e\n          \u003cmeta itemprop=\"language\" content=\"https://pagelove.org/JavaScript/Module\"\u003e\n          \u003cmeta itemprop=\"variant\" content=\"shape\"\u003e\n          \u003cp itemprop=\"message\"\u003ethe default export is not a function\u003c/p\u003e\n        \u003c/div\u003e\n      \u003c/li\u003e\n    \u003c/ul\u003e\n  \u003c/body\u003e\n\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 3 (stored state (authoring plane, raw))",
+      "method": "GET",
+      "path": "/_pl/javascript-slots-default-shape-not-funct-2fdd2d/a.html",
+      "status": 404,
+      "headers": {
+        "content-length": "210",
+        "content-type": "text/html; charset=utf-8"
+      },
+      "body": "\u003carticle itemscope itemtype=\"https://pagelove.org/Error/NotFound\"\u003e\u003cmeta itemprop=\"status\" content=\"404\"\u003e\u003cp itemprop=\"message\"\u003eNot found: /_pl/javascript-slots-default-shape-not-funct-2fdd2d/a.html\u003c/p\u003e\u003c/article\u003e"
+    }
+  ],
+  "outcome": "pass",
+  "target": "local"
+}

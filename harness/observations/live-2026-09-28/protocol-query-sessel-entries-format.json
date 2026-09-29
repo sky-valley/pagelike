@@ -1,0 +1,22 @@
+{
+  "case": "protocol.query-sessel.entries-format",
+  "failures": [
+    "step 1 (any page) QUERY ${P}/five.html: header Content-Range = \"\", want match \"^entries \\\\d+-\\\\d+/5$\""
+  ],
+  "observations": [
+    {
+      "step": "step 1 (any page)",
+      "method": "QUERY",
+      "path": "/_pl/protocol-query-sessel-entries-format-fa9592/five.html",
+      "status": 400,
+      "headers": {
+        "content-length": "349",
+        "content-type": "text/html",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\n  \u003chead\u003e\n    \u003ctitle\u003e400 Bad Request - Error\u003c/title\u003e\n  \u003c/head\u003e\n  \u003cbody itemscope itemtype=\"http://pagelove.org/Error\"\u003e\n    \u003ch1 itemprop=\"name\"\u003eBad Request\u003c/h1\u003e\n    \u003cmeta itemprop=\"statusCode\" content=\"400\"\u003e\n    \u003cp itemprop=\"description\"\u003eSessel evaluation error: unknown function: execute (at bytes 16..20)\u003c/p\u003e\n  \u003c/body\u003e\n\u003c/html\u003e"
+    }
+  ],
+  "outcome": "fail",
+  "target": "live"
+}

@@ -1,0 +1,32 @@
+{
+  "case": "protocol.move-authz.whole-document-needs-no-delete-post",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (allowed)",
+      "method": "MOVE",
+      "path": "/_pl/protocol-move-authz-whole-document-needs-790804/a.html",
+      "status": 204,
+      "headers": {
+        "etag": "\"87351f680d97cb2aca4604f8ab89078b7a31f4dd14cb20acbfb7c0f65c42970d\"",
+        "last-modified": "Mon, 28 Sep 2026 22:30:21 GMT",
+        "vary": "Host, Range"
+      }
+    },
+    {
+      "step": "step 2 (destination exists)",
+      "method": "GET",
+      "path": "/_pl/protocol-move-authz-whole-document-needs-790804/moved/a.html",
+      "status": 200,
+      "headers": {
+        "content-type": "text/html",
+        "etag": "\"87351f680d97cb2aca4604f8ab89078b7a31f4dd14cb20acbfb7c0f65c42970d\"",
+        "last-modified": "Mon, 28 Sep 2026 22:30:21 GMT",
+        "vary": "Host, Range, Accept"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\u003ch1\u003eSource\u003c/h1\u003e\n                \u003cdiv style=\"\n                            position: fixed;\n                            bottom: 0;\n                            left: 0;\n                            right: 0;\n                            padding: 8px;\n                            background: #f0f0f0;\n                            text-align: center;\n                            font-size: 12px;\n                            color: #666;\n                            z-index: 9999;\n                            opacity: 0.8;\n                            border-top: 1px solid #ddd;\n                        \"\u003e\n                    Powered by\n                    \u003ca href=\"https://pagelove.com/\" style=\"color: #4a90d9; text-decoration: none\"\u003ePagelove\u003c/a\u003e\n                \u003c/div\u003e\n            \u003c/body\u003e\u003c/html\u003e\n"
+    }
+  ],
+  "outcome": "pass",
+  "target": "live"
+}

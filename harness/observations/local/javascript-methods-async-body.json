@@ -1,0 +1,37 @@
+{
+  "case": "javascript.methods.async-body",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (PUT the page (public plane; registers inline declarations))",
+      "method": "PUT",
+      "path": "/_pl/javascript-methods-async-body-ab9fb4/m.html",
+      "status": 201,
+      "headers": {
+        "content-length": "719",
+        "content-type": "text/html",
+        "etag": "\"4bc0c54f3e9426da39cf36cad6637ab43abc65a10e0f7fdd65c28d021ee643f7\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:43 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml xmlns:t=\"https://pagelike.test/_pl/javascript-methods-async-body-ab9fb4/Async\"\u003e\u003cbody\u003e\n\u003cmain\u003e\n\u003ct:later\u003e\u003c/t:later\u003e\n\u003c/main\u003e\n\u003cdiv hidden itemscope itemtype=\"https://pagelove.org/Schema\"\u003e\n\u003cmeta itemprop=\"type\" content=\"https://pagelike.test/_pl/javascript-methods-async-body-ab9fb4/Async\"\u003e\n\u003cul\u003e\n\u003cli itemprop=\"property\" itemscope itemtype=\"https://pagelove.org/Method\"\u003e\n\u003cmeta itemprop=\"name\" content=\"later\"\u003e\n\u003cdiv itemprop=\"implementation\" itemscope itemtype=\"https://pagelove.org/JavaScript/Module\"\u003e\n\u003cscript itemprop=\"source\" type=\"module\"\u003e\nexport default async () =\u003e { await null; const v = await Promise.resolve('async-ok'); return 'ASYNC:' + v; };\n\u003c/script\u003e\n\u003c/div\u003e\n\u003c/li\u003e\n\u003c/ul\u003e\n\u003c/div\u003e\n\u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 2 (GET the composed page)",
+      "method": "GET",
+      "path": "/_pl/javascript-methods-async-body-ab9fb4/m.html",
+      "status": 206,
+      "headers": {
+        "accept-ranges": "selector, bytes",
+        "content-length": "29",
+        "content-range": "selector main",
+        "content-type": "text/html",
+        "etag": "\"67d398b9f7511b649bac5e13d0096454dd8ced2a00b396d86dc85825d3c607bc-67d398b9f7511b649bac5e13d0096454dd8ced2a00b396d86dc85825d3c607bc-1\"",
+        "vary": "Host, Range, Accept"
+      },
+      "body": "\u003cmain\u003e\nASYNC:async-ok\n\u003c/main\u003e"
+    }
+  ],
+  "outcome": "pass",
+  "target": "local"
+}

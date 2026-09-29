@@ -1,0 +1,49 @@
+{
+  "case": "sessel.query.values.try-catch-message",
+  "failures": [
+    "step 1 (message) QUERY ${P}/doc.html: json = \"Error: type error: cannot use 'a' in arithmetic\", want \"Error: Cannot add String and Integer\""
+  ],
+  "observations": [
+    {
+      "step": "step 1 (message)",
+      "method": "QUERY",
+      "path": "/_pl/sessel-query-values-try-catch-message-9a049f/doc.html",
+      "status": 200,
+      "headers": {
+        "accept-ranges": "bytes",
+        "content-length": "49",
+        "content-type": "application/sessel+json",
+        "vary": "Host, Range"
+      },
+      "body": "\"Error: type error: cannot use 'a' in arithmetic\""
+    },
+    {
+      "step": "step 2 (type of division by zero)",
+      "method": "QUERY",
+      "path": "/_pl/sessel-query-values-try-catch-message-9a049f/doc.html",
+      "status": 200,
+      "headers": {
+        "accept-ranges": "bytes",
+        "content-length": "14",
+        "content-type": "application/sessel+json",
+        "vary": "Host, Range"
+      },
+      "body": "\"RuntimeError\""
+    },
+    {
+      "step": "step 3 (null propagation is not an error)",
+      "method": "QUERY",
+      "path": "/_pl/sessel-query-values-try-catch-message-9a049f/doc.html",
+      "status": 200,
+      "headers": {
+        "accept-ranges": "bytes",
+        "content-length": "4",
+        "content-type": "application/sessel+json",
+        "vary": "Host, Range"
+      },
+      "body": "null"
+    }
+  ],
+  "outcome": "fail",
+  "target": "live"
+}

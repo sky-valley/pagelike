@@ -1,0 +1,34 @@
+{
+  "case": "modeling.shapes-closed.namespaced-attribute-distinct",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (register declarations through the public plane (takes effect for the next request))",
+      "method": "PUT",
+      "path": "/_pl/modeling-shapes-closed-namespaced-attrib-0c7d17/shapes.html",
+      "status": 201,
+      "headers": {
+        "content-length": "347",
+        "content-type": "text/html",
+        "etag": "\"09bd4badc03c3596f4b92cadf108a44c295c42b72b425e530daaadeefc02588d\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:44 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\n  \u003cdiv hidden itemscope itemtype=\"https://pagelove.org/ShapeConstraint\"\u003e\n    \u003cmeta itemprop=\"resource\" content=\"/_pl/modeling-shapes-closed-namespaced-attrib-0c7d17/box/*\"\u003e\n    \u003ccode itemprop=\"selector\"\u003e#box\u003c/code\u003e\n    \u003ccode itemprop=\"permit\"\u003ep\u003c/code\u003e\n    \u003ccode itemprop=\"permit\"\u003e[lang]\u003c/code\u003e\n  \u003c/div\u003e\n\u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 2 (xml:lang rejected)",
+      "method": "PUT",
+      "path": "/_pl/modeling-shapes-closed-namespaced-attrib-0c7d17/box/a.html",
+      "status": 422,
+      "headers": {
+        "content-length": "398",
+        "content-type": "text/html",
+        "vary": "Host, Range"
+      },
+      "body": "\u003cdiv itemscope itemtype=\"https://dombase.pagelove.team/ns/error/ShapeConstraint\"\u003e\u003cul itemprop=\"problems\"\u003e\u003cli itemprop=\"problem\"\u003e\u003cspan itemprop=\"message\"\u003eShape constraints violated\u003c/span\u003e\u003c/li\u003e\u003cli itemprop=\"problem\"\u003e\u003cspan itemprop=\"message\"\u003ehttps://pagelove.org/ShapeConstraint #box: Attribute \u0026lt;xml:lang\u0026gt; on \u0026lt;p\u0026gt; inside '#box' is not permitted by any matching permit\u003c/span\u003e\u003c/li\u003e\u003c/ul\u003e\u003c/div\u003e"
+    }
+  ],
+  "outcome": "pass",
+  "target": "local"
+}

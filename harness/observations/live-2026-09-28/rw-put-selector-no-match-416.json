@@ -1,0 +1,33 @@
+{
+  "case": "rw.put.selector-no-match-416",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (PUT to an absent h2)",
+      "method": "PUT",
+      "path": "/_pl/rw-put-selector-no-match-416-637fcb/nomatch.html",
+      "status": 416,
+      "headers": {
+        "content-length": "425",
+        "content-type": "text/html",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\u003cdiv itemscope itemtype=\"http://pagelove.org/Error\"\u003e\u003cspan itemprop=\"statusCode\"\u003e416\u003c/span\u003e\u003cspan itemprop=\"message\"\u003e\u003cdiv itemscope itemtype=\"https://dombase.pagelove.team/ns/error/selector-no-match\"\u003e\u003cul itemprop=\"problems\"\u003e\u003cli itemprop=\"problem\"\u003e\u003cspan itemprop=\"message\"\u003eselector \"h2\": selector matched no elements at the request path or any origin\u003c/span\u003e\u003c/li\u003e\u003c/ul\u003e\u003c/div\u003e\u003c/span\u003e\u003c/div\u003e\u003c/body\u003e\u003c/html\u003e"
+    },
+    {
+      "step": "step 2 (document unchanged)",
+      "method": "GET",
+      "path": "/_pl/rw-put-selector-no-match-416-637fcb/nomatch.html",
+      "status": 200,
+      "headers": {
+        "content-type": "text/html",
+        "etag": "\"252dd2ab1f2311aa49ae2704211fac6738001d2092e25cad5a15ed56d00afbfc\"",
+        "last-modified": "Mon, 28 Sep 2026 22:28:45 GMT",
+        "vary": "Host, Range, Accept"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\u003ch1\u003eOnly h1\u003c/h1\u003e\n                \u003cdiv style=\"\n                            position: fixed;\n                            bottom: 0;\n                            left: 0;\n                            right: 0;\n                            padding: 8px;\n                            background: #f0f0f0;\n                            text-align: center;\n                            font-size: 12px;\n                            color: #666;\n                            z-index: 9999;\n                            opacity: 0.8;\n                            border-top: 1px solid #ddd;\n                        \"\u003e\n                    Powered by\n                    \u003ca href=\"https://pagelove.com/\" style=\"color: #4a90d9; text-decoration: none\"\u003ePagelove\u003c/a\u003e\n                \u003c/div\u003e\n            \u003c/body\u003e\u003c/html\u003e\n"
+    }
+  ],
+  "outcome": "pass",
+  "target": "live"
+}

@@ -1,0 +1,33 @@
+{
+  "case": "modeling.errors.schema-violation-envelope",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (register declarations through the public plane (takes effect for the next request))",
+      "method": "PUT",
+      "path": "/_pl/modeling-errors-schema-violation-envelop-f48aa2/schema.html",
+      "status": 201,
+      "headers": {
+        "content-type": "text/html",
+        "etag": "\"cafe6e5d2c0a054d40f5e0189807cfa99b1e85dddeacd9cd6af041138d8873a9\"",
+        "last-modified": "Tue, 29 Sep 2026 00:47:57 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\n  \u003cdiv hidden itemscope itemtype=\"https://pagelove.org/Schema\"\u003e\n    \u003cmeta itemprop=\"type\" content=\"https://pagelike.test/_pl/modeling-errors-schema-violation-envelop-f48aa2/Account\"\u003e\n    \u003cdiv itemprop=\"property\" itemscope itemtype=\"https://pagelove.org/Property\"\u003e\n      \u003cmeta itemprop=\"name\" content=\"n\"\u003e\n      \u003cmeta itemprop=\"type\" content=\"https://schema.host/Integer\"\u003e\n      \u003cmeta itemprop=\"cardinality\" content=\"1..1\"\u003e\n    \u003c/div\u003e\n  \u003cmeta itemprop=\"@id\" content=\"https://schema.host/hb6el9ds\"\u003e\u003cmeta itemprop=\"path\" content=\"/Schemahttps://schema.host/hb6el9ds.html\"\u003e\u003c/div\u003e\n\n                \u003cdiv style=\"\n                            position: fixed;\n                            bottom: 0;\n                            left: 0;\n                            right: 0;\n                            padding: 8px;\n                            background: #f0f0f0;\n                            text-align: center;\n                            font-size: 12px;\n                            color: #666;\n                            z-index: 9999;\n                            opacity: 0.8;\n                            border-top: 1px solid #ddd;\n                        \"\u003e\n                    Powered by\n                    \u003ca href=\"https://pagelove.com/\" style=\"color: #4a90d9; text-decoration: none\"\u003ePagelove\u003c/a\u003e\n                \u003c/div\u003e\n            \u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 2 (type failure)",
+      "method": "PUT",
+      "path": "/_pl/modeling-errors-schema-violation-envelop-f48aa2/a.html",
+      "status": 422,
+      "headers": {
+        "content-length": "277",
+        "content-type": "text/html",
+        "vary": "Host, Range"
+      },
+      "body": "\u003cdiv itemscope itemtype=\"https://pagelove.org/SchemaViolation\"\u003e\u003cul itemprop=\"problems\"\u003e\u003cli itemprop=\"problem\"\u003e\u003cspan itemprop=\"message\"\u003e[https://pagelike.test/_pl/modeling-errors-schema-violation-envelop-f48aa2/Account].n: Value \"x\" is not a valid integer\u003c/span\u003e\u003c/li\u003e\u003c/ul\u003e\u003c/div\u003e"
+    }
+  ],
+  "outcome": "pass",
+  "target": "live"
+}

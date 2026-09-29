@@ -1,0 +1,49 @@
+{
+  "case": "reacting.outbound.webhook-recipe-json-body",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (install the recipe processor)",
+      "method": "PUT",
+      "path": "/_pl/reacting-outbound-webhook-recipe-json-bo-d12cda/r/processors.html",
+      "status": 201,
+      "headers": {
+        "content-length": "808",
+        "content-type": "text/html",
+        "etag": "\"68e8d6e6c9abefe9075b1b91053b264f744fea9c9dc0e573484423c875c97ac6\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:48 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\n\u003cdiv itemscope itemtype=\"https://pagelove.org/Processor\"\u003e\n  \u003cmeta itemprop=\"resource\" content=\"/_pl/reacting-outbound-webhook-recipe-json-bo-d12cda/notes/*\"\u003e\n  \u003cmeta itemprop=\"method\" content=\"POST\"\u003e\n  \u003cdiv itemprop=\"action\" itemscope itemtype=\"https://pagelove.org/HttpRequest\"\u003e\n    \u003cmeta itemprop=\"url\" content=\"http://127.0.0.1:53405/c-a327b082/webhooks/note-created\"\u003e\n    \u003cmeta itemprop=\"method\" content=\"POST\"\u003e\n    \u003cmeta itemprop=\"content-type\" content=\"application/json\"\u003e\n    \u003cdiv itemprop=\"body\" itemscope itemtype=\"https://pagelove.org/Sessel\"\u003e\n      \u003cscript itemprop=\"source\" type=\"text/sessel\"\u003e\n        @schema Context url(\"https://pagelove.org/Context\");\n        \"{\\\"path\\\": \\\"\" + Context.request.path + \"\\\"}\"\n      \u003c/script\u003e\n    \u003c/div\u003e\n  \u003c/div\u003e\n\u003c/div\u003e\n\u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 2 (append a note)",
+      "method": "POST",
+      "path": "/_pl/reacting-outbound-webhook-recipe-json-bo-d12cda/notes/list.html",
+      "status": 206,
+      "headers": {
+        "content-length": "88",
+        "content-range": "selector #notes",
+        "content-type": "text/html",
+        "etag": "\"aac14206a66285fb06be53a1e38ebbd2dc83b1b9b882046f6c3e244c4bbbdd6d-aac14206a66285fb06be53a1e38ebbd2dc83b1b9b882046f6c3e244c4bbbdd6d-2\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:48 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003cli itemscope itemtype=\"https://pagelike.test/Note\"\u003e\u003cspan itemprop=\"text\"\u003ehi\u003c/span\u003e\u003c/li\u003e"
+    },
+    {
+      "step": "step 3",
+      "method": "POST",
+      "path": "${SINK}/webhooks/note-created",
+      "headers": {
+        "accept-encoding": "gzip",
+        "content-length": "80",
+        "content-type": "application/json",
+        "user-agent": "Go-http-client/1.1"
+      },
+      "body": "{\"path\": \"/_pl/reacting-outbound-webhook-recipe-json-bo-d12cda/notes/list.html\"}"
+    }
+  ],
+  "outcome": "pass",
+  "target": "local"
+}

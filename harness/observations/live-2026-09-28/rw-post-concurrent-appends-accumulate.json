@@ -1,0 +1,52 @@
+{
+  "case": "rw.post.concurrent-appends-accumulate",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 2",
+      "method": "POST",
+      "path": "/_pl/rw-post-concurrent-appends-accumulate-9d4ed6/race.html",
+      "status": 206,
+      "headers": {
+        "content-length": "22",
+        "content-range": "selector #log",
+        "content-type": "text/html",
+        "etag": "\"e8ad221a20af50145cb9e1ca9ce3f0e843dd29898f3eb3cd5a77bc8ab8426ed1-e8ad221a20af50145cb9e1ca9ce3f0e843dd29898f3eb3cd5a77bc8ab8426ed1-2\"",
+        "last-modified": "Mon, 28 Sep 2026 22:28:26 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003cli\u003efrom client B\u003c/li\u003e"
+    },
+    {
+      "step": "step 1",
+      "method": "POST",
+      "path": "/_pl/rw-post-concurrent-appends-accumulate-9d4ed6/race.html",
+      "status": 206,
+      "headers": {
+        "content-length": "22",
+        "content-range": "selector #log",
+        "content-type": "text/html",
+        "etag": "\"75bd6946802fbb792c3b146589bae27a28af10dd2b8c64063c15d37eb06bf675-75bd6946802fbb792c3b146589bae27a28af10dd2b8c64063c15d37eb06bf675-3\"",
+        "last-modified": "Mon, 28 Sep 2026 22:28:26 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003cli\u003efrom client A\u003c/li\u003e"
+    },
+    {
+      "step": "step 2 (both appends present)",
+      "method": "GET",
+      "path": "/_pl/rw-post-concurrent-appends-accumulate-9d4ed6/race.html",
+      "status": 206,
+      "headers": {
+        "content-length": "62",
+        "content-range": "selector #log",
+        "content-type": "text/html",
+        "etag": "\"72a66579a1fa21bd65b90cabc6f3f4c42c24f58c9fe28bb0d75b1a87088ee0e7-72a66579a1fa21bd65b90cabc6f3f4c42c24f58c9fe28bb0d75b1a87088ee0e7-3\"",
+        "vary": "Host, Range, Accept"
+      },
+      "body": "\u003cul id=\"log\"\u003e\u003cli\u003efrom client B\u003c/li\u003e\u003cli\u003efrom client A\u003c/li\u003e\u003c/ul\u003e"
+    }
+  ],
+  "outcome": "pass",
+  "target": "live"
+}

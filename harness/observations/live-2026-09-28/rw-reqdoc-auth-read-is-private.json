@@ -1,0 +1,23 @@
+{
+  "case": "rw.reqdoc.auth-read-is-private",
+  "failures": [
+    "step 1 (render anonymously) GET ${P}/me.html: header Cache-Control = \"public, max-age=5\", want match \"(?i)(^|[ ,])private([ ,]|$)\""
+  ],
+  "observations": [
+    {
+      "step": "step 1 (render anonymously)",
+      "method": "GET",
+      "path": "/_pl/rw-reqdoc-auth-read-is-private-5f0779/me.html",
+      "status": 200,
+      "headers": {
+        "cache-control": "public, max-age=5",
+        "content-type": "text/html",
+        "etag": "W/\"2df75d63a8343836335c942bd379fb8262d101e7937b708f5fc9e77fda481e9a\"",
+        "vary": "Host, Range, Accept"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\n\u003cbody\u003e\u003cp\u003eSigned in as: nobody\u003c/p\u003e\n                \u003cdiv style=\"\n                            position: fixed;\n                            bottom: 0;\n                            left: 0;\n                            right: 0;\n                            padding: 8px;\n                            background: #f0f0f0;\n                            text-align: center;\n                            font-size: 12px;\n                            color: #666;\n                            z-index: 9999;\n                            opacity: 0.8;\n                            border-top: 1px solid #ddd;\n                        \"\u003e\n                    Powered by\n                    \u003ca href=\"https://pagelove.com/\" style=\"color: #4a90d9; text-decoration: none\"\u003ePagelove\u003c/a\u003e\n                \u003c/div\u003e\n            \u003c/body\u003e\n\u003c/html\u003e\n"
+    }
+  ],
+  "outcome": "fail",
+  "target": "live"
+}

@@ -1,0 +1,56 @@
+{
+  "case": "rw.cond.get-if-none-match-304",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (first read)",
+      "method": "GET",
+      "path": "/_pl/rw-cond-get-if-none-match-304-dbb36f/c.html",
+      "status": 200,
+      "headers": {
+        "content-type": "text/html",
+        "etag": "\"bdc81eb15a58b1e022f932c6eab93ea23475855ab7d3bfa96da6a9e1a213fce6\"",
+        "last-modified": "Mon, 28 Sep 2026 22:25:16 GMT",
+        "vary": "Host, Range, Accept"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\u003cp\u003ecache me\u003c/p\u003e\n                \u003cdiv style=\"\n                            position: fixed;\n                            bottom: 0;\n                            left: 0;\n                            right: 0;\n                            padding: 8px;\n                            background: #f0f0f0;\n                            text-align: center;\n                            font-size: 12px;\n                            color: #666;\n                            z-index: 9999;\n                            opacity: 0.8;\n                            border-top: 1px solid #ddd;\n                        \"\u003e\n                    Powered by\n                    \u003ca href=\"https://pagelove.com/\" style=\"color: #4a90d9; text-decoration: none\"\u003ePagelove\u003c/a\u003e\n                \u003c/div\u003e\n            \u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 2 (revalidate)",
+      "method": "GET",
+      "path": "/_pl/rw-cond-get-if-none-match-304-dbb36f/c.html",
+      "status": 304,
+      "headers": {
+        "etag": "\"bdc81eb15a58b1e022f932c6eab93ea23475855ab7d3bfa96da6a9e1a213fce6\"",
+        "last-modified": "Mon, 28 Sep 2026 22:25:16 GMT",
+        "vary": "Host, Range"
+      }
+    },
+    {
+      "step": "step 3 (list form containing the current tag)",
+      "method": "GET",
+      "path": "/_pl/rw-cond-get-if-none-match-304-dbb36f/c.html",
+      "status": 304,
+      "headers": {
+        "etag": "\"bdc81eb15a58b1e022f932c6eab93ea23475855ab7d3bfa96da6a9e1a213fce6\"",
+        "last-modified": "Mon, 28 Sep 2026 22:25:16 GMT",
+        "vary": "Host, Range"
+      }
+    },
+    {
+      "step": "step 4 (non-matching tag returns the full representation)",
+      "method": "GET",
+      "path": "/_pl/rw-cond-get-if-none-match-304-dbb36f/c.html",
+      "status": 200,
+      "headers": {
+        "content-type": "text/html",
+        "etag": "\"bdc81eb15a58b1e022f932c6eab93ea23475855ab7d3bfa96da6a9e1a213fce6\"",
+        "last-modified": "Mon, 28 Sep 2026 22:25:16 GMT",
+        "vary": "Host, Range, Accept"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\u003cp\u003ecache me\u003c/p\u003e\n                \u003cdiv style=\"\n                            position: fixed;\n                            bottom: 0;\n                            left: 0;\n                            right: 0;\n                            padding: 8px;\n                            background: #f0f0f0;\n                            text-align: center;\n                            font-size: 12px;\n                            color: #666;\n                            z-index: 9999;\n                            opacity: 0.8;\n                            border-top: 1px solid #ddd;\n                        \"\u003e\n                    Powered by\n                    \u003ca href=\"https://pagelove.com/\" style=\"color: #4a90d9; text-decoration: none\"\u003ePagelove\u003c/a\u003e\n                \u003c/div\u003e\n            \u003c/body\u003e\u003c/html\u003e\n"
+    }
+  ],
+  "outcome": "pass",
+  "target": "live"
+}

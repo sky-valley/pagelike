@@ -1,0 +1,38 @@
+{
+  "case": "sessel.bind.scope",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (inner sees both)",
+      "method": "GET",
+      "path": "/_pl/sessel-bind-scope-26de0b/scope.html",
+      "status": 206,
+      "headers": {
+        "accept-ranges": "selector, bytes",
+        "content-length": "45",
+        "content-range": "selector #inner",
+        "content-type": "text/html",
+        "etag": "\"464a7c09e8b26ac2eca71c3b68d3310a38015b96993bc246b4fc302dd54d80ab-464a7c09e8b26ac2eca71c3b68d3310a38015b96993bc246b4fc302dd54d80ab-1\"",
+        "vary": "Host, Range, Accept"
+      },
+      "body": "\u003cdiv id=\"inner\"\u003eOUTER-VALUE LOCAL-VALUE\u003c/div\u003e"
+    },
+    {
+      "step": "step 2 (sibling does not see local)",
+      "method": "GET",
+      "path": "/_pl/sessel-bind-scope-26de0b/scope.html",
+      "status": 206,
+      "headers": {
+        "accept-ranges": "selector, bytes",
+        "content-length": "26",
+        "content-range": "selector #sibling",
+        "content-type": "text/html",
+        "etag": "\"3d277b793fc2f1b021e3178057fae69850887456524098df7720795729d1adea-3d277b793fc2f1b021e3178057fae69850887456524098df7720795729d1adea-1\"",
+        "vary": "Host, Range, Accept"
+      },
+      "body": "\u003cdiv id=\"sibling\"\u003e[]\u003c/div\u003e"
+    }
+  ],
+  "outcome": "pass",
+  "target": "local"
+}

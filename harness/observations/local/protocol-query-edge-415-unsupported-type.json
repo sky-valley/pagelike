@@ -1,0 +1,31 @@
+{
+  "case": "protocol.query-edge.415-unsupported-type",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (text/plain without a QUERY grant)",
+      "method": "QUERY",
+      "path": "/_pl/protocol-query-edge-415-unsupported-type-d75bba/doc.html",
+      "status": 401,
+      "headers": {
+        "content-length": "429",
+        "content-type": "text/html; charset=utf-8"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\n\u003chead\u003e\n    \u003cmeta charset=\"UTF-8\"\u003e\n    \u003ctitle\u003e401 Unauthorized\u003c/title\u003e\n\u003c/head\u003e\n\u003cbody itemscope itemtype=\"https://pagelove.org/1.0/Error\"\u003e\n    \u003ch1\u003e401 Unauthorized\u003c/h1\u003e\n    \u003cp itemprop=\"message\"\u003eAuthentication required to access this resource.\u003c/p\u003e\n    \u003cdl\u003e\n        \u003cdt\u003eResource\u003c/dt\u003e\n        \u003cdd itemprop=\"resource\"\u003e/_pl/protocol-query-edge-415-unsupported-type-d75bba/doc.html\u003c/dd\u003e\n    \u003c/dl\u003e\n\u003c/body\u003e\n\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 2 (text/plain with a QUERY grant)",
+      "method": "QUERY",
+      "path": "/_pl/protocol-query-edge-415-unsupported-type-d75bba/q.html",
+      "status": 400,
+      "headers": {
+        "content-length": "329",
+        "content-type": "text/html",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\n  \u003chead\u003e\n    \u003ctitle\u003e400 Bad Request - Error\u003c/title\u003e\n  \u003c/head\u003e\n  \u003cbody itemscope itemtype=\"http://pagelove.org/Error\"\u003e\n    \u003ch1 itemprop=\"name\"\u003eBad Request\u003c/h1\u003e\n    \u003cmeta itemprop=\"statusCode\" content=\"400\"\u003e\n    \u003cp itemprop=\"description\"\u003eQUERY method requires Content-Type: text/sessel\u003c/p\u003e\n  \u003c/body\u003e\n\u003c/html\u003e\n"
+    }
+  ],
+  "outcome": "pass",
+  "target": "local"
+}

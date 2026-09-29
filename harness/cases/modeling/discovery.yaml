@@ -1,0 +1,623 @@
+# Modeling: where schema declarations live, when they take effect.
+# Spec: docs/spec/modeling.md §1 (R-MOD-2..R-MOD-6). Type URLs embed ${P} so live runs never collide.
+# Declarations are registered through a public-plane PUT (documented: a schema "is registered with the
+# host's cache when the document containing it is PUT/POST'd"), which avoids the up-to-60 s WebDAV lag.
+cases:
+  - id: modeling.discovery.schema-anywhere
+    title: "A schema declared in any document, at any depth, governs instances host-wide"
+    area: modeling
+    feature: "schema discovery"
+    evidence: documented
+    source: "docs reference/modeling-data/Methods §Declaration (snapshot 2026-09-28); demo-apps/README.md@c4dd883:101; pagelove-shop/README.md@d887054:42"
+    confidence: high
+    requires: []
+    live: true
+    notes: "spec: R-MOD-2, R-MOD-4, R-MOD-18."
+    site:
+      settings:
+        default_get: allow
+      rules:
+        - actor: "*"
+          resource: "${P}/*"
+          method: [GET, HEAD, PUT, POST, DELETE, MOVE]
+          action: Allow
+        - actor: "*"
+          resource: "${P}/*/*"
+          method: [GET, HEAD, PUT, POST, DELETE, MOVE]
+          action: Allow
+    steps:
+      - name: "register declarations through the public plane (takes effect for the next request)"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/deep/definitions.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div hidden itemscope itemtype="https://pagelove.org/Schema">
+                <meta itemprop="type" content="https://pagelike.test${P}/Tag">
+                <div itemprop="property" itemscope itemtype="https://pagelove.org/Property">
+                  <meta itemprop="name" content="label">
+                  <meta itemprop="type" content="https://schema.host/Text">
+                  <meta itemprop="cardinality" content="1..1">
+                </div>
+              </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "instance missing the required label is rejected"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/tag-missing.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div itemscope itemtype="https://pagelike.test${P}/Tag"></div>
+            </body></html>
+        expect:
+          status: 422
+          header_matches:
+            Content-Type: "^text/html"
+          body_contains: ["https://pagelove.org/SchemaViolation", cardinality]
+      - name: "tag-missing.html was not stored"
+        as: author
+        plane: dav
+        request:
+          method: GET
+          path: "${P}/tag-missing.html"
+        expect:
+          status: 404
+      - name: "valid instance in another directory is accepted"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/tag-ok.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div itemscope itemtype="https://pagelike.test${P}/Tag">
+                <meta itemprop="label" content="urgent">
+              </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "stored state of tag-ok.html (authoring plane, raw)"
+        as: author
+        plane: dav
+        request:
+          method: GET
+          path: "${P}/tag-ok.html"
+        expect:
+          status: 200
+          body_contains: ["content=\"urgent\""]
+  - id: modeling.discovery.no-schema-stored-unchanged
+    title: "Items whose itemtype has no schema are stored unchanged without checks"
+    area: modeling
+    feature: "schema discovery"
+    evidence: documented
+    source: "docs reference/modeling-data/Schema §When to reach for it (snapshot 2026-09-28)"
+    confidence: high
+    requires: []
+    live: true
+    notes: "spec: R-MOD-9."
+    site:
+      settings:
+        default_get: allow
+      rules:
+        - actor: "*"
+          resource: "${P}/*"
+          method: [GET, HEAD, PUT, POST, DELETE, MOVE]
+          action: Allow
+        - actor: "*"
+          resource: "${P}/*/*"
+          method: [GET, HEAD, PUT, POST, DELETE, MOVE]
+          action: Allow
+    steps:
+      - name: "store an ungoverned item with arbitrary properties"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/free.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div itemscope itemtype="https://pagelike.test${P}/Ungoverned">
+                <meta itemprop="count" content="not-a-number">
+                <meta itemprop="count" content="twice">
+                <span itemprop="whatever"></span>
+              </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "stored state of free.html (authoring plane, raw)"
+        as: author
+        plane: dav
+        request:
+          method: GET
+          path: "${P}/free.html"
+        expect:
+          status: 200
+          body_contains: ["content=\"not-a-number\"", "content=\"twice\"", "itemprop=\"whatever\""]
+  - id: modeling.discovery.schema-without-type-skipped
+    title: "A Schema item with no type is silently skipped"
+    area: modeling
+    feature: "schema discovery"
+    evidence: documented
+    source: "docs reference/modeling-data/Schema §Fields (snapshot 2026-09-28); docs reference/modeling-data/Schema §Error cases (snapshot 2026-09-28)"
+    confidence: high
+    requires: []
+    live: true
+    notes: "spec: R-MOD-8. The schema names the URL only in `name`, not `type`; nothing is governed."
+    site:
+      settings:
+        default_get: allow
+      rules:
+        - actor: "*"
+          resource: "${P}/*"
+          method: [GET, HEAD, PUT, POST, DELETE, MOVE]
+          action: Allow
+        - actor: "*"
+          resource: "${P}/*/*"
+          method: [GET, HEAD, PUT, POST, DELETE, MOVE]
+          action: Allow
+    steps:
+      - name: "register declarations through the public plane (takes effect for the next request)"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/schema.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div hidden itemscope itemtype="https://pagelove.org/Schema">
+                <meta itemprop="name" content="https://pagelike.test${P}/Tag">
+                <div itemprop="property" itemscope itemtype="https://pagelove.org/Property">
+                  <meta itemprop="name" content="label">
+                  <meta itemprop="type" content="https://schema.host/Text">
+                  <meta itemprop="cardinality" content="1..1">
+                </div>
+              </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "instance of the would-be type without label is accepted"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/t.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div itemscope itemtype="https://pagelike.test${P}/Tag"></div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+  - id: modeling.discovery.same-write-not-self-validated
+    title: "A write that carries a new schema is validated against the registry as it was before the write"
+    area: modeling
+    feature: "schema registration timing"
+    evidence: inferred
+    source: "docs reference/reacting-to-changes/TransitionConstraint §Taking effect (snapshot 2026-09-28); docs reference/modeling-data/Methods §Declaration (snapshot 2026-09-28)"
+    confidence: medium
+    requires: []
+    live: true
+    notes: "spec: R-MOD-4. Inferred from 'the very next write validates against the new rules' (TransitionConstraint). Probe P-MOD-3."
+    site:
+      settings:
+        default_get: allow
+      rules:
+        - actor: "*"
+          resource: "${P}/*"
+          method: [GET, HEAD, PUT, POST, DELETE, MOVE]
+          action: Allow
+        - actor: "*"
+          resource: "${P}/*/*"
+          method: [GET, HEAD, PUT, POST, DELETE, MOVE]
+          action: Allow
+    steps:
+      - name: "one PUT declares the schema and an invalid instance"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/both.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div hidden itemscope itemtype="https://pagelove.org/Schema">
+                <meta itemprop="type" content="https://pagelike.test${P}/Tag">
+                <div itemprop="property" itemscope itemtype="https://pagelove.org/Property">
+                  <meta itemprop="name" content="label">
+                  <meta itemprop="type" content="https://schema.host/Text">
+                  <meta itemprop="cardinality" content="1..1">
+                </div>
+              </div>
+              <div itemscope itemtype="https://pagelike.test${P}/Tag"></div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "the next write is validated against the new schema"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/next.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div itemscope itemtype="https://pagelike.test${P}/Tag"></div>
+            </body></html>
+        expect:
+          status: 422
+          header_matches:
+            Content-Type: "^text/html"
+          body_contains: ["https://pagelove.org/SchemaViolation", cardinality]
+  - id: modeling.discovery.delete-schema-document-unregisters
+    title: "Deleting the document that declares a schema stops enforcement"
+    area: modeling
+    feature: "schema registration timing"
+    evidence: inferred
+    source: "docs reference/modeling-data/Methods §Declaration (snapshot 2026-09-28)"
+    confidence: medium
+    requires: []
+    live: true
+    notes: "spec: R-MOD-5."
+    site:
+      settings:
+        default_get: allow
+      rules:
+        - actor: "*"
+          resource: "${P}/*"
+          method: [GET, HEAD, PUT, POST, DELETE, MOVE]
+          action: Allow
+        - actor: "*"
+          resource: "${P}/*/*"
+          method: [GET, HEAD, PUT, POST, DELETE, MOVE]
+          action: Allow
+    steps:
+      - name: "register declarations through the public plane (takes effect for the next request)"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/schema.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div hidden itemscope itemtype="https://pagelove.org/Schema">
+                <meta itemprop="type" content="https://pagelike.test${P}/Tag">
+                <div itemprop="property" itemscope itemtype="https://pagelove.org/Property">
+                  <meta itemprop="name" content="label">
+                  <meta itemprop="type" content="https://schema.host/Text">
+                  <meta itemprop="cardinality" content="1..1">
+                </div>
+              </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "governed: missing label rejected"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/a.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div itemscope itemtype="https://pagelike.test${P}/Tag"></div>
+            </body></html>
+        expect:
+          status: 422
+          header_matches:
+            Content-Type: "^text/html"
+          body_contains: ["https://pagelove.org/SchemaViolation", cardinality]
+      - name: "delete the schema document"
+        as: anonymous
+        request:
+          method: DELETE
+          path: "${P}/schema.html"
+        expect:
+          status: [200, 204]
+      - name: "no longer governed: missing label accepted"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/a.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div itemscope itemtype="https://pagelike.test${P}/Tag"></div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+  - id: modeling.discovery.replace-schema-document
+    title: "Replacing the declaring document replaces the declaration; stored data is not re-validated"
+    area: modeling
+    feature: "schema registration timing"
+    evidence: inferred
+    source: "docs reference/modeling-data/Methods §Declaration (snapshot 2026-09-28); blog the-shape-of-pagelove (no migrations)"
+    confidence: medium
+    requires: []
+    live: true
+    notes: "spec: R-MOD-5."
+    site:
+      settings:
+        default_get: allow
+      rules:
+        - actor: "*"
+          resource: "${P}/*"
+          method: [GET, HEAD, PUT, POST, DELETE, MOVE]
+          action: Allow
+        - actor: "*"
+          resource: "${P}/*/*"
+          method: [GET, HEAD, PUT, POST, DELETE, MOVE]
+          action: Allow
+    steps:
+      - name: "register declarations through the public plane (takes effect for the next request)"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/schema.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div hidden itemscope itemtype="https://pagelove.org/Schema">
+                <meta itemprop="type" content="https://pagelike.test${P}/Tag">
+                <div itemprop="property" itemscope itemtype="https://pagelove.org/Property">
+                  <meta itemprop="name" content="label">
+                  <meta itemprop="type" content="https://schema.host/Text">
+                  <meta itemprop="cardinality" content="0..1">
+                </div>
+              </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "store an instance without label (allowed by 0..1)"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/old.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div itemscope itemtype="https://pagelike.test${P}/Tag"></div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "tighten label to 1..1"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/schema.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div hidden itemscope itemtype="https://pagelove.org/Schema">
+                <meta itemprop="type" content="https://pagelike.test${P}/Tag">
+                <div itemprop="property" itemscope itemtype="https://pagelove.org/Property">
+                  <meta itemprop="name" content="label">
+                  <meta itemprop="type" content="https://schema.host/Text">
+                  <meta itemprop="cardinality" content="1..1">
+                </div>
+              </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "existing invalid data is still readable"
+        as: anonymous
+        request:
+          method: GET
+          path: "${P}/old.html"
+        expect:
+          status: 200
+      - name: "new writes see the tightened rule"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/new.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div itemscope itemtype="https://pagelike.test${P}/Tag"></div>
+            </body></html>
+        expect:
+          status: 422
+          header_matches:
+            Content-Type: "^text/html"
+          body_contains: ["https://pagelove.org/SchemaViolation", cardinality]
+  - id: modeling.discovery.webdav-authored-schema-within-60s
+    title: "A schema authored over WebDAV is enforced within 60 seconds"
+    area: modeling
+    feature: "schema registration timing"
+    evidence: documented
+    source: "docs reference/reacting-to-changes/TransitionConstraint §Taking effect (snapshot 2026-09-28); docs recipes/declaring-a-state-machine §The repair path (snapshot 2026-09-28)"
+    confidence: medium
+    requires: [slow]
+    live: true
+    notes: "spec: R-MOD-4. The 60 s bound is documented for TransitionConstraint rules edited over WebDAV and inferred for schemas (same host cache). Probe P-MOD-1 measures the actual delay."
+    site:
+      settings:
+        default_get: allow
+      files:
+        - path: "${P}/schema.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div hidden itemscope itemtype="https://pagelove.org/Schema">
+                <meta itemprop="type" content="https://pagelike.test${P}/Tag">
+                <div itemprop="property" itemscope itemtype="https://pagelove.org/Property">
+                  <meta itemprop="name" content="label">
+                  <meta itemprop="type" content="https://schema.host/Text">
+                  <meta itemprop="cardinality" content="1..1">
+                </div>
+              </div>
+            </body></html>
+      rules:
+        - actor: "*"
+          resource: "${P}/*"
+          method: [GET, HEAD, PUT, POST, DELETE, MOVE]
+          action: Allow
+        - actor: "*"
+          resource: "${P}/*/*"
+          method: [GET, HEAD, PUT, POST, DELETE, MOVE]
+          action: Allow
+    steps:
+      - sleep_ms: 61000
+      - name: "write after the propagation window is validated"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/late.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div itemscope itemtype="https://pagelike.test${P}/Tag"></div>
+            </body></html>
+        expect:
+          status: 422
+          header_matches:
+            Content-Type: "^text/html"
+          body_contains: ["https://pagelove.org/SchemaViolation", cardinality]
+  - id: modeling.discovery.webdav-authored-schema-immediate-local
+    title: "pagelike registers WebDAV-authored schemas immediately"
+    area: modeling
+    feature: "schema registration timing"
+    evidence: inferred
+    source: "pagelike decision (docs/spec/modeling.md R-MOD-4); upper bound from docs reference/reacting-to-changes/TransitionConstraint §Taking effect (snapshot 2026-09-28)"
+    confidence: high
+    requires: []
+    live: false
+    notes: "spec: R-MOD-4. PageLove may take up to 60 s, so this is local-only: pagelike's immediate registration is within the documented bound."
+    site:
+      settings:
+        default_get: allow
+      files:
+        - path: "${P}/schema.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div hidden itemscope itemtype="https://pagelove.org/Schema">
+                <meta itemprop="type" content="https://pagelike.test${P}/Tag">
+                <div itemprop="property" itemscope itemtype="https://pagelove.org/Property">
+                  <meta itemprop="name" content="label">
+                  <meta itemprop="type" content="https://schema.host/Text">
+                  <meta itemprop="cardinality" content="1..1">
+                </div>
+              </div>
+            </body></html>
+      rules:
+        - actor: "*"
+          resource: "${P}/*"
+          method: [GET, HEAD, PUT, POST, DELETE, MOVE]
+          action: Allow
+        - actor: "*"
+          resource: "${P}/*/*"
+          method: [GET, HEAD, PUT, POST, DELETE, MOVE]
+          action: Allow
+    steps:
+      - name: "write right after WebDAV setup is already validated"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/early.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div itemscope itemtype="https://pagelike.test${P}/Tag"></div>
+            </body></html>
+        expect:
+          status: 422
+          header_matches:
+            Content-Type: "^text/html"
+          body_contains: ["https://pagelove.org/SchemaViolation", cardinality]
+  - id: modeling.discovery.schema-in-template-ignored
+    title: "Schema declarations inside <template> contents are not discovered"
+    area: modeling
+    feature: "schema discovery"
+    evidence: inferred
+    source: "HTML template contents are not part of the microdata tree; docs reference/modeling-data/Schema §Shape (snapshot 2026-09-28)"
+    confidence: low
+    requires: []
+    live: true
+    notes: "spec: R-MOD-2."
+    site:
+      settings:
+        default_get: allow
+      rules:
+        - actor: "*"
+          resource: "${P}/*"
+          method: [GET, HEAD, PUT, POST, DELETE, MOVE]
+          action: Allow
+        - actor: "*"
+          resource: "${P}/*/*"
+          method: [GET, HEAD, PUT, POST, DELETE, MOVE]
+          action: Allow
+    steps:
+      - name: "register declarations through the public plane (takes effect for the next request)"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/schema.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <template>
+                <div hidden itemscope itemtype="https://pagelove.org/Schema">
+                  <meta itemprop="type" content="https://pagelike.test${P}/Tag">
+                  <div itemprop="property" itemscope itemtype="https://pagelove.org/Property">
+                    <meta itemprop="name" content="label">
+                    <meta itemprop="type" content="https://schema.host/Text">
+                    <meta itemprop="cardinality" content="1..1">
+                  </div>
+                </div>
+              </template>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "instance without label is accepted"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/t.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div itemscope itemtype="https://pagelike.test${P}/Tag"></div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]

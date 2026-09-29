@@ -1,0 +1,402 @@
+# QUERY, CSS-selector mode, on the public (edge) plane
+# (spec: docs/spec/protocol.md §6, R-PROTO-60..64; contradiction C-6)
+cases:
+  - id: protocol.query-edge.single-fragment
+    title: Public-plane css QUERY without Accept answers like GET with a selector Range (206, one fragment)
+    area: protocol
+    feature: QUERY css (public plane)
+    evidence: live-observed
+    source: "read-probes.json case query-css (docs.pagelove.com, 2026-09-28)"
+    confidence: high
+    requires: []
+    live: true
+    notes: >-
+      R-PROTO-63 default branch. Live: 206, text/html, content-range "selector h1", the h1
+      alone (not multipart). The docs claim multipart (C-6, see the disputed case).
+    site:
+      files:
+        - path: "${P}/doc.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body><h1>First</h1><h1>Second</h1><p>Text</p></body></html>
+      rules:
+        - {actor: "*", resource: "${P}/*", method: [GET], action: Allow}
+    steps:
+      - name: first match only
+        as: anonymous
+        request:
+          method: QUERY
+          path: "${P}/doc.html"
+          headers: {Content-Type: "text/css-selector"}
+          body: "h1"
+        expect:
+          status: 206
+          header_matches: {Content-Type: '^text/html'}
+          headers: {Content-Range: "selector h1"}
+          headers_present: [ETag]
+          body_html: "<h1>First</h1>"
+
+  - id: protocol.query-edge.same-etag-as-get-fragment
+    title: The css QUERY fragment carries the same ETag as the equivalent GET fragment
+    area: protocol
+    feature: QUERY css (public plane)
+    evidence: live-observed
+    source: "read-probes.json cases fragment and query-css (identical etag values, 2026-09-28)"
+    confidence: medium
+    requires: []
+    live: true
+    notes: R-PROTO-63.
+    site:
+      files:
+        - path: "${P}/doc.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body><h1>First</h1></body></html>
+      rules:
+        - {actor: "*", resource: "${P}/*", method: [GET], action: Allow}
+    steps:
+      - name: GET fragment
+        as: anonymous
+        request:
+          method: GET
+          path: "${P}/doc.html"
+          headers: {Range: "selector=h1"}
+        expect: {status: 206, headers_present: [ETag]}
+        capture: {g1: header.ETag}
+      - name: QUERY fragment
+        as: anonymous
+        request:
+          method: QUERY
+          path: "${P}/doc.html"
+          headers: {Content-Type: "text/css-selector"}
+          body: "h1"
+        expect: {status: 206, etag_equals: "${g1}"}
+
+  - id: protocol.query-edge.documented-multipart
+    title: "Documented claim: public-plane css QUERY always answers multipart/mixed"
+    area: protocol
+    feature: QUERY css (public plane)
+    evidence: documented
+    source: "docs reference/protocol/QUERY §CSS-selector mode (\"Even a single-document query returns multipart/mixed\") (snapshot 2026-09-28)"
+    confidence: low
+    status: disputed
+    requires: []
+    live: true
+    notes: Losing claim of C-6 for requests without an Accept header (live answered 206 text/html).
+    site:
+      files:
+        - path: "${P}/doc.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body><h1>First</h1></body></html>
+      rules:
+        - {actor: "*", resource: "${P}/*", method: [GET], action: Allow}
+    steps:
+      - name: multipart without Accept
+        as: anonymous
+        request:
+          method: QUERY
+          path: "${P}/doc.html"
+          headers: {Content-Type: "text/css-selector"}
+          body: "h1"
+        expect:
+          status: [200, 201]
+          header_matches: {Content-Type: '^multipart/mixed'}
+
+  - id: protocol.query-edge.multipart-when-accepted
+    title: Public-plane css QUERY with Accept multipart/mixed returns every match as multipart
+    area: protocol
+    feature: QUERY css (public plane)
+    evidence: inferred
+    source: "docs reference/protocol/QUERY §CSS-selector mode; read-probes.json case query-css (snapshot 2026-09-28)"
+    confidence: low
+    requires: []
+    live: true
+    notes: >-
+      R-PROTO-63 multipart branch: the reconciliation of C-6 (P-8). Mirrors GET's
+      all-matches answer to Accept multipart/mixed (AuthorizationRule §Selectors that match
+      several elements).
+    site:
+      files:
+        - path: "${P}/doc.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body><h1>First</h1><h1>Second</h1></body></html>
+      rules:
+        - {actor: "*", resource: "${P}/*", method: [GET], action: Allow}
+    steps:
+      - name: both matches
+        as: anonymous
+        request:
+          method: QUERY
+          path: "${P}/doc.html"
+          headers: {Content-Type: "text/css-selector", Accept: "multipart/mixed"}
+          body: "h1"
+        expect:
+          status: 200
+          header_matches: {Content-Type: '^multipart/mixed; *boundary=[^";]+$'}
+          body_contains: ["<h1>First</h1>", "<h1>Second</h1>"]
+
+  - id: protocol.query-edge.composed-page
+    title: Public-plane css QUERY evaluates the composed page
+    area: protocol
+    feature: QUERY css (public plane)
+    evidence: documented
+    source: "docs reference/protocol/QUERY §On the edge proxy (snapshot 2026-09-28)"
+    confidence: medium
+    requires: [liquid]
+    live: true
+    notes: >-
+      R-PROTO-61. The page's own example response shows the raw template (C-8); the text
+      ("queries the composed page … not the raw stored markup") is followed.
+    site:
+      files:
+        - path: "${P}/query-composed-doc.html"
+          body: |
+            <!DOCTYPE html>
+            <html xmlns:pagelove="https://pagelove.org/1.0"><body>
+              <main class="calc" pagelove:template="text/liquid">{{ 2 | plus: 3 }}</main>
+            </body></html>
+      rules:
+        - {actor: "*", resource: "${P}/*", method: [GET], action: Allow}
+    steps:
+      - name: template output
+        as: anonymous
+        request:
+          method: QUERY
+          path: "${P}/query-composed-doc.html"
+          headers: {Content-Type: "text/css-selector"}
+          body: ".calc"
+        expect:
+          status: [200, 206]
+          body_contains: ["5"]
+          body_not_contains: ["{{"]
+
+  - id: protocol.query-edge.authorized-like-get
+    title: Public-plane css QUERY is refused exactly when GET of the path is refused
+    area: protocol
+    feature: QUERY css authorization
+    evidence: documented
+    source: "docs reference/protocol/QUERY §On the edge proxy (\"authorized the same way a GET of that path would be\") (snapshot 2026-09-28)"
+    confidence: high
+    requires: []
+    live: true
+    notes: R-PROTO-62. Anonymous denial is 401 (permissions area).
+    site:
+      files:
+        - path: "${P}/secret.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body><h1>Secret</h1></body></html>
+      rules:
+        - {actor: "*", resource: "${P}/*", method: [GET], action: Deny}
+    steps:
+      - name: GET denied
+        as: anonymous
+        request: {method: GET, path: "${P}/secret.html"}
+        expect: {status: 401}
+      - name: QUERY denied the same way
+        as: anonymous
+        request:
+          method: QUERY
+          path: "${P}/secret.html"
+          headers: {Content-Type: "text/css-selector"}
+          body: "h1"
+        expect:
+          status: 401
+          body_not_contains: ["<h1>Secret</h1>"]
+
+  - id: protocol.query-edge.default-get-mode
+    title: Public-plane css QUERY is granted by the default-GET mode like GET
+    area: protocol
+    feature: QUERY css authorization
+    evidence: live-observed
+    source: "read-probes.json case query-css (anonymous, no rules for the path, 2026-09-28)"
+    confidence: medium
+    requires: []
+    live: false
+    notes: R-PROTO-62. Local-only (depends on the host default-GET mode).
+    site:
+      settings: {default_get: allow}
+      files:
+        - path: "${P}/doc.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body><h1>Open</h1></body></html>
+    steps:
+      - name: anonymous css QUERY with no rules
+        as: anonymous
+        request:
+          method: QUERY
+          path: "${P}/doc.html"
+          headers: {Content-Type: "text/css-selector"}
+          body: "h1"
+        expect:
+          status: 206
+          body_html: "<h1>Open</h1>"
+
+  - id: protocol.query-edge.directory-index
+    title: A public-plane QUERY on a directory path is answered from its index document
+    area: protocol
+    feature: QUERY css (public plane)
+    evidence: live-observed
+    source: "read-probes.json case query-css (QUERY / answered from /index.html, 2026-09-28)"
+    confidence: medium
+    requires: []
+    live: true
+    notes: R-PROTO-60. The edge never searches a subtree.
+    site:
+      files:
+        - path: "${P}/dir/index.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body><h1>Index</h1></body></html>
+        - path: "${P}/dir/other.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body><h1>Other</h1></body></html>
+      rules:
+        - {actor: "*", resource: "${P}/*", method: [GET], action: Allow}
+    steps:
+      - name: index only
+        as: anonymous
+        request:
+          method: QUERY
+          path: "${P}/dir/"
+          headers: {Content-Type: "text/css-selector"}
+          body: "h1"
+        expect:
+          status: 206
+          body_contains: ["Index"]
+          body_not_contains: ["Other"]
+
+  - id: protocol.query-edge.missing-document
+    title: Public-plane css QUERY on a missing document is 404
+    area: protocol
+    feature: QUERY css errors (public plane)
+    evidence: documented
+    source: "docs reference/protocol/QUERY §CSS-selector mode, Errors (snapshot 2026-09-28)"
+    confidence: high
+    requires: []
+    live: true
+    notes: R-PROTO-64.
+    site:
+      rules:
+        - {actor: "*", resource: "${P}/*", method: [GET], action: Allow}
+    steps:
+      - name: 404
+        as: anonymous
+        request:
+          method: QUERY
+          path: "${P}/missing.html"
+          headers: {Content-Type: "text/css-selector"}
+          body: "h1"
+        expect: {status: 404}
+
+  - id: protocol.query-edge.415-unsupported-type
+    title: A public-plane QUERY that is not text/css-selector is the Sessel path, authorized as QUERY, then 400
+    area: protocol
+    feature: QUERY errors (public plane)
+    evidence: live-observed
+    source: "harness/observations/live-2026-09-28/protocol-query-edge-415-unsupported-type.json (text/plain without a QUERY grant: 401); protocol-query-sessel-415-unsupported-type.json (with a grant: 400 'QUERY method requires Content-Type: text/sessel', no Accept-Query); docs reference/protocol/QUERY intro (snapshot 2026-09-28) claims 415"
+    confidence: high
+    requires: []
+    live: true
+    notes: "The id keeps its original name; R-PROTO-42/43's 415 with Accept-Query is superseded (docs/compat/decisions.md)."
+    site:
+      files:
+        - path: "${P}/doc.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body><h1>Open</h1></body></html>
+        - path: "${P}/q.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body><h1>Queryable</h1></body></html>
+      rules:
+        - {actor: "*", resource: "${P}/*", method: [GET], action: Allow}
+        - {actor: "*", resource: "${P}/q.html", method: [QUERY], action: Allow}
+    steps:
+      - name: text/plain without a QUERY grant
+        as: anonymous
+        request:
+          method: QUERY
+          path: "${P}/doc.html"
+          headers: {Content-Type: "text/plain"}
+          body: "h1"
+        expect:
+          status: 401
+          headers_absent: [Accept-Query]
+      - name: text/plain with a QUERY grant
+        as: anonymous
+        request:
+          method: QUERY
+          path: "${P}/q.html"
+          headers: {Content-Type: "text/plain"}
+          body: "h1"
+        expect:
+          status: 400
+          headers_absent: [Accept-Query]
+          header_matches: {Content-Type: "^text/html$"}
+          body_contains: ['<p itemprop="description">QUERY method requires Content-Type: text/sessel</p>']
+
+  - id: protocol.query-edge.422-invalid-selector
+    title: Public-plane css QUERY with an unparseable selector is 416, like a GET
+    area: protocol
+    feature: QUERY css errors (public plane)
+    evidence: live-observed
+    source: "harness/observations/live-2026-09-28/protocol-query-edge-422-invalid-selector.json (416 'HTML parsing error: Invalid CSS selector: …'); docs reference/protocol/QUERY §CSS-selector mode, Errors (snapshot 2026-09-28) claims 422"
+    confidence: high
+    requires: []
+    live: true
+    notes: "The id keeps its original name; R-PROTO-64's 422 is superseded (docs/compat/decisions.md). The parser's message text differs (Rust selectors vs pagelike's)."
+    site:
+      files:
+        - path: "${P}/doc.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body><h1>Open</h1></body></html>
+      rules:
+        - {actor: "*", resource: "${P}/*", method: [GET], action: Allow}
+    steps:
+      - name: invalid selector
+        as: anonymous
+        request:
+          method: QUERY
+          path: "${P}/doc.html"
+          headers: {Content-Type: "text/css-selector"}
+          body: "h1["
+        expect:
+          status: 416
+          headers: {Vary: "Host, Range"}
+          body_contains: ['<title>416 Range Not Satisfiable - Error</title>', "HTML parsing error: Invalid CSS selector: "]
+
+  - id: protocol.query-edge.no-match
+    title: Public-plane css QUERY with no match is 416 (GET-equivalent) or an empty 200 (documented)
+    area: protocol
+    feature: QUERY css (public plane)
+    evidence: inferred
+    source: "docs reference/protocol/QUERY §On the WebDAV authoring server; read-probes.json case query-css (snapshot 2026-09-28)"
+    confidence: low
+    requires: []
+    live: true
+    notes: R-PROTO-63. pagelike answers 416 in the default branch; both outcomes are accepted until P-8.
+    site:
+      files:
+        - path: "${P}/doc.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body><h1>Open</h1></body></html>
+      rules:
+        - {actor: "*", resource: "${P}/*", method: [GET], action: Allow}
+    steps:
+      - name: nothing matches
+        as: anonymous
+        request:
+          method: QUERY
+          path: "${P}/doc.html"
+          headers: {Content-Type: "text/css-selector"}
+          body: "table.none"
+        expect:
+          status: [200, 416]
+          body_not_contains: ["<h1>Open</h1>"]

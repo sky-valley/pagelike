@@ -1,0 +1,35 @@
+{
+  "case": "javascript.dom.instanceof-hierarchy",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (PUT the page (public plane; registers inline declarations))",
+      "method": "PUT",
+      "path": "/_pl/javascript-dom-instanceof-hierarchy-342ec8/probe.html",
+      "status": 201,
+      "headers": {
+        "content-type": "text/html",
+        "etag": "\"5baac20ef082ef943dffe5b4ce06b0fd1d52189098d4729716c492070bf91223\"",
+        "last-modified": "Tue, 29 Sep 2026 00:46:08 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml xmlns:t=\"https://pagelike.test/_pl/javascript-dom-instanceof-hierarchy-342ec8/Dinstanceofhierarchy\"\u003e\u003cbody\u003e\n\u003cmain\u003e\n\u003ct:probe\u003e\u003c/t:probe\u003e\n\u003c/main\u003e\n\u003cdiv hidden itemscope itemtype=\"https://pagelove.org/Schema\"\u003e\n\u003cmeta itemprop=\"type\" content=\"https://pagelike.test/_pl/javascript-dom-instanceof-hierarchy-342ec8/Dinstanceofhierarchy\"\u003e\n\u003cul\u003e\n\u003cli itemprop=\"property\" itemscope itemtype=\"https://pagelove.org/Method\"\u003e\n\u003cmeta itemprop=\"name\" content=\"probe\"\u003e\n\u003cdiv itemprop=\"implementation\" itemscope itemtype=\"https://pagelove.org/JavaScript/Module\"\u003e\n\u003cscript itemprop=\"source\" type=\"module\"\u003e\nconst S = (...a) =\u003e a.map(String).join('|');\nconst H = (x) =\u003e String(x).replace(/[\u003c\u003e\"]/g, (c) =\u003e ({ '\u003c': '[', '\u003e': ']', '\"': \"'\" })[c]);\nconst tryName = (f) =\u003e { try { f(); return 'ok'; } catch (e) { return e.name + ':' + e.code; } };\nexport default function () {\nconst d = new DOMParser().parseFromString('\u003ca href=\"/x\"\u003ex\u003c/a\u003e\u003cinput\u003e\u003csection\u003e\u003c/section\u003e\u003cvideo\u003e\u003c/video\u003e\u003caudio\u003e\u003c/audio\u003e\u003cfoo-bar\u003e\u003c/foo-bar\u003e', 'text/html');\nconst q = (s) =\u003e d.querySelector(s);\nconst a = q('a'), i = q('input'), s = q('section'), v = q('video'), au = q('audio'), c = q('foo-bar');\nconst t = d.createTextNode('x'), m = d.createComment('y');\nconst ns = d.createElementNS('http://www.w3.org/2000/svg', 'g');\nreturn 'R:' + S(a instanceof HTMLAnchorElement, a instanceof HTMLElement, a instanceof Element, a instanceof Node, a.constructor.name,\n  i.constructor.name, s.constructor.name, c.constructor.name,\n  v instanceof HTMLVideoElement, v instanceof HTMLMediaElement, au instanceof HTMLMediaElement, au.constructor.name,\n  t instanceof CharacterData, t instanceof Text, m instanceof Comment, t.constructor.name,\n  ns instanceof HTMLElement, ns instanceof Element, ns.constructor.name,\n  d instanceof Document, d.createDocumentFragment() instanceof DocumentFragment);\n}\n\u003c/script\u003e\n\u003c/div\u003e\n\u003c/li\u003e\n\u003c/ul\u003e\n\u003cmeta itemprop=\"@id\" content=\"https://schema.host/1j5a0mgb\"\u003e\u003cmeta itemprop=\"path\" content=\"/Schemahttps://schema.host/1j5a0mgb.html\"\u003e\u003c/div\u003e\n\n                \u003cdiv style=\"\n                            position: fixed;\n                            bottom: 0;\n                            left: 0;\n                            right: 0;\n                            padding: 8px;\n                            background: #f0f0f0;\n                            text-align: center;\n                            font-size: 12px;\n                            color: #666;\n                            z-index: 9999;\n                            opacity: 0.8;\n                            border-top: 1px solid #ddd;\n                        \"\u003e\n                    Powered by\n                    \u003ca href=\"https://pagelove.com/\" style=\"color: #4a90d9; text-decoration: none\"\u003ePagelove\u003c/a\u003e\n                \u003c/div\u003e\n            \u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 2 (GET \u003cmain\u003e: the method result is inserted as text)",
+      "method": "GET",
+      "path": "/_pl/javascript-dom-instanceof-hierarchy-342ec8/probe.html",
+      "status": 206,
+      "headers": {
+        "content-length": "176",
+        "content-range": "selector main",
+        "content-type": "text/html",
+        "etag": "\"6f04f2403b7f5da504c9bfd021ff0ba0d776c5723578b49da29acf99e822d94b-6f04f2403b7f5da504c9bfd021ff0ba0d776c5723578b49da29acf99e822d94b-1\"",
+        "vary": "Host, Range, Accept"
+      },
+      "body": "\u003cmain\u003e\nR:true|true|true|true|HTMLAnchorElement|HTMLInputElement|HTMLElement|HTMLElement|true|true|true|HTMLAudioElement|true|true|true|Text|false|true|Element|true|true\n\u003c/main\u003e"
+    }
+  ],
+  "outcome": "pass",
+  "target": "live"
+}

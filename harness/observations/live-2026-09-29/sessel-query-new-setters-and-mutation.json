@@ -1,0 +1,34 @@
+{
+  "case": "sessel.query.new.setters-and-mutation",
+  "failures": [
+    "step 2 (prepend, insertBefore, getHTML) QUERY ${P}/product.html: status 400, want [200] (body: \u003c!DOCTYPE html\u003e\n\u003chtml\u003e\n  \u003chead\u003e\n    \u003ctitle\u003e400 Bad Request - Error\u003c/title\u003e\n  \u003c/head\u003e\n  \u003cbody itemscope itemtype=\"http://pagelove.org/Error\"\u003e\n    \u003ch1 itemprop=\"name\"\u003eBad Request\u003c/h1\u003e\n    \u003cmeta itemprop=\"statusCode\" content=\"400\"\u003e\n    \u003cp item…)",
+    "step 2 (prepend, insertBefore, getHTML) QUERY ${P}/product.html: body is not JSON: invalid character '\u003c' looking for beginning of value"
+  ],
+  "observations": [
+    {
+      "step": "step 1 (setter chain)",
+      "method": "QUERY",
+      "path": "/_pl/sessel-query-new-setters-and-mutation-8a7ba7/product.html",
+      "status": 200,
+      "headers": {
+        "content-type": "text/html",
+        "vary": "Host, Range"
+      },
+      "body": "\u003cimg src=\"/images/banner.jpg\" alt=\"Banner\"\u003e"
+    },
+    {
+      "step": "step 2 (prepend, insertBefore, getHTML)",
+      "method": "QUERY",
+      "path": "/_pl/sessel-query-new-setters-and-mutation-8a7ba7/product.html",
+      "status": 400,
+      "headers": {
+        "content-length": "416",
+        "content-type": "text/html",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\n  \u003chead\u003e\n    \u003ctitle\u003e400 Bad Request - Error\u003c/title\u003e\n  \u003c/head\u003e\n  \u003cbody itemscope itemtype=\"http://pagelove.org/Error\"\u003e\n    \u003ch1 itemprop=\"name\"\u003eBad Request\u003c/h1\u003e\n    \u003cmeta itemprop=\"statusCode\" content=\"400\"\u003e\n    \u003cp itemprop=\"description\"\u003eSessel evaluation error: type error: insertBefore() reference must be a mutable child element, not a stored element (at bytes 110..112)\u003c/p\u003e\n  \u003c/body\u003e\n\u003c/html\u003e"
+    }
+  ],
+  "outcome": "fail",
+  "target": "live"
+}

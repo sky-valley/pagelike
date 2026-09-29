@@ -1,0 +1,63 @@
+{
+  "case": "modeling.cardinality.selector-put-replacement-validated",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (register declarations through the public plane (takes effect for the next request))",
+      "method": "PUT",
+      "path": "/_pl/modeling-cardinality-selector-put-replac-4d33c9/schema.html",
+      "status": 201,
+      "headers": {
+        "content-length": "530",
+        "content-type": "text/html",
+        "etag": "\"686d48df28b732066e982844ce0e1df94e7ffec6be09be31e445bde090501399\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:44 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\n  \u003cdiv hidden itemscope itemtype=\"https://pagelove.org/Schema\"\u003e\n    \u003cmeta itemprop=\"type\" content=\"https://pagelike.test/_pl/modeling-cardinality-selector-put-replac-4d33c9/Tag\"\u003e\n    \u003cdiv itemprop=\"property\" itemscope itemtype=\"https://pagelove.org/Property\"\u003e\n      \u003cmeta itemprop=\"name\" content=\"label\"\u003e\n      \u003cmeta itemprop=\"type\" content=\"https://schema.host/Text\"\u003e\n      \u003cmeta itemprop=\"cardinality\" content=\"1..1\"\u003e\n      \u003cmeta itemprop=\"unique\" content=\"true\"\u003e\n    \u003c/div\u003e\n  \u003c/div\u003e\n\u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 2 (seed)",
+      "method": "PUT",
+      "path": "/_pl/modeling-cardinality-selector-put-replac-4d33c9/t.html",
+      "status": 201,
+      "headers": {
+        "content-length": "208",
+        "content-type": "text/html",
+        "etag": "\"6ac31208fc3999a2a3a43c36161fd90fdcca474be3b671aecc7f15ed5e842878\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:44 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\n  \u003cdiv itemscope itemtype=\"https://pagelike.test/_pl/modeling-cardinality-selector-put-replac-4d33c9/Tag\" id=\"t1\"\u003e\n    \u003cmeta itemprop=\"label\" content=\"a\"\u003e\n  \u003c/div\u003e\n\u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 3 (replace with an instance lacking label)",
+      "method": "PUT",
+      "path": "/_pl/modeling-cardinality-selector-put-replac-4d33c9/t.html",
+      "status": 422,
+      "headers": {
+        "content-length": "332",
+        "content-type": "text/html",
+        "vary": "Host, Range"
+      },
+      "body": "\u003cdiv itemscope itemtype=\"https://dombase.pagelove.team/ns/error/Cardinality\"\u003e\u003cul itemprop=\"problems\"\u003e\u003cli itemprop=\"problem\"\u003e\u003cspan itemprop=\"message\"\u003ehttps://pagelike.test/_pl/modeling-cardinality-selector-put-replac-4d33c9/Tag /label: cardinality 1..1 violated: expected exactly 1 value, found 0 (cardinality)\u003c/span\u003e\u003c/li\u003e\u003c/ul\u003e\u003c/div\u003e"
+    },
+    {
+      "step": "step 4 (replace with a valid instance)",
+      "method": "PUT",
+      "path": "/_pl/modeling-cardinality-selector-put-replac-4d33c9/t.html",
+      "status": 206,
+      "headers": {
+        "content-length": "157",
+        "content-range": "selector #t1",
+        "content-type": "text/html",
+        "etag": "\"d0bc43312ba4841b1e0569ec23f37037a0a232161a65a3375f706146ee3b2326-d0bc43312ba4841b1e0569ec23f37037a0a232161a65a3375f706146ee3b2326-2\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:44 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003cdiv itemscope itemtype=\"https://pagelike.test/_pl/modeling-cardinality-selector-put-replac-4d33c9/Tag\" id=\"t1\"\u003e\n  \u003cmeta itemprop=\"label\" content=\"b\"\u003e\n\u003c/div\u003e"
+    }
+  ],
+  "outcome": "pass",
+  "target": "local"
+}

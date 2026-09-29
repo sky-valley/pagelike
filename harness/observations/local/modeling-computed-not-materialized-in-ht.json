@@ -1,0 +1,51 @@
+{
+  "case": "modeling.computed.not-materialized-in-html",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (register declarations through the public plane (takes effect for the next request))",
+      "method": "PUT",
+      "path": "/_pl/modeling-computed-not-materialized-in-ht-f65e87/schema.html",
+      "status": 201,
+      "headers": {
+        "content-length": "1088",
+        "content-type": "text/html",
+        "etag": "\"413de8b70cc02a9f5bbb46a025eccfd02921a2beb0c4d20dfa0a089209de4613\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:44 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\n  \u003cdiv hidden itemscope itemtype=\"https://pagelove.org/Schema\"\u003e\n    \u003cmeta itemprop=\"type\" content=\"https://pagelike.test/_pl/modeling-computed-not-materialized-in-ht-f65e87/Person\"\u003e\n    \u003cdiv itemprop=\"property\" itemscope itemtype=\"https://pagelove.org/Property\"\u003e\n      \u003cmeta itemprop=\"name\" content=\"first-name\"\u003e\n      \u003cmeta itemprop=\"type\" content=\"https://schema.host/Text\"\u003e\n      \u003cmeta itemprop=\"cardinality\" content=\"1..1\"\u003e\n    \u003c/div\u003e\n    \u003cdiv itemprop=\"property\" itemscope itemtype=\"https://pagelove.org/Property\"\u003e\n      \u003cmeta itemprop=\"name\" content=\"last-name\"\u003e\n      \u003cmeta itemprop=\"type\" content=\"https://schema.host/Text\"\u003e\n      \u003cmeta itemprop=\"cardinality\" content=\"1..1\"\u003e\n    \u003c/div\u003e\n    \u003cdiv itemprop=\"property\" itemscope itemtype=\"https://pagelove.org/Property\"\u003e\n      \u003cmeta itemprop=\"name\" content=\"display-name\"\u003e\n      \u003cdiv itemprop=\"@computed\" itemscope itemtype=\"https://pagelove.org/Sessel\"\u003e\n        \u003cscript itemprop=\"source\" type=\"text/sessel\"\u003eself.first-name + \" \" + self.last-name\u003c/script\u003e\n      \u003c/div\u003e\n    \u003c/div\u003e\n  \u003c/div\u003e\n\u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 2 (store a person)",
+      "method": "PUT",
+      "path": "/_pl/modeling-computed-not-materialized-in-ht-f65e87/a.html",
+      "status": 201,
+      "headers": {
+        "content-length": "261",
+        "content-type": "text/html",
+        "etag": "\"f00f23bc50be69a7020529b5e57db193a74b3b6fb6ddee1449e611e2ed8fbb02\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:44 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\n  \u003cdiv itemscope itemtype=\"https://pagelike.test/_pl/modeling-computed-not-materialized-in-ht-f65e87/Person\"\u003e\n    \u003cmeta itemprop=\"first-name\" content=\"Ada\"\u003e\n    \u003cmeta itemprop=\"last-name\" content=\"Lovelace\"\u003e\n  \u003c/div\u003e\n\u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 3 (GET the document)",
+      "method": "GET",
+      "path": "/_pl/modeling-computed-not-materialized-in-ht-f65e87/a.html",
+      "status": 200,
+      "headers": {
+        "accept-ranges": "selector, bytes",
+        "content-length": "261",
+        "content-type": "text/html",
+        "etag": "\"f00f23bc50be69a7020529b5e57db193a74b3b6fb6ddee1449e611e2ed8fbb02\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:44 GMT",
+        "vary": "Host, Range, Accept"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\n  \u003cdiv itemscope itemtype=\"https://pagelike.test/_pl/modeling-computed-not-materialized-in-ht-f65e87/Person\"\u003e\n    \u003cmeta itemprop=\"first-name\" content=\"Ada\"\u003e\n    \u003cmeta itemprop=\"last-name\" content=\"Lovelace\"\u003e\n  \u003c/div\u003e\n\u003c/body\u003e\u003c/html\u003e\n"
+    }
+  ],
+  "outcome": "pass",
+  "target": "local"
+}

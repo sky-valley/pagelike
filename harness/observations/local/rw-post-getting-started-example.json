@@ -1,0 +1,38 @@
+{
+  "case": "rw.post.getting-started-example",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (add an item)",
+      "method": "POST",
+      "path": "/_pl/rw-post-getting-started-example-3f146d/getting-started-demo.html",
+      "status": 206,
+      "headers": {
+        "content-length": "20",
+        "content-range": "selector #items",
+        "content-type": "text/html",
+        "etag": "\"063c8b82faff82b50608957f60ecfd4b45cba3f4f62512812328d68c8ac01bf5-063c8b82faff82b50608957f60ecfd4b45cba3f4f62512812328d68c8ac01bf5-2\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:56 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003cli\u003eSecond item\u003c/li\u003e"
+    },
+    {
+      "step": "step 2 (read back just the list)",
+      "method": "GET",
+      "path": "/_pl/rw-post-getting-started-example-3f146d/getting-started-demo.html",
+      "status": 206,
+      "headers": {
+        "accept-ranges": "selector, bytes",
+        "content-length": "68",
+        "content-range": "selector #items",
+        "content-type": "text/html",
+        "etag": "\"229c38f0ccf3ecc430f938e063569274b8c0a061b5dbe7907123605eac7d3541-229c38f0ccf3ecc430f938e063569274b8c0a061b5dbe7907123605eac7d3541-2\"",
+        "vary": "Host, Range, Accept"
+      },
+      "body": "\u003cul id=\"items\"\u003e\n    \u003cli\u003eFirst item\u003c/li\u003e\n  \u003cli\u003eSecond item\u003c/li\u003e\n\u003c/ul\u003e"
+    }
+  ],
+  "outcome": "pass",
+  "target": "local"
+}

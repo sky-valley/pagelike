@@ -1,0 +1,36 @@
+{
+  "case": "modeling.nested.plain-value-is-type-mismatch",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (register declarations through the public plane (takes effect for the next request))",
+      "method": "PUT",
+      "path": "/_pl/modeling-nested-plain-value-is-type-mism-88e701/schema.html",
+      "status": 201,
+      "headers": {
+        "content-length": "1493",
+        "content-type": "text/html",
+        "etag": "\"691a7536ce7e2afc0deed7b682d0dd5d2566abebdd865452c76510b6a078c0f4\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:44 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\n  \u003cdiv hidden itemscope itemtype=\"https://pagelove.org/Schema\"\u003e\n    \u003cmeta itemprop=\"type\" content=\"https://pagelike.test/_pl/modeling-nested-plain-value-is-type-mism-88e701/Address\"\u003e\n    \u003cdiv itemprop=\"property\" itemscope itemtype=\"https://pagelove.org/Property\"\u003e\n      \u003cmeta itemprop=\"name\" content=\"street\"\u003e\n      \u003cmeta itemprop=\"type\" content=\"https://schema.host/Text\"\u003e\n      \u003cmeta itemprop=\"cardinality\" content=\"1..1\"\u003e\n    \u003c/div\u003e\n    \u003cdiv itemprop=\"property\" itemscope itemtype=\"https://pagelove.org/Property\"\u003e\n      \u003cmeta itemprop=\"name\" content=\"city\"\u003e\n      \u003cmeta itemprop=\"type\" content=\"https://schema.host/Text\"\u003e\n      \u003cmeta itemprop=\"cardinality\" content=\"1..1\"\u003e\n    \u003c/div\u003e\n  \u003c/div\u003e\n  \u003cdiv hidden itemscope itemtype=\"https://pagelove.org/Schema\"\u003e\n    \u003cmeta itemprop=\"type\" content=\"https://pagelike.test/_pl/modeling-nested-plain-value-is-type-mism-88e701/Person\"\u003e\n    \u003cdiv itemprop=\"property\" itemscope itemtype=\"https://pagelove.org/Property\"\u003e\n      \u003cmeta itemprop=\"name\" content=\"name\"\u003e\n      \u003cmeta itemprop=\"type\" content=\"https://schema.host/Text\"\u003e\n      \u003cmeta itemprop=\"cardinality\" content=\"1..1\"\u003e\n    \u003c/div\u003e\n    \u003cdiv itemprop=\"property\" itemscope itemtype=\"https://pagelove.org/Property\"\u003e\n      \u003cmeta itemprop=\"name\" content=\"address\"\u003e\n      \u003cmeta itemprop=\"type\" content=\"https://pagelike.test/_pl/modeling-nested-plain-value-is-type-mism-88e701/Address\"\u003e\n      \u003cmeta itemprop=\"cardinality\" content=\"0..1\"\u003e\n    \u003c/div\u003e\n  \u003c/div\u003e\n\u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 2 (text address accepted)",
+      "method": "PUT",
+      "path": "/_pl/modeling-nested-plain-value-is-type-mism-88e701/p.html",
+      "status": 201,
+      "headers": {
+        "content-length": "250",
+        "content-type": "text/html",
+        "etag": "\"1411d281169bea0bc0042ca9db72c35e0d7bbf58df6d5ccd5233756e33db9c22\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:44 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\n  \u003cdiv itemscope itemtype=\"https://pagelike.test/_pl/modeling-nested-plain-value-is-type-mism-88e701/Person\"\u003e\n    \u003cspan itemprop=\"name\"\u003eAlice\u003c/span\u003e\n    \u003cspan itemprop=\"address\"\u003e123 Main St\u003c/span\u003e\n  \u003c/div\u003e\n\u003c/body\u003e\u003c/html\u003e\n"
+    }
+  ],
+  "outcome": "pass",
+  "target": "local"
+}

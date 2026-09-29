@@ -1,0 +1,50 @@
+{
+  "case": "modeling.keys.auto-default-generated",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (register declarations through the public plane (takes effect for the next request))",
+      "method": "PUT",
+      "path": "/_pl/modeling-keys-auto-default-generated-8db6e3/schema.html",
+      "status": 201,
+      "headers": {
+        "content-length": "820",
+        "content-type": "text/html",
+        "etag": "\"cbcfe7de3acfee63c7bde980cfe0891b796e33b6ef6ea01dce0163f2dfa7347f\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:44 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\n  \u003cdiv hidden itemscope itemtype=\"https://pagelove.org/Schema\"\u003e\n    \u003cmeta itemprop=\"type\" content=\"https://pagelike.test/_pl/modeling-keys-auto-default-generated-8db6e3/Host\"\u003e\n    \u003cli itemprop=\"property\" itemscope itemtype=\"https://pagelove.org/Property\"\u003e\n      \u003cmeta itemprop=\"name\" content=\"hid\"\u003e\n      \u003cmeta itemprop=\"type\" content=\"https://schema.host/Text\"\u003e\n      \u003cmeta itemprop=\"cardinality\" content=\"1..1\"\u003e\n      \u003cmeta itemprop=\"unique\" content=\"true\"\u003e\n      \u003cmeta itemprop=\"@key\" content=\"true\"\u003e\n    \u003c/li\u003e\n    \u003cli itemprop=\"property\" itemscope itemtype=\"https://pagelove.org/Property\"\u003e\n      \u003cmeta itemprop=\"name\" content=\"hostname\"\u003e\n      \u003cmeta itemprop=\"type\" content=\"https://schema.host/Text\"\u003e\n      \u003cmeta itemprop=\"cardinality\" content=\"0..1\"\u003e\n    \u003c/li\u003e\n  \u003c/div\u003e\n\u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 2 (host without hid satisfies 1..1 via the key default)",
+      "method": "PUT",
+      "path": "/_pl/modeling-keys-auto-default-generated-8db6e3/h.html",
+      "status": 201,
+      "headers": {
+        "content-length": "252",
+        "content-type": "text/html",
+        "etag": "\"0bb96cb86d9f1d91eddc81f53d590c8bfa8d7ba18f54a4f0327046870503ad35\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:44 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\n  \u003cdiv itemscope itemtype=\"https://pagelike.test/_pl/modeling-keys-auto-default-generated-8db6e3/Host\"\u003e\n    \u003cmeta itemprop=\"hostname\" content=\"x.example.com\"\u003e\n  \u003cmeta itemprop=\"hid\" content=\"wy28plcw\"\u003e\u003c/div\u003e\n\u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 3 (stored state of h.html (authoring plane, raw))",
+      "method": "GET",
+      "path": "/_pl/modeling-keys-auto-default-generated-8db6e3/h.html",
+      "status": 200,
+      "headers": {
+        "accept-ranges": "bytes",
+        "content-length": "252",
+        "content-type": "text/html",
+        "etag": "\"0bb96cb86d9f1d91eddc81f53d590c8bfa8d7ba18f54a4f0327046870503ad35\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:44 GMT"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\n  \u003cdiv itemscope itemtype=\"https://pagelike.test/_pl/modeling-keys-auto-default-generated-8db6e3/Host\"\u003e\n    \u003cmeta itemprop=\"hostname\" content=\"x.example.com\"\u003e\n  \u003cmeta itemprop=\"hid\" content=\"wy28plcw\"\u003e\u003c/div\u003e\n\u003c/body\u003e\u003c/html\u003e\n"
+    }
+  ],
+  "outcome": "pass",
+  "target": "local"
+}

@@ -1,0 +1,46 @@
+{
+  "case": "rw.authz.present-target-denied-401",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (broader allow works)",
+      "method": "PUT",
+      "path": "/_pl/rw-authz-present-target-denied-401-124a44/page.html",
+      "status": 206,
+      "headers": {
+        "content-length": "23",
+        "content-range": "selector #free",
+        "content-type": "text/html",
+        "etag": "\"9be9f70752f152c635133478b8d761a65200e1c2292e744a8f43d2e1e3bffa58-9be9f70752f152c635133478b8d761a65200e1c2292e744a8f43d2e1e3bffa58-2\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:55 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003cp id=\"free\"\u003eedited\u003c/p\u003e"
+    },
+    {
+      "step": "step 2 (denied element refused)",
+      "method": "PUT",
+      "path": "/_pl/rw-authz-present-target-denied-401-124a44/page.html",
+      "status": 401,
+      "headers": {
+        "content-length": "424",
+        "content-type": "text/html; charset=utf-8"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\n\u003chead\u003e\n    \u003cmeta charset=\"UTF-8\"\u003e\n    \u003ctitle\u003e401 Unauthorized\u003c/title\u003e\n\u003c/head\u003e\n\u003cbody itemscope itemtype=\"https://pagelove.org/1.0/Error\"\u003e\n    \u003ch1\u003e401 Unauthorized\u003c/h1\u003e\n    \u003cp itemprop=\"message\"\u003eAuthentication required to access this resource.\u003c/p\u003e\n    \u003cdl\u003e\n        \u003cdt\u003eResource\u003c/dt\u003e\n        \u003cdd itemprop=\"resource\"\u003e/_pl/rw-authz-present-target-denied-401-124a44/page.html\u003c/dd\u003e\n    \u003c/dl\u003e\n\u003c/body\u003e\n\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 3 (absent element on a readable page is still 416)",
+      "method": "PUT",
+      "path": "/_pl/rw-authz-present-target-denied-401-124a44/page.html",
+      "status": 416,
+      "headers": {
+        "content-length": "359",
+        "content-range": "selector */",
+        "content-type": "text/html; charset=utf-8"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\n  \u003chead\u003e\n    \u003ctitle\u003e416 Range Not Satisfiable - Error\u003c/title\u003e\n  \u003c/head\u003e\n  \u003cbody itemscope itemtype=\"http://pagelove.org/Error\"\u003e\n    \u003ch1 itemprop=\"name\"\u003eRange Not Satisfiable\u003c/h1\u003e\n    \u003cmeta itemprop=\"statusCode\" content=\"416\"\u003e\n    \u003cp itemprop=\"description\"\u003eHTML parsing error: No elements matched selector: #absent\u003c/p\u003e\n  \u003c/body\u003e\n\u003c/html\u003e\n"
+    }
+  ],
+  "outcome": "pass",
+  "target": "local"
+}

@@ -1,0 +1,53 @@
+{
+  "case": "comp.tr.binding-sees-canonical",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1",
+      "method": "GET",
+      "path": "/_pl/comp-tr-binding-sees-canonical-e55352/cart.html",
+      "status": 200,
+      "headers": {
+        "accept-ranges": "selector, bytes",
+        "cache-control": "private",
+        "content-length": "137",
+        "content-type": "text/html",
+        "etag": "W/\"0d7e1c083a76a93559f8a770f30eaec1f068480eeac2555d6160f6019fc308a8\"",
+        "vary": "Host, Range, Accept"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\n\u003cbody\u003e\u003cul id=\"cart\"\u003e\u003cli data-t=\"/_pl/comp-tr-binding-sees-canonical-e55352\"\u003eDefault item\u003c/li\u003e\u003c/ul\u003e\u003c/body\u003e\n\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 2",
+      "method": "PUT",
+      "path": "/_pl/comp-tr-binding-sees-canonical-e55352/cart.html",
+      "status": 206,
+      "headers": {
+        "cache-control": "private",
+        "content-length": "205",
+        "content-range": "selector #cart",
+        "content-type": "text/html",
+        "etag": "\"6021c1f713b176cafc19cbfb0877af0218d6eab482a4a0cd3e76fb20740a118f-6021c1f713b176cafc19cbfb0877af0218d6eab482a4a0cd3e76fb20740a118f-1\"",
+        "vary": "Host, Range"
+      },
+      "body": "\u003cul id=\"cart\"\u003e\u003cli data-t=\"/_pl/comp-tr-binding-sees-canonical-e55352\"\u003ea\u003c/li\u003e\u003cli data-t=\"/_pl/comp-tr-binding-sees-canonical-e55352\"\u003eb\u003c/li\u003e\u003cli data-t=\"/_pl/comp-tr-binding-sees-canonical-e55352\"\u003ec\u003c/li\u003e\u003c/ul\u003e"
+    },
+    {
+      "step": "step 3 (the same session's binding still counts the canonical default)",
+      "method": "GET",
+      "path": "/_pl/comp-tr-binding-sees-canonical-e55352/count.html",
+      "status": 200,
+      "headers": {
+        "accept-ranges": "selector, bytes",
+        "cache-control": "public, max-age=5",
+        "content-length": "56",
+        "content-type": "text/html",
+        "etag": "W/\"a65ed9fb8c3128679cc6693d5e16c0cebdfd3785d2fedd6c1ede864d0c292496\"",
+        "vary": "Host, Range, Accept"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\n\u003cbody\u003e\u003cp\u003en=1;\u003c/p\u003e\u003c/body\u003e\n\u003c/html\u003e\n"
+    }
+  ],
+  "outcome": "pass",
+  "target": "local"
+}

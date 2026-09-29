@@ -1,0 +1,33 @@
+{
+  "case": "javascript.reactions.trigger-ctx-request-shape",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (register the trigger/processor (public plane))",
+      "method": "PUT",
+      "path": "/_pl/javascript-reactions-trigger-ctx-request-632a79/reactions.html",
+      "status": 201,
+      "headers": {
+        "content-length": "647",
+        "content-type": "text/html",
+        "etag": "\"a91d2ef87c75f9c665bae23706eb67a88906b43cd75c455a6aa903d4a5ab4d3d\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:43 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\n\u003cdiv itemscope itemtype=\"https://pagelove.org/Trigger\"\u003e\n\u003cmeta itemprop=\"resource\" content=\"/_pl/javascript-reactions-trigger-ctx-request-632a79/guarded/*\"\u003e\n\u003cmeta itemprop=\"method\" content=\"PUT\"\u003e\n\u003cdiv itemprop=\"action\" itemscope itemtype=\"https://pagelove.org/JavaScript/Module\"\u003e\n\u003cscript itemprop=\"source\" type=\"module\"\u003e\nexport default function(ctx) {\n  const r = ctx.request;\n  throw { schema_url: 'https://pagelove.org/HTTPResponse', status: 418,\n    message: 'CTX:' + [r.method, r.path, typeof r.host, typeof r.headers, typeof r.query, r.query.k, typeof r.body].join('|') };\n}\n\u003c/script\u003e\n\u003c/div\u003e\n\u003c/div\u003e\n\u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 2 (PUT with a query string)",
+      "method": "PUT",
+      "path": "/_pl/javascript-reactions-trigger-ctx-request-632a79/guarded/x.html?k=v1",
+      "status": 418,
+      "headers": {
+        "content-length": "106",
+        "content-type": "text/html; charset=utf-8"
+      },
+      "body": "CTX:PUT|/_pl/javascript-reactions-trigger-ctx-request-632a79/guarded/x.html|string|object|object|v1|string"
+    }
+  ],
+  "outcome": "pass",
+  "target": "local"
+}

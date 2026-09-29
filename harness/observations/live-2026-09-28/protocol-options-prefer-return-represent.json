@@ -1,0 +1,29 @@
+{
+  "case": "protocol.options.prefer-return-representation-ignored",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (with selector-scoped rules the answer is still 207)",
+      "method": "OPTIONS",
+      "path": "/_pl/protocol-options-prefer-return-represent-6f9e61/doc.html",
+      "status": 207,
+      "headers": {
+        "content-type": "multipart/mixed; boundary=boundaryZIBfl9TERBiQuP3XZSFjfRVSkHoCuhTw",
+        "vary": "Authorization, Accept"
+      },
+      "body": "--boundaryZIBfl9TERBiQuP3XZSFjfRVSkHoCuhTw\r\nAllow: GET, HEAD, OPTIONS\r\n\r\n--boundaryZIBfl9TERBiQuP3XZSFjfRVSkHoCuhTw\r\nContent-Range: selector ul\r\nAllow: POST, OPTIONS\r\n\r\n--boundaryZIBfl9TERBiQuP3XZSFjfRVSkHoCuhTw--\r\n"
+    },
+    {
+      "step": "step 2 (without selector-scoped rules the answer is still 204)",
+      "method": "OPTIONS",
+      "path": "/_pl/protocol-options-prefer-return-represent-6f9e61/plain.html",
+      "status": 204,
+      "headers": {
+        "allow": "GET, HEAD, OPTIONS",
+        "vary": "Authorization, Accept"
+      }
+    }
+  ],
+  "outcome": "pass",
+  "target": "live"
+}

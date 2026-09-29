@@ -1,0 +1,57 @@
+{
+  "case": "modeling.validators.property-sessel-email",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (register declarations through the public plane (takes effect for the next request))",
+      "method": "PUT",
+      "path": "/_pl/modeling-validators-property-sessel-emai-7366ed/schema.html",
+      "status": 201,
+      "headers": {
+        "content-type": "text/html",
+        "etag": "\"9cb863582b0e6bb1beef83855093f25338a011f5a7b26bef0d44dfb2a1fa6296\"",
+        "last-modified": "Tue, 29 Sep 2026 00:48:40 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\n  \u003cdiv hidden itemscope itemtype=\"https://pagelove.org/Schema\"\u003e\n    \u003cmeta itemprop=\"type\" content=\"https://pagelike.test/_pl/modeling-validators-property-sessel-emai-7366ed/Account\"\u003e\n    \u003cdiv itemprop=\"property\" itemscope itemtype=\"https://pagelove.org/Property\"\u003e\n      \u003cmeta itemprop=\"name\" content=\"email\"\u003e\n      \u003cmeta itemprop=\"type\" content=\"https://schema.host/Text\"\u003e\n      \u003cmeta itemprop=\"cardinality\" content=\"1..1\"\u003e\n      \u003cdiv itemprop=\"@validate\" itemscope itemtype=\"https://pagelove.org/Sessel\"\u003e\n        \u003cscript itemprop=\"source\" type=\"text/sessel\"\u003eself.all((el) =\u003e el.text().matches(\"^[^@]+@[^@]+\\\\.[^@]+$\"))\u003c/script\u003e\n      \u003c/div\u003e\n    \u003c/div\u003e\n  \u003cmeta itemprop=\"@id\" content=\"https://schema.host/zhclvd58\"\u003e\u003cmeta itemprop=\"path\" content=\"/Schemahttps://schema.host/zhclvd58.html\"\u003e\u003c/div\u003e\n\n                \u003cdiv style=\"\n                            position: fixed;\n                            bottom: 0;\n                            left: 0;\n                            right: 0;\n                            padding: 8px;\n                            background: #f0f0f0;\n                            text-align: center;\n                            font-size: 12px;\n                            color: #666;\n                            z-index: 9999;\n                            opacity: 0.8;\n                            border-top: 1px solid #ddd;\n                        \"\u003e\n                    Powered by\n                    \u003ca href=\"https://pagelove.com/\" style=\"color: #4a90d9; text-decoration: none\"\u003ePagelove\u003c/a\u003e\n                \u003c/div\u003e\n            \u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 2 (valid email accepted)",
+      "method": "PUT",
+      "path": "/_pl/modeling-validators-property-sessel-emai-7366ed/a.html",
+      "status": 201,
+      "headers": {
+        "content-type": "text/html",
+        "etag": "\"26fb2886b89cf7976dee0c2cdc7270e9208862e4aae11685e2ae48bdbc83ef04\"",
+        "last-modified": "Tue, 29 Sep 2026 00:48:40 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\n  \u003cdiv itemscope itemtype=\"https://pagelike.test/_pl/modeling-validators-property-sessel-emai-7366ed/Account\"\u003e\n    \u003cspan itemprop=\"email\"\u003ealice@example.com\u003c/span\u003e\n  \u003c/div\u003e\n\n                \u003cdiv style=\"\n                            position: fixed;\n                            bottom: 0;\n                            left: 0;\n                            right: 0;\n                            padding: 8px;\n                            background: #f0f0f0;\n                            text-align: center;\n                            font-size: 12px;\n                            color: #666;\n                            z-index: 9999;\n                            opacity: 0.8;\n                            border-top: 1px solid #ddd;\n                        \"\u003e\n                    Powered by\n                    \u003ca href=\"https://pagelove.com/\" style=\"color: #4a90d9; text-decoration: none\"\u003ePagelove\u003c/a\u003e\n                \u003c/div\u003e\n            \u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 3 (invalid email rejected)",
+      "method": "PUT",
+      "path": "/_pl/modeling-validators-property-sessel-emai-7366ed/b.html",
+      "status": 422,
+      "headers": {
+        "content-length": "293",
+        "content-type": "text/html",
+        "vary": "Host, Range"
+      },
+      "body": "\u003cdiv itemscope itemtype=\"https://pagelove.org/SchemaViolation\"\u003e\u003cul itemprop=\"problems\"\u003e\u003cli itemprop=\"problem\"\u003e\u003cspan itemprop=\"message\"\u003e[https://pagelike.test/_pl/modeling-validators-property-sessel-emai-7366ed/Account].email: property @validate expression returned false\u003c/span\u003e\u003c/li\u003e\u003c/ul\u003e\u003c/div\u003e"
+    },
+    {
+      "step": "step 4 (b.html was not stored)",
+      "method": "GET",
+      "path": "/_pl/modeling-validators-property-sessel-emai-7366ed/b.html",
+      "status": 404,
+      "headers": {
+        "content-length": "210",
+        "content-type": "text/html; charset=utf-8"
+      },
+      "body": "\u003carticle itemscope itemtype=\"https://pagelove.org/Error/NotFound\"\u003e\u003cmeta itemprop=\"status\" content=\"404\"\u003e\u003cp itemprop=\"message\"\u003eNot found: /_pl/modeling-validators-property-sessel-emai-7366ed/b.html\u003c/p\u003e\u003c/article\u003e"
+    }
+  ],
+  "outcome": "pass",
+  "target": "live"
+}

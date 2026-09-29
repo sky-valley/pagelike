@@ -1,0 +1,33 @@
+{
+  "case": "reacting.context.js-auth-claims",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (install a JS trigger that echoes auth)",
+      "method": "PUT",
+      "path": "/_pl/reacting-context-js-auth-claims-94ffa2/r/triggers.html",
+      "status": 201,
+      "headers": {
+        "content-length": "569",
+        "content-type": "text/html",
+        "etag": "\"ba205744f05054479b49c3d7652bec860d5840b1c4dc17686f8cc3567b0ed765\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:48 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\n\u003cdiv hidden itemscope itemtype=\"https://pagelove.org/Trigger\"\u003e\n  \u003cmeta itemprop=\"resource\" content=\"/_pl/reacting-context-js-auth-claims-94ffa2/d/*\"\u003e\n  \u003cmeta itemprop=\"method\" content=\"PUT\"\u003e\n  \u003cdiv itemprop=\"action\" itemscope itemtype=\"https://pagelove.org/JavaScript/Module\"\u003e\n    \u003cscript type=\"module\" itemprop=\"source\"\u003e\n      export default function(ctx) {\n        throw { schema_url: \"https://pagelove.org/HTTPResponse\", status: 409, body: JSON.stringify(ctx.request.auth ?? null) };\n      }\n    \u003c/script\u003e\n  \u003c/div\u003e\n\u003c/div\u003e\n\u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 2 (alice's claims are visible)",
+      "method": "PUT",
+      "path": "/_pl/reacting-context-js-auth-claims-94ffa2/d/x.html",
+      "status": 409,
+      "headers": {
+        "content-length": "131",
+        "content-type": "text/html; charset=utf-8"
+      },
+      "body": "{\"claims\":{\"email\":\"alice@example.com\",\"email_verified\":true,\"name\":\"Alice\",\"sub\":\"alice\"},\"role\":[],\"roles\":[],\"username\":\"alice\"}"
+    }
+  ],
+  "outcome": "pass",
+  "target": "local"
+}

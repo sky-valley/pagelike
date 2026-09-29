@@ -1,0 +1,520 @@
+# Selector-scoped rules and the key element (spec R-PERM-24..29, 42).
+cases:
+  - id: authz.selector.target-must-match-rule-selector
+    title: A selector rule covers elements that match it, not their descendants
+    area: permissions-identity
+    feature: selector rule matching (match, not inside)
+    evidence: inferred
+    source: "docs reference/permissions/AuthorizationRule §selector ('applies only to elements satisfying the selector'), §Conflict resolution; pagelove-cursor SKILL.md@b97c3ef:328,359 (needs 'li, input' so the checkbox inside li is writable); demo-apps demo-01-event/index.html@c4dd883:170-175"
+    confidence: medium
+    requires: []
+    live: true
+    site:
+      files:
+        - path: "${P}/doc.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body><ul id="l"><li id="a"><span id="s">x</span></li></ul></body></html>
+        - path: "${P}/rules.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div hidden itemscope itemtype="https://pagelove.org/AuthorizationRule">
+                <meta itemprop="actor" content="*"><meta itemprop="resource" content="${P}/doc.html">
+                <meta itemprop="method" content="PUT"><meta itemprop="selector" content="li">
+                <meta itemprop="action" content="allow">
+              </div>
+            </body></html>
+    steps:
+      - name: PUT of a descendant of a matching element is refused
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/doc.html"
+          headers: {Range: "selector=#s", Content-Type: text/html}
+          body: '<span id="s">y</span>'
+        expect: {status: 401}
+      - name: PUT of the matching element itself is allowed
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/doc.html"
+          headers: {Range: "selector=#a", Content-Type: text/html}
+          body: '<li id="a"><span id="s">z</span></li>'
+        expect: {status: 206}
+
+  - id: authz.selector.rule-selector-evaluated-in-document-context
+    title: "The rule selector is evaluated over the whole document (#todo-list li excludes other li)"
+    area: permissions-identity
+    feature: selector rule matching (context)
+    evidence: documented
+    source: "docs learn/your-first-app (selector '#todo-list li')"
+    confidence: high
+    requires: []
+    live: true
+    site:
+      files:
+        - path: "${P}/doc.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <ul id="todo-list"><li id="t1">Milk</li></ul>
+              <ul id="other"><li id="o1">Nav</li></ul>
+              <div hidden itemscope itemtype="https://pagelove.org/AuthorizationRule">
+                <meta itemprop="actor" content="*"><meta itemprop="resource" content="${P}/doc.html">
+                <meta itemprop="method" content="PUT"><meta itemprop="selector" content="#todo-list li">
+                <meta itemprop="action" content="allow">
+              </div>
+            </body></html>
+    steps:
+      - name: li inside #todo-list
+        as: anonymous
+        request: {method: PUT, path: "${P}/doc.html", headers: {Range: "selector=#t1", Content-Type: text/html}, body: '<li id="t1">Eggs</li>'}
+        expect: {status: 206}
+      - name: li elsewhere
+        as: anonymous
+        request: {method: PUT, path: "${P}/doc.html", headers: {Range: "selector=#o1", Content-Type: text/html}, body: '<li id="o1">Hacked</li>'}
+        expect: {status: 401}
+
+  - id: authz.selector.post-append-keys-anchor
+    title: POST append/prepend is authorized against the anchor (the container gaining a child)
+    area: permissions-identity
+    feature: POST key element
+    evidence: documented
+    source: "docs reference/reading-and-writing/MOVE-method §The three checks ('append / prepend key on the anchor itself'; check 3 'authorized exactly as a POST'); learn/your-first-app (POST rule on #todo-list)"
+    confidence: high
+    requires: []
+    live: true
+    site:
+      files:
+        - path: "${P}/doc.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body><ul id="list"><li id="a">A</li><li id="b">B</li></ul></body></html>
+        - path: "${P}/rules.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div hidden itemscope itemtype="https://pagelove.org/AuthorizationRule">
+                <meta itemprop="actor" content="*"><meta itemprop="resource" content="${P}/doc.html">
+                <meta itemprop="method" content="POST"><meta itemprop="selector" content="#list">
+                <meta itemprop="action" content="allow">
+              </div>
+            </body></html>
+    steps:
+      - name: default append into the list
+        as: anonymous
+        request: {method: POST, path: "${P}/doc.html", headers: {Range: "selector=#list", Content-Type: text/html}, body: '<li id="c">C</li>'}
+        expect: {status: 206}
+      - name: prepend into the list
+        as: anonymous
+        request: {method: POST, path: "${P}/doc.html", headers: {Range: "selector=#list; placement=prepend", Content-Type: text/html}, body: '<li id="z">Z</li>'}
+        expect: {status: 206}
+      - name: append into a list item (anchor li does not match #list)
+        as: anonymous
+        request: {method: POST, path: "${P}/doc.html", headers: {Range: "selector=#a", Content-Type: text/html}, body: '<span>x</span>'}
+        expect: {status: 401}
+
+  - id: authz.selector.post-before-after-keys-parent
+    title: POST before/after is authorized against the anchor's parent
+    area: permissions-identity
+    feature: POST key element
+    evidence: documented
+    source: "docs reference/reading-and-writing/MOVE-method §The three checks ('before / after key on the anchor's parent')"
+    confidence: high
+    requires: []
+    live: true
+    site:
+      files:
+        - path: "${P}/doc.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body><ul id="list"><li id="a">A</li><li id="b">B</li></ul></body></html>
+        - path: "${P}/rules.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div hidden itemscope itemtype="https://pagelove.org/AuthorizationRule">
+                <meta itemprop="actor" content="*"><meta itemprop="resource" content="${P}/doc.html">
+                <meta itemprop="method" content="POST"><meta itemprop="selector" content="#list">
+                <meta itemprop="action" content="allow">
+              </div>
+            </body></html>
+    steps:
+      - name: before a list item (parent is #list)
+        as: anonymous
+        request: {method: POST, path: "${P}/doc.html", headers: {Range: "selector=#b; placement=before", Content-Type: text/html}, body: '<li id="ab">between</li>'}
+        expect: {status: 206}
+      - name: after a list item (parent is #list)
+        as: anonymous
+        request: {method: POST, path: "${P}/doc.html", headers: {Range: "selector=#b; placement=after", Content-Type: text/html}, body: '<li id="c">C</li>'}
+        expect: {status: 206}
+      - name: after the list itself (parent is body)
+        as: anonymous
+        request: {method: POST, path: "${P}/doc.html", headers: {Range: "selector=#list; placement=after", Content-Type: text/html}, body: '<p>outside</p>'}
+        expect: {status: 401}
+
+  - id: authz.selector.post-before-after-rule-on-item-denied
+    title: A POST rule on the items themselves does not authorize inserting siblings
+    area: permissions-identity
+    feature: POST key element
+    evidence: documented
+    source: "docs reference/reading-and-writing/MOVE-method §The three checks (keying on the element whose child list changes)"
+    confidence: medium
+    requires: []
+    live: true
+    site:
+      files:
+        - path: "${P}/doc.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body><ul id="list"><li id="a" class="item">A</li></ul></body></html>
+        - path: "${P}/rules.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div hidden itemscope itemtype="https://pagelove.org/AuthorizationRule">
+                <meta itemprop="actor" content="*"><meta itemprop="resource" content="${P}/doc.html">
+                <meta itemprop="method" content="POST"><meta itemprop="selector" content=".item">
+                <meta itemprop="action" content="allow">
+              </div>
+            </body></html>
+    steps:
+      - name: append inside the item is allowed
+        as: anonymous
+        request: {method: POST, path: "${P}/doc.html", headers: {Range: "selector=#a", Content-Type: text/html}, body: '<b>!</b>'}
+        expect: {status: 206}
+      - name: insert after the item is refused (key is the ul)
+        as: anonymous
+        request: {method: POST, path: "${P}/doc.html", headers: {Range: "selector=#a; placement=after", Content-Type: text/html}, body: '<li class="item">B</li>'}
+        expect: {status: 401}
+
+  - id: authz.selector.write-first-match-only
+    title: A write whose selector matches several elements is decided on the first match only
+    area: permissions-identity
+    feature: multi-match writes
+    evidence: documented
+    source: "docs reference/permissions/AuthorizationRule §Selectors that match several elements ('A write changes only the first match')"
+    confidence: high
+    requires: []
+    live: true
+    site:
+      files:
+        - path: "${P}/open-first.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body><p id="a" class="item open">A</p><p id="b" class="item locked">B</p></body></html>
+        - path: "${P}/locked-first.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body><p id="b" class="item locked">B</p><p id="a" class="item open">A</p></body></html>
+        - path: "${P}/rules.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div hidden itemscope itemtype="https://pagelove.org/AuthorizationRule">
+                <meta itemprop="actor" content="*"><meta itemprop="resource" content="${P}/*">
+                <meta itemprop="method" content="PUT"><meta itemprop="selector" content=".open">
+                <meta itemprop="action" content="allow">
+              </div>
+            </body></html>
+    steps:
+      - name: first match is permitted
+        as: anonymous
+        request: {method: PUT, path: "${P}/open-first.html", headers: {Range: "selector=.item", Content-Type: text/html}, body: '<p id="a" class="item open">A2</p>'}
+        expect: {status: 206}
+      - name: first match is not permitted
+        as: anonymous
+        request: {method: PUT, path: "${P}/locked-first.html", headers: {Range: "selector=.item", Content-Type: text/html}, body: '<p id="b" class="item locked">B2</p>'}
+        expect: {status: 401}
+
+  - id: authz.selector.resource-level-rule-covers-selector-writes
+    title: A resource-level PUT grant permits replacing any element
+    area: permissions-identity
+    feature: resource-level vs selector requests
+    evidence: demo-source
+    source: "pagelove-polls/site/admin/auth.html@c9270e5:97 ('On its own that grant would let any visitor replace any element of an existing poll')"
+    confidence: high
+    requires: []
+    live: true
+    site:
+      files:
+        - path: "${P}/doc.html"
+          body: '<!DOCTYPE html><html><body><h1>T</h1><p id="p">x</p></body></html>'
+        - path: "${P}/rules.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div hidden itemscope itemtype="https://pagelove.org/AuthorizationRule">
+                <meta itemprop="actor" content="*"><meta itemprop="resource" content="${P}/doc.html">
+                <meta itemprop="method" content="PUT"><meta itemprop="action" content="allow">
+              </div>
+            </body></html>
+    steps:
+      - name: selector PUT on h1
+        as: anonymous
+        request: {method: PUT, path: "${P}/doc.html", headers: {Range: "selector=h1", Content-Type: text/html}, body: '<h1>U</h1>'}
+        expect: {status: 206}
+      - name: selector PUT on p
+        as: anonymous
+        request: {method: PUT, path: "${P}/doc.html", headers: {Range: "selector=#p", Content-Type: text/html}, body: '<p id="p">y</p>'}
+        expect: {status: 206}
+
+  - id: authz.selector.selector-rule-does-not-cover-whole-document
+    title: A selector-scoped PUT grant does not permit a whole-document PUT
+    area: permissions-identity
+    feature: resource-level vs selector requests
+    evidence: documented
+    source: "docs reference/permissions/AuthorizationRule §Matching model (4); pagelove-polls/site/admin/auth.html@c9270e5:97 (templated creation needed a document-level PUT grant)"
+    confidence: high
+    requires: []
+    live: true
+    site:
+      files:
+        - path: "${P}/doc.html"
+          body: '<!DOCTYPE html><html><body><h1>T</h1></body></html>'
+        - path: "${P}/rules.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div hidden itemscope itemtype="https://pagelove.org/AuthorizationRule">
+                <meta itemprop="actor" content="*"><meta itemprop="resource" content="${P}/doc.html">
+                <meta itemprop="method" content="PUT"><meta itemprop="selector" content="h1">
+                <meta itemprop="action" content="allow">
+              </div>
+            </body></html>
+    steps:
+      - name: whole-document PUT refused
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/doc.html"
+          headers: {Content-Type: text/html}
+          body: '<!DOCTYPE html><html><body><h1>Replaced</h1></body></html>'
+        expect: {status: 401}
+
+  - id: authz.selector.selector-deny-overrides-resource-allow-same-tier
+    title: Denying a fragment is enough (selector-level deny beats resource-level allow at the same tier)
+    area: permissions-identity
+    feature: selector-level conflict
+    evidence: documented
+    source: "docs reference/permissions/AuthorizationRule §Selectors that match several elements ('if you deny a fragment, denying it is enough'), §Conflict resolution"
+    confidence: high
+    requires: []
+    live: true
+    notes: >-
+      Live PageLove lets the write through
+      (harness/observations/live-2026-09-28/authz-selector-selector-deny-overrides-r.json): a
+      selector-scoped Deny does not override a resource-level Allow there, so "denying a fragment"
+      protects nothing. pagelike keeps the documented rule (docs/compat/decisions.md,
+      keep-documented-security); authz.selector.selector-deny-overrides-resource-allow-same-tier.live
+      measures the divergence.
+    site:
+      files:
+        - path: "${P}/doc.html"
+          body: '<!DOCTYPE html><html><body><p id="o" class="open">o</p><p id="l" class="locked">l</p></body></html>'
+        - path: "${P}/rules.html"
+          body: &locked_rules |
+            <!DOCTYPE html>
+            <html><body>
+              <div hidden itemscope itemtype="https://pagelove.org/AuthorizationRule">
+                <meta itemprop="actor" content="*"><meta itemprop="resource" content="${P}/doc.html">
+                <meta itemprop="method" content="PUT"><meta itemprop="action" content="allow">
+              </div>
+              <div hidden itemscope itemtype="https://pagelove.org/AuthorizationRule">
+                <meta itemprop="actor" content="*"><meta itemprop="resource" content="${P}/doc.html">
+                <meta itemprop="method" content="PUT"><meta itemprop="selector" content=".locked">
+                <meta itemprop="action" content="deny">
+              </div>
+            </body></html>
+    steps:
+      - name: locked element refused
+        as: anonymous
+        request: {method: PUT, path: "${P}/doc.html", headers: {Range: "selector=#l", Content-Type: text/html}, body: '<p id="l" class="locked">x</p>'}
+        expect: {status: 401}
+      - name: other element allowed
+        as: anonymous
+        request: {method: PUT, path: "${P}/doc.html", headers: {Range: "selector=#o", Content-Type: text/html}, body: '<p id="o" class="open">x</p>'}
+        expect: {status: 206}
+
+  - id: authz.selector.selector-deny-overrides-resource-allow-same-tier.live
+    title: Live PageLove lets a resource-level Allow override a same-tier selector-scoped Deny
+    area: permissions-identity
+    feature: selector-level conflict
+    status: live-divergence
+    evidence: live-observed
+    source: "harness/observations/live-2026-09-28/authz-selector-selector-deny-overrides-r.json (host live-test-host, 2026-09-28)"
+    confidence: high
+    requires: []
+    live: true
+    notes: "Measures a deliberate divergence (docs/compat/decisions.md, keep-documented-security). Runs only against --target live."
+    site:
+      files:
+        - path: "${P}/doc.html"
+          body: '<!DOCTYPE html><html><body><p id="o" class="open">o</p><p id="l" class="locked">l</p></body></html>'
+        - path: "${P}/rules.html"
+          body: *locked_rules
+    steps:
+      - name: locked element written
+        as: anonymous
+        request: {method: PUT, path: "${P}/doc.html", headers: {Range: "selector=#l", Content-Type: text/html}, body: '<p id="l" class="locked">x</p>'}
+        expect: {status: 206}
+
+  - id: authz.selector.resource-deny-overrides-selector-allow-same-tier
+    title: A resource-level deny beats a selector-level allow at the same tier
+    area: permissions-identity
+    feature: selector-level conflict
+    evidence: inferred
+    source: "docs reference/permissions/AuthorizationRule §Conflict resolution ('the same resolution applies at both granularities'); MOVE-method §A MOVE rule must not carry a selector (a widened Deny 'refuses both for the whole document')"
+    confidence: medium
+    requires: []
+    live: true
+    notes: Probe P-9 (a two-gate implementation would answer 206).
+    site:
+      files:
+        - path: "${P}/doc.html"
+          body: '<!DOCTYPE html><html><body><p id="o" class="open">o</p></body></html>'
+        - path: "${P}/rules.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div hidden itemscope itemtype="https://pagelove.org/AuthorizationRule">
+                <meta itemprop="actor" content="*"><meta itemprop="resource" content="${P}/doc.html">
+                <meta itemprop="method" content="PUT"><meta itemprop="action" content="deny">
+              </div>
+              <div hidden itemscope itemtype="https://pagelove.org/AuthorizationRule">
+                <meta itemprop="actor" content="*"><meta itemprop="resource" content="${P}/doc.html">
+                <meta itemprop="method" content="PUT"><meta itemprop="selector" content=".open">
+                <meta itemprop="action" content="allow">
+              </div>
+            </body></html>
+    steps:
+      - name: selector-allowed element still refused
+        as: anonymous
+        request: {method: PUT, path: "${P}/doc.html", headers: {Range: "selector=#o", Content-Type: text/html}, body: '<p id="o" class="open">x</p>'}
+        expect: {status: 401}
+
+  - id: authz.selector.delete-keys-removed-element
+    title: A selector DELETE is decided on the element being removed
+    area: permissions-identity
+    feature: DELETE key element
+    evidence: documented
+    source: "docs reference/reading-and-writing/MOVE-method §The three checks (check 2: DELETE on the source element); learn/your-first-app (DELETE on '#todo-list li')"
+    confidence: high
+    requires: []
+    live: true
+    site:
+      files:
+        - path: "${P}/board.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body><section id="lane" class="lane"><article id="c1" class="card">One</article></section></body></html>
+        - path: "${P}/rules.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div hidden itemscope itemtype="https://pagelove.org/AuthorizationRule">
+                <meta itemprop="actor" content="*"><meta itemprop="resource" content="${P}/board.html">
+                <meta itemprop="method" content="DELETE"><meta itemprop="selector" content=".card">
+                <meta itemprop="action" content="allow">
+              </div>
+            </body></html>
+    steps:
+      - name: deleting the lane is refused
+        as: anonymous
+        request: {method: DELETE, path: "${P}/board.html", headers: {Range: "selector=#lane"}}
+        expect: {status: 401}
+      - name: deleting a card is allowed
+        as: anonymous
+        request: {method: DELETE, path: "${P}/board.html", headers: {Range: "selector=#c1"}}
+        expect: {status: 204}
+
+  - id: authz.selector.transient-element-rule
+    title: A public write rule on a transient element (session basket) works like any selector rule
+    area: permissions-identity
+    feature: transient elements
+    evidence: demo-source
+    source: "pagelove-shop/site/rules.html@d887054:15-24; docs reference/composing-pages/Transient-Elements §Sessions and access control"
+    confidence: medium
+    requires: []
+    live: true
+    site:
+      files:
+        - path: "${P}/basket.html"
+          body: |
+            <!DOCTYPE html>
+            <html xmlns:p="https://pagelove.org/1.0"><body>
+              <h1>Basket</h1>
+              <ul id="basket" p:transient><li>empty</li></ul>
+            </body></html>
+        - path: "${P}/rules.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div hidden itemscope itemtype="https://pagelove.org/AuthorizationRule">
+                <meta itemprop="actor" content="*"><meta itemprop="resource" content="${P}/basket.html">
+                <meta itemprop="selector" content="#basket">
+                <meta itemprop="method" content="PUT"><meta itemprop="method" content="DELETE">
+                <meta itemprop="action" content="allow">
+              </div>
+            </body></html>
+    steps:
+      - name: PUT the transient basket
+        as: anonymous
+        request: {method: PUT, path: "${P}/basket.html", headers: {Range: "selector=#basket", Content-Type: text/html}, body: '<ul id="basket"><li>apple</li></ul>'}
+        expect: {status: [200, 206]}
+      - name: other elements are not writable
+        as: anonymous
+        request: {method: PUT, path: "${P}/basket.html", headers: {Range: "selector=h1", Content-Type: text/html}, body: '<h1>x</h1>'}
+        expect: {status: 401}
+      - name: DELETE the transient basket
+        as: anonymous
+        request: {method: DELETE, path: "${P}/basket.html", headers: {Range: "selector=#basket"}}
+        expect: {status: [200, 204]}
+
+  - id: authz.selector.include-write-authorized-on-composed-page
+    title: A write to an included fragment is authorized on the composed page; the origin needs no rule
+    area: permissions-identity
+    feature: include write-through authorization
+    evidence: documented
+    source: "docs reference/composing-pages/Includes §Interaction with HTTP Document Mutation; reference/composing-pages/Stamp"
+    confidence: high
+    requires: []
+    live: true
+    site:
+      files:
+        - path: "${P}/partials.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body><header id="nav">Navigation</header></body></html>
+        - path: "${P}/page.html"
+          body: |
+            <!DOCTYPE html>
+            <html xmlns:p="https://pagelove.org/1.0"><body>
+              <p:include resource="${P}/partials.html" selector="header#nav"></p:include>
+              <main><p>Page content</p></main>
+            </body></html>
+        - path: "${P}/rules.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div hidden itemscope itemtype="https://pagelove.org/AuthorizationRule">
+                <meta itemprop="actor" content="*"><meta itemprop="resource" content="${P}/page.html">
+                <meta itemprop="method" content="PUT"><meta itemprop="selector" content="header#nav">
+                <meta itemprop="action" content="allow">
+              </div>
+            </body></html>
+    steps:
+      - name: PUT through the composed page
+        as: anonymous
+        request: {method: PUT, path: "${P}/page.html", headers: {Range: "selector=header#nav", Content-Type: text/html}, body: '<header id="nav">Updated nav</header>'}
+        expect: {status: 206}
+      - name: the origin received the write
+        as: author
+        plane: dav
+        request: {method: GET, path: "${P}/partials.html"}
+        expect: {status: 200, body_contains: ['Updated nav']}
+      - name: writing the origin directly has no rule
+        as: anonymous
+        request: {method: PUT, path: "${P}/partials.html", headers: {Range: "selector=header#nav", Content-Type: text/html}, body: '<header id="nav">Direct</header>'}
+        expect: {status: 401}

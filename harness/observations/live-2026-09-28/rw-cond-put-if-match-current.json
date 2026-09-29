@@ -1,0 +1,47 @@
+{
+  "case": "rw.cond.put-if-match-current",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (read)",
+      "method": "GET",
+      "path": "/_pl/rw-cond-put-if-match-current-b8b9a2/doc.html",
+      "status": 200,
+      "headers": {
+        "content-type": "text/html",
+        "etag": "\"622df36869a5b01076e6532720982bfc7403416f252e6b404ff6199f445cccc7\"",
+        "last-modified": "Mon, 28 Sep 2026 22:25:25 GMT",
+        "vary": "Host, Range, Accept"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\u003cp\u003eversion 1\u003c/p\u003e\n                \u003cdiv style=\"\n                            position: fixed;\n                            bottom: 0;\n                            left: 0;\n                            right: 0;\n                            padding: 8px;\n                            background: #f0f0f0;\n                            text-align: center;\n                            font-size: 12px;\n                            color: #666;\n                            z-index: 9999;\n                            opacity: 0.8;\n                            border-top: 1px solid #ddd;\n                        \"\u003e\n                    Powered by\n                    \u003ca href=\"https://pagelove.com/\" style=\"color: #4a90d9; text-decoration: none\"\u003ePagelove\u003c/a\u003e\n                \u003c/div\u003e\n            \u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 2 (conditional write)",
+      "method": "PUT",
+      "path": "/_pl/rw-cond-put-if-match-current-b8b9a2/doc.html",
+      "status": 200,
+      "headers": {
+        "content-type": "text/html",
+        "etag": "\"3cc30338cfc9925d9553b65b2d5c780238f9283f448a55fc78f8bda6656f73e5\"",
+        "last-modified": "Mon, 28 Sep 2026 22:25:26 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\u003cp\u003eversion 2\u003c/p\u003e\n                \u003cdiv style=\"\n                            position: fixed;\n                            bottom: 0;\n                            left: 0;\n                            right: 0;\n                            padding: 8px;\n                            background: #f0f0f0;\n                            text-align: center;\n                            font-size: 12px;\n                            color: #666;\n                            z-index: 9999;\n                            opacity: 0.8;\n                            border-top: 1px solid #ddd;\n                        \"\u003e\n                    Powered by\n                    \u003ca href=\"https://pagelove.com/\" style=\"color: #4a90d9; text-decoration: none\"\u003ePagelove\u003c/a\u003e\n                \u003c/div\u003e\n            \u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 3 (new version, new tag)",
+      "method": "GET",
+      "path": "/_pl/rw-cond-put-if-match-current-b8b9a2/doc.html",
+      "status": 200,
+      "headers": {
+        "content-type": "text/html",
+        "etag": "\"3cc30338cfc9925d9553b65b2d5c780238f9283f448a55fc78f8bda6656f73e5\"",
+        "last-modified": "Mon, 28 Sep 2026 22:25:26 GMT",
+        "vary": "Host, Range, Accept"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\u003cp\u003eversion 2\u003c/p\u003e\n                \u003cdiv style=\"\n                            position: fixed;\n                            bottom: 0;\n                            left: 0;\n                            right: 0;\n                            padding: 8px;\n                            background: #f0f0f0;\n                            text-align: center;\n                            font-size: 12px;\n                            color: #666;\n                            z-index: 9999;\n                            opacity: 0.8;\n                            border-top: 1px solid #ddd;\n                        \"\u003e\n                    Powered by\n                    \u003ca href=\"https://pagelove.com/\" style=\"color: #4a90d9; text-decoration: none\"\u003ePagelove\u003c/a\u003e\n                \u003c/div\u003e\n            \u003c/body\u003e\u003c/html\u003e\n"
+    }
+  ],
+  "outcome": "pass",
+  "target": "live"
+}

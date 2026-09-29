@@ -1,0 +1,31 @@
+{
+  "case": "protocol.webdav.put-if-match-properties-tag-rejected",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (properties tag)",
+      "method": "PROPFIND",
+      "path": "/_pl/protocol-webdav-put-if-match-properties-819dc2/dav/a.html",
+      "status": 207,
+      "headers": {
+        "content-length": "609",
+        "content-type": "application/xml; charset=utf-8",
+        "etag": "\"propfind:sha256:226b19491775efba11df030da4d28853efd9ddb71a1c6eb56ba453c90d5fc922\""
+      },
+      "body": "\u003c?xml version=\"1.0\" encoding=\"utf-8\" ?\u003e\n\u003cD:multistatus xmlns:D=\"DAV:\"\u003e\n  \u003cD:response\u003e\n    \u003cD:href\u003e/_pl/protocol-webdav-put-if-match-properties-819dc2/dav/a.html\u003c/D:href\u003e\n    \u003cD:propstat\u003e\n      \u003cD:prop\u003e\n      \u003cD:resourcetype/\u003e\n      \u003cD:getcontenttype\u003etext/html\u003c/D:getcontenttype\u003e\n      \u003cD:getcontentlength\u003e53\u003c/D:getcontentlength\u003e\n      \u003cD:getlastmodified\u003eMon, 28 Sep 2026 22:33:42 GMT\u003c/D:getlastmodified\u003e\n      \u003cD:getetag\u003e\"018b3777697859dce21939d17486caa4a5187d5383b48a2f93fae06aa8608d3b\"\u003c/D:getetag\u003e\n      \u003c/D:prop\u003e\n      \u003cD:status\u003eHTTP/1.1 200 OK\u003c/D:status\u003e\n    \u003c/D:propstat\u003e\n  \u003c/D:response\u003e\n\u003c/D:multistatus\u003e"
+    },
+    {
+      "step": "step 2 (write guarded by the wrong tag)",
+      "method": "PUT",
+      "path": "/_pl/protocol-webdav-put-if-match-properties-819dc2/dav/a.html",
+      "status": 412,
+      "headers": {
+        "content-length": "443",
+        "content-type": "text/html; charset=utf-8"
+      },
+      "body": "\u003carticle itemscope itemtype=\"https://pagelove.org/Error\"\u003e\u003cmeta itemprop=\"status\" content=\"412\"\u003e\u003cmeta itemprop=\"kind\" content=\"Internal\"\u003e\u003cdiv itemprop=\"type\" itemscope itemtype=\"https://dombase.pagelove.team/ns/error/Internal\"\u003e\u003c/div\u003e\u003cdiv itemprop=\"detail\"\u003e\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\u003cdiv itemscope itemtype=\"http://pagelove.org/Error\"\u003e\u003cspan itemprop=\"message\"\u003ePrecondition Failed: ETag does not match\u003c/span\u003e\u003c/div\u003e\u003c/body\u003e\u003c/html\u003e\u003c/div\u003e\u003c/article\u003e"
+    }
+  ],
+  "outcome": "pass",
+  "target": "live"
+}

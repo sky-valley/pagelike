@@ -1,0 +1,50 @@
+{
+  "case": "modeling.resolvers.sessel-write-normalise-email",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (register declarations through the public plane (takes effect for the next request))",
+      "method": "PUT",
+      "path": "/_pl/modeling-resolvers-sessel-write-normalis-1a6de0/schema.html",
+      "status": 201,
+      "headers": {
+        "content-length": "716",
+        "content-type": "text/html",
+        "etag": "\"20eea90651737983224e502b08be412e5172c9581dbca7b3902cecebbc3f60da\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:44 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\n  \u003cdiv hidden itemscope itemtype=\"https://pagelove.org/Schema\"\u003e\n    \u003cmeta itemprop=\"type\" content=\"https://pagelike.test/_pl/modeling-resolvers-sessel-write-normalis-1a6de0/Account\"\u003e\n    \u003cdiv itemprop=\"property\" itemscope itemtype=\"https://pagelove.org/Property\"\u003e\n      \u003cmeta itemprop=\"name\" content=\"email\"\u003e\n      \u003cmeta itemprop=\"type\" content=\"https://schema.host/Text\"\u003e\n      \u003cmeta itemprop=\"cardinality\" content=\"1..1\"\u003e\n      \u003cdiv itemprop=\"@write\" itemscope itemtype=\"https://pagelove.org/Sessel\"\u003e\n        \u003cscript itemprop=\"source\" type=\"text/sessel\"\u003eself.map((el) =\u003e new span[itemprop=\"email\"] { el.text().trim().lower() })\u003c/script\u003e\n      \u003c/div\u003e\n    \u003c/div\u003e\n  \u003c/div\u003e\n\u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 2 (submit a messy email)",
+      "method": "PUT",
+      "path": "/_pl/modeling-resolvers-sessel-write-normalis-1a6de0/a.html",
+      "status": 201,
+      "headers": {
+        "content-length": "216",
+        "content-type": "text/html",
+        "etag": "\"c439679b6cc31c907478fb36478351e392e8e7dece830067ff0d811dd0347a90\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:44 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\n  \u003cdiv itemscope itemtype=\"https://pagelike.test/_pl/modeling-resolvers-sessel-write-normalis-1a6de0/Account\"\u003e\n    \u003cspan itemprop=\"email\"\u003ealice@example.com\u003c/span\u003e\n  \u003c/div\u003e\n\u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 3 (stored state of a.html (authoring plane, raw))",
+      "method": "GET",
+      "path": "/_pl/modeling-resolvers-sessel-write-normalis-1a6de0/a.html",
+      "status": 200,
+      "headers": {
+        "accept-ranges": "bytes",
+        "content-length": "216",
+        "content-type": "text/html",
+        "etag": "\"c439679b6cc31c907478fb36478351e392e8e7dece830067ff0d811dd0347a90\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:44 GMT"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\n  \u003cdiv itemscope itemtype=\"https://pagelike.test/_pl/modeling-resolvers-sessel-write-normalis-1a6de0/Account\"\u003e\n    \u003cspan itemprop=\"email\"\u003ealice@example.com\u003c/span\u003e\n  \u003c/div\u003e\n\u003c/body\u003e\u003c/html\u003e\n"
+    }
+  ],
+  "outcome": "pass",
+  "target": "local"
+}

@@ -1,0 +1,88 @@
+{
+  "case": "modeling.types.number",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (register declarations through the public plane (takes effect for the next request))",
+      "method": "PUT",
+      "path": "/_pl/modeling-types-number-a07ee0/schema.html",
+      "status": 201,
+      "headers": {
+        "content-length": "465",
+        "content-type": "text/html",
+        "etag": "\"83c41550f7e3ba834c62c78aa48e6cef1568d41d393bfa8d5be769a2551e6eba\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:45 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\n  \u003cdiv hidden itemscope itemtype=\"https://pagelove.org/Schema\"\u003e\n    \u003cmeta itemprop=\"type\" content=\"https://pagelike.test/_pl/modeling-types-number-a07ee0/Value\"\u003e\n    \u003cdiv itemprop=\"property\" itemscope itemtype=\"https://pagelove.org/Property\"\u003e\n      \u003cmeta itemprop=\"name\" content=\"v\"\u003e\n      \u003cmeta itemprop=\"type\" content=\"https://schema.host/Number\"\u003e\n      \u003cmeta itemprop=\"cardinality\" content=\"1..1\"\u003e\n    \u003c/div\u003e\n  \u003c/div\u003e\n\u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 2 (valid: \"42\")",
+      "method": "PUT",
+      "path": "/_pl/modeling-types-number-a07ee0/ok-0.html",
+      "status": 201,
+      "headers": {
+        "content-length": "180",
+        "content-type": "text/html",
+        "etag": "\"abfcd4b85140800e7b068f3cc42428fc28e75ed4f2937007e6b163f5a3f562aa\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:45 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\n  \u003cdiv itemscope itemtype=\"https://pagelike.test/_pl/modeling-types-number-a07ee0/Value\"\u003e\n    \u003cmeta itemprop=\"v\" content=\"42\"\u003e\n  \u003c/div\u003e\n\u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 3 (valid: \"3.14\")",
+      "method": "PUT",
+      "path": "/_pl/modeling-types-number-a07ee0/ok-1.html",
+      "status": 201,
+      "headers": {
+        "content-length": "182",
+        "content-type": "text/html",
+        "etag": "\"3cf1159719b14632637733a4b770026cc36d1393968dcb2291b0bf012de1cce5\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:45 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\n  \u003cdiv itemscope itemtype=\"https://pagelike.test/_pl/modeling-types-number-a07ee0/Value\"\u003e\n    \u003cmeta itemprop=\"v\" content=\"3.14\"\u003e\n  \u003c/div\u003e\n\u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 4 (valid: \"-7.5\")",
+      "method": "PUT",
+      "path": "/_pl/modeling-types-number-a07ee0/ok-2.html",
+      "status": 201,
+      "headers": {
+        "content-length": "182",
+        "content-type": "text/html",
+        "etag": "\"c9182b3b3a275c52e53f0bfc0d3b92d4dfbea1737da758027d2502aa372e4da6\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:45 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\n  \u003cdiv itemscope itemtype=\"https://pagelike.test/_pl/modeling-types-number-a07ee0/Value\"\u003e\n    \u003cmeta itemprop=\"v\" content=\"-7.5\"\u003e\n  \u003c/div\u003e\n\u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 5 (invalid: \"hello\")",
+      "method": "PUT",
+      "path": "/_pl/modeling-types-number-a07ee0/bad-0.html",
+      "status": 422,
+      "headers": {
+        "content-length": "866",
+        "content-type": "text/html; charset=utf-8",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\n  \u003chead\u003e\n    \u003ctitle\u003e422 Unprocessable Entity - Schema Violation\u003c/title\u003e\n  \u003c/head\u003e\n  \u003cbody itemscope itemtype=\"https://pagelove.org/SchemaViolation\"\u003e\n    \u003ch1 itemprop=\"name\"\u003eUnprocessable Entity\u003c/h1\u003e\n    \u003cmeta itemprop=\"statusCode\" content=\"422\"\u003e\n    \u003cp itemprop=\"description\"\u003eSchema validation failed\u003c/p\u003e\n    \u003cul\u003e\n      \u003cli itemprop=\"violations\" itemscope itemtype=\"https://pagelove.org/Violation\"\u003e\n        \u003cspan itemprop=\"check\"\u003etype\u003c/span\u003e\n        \u003cspan itemprop=\"itemtype\"\u003ehttps://pagelike.test/_pl/modeling-types-number-a07ee0/Value\u003c/span\u003e\n        \u003cspan itemprop=\"property\"\u003ev\u003c/span\u003e\n        \u003cspan itemprop=\"value\"\u003ehello\u003c/span\u003e\n        \u003cspan itemprop=\"message\"\u003e[https://pagelike.test/_pl/modeling-types-number-a07ee0/Value].v: Value \u0026quot;hello\u0026quot; is not a valid https://schema.host/Number\u003c/span\u003e\n      \u003c/li\u003e\n    \u003c/ul\u003e\n  \u003c/body\u003e\n\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 6 (invalid: \"\")",
+      "method": "PUT",
+      "path": "/_pl/modeling-types-number-a07ee0/bad-1.html",
+      "status": 422,
+      "headers": {
+        "content-length": "856",
+        "content-type": "text/html; charset=utf-8",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\n  \u003chead\u003e\n    \u003ctitle\u003e422 Unprocessable Entity - Schema Violation\u003c/title\u003e\n  \u003c/head\u003e\n  \u003cbody itemscope itemtype=\"https://pagelove.org/SchemaViolation\"\u003e\n    \u003ch1 itemprop=\"name\"\u003eUnprocessable Entity\u003c/h1\u003e\n    \u003cmeta itemprop=\"statusCode\" content=\"422\"\u003e\n    \u003cp itemprop=\"description\"\u003eSchema validation failed\u003c/p\u003e\n    \u003cul\u003e\n      \u003cli itemprop=\"violations\" itemscope itemtype=\"https://pagelove.org/Violation\"\u003e\n        \u003cspan itemprop=\"check\"\u003etype\u003c/span\u003e\n        \u003cspan itemprop=\"itemtype\"\u003ehttps://pagelike.test/_pl/modeling-types-number-a07ee0/Value\u003c/span\u003e\n        \u003cspan itemprop=\"property\"\u003ev\u003c/span\u003e\n        \u003cspan itemprop=\"value\"\u003e\u003c/span\u003e\n        \u003cspan itemprop=\"message\"\u003e[https://pagelike.test/_pl/modeling-types-number-a07ee0/Value].v: Value \u0026quot;\u0026quot; is not a valid https://schema.host/Number\u003c/span\u003e\n      \u003c/li\u003e\n    \u003c/ul\u003e\n  \u003c/body\u003e\n\u003c/html\u003e\n"
+    }
+  ],
+  "outcome": "pass",
+  "target": "local"
+}

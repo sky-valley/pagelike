@@ -1,0 +1,670 @@
+# Composing: p:paginate.
+# Spec: docs/spec/composing.md §16 (R-COMP-130..135).
+# The contacts fixture reproduces the docs example: 7 items, so length 3 gives
+# 3 pages and page 2 is Dave, Eve, Frank.
+cases:
+  - id: comp.pag.links-and-slice
+    title: Page 2 of a paginated list returns its slice and first/last/prev/next links that keep the request's other parameters
+    area: composing
+    feature: pagination
+    evidence: live-observed
+    source: "harness/observations/live-2026-09-29/comp-pag-links-and-slice.json; harness/observations/live-2026-09-29-reconcile-composing-liquid/run1-probes/comp-pag-probe-0929-single-with-id.json (live 2026-09-29)"
+    confidence: high
+    requires: []
+    live: true
+    notes: >-
+      R-COMP-132. Link form as live (path, paginate:<id>:page, order first/last/prev/next, title),
+      but the request's other parameters are kept, as the docs' recipe shows: PageLove drops them,
+      so following "next" loses the filter and the page length. Kept standard
+      (docs/compat/decisions-2026-09-29/serialization.md, "Integration"); the .live sibling measures it.
+    site:
+      settings: {default_get: allow}
+      files:
+        - path: "${P}/contacts.html"
+          body: |
+            <!DOCTYPE html>
+            <html>
+            <head><title>Contacts</title></head>
+            <body>
+            <ul id="contacts" xmlns:p="https://pagelove.org/1.0" p:paginate="10">
+            <li>Alice</li>
+            <li>Bob</li>
+            <li>Carol</li>
+            <li>Dave</li>
+            <li>Eve</li>
+            <li>Frank</li>
+            <li>Grace</li>
+            </ul>
+            </body>
+            </html>
+      rules:
+        - {actor: "*", resource: "${P}/*", method: [GET, HEAD], action: Allow}
+    steps:
+      - as: anonymous
+        request: {method: GET, path: "${P}/contacts.html?paginate:page=2&paginate:length=3"}
+        expect:
+          status: 200
+          body_contains:
+            - "<li>Dave</li>"
+            - "<li>Eve</li>"
+            - "<li>Frank</li>"
+            - '<title>Contacts</title><link rel="first" href="${P}/contacts.html?paginate:length=3&amp;paginate:contacts:page=1" title="contacts"><link rel="last" href="${P}/contacts.html?paginate:length=3&amp;paginate:contacts:page=3" title="contacts"><link rel="prev" href="${P}/contacts.html?paginate:length=3&amp;paginate:contacts:page=1" title="contacts"><link rel="next" href="${P}/contacts.html?paginate:length=3&amp;paginate:contacts:page=3" title="contacts"></head>'
+          body_not_contains: ["Alice", "Carol", "Grace", "p:paginate"]
+          header_matches: {Link: '^<${P}/contacts\.html\?paginate:length=3&paginate:contacts:page=1>; rel="first"; title="contacts"'}
+
+  - id: comp.pag.links-and-slice.live
+    title: "Live PageLove: Page 2 of a paginated list returns its slice and first/last/prev/next links naming the paginator's own page parameter"
+    area: composing
+    feature: pagination
+    status: live-divergence
+    evidence: live-observed
+    source: "harness/observations/live-2026-09-29/comp-pag-links-and-slice.json; harness/observations/live-2026-09-29-reconcile-composing-liquid/run1-probes/comp-pag-probe-0929-single-with-id.json (live 2026-09-29)"
+    confidence: high
+    requires: []
+    live: true
+    notes: >-
+      Measures a kept difference (keep-standard, docs/compat/decisions-2026-09-29/serialization.md,
+      "Integration"): live PageLove drops every other query parameter from pagination links;
+      pagelike keeps them. Runs only against --target live.
+    site:
+      settings: {default_get: allow}
+      files:
+        - path: "${P}/contacts.html"
+          body: |
+            <!DOCTYPE html>
+            <html>
+            <head><title>Contacts</title></head>
+            <body>
+            <ul id="contacts" xmlns:p="https://pagelove.org/1.0" p:paginate="10">
+            <li>Alice</li>
+            <li>Bob</li>
+            <li>Carol</li>
+            <li>Dave</li>
+            <li>Eve</li>
+            <li>Frank</li>
+            <li>Grace</li>
+            </ul>
+            </body>
+            </html>
+      rules:
+        - {actor: "*", resource: "${P}/*", method: [GET, HEAD], action: Allow}
+    steps:
+      - as: anonymous
+        request: {method: GET, path: "${P}/contacts.html?paginate:page=2&paginate:length=3"}
+        expect:
+          status: 200
+          body_contains:
+            - "<li>Dave</li>"
+            - "<li>Eve</li>"
+            - "<li>Frank</li>"
+            - '<title>Contacts</title><link rel="first" href="${P}/contacts.html?paginate:contacts:page=1" title="contacts"><link rel="last" href="${P}/contacts.html?paginate:contacts:page=3" title="contacts"><link rel="prev" href="${P}/contacts.html?paginate:contacts:page=1" title="contacts"><link rel="next" href="${P}/contacts.html?paginate:contacts:page=3" title="contacts"></head>'
+          body_not_contains: ["Alice", "Carol", "Grace", "p:paginate", "paginate:length"]
+          header_matches: {Link: '^<${P}/contacts\.html\?paginate:contacts:page=1>; rel="first"; title="contacts"'}
+
+  - id: comp.pag.single-page-no-links
+    title: A list that fits on one page gets no navigation links
+    area: composing
+    feature: pagination
+    evidence: documented
+    source: "docs reference/composing-pages/Pagination §Single page; recipes/paginating-a-list §Navigation links (snapshot 2026-09-28)"
+    confidence: high
+    requires: []
+    live: true
+    site:
+      settings: {default_get: allow}
+      files:
+        - path: "${P}/short.html"
+          body: |
+            <!DOCTYPE html>
+            <html>
+            <head><title>Short List</title></head>
+            <body>
+            <ul id="items" xmlns:p="https://pagelove.org/1.0" p:paginate="10">
+            <li>Alpha</li>
+            <li>Beta</li>
+            <li>Gamma</li>
+            </ul>
+            </body>
+            </html>
+      rules:
+        - {actor: "*", resource: "${P}/*", method: [GET, HEAD], action: Allow}
+    steps:
+      - as: anonymous
+        request: {method: GET, path: "${P}/short.html"}
+        expect:
+          status: 200
+          body_contains: ["<li>Alpha</li>", "<li>Gamma</li>"]
+          body_not_contains: ["<link rel="]
+          headers_absent: [Link]
+
+  - id: comp.pag.range-fragment
+    title: A selector read of a paginated list returns the current page's fragment
+    area: composing
+    feature: pagination
+    evidence: documented
+    source: "docs reference/composing-pages/Pagination §With Range selectors; recipes/paginating-a-list §Fetching a page fragment with Range (snapshot 2026-09-28)"
+    confidence: high
+    requires: []
+    live: true
+    site:
+      settings: {default_get: allow}
+      files:
+        - path: "${P}/contacts.html"
+          body: |
+            <!DOCTYPE html>
+            <html>
+            <head><title>Contacts</title></head>
+            <body>
+            <ul id="contacts" xmlns:p="https://pagelove.org/1.0" p:paginate="10">
+            <li>Alice</li>
+            <li>Bob</li>
+            <li>Carol</li>
+            <li>Dave</li>
+            <li>Eve</li>
+            <li>Frank</li>
+            <li>Grace</li>
+            </ul>
+            </body>
+            </html>
+      rules:
+        - {actor: "*", resource: "${P}/*", method: [GET, HEAD], action: Allow}
+    steps:
+      - as: anonymous
+        request:
+          method: GET
+          path: "${P}/contacts.html?paginate:page=2&paginate:length=3"
+          headers: {Range: "selector=ul#contacts"}
+        expect:
+          status: 206
+          body_contains: ['<ul id="contacts">', "<li>Dave</li>", "<li>Frank</li>"]
+          body_not_contains: ["Alice", "Grace"]
+
+  - id: comp.pag.clamp-beyond-last
+    title: A page number beyond the last page is clamped to the last page
+    area: composing
+    feature: pagination
+    evidence: documented
+    source: "docs reference/composing-pages/Pagination §Query parameters, §Error cases (snapshot 2026-09-28)"
+    confidence: high
+    requires: []
+    live: true
+    site:
+      settings: {default_get: allow}
+      files:
+        - path: "${P}/contacts.html"
+          body: |
+            <!DOCTYPE html>
+            <html><head><title>Contacts</title></head><body>
+            <ul id="contacts" xmlns:p="https://pagelove.org/1.0" p:paginate="3">
+            <li>Alice</li><li>Bob</li><li>Carol</li><li>Dave</li><li>Eve</li><li>Frank</li><li>Grace</li>
+            </ul>
+            </body></html>
+      rules:
+        - {actor: "*", resource: "${P}/*", method: [GET, HEAD], action: Allow}
+    steps:
+      - as: anonymous
+        request: {method: GET, path: "${P}/contacts.html?paginate:page=99"}
+        expect:
+          status: 200
+          body_contains: ["<li>Grace</li>"]
+          body_not_contains: ["<li>Frank</li>", "<li>Alice</li>"]
+
+  - id: comp.pag.invalid-query-fallback
+    title: Non-numeric, zero or negative query values fall back to the defaults
+    area: composing
+    feature: pagination
+    evidence: documented
+    source: "docs reference/composing-pages/Pagination §Query parameters ('fall back to defaults silently') (snapshot 2026-09-28)"
+    confidence: high
+    requires: []
+    live: true
+    site:
+      settings: {default_get: allow}
+      files:
+        - path: "${P}/contacts.html"
+          body: |
+            <!DOCTYPE html>
+            <html><head><title>Contacts</title></head><body>
+            <ul id="contacts" xmlns:p="https://pagelove.org/1.0" p:paginate="3">
+            <li>Alice</li><li>Bob</li><li>Carol</li><li>Dave</li><li>Eve</li><li>Frank</li><li>Grace</li>
+            </ul>
+            </body></html>
+      rules:
+        - {actor: "*", resource: "${P}/*", method: [GET, HEAD], action: Allow}
+    steps:
+      - name: non-numeric page
+        as: anonymous
+        request: {method: GET, path: "${P}/contacts.html?paginate:page=abc"}
+        expect: {status: 200, body_contains: ["<li>Alice</li>", "<li>Carol</li>"], body_not_contains: ["<li>Dave</li>"]}
+      - name: zero page
+        as: anonymous
+        request: {method: GET, path: "${P}/contacts.html?paginate:page=0"}
+        expect: {status: 200, body_contains: ["<li>Alice</li>"], body_not_contains: ["<li>Dave</li>"]}
+      - name: negative page
+        as: anonymous
+        request: {method: GET, path: "${P}/contacts.html?paginate:page=-2"}
+        expect: {status: 200, body_contains: ["<li>Alice</li>"], body_not_contains: ["<li>Dave</li>"]}
+      - name: zero length uses the attribute value
+        as: anonymous
+        request: {method: GET, path: "${P}/contacts.html?paginate:length=0"}
+        expect: {status: 200, body_contains: ["<li>Carol</li>"], body_not_contains: ["<li>Dave</li>"]}
+
+  - id: comp.pag.length-override
+    title: paginate:length overrides the attribute's page length
+    area: composing
+    feature: pagination
+    evidence: documented
+    source: "docs recipes/paginating-a-list §How pages are requested (snapshot 2026-09-28)"
+    confidence: high
+    requires: []
+    live: true
+    site:
+      settings: {default_get: allow}
+      files:
+        - path: "${P}/contacts.html"
+          body: |
+            <!DOCTYPE html>
+            <html><head><title>Contacts</title></head><body>
+            <ul id="contacts" xmlns:p="https://pagelove.org/1.0" p:paginate="3">
+            <li>Alice</li><li>Bob</li><li>Carol</li><li>Dave</li><li>Eve</li><li>Frank</li><li>Grace</li>
+            </ul>
+            </body></html>
+      rules:
+        - {actor: "*", resource: "${P}/*", method: [GET, HEAD], action: Allow}
+    steps:
+      - as: anonymous
+        request: {method: GET, path: "${P}/contacts.html?paginate:length=5"}
+        expect:
+          status: 200
+          body_contains: ["<li>Alice</li>", "<li>Eve</li>"]
+          body_not_contains: ["<li>Frank</li>"]
+
+  - id: comp.pag.first-page-no-prev
+    title: Page 1 has first, last and next links but no prev link
+    area: composing
+    feature: pagination links
+    evidence: live-observed
+    source: "harness/observations/live-2026-09-29/comp-pag-first-page-no-prev.json (live 2026-09-29); docs recipes/paginating-a-list §Navigation links ('page 1 has no prev')"
+    confidence: high
+    notes: "R-COMP-132 as reconciled (docs/compat/decisions-2026-09-29/composing-liquid.md, adopt-live): path-absolute hrefs with the id-prefixed page parameter."
+    requires: []
+    live: true
+    site:
+      settings: {default_get: allow}
+      files:
+        - path: "${P}/contacts.html"
+          body: |
+            <!DOCTYPE html>
+            <html><head><title>Contacts</title></head><body>
+            <ul id="contacts" xmlns:p="https://pagelove.org/1.0" p:paginate="3">
+            <li>Alice</li><li>Bob</li><li>Carol</li><li>Dave</li><li>Eve</li><li>Frank</li><li>Grace</li>
+            </ul>
+            </body></html>
+      rules:
+        - {actor: "*", resource: "${P}/*", method: [GET, HEAD], action: Allow}
+    steps:
+      - as: anonymous
+        request: {method: GET, path: "${P}/contacts.html"}
+        expect:
+          status: 200
+          body_contains: ['<link rel="first" href="${P}/contacts.html?paginate:contacts:page=1" title="contacts"><link rel="last" href="${P}/contacts.html?paginate:contacts:page=3" title="contacts"><link rel="next" href="${P}/contacts.html?paginate:contacts:page=2" title="contacts"></head>']
+          body_not_contains: ['rel="prev"']
+
+  - id: comp.pag.last-page-no-next
+    title: The last page has a prev link but no next link
+    area: composing
+    feature: pagination links
+    evidence: live-observed
+    source: "harness/observations/live-2026-09-29-reconcile-composing-liquid/run2/comp-pag-probe-0929-single-with-id.json (step 'unprefixed last page', live 2026-09-29); docs recipes/paginating-a-list §Navigation links ('the last page has no next')"
+    confidence: high
+    notes: "R-COMP-132 as reconciled (docs/compat/decisions-2026-09-29/composing-liquid.md, adopt-live). This case was not run live itself; the probe serves the same page and query."
+    requires: []
+    live: true
+    site:
+      settings: {default_get: allow}
+      files:
+        - path: "${P}/contacts.html"
+          body: |
+            <!DOCTYPE html>
+            <html><head><title>Contacts</title></head><body>
+            <ul id="contacts" xmlns:p="https://pagelove.org/1.0" p:paginate="3">
+            <li>Alice</li><li>Bob</li><li>Carol</li><li>Dave</li><li>Eve</li><li>Frank</li><li>Grace</li>
+            </ul>
+            </body></html>
+      rules:
+        - {actor: "*", resource: "${P}/*", method: [GET, HEAD], action: Allow}
+    steps:
+      - as: anonymous
+        request: {method: GET, path: "${P}/contacts.html?paginate:page=3"}
+        expect:
+          status: 200
+          body_contains: ['<link rel="prev" href="${P}/contacts.html?paginate:contacts:page=2" title="contacts">']
+          body_not_contains: ['rel="next"']
+
+  - id: comp.pag.preserve-other-params
+    title: Navigation links keep the rest of the query (q=smith) and replace only the paginator's page
+    area: composing
+    feature: pagination links
+    evidence: live-observed
+    source: "harness/observations/live-2026-09-29-reconcile-composing-liquid/run2/comp-pag-probe-0929-single-with-id.json (step 'another parameter, unprefixed page', live 2026-09-29)"
+    confidence: high
+    requires: []
+    live: true
+    notes: >-
+      R-COMP-132. Link form as live (path, paginate:<id>:page, order first/last/prev/next, title),
+      but the request's other parameters are kept, as the docs' recipe shows: PageLove drops them,
+      so following "next" loses the filter and the page length. Kept standard
+      (docs/compat/decisions-2026-09-29/serialization.md, "Integration"); the .live sibling measures it.
+    site:
+      settings: {default_get: allow}
+      files:
+        - path: "${P}/contacts.html"
+          body: |
+            <!DOCTYPE html>
+            <html><head><title>Contacts</title></head><body>
+            <ul id="contacts" xmlns:p="https://pagelove.org/1.0" p:paginate="3">
+            <li>Alice</li><li>Bob</li><li>Carol</li><li>Dave</li><li>Eve</li><li>Frank</li><li>Grace</li>
+            </ul>
+            </body></html>
+      rules:
+        - {actor: "*", resource: "${P}/*", method: [GET, HEAD], action: Allow}
+    steps:
+      - as: anonymous
+        request: {method: GET, path: "${P}/contacts.html?q=smith&paginate:page=2"}
+        expect:
+          status: 200
+          body_contains: ["<li>Dave</li>", '<link rel="next" href="${P}/contacts.html?q=smith&amp;paginate:contacts:page=3" title="contacts">']
+          header_matches: {Link: '^<${P}/contacts\.html\?q=smith&paginate:contacts:page=1>; rel="first"'}
+
+  - id: comp.pag.preserve-other-params.live
+    title: "Live PageLove: Navigation links carry only the paginator's page parameter, not the rest of the query"
+    area: composing
+    feature: pagination links
+    status: live-divergence
+    evidence: live-observed
+    source: "harness/observations/live-2026-09-29-reconcile-composing-liquid/run2/comp-pag-probe-0929-single-with-id.json (step 'another parameter, unprefixed page', live 2026-09-29)"
+    confidence: high
+    requires: []
+    live: true
+    notes: >-
+      Measures a kept difference (keep-standard, docs/compat/decisions-2026-09-29/serialization.md,
+      "Integration"): live PageLove drops every other query parameter from pagination links;
+      pagelike keeps them. Runs only against --target live.
+    site:
+      settings: {default_get: allow}
+      files:
+        - path: "${P}/contacts.html"
+          body: |
+            <!DOCTYPE html>
+            <html><head><title>Contacts</title></head><body>
+            <ul id="contacts" xmlns:p="https://pagelove.org/1.0" p:paginate="3">
+            <li>Alice</li><li>Bob</li><li>Carol</li><li>Dave</li><li>Eve</li><li>Frank</li><li>Grace</li>
+            </ul>
+            </body></html>
+      rules:
+        - {actor: "*", resource: "${P}/*", method: [GET, HEAD], action: Allow}
+    steps:
+      - as: anonymous
+        request: {method: GET, path: "${P}/contacts.html?q=smith&paginate:page=2"}
+        expect:
+          status: 200
+          body_contains: ["<li>Dave</li>", '<link rel="next" href="${P}/contacts.html?paginate:contacts:page=3" title="contacts">']
+          body_not_contains: ["q=smith"]
+          header_matches: {Link: '^<${P}/contacts\.html\?paginate:contacts:page=1>; rel="first"'}
+
+  - id: comp.pag.multiple-with-ids
+    title: Several paginators are driven independently by id-prefixed parameters; each one's links keep the others' state
+    area: composing
+    feature: pagination
+    evidence: live-observed
+    source: "harness/observations/live-2026-09-29-reconcile-composing-liquid/run2/comp-pag-probe-0929-two-with-ids.json (same page and query, live 2026-09-29); docs reference/composing-pages/Pagination §Multiple paginators"
+    confidence: high
+    requires: []
+    live: true
+    notes: >-
+      R-COMP-132. Link form as live (path, paginate:<id>:page, order first/last/prev/next, title),
+      but the request's other parameters are kept, as the docs' recipe shows: PageLove drops them,
+      so following "next" loses the filter and the page length. Kept standard
+      (docs/compat/decisions-2026-09-29/serialization.md, "Integration"); the .live sibling measures it.
+    site:
+      settings: {default_get: allow}
+      files:
+        - path: "${P}/dashboard.html"
+          body: |
+            <!DOCTYPE html>
+            <html xmlns:p="https://pagelove.org/1.0"><head><title>Dashboard</title></head><body>
+            <section>
+              <ul id="users" p:paginate="2"><li>U1</li><li>U2</li><li>U3</li><li>U4</li><li>U5</li></ul>
+              <ul id="posts" p:paginate="2"><li>P1</li><li>P2</li><li>P3</li><li>P4</li><li>P5</li></ul>
+            </section>
+            </body></html>
+      rules:
+        - {actor: "*", resource: "${P}/*", method: [GET, HEAD], action: Allow}
+    steps:
+      - as: anonymous
+        request: {method: GET, path: "${P}/dashboard.html?paginate:users:page=2&paginate:posts:page=3"}
+        expect:
+          status: 200
+          body_contains:
+            - "<li>U3</li>"
+            - "<li>U4</li>"
+            - "<li>P5</li>"
+            - '<link rel="next" href="${P}/dashboard.html?paginate:posts:page=3&amp;paginate:users:page=3" title="users">'
+            - '<link rel="prev" href="${P}/dashboard.html?paginate:users:page=2&amp;paginate:posts:page=2" title="posts">'
+          body_not_contains: ["<li>U1</li>", "<li>U5</li>", "<li>P1</li>", "<li>P4</li>", 'paginate:posts:page=4']
+
+  - id: comp.pag.multiple-with-ids.live
+    title: "Live PageLove: Several paginators are driven independently by id-prefixed parameters; each one's links carry only its own page"
+    area: composing
+    feature: pagination
+    status: live-divergence
+    evidence: live-observed
+    source: "harness/observations/live-2026-09-29-reconcile-composing-liquid/run2/comp-pag-probe-0929-two-with-ids.json (same page and query, live 2026-09-29); docs reference/composing-pages/Pagination §Multiple paginators"
+    confidence: high
+    requires: []
+    live: true
+    notes: >-
+      Measures a kept difference (keep-standard, docs/compat/decisions-2026-09-29/serialization.md,
+      "Integration"): live PageLove drops every other query parameter from pagination links;
+      pagelike keeps them. Runs only against --target live.
+    site:
+      settings: {default_get: allow}
+      files:
+        - path: "${P}/dashboard.html"
+          body: |
+            <!DOCTYPE html>
+            <html xmlns:p="https://pagelove.org/1.0"><head><title>Dashboard</title></head><body>
+            <section>
+              <ul id="users" p:paginate="2"><li>U1</li><li>U2</li><li>U3</li><li>U4</li><li>U5</li></ul>
+              <ul id="posts" p:paginate="2"><li>P1</li><li>P2</li><li>P3</li><li>P4</li><li>P5</li></ul>
+            </section>
+            </body></html>
+      rules:
+        - {actor: "*", resource: "${P}/*", method: [GET, HEAD], action: Allow}
+    steps:
+      - as: anonymous
+        request: {method: GET, path: "${P}/dashboard.html?paginate:users:page=2&paginate:posts:page=3"}
+        expect:
+          status: 200
+          body_contains:
+            - "<li>U3</li>"
+            - "<li>U4</li>"
+            - "<li>P5</li>"
+            - '<link rel="next" href="${P}/dashboard.html?paginate:users:page=3" title="users">'
+            - '<link rel="prev" href="${P}/dashboard.html?paginate:posts:page=2" title="posts">'
+          body_not_contains: ["<li>U1</li>", "<li>U5</li>", "<li>P1</li>", "<li>P4</li>", 'rel="next" href="${P}/dashboard.html?paginate:posts']
+
+  - id: comp.pag.multiple-without-ids-422
+    title: Several paginators without ids are not an error; each is paginated by the unprefixed parameters
+    area: composing
+    feature: pagination errors
+    evidence: live-observed
+    source: "harness/observations/live-2026-09-29/comp-pag-multiple-without-ids-422.json (live 2026-09-29)"
+    confidence: high
+    requires: []
+    live: true
+    notes: >-
+      R-COMP-134 as reconciled (docs/compat/decisions-2026-09-29/composing-liquid.md, adopt-live). The docs'
+      422 is not what PageLove does: it serves 200 and paginates both lists (the id keeps its old name
+      for history). The source has no <head>, so the links appear only in the Link header; every
+      paginator's links repeat paginate:page=N. comp.pag.probe-0929.without-ids covers page 2 and a
+      page mixing an id-less paginator with one that has an id.
+    site:
+      settings: {default_get: allow}
+      files:
+        - path: "${P}/two.html"
+          body: |
+            <!DOCTYPE html>
+            <html xmlns:p="https://pagelove.org/1.0"><body>
+            <ul p:paginate="2"><li>a</li><li>b</li><li>c</li></ul>
+            <ul p:paginate="2"><li>d</li><li>e</li><li>f</li></ul>
+            </body></html>
+      rules:
+        - {actor: "*", resource: "${P}/*", method: [GET, HEAD], action: Allow}
+    steps:
+      - as: anonymous
+        request: {method: GET, path: "${P}/two.html"}
+        expect:
+          status: 200
+          body_contains: ["<ul><li>a</li><li>b</li></ul>", "<ul><li>d</li><li>e</li></ul>"]
+          body_not_contains: ["<li>c</li>", "<li>f</li>", "<link", "p:paginate"]
+          header_matches: {Link: '^<${P}/two\.html\?paginate:page=1>; rel="first"'}
+
+  - id: comp.pag.invalid-attribute-422
+    title: A p:paginate value that is not a positive integer fails with 422
+    area: composing
+    feature: pagination errors
+    evidence: documented
+    source: "docs reference/composing-pages/Pagination §Error cases (snapshot 2026-09-28)"
+    confidence: high
+    requires: []
+    live: true
+    site:
+      settings: {default_get: allow}
+      files:
+        - path: "${P}/abc.html"
+          body: |
+            <!DOCTYPE html>
+            <html xmlns:p="https://pagelove.org/1.0"><body><ul id="l" p:paginate="abc"><li>a</li></ul></body></html>
+        - path: "${P}/zero.html"
+          body: |
+            <!DOCTYPE html>
+            <html xmlns:p="https://pagelove.org/1.0"><body><ul id="l" p:paginate="0"><li>a</li></ul></body></html>
+      rules:
+        - {actor: "*", resource: "${P}/*", method: [GET, HEAD], action: Allow}
+    steps:
+      - as: anonymous
+        request: {method: GET, path: "${P}/abc.html"}
+        expect: {status: 422}
+      - as: anonymous
+        request: {method: GET, path: "${P}/zero.html"}
+        expect: {status: 422}
+
+  - id: comp.pag.empty-element
+    title: A paginated element with no children is returned as-is with no links
+    area: composing
+    feature: pagination
+    evidence: documented
+    source: "docs reference/composing-pages/Pagination §Error cases (snapshot 2026-09-28)"
+    confidence: high
+    requires: []
+    live: true
+    site:
+      settings: {default_get: allow}
+      files:
+        - path: "${P}/empty.html"
+          body: |
+            <!DOCTYPE html>
+            <html xmlns:p="https://pagelove.org/1.0"><head><title>E</title></head><body><ul id="e" p:paginate="3"></ul></body></html>
+      rules:
+        - {actor: "*", resource: "${P}/*", method: [GET, HEAD], action: Allow}
+    steps:
+      - as: anonymous
+        request: {method: GET, path: "${P}/empty.html?paginate:page=2"}
+        expect:
+          status: 200
+          body_contains: ['<ul id="e"></ul>']
+          body_not_contains: ["<link rel="]
+
+  - id: comp.pag.after-template
+    title: Pagination runs after bindings and templates, over the rendered children
+    area: composing
+    feature: pagination
+    evidence: documented
+    source: "docs reference/composing-pages/Pagination §When to reach for it ('runs after includes, expression bindings, and templates') (snapshot 2026-09-28)"
+    confidence: high
+    requires: [liquid]
+    live: true
+    site:
+      settings: {default_get: allow}
+      files:
+        - path: "${P}/data.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+            <i data-g="${P}">I1</i><i data-g="${P}">I2</i><i data-g="${P}">I3</i><i data-g="${P}">I4</i><i data-g="${P}">I5</i>
+            </body></html>
+        - path: "${P}/gen.html"
+          body: |
+            <!DOCTYPE html>
+            <html xmlns:p="https://pagelove.org/1.0" xmlns:r="https://pagelove.org/Binding/CSS"><head><title>G</title></head><body>
+            <ul id="gen" r:items="[data-g='${P}']" p:template="text/liquid" p:paginate="3">{% for i in items %}<li>item</li>{% endfor %}</ul>
+            </body></html>
+      rules:
+        - {actor: "*", resource: "${P}/*", method: [GET, HEAD], action: Allow}
+    steps:
+      - name: page 1 has three rendered items
+        as: anonymous
+        request:
+          method: GET
+          path: "${P}/gen.html"
+          headers: {Range: "selector=#gen > li:nth-child(3)"}
+        expect: {status: 206}
+      - name: and not a fourth
+        as: anonymous
+        request:
+          method: GET
+          path: "${P}/gen.html"
+          headers: {Range: "selector=#gen > li:nth-child(4)"}
+        expect: {status: 416}
+      - name: page 2 has the remaining two
+        as: anonymous
+        request:
+          method: GET
+          path: "${P}/gen.html?paginate:page=2"
+          headers: {Range: "selector=#gen > li:nth-child(2)"}
+        expect: {status: 206}
+
+  - id: comp.pag.link-header
+    title: Pagination also emits RFC 8288 Link headers
+    area: composing
+    feature: pagination links
+    evidence: live-observed
+    source: "harness/observations/live-2026-09-29/comp-pag-links-and-slice.json and harness/observations/live-2026-09-29-reconcile-composing-liquid/run2/comp-pag-probe-0929-single-with-id.json (live 2026-09-29); docs recipes/paginating-a-list §Navigation links"
+    confidence: high
+    requires: []
+    live: true
+    notes: >-
+      The runner reads the first Link field only; in PageLove's order (first, last, prev, next) that is
+      rel=first. R-COMP-132 as reconciled (docs/compat/decisions-2026-09-29/composing-liquid.md,
+      adopt-live): the URL is path-absolute, uses the id-prefixed page parameter and the value carries a
+      title parameter. This case was not run live itself.
+    site:
+      settings: {default_get: allow}
+      files:
+        - path: "${P}/contacts.html"
+          body: |
+            <!DOCTYPE html>
+            <html><head><title>Contacts</title></head><body>
+            <ul id="contacts" xmlns:p="https://pagelove.org/1.0" p:paginate="3">
+            <li>Alice</li><li>Bob</li><li>Carol</li><li>Dave</li><li>Eve</li><li>Frank</li><li>Grace</li>
+            </ul>
+            </body></html>
+      rules:
+        - {actor: "*", resource: "${P}/*", method: [GET, HEAD], action: Allow}
+    steps:
+      - as: anonymous
+        request: {method: GET, path: "${P}/contacts.html?paginate:page=2"}
+        expect:
+          status: 200
+          header_matches: {Link: '^<${P}/contacts\.html\?paginate:contacts:page=1>; rel="first"; title="contacts"'}

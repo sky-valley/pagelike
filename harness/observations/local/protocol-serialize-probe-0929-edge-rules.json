@@ -1,0 +1,152 @@
+{
+  "case": "protocol.serialize.probe-0929.edge-rules",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (put selfclose)",
+      "method": "PUT",
+      "path": "/_pl/protocol-serialize-probe-0929-edge-rules-c6ad68/selfclose.html",
+      "status": 201,
+      "headers": {
+        "content-length": "63",
+        "content-type": "text/html",
+        "etag": "\"4208fed0401da1e5078e67877da9a36d0d00b32c417baecc1ee72969e6fab78b\""
+      },
+      "body": "\u003cdiv\u003e\u003c/div\u003ex\u003cp:include src=\"a.html\"\u003e\u003c/p:include\u003ey\u003cspan\u003e\u003c/span\u003ez"
+    },
+    {
+      "step": "step 2 (select div on selfclose)",
+      "method": "GET",
+      "path": "/_pl/protocol-serialize-probe-0929-edge-rules-c6ad68/selfclose.html",
+      "status": 206,
+      "headers": {
+        "accept-ranges": "selector, bytes",
+        "content-length": "11",
+        "content-range": "selector div",
+        "content-type": "text/html",
+        "etag": "\"93636fa047400919d3a6fa2c57a114596546d97c9681645ed857fb014fb8fb18-93636fa047400919d3a6fa2c57a114596546d97c9681645ed857fb014fb8fb18-1\"",
+        "vary": "Host, Range, Accept"
+      },
+      "body": "\u003cdiv\u003e\u003c/div\u003e"
+    },
+    {
+      "step": "step 3 (select span on selfclose)",
+      "method": "GET",
+      "path": "/_pl/protocol-serialize-probe-0929-edge-rules-c6ad68/selfclose.html",
+      "status": 206,
+      "headers": {
+        "accept-ranges": "selector, bytes",
+        "content-length": "13",
+        "content-range": "selector span",
+        "content-type": "text/html",
+        "etag": "\"b26695b490c72c5712725ed85e3d66e950776005c17245bfbb6191e57c7f2ced-b26695b490c72c5712725ed85e3d66e950776005c17245bfbb6191e57c7f2ced-1\"",
+        "vary": "Host, Range, Accept"
+      },
+      "body": "\u003cspan\u003e\u003c/span\u003e"
+    },
+    {
+      "step": "step 4 (put stray-end)",
+      "method": "PUT",
+      "path": "/_pl/protocol-serialize-probe-0929-edge-rules-c6ad68/stray-end.html",
+      "status": 201,
+      "headers": {
+        "content-length": "20",
+        "content-type": "text/html",
+        "etag": "\"a359ad17097523c8b9a669563c62f820a67d99fdb8cc1b4bf7a6a7dce13e0bf3\""
+      },
+      "body": "\u003cp\u003ea\u003c/p\u003e\u003cdiv\u003eb\u003c/div\u003e"
+    },
+    {
+      "step": "step 5 (put attr-escapes)",
+      "method": "PUT",
+      "path": "/_pl/protocol-serialize-probe-0929-edge-rules-c6ad68/attr-escapes.html",
+      "status": 201,
+      "headers": {
+        "content-length": "107",
+        "content-type": "text/html",
+        "etag": "\"ef1d78786fd9396cb8e21d884f1adfd17d6701959ad0904e6d088521fa42d2e6\""
+      },
+      "body": "\u003cp title=\"a b\u0026lt;c\u0026gt;d\u0026amp;e\" data-u=\"\u0026amp;amp;x\" data-c=\"\u0026amp;copy\"\u003et \u0026amp;copy \u0026amp;notit; a \u0026lt; b\u003c/p\u003e"
+    },
+    {
+      "step": "step 6 (put noscript)",
+      "method": "PUT",
+      "path": "/_pl/protocol-serialize-probe-0929-edge-rules-c6ad68/noscript.html",
+      "status": 201,
+      "headers": {
+        "content-length": "127",
+        "content-type": "text/html",
+        "etag": "\"54d4ccc657e8332ca6f65eb467a34d28d319a27cbcf4d680adf99f850b592cf8\""
+      },
+      "body": "\u003cnoscript\u003e\u003cp\u003en\u003c/p\u003e\u003c/noscript\u003e\u003ctextarea\u003e\u0026lt;b\u0026gt;x\u0026lt;/b\u0026gt; \u0026amp;\u003c/textarea\u003e\u003ctitle\u003ea \u0026amp; \u0026lt;b\u0026gt;\u003c/title\u003e\u003cxmp\u003e\u003ci\u003er\u003c/i\u003e\u003c/xmp\u003e"
+    },
+    {
+      "step": "step 7 (select noscript \u003e p on noscript)",
+      "method": "GET",
+      "path": "/_pl/protocol-serialize-probe-0929-edge-rules-c6ad68/noscript.html",
+      "status": 206,
+      "headers": {
+        "accept-ranges": "selector, bytes",
+        "content-length": "8",
+        "content-range": "selector noscript \u003e p",
+        "content-type": "text/html",
+        "etag": "\"8d22e855ca1da275b9c43308483f49c5499ec4b4581f01cee5a3f0cf65be19bd-8d22e855ca1da275b9c43308483f49c5499ec4b4581f01cee5a3f0cf65be19bd-1\"",
+        "vary": "Host, Range, Accept"
+      },
+      "body": "\u003cp\u003en\u003c/p\u003e"
+    },
+    {
+      "step": "step 8 (put doctype-ids)",
+      "method": "PUT",
+      "path": "/_pl/protocol-serialize-probe-0929-edge-rules-c6ad68/doctype-ids.html",
+      "status": 201,
+      "headers": {
+        "content-length": "23",
+        "content-type": "text/html",
+        "etag": "\"e0ef8dd302e02bef2d153928ce96a127ff7718030fb78c048c34590810ee282e\""
+      },
+      "body": "\u003c!DOCTYPE html\u003e\u003cp\u003ex\u003c/p\u003e"
+    },
+    {
+      "step": "step 9 (put cdata-bogus)",
+      "method": "PUT",
+      "path": "/_pl/protocol-serialize-probe-0929-edge-rules-c6ad68/cdata-bogus.html",
+      "status": 201,
+      "headers": {
+        "content-length": "66",
+        "content-type": "text/html",
+        "etag": "\"099eac167cf02b13273f70e5ad88406491ad9e5d687d4e713e5358ff413ce3d6\""
+      },
+      "body": "\u003csvg\u003e\u003c!--[CDATA[a\u003cb]]--\u003e\u003c/svg\u003e\u003c!--foo--\u003e\u003c!-- -- x ----\u003e\u0026lt;/ x\u0026gt;"
+    },
+    {
+      "step": "step 10 (put two-roots)",
+      "method": "PUT",
+      "path": "/_pl/protocol-serialize-probe-0929-edge-rules-c6ad68/two-roots.html",
+      "status": 201,
+      "headers": {
+        "content-length": "16",
+        "content-type": "text/html",
+        "etag": "\"a7a88547f8f0ff75d4c85d2922caf0c67da10a8d3ce1a296e1f166a3ef19b047\""
+      },
+      "body": "\u003cp\u003ea\u003c/p\u003e\u003cp\u003eb\u003c/p\u003e"
+    },
+    {
+      "step": "step 11 (select :root on two-roots)",
+      "method": "GET",
+      "path": "/_pl/protocol-serialize-probe-0929-edge-rules-c6ad68/two-roots.html",
+      "status": 206,
+      "headers": {
+        "accept-ranges": "selector, bytes",
+        "content-length": "8",
+        "content-range": "selector :root",
+        "content-type": "text/html",
+        "etag": "\"df5ddd75e1e0e3fee2eb4c4d7a160f2673560df8afb145ba651b43f100c0dc57-df5ddd75e1e0e3fee2eb4c4d7a160f2673560df8afb145ba651b43f100c0dc57-1\"",
+        "vary": "Host, Range, Accept"
+      },
+      "body": "\u003cp\u003ea\u003c/p\u003e"
+    }
+  ],
+  "outcome": "pass",
+  "target": "local"
+}

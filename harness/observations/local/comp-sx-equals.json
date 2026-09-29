@@ -1,0 +1,50 @@
+{
+  "case": "comp.sx.equals",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1",
+      "method": "GET",
+      "path": "/_pl/comp-sx-equals-9ad5ae/sx.html",
+      "status": 206,
+      "headers": {
+        "accept-ranges": "selector, bytes",
+        "content-length": "20",
+        "content-range": "selector p:equals('Title')",
+        "content-type": "text/html",
+        "etag": "\"826956b9c8dd6617280f2dd76acd078e04ace478714e08a9a0dfbaca8bdb8c4a-826956b9c8dd6617280f2dd76acd078e04ace478714e08a9a0dfbaca8bdb8c4a-1\"",
+        "vary": "Host, Range, Accept"
+      },
+      "body": "\u003cp id=\"p1\"\u003eTitle\u003c/p\u003e"
+    },
+    {
+      "step": "step 2",
+      "method": "GET",
+      "path": "/_pl/comp-sx-equals-9ad5ae/sx.html",
+      "status": 206,
+      "headers": {
+        "accept-ranges": "selector, bytes",
+        "content-length": "24",
+        "content-range": "selector p:equals('Title Bar')",
+        "content-type": "text/html",
+        "etag": "\"e3979e7548afe5539b10797ff6aab8590d76a0362325b4e2aea14dead9e6be63-e3979e7548afe5539b10797ff6aab8590d76a0362325b4e2aea14dead9e6be63-1\"",
+        "vary": "Host, Range, Accept"
+      },
+      "body": "\u003cp id=\"p2\"\u003eTitle Bar\u003c/p\u003e"
+    },
+    {
+      "step": "step 3",
+      "method": "GET",
+      "path": "/_pl/comp-sx-equals-9ad5ae/sx.html",
+      "status": 416,
+      "headers": {
+        "content-length": "371",
+        "content-type": "text/html",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\n  \u003chead\u003e\n    \u003ctitle\u003e416 Range Not Satisfiable - Error\u003c/title\u003e\n  \u003c/head\u003e\n  \u003cbody itemscope itemtype=\"http://pagelove.org/Error\"\u003e\n    \u003ch1 itemprop=\"name\"\u003eRange Not Satisfiable\u003c/h1\u003e\n    \u003cmeta itemprop=\"statusCode\" content=\"416\"\u003e\n    \u003cp itemprop=\"description\"\u003eHTML parsing error: No elements matched selector: #p2:equals('Title')\u003c/p\u003e\n  \u003c/body\u003e\n\u003c/html\u003e\n"
+    }
+  ],
+  "outcome": "pass",
+  "target": "local"
+}

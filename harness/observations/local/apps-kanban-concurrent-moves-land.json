@@ -1,0 +1,60 @@
+{
+  "case": "apps.kanban.concurrent-moves-land",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 2",
+      "method": "MOVE",
+      "path": "/_pl/apps-kanban-concurrent-moves-land-b9ef8a/boards/b1.html",
+      "status": 204,
+      "headers": {
+        "etag": "\"ccb1645b546969fb4143c7adb9db33cd258ca266485a77aad0b82314ea5ccf7e\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:41 GMT",
+        "vary": "Host, Range"
+      }
+    },
+    {
+      "step": "step 1",
+      "method": "MOVE",
+      "path": "/_pl/apps-kanban-concurrent-moves-land-b9ef8a/boards/b1.html",
+      "status": 204,
+      "headers": {
+        "etag": "\"fe2507ea2f293aaebe87068d63f3a7c53789f4ce8a3d9f1a64fbca73bc610b6c\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:41 GMT",
+        "vary": "Host, Range"
+      }
+    },
+    {
+      "step": "step 2 (both cards are in Done)",
+      "method": "GET",
+      "path": "/_pl/apps-kanban-concurrent-moves-land-b9ef8a/boards/b1.html",
+      "status": 206,
+      "headers": {
+        "accept-ranges": "selector, bytes",
+        "content-length": "371",
+        "content-range": "selector #L-done-cards",
+        "content-type": "text/html",
+        "etag": "\"f7077ecd048906cb94f7e9fbf5259635437ae8892f4a7f165f1f87b05d687a96-f7077ecd048906cb94f7e9fbf5259635437ae8892f4a7f165f1f87b05d687a96-3\"",
+        "vary": "Host, Range, Accept"
+      },
+      "body": "\u003cdiv class=\"cards\" id=\"L-done-cards\"\u003e\u003carticle class=\"card\" id=\"C-3\" itemscope itemtype=\"urn:board:Card\" draggable=\"true\"\u003e\u003cdiv class=\"card-title\" data-f=\"card-title\" itemprop=\"name\"\u003eThree\u003c/div\u003e\u003c/article\u003e\u003carticle class=\"card\" id=\"C-1\" itemscope itemtype=\"urn:board:Card\" draggable=\"true\"\u003e\u003cdiv class=\"card-title\" data-f=\"card-title\" itemprop=\"name\"\u003eOne\u003c/div\u003e\u003c/article\u003e\u003c/div\u003e"
+    },
+    {
+      "step": "step 3 (only card 2 is left in To do)",
+      "method": "GET",
+      "path": "/_pl/apps-kanban-concurrent-moves-land-b9ef8a/boards/b1.html",
+      "status": 206,
+      "headers": {
+        "accept-ranges": "selector, bytes",
+        "content-length": "206",
+        "content-range": "selector #L-todo-cards",
+        "content-type": "text/html",
+        "etag": "\"c90f9d56a1dd0a38d075214d1ed727cd4e07578f23f3bcf254e83741d6625b54-c90f9d56a1dd0a38d075214d1ed727cd4e07578f23f3bcf254e83741d6625b54-3\"",
+        "vary": "Host, Range, Accept"
+      },
+      "body": "\u003cdiv class=\"cards\" id=\"L-todo-cards\"\u003e\u003carticle class=\"card\" id=\"C-2\" itemscope itemtype=\"urn:board:Card\" draggable=\"true\"\u003e\u003cdiv class=\"card-title\" data-f=\"card-title\" itemprop=\"name\"\u003eTwo\u003c/div\u003e\u003c/article\u003e\u003c/div\u003e"
+    }
+  ],
+  "outcome": "pass",
+  "target": "local"
+}

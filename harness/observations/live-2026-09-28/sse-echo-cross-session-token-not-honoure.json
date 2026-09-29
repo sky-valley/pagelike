@@ -1,0 +1,53 @@
+{
+  "case": "sse.echo.cross-session-token-not-honoured",
+  "failures": [
+    "step 7: no matching \"mutation\" event on s1 within 3s (1 events seen)"
+  ],
+  "observations": [
+    {
+      "step": "step 3",
+      "events": [
+        {
+          "event": "pagelove-connection",
+          "data": "f1f34043-652d-4ad8-990e-6b5db77aa274"
+        }
+      ]
+    },
+    {
+      "step": "step 4",
+      "events": [
+        {
+          "event": "pagelove-connection",
+          "data": "98bfe4c2-70db-4457-8302-3329c8a19604"
+        }
+      ]
+    },
+    {
+      "step": "step 5 (foreign session presents s1's token)",
+      "method": "PUT",
+      "path": "/_pl/sse-echo-cross-session-token-not-honoure-286ecd/doc.html",
+      "status": 206,
+      "headers": {
+        "content-length": "22",
+        "content-range": "selector h1",
+        "content-type": "text/html",
+        "etag": "\"d75350a568dac1ccc267a932c51a9f560dddc0181fd6c5ad44eb32bbc60c853d-d75350a568dac1ccc267a932c51a9f560dddc0181fd6c5ad44eb32bbc60c853d-2\"",
+        "last-modified": "Mon, 28 Sep 2026 22:34:16 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003ch1\u003eForeign token\u003c/h1\u003e"
+    },
+    {
+      "step": "step 6",
+      "events": [
+        {
+          "id": "v1~58caa07e6bd7.1790634856559-0",
+          "event": "mutation",
+          "data": "\u003carticle itemscope itemtype=\"https://pagelove.org/Mutation\"\u003e\n  \u003cspan itemprop=\"method\"\u003ePUT\u003c/span\u003e\n  \u003cspan itemprop=\"selector\"\u003eh1\u003c/span\u003e\n  \u003cspan itemprop=\"etag\"\u003efd32fe93112b5c341a7d757c558f2857d18f8819e2a2f9e0bc57fa75ae3868a8\u003c/span\u003e\n  \u003cspan itemprop=\"path\"\u003e/_pl/sse-echo-cross-session-token-not-honoure-286ecd/doc.html\u003c/span\u003e\n  \u003cspan itemprop=\"host\"\u003elive-test-host.onpagelove.com\u003c/span\u003e\n  \u003cdiv itemprop=\"body\"\u003e\u003ch1\u003eForeign token\u003c/h1\u003e\u003c/div\u003e\n\u003c/article\u003e"
+        }
+      ]
+    }
+  ],
+  "outcome": "fail",
+  "target": "live"
+}

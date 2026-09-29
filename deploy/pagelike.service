@@ -1,0 +1,22 @@
+[Unit]
+Description=pagelike document runtime
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=pagelike
+Group=pagelike
+ExecStart=/usr/local/bin/pagelike serve --data /var/lib/pagelike --listen 127.0.0.1:8787 --domain example.org --trust-proxy
+Restart=always
+RestartSec=2
+# Hardening: pagelike needs only its data directory.
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/var/lib/pagelike
+LimitNOFILE=65536
+
+[Install]
+WantedBy=multi-user.target

@@ -1,0 +1,540 @@
+# Uploading files: blobs, content-type resolution, serving, caching.
+# Spec: docs/spec/reading-writing.md §9 R-RW-60, §14, §15.
+# The runner must not add a default Content-Type to request bodies.
+cases:
+  - id: rw.up.json-roundtrip
+    title: A PUT JSON blob is served back byte-for-byte with its stored content type
+    area: reading-writing
+    feature: Blob upload
+    evidence: documented
+    source: "docs reference/reading-and-writing/Uploading-Files §Uploading (snapshot 2026-09-28)"
+    confidence: high
+    requires: []
+    live: true
+    site:
+      settings: {default_get: allow}
+      rules:
+        - {actor: "*", resource: "${P}/*", method: [GET, HEAD, PUT], action: Allow}
+    steps:
+      - name: upload
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/data.json"
+          headers: {Content-Type: "application/json"}
+          body: '{"name":"widget","price":29.99}'
+        expect: {status: [200, 201, 204]}
+      - name: fetch
+        as: anonymous
+        request: {method: GET, path: "${P}/data.json"}
+        expect:
+          status: 200
+          header_matches: {Content-Type: "^application/json"}
+          headers_present: [ETag]
+          body: '{"name":"widget","price":29.99}'
+
+  - id: rw.up.byte-fidelity
+    title: Blob bytes are preserved exactly, including CRLF and markup-like text
+    area: reading-writing
+    feature: Blob upload
+    evidence: documented
+    source: "docs reference/reading-and-writing/Uploading-Files intro ('served back byte-for-byte'), §Serving ('No composition') (snapshot 2026-09-28)"
+    confidence: high
+    requires: []
+    live: true
+    site:
+      settings: {default_get: allow}
+      rules:
+        - {actor: "*", resource: "${P}/*", method: [GET, HEAD, PUT], action: Allow}
+    steps:
+      - name: upload text with template-like content
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/raw.txt"
+          headers: {Content-Type: "text/plain"}
+          body: "line one\r\nline two {{ 1 | plus: 1 }} <p:include selector=\"#x\" /> e:x=\"y\"\r\n"
+        expect: {status: [200, 201, 204]}
+      - name: fetch unchanged
+        as: anonymous
+        request: {method: GET, path: "${P}/raw.txt"}
+        expect:
+          status: 200
+          header_matches: {Content-Type: "^text/plain"}
+          body_contains: ["line one\r\nline two {{ 1 | plus: 1 }} <p:include selector=\"#x\" /> e:x=\"y\""]
+
+  - id: rw.up.html-extension-forces-text-html
+    title: A .html or .htm path is always stored as text/html, whatever Content-Type says
+    area: reading-writing
+    feature: Content type resolution
+    evidence: documented
+    source: "docs reference/reading-and-writing/Uploading-Files §Content type rule 1 (snapshot 2026-09-28)"
+    confidence: high
+    requires: []
+    live: true
+    site:
+      settings: {default_get: allow}
+      rules:
+        - {actor: "*", resource: "${P}/*", method: [GET, HEAD, PUT], action: Allow}
+    steps:
+      - name: .html sent as octet-stream
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/forced.html"
+          headers: {Content-Type: "application/octet-stream"}
+          body: |
+            <!DOCTYPE html>
+            <html><body><h1>Forced HTML</h1></body></html>
+        expect: {status: [200, 201, 204]}
+      - name: served as HTML
+        as: anonymous
+        request: {method: GET, path: "${P}/forced.html"}
+        expect:
+          status: 200
+          header_matches: {Content-Type: "^text/html"}
+      - name: selector-addressable, so it is an HTML document
+        as: anonymous
+        request:
+          method: GET
+          path: "${P}/forced.html"
+          headers: {Range: "selector=h1"}
+        expect:
+          status: 206
+          body_html: "<h1>Forced HTML</h1>"
+      - name: .htm sent as text/plain
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/legacy.htm"
+          headers: {Content-Type: "text/plain"}
+          body: |
+            <!DOCTYPE html>
+            <html><body><h1>Legacy</h1></body></html>
+        expect: {status: [200, 201, 204]}
+      - name: .htm served as HTML
+        as: anonymous
+        request: {method: GET, path: "${P}/legacy.htm"}
+        expect:
+          status: 200
+          header_matches: {Content-Type: "^text/html"}
+
+  - id: rw.up.explicit-header-wins-over-extension
+    title: An explicit Content-Type wins over the extension for non-HTML paths
+    area: reading-writing
+    feature: Content type resolution
+    evidence: documented
+    source: "docs reference/reading-and-writing/Uploading-Files §Content type rule 2 ('the explicit header wins over the extension') (snapshot 2026-09-28)"
+    confidence: high
+    requires: []
+    live: true
+    site:
+      settings: {default_get: allow}
+      rules:
+        - {actor: "*", resource: "${P}/*", method: [GET, HEAD, PUT], action: Allow}
+    steps:
+      - name: CSS path sent as text/plain
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/data.css"
+          headers: {Content-Type: "text/plain"}
+          body: "body { color: red; }"
+        expect: {status: [200, 201, 204]}
+      - name: served as text/plain
+        as: anonymous
+        request: {method: GET, path: "${P}/data.css"}
+        expect:
+          status: 200
+          header_matches: {Content-Type: "^text/plain"}
+          body: "body { color: red; }"
+
+  - id: rw.up.wrong-header-stored-verbatim
+    title: A generic or wrong Content-Type is stored verbatim and served back as-is
+    area: reading-writing
+    feature: Content type resolution
+    evidence: documented
+    source: "docs reference/reading-and-writing/Uploading-Files §Content type ('A wrong or generic header ... is stored verbatim and served back as-is') (snapshot 2026-09-28)"
+    confidence: high
+    requires: []
+    live: true
+    site:
+      settings: {default_get: allow}
+      rules:
+        - {actor: "*", resource: "${P}/*", method: [GET, HEAD, PUT], action: Allow}
+    steps:
+      - name: PDF sent as a form body
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/cv.pdf"
+          headers: {Content-Type: "application/x-www-form-urlencoded"}
+          body: "%PDF-1.4 not really a pdf"
+        expect: {status: [200, 201, 204]}
+      - name: served with the wrong type
+        as: anonymous
+        request: {method: GET, path: "${P}/cv.pdf"}
+        expect:
+          status: 200
+          header_matches: {Content-Type: "^application/x-www-form-urlencoded"}
+          body: "%PDF-1.4 not really a pdf"
+
+  - id: rw.up.extension-inference
+    title: Without a Content-Type the type is inferred from the extension
+    area: reading-writing
+    feature: Content type resolution
+    evidence: documented
+    source: "docs reference/reading-and-writing/Uploading-Files §Content type rule 3 ('.css -> text/css, .png -> image/png') (snapshot 2026-09-28)"
+    confidence: high
+    requires: []
+    live: true
+    site:
+      settings: {default_get: allow}
+      rules:
+        - {actor: "*", resource: "${P}/*", method: [GET, HEAD, PUT], action: Allow}
+    steps:
+      - name: CSS without header
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/style.css"
+          body: "h1 { color: blue; }"
+        expect: {status: [200, 201, 204]}
+      - name: CSS served as text/css
+        as: anonymous
+        request: {method: GET, path: "${P}/style.css"}
+        expect:
+          status: 200
+          header_matches: {Content-Type: "^text/css"}
+      - name: PNG without header
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/pic.png"
+          body: "not-really-png-bytes"
+        expect: {status: [200, 201, 204]}
+      - name: PNG served as image/png
+        as: anonymous
+        request: {method: GET, path: "${P}/pic.png"}
+        expect:
+          status: 200
+          header_matches: {Content-Type: "^image/png"}
+          body: "not-really-png-bytes"
+
+  - id: rw.up.octet-stream-fallback
+    title: Unknown extension and no Content-Type falls back to application/octet-stream
+    area: reading-writing
+    feature: Content type resolution
+    evidence: documented
+    source: "docs reference/reading-and-writing/Uploading-Files §Content type rule 4 (snapshot 2026-09-28)"
+    confidence: high
+    requires: []
+    live: true
+    site:
+      settings: {default_get: allow}
+      rules:
+        - {actor: "*", resource: "${P}/*", method: [GET, HEAD, PUT], action: Allow}
+    steps:
+      - name: unknown extension
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/mystery.qqzz"
+          body: "opaque"
+        expect: {status: [200, 201, 204]}
+      - name: served as octet-stream
+        as: anonymous
+        request: {method: GET, path: "${P}/mystery.qqzz"}
+        expect:
+          status: 200
+          header_matches: {Content-Type: "^application/octet-stream"}
+          body: "opaque"
+
+  - id: rw.up.html-by-content-type-without-extension
+    title: An extension-less path stored with Content-Type text/html is an HTML document
+    area: reading-writing
+    feature: Content type resolution
+    evidence: documented
+    source: "docs reference/reading-and-writing/Uploading-Files §Content type ('The stored content type decides ... whether it is treated as HTML') (snapshot 2026-09-28)"
+    confidence: medium
+    requires: []
+    live: true
+    site:
+      settings: {default_get: allow}
+      rules:
+        - {actor: "*", resource: "${P}/*", method: [GET, HEAD, PUT], action: Allow}
+    steps:
+      - name: store HTML at an extension-less path
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/page"
+          headers: {Content-Type: "text/html"}
+          body: |
+            <!DOCTYPE html>
+            <html><body><h1>No extension</h1></body></html>
+        expect: {status: [200, 201, 204]}
+      - name: selector-addressable
+        as: anonymous
+        request:
+          method: GET
+          path: "${P}/page"
+          headers: {Range: "selector=h1"}
+        expect:
+          status: 206
+          body_html: "<h1>No extension</h1>"
+
+  - id: rw.up.selector-on-blob-422
+    title: Selector reads and writes on a blob are 422
+    area: reading-writing
+    feature: Blob opacity
+    evidence: documented
+    source: "docs reference/reading-and-writing/Uploading-Files §Serving ('fails with 422 Unprocessable Content') (snapshot 2026-09-28)"
+    confidence: high
+    requires: []
+    live: true
+    site:
+      settings: {default_get: allow}
+      files:
+        - path: "${P}/data.json"
+          content_type: application/json
+          body: '{"h1":"not html"}'
+      rules:
+        - {actor: "*", resource: "${P}/*", method: [GET, HEAD, PUT, POST, DELETE], action: Allow}
+    steps:
+      - name: selector GET on a blob
+        as: anonymous
+        request:
+          method: GET
+          path: "${P}/data.json"
+          headers: {Range: "selector=h1"}
+        expect: {status: 422}
+      - name: selector PUT on a blob
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/data.json"
+          headers: {Range: "selector=h1", Content-Type: "text/html"}
+          body: "<h1>x</h1>"
+        expect: {status: 422}
+      - name: selector DELETE on a blob
+        as: anonymous
+        request:
+          method: DELETE
+          path: "${P}/data.json"
+          headers: {Range: "selector=h1"}
+        expect: {status: 422}
+      - name: blob unchanged
+        as: anonymous
+        request: {method: GET, path: "${P}/data.json"}
+        expect:
+          status: 200
+          body: '{"h1":"not html"}'
+
+  - id: rw.up.static-asset-cache-control
+    title: CSS, JavaScript, images and fonts are served with Cache-Control public, max-age=300
+    area: reading-writing
+    feature: Caching headers
+    evidence: documented
+    source: "docs reference/reading-and-writing/GET-method §Caching ('Cache-Control: public, max-age=300'); Uploading-Files §Serving (snapshot 2026-09-28)"
+    confidence: high
+    requires: []
+    live: true
+    notes: "Uploading-Files omits the number (spec §23 C-6)."
+    site:
+      settings: {default_get: allow}
+      files:
+        - path: "${P}/site.css"
+          content_type: text/css
+          body: "p { margin: 0; }"
+        - path: "${P}/app.js"
+          content_type: text/javascript
+          body: "console.log(1);"
+        - path: "${P}/logo.png"
+          content_type: image/png
+          body: "png-bytes"
+        - path: "${P}/font.woff2"
+          content_type: font/woff2
+          body: "woff2-bytes"
+      rules:
+        - {actor: "*", resource: "${P}/*", method: [GET, HEAD], action: Allow}
+    steps:
+      - name: CSS
+        as: anonymous
+        request: {method: GET, path: "${P}/site.css"}
+        expect:
+          status: 200
+          header_matches: {Cache-Control: "(?i)^public,\\s*max-age=300$"}
+      - name: JavaScript
+        as: anonymous
+        request: {method: GET, path: "${P}/app.js"}
+        expect:
+          status: 200
+          header_matches: {Cache-Control: "(?i)^public,\\s*max-age=300$"}
+      - name: image
+        as: anonymous
+        request: {method: GET, path: "${P}/logo.png"}
+        expect:
+          status: 200
+          header_matches: {Cache-Control: "(?i)^public,\\s*max-age=300$"}
+      - name: font
+        as: anonymous
+        request: {method: GET, path: "${P}/font.woff2"}
+        expect:
+          status: 200
+          header_matches: {Cache-Control: "(?i)^public,\\s*max-age=300$"}
+
+  - id: rw.up.content-hash-etag
+    title: Blob ETags are strong content hashes (same bytes, same tag; new bytes, new tag)
+    area: reading-writing
+    feature: Blob ETags
+    evidence: documented
+    source: "docs reference/reading-and-writing/Uploading-Files §Serving ('a content-hash strong ETag') (snapshot 2026-09-28)"
+    confidence: medium
+    requires: []
+    live: true
+    notes: "Equality across paths follows from 'content-hash'; pagelike hashes bytes only."
+    site:
+      settings: {default_get: allow}
+      files:
+        - path: "${P}/a.txt"
+          content_type: text/plain
+          body: "identical bytes"
+        - path: "${P}/b.txt"
+          content_type: text/plain
+          body: "identical bytes"
+      rules:
+        - {actor: "*", resource: "${P}/*", method: [GET, HEAD, PUT], action: Allow}
+    steps:
+      - name: tag of a
+        as: anonymous
+        request: {method: GET, path: "${P}/a.txt"}
+        expect:
+          status: 200
+          header_matches: {ETag: "^\""}
+        capture: {ta: header.ETag}
+      - name: same bytes elsewhere, same tag
+        as: anonymous
+        request: {method: GET, path: "${P}/b.txt"}
+        expect:
+          status: 200
+          etag_equals: "${ta}"
+      - name: overwrite a
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/a.txt"
+          headers: {Content-Type: "text/plain"}
+          body: "different bytes"
+        expect: {status: [200, 201, 204]}
+      - name: new bytes, new tag
+        as: anonymous
+        request: {method: GET, path: "${P}/a.txt"}
+        expect:
+          status: 200
+          etag_differs: "${ta}"
+
+  - id: rw.up.blob-304
+    title: A blob revalidates with If-None-Match
+    area: reading-writing
+    feature: Blob ETags
+    evidence: documented
+    source: "docs reference/reading-and-writing/Uploading-Files §Serving ('so conditional requests revalidate cheaply') (snapshot 2026-09-28)"
+    confidence: high
+    requires: []
+    live: true
+    site:
+      settings: {default_get: allow}
+      files:
+        - path: "${P}/cached.css"
+          content_type: text/css
+          body: "a { color: green; }"
+      rules:
+        - {actor: "*", resource: "${P}/*", method: [GET, HEAD], action: Allow}
+    steps:
+      - name: fetch
+        as: anonymous
+        request: {method: GET, path: "${P}/cached.css"}
+        expect: {status: 200}
+        capture: {t: header.ETag}
+      - name: revalidate
+        as: anonymous
+        request:
+          method: GET
+          path: "${P}/cached.css"
+          headers: {If-None-Match: "${t}"}
+        expect:
+          status: 304
+          body: ""
+
+  - id: rw.up.xml-selector
+    title: Selector ranges on an XML document are refused like on a blob (422)
+    area: reading-writing
+    feature: XML documents
+    evidence: live-observed
+    source: "harness/observations/live-2026-09-28/rw-up-xml-selector.json (422 'Invalid path: Selector operations require HTML documents, but … has content type application/atom+xml'); docs reference/reading-and-writing/Uploading-Files §Serving (snapshot 2026-09-28) says HTML or XML"
+    confidence: high
+    requires: []
+    live: true
+    notes: "The documented XML selector support is superseded on the public plane (docs/compat/decisions.md); whole-document XML reads are unchanged."
+    site:
+      settings: {default_get: allow}
+      files:
+        - path: "${P}/feed.xml"
+          content_type: application/atom+xml
+          body: |
+            <?xml version="1.0" encoding="UTF-8"?>
+            <feed xmlns="http://www.w3.org/2005/Atom"><title>Feed</title><entry><id>urn:1</id></entry></feed>
+      rules:
+        - {actor: "*", resource: "${P}/*", method: [GET, HEAD], action: Allow}
+    steps:
+      - name: select the entry
+        as: anonymous
+        request:
+          method: GET
+          path: "${P}/feed.xml"
+          headers: {Range: "selector=entry"}
+        expect:
+          status: 422
+          header_matches: {Content-Type: "^text/html$"}
+          body_contains:
+            - '<title>422 Unprocessable Entity - Error</title>'
+            - '<p itemprop="description">Invalid path: Selector operations require HTML documents, but ${P}/feed.xml has content type application/atom+xml</p>'
+          body_not_contains: ["urn:1"]
+      - name: the whole document is still served
+        as: anonymous
+        request: {method: GET, path: "${P}/feed.xml"}
+        expect:
+          status: 200
+          header_matches: {Content-Type: "^application/atom\\+xml"}
+          body_contains: ["urn:1"]
+
+  - id: rw.up.byte-range
+    title: A blob honours a single byte range
+    area: reading-writing
+    feature: Byte ranges
+    evidence: inferred
+    source: "docs reference/protocol/Accept-Ranges ('Accept-Ranges: selector, bytes'); RFC 9110 §14"
+    confidence: low
+    requires: []
+    live: true
+    site:
+      settings: {default_get: allow}
+      files:
+        - path: "${P}/abc.txt"
+          content_type: text/plain
+          body: "abcdefghij"
+      rules:
+        - {actor: "*", resource: "${P}/*", method: [GET, HEAD], action: Allow}
+    steps:
+      - name: first four bytes
+        as: anonymous
+        request:
+          method: GET
+          path: "${P}/abc.txt"
+          headers: {Range: "bytes=0-3"}
+        expect:
+          status: 206
+          headers:
+            Content-Range: "bytes 0-3/10"
+          body: "abcd"

@@ -1,0 +1,35 @@
+{
+  "case": "comp.me.sessel-element",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (store the page with its schema)",
+      "method": "PUT",
+      "path": "/_pl/comp-me-sessel-element-6a1a47/method-element-demo.html",
+      "status": 201,
+      "headers": {
+        "content-type": "text/html",
+        "etag": "\"34fef66081e71d2c9d9183762f67987b741321b63004f1b1be9dc2f704c7566d\"",
+        "last-modified": "Tue, 29 Sep 2026 00:45:26 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml xmlns:t=\"urn:x-pagelike/_pl/comp-me-sessel-element-6a1a47/Demo\"\u003e\n  \u003cbody\u003e\n    \u003cmain\u003e\n      \u003ct:hello\u003e\u003c/t:hello\u003e\n    \u003c/main\u003e\n    \u003cdiv hidden itemscope itemtype=\"https://pagelove.org/Schema\"\u003e\n      \u003cmeta itemprop=\"type\" content=\"urn:x-pagelike/_pl/comp-me-sessel-element-6a1a47/Demo\"\u003e\n      \u003cul\u003e\n        \u003cli itemprop=\"property\" itemscope itemtype=\"https://pagelove.org/Method\"\u003e\n          \u003cmeta itemprop=\"name\" content=\"hello\"\u003e\n          \u003cmeta itemprop=\"returns\" content=\"https://pagelove.org/Element\"\u003e\n          \u003cdiv itemprop=\"implementation\" itemscope itemtype=\"https://pagelove.org/Sessel\"\u003e\n            \u003cscript itemprop=\"source\" type=\"text/sessel\"\u003e\n              new p { \"hello from urn:Demo\" }\n            \u003c/script\u003e\n          \u003c/div\u003e\n        \u003c/li\u003e\n      \u003c/ul\u003e\n    \u003cmeta itemprop=\"@id\" content=\"https://schema.host/dzexbr4e\"\u003e\u003cmeta itemprop=\"path\" content=\"/Schemahttps://schema.host/dzexbr4e.html\"\u003e\u003c/div\u003e\n  \n                \u003cdiv style=\"\n                            position: fixed;\n                            bottom: 0;\n                            left: 0;\n                            right: 0;\n                            padding: 8px;\n                            background: #f0f0f0;\n                            text-align: center;\n                            font-size: 12px;\n                            color: #666;\n                            z-index: 9999;\n                            opacity: 0.8;\n                            border-top: 1px solid #ddd;\n                        \"\u003e\n                    Powered by\n                    \u003ca href=\"https://pagelove.com/\" style=\"color: #4a90d9; text-decoration: none\"\u003ePagelove\u003c/a\u003e\n                \u003c/div\u003e\n            \u003c/body\u003e\n\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 2 (read main)",
+      "method": "GET",
+      "path": "/_pl/comp-me-sessel-element-6a1a47/method-element-demo.html",
+      "status": 206,
+      "headers": {
+        "content-length": "51",
+        "content-range": "selector main",
+        "content-type": "text/html",
+        "etag": "\"744ffc40fa862abd7cd81ee54d1d259ce3ad3cdd77d5da167636e6a2206d5966-744ffc40fa862abd7cd81ee54d1d259ce3ad3cdd77d5da167636e6a2206d5966-1\"",
+        "vary": "Host, Range, Accept"
+      },
+      "body": "\u003cmain\u003e\n      \u003cp\u003ehello from urn:Demo\u003c/p\u003e\n    \u003c/main\u003e"
+    }
+  ],
+  "outcome": "pass",
+  "target": "live"
+}

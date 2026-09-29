@@ -1,0 +1,57 @@
+{
+  "case": "reacting.filters.omitted-filters-match-all",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (install a method-less trigger)",
+      "method": "PUT",
+      "path": "/_pl/reacting-filters-omitted-filters-match-a-b42f31/r/triggers.html",
+      "status": 201,
+      "headers": {
+        "content-type": "text/html",
+        "etag": "\"59c18261e399f28d09b6dd7bb42c2eff8dd53f49576838a42c4b82d895b5c8f4\"",
+        "last-modified": "Tue, 29 Sep 2026 00:49:39 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\n\u003cdiv hidden itemscope itemtype=\"https://pagelove.org/Trigger\"\u003e\n  \u003cmeta itemprop=\"resource\" content=\"/_pl/reacting-filters-omitted-filters-match-a-b42f31/d/*\"\u003e\n  \u003cdiv itemprop=\"action\" itemscope itemtype=\"https://pagelove.org/Sessel\"\u003e\n    \u003cscript itemprop=\"source\" type=\"text/sessel\"\u003e\n      @schema HTTPResponse url(\"https://pagelove.org/HTTPResponse\");\n      throw new HTTPResponse { status: 409, message: \"any-method\" }\n    \u003c/script\u003e\n  \u003c/div\u003e\n\u003c/div\u003e\n\n                \u003cdiv style=\"\n                            position: fixed;\n                            bottom: 0;\n                            left: 0;\n                            right: 0;\n                            padding: 8px;\n                            background: #f0f0f0;\n                            text-align: center;\n                            font-size: 12px;\n                            color: #666;\n                            z-index: 9999;\n                            opacity: 0.8;\n                            border-top: 1px solid #ddd;\n                        \"\u003e\n                    Powered by\n                    \u003ca href=\"https://pagelove.com/\" style=\"color: #4a90d9; text-decoration: none\"\u003ePagelove\u003c/a\u003e\n                \u003c/div\u003e\n            \u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 2 (GET matches)",
+      "method": "GET",
+      "path": "/_pl/reacting-filters-omitted-filters-match-a-b42f31/d/doc.html",
+      "status": 409,
+      "headers": {
+        "content-length": "285",
+        "content-type": "text/html",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\n  \u003chead\u003e\n    \u003ctitle\u003e409 Conflict - Error\u003c/title\u003e\n  \u003c/head\u003e\n  \u003cbody itemscope itemtype=\"http://pagelove.org/Error\"\u003e\n    \u003ch1 itemprop=\"name\"\u003eConflict\u003c/h1\u003e\n    \u003cmeta itemprop=\"statusCode\" content=\"409\"\u003e\n    \u003cp itemprop=\"description\"\u003eany-method\u003c/p\u003e\n  \u003c/body\u003e\n\u003c/html\u003e"
+    },
+    {
+      "step": "step 3 (PUT matches)",
+      "method": "PUT",
+      "path": "/_pl/reacting-filters-omitted-filters-match-a-b42f31/d/doc.html",
+      "status": 409,
+      "headers": {
+        "content-length": "285",
+        "content-type": "text/html",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\n  \u003chead\u003e\n    \u003ctitle\u003e409 Conflict - Error\u003c/title\u003e\n  \u003c/head\u003e\n  \u003cbody itemscope itemtype=\"http://pagelove.org/Error\"\u003e\n    \u003ch1 itemprop=\"name\"\u003eConflict\u003c/h1\u003e\n    \u003cmeta itemprop=\"statusCode\" content=\"409\"\u003e\n    \u003cp itemprop=\"description\"\u003eany-method\u003c/p\u003e\n  \u003c/body\u003e\n\u003c/html\u003e"
+    },
+    {
+      "step": "step 4 (DELETE matches)",
+      "method": "DELETE",
+      "path": "/_pl/reacting-filters-omitted-filters-match-a-b42f31/d/doc.html",
+      "status": 409,
+      "headers": {
+        "content-length": "285",
+        "content-type": "text/html",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\n  \u003chead\u003e\n    \u003ctitle\u003e409 Conflict - Error\u003c/title\u003e\n  \u003c/head\u003e\n  \u003cbody itemscope itemtype=\"http://pagelove.org/Error\"\u003e\n    \u003ch1 itemprop=\"name\"\u003eConflict\u003c/h1\u003e\n    \u003cmeta itemprop=\"statusCode\" content=\"409\"\u003e\n    \u003cp itemprop=\"description\"\u003eany-method\u003c/p\u003e\n  \u003c/body\u003e\n\u003c/html\u003e"
+    }
+  ],
+  "outcome": "pass",
+  "target": "live"
+}

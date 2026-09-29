@@ -1,0 +1,42 @@
+{
+  "case": "sse.mutation.post-default-placement",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 2",
+      "events": [
+        {
+          "event": "pagelove-connection",
+          "data": "dbd30f54-f696-45fe-91d6-4e782c7d8d89"
+        }
+      ]
+    },
+    {
+      "step": "step 3 (append an item)",
+      "method": "POST",
+      "path": "/_pl/sse-mutation-post-default-placement-6a9284/doc.html",
+      "status": 206,
+      "headers": {
+        "content-length": "17",
+        "content-range": "selector ul",
+        "content-type": "text/html",
+        "etag": "\"cc2eb60cc2c4a792aa8e3f78f56eba388c54ffdb43d80859ca336755ea65b38c-cc2eb60cc2c4a792aa8e3f78f56eba388c54ffdb43d80859ca336755ea65b38c-2\"",
+        "last-modified": "Mon, 28 Sep 2026 22:34:47 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003cli\u003eNew item\u003c/li\u003e"
+    },
+    {
+      "step": "step 4",
+      "events": [
+        {
+          "id": "v1~be732e13b598.1790634887607-0",
+          "event": "mutation",
+          "data": "\u003carticle itemscope itemtype=\"https://pagelove.org/Mutation\"\u003e\n  \u003cspan itemprop=\"method\"\u003ePOST\u003c/span\u003e\n  \u003cspan itemprop=\"selector\"\u003eul\u003c/span\u003e\n  \u003cspan itemprop=\"etag\"\u003e54af2d2b37b891ac0d7a9d92bfcc4ef8c75c45d0c0f0e128f6cdf885933e94f4\u003c/span\u003e\n  \u003cspan itemprop=\"path\"\u003e/_pl/sse-mutation-post-default-placement-6a9284/doc.html\u003c/span\u003e\n  \u003cspan itemprop=\"host\"\u003elive-test-host.onpagelove.com\u003c/span\u003e\n  \u003cdiv itemprop=\"body\"\u003e\u003cli\u003eNew item\u003c/li\u003e\u003c/div\u003e\n  \u003cspan itemprop=\"placement\"\u003eappend\u003c/span\u003e\n\u003c/article\u003e"
+        }
+      ]
+    }
+  ],
+  "outcome": "pass",
+  "target": "live"
+}

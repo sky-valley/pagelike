@@ -1,0 +1,700 @@
+# POST with a selector range: append (default) and placement.
+# Spec: docs/spec/reading-writing.md §10 (R-RW-70..79).
+cases:
+  - id: rw.post.append
+    title: POST with a selector appends the body as the last child and answers 206 with the new child
+    area: reading-writing
+    feature: POST selector append
+    evidence: documented
+    source: "docs reference/reading-and-writing/POST-method §Append to a list (snapshot 2026-09-28)"
+    confidence: high
+    requires: []
+    live: true
+    site:
+      settings: {default_get: allow}
+      files:
+        - path: "${P}/post-append-test.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body><ul><li>Existing item</li></ul></body></html>
+      rules:
+        - {actor: "*", resource: "${P}/*", method: [GET, HEAD, POST], action: Allow}
+    steps:
+      - name: append a list item
+        as: anonymous
+        request:
+          method: POST
+          path: "${P}/post-append-test.html"
+          headers: {Range: "selector=ul", Content-Type: "text/html"}
+          body: "<li>New item</li>"
+        expect:
+          status: 206
+          body_html: "<li>New item</li>"
+
+  - id: rw.post.append-verify
+    title: An append preserves existing children and adds the new one last
+    area: reading-writing
+    feature: POST selector append
+    evidence: documented
+    source: "docs reference/reading-and-writing/POST-method §Verify the append (snapshot 2026-09-28)"
+    confidence: high
+    requires: []
+    live: true
+    site:
+      settings: {default_get: allow}
+      files:
+        - path: "${P}/post-verify-test.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <ul>
+                <li>Existing item</li>
+              </ul>
+            </body></html>
+      rules:
+        - {actor: "*", resource: "${P}/*", method: [GET, HEAD, POST], action: Allow}
+    steps:
+      - name: append
+        as: anonymous
+        request:
+          method: POST
+          path: "${P}/post-verify-test.html"
+          headers: {Range: "selector=ul", Content-Type: "text/html"}
+          body: "<li>Appended item</li>"
+        expect: {status: 206}
+      - name: read the list
+        as: anonymous
+        request:
+          method: GET
+          path: "${P}/post-verify-test.html"
+          headers: {Range: "selector=ul"}
+        expect:
+          status: 206
+          body_html: "<ul><li>Existing item</li><li>Appended item</li></ul>"
+
+  - id: rw.post.getting-started-example
+    title: The getting-started append names the updated element in Content-Range and keeps source whitespace
+    area: reading-writing
+    feature: POST selector append
+    evidence: documented
+    source: "docs index §A minimal example (POST /getting-started-demo.html Range selector=#items; read-back output) (snapshot 2026-09-28)"
+    confidence: medium
+    requires: []
+    live: true
+    notes: "The exact read-back body reproduces the docs output byte-for-byte (the request body's trailing newline is inserted too). Content-Range spelling tolerated either way (spec §23 C-1)."
+    site:
+      settings: {default_get: allow}
+      files:
+        - path: "${P}/getting-started-demo.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <h1>My Page</h1>
+              <ul id="items">
+                <li>First item</li>
+              </ul>
+            </body></html>
+      rules:
+        - {actor: "*", resource: "${P}/*", method: [GET, HEAD, POST], action: Allow}
+    steps:
+      - name: add an item
+        as: anonymous
+        request:
+          method: POST
+          path: "${P}/getting-started-demo.html"
+          headers: {Range: "selector=#items", Content-Type: "text/html"}
+          body: |
+            <li>Second item</li>
+        expect:
+          status: 206
+          body: "<li>Second item</li>"
+          header_matches: {Content-Range: "^selector[ =]#items$"}
+      - name: read back just the list
+        as: anonymous
+        request:
+          method: GET
+          path: "${P}/getting-started-demo.html"
+          headers: {Range: "selector=#items"}
+        expect:
+          status: 206
+          body: |-
+            <ul id="items">
+                <li>First item</li>
+              <li>Second item</li>
+            </ul>
+
+  - id: rw.post.prepend
+    title: placement=prepend inserts as the first child
+    area: reading-writing
+    feature: POST placement
+    evidence: documented
+    source: "docs reference/reading-and-writing/POST-method §Placement, §Prepend a list item (snapshot 2026-09-28)"
+    confidence: high
+    requires: []
+    live: true
+    site:
+      settings: {default_get: allow}
+      files:
+        - path: "${P}/post-prepend-test.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body><ul><li>Old first item</li></ul></body></html>
+      rules:
+        - {actor: "*", resource: "${P}/*", method: [GET, HEAD, POST], action: Allow}
+    steps:
+      - name: prepend
+        as: anonymous
+        request:
+          method: POST
+          path: "${P}/post-prepend-test.html"
+          headers: {Range: "selector=ul; placement=prepend", Content-Type: "text/html"}
+          body: "<li>New first item</li>"
+        expect:
+          status: 206
+          body_html: "<li>New first item</li>"
+      - name: order
+        as: anonymous
+        request:
+          method: GET
+          path: "${P}/post-prepend-test.html"
+          headers: {Range: "selector=ul"}
+        expect:
+          status: 206
+          body_html: "<ul><li>New first item</li><li>Old first item</li></ul>"
+
+  - id: rw.post.before
+    title: placement=before inserts a previous sibling of the anchor
+    area: reading-writing
+    feature: POST placement
+    evidence: documented
+    source: "docs reference/reading-and-writing/POST-method §Insert before a specific sibling (snapshot 2026-09-28)"
+    confidence: high
+    requires: []
+    live: true
+    site:
+      settings: {default_get: allow}
+      files:
+        - path: "${P}/post-before-test.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body><ul><li id="alpha">Alpha</li><li id="beta">Beta</li></ul></body></html>
+      rules:
+        - {actor: "*", resource: "${P}/*", method: [GET, HEAD, POST], action: Allow}
+    steps:
+      - name: insert before beta
+        as: anonymous
+        request:
+          method: POST
+          path: "${P}/post-before-test.html"
+          headers: {Range: "selector=li#beta; placement=before", Content-Type: "text/html"}
+          body: "<li>Inserted before beta</li>"
+        expect:
+          status: 206
+          body_html: "<li>Inserted before beta</li>"
+      - name: order
+        as: anonymous
+        request:
+          method: GET
+          path: "${P}/post-before-test.html"
+          headers: {Range: "selector=ul"}
+        expect:
+          status: 206
+          body_html: '<ul><li id="alpha">Alpha</li><li>Inserted before beta</li><li id="beta">Beta</li></ul>'
+
+  - id: rw.post.after
+    title: placement=after inserts a next sibling of the anchor
+    area: reading-writing
+    feature: POST placement
+    evidence: documented
+    source: "docs reference/reading-and-writing/POST-method §Insert after a specific sibling (snapshot 2026-09-28)"
+    confidence: high
+    requires: []
+    live: true
+    site:
+      settings: {default_get: allow}
+      files:
+        - path: "${P}/post-after-test.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body><ul><li id="alpha">Alpha</li><li id="beta">Beta</li></ul></body></html>
+      rules:
+        - {actor: "*", resource: "${P}/*", method: [GET, HEAD, POST], action: Allow}
+    steps:
+      - name: insert after alpha
+        as: anonymous
+        request:
+          method: POST
+          path: "${P}/post-after-test.html"
+          headers: {Range: "selector=li#alpha; placement=after", Content-Type: "text/html"}
+          body: "<li>Inserted after alpha</li>"
+        expect:
+          status: 206
+          body_html: "<li>Inserted after alpha</li>"
+      - name: order
+        as: anonymous
+        request:
+          method: GET
+          path: "${P}/post-after-test.html"
+          headers: {Range: "selector=ul"}
+        expect:
+          status: 206
+          body_html: '<ul><li id="alpha">Alpha</li><li>Inserted after alpha</li><li id="beta">Beta</li></ul>'
+
+  - id: rw.post.append-explicit
+    title: placement=append behaves like the default
+    area: reading-writing
+    feature: POST placement
+    evidence: documented
+    source: "docs reference/reading-and-writing/POST-method §Placement table (append (default)) (snapshot 2026-09-28)"
+    confidence: high
+    requires: []
+    live: true
+    site:
+      settings: {default_get: allow}
+      files:
+        - path: "${P}/explicit.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body><ol><li>1</li></ol></body></html>
+      rules:
+        - {actor: "*", resource: "${P}/*", method: [GET, HEAD, POST], action: Allow}
+    steps:
+      - name: explicit append
+        as: anonymous
+        request:
+          method: POST
+          path: "${P}/explicit.html"
+          headers: {Range: "selector=ol; placement=append", Content-Type: "text/html"}
+          body: "<li>2</li>"
+        expect: {status: 206}
+      - name: order
+        as: anonymous
+        request:
+          method: GET
+          path: "${P}/explicit.html"
+          headers: {Range: "selector=ol"}
+        expect:
+          status: 206
+          body_html: "<ol><li>1</li><li>2</li></ol>"
+
+  - id: rw.post.placement-case-insensitive
+    title: Placement values are case-insensitive
+    area: reading-writing
+    feature: POST placement
+    evidence: inferred
+    source: "docs reference/reading-and-writing/MOVE-method §Placement ('accepts one of four values, case-insensitive'); POST uses the same vocabulary"
+    confidence: medium
+    requires: []
+    live: true
+    site:
+      settings: {default_get: allow}
+      files:
+        - path: "${P}/case.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body><ul><li>b</li></ul></body></html>
+      rules:
+        - {actor: "*", resource: "${P}/*", method: [GET, HEAD, POST], action: Allow}
+    steps:
+      - name: upper-case PREPEND
+        as: anonymous
+        request:
+          method: POST
+          path: "${P}/case.html"
+          headers: {Range: "selector=ul; placement=PREPEND", Content-Type: "text/html"}
+          body: "<li>a</li>"
+        expect: {status: 206}
+      - name: order
+        as: anonymous
+        request:
+          method: GET
+          path: "${P}/case.html"
+          headers: {Range: "selector=ul"}
+        expect:
+          status: 206
+          body_html: "<ul><li>a</li><li>b</li></ul>"
+
+  - id: rw.post.unknown-placement
+    title: An unknown placement value is treated as append
+    area: reading-writing
+    feature: POST placement
+    evidence: live-observed
+    source: "harness/observations/live-2026-09-28/rw-post-unknown-placement.json (placement=inside: 206, appended); docs POST-method §Placement lists four values"
+    confidence: high
+    requires: []
+    live: true
+    notes: "Supersedes spec R-RW-71 (pagelike answered 400); docs/compat/decisions.md."
+    site:
+      settings: {default_get: allow}
+      files:
+        - path: "${P}/badplace.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body><ul><li>keep</li></ul></body></html>
+      rules:
+        - {actor: "*", resource: "${P}/*", method: [GET, HEAD, POST], action: Allow}
+    steps:
+      - name: placement=inside
+        as: anonymous
+        request:
+          method: POST
+          path: "${P}/badplace.html"
+          headers: {Range: "selector=ul; placement=inside", Content-Type: "text/html"}
+          body: "<li>nope</li>"
+        expect:
+          status: 206
+          body: "<li>nope</li>"
+          headers: {Content-Range: "selector ul"}
+      - name: appended
+        as: anonymous
+        request:
+          method: GET
+          path: "${P}/badplace.html"
+          headers: {Range: "selector=ul"}
+        expect:
+          status: 206
+          body_html: "<ul><li>keep</li><li>nope</li></ul>"
+
+  - id: rw.post.parentless-anchor-400
+    title: before/after against the parentless <html> anchor is 422 with a problems item
+    area: reading-writing
+    feature: POST placement
+    evidence: live-observed
+    source: "harness/observations/live-2026-09-28/rw-post-parentless-anchor-400.json (422, https://pagelove.org/Error problems item); docs reference/reading-and-writing/POST-method §Placement (snapshot 2026-09-28) claims 400"
+    confidence: high
+    requires: []
+    live: true
+    notes: "The id keeps its original name; the documented 400 is superseded (docs/compat/decisions.md)."
+    site:
+      settings: {default_get: allow}
+      files:
+        - path: "${P}/root.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body><p>root test</p></body></html>
+      rules:
+        - {actor: "*", resource: "${P}/*", method: [GET, HEAD, POST], action: Allow}
+    steps:
+      - name: before html
+        as: anonymous
+        request:
+          method: POST
+          path: "${P}/root.html"
+          headers: {Range: "selector=html; placement=before", Content-Type: "text/html"}
+          body: "<p>outside before</p>"
+        expect:
+          status: 422
+          header_matches: {Content-Type: "^text/html$"}
+          headers: {Vary: "Host, Range"}
+          body: '<div itemscope itemtype="https://pagelove.org/Error"><ul itemprop="problems"><li itemprop="problem"><span itemprop="message">placement=Before relative to the document root is not possible: the root has no siblings</span></li></ul></div>'
+      - name: after html
+        as: anonymous
+        request:
+          method: POST
+          path: "${P}/root.html"
+          headers: {Range: "selector=html; placement=after", Content-Type: "text/html"}
+          body: "<p>outside after</p>"
+        expect:
+          status: 422
+          body: '<div itemscope itemtype="https://pagelove.org/Error"><ul itemprop="problems"><li itemprop="problem"><span itemprop="message">placement=After relative to the document root is not possible: the root has no siblings</span></li></ul></div>'
+      - name: nothing was written
+        as: anonymous
+        request: {method: GET, path: "${P}/root.html"}
+        expect:
+          status: 200
+          body_not_contains: ["outside before", "outside after"]
+
+  - id: rw.post.absent-anchor-append-416
+    title: An append whose selector matches nothing is 416
+    area: reading-writing
+    feature: POST selector append
+    evidence: documented
+    source: "docs reference/reading-and-writing/POST-method §Error cases, 'Absence and denial are distinct' note (snapshot 2026-09-28)"
+    confidence: high
+    requires: []
+    live: true
+    site:
+      settings: {default_get: allow}
+      files:
+        - path: "${P}/absent.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body><ul id="list"><li>x</li></ul></body></html>
+      rules:
+        - {actor: "*", resource: "${P}/*", method: [GET, HEAD, POST], action: Allow}
+    steps:
+      - name: append to a missing element
+        as: anonymous
+        request:
+          method: POST
+          path: "${P}/absent.html"
+          headers: {Range: "selector=#nope", Content-Type: "text/html"}
+          body: "<li>y</li>"
+        expect: {status: 416}
+      - name: prepend to a missing element
+        as: anonymous
+        request:
+          method: POST
+          path: "${P}/absent.html"
+          headers: {Range: "selector=#nope; placement=prepend", Content-Type: "text/html"}
+          body: "<li>y</li>"
+        expect: {status: 416}
+
+  - id: rw.post.absent-anchor-before-refused
+    title: before/after with an absent anchor on a readable page is 416, like append
+    area: reading-writing
+    feature: Absence vs denial
+    evidence: live-observed
+    source: "harness/observations/live-2026-09-28/rw-post-absent-anchor-before-refused.json (416 selector-no-match for before and after); docs reference/reading-and-writing/POST-method 'Absence and denial are distinct' (snapshot 2026-09-28) claims a refusal"
+    confidence: high
+    requires: []
+    live: true
+    notes: >-
+      The id keeps its original name; the documented refusal is superseded for readers of the page
+      (docs/compat/decisions.md). Absence stays hidden from those who may not read the page (R-RW-127).
+    site:
+      settings: {default_get: allow}
+      files:
+        - path: "${P}/absent2.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body><ul id="list"><li>x</li></ul></body></html>
+      rules:
+        - {actor: "*", resource: "${P}/*", method: [GET, HEAD, POST], action: Allow}
+    steps:
+      - name: before a missing anchor
+        as: anonymous
+        request:
+          method: POST
+          path: "${P}/absent2.html"
+          headers: {Range: "selector=#nope; placement=before", Content-Type: "text/html"}
+          body: "<li>y</li>"
+        expect:
+          status: 416
+          header_matches: {Content-Type: "^text/html$"}
+          headers: {Vary: "Host, Range"}
+          body: |
+            <!DOCTYPE html>
+            <html><body><div itemscope itemtype="http://pagelove.org/Error"><span itemprop="statusCode">416</span><span itemprop="message"><div itemscope itemtype="https://dombase.pagelove.team/ns/error/selector-no-match"><ul itemprop="problems"><li itemprop="problem"><span itemprop="message">selector "#nope": selector matched no elements at the request path or any origin</span></li></ul></div></span></div></body></html>
+      - name: after a missing anchor
+        as: anonymous
+        request:
+          method: POST
+          path: "${P}/absent2.html"
+          headers: {Range: "selector=#nope; placement=after", Content-Type: "text/html"}
+          body: "<li>y</li>"
+        expect:
+          status: 416
+          body_contains: ["https://dombase.pagelove.team/ns/error/selector-no-match"]
+
+  - id: rw.post.missing-document-404
+    title: A selector POST to a missing document is 404
+    area: reading-writing
+    feature: POST selector append
+    evidence: documented
+    source: "docs reference/reading-and-writing/POST-method §Error cases (snapshot 2026-09-28)"
+    confidence: high
+    requires: []
+    live: true
+    site:
+      settings: {default_get: allow}
+      rules:
+        - {actor: "*", resource: "${P}/*", method: [GET, HEAD, POST], action: Allow}
+    steps:
+      - name: POST to a missing path
+        as: anonymous
+        request:
+          method: POST
+          path: "${P}/missing.html"
+          headers: {Range: "selector=ul", Content-Type: "text/html"}
+          body: "<li>x</li>"
+        expect: {status: 404}
+
+  - id: rw.post.table-row-context
+    title: A <tr> body appended to a <tbody> is parsed in table context (polls vote)
+    area: reading-writing
+    feature: Fragment parsing context
+    evidence: demo-source
+    source: "pagelove-polls/site/assets/poll.js@c9270e5:56-63,109-118 (POST <tr> with Range selector=#responses, a <tbody>)"
+    confidence: high
+    requires: []
+    live: true
+    site:
+      settings: {default_get: allow}
+      files:
+        - path: "${P}/poll.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body><table id="grid"><tbody id="responses"></tbody><tbody id="entry"><tr><td>form</td></tr></tbody></table></body></html>
+      rules:
+        - {actor: "*", resource: "${P}/*", method: [GET, HEAD, POST], action: Allow}
+    steps:
+      - name: vote
+        as: anonymous
+        request:
+          method: POST
+          path: "${P}/poll.html"
+          headers: {Range: "selector=#responses", Content-Type: "text/html"}
+          body: '<tr id="r-abc12345" itemscope itemtype="https://pagelove.org/PollResponse"><th scope="row" itemprop="name">Ann</th><td itemprop="vote" data-option="o1" data-vote="yes">yes</td></tr>'
+        expect:
+          status: 206
+          body_contains: ['<tr id="r-abc12345"', '<th scope="row" itemprop="name">Ann</th>']
+      - name: the row is inside the responses tbody
+        as: anonymous
+        request:
+          method: GET
+          path: "${P}/poll.html"
+          headers: {Range: "selector=#responses > tr#r-abc12345 > td"}
+        expect:
+          status: 206
+          body_contains: ['data-vote="yes"']
+
+  - id: rw.post.concurrent-appends-accumulate
+    title: Concurrent appends to the same element both land
+    area: reading-writing
+    feature: POST concurrency
+    evidence: documented
+    source: "docs reference/reading-and-writing/POST-method §Concurrency (snapshot 2026-09-28)"
+    confidence: high
+    requires: []
+    live: true
+    site:
+      settings: {default_get: allow}
+      files:
+        - path: "${P}/race.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body><ul id="log"></ul></body></html>
+      rules:
+        - {actor: "*", resource: "${P}/*", method: [GET, HEAD, POST], action: Allow}
+    steps:
+      - parallel:
+          - as: anonymous
+            request:
+              method: POST
+              path: "${P}/race.html"
+              headers: {Range: "selector=#log", Content-Type: "text/html"}
+              body: "<li>from client A</li>"
+            expect: {status: 206}
+          - as: anonymous
+            request:
+              method: POST
+              path: "${P}/race.html"
+              headers: {Range: "selector=#log", Content-Type: "text/html"}
+              body: "<li>from client B</li>"
+            expect: {status: 206}
+      - name: both appends present
+        as: anonymous
+        request:
+          method: GET
+          path: "${P}/race.html"
+          headers: {Range: "selector=#log"}
+        expect:
+          status: 206
+          body_contains: ["from client A", "from client B"]
+
+  - id: rw.post.first-match-only
+    title: A selector POST matching several elements appends to the first only
+    area: reading-writing
+    feature: POST selector append
+    evidence: documented
+    source: "docs reference/permissions/AuthorizationRule §Selectors that match several elements (snapshot 2026-09-28)"
+    confidence: high
+    requires: []
+    live: true
+    site:
+      settings: {default_get: allow}
+      files:
+        - path: "${P}/two-lists.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body><ul id="a"><li>a1</li></ul><ul id="b"><li>b1</li></ul></body></html>
+      rules:
+        - {actor: "*", resource: "${P}/*", method: [GET, HEAD, POST], action: Allow}
+    steps:
+      - name: append to ul
+        as: anonymous
+        request:
+          method: POST
+          path: "${P}/two-lists.html"
+          headers: {Range: "selector=ul", Content-Type: "text/html"}
+          body: "<li>added</li>"
+        expect: {status: 206}
+      - name: first list got it
+        as: anonymous
+        request:
+          method: GET
+          path: "${P}/two-lists.html"
+          headers: {Range: "selector=#a"}
+        expect:
+          status: 206
+          body_html: '<ul id="a"><li>a1</li><li>added</li></ul>'
+      - name: second list untouched
+        as: anonymous
+        request:
+          method: GET
+          path: "${P}/two-lists.html"
+          headers: {Range: "selector=#b"}
+        expect:
+          status: 206
+          body_html: '<ul id="b"><li>b1</li></ul>'
+
+  - id: rw.post.etag-is-anchor-tag
+    title: The POST ETag is the inserted child's tag, not the anchor's, with no Content-Location
+    area: reading-writing
+    feature: POST response headers
+    evidence: live-observed
+    source: "harness/observations/live-2026-09-28/rw-post-etag-is-anchor-tag.json (ETag = sha256('<li>two</li>') twice and the document version 2; the anchor's tag differs); beta-js/pagelove/primitives.mjs@c204746:355-396"
+    confidence: high
+    requires: []
+    live: true
+    notes: >-
+      The id keeps its original name. Q-4 settled: without Content-Location PageLove still tags
+      the POST answer as the child ("<sha256 of the fragment>-<same>-<document version>"), so
+      R-RW-73 (the anchor's tag, per beta-js) is superseded (docs/compat/decisions.md). The
+      literal tag below is byte-for-byte PageLove's.
+    site:
+      settings: {default_get: allow}
+      files:
+        - path: "${P}/anchor.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body><ul id="anchor"><li>one</li></ul></body></html>
+      rules:
+        - {actor: "*", resource: "${P}/*", method: [GET, HEAD, POST], action: Allow}
+    steps:
+      - name: append
+        as: anonymous
+        request:
+          method: POST
+          path: "${P}/anchor.html"
+          headers: {Range: "selector=#anchor", Content-Type: "text/html;charset=UTF-8"}
+          body: "<li>two</li>"
+        expect:
+          status: 206
+          headers:
+            ETag: '"6de25f78336cb76acda5abdabd9849c8b091de4f14d8075637c260310542c97b-6de25f78336cb76acda5abdabd9849c8b091de4f14d8075637c260310542c97b-2"'
+            Vary: "Host, Range"
+          headers_present: [Last-Modified]
+          headers_absent: [Content-Location]
+        capture: {post_etag: header.ETag}
+      - name: the new child's tag equals the POST tag
+        as: anonymous
+        request:
+          method: HEAD
+          path: "${P}/anchor.html"
+          headers: {Range: "selector=#anchor > li:last-child"}
+        expect:
+          status: 206
+          etag_equals: "${post_etag}"
+      - name: the anchor's tag is different
+        as: anonymous
+        request:
+          method: HEAD
+          path: "${P}/anchor.html"
+          headers: {Range: "selector=#anchor"}
+        expect:
+          status: 206
+          etag_differs: "${post_etag}"
+          headers:
+            ETag: '"43a59daefa9db2b5b4943d173921bc73580ccdbcd66263d500b5c49e75b676ca-43a59daefa9db2b5b4943d173921bc73580ccdbcd66263d500b5c49e75b676ca-2"'

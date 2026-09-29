@@ -1,0 +1,28 @@
+{
+  "case": "protocol.options.flat-document-level",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (Allow contains GET and OPTIONS)",
+      "method": "OPTIONS",
+      "path": "/_pl/protocol-options-flat-document-level-d67558/doc.html",
+      "status": 200,
+      "headers": {
+        "allow": "GET, HEAD, OPTIONS",
+        "vary": "Authorization, Accept"
+      }
+    },
+    {
+      "step": "step 2 (Allow contains no write methods and no literal star)",
+      "method": "OPTIONS",
+      "path": "/_pl/protocol-options-flat-document-level-d67558/doc.html",
+      "status": 200,
+      "headers": {
+        "allow": "GET, HEAD, OPTIONS",
+        "vary": "Authorization, Accept"
+      }
+    }
+  ],
+  "outcome": "pass",
+  "target": "live"
+}

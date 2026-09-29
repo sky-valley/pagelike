@@ -1,0 +1,611 @@
+# SSE: the mutation event and its Microdata article, per write method.
+# Spec: docs/spec/sse.md R-SSE-7..17.
+# data_microdata reads the first item in the payload; `null` = property absent,
+# "" = present and empty. Writers are anonymous (no cookie jar), so they are
+# never in the subscriber's session and nothing is echo-suppressed.
+cases:
+  - id: sse.mutation.doc-live-roundtrip
+    title: "Documented live example: subscribe, PUT h1, receive a mutation mentioning PUT and the new text"
+    area: sse
+    feature: mutation event
+    evidence: documented
+    source: "docs reference/reading-and-writing/Server-Sent-Events §Live example (snapshot 2026-09-28)"
+    confidence: high
+    requires: []
+    live: true
+    notes: "Mirrors the docs' own round-trip test (its SUBSCRIBE line is GET + Accept: text/event-stream)."
+    site:
+      files:
+        - path: "${P}/sse-roundtrip-test.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body><h1>Original</h1><p>Content here.</p></body></html>
+      rules:
+        - {actor: "*", resource: "${P}/*", method: [GET, PUT], action: Allow}
+    steps:
+      - sse_open: {name: s1, path: "${P}/sse-roundtrip-test.html", as: anonymous}
+      - sse_expect: {name: s1, event: pagelove-connection, within_ms: 3000}
+      - name: replace the heading
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/sse-roundtrip-test.html"
+          headers: {Range: "selector=h1", Content-Type: "text/html"}
+          body: "<h1>Updated</h1>"
+        expect: {status: 206}
+      - sse_expect:
+          name: s1
+          event: mutation
+          within_ms: 3000
+          data_contains: ['itemprop="method"', "PUT", "Updated"]
+      - sse_close: {name: s1}
+
+  - id: sse.mutation.put-properties
+    title: A selector PUT produces a Mutation article with method, request selector, etag, path, host and body, and no placement
+    area: sse
+    feature: mutation event fields (PUT)
+    evidence: documented
+    source: "docs reference/reading-and-writing/Server-Sent-Events §Mutation events, §Mutation event fields (snapshot 2026-09-28)"
+    confidence: high
+    requires: []
+    live: true
+    notes: "R-SSE-8..14. ETag and host literals are not compared; only presence is asserted."
+    site:
+      files:
+        - path: "${P}/doc.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body><h1>Original</h1><p>Content here.</p></body></html>
+      rules:
+        - {actor: "*", resource: "${P}/*", method: [GET, PUT], action: Allow}
+    steps:
+      - sse_open: {name: s1, path: "${P}/doc.html", as: anonymous}
+      - sse_expect: {name: s1, event: pagelove-connection, within_ms: 3000}
+      - name: replace the heading
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/doc.html"
+          headers: {Range: "selector=h1", Content-Type: "text/html"}
+          body: "<h1>Updated</h1>"
+        expect: {status: 206}
+      - sse_expect:
+          name: s1
+          event: mutation
+          within_ms: 3000
+          data_microdata: {method: PUT, selector: h1, path: "${P}/doc.html", placement: null, destination: null}
+          data_contains:
+            - 'itemtype="https://pagelove.org/Mutation"'
+            - 'itemprop="etag"'
+            - 'itemprop="host"'
+            - '<div itemprop="body">'
+            - "<h1>Updated</h1>"
+      - sse_close: {name: s1}
+
+  - id: sse.mutation.id-format
+    title: Mutation events carry a server-assigned id shaped v1~<12 hex>.<milliseconds>-<counter>
+    area: sse
+    feature: event ids
+    evidence: live-observed
+    source: "harness/observations/live-2026-09-28/sse-mutation-put-properties.json and sse-replay-last-event-id.json (ids such as v1~ad7e4f97b66d.1790634867705-0; the hex part is per document); docs reference/reading-and-writing/Server-Sent-Events §Mutation events (example id 1709942400000-0) (snapshot 2026-09-28)"
+    confidence: high
+    requires: []
+    live: true
+    notes: "R-SSE-29 as reconciled with the live run: the documented <ms>-<n> example is the tail of the id (docs/compat/decisions.md). id_matches is applied to the raw id."
+    site:
+      files:
+        - path: "${P}/doc.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body><h1>Original</h1></body></html>
+      rules:
+        - {actor: "*", resource: "${P}/*", method: [GET, PUT], action: Allow}
+    steps:
+      - sse_open: {name: s1, path: "${P}/doc.html", as: anonymous}
+      - sse_expect: {name: s1, event: pagelove-connection, within_ms: 3000}
+      - name: write
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/doc.html"
+          headers: {Range: "selector=h1", Content-Type: "text/html"}
+          body: "<h1>With id</h1>"
+        expect: {status: 206}
+      - sse_expect:
+          name: s1
+          event: mutation
+          within_ms: 3000
+          id_matches: '^v1~[0-9a-f]{12}\.[0-9]+-[0-9]+$'
+      - sse_close: {name: s1}
+
+  - id: sse.mutation.put-etag-matches-response
+    title: The event etag is the document's new tag, unquoted (not the element tag of the write response)
+    area: sse
+    feature: mutation event fields (etag)
+    evidence: live-observed
+    source: "harness/observations/live-2026-09-28/sse-mutation-put-etag-matches-response.json, sse-mutation-delete.json and sse-mutation-whole-document-put.json (the event etag is a bare hash, equal to the document tag a DELETE or whole PUT answers); beta-js/pagelove/sse.mjs@c204746:247-249; docs/spec/sse.md R-SSE-13"
+    confidence: medium
+    requires: []
+    live: true
+    notes: >-
+      The id keeps its original name. Probe Q4 settled against R-SSE-13: the event carries the
+      document's tag without quotes (C6's unquoted placeholder was right), so it never equals the
+      element tag of a selector write's response (docs/compat/decisions.md).
+    site:
+      files:
+        - path: "${P}/doc.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body><h1>Original</h1></body></html>
+      rules:
+        - {actor: "*", resource: "${P}/*", method: [GET, PUT], action: Allow}
+    steps:
+      - sse_open: {name: s1, path: "${P}/doc.html", as: anonymous}
+      - sse_expect: {name: s1, event: pagelove-connection, within_ms: 3000}
+      - name: write and keep the response ETag
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/doc.html"
+          headers: {Range: "selector=h1", Content-Type: "text/html"}
+          body: "<h1>Tagged</h1>"
+        expect: {status: 206, headers_present: [ETag]}
+        capture: {put_etag: header.ETag}
+      - name: the document's new tag
+        as: anonymous
+        request: {method: HEAD, path: "${P}/doc.html"}
+        expect: {status: 200}
+        capture: {doc_etag: "header.ETag|unquote"}
+      - sse_expect:
+          name: s1
+          event: mutation
+          within_ms: 3000
+          data_microdata: {etag: "${doc_etag}"}
+          data_not_contains: ["${put_etag}"]
+      - sse_close: {name: s1}
+
+  - id: sse.mutation.selector-verbatim
+    title: The event selector is the request's Range selector verbatim, not a canonical path
+    area: sse
+    feature: mutation event fields (selector)
+    evidence: client-source
+    source: "beta-js/pagelove/sse.mjs@c204746:166-172 (echo matching compares event selector with the request Range value); beta-js/pagelove/primitives.mjs@c204746:286-287"
+    confidence: medium
+    requires: []
+    live: true
+    notes: "R-SSE-10. Probe Q3 covers whitespace normalization."
+    site:
+      files:
+        - path: "${P}/doc.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body><main><h1>Hello</h1><p>Text</p></main></body></html>
+      rules:
+        - {actor: "*", resource: "${P}/*", method: [GET, PUT], action: Allow}
+    steps:
+      - sse_open: {name: s1, path: "${P}/doc.html", as: anonymous}
+      - sse_expect: {name: s1, event: pagelove-connection, within_ms: 3000}
+      - name: write with a child combinator selector
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/doc.html"
+          headers: {Range: "selector=main > h1", Content-Type: "text/html"}
+          body: "<h1>Hello again</h1>"
+        expect: {status: 206}
+      - sse_expect:
+          name: s1
+          event: mutation
+          within_ms: 3000
+          data_microdata: {method: PUT, selector: "main > h1"}
+      - sse_close: {name: s1}
+
+  - id: sse.mutation.multi-match-selector
+    title: A multi-match selector is reported as sent and the write lands on the first match
+    area: sse
+    feature: mutation event fields (selector)
+    evidence: inferred
+    source: "docs reference/permissions/AuthorizationRule §Selectors that match several elements (writes change only the first match); docs/spec/sse.md R-SSE-10"
+    confidence: medium
+    requires: []
+    live: true
+    notes: "Subscribers resolve the same selector to their own first match, so the verbatim selector stays correct."
+    site:
+      files:
+        - path: "${P}/doc.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body><ul><li>first</li><li>second</li></ul></body></html>
+      rules:
+        - {actor: "*", resource: "${P}/*", method: [GET, PUT], action: Allow}
+    steps:
+      - sse_open: {name: s1, path: "${P}/doc.html", as: anonymous}
+      - sse_expect: {name: s1, event: pagelove-connection, within_ms: 3000}
+      - name: replace the first li
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/doc.html"
+          headers: {Range: "selector=li", Content-Type: "text/html"}
+          body: "<li>FIRST</li>"
+        expect: {status: 206}
+      - sse_expect:
+          name: s1
+          event: mutation
+          within_ms: 3000
+          data_microdata: {method: PUT, selector: li}
+          data_contains: ["<li>FIRST</li>"]
+      - name: document shows only the first match replaced
+        as: anonymous
+        request: {method: GET, path: "${P}/doc.html"}
+        expect: {status: 200, body_contains: ["<li>FIRST</li><li>second</li>"]}
+      - sse_close: {name: s1}
+
+  - id: sse.mutation.post-default-placement
+    title: A POST without placement reports an explicit placement of append and carries the inserted markup
+    area: sse
+    feature: mutation event fields (POST placement)
+    evidence: documented
+    source: "docs reference/reading-and-writing/Server-Sent-Events §Applying a POST event (snapshot 2026-09-28); docs reference/reading-and-writing/POST-method §Append to a list"
+    confidence: high
+    requires: []
+    live: true
+    notes: "R-SSE-14, R-SSE-15."
+    site:
+      files:
+        - path: "${P}/doc.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body><ul><li>Existing item</li></ul></body></html>
+      rules:
+        - {actor: "*", resource: "${P}/*", method: [GET, POST], action: Allow}
+    steps:
+      - sse_open: {name: s1, path: "${P}/doc.html", as: anonymous}
+      - sse_expect: {name: s1, event: pagelove-connection, within_ms: 3000}
+      - name: append an item
+        as: anonymous
+        request:
+          method: POST
+          path: "${P}/doc.html"
+          headers: {Range: "selector=ul", Content-Type: "text/html"}
+          body: "<li>New item</li>"
+        expect: {status: 206, body_contains: ["<li>New item</li>"]}
+      - sse_expect:
+          name: s1
+          event: mutation
+          within_ms: 3000
+          data_microdata: {method: POST, selector: ul, placement: append, path: "${P}/doc.html"}
+          data_contains: ["<li>New item</li>"]
+      - sse_close: {name: s1}
+
+  - id: sse.mutation.post-placements
+    title: POST events report prepend, before and after, with the anchor as selector
+    area: sse
+    feature: mutation event fields (POST placement)
+    evidence: documented
+    source: "docs reference/reading-and-writing/Server-Sent-Events §Mutation event fields, §Applying a POST event; docs reference/reading-and-writing/POST-method §Placement (snapshot 2026-09-28)"
+    confidence: high
+    requires: []
+    live: true
+    notes: "R-SSE-10, R-SSE-15. Events are expected in write order."
+    site:
+      files:
+        - path: "${P}/doc.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body><ul><li id="alpha">Alpha</li><li id="beta">Beta</li></ul></body></html>
+      rules:
+        - {actor: "*", resource: "${P}/*", method: [GET, POST], action: Allow}
+    steps:
+      - sse_open: {name: s1, path: "${P}/doc.html", as: anonymous}
+      - sse_expect: {name: s1, event: pagelove-connection, within_ms: 3000}
+      - name: prepend into the list
+        as: anonymous
+        request:
+          method: POST
+          path: "${P}/doc.html"
+          headers: {Range: "selector=ul; placement=prepend", Content-Type: "text/html"}
+          body: "<li>New first item</li>"
+        expect: {status: 206}
+      - sse_expect:
+          name: s1
+          event: mutation
+          next: true
+          within_ms: 3000
+          data_microdata: {method: POST, selector: ul, placement: prepend}
+          data_contains: ["<li>New first item</li>"]
+      - name: insert before beta
+        as: anonymous
+        request:
+          method: POST
+          path: "${P}/doc.html"
+          headers: {Range: "selector=li#beta; placement=before", Content-Type: "text/html"}
+          body: "<li>Inserted before beta</li>"
+        expect: {status: 206}
+      - sse_expect:
+          name: s1
+          event: mutation
+          next: true
+          within_ms: 3000
+          data_microdata: {method: POST, selector: "li#beta", placement: before}
+          data_contains: ["<li>Inserted before beta</li>"]
+      - name: insert after alpha
+        as: anonymous
+        request:
+          method: POST
+          path: "${P}/doc.html"
+          headers: {Range: "selector=li#alpha; placement=after", Content-Type: "text/html"}
+          body: "<li>Inserted after alpha</li>"
+        expect: {status: 206}
+      - sse_expect:
+          name: s1
+          event: mutation
+          next: true
+          within_ms: 3000
+          data_microdata: {method: POST, selector: "li#alpha", placement: after}
+          data_contains: ["<li>Inserted after alpha</li>"]
+      - sse_close: {name: s1}
+
+  - id: sse.mutation.delete
+    title: A selector DELETE produces a DELETE event with the request selector, an empty body and no placement
+    area: sse
+    feature: mutation event fields (DELETE)
+    evidence: documented
+    source: "docs reference/reading-and-writing/Server-Sent-Events §Mutation event fields — body 'empty for DELETE' (snapshot 2026-09-28); docs reference/reading-and-writing/DELETE-method §Remove an element"
+    confidence: medium
+    requires: []
+    live: true
+    notes: "R-SSE-14. 'Empty' is read as a present, empty body element (body: \"\"); an omitted body would also satisfy the beta-js parser."
+    site:
+      files:
+        - path: "${P}/doc.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <h1>Title</h1>
+              <p>Keep this paragraph.</p>
+              <p>Remove this paragraph.</p>
+            </body></html>
+      rules:
+        - {actor: "*", resource: "${P}/*", method: [GET, DELETE], action: Allow}
+    steps:
+      - sse_open: {name: s1, path: "${P}/doc.html", as: anonymous}
+      - sse_expect: {name: s1, event: pagelove-connection, within_ms: 3000}
+      - name: remove the last paragraph
+        as: anonymous
+        request:
+          method: DELETE
+          path: "${P}/doc.html"
+          headers: {Range: "selector=p:last-child"}
+        expect: {status: 204}
+      - sse_expect:
+          name: s1
+          event: mutation
+          within_ms: 3000
+          data_microdata: {method: DELETE, selector: "p:last-child", placement: null, body: ""}
+          data_not_contains: ["Remove this paragraph"]
+      - sse_close: {name: s1}
+
+  - id: sse.mutation.move-append
+    title: An element MOVE produces one MOVE event with source selector, destination selector and placement
+    area: sse
+    feature: mutation event fields (MOVE)
+    evidence: client-source
+    source: "beta-js/pagelove/sse.mjs@c204746:132-133,220-239; docs reference/reading-and-writing/Server-Sent-Events §Mutation event fields (placement row mentions MOVE)"
+    confidence: medium
+    requires: []
+    live: true
+    notes: "R-SSE-9, R-SSE-15, R-SSE-16. `destination` is not in the HTTP reference (contradiction C2). MOVE needs MOVE on the document plus DELETE/POST element grants; one unscoped rule covers all three checks."
+    site:
+      files:
+        - path: "${P}/board.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <section id="lane-todo"><div class="card" id="card-3">Card 3</div></section>
+              <section id="lane-done"><div class="card" id="card-1">Card 1</div></section>
+            </body></html>
+      rules:
+        - {actor: "*", resource: "${P}/*", method: [GET, POST, DELETE, MOVE], action: Allow}
+    steps:
+      - sse_open: {name: s1, path: "${P}/board.html", as: anonymous}
+      - sse_expect: {name: s1, event: pagelove-connection, within_ms: 3000}
+      - name: move card 3 to the end of the done lane
+        as: anonymous
+        request:
+          method: MOVE
+          path: "${P}/board.html"
+          headers:
+            Range: "selector=#card-3"
+            Destination: "${P}/board.html"
+            Destination-Range: "selector=#lane-done; placement=append"
+        expect: {status: 204}
+      - sse_expect:
+          name: s1
+          event: mutation
+          within_ms: 3000
+          data_microdata: {method: MOVE, selector: "#card-3", destination: "#lane-done", placement: append, path: "${P}/board.html"}
+      - sse_expect_none: {name: s1, event: mutation, for_ms: 1500}
+      - sse_close: {name: s1}
+
+  - id: sse.mutation.move-before
+    title: A MOVE with placement=before reports placement before and the anchor as destination
+    area: sse
+    feature: mutation event fields (MOVE)
+    evidence: client-source
+    source: "beta-js/pagelove/sse.mjs@c204746:223-228; docs reference/reading-and-writing/MOVE-method §Move a sibling before another (snapshot 2026-09-28)"
+    confidence: medium
+    requires: []
+    live: true
+    notes: "R-SSE-15, R-SSE-16."
+    site:
+      files:
+        - path: "${P}/list.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body><ul><li id="item-a">A</li><li id="item-b">B</li><li id="item-c">C</li></ul></body></html>
+      rules:
+        - {actor: "*", resource: "${P}/*", method: [GET, POST, DELETE, MOVE], action: Allow}
+    steps:
+      - sse_open: {name: s1, path: "${P}/list.html", as: anonymous}
+      - sse_expect: {name: s1, event: pagelove-connection, within_ms: 3000}
+      - name: move item c before item a
+        as: anonymous
+        request:
+          method: MOVE
+          path: "${P}/list.html"
+          headers:
+            Range: "selector=#item-c"
+            Destination: "${P}/list.html"
+            Destination-Range: "selector=#item-a; placement=before"
+        expect: {status: 204}
+      - sse_expect:
+          name: s1
+          event: mutation
+          within_ms: 3000
+          data_microdata: {method: MOVE, selector: "#item-c", destination: "#item-a", placement: before}
+      - sse_close: {name: s1}
+
+  - id: sse.mutation.table-row-body
+    title: A POSTed table row is carried raw inside the literal body div, which is the last div in the payload
+    area: sse
+    feature: mutation article serialization
+    evidence: demo-source
+    source: "pagelove-polls/site/assets/poll.js@c9270e5:207-218 (slices the body between '<div itemprop=\"body\">' and the last '</div>')"
+    confidence: medium
+    requires: []
+    live: true
+    notes: "R-SSE-8. The regexp requires that only span properties follow the body before </article>."
+    site:
+      files:
+        - path: "${P}/poll.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body><table id="grid"><tbody id="responses"></tbody></table></body></html>
+      rules:
+        - {actor: "*", resource: "${P}/*", method: [GET, POST], action: Allow}
+    steps:
+      - sse_open: {name: s1, path: "${P}/poll.html", as: anonymous}
+      - sse_expect: {name: s1, event: pagelove-connection, within_ms: 3000}
+      - name: vote by appending a row
+        as: anonymous
+        request:
+          method: POST
+          path: "${P}/poll.html"
+          headers: {Range: "selector=#responses", Content-Type: "text/html"}
+          body: '<tr id="r-abc12345"><th scope="row">Ann</th><td data-option="o1">yes</td></tr>'
+        expect: {status: 206}
+      - sse_expect:
+          name: s1
+          event: mutation
+          within_ms: 3000
+          data_microdata: {method: POST, selector: "#responses", placement: append}
+          data_contains: ['<div itemprop="body">', '<tr id="r-abc12345">', "Ann"]
+          data_matches: '(?s)</tr>\s*</div>(\s*<span itemprop="[a-z]+">[^<]*</span>)*\s*</article>\s*$'
+      - sse_close: {name: s1}
+
+  - id: sse.mutation.multiline-body
+    title: A body containing a newline is split across data lines and rejoined intact
+    area: sse
+    feature: mutation event framing
+    evidence: inferred
+    source: "docs/spec/sse.md R-SSE-7 (SSE data lines cannot contain line breaks; the doc example already spans several data lines)"
+    confidence: high
+    requires: []
+    live: true
+    notes: "The runner joins data lines with LF, as EventSource does."
+    site:
+      files:
+        - path: "${P}/doc.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body><ul><li>Existing</li></ul></body></html>
+      rules:
+        - {actor: "*", resource: "${P}/*", method: [GET, POST], action: Allow}
+    steps:
+      - sse_open: {name: s1, path: "${P}/doc.html", as: anonymous}
+      - sse_expect: {name: s1, event: pagelove-connection, within_ms: 3000}
+      - name: append a two-line item
+        as: anonymous
+        request:
+          method: POST
+          path: "${P}/doc.html"
+          headers: {Range: "selector=ul", Content-Type: "text/html"}
+          body: "<li>line one\nline two</li>"
+        expect: {status: 206}
+      - sse_expect:
+          name: s1
+          event: mutation
+          within_ms: 3000
+          data_contains: ["line one\nline two"]
+      - sse_close: {name: s1}
+
+  - id: sse.mutation.whole-document-put
+    title: "Probe: a whole-document PUT on a subscribed path emits a PUT mutation event"
+    area: sse
+    feature: whole-document write events
+    evidence: inferred
+    source: "docs/spec/sse.md R-SSE-17 (no source documents whole-document events)"
+    confidence: low
+    requires: []
+    live: true
+    notes: "Probe Q7. pagelike's recommendation additionally sends an empty selector and empty body, no placement; only method and path are asserted until PageLove is observed."
+    site:
+      files:
+        - path: "${P}/doc.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body><h1>Version 1</h1></body></html>
+      rules:
+        - {actor: "*", resource: "${P}/*", method: [GET, PUT], action: Allow}
+    steps:
+      - sse_open: {name: s1, path: "${P}/doc.html", as: anonymous}
+      - sse_expect: {name: s1, event: pagelove-connection, within_ms: 3000}
+      - name: replace the whole document
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/doc.html"
+          headers: {Content-Type: "text/html"}
+          body: |
+            <!DOCTYPE html>
+            <html><body><h1>Version 2</h1></body></html>
+        expect: {status: [200, 201, 204]}
+      - sse_expect:
+          name: s1
+          event: mutation
+          within_ms: 3000
+          data_microdata: {method: PUT, path: "${P}/doc.html", placement: null}
+      - sse_close: {name: s1}
+
+  - id: sse.mutation.whole-document-delete
+    title: "Probe: deleting a subscribed document emits a DELETE mutation event"
+    area: sse
+    feature: whole-document write events
+    evidence: inferred
+    source: "docs/spec/sse.md R-SSE-17"
+    confidence: low
+    requires: []
+    live: true
+    notes: "Probe Q7. Recommended shape: selector \"\" and body \"\"."
+    site:
+      files:
+        - path: "${P}/doc.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body><h1>Doomed</h1></body></html>
+      rules:
+        - {actor: "*", resource: "${P}/*", method: [GET, DELETE], action: Allow}
+    steps:
+      - sse_open: {name: s1, path: "${P}/doc.html", as: anonymous}
+      - sse_expect: {name: s1, event: pagelove-connection, within_ms: 3000}
+      - name: delete the whole document
+        as: anonymous
+        request: {method: DELETE, path: "${P}/doc.html"}
+        expect: {status: 204}
+      - sse_expect:
+          name: s1
+          event: mutation
+          within_ms: 3000
+          data_microdata: {method: DELETE, path: "${P}/doc.html", placement: null}
+      - sse_close: {name: s1}

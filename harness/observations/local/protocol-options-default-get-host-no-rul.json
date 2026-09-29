@@ -1,0 +1,33 @@
+{
+  "case": "protocol.options.default-get-host-no-rules",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (flat 200)",
+      "method": "OPTIONS",
+      "path": "/_pl/protocol-options-default-get-host-no-rul-29fa7a/doc.html",
+      "status": 200,
+      "headers": {
+        "accept-query": "text/css-selector, text/sessel",
+        "accept-ranges": "selector",
+        "allow": "GET, HEAD, OPTIONS",
+        "content-length": "0",
+        "vary": "Authorization, Accept"
+      }
+    },
+    {
+      "step": "step 2 (multipart with selector range falls back to 204 (live-observed shape))",
+      "method": "OPTIONS",
+      "path": "/_pl/protocol-options-default-get-host-no-rul-29fa7a/doc.html",
+      "status": 204,
+      "headers": {
+        "accept-query": "text/css-selector, text/sessel",
+        "accept-ranges": "selector",
+        "allow": "GET, HEAD, OPTIONS",
+        "vary": "Authorization, Accept"
+      }
+    }
+  ],
+  "outcome": "pass",
+  "target": "local"
+}

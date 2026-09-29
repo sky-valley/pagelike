@@ -1,0 +1,48 @@
+{
+  "case": "javascript.reactions.processor-rethrow-with-headers",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (register the trigger/processor (public plane))",
+      "method": "PUT",
+      "path": "/_pl/javascript-reactions-processor-rethrow-w-7a8ad2/reactions.html",
+      "status": 201,
+      "headers": {
+        "content-length": "691",
+        "content-type": "text/html",
+        "etag": "\"3f1f589965a9cd75555c311c5d346d01a70e073294b9a02b89b3369a1decd52d\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:43 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\n\u003cdiv itemscope itemtype=\"https://pagelove.org/Processor\"\u003e\n\u003cmeta itemprop=\"resource\" content=\"/_pl/javascript-reactions-processor-rethrow-w-7a8ad2/js/*\"\u003e\n\u003cmeta itemprop=\"method\" content=\"GET\"\u003e\n\u003cmeta itemprop=\"status\" content=\"2xx\"\u003e\n\u003cdiv itemprop=\"action\" itemscope itemtype=\"https://pagelove.org/JavaScript/Module\"\u003e\n\u003cscript itemprop=\"source\" type=\"module\"\u003e\nexport default function (ctx) {\n  throw {\n    schema_url: \"https://pagelove.org/HTTPResponse\",\n    status: ctx.response.status,\n    body: ctx.response.body,\n    headers: {\n      \"Access-Control-Allow-Origin\": \"*\",\n      \"Content-Type\": \"text/javascript\"\n    }\n  };\n}\n\u003c/script\u003e\n\u003c/div\u003e\n\u003c/div\u003e\n\u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 2 (upload a module)",
+      "method": "PUT",
+      "path": "/_pl/javascript-reactions-processor-rethrow-w-7a8ad2/js/lib.mjs",
+      "status": 201,
+      "headers": {
+        "content-length": "61",
+        "content-type": "text/javascript",
+        "etag": "\"706e2ac7f3edf4713d0fe50a5ccbc84127938e2f5bdf8b4f886ee9d02145fca5\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:43 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "export const answer = 42 \u0026\u0026 true; export const f = (x) =\u003e x;\n"
+    },
+    {
+      "step": "step 3 (GET carries the added headers)",
+      "method": "GET",
+      "path": "/_pl/javascript-reactions-processor-rethrow-w-7a8ad2/js/lib.mjs",
+      "status": 200,
+      "headers": {
+        "access-control-allow-origin": "*",
+        "content-length": "61",
+        "content-type": "text/javascript"
+      },
+      "body": "export const answer = 42 \u0026\u0026 true; export const f = (x) =\u003e x;\n"
+    }
+  ],
+  "outcome": "pass",
+  "target": "local"
+}

@@ -1,0 +1,175 @@
+# Reacting: execution order and chain termination across documents (spec R-REACT-9, 33, 35).
+# See discovery.yaml for directory conventions.
+anchors:
+  open_rules: &open_rules
+    - {actor: "*", resource: "${P}/*", method: [GET, HEAD, PUT, POST, DELETE], action: Allow}
+defaults:
+  area: reacting
+  site:
+    settings: {default_get: allow}
+    rules: *open_rules
+cases:
+  - id: reacting.order.lexicographic-document-order
+    title: Triggers in different documents run in lexicographic path order, not install order
+    feature: execution order
+    evidence: documented
+    source: "docs reference/reacting-to-changes/Trigger §Execution order ('documents are ordered lexicographically by path') (snapshot 2026-09-28)"
+    confidence: high
+    requires: [sessel]
+    live: true
+    notes: "spec: R-REACT-35. b.html is installed first; a.html still runs first."
+    steps:
+      - name: install the later-sorting document first
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/r/b.html"
+          headers: {Content-Type: text/html}
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+            <div hidden itemscope itemtype="https://pagelove.org/Trigger">
+              <meta itemprop="resource" content="${P}/d/*">
+              <meta itemprop="method" content="PUT">
+              <div itemprop="action" itemscope itemtype="https://pagelove.org/Sessel">
+                <script itemprop="source" type="text/sessel">
+                  @schema HTTPResponse url("https://pagelove.org/HTTPResponse");
+                  throw new HTTPResponse { status: 423, message: "from-b" }
+                </script>
+              </div>
+            </div>
+            </body></html>
+        expect: {status: [200, 201, 204]}
+      - name: install the earlier-sorting document second
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/r/a.html"
+          headers: {Content-Type: text/html}
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+            <div hidden itemscope itemtype="https://pagelove.org/Trigger">
+              <meta itemprop="resource" content="${P}/d/*">
+              <meta itemprop="method" content="PUT">
+              <div itemprop="action" itemscope itemtype="https://pagelove.org/Sessel">
+                <script itemprop="source" type="text/sessel">
+                  @schema HTTPResponse url("https://pagelove.org/HTTPResponse");
+                  throw new HTTPResponse { status: 409, message: "from-a" }
+                </script>
+              </div>
+            </div>
+            </body></html>
+        expect: {status: [200, 201, 204]}
+      - name: the trigger in a.html runs first and ends the chain
+        as: anonymous
+        request: {method: PUT, path: "${P}/d/x.html", headers: {Content-Type: text/html}, body: "<p>x</p>"}
+        expect: {status: 409, body_contains: ["from-a"], body_not_contains: ["from-b"]}
+
+  - id: reacting.order.document-order-within-document
+    title: Triggers within one document run top to bottom
+    feature: execution order
+    evidence: documented
+    source: "docs reference/reacting-to-changes/Trigger §Execution order ('triggers execute in document order (top to bottom)') (snapshot 2026-09-28)"
+    confidence: high
+    requires: [sessel]
+    live: true
+    notes: "spec: R-REACT-35."
+    steps:
+      - name: install two triggers in one document
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/r/triggers.html"
+          headers: {Content-Type: text/html}
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+            <table><tbody>
+            <tr itemscope itemtype="https://pagelove.org/Trigger">
+              <td><meta itemprop="resource" content="${P}/d/*"><meta itemprop="method" content="PUT"></td>
+              <td itemprop="action" itemscope itemtype="https://pagelove.org/Sessel">
+                <script itemprop="source" type="text/sessel">
+                  @schema HTTPResponse url("https://pagelove.org/HTTPResponse");
+                  throw new HTTPResponse { status: 409, message: "top" }
+                </script>
+              </td>
+            </tr>
+            <tr itemscope itemtype="https://pagelove.org/Trigger">
+              <td><meta itemprop="resource" content="${P}/d/*"><meta itemprop="method" content="PUT"></td>
+              <td itemprop="action" itemscope itemtype="https://pagelove.org/Sessel">
+                <script itemprop="source" type="text/sessel">
+                  @schema HTTPResponse url("https://pagelove.org/HTTPResponse");
+                  throw new HTTPResponse { status: 423, message: "bottom" }
+                </script>
+              </td>
+            </tr>
+            </tbody></table>
+            </body></html>
+        expect: {status: [200, 201, 204]}
+      - name: the top trigger wins
+        as: anonymous
+        request: {method: PUT, path: "${P}/d/x.html", headers: {Content-Type: text/html}, body: "<p>x</p>"}
+        expect: {status: 409, body_contains: ["top"]}
+
+  - id: reacting.order.throw-stops-later-documents
+    title: "A throw in /app/auth stops the triggers in /app/logging (documented ordering example)"
+    feature: chain termination
+    evidence: documented
+    source: "docs reference/reacting-to-changes/Trigger §Execution order ('triggers in /app/auth fire before triggers in /app/logging'; 'Chain termination stops all subsequent triggers, including those from later documents') (snapshot 2026-09-28)"
+    confidence: high
+    requires: [sessel]
+    live: true
+    notes: "spec: R-REACT-9, R-REACT-35. The logging trigger would write a marker document if it ran."
+    steps:
+      - name: install the logging trigger (writes a marker)
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/app/logging.html"
+          headers: {Content-Type: text/html}
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+            <div hidden itemscope itemtype="https://pagelove.org/Trigger">
+              <meta itemprop="resource" content="${P}/d/*">
+              <meta itemprop="method" content="PUT">
+              <div itemprop="action" itemscope itemtype="https://pagelove.org/Sessel">
+                <script itemprop="source" type="text/sessel">
+                  @schema Pagelove url("https://pagelove.org/1.0");
+                  @schema Thing url("https://schema.org/Thing");
+                  Pagelove.PUT(new Thing { name: "logging-ran" }, "${P}/marker.html")
+                </script>
+              </div>
+            </div>
+            </body></html>
+        expect: {status: [200, 201, 204]}
+      - name: install the auth trigger (throws 401)
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/app/auth.html"
+          headers: {Content-Type: text/html}
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+            <div hidden itemscope itemtype="https://pagelove.org/Trigger">
+              <meta itemprop="resource" content="${P}/d/*">
+              <meta itemprop="method" content="PUT">
+              <div itemprop="action" itemscope itemtype="https://pagelove.org/Sessel">
+                <script itemprop="source" type="text/sessel">
+                  @schema HTTPResponse url("https://pagelove.org/HTTPResponse");
+                  throw new HTTPResponse { status: 401, message: "auth-first" }
+                </script>
+              </div>
+            </div>
+            </body></html>
+        expect: {status: [200, 201, 204]}
+      - name: the auth trigger ends the chain
+        as: anonymous
+        request: {method: PUT, path: "${P}/d/x.html", headers: {Content-Type: text/html}, body: "<p>x</p>"}
+        expect: {status: 401, body_contains: ["auth-first"]}
+      - name: the logging trigger never ran
+        as: anonymous
+        request: {method: GET, path: "${P}/marker.html"}
+        expect: {status: 404}

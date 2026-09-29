@@ -1,0 +1,30 @@
+{
+  "case": "authz.move.source-absent-unreadable-denied",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (missing source on an unreadable page)",
+      "method": "MOVE",
+      "path": "/_pl/authz-move-source-absent-unreadable-deni-9afcde/board.html",
+      "status": 401,
+      "headers": {
+        "content-length": "430",
+        "content-type": "text/html; charset=utf-8"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\n\u003chead\u003e\n    \u003cmeta charset=\"UTF-8\"\u003e\n    \u003ctitle\u003e401 Unauthorized\u003c/title\u003e\n\u003c/head\u003e\n\u003cbody itemscope itemtype=\"https://pagelove.org/1.0/Error\"\u003e\n    \u003ch1\u003e401 Unauthorized\u003c/h1\u003e\n    \u003cp itemprop=\"message\"\u003eAuthentication required to access this resource.\u003c/p\u003e\n    \u003cdl\u003e\n        \u003cdt\u003eResource\u003c/dt\u003e\n        \u003cdd itemprop=\"resource\"\u003e/_pl/authz-move-source-absent-unreadable-deni-9afcde/board.html\u003c/dd\u003e\n    \u003c/dl\u003e\n\u003c/body\u003e\n\u003c/html\u003e"
+    },
+    {
+      "step": "step 2 (an existing card still moves (write allowed without read))",
+      "method": "MOVE",
+      "path": "/_pl/authz-move-source-absent-unreadable-deni-9afcde/board.html",
+      "status": 204,
+      "headers": {
+        "etag": "\"8225a77197c5b237587504f1894f745b0ee90c80f025e0aff4f08190342c5ae6\"",
+        "last-modified": "Mon, 28 Sep 2026 22:39:48 GMT",
+        "vary": "Host, Range"
+      }
+    }
+  ],
+  "outcome": "pass",
+  "target": "live"
+}

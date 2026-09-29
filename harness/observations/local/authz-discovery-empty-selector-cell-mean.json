@@ -1,0 +1,36 @@
+{
+  "case": "authz.discovery.empty-selector-cell-means-document",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (whole-document PUT with an empty selector cell)",
+      "method": "PUT",
+      "path": "/_pl/authz-discovery-empty-selector-cell-mean-3ee8fb/one.html",
+      "status": 200,
+      "headers": {
+        "content-length": "58",
+        "content-type": "text/html",
+        "etag": "\"b29f8a861e07807ef79a1943ae3d14f4c522696a9d13009318833e6e49c65519\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:46 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\u003ch1\u003eOne v2\u003c/h1\u003e\u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 2 (whole-document PUT with a whitespace-only selector cell)",
+      "method": "PUT",
+      "path": "/_pl/authz-discovery-empty-selector-cell-mean-3ee8fb/two.html",
+      "status": 200,
+      "headers": {
+        "content-length": "58",
+        "content-type": "text/html",
+        "etag": "\"206d61416cc9190ef0efd9654bfc810c3f5a051d61eb620b1571d46f07786bdf\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:46 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\u003ch1\u003eTwo v2\u003c/h1\u003e\u003c/body\u003e\u003c/html\u003e\n"
+    }
+  ],
+  "outcome": "pass",
+  "target": "local"
+}

@@ -1,0 +1,50 @@
+{
+  "case": "modeling.resolvers.empty-list-removes-property",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (register declarations through the public plane (takes effect for the next request))",
+      "method": "PUT",
+      "path": "/_pl/modeling-resolvers-empty-list-removes-pr-28ca98/schema.html",
+      "status": 201,
+      "headers": {
+        "content-length": "548",
+        "content-type": "text/html",
+        "etag": "\"dda5dce030d8100a5064e06940ff5e97c29a08421d382147aeb268768a458924\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:44 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\n  \u003cdiv hidden itemscope itemtype=\"https://pagelove.org/Schema\"\u003e\n    \u003cmeta itemprop=\"type\" content=\"https://pagelike.test/_pl/modeling-resolvers-empty-list-removes-pr-28ca98/Doc\"\u003e\n    \u003cdiv itemprop=\"property\" itemscope itemtype=\"https://pagelove.org/Property\"\u003e\n      \u003cmeta itemprop=\"name\" content=\"secret\"\u003e\n      \u003cmeta itemprop=\"type\" content=\"https://schema.host/Text\"\u003e\n      \u003cmeta itemprop=\"cardinality\" content=\"0..n\"\u003e\n      \u003cscript type=\"text/sessel\" itemprop=\"@write\"\u003e[]\u003c/script\u003e\n    \u003c/div\u003e\n  \u003c/div\u003e\n\u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 2 (write with a secret)",
+      "method": "PUT",
+      "path": "/_pl/modeling-resolvers-empty-list-removes-pr-28ca98/d.html",
+      "status": 201,
+      "headers": {
+        "content-length": "181",
+        "content-type": "text/html",
+        "etag": "\"554c451797ff81b695c821706a5e7dae7519a8aeb7a2d135edc626245d91bd1c\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:44 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\n  \u003cdiv itemscope itemtype=\"https://pagelike.test/_pl/modeling-resolvers-empty-list-removes-pr-28ca98/Doc\"\u003e\n    \n    \u003cp\u003ebody\u003c/p\u003e\n  \u003c/div\u003e\n\u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 3 (stored state of d.html (authoring plane, raw))",
+      "method": "GET",
+      "path": "/_pl/modeling-resolvers-empty-list-removes-pr-28ca98/d.html",
+      "status": 200,
+      "headers": {
+        "accept-ranges": "bytes",
+        "content-length": "181",
+        "content-type": "text/html",
+        "etag": "\"554c451797ff81b695c821706a5e7dae7519a8aeb7a2d135edc626245d91bd1c\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:44 GMT"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\n  \u003cdiv itemscope itemtype=\"https://pagelike.test/_pl/modeling-resolvers-empty-list-removes-pr-28ca98/Doc\"\u003e\n    \n    \u003cp\u003ebody\u003c/p\u003e\n  \u003c/div\u003e\n\u003c/body\u003e\u003c/html\u003e\n"
+    }
+  ],
+  "outcome": "pass",
+  "target": "local"
+}

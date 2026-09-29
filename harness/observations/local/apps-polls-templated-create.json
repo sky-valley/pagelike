@@ -1,0 +1,63 @@
+{
+  "case": "apps.polls.templated-create",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (native form submission)",
+      "method": "POST",
+      "path": "/_pl/apps-polls-templated-create-70fab7/templates/new-poll.html",
+      "status": 301,
+      "headers": {
+        "content-length": "0",
+        "location": "/_pl/apps-polls-templated-create-70fab7/polls/vztv6wmns7.html",
+        "vary": "Host, Range"
+      }
+    },
+    {
+      "step": "step 2 (the browser follows the redirect)",
+      "method": "GET",
+      "path": "/_pl/apps-polls-templated-create-70fab7/polls/vztv6wmns7.html",
+      "status": 200,
+      "headers": {
+        "accept-ranges": "selector, bytes",
+        "cache-control": "public, max-age=5",
+        "content-length": "1061",
+        "content-type": "text/html",
+        "etag": "W/\"1953082134ee1be2fd17dee1a66b217c31a4f703e37f790122b891bbd25a242e\"",
+        "vary": "Host, Range, Accept"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml lang=\"en\"\u003e\n\u003chead\u003e\n\u003cmeta charset=\"utf-8\"\u003e\n\u003ctitle\u003e\n\n\nTeam lunch · Polls by Pagelove\u003c/title\u003e\n\n\u003c/head\u003e\n\u003cbody class=\"poll-page\"\u003e\n\n\n\n\n\u003carticle id=\"poll\" itemscope itemtype=\"https://pagelove.org/Poll\"\u003e\n  \u003ch1 itemprop=\"title\"\u003eTeam lunch\u003c/h1\u003e\n  \u003cp class=\"meta\"\u003eOrganised by \u003cstrong itemprop=\"organizer\"\u003eAda\u003c/strong\u003e\u003c/p\u003e\n  \u003cmeta itemprop=\"listed\" content=\"true\"\u003e\n  \u003cmeta itemprop=\"optionCount\" content=\"2\"\u003e\n  \u003ctable id=\"grid\"\u003e\n    \u003cthead\u003e\u003ctr\u003e\u003cth class=\"corner\" scope=\"col\"\u003eParticipant\u003c/th\u003e\n      \u003cth scope=\"col\" id=\"o1\" data-option=\"o1\" itemprop=\"option\" itemscope itemtype=\"https://pagelove.org/PollOption\"\u003e\u003ctime itemprop=\"start\" datetime=\"2026-10-01T12:30\"\u003e\u003cspan class=\"dow\"\u003eThu\u003c/span\u003e\u003cspan class=\"day\"\u003e1 Oct\u003c/span\u003e\u003c/time\u003e\u003c/th\u003e\u003cth scope=\"col\" id=\"o2\" data-option=\"o2\" itemprop=\"option\" itemscope itemtype=\"https://pagelove.org/PollOption\"\u003e\u003ctime itemprop=\"start\" datetime=\"2026-10-02\"\u003e\u003cspan class=\"dow\"\u003eFri\u003c/span\u003e\u003cspan class=\"day\"\u003e2 Oct\u003c/span\u003e\u003c/time\u003e\u003c/th\u003e\n    \u003c/tr\u003e\u003c/thead\u003e\n    \u003ctbody id=\"responses\"\u003e\u003c/tbody\u003e\n  \u003c/table\u003e\n\u003c/article\u003e\n\u003c/body\u003e\n\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 3 (the new poll accepts the home page's count read)",
+      "method": "GET",
+      "path": "/_pl/apps-polls-templated-create-70fab7/polls/vztv6wmns7.html",
+      "status": 206,
+      "headers": {
+        "accept-ranges": "selector, bytes",
+        "content-length": "30",
+        "content-range": "selector #responses",
+        "content-type": "text/html",
+        "etag": "\"863540a600f34eb4bcbb6e79f4293ff319338e0b1cb74313fefb1e8fa08d16e5-863540a600f34eb4bcbb6e79f4293ff319338e0b1cb74313fefb1e8fa08d16e5-1\"",
+        "vary": "Host, Range, Accept"
+      },
+      "body": "\u003ctbody id=\"responses\"\u003e\u003c/tbody\u003e"
+    },
+    {
+      "step": "step 4 (the template itself is unchanged)",
+      "method": "GET",
+      "path": "/_pl/apps-polls-templated-create-70fab7/templates/new-poll.html",
+      "status": 200,
+      "headers": {
+        "accept-ranges": "bytes",
+        "content-length": "1673",
+        "content-type": "text/html",
+        "etag": "\"a0614e0adc7bdde2c38cc23ffe4fa39140047b6c7c1a16bee901c7104f7805a6\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:41 GMT"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml lang=\"en\" xmlns:p=\"https://pagelove.org/1.0\" p:template=\"text/liquid\"\u003e\n\u003chead\u003e\n\u003cmeta charset=\"utf-8\"\u003e\n\u003ctitle\u003e{% assign id = 10 | random: lower: true, digits: true %}\n{% assign title = request.body.title | default: \"\" | strip %}\n{% if title == \"\" %}{% assign title = \"Untitled poll\" %}{% endif %}\n{{ title | escape }} · Polls by Pagelove\u003c/title\u003e\n\u003cbase href=\"/_pl/apps-polls-templated-create-70fab7/polls/{{ id }}.html\"\u003e\n\u003c/head\u003e\n\u003cbody class=\"poll-page\"\u003e\n{% assign organizer = request.body.organizer | default: \"\" | strip %}\n{% if organizer == \"\" %}{% assign organizer = \"Someone\" %}{% endif %}\n{% assign opts = request.body.options | default: \"\" | split: \";;\" %}\n{% if request.body.listed == \"on\" %}{% assign listed = \"true\" %}{% else %}{% assign listed = \"false\" %}{% endif %}\n\u003carticle id=\"poll\" itemscope itemtype=\"{{ 'https://pagelove.org/Poll' }}\"\u003e\n  \u003ch1 itemprop=\"title\"\u003e{{ title | escape }}\u003c/h1\u003e\n  \u003cp class=\"meta\"\u003eOrganised by \u003cstrong itemprop=\"organizer\"\u003e{{ organizer | escape }}\u003c/strong\u003e\u003c/p\u003e\n  \u003cmeta itemprop=\"listed\" content=\"{{ listed }}\"\u003e\n  \u003cmeta itemprop=\"optionCount\" content=\"{{ opts.size }}\"\u003e\n  \u003ctable id=\"grid\"\u003e\n    \u003cthead\u003e\u003ctr\u003e\u003cth class=\"corner\" scope=\"col\"\u003eParticipant\u003c/th\u003e\n      {% for o in opts %}{% assign f = o | split: \"|\" %}\u003cth scope=\"col\" id=\"o{{ forloop.index }}\" data-option=\"o{{ forloop.index }}\" itemprop=\"option\" itemscope itemtype=\"https://pagelove.org/PollOption\"\u003e\u003ctime itemprop=\"start\" datetime=\"{{ f[0] | escape }}\"\u003e\u003cspan class=\"dow\"\u003e{{ f[1] | escape }}\u003c/span\u003e\u003cspan class=\"day\"\u003e{{ f[2] | escape }}\u003c/span\u003e\u003c/time\u003e\u003c/th\u003e{% endfor %}\n    \u003c/tr\u003e\u003c/thead\u003e\n    \u003ctbody id=\"responses\"\u003e\u003c/tbody\u003e\n  \u003c/table\u003e\n\u003c/article\u003e\n\u003c/body\u003e\n\u003c/html\u003e\n"
+    }
+  ],
+  "outcome": "pass",
+  "target": "local"
+}

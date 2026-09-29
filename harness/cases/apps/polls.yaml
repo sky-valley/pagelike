@@ -1,0 +1,433 @@
+# Apps: pagelove-polls (research/upstream/pagelove-polls@c9270e5).
+# Spec: docs/spec/apps.md A4, §7.4 (ACC-PO-*), R-APPS-12/13.
+# Rules, shapes and triggers are site/admin/auth.html with every path rewritten
+# under ${P}; request shapes are those of site/assets/poll.js:77-159.
+cases:
+  - id: apps.polls.vote-edit-withdraw
+    title: "Vote (POST a <tr>), edit (PUT the row), withdraw (DELETE) under the template's rule table and closed shapes"
+    area: apps
+    feature: "template: polls"
+    evidence: demo-source
+    source: "pagelove-polls site/assets/poll.js@c9270e5:77-159, site/admin/auth.html:27-94, site/assets/create.js:90-103"
+    confidence: high
+    requires: []
+    live: true
+    notes: "Rules as <tr> items with <li> multi-values and an empty selector cell (R-PERM-2, R-PERM-2a, R-PERM-4); the row selector is written with &gt; in the source. Shapes R-MOD-61..68 (composed: the row shape lies inside the tbody shape). The app treats any 2xx as success and maps 422/401/403/416 to messages (poll.js:87-92)."
+    site:
+      settings: {default_get: allow}
+      files:
+        - path: "${P}/polls/p1.html"
+          body: &poll |
+            <!DOCTYPE html>
+            <html lang="en" xmlns:p="https://pagelove.org/1.0">
+            <head><meta charset="utf-8"><title>Team lunch · Polls by Pagelove</title></head>
+            <body class="poll-page">
+            <article id="poll" itemscope itemtype="https://pagelove.org/Poll">
+              <h1 itemprop="title">Team lunch at the new place</h1>
+              <p class="meta">Organised by <strong itemprop="organizer">Benji</strong></p>
+              <meta itemprop="listed" content="true">
+              <meta itemprop="optionCount" content="2">
+              <table id="grid">
+                <thead><tr><th class="corner" scope="col">Participant</th>
+                  <th scope="col" id="o1" data-option="o1" itemprop="option" itemscope itemtype="https://pagelove.org/PollOption"><time itemprop="start" datetime="2026-09-18T12:30">Fri 18 Sep 12:30</time></th>
+                  <th scope="col" id="o2" data-option="o2" itemprop="option" itemscope itemtype="https://pagelove.org/PollOption"><time itemprop="start" datetime="2026-09-19">Sat 19 Sep</time></th>
+                </tr></thead>
+                <tbody id="responses"><tr id="r-test1" itemscope itemtype="https://pagelove.org/PollResponse"><th scope="row" itemprop="name">Ada Lovelace</th><td itemprop="vote" data-option="o1" data-vote="no">no</td><td itemprop="vote" data-option="o2" data-vote="yes">yes</td></tr></tbody>
+                <tbody id="entry"><tr class="entry"><th scope="row"><input id="entry-name" type="text"></th></tr></tbody>
+              </table>
+            </article>
+            </body>
+            </html>
+        - path: "${P}/admin/auth.html"
+          body: &auth |
+            <!DOCTYPE html>
+            <html lang="en">
+            <head><meta charset="utf-8"><title>Polls by Pagelove · Authorization &amp; Constraints</title></head>
+            <body>
+            <table>
+              <thead><tr><th>Actor</th><th>Resource</th><th>Method</th><th>Selector</th><th>Action</th></tr></thead>
+              <tbody>
+                <tr itemscope itemtype="https://pagelove.org/AuthorizationRule">
+                  <td itemprop="actor">*</td>
+                  <td><ul><li itemprop="resource">${P}/index.html</li><li itemprop="resource">${P}/polls/*</li><li itemprop="resource">${P}/assets/*</li></ul></td>
+                  <td><ul><li itemprop="method">GET</li><li itemprop="method">HEAD</li><li itemprop="method">OPTIONS</li></ul></td>
+                  <td itemprop="selector"></td>
+                  <td itemprop="action">allow</td>
+                </tr>
+                <tr itemscope itemtype="https://pagelove.org/AuthorizationRule">
+                  <td itemprop="actor">*</td>
+                  <td itemprop="resource">${P}/templates/new-poll.html</td>
+                  <td><ul><li itemprop="method">POST</li></ul></td>
+                  <td itemprop="selector"></td>
+                  <td itemprop="action">allow</td>
+                </tr>
+                <tr itemscope itemtype="https://pagelove.org/AuthorizationRule">
+                  <td itemprop="actor">*</td>
+                  <td itemprop="resource">${P}/polls/*</td>
+                  <td><ul><li itemprop="method">PUT</li></ul></td>
+                  <td itemprop="selector"></td>
+                  <td itemprop="action">allow</td>
+                </tr>
+                <tr itemscope itemtype="https://pagelove.org/AuthorizationRule">
+                  <td itemprop="actor">*</td>
+                  <td itemprop="resource">${P}/polls/*</td>
+                  <td><ul><li itemprop="method">POST</li></ul></td>
+                  <td itemprop="selector">tbody#responses</td>
+                  <td itemprop="action">allow</td>
+                </tr>
+                <tr itemscope itemtype="https://pagelove.org/AuthorizationRule">
+                  <td itemprop="actor">*</td>
+                  <td itemprop="resource">${P}/polls/*</td>
+                  <td><ul><li itemprop="method">PUT</li><li itemprop="method">DELETE</li></ul></td>
+                  <td itemprop="selector">tbody#responses &gt; tr[itemtype="https://pagelove.org/PollResponse"]</td>
+                  <td itemprop="action">allow</td>
+                </tr>
+              </tbody>
+            </table>
+            <div class="constraint" itemscope itemtype="https://pagelove.org/ShapeConstraint">
+              <strong>Responses body (POST target)</strong>
+              <meta itemprop="resource" content="${P}/polls/*">
+              <meta itemprop="selector" content="tbody#responses">
+              <code itemprop="permit">tr[id][itemscope][itemtype="https://pagelove.org/PollResponse"]</code>
+              <code itemprop="permit">th[scope="row"][itemprop="name"]</code>
+              <code itemprop="permit">td[itemprop="vote"][data-option][data-vote]</code>
+            </div>
+            <div class="constraint" itemscope itemtype="https://pagelove.org/ShapeConstraint">
+              <strong>Response row (PUT / DELETE target)</strong>
+              <meta itemprop="resource" content="${P}/polls/*">
+              <meta itemprop="selector" content="tbody#responses > tr[id][itemscope][itemtype=&quot;https://pagelove.org/PollResponse&quot;]">
+              <code itemprop="constraint">:has(&gt; th[itemprop="name"])</code>
+              <code itemprop="permit">th[scope="row"][itemprop="name"]</code>
+              <code itemprop="permit">td[itemprop="vote"][data-option][data-vote]</code>
+            </div>
+            </body>
+            </html>
+    steps:
+      - name: "home page count read: GET the responses tbody"
+        as: anonymous
+        request:
+          method: GET
+          path: "${P}/polls/p1.html"
+          headers: {Range: "selector=#responses"}
+        expect: {status: 206, body_contains: ['id="r-test1"']}
+      - name: save availability (POST one row)
+        as: anonymous
+        request:
+          method: POST
+          path: "${P}/polls/p1.html"
+          headers: {Range: "selector=#responses", Content-Type: "text/html"}
+          body: '<tr id="r-abc12345" itemscope itemtype="https://pagelove.org/PollResponse"><th scope="row" itemprop="name">Grace</th><td itemprop="vote" data-option="o1" data-vote="yes">yes</td><td itemprop="vote" data-option="o2" data-vote="no">no</td></tr>'
+        expect: {status: [200, 201, 206], body_contains: ['id="r-abc12345"']}
+      - name: update my availability (PUT the row)
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/polls/p1.html"
+          headers: {Range: "selector=#r-abc12345", Content-Type: "text/html"}
+          body: '<tr id="r-abc12345" itemscope itemtype="https://pagelove.org/PollResponse"><th scope="row" itemprop="name">Grace</th><td itemprop="vote" data-option="o1" data-vote="ifneedbe">ifneedbe</td><td itemprop="vote" data-option="o2" data-vote="yes">yes</td></tr>'
+        expect: {status: [200, 204, 206]}
+      - name: the edit is stored
+        as: anonymous
+        request:
+          method: GET
+          path: "${P}/polls/p1.html"
+          headers: {Range: "selector=#r-abc12345"}
+        expect: {status: 206, body_contains: ['data-vote="ifneedbe"']}
+      - name: a row carrying an <img> is refused by the closed shape
+        as: anonymous
+        request:
+          method: POST
+          path: "${P}/polls/p1.html"
+          headers: {Range: "selector=#responses", Content-Type: "text/html"}
+          body: '<tr id="r-bad00001" itemscope itemtype="https://pagelove.org/PollResponse"><th scope="row" itemprop="name">Eve<img src="x"></th><td itemprop="vote" data-option="o1" data-vote="yes">yes</td></tr>'
+        expect: {status: 422}
+      - name: a row with an event-handler attribute is refused
+        as: anonymous
+        request:
+          method: POST
+          path: "${P}/polls/p1.html"
+          headers: {Range: "selector=#responses", Content-Type: "text/html"}
+          body: '<tr id="r-bad00002" itemscope itemtype="https://pagelove.org/PollResponse"><th scope="row" itemprop="name" onclick="alert(1)">Eve</th><td itemprop="vote" data-option="o1" data-vote="yes">yes</td></tr>'
+        expect: {status: 422}
+      - name: a row without a name cell fails the row constraint
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/polls/p1.html"
+          headers: {Range: "selector=#r-abc12345", Content-Type: "text/html"}
+          body: '<tr id="r-abc12345" itemscope itemtype="https://pagelove.org/PollResponse"><td itemprop="vote" data-option="o1" data-vote="yes">yes</td></tr>'
+        expect: {status: 422}
+      - name: withdraw (DELETE the row)
+        as: anonymous
+        request:
+          method: DELETE
+          path: "${P}/polls/p1.html"
+          headers: {Range: "selector=#r-abc12345"}
+        expect: {status: [200, 204]}
+      - name: "withdrawing again: the row no longer exists (416)"
+        as: anonymous
+        request:
+          method: DELETE
+          path: "${P}/polls/p1.html"
+          headers: {Range: "selector=#r-abc12345"}
+        expect: {status: 416}
+      - name: final responses
+        as: anonymous
+        request:
+          method: GET
+          path: "${P}/polls/p1.html"
+          headers: {Range: "selector=#responses"}
+        expect:
+          status: 206
+          body_contains: ['id="r-test1"']
+          body_not_contains: ["r-abc12345", "r-bad0000"]
+
+  - id: apps.polls.trigger-guards
+    title: "The polls triggers narrow the document-level PUT grant: 403 for foreign selectors, 409 for replacing a poll"
+    area: apps
+    feature: "template: polls"
+    evidence: demo-source
+    source: "pagelove-polls site/admin/auth.html@c9270e5:96-150"
+    confidence: high
+    requires: [sessel]
+    live: true
+    notes: "R-APPS-12 (Context.request.headers[\"range\"] lower case), R-APPS-19 (when/throw), R-PERM-27 (a document-level grant covers selector writes, which is why the triggers exist). Trigger resources and the from-glob are rewritten under ${P}."
+    site:
+      settings: {default_get: allow}
+      files:
+        - {path: "${P}/polls/p1.html", body: *poll}
+        - {path: "${P}/admin/auth.html", body: *auth}
+        - path: "${P}/admin/triggers.html"
+          body: |
+            <!DOCTYPE html>
+            <html lang="en"><head><meta charset="utf-8"><title>poll triggers</title></head>
+            <body>
+            <div class="constraint" itemscope itemtype="https://pagelove.org/Trigger">
+              <meta itemprop="resource" content="${P}/polls/*">
+              <meta itemprop="method" content="PUT">
+              <meta itemprop="method" content="POST">
+              <div itemprop="when" itemscope itemtype="https://pagelove.org/Sessel">
+                <script itemprop="source" type="text/sessel">
+                  @schema Context url("https://pagelove.org/Context");
+                  Context.request.headers["range"] != null
+                </script>
+              </div>
+              <div itemprop="action" itemscope itemtype="https://pagelove.org/Sessel">
+                <script itemprop="source" type="text/sessel">
+                  @schema Context url("https://pagelove.org/Context");
+                  @schema HTTPResponse url("https://pagelove.org/HTTPResponse");
+                  let range = Context.request.headers["range"];
+                  let method = Context.request.method;
+                  if (method == "POST") {
+                    if (range.matches("^selector=#responses$") == false) {
+                      throw new HTTPResponse { status: 403, message: "Responses may only be appended to #responses." }
+                    }
+                  }
+                  if (method == "PUT") {
+                    if (range.matches("^selector=#r-[a-z0-9]{1,24}$") == false) {
+                      throw new HTTPResponse { status: 403, message: "Only a response row (#r-…) may be replaced on a poll page." }
+                    }
+                  }
+                </script>
+              </div>
+            </div>
+            <div class="constraint" itemscope itemtype="https://pagelove.org/Trigger">
+              <meta itemprop="resource" content="${P}/polls/*">
+              <meta itemprop="method" content="PUT">
+              <div itemprop="when" itemscope itemtype="https://pagelove.org/Sessel">
+                <script itemprop="source" type="text/sessel">
+                  @schema Context url("https://pagelove.org/Context");
+                  Context.request.headers["range"] == null
+                </script>
+              </div>
+              <div itemprop="action" itemscope itemtype="https://pagelove.org/Sessel">
+                <script itemprop="source" type="text/sessel">
+                  @schema Context url("https://pagelove.org/Context");
+                  @schema HTTPResponse url("https://pagelove.org/HTTPResponse");
+                  let path = Context.request.path;
+                  if ((${[itemtype="https://pagelove.org/Poll"]} from "${P}/polls/*").any(p => p.path() == path)) {
+                    throw new HTTPResponse { status: 409, message: "This poll already exists and cannot be replaced." }
+                  }
+                </script>
+              </div>
+            </div>
+            </body></html>
+    steps:
+      - name: "POST addressed as tbody#responses (the rule matches, the Range text does not)"
+        as: anonymous
+        request:
+          method: POST
+          path: "${P}/polls/p1.html"
+          headers: {Range: "selector=tbody#responses", Content-Type: "text/html"}
+          body: '<tr id="r-zz000001" itemscope itemtype="https://pagelove.org/PollResponse"><th scope="row" itemprop="name">Zed</th><td itemprop="vote" data-option="o1" data-vote="yes">yes</td></tr>'
+        expect: {status: 403}
+      - name: the same row through the exact Range the app sends
+        as: anonymous
+        request:
+          method: POST
+          path: "${P}/polls/p1.html"
+          headers: {Range: "selector=#responses", Content-Type: "text/html"}
+          body: '<tr id="r-zz000001" itemscope itemtype="https://pagelove.org/PollResponse"><th scope="row" itemprop="name">Zed</th><td itemprop="vote" data-option="o1" data-vote="yes">yes</td></tr>'
+        expect: {status: [200, 201, 206]}
+      - name: replacing the whole poll article through the document-level PUT grant
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/polls/p1.html"
+          headers: {Range: "selector=#poll", Content-Type: "text/html"}
+          body: '<article id="poll">defaced</article>'
+        expect: {status: 403}
+      - name: replacing a response row is allowed
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/polls/p1.html"
+          headers: {Range: "selector=#r-test1", Content-Type: "text/html"}
+          body: '<tr id="r-test1" itemscope itemtype="https://pagelove.org/PollResponse"><th scope="row" itemprop="name">Ada Lovelace</th><td itemprop="vote" data-option="o1" data-vote="yes">yes</td><td itemprop="vote" data-option="o2" data-vote="yes">yes</td></tr>'
+        expect: {status: [200, 204, 206]}
+      - name: overwriting an existing poll document
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/polls/p1.html"
+          headers: {Content-Type: "text/html"}
+          body: '<!DOCTYPE html><html><body><article id="poll" itemscope itemtype="https://pagelove.org/Poll"><h1 itemprop="title">Hijacked</h1></article></body></html>'
+        expect: {status: 409}
+      - name: creating a new poll document is allowed
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/polls/p2.html"
+          headers: {Content-Type: "text/html"}
+          body: '<!DOCTYPE html><html><body><article id="poll" itemscope itemtype="https://pagelove.org/Poll"><h1 itemprop="title">Second poll</h1><table><tbody id="responses"></tbody></table></article></body></html>'
+        expect: {status: [200, 201, 204]}
+      - name: once it exists it cannot be replaced either
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/polls/p2.html"
+          headers: {Content-Type: "text/html"}
+          body: '<!DOCTYPE html><html><body><p>again</p></body></html>'
+        expect: {status: 409}
+      - name: deleting a poll is not granted at all
+        as: anonymous
+        request: {method: DELETE, path: "${P}/polls/p1.html"}
+        expect: {status: 401}
+      - name: the poll survived
+        as: anonymous
+        request: {method: GET, path: "${P}/polls/p1.html"}
+        expect:
+          status: 200
+          body_contains: ["Team lunch at the new place", 'id="r-zz000001"']
+          body_not_contains: ["defaced", "Hijacked"]
+
+  - id: apps.polls.templated-create
+    title: "Creating a poll: a form POST to the Liquid template answers 301 to /polls/<10 chars>.html"
+    area: apps
+    feature: "template: polls"
+    evidence: documented
+    source: "docs reference/composing-pages/Resource-Creation (snapshot 2026-09-28); pagelove-polls site/templates/new-poll.html@c9270e5:2-68, site/index.html:40, site/assets/create.js:56-88"
+    confidence: high
+    requires: [liquid]
+    live: true
+    notes: "R-APPS-13, R-COMP-140..144. request.body.<field> from a form body is demo-source (R-COMP-142). The template writes its itemtype as {{ 'https://pagelove.org/Poll' }} so the stored template is not itself a Poll item for site-wide bindings."
+    site:
+      settings: {default_get: allow}
+      files:
+        - path: "${P}/templates/new-poll.html"
+          body: &template |
+            <!DOCTYPE html>
+            <html lang="en" xmlns:p="https://pagelove.org/1.0" p:template="text/liquid">
+            <head>
+            <meta charset="utf-8">
+            <title>{% assign id = 10 | random: lower: true, digits: true %}
+            {% assign title = request.body.title | default: "" | strip %}
+            {% if title == "" %}{% assign title = "Untitled poll" %}{% endif %}
+            {{ title | escape }} · Polls by Pagelove</title>
+            <base href="${P}/polls/{{ id }}.html">
+            </head>
+            <body class="poll-page">
+            {% assign organizer = request.body.organizer | default: "" | strip %}
+            {% if organizer == "" %}{% assign organizer = "Someone" %}{% endif %}
+            {% assign opts = request.body.options | default: "" | split: ";;" %}
+            {% if request.body.listed == "on" %}{% assign listed = "true" %}{% else %}{% assign listed = "false" %}{% endif %}
+            <article id="poll" itemscope itemtype="{{ 'https://pagelove.org/Poll' }}">
+              <h1 itemprop="title">{{ title | escape }}</h1>
+              <p class="meta">Organised by <strong itemprop="organizer">{{ organizer | escape }}</strong></p>
+              <meta itemprop="listed" content="{{ listed }}">
+              <meta itemprop="optionCount" content="{{ opts.size }}">
+              <table id="grid">
+                <thead><tr><th class="corner" scope="col">Participant</th>
+                  {% for o in opts %}{% assign f = o | split: "|" %}<th scope="col" id="o{{ forloop.index }}" data-option="o{{ forloop.index }}" itemprop="option" itemscope itemtype="https://pagelove.org/PollOption"><time itemprop="start" datetime="{{ f[0] | escape }}"><span class="dow">{{ f[1] | escape }}</span><span class="day">{{ f[2] | escape }}</span></time></th>{% endfor %}
+                </tr></thead>
+                <tbody id="responses"></tbody>
+              </table>
+            </article>
+            </body>
+            </html>
+        - {path: "${P}/admin/auth.html", body: *auth}
+    steps:
+      - name: native form submission
+        as: anonymous
+        request:
+          method: POST
+          path: "${P}/templates/new-poll.html"
+          headers: {Content-Type: "application/x-www-form-urlencoded"}
+          body: "title=Team+lunch&organizer=Ada&description=&options=2026-10-01T12%3A30%7CThu%7C1+Oct%7C12%3A30%3B%3B2026-10-02%7CFri%7C2+Oct%7C&listed=on&created=2026-09-28T10%3A00%3A00.000Z&createdLabel=28+Sept+2026"
+        expect:
+          status: 301
+          header_matches: {Location: '^${P}/polls/[a-z0-9]{10}\.html$'}
+        capture: {poll: header.Location}
+      - name: the browser follows the redirect
+        as: anonymous
+        request: {method: GET, path: "${poll}"}
+        expect:
+          status: 200
+          body_contains: ["Team lunch", "Ada", 'itemtype="https://pagelove.org/Poll"', 'data-option="o1"', 'data-option="o2"', 'content="true"']
+          body_not_contains: ["{%", "{{", 'data-option="o3"']
+      - name: the new poll accepts the home page's count read
+        as: anonymous
+        request:
+          method: GET
+          path: "${poll}"
+          headers: {Range: "selector=#responses"}
+        expect: {status: 206}
+      - name: the template itself is unchanged
+        as: author
+        plane: dav
+        request: {method: GET, path: "${P}/templates/new-poll.html"}
+        expect: {status: 200, body_contains: ["{% assign id = 10 | random"]}
+
+  - id: apps.polls.templated-create-stored-form
+    title: "The stored poll has no <base> element and no p:template attribute, but keeps xmlns:p"
+    area: apps
+    feature: "template: polls"
+    evidence: demo-source
+    source: "pagelove-polls site/polls/kfd47o4zqd.html@c9270e5:1-16 (shipped sample poll: no <base>, no p:template, xmlns:p kept, blank lines from Liquid tags)"
+    confidence: low
+    requires: [liquid, webdav]
+    live: true
+    notes: "R-APPS-13.4 / R-COMP-143 decision (C-12); probe P-APPS-1."
+    site:
+      settings: {default_get: allow}
+      files:
+        - {path: "${P}/templates/new-poll.html", body: *template}
+        - {path: "${P}/admin/auth.html", body: *auth}
+    steps:
+      - name: create
+        as: anonymous
+        request:
+          method: POST
+          path: "${P}/templates/new-poll.html"
+          headers: {Content-Type: "application/x-www-form-urlencoded"}
+          body: "title=Book+club&organizer=Ben&options=2026-10-05%7CMon%7C5+Oct%7C&listed=on"
+        expect: {status: 301}
+        capture: {poll: header.Location}
+      - name: stored bytes over dav
+        as: author
+        plane: dav
+        request: {method: GET, path: "${poll}"}
+        expect:
+          status: 200
+          body_contains: ["Book club", 'xmlns:p="https://pagelove.org/1.0"']
+          body_not_contains: ["<base", "p:template", "{%"]

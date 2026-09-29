@@ -1,0 +1,33 @@
+{
+  "case": "reacting.context.sessel-request-fields",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (install a trigger that echoes the context in a thrown body)",
+      "method": "PUT",
+      "path": "/_pl/reacting-context-sessel-request-fields-74b06b/r/triggers.html",
+      "status": 201,
+      "headers": {
+        "content-length": "805",
+        "content-type": "text/html",
+        "etag": "\"64f89a4b24d5036775cf25863174c768641a99eb87565a6189eae3481423c5df\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:48 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\n\u003cdiv hidden itemscope itemtype=\"https://pagelove.org/Trigger\"\u003e\n  \u003cmeta itemprop=\"resource\" content=\"/_pl/reacting-context-sessel-request-fields-74b06b/d/*\"\u003e\n  \u003cmeta itemprop=\"method\" content=\"PUT\"\u003e\n  \u003cdiv itemprop=\"action\" itemscope itemtype=\"https://pagelove.org/Sessel\"\u003e\n    \u003cscript itemprop=\"source\" type=\"text/sessel\"\u003e\n      @schema Context url(\"https://pagelove.org/Context\");\n      @schema HTTPResponse url(\"https://pagelove.org/HTTPResponse\");\n      throw new HTTPResponse {\n        status: 409,\n        body: \"m=\" + Context.request.method + \";p=\" + Context.request.path + \";q=\" + (Context.request.query[\"a\"] ?? \"none\") + \";h=\" + (Context.request.headers[\"x-test\"] ?? \"none\") + \";b=\" + Context.request.body + \";end\"\n      }\n    \u003c/script\u003e\n  \u003c/div\u003e\n\u003c/div\u003e\n\u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 2 (every field is visible)",
+      "method": "PUT",
+      "path": "/_pl/reacting-context-sessel-request-fields-74b06b/d/note.txt?a=1",
+      "status": 409,
+      "headers": {
+        "content-length": "96",
+        "content-type": "text/html; charset=utf-8"
+      },
+      "body": "m=PUT;p=/_pl/reacting-context-sessel-request-fields-74b06b/d/note.txt;q=1;h=yes;b=hello-body;end"
+    }
+  ],
+  "outcome": "pass",
+  "target": "local"
+}

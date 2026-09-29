@@ -1,0 +1,51 @@
+{
+  "case": "modeling.resolvers.mixed-language-chain",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (register declarations through the public plane (takes effect for the next request))",
+      "method": "PUT",
+      "path": "/_pl/modeling-resolvers-mixed-language-chain-e758d6/schema.html",
+      "status": 201,
+      "headers": {
+        "content-length": "1379",
+        "content-type": "text/html",
+        "etag": "\"3df128688e1f6a6cc09b3bf5da3c14cdb8f2a9070e3b92a1b2b5f64fbe078c02\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:44 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\n  \u003cdiv hidden itemscope itemtype=\"https://pagelove.org/Schema\"\u003e\n    \u003cmeta itemprop=\"type\" content=\"https://pagelike.test/_pl/modeling-resolvers-mixed-language-chain-e758d6/Entity\"\u003e\n    \u003cdiv itemprop=\"property\" itemscope itemtype=\"https://pagelove.org/Property\"\u003e\n      \u003cmeta itemprop=\"name\" content=\"code\"\u003e\n      \u003cmeta itemprop=\"type\" content=\"https://schema.host/Text\"\u003e\n      \u003cmeta itemprop=\"cardinality\" content=\"1..1\"\u003e\n      \u003cscript type=\"text/sessel\" itemprop=\"@read\"\u003eself.map((el) =\u003e el.set_text(el.text() + \"-s\"))\u003c/script\u003e\n    \u003c/div\u003e\n  \u003c/div\u003e\n  \u003cdiv hidden itemscope itemtype=\"https://pagelove.org/Schema\"\u003e\n    \u003cmeta itemprop=\"type\" content=\"https://pagelike.test/_pl/modeling-resolvers-mixed-language-chain-e758d6/Person\"\u003e\n    \u003cmeta itemprop=\"parent\" content=\"https://pagelike.test/_pl/modeling-resolvers-mixed-language-chain-e758d6/Entity\"\u003e\n    \u003cdiv itemprop=\"property\" itemscope itemtype=\"https://pagelove.org/Property\"\u003e\n      \u003cmeta itemprop=\"name\" content=\"code\"\u003e\n      \u003cmeta itemprop=\"type\" content=\"https://schema.host/Text\"\u003e\n      \u003cmeta itemprop=\"cardinality\" content=\"1..1\"\u003e\n      \u003cdiv itemprop=\"@read\" itemscope itemtype=\"https://pagelove.org/JavaScript/Module\"\u003e\n        \u003cscript itemprop=\"source\" type=\"module\"\u003eexport default (val) =\u003e typeof val === 'string' ? val + '-j' : val;\u003c/script\u003e\n      \u003c/div\u003e\n    \u003c/div\u003e\n  \u003c/div\u003e\n\u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 2 (store a Person with code x)",
+      "method": "PUT",
+      "path": "/_pl/modeling-resolvers-mixed-language-chain-e758d6/p.html",
+      "status": 201,
+      "headers": {
+        "content-length": "197",
+        "content-type": "text/html",
+        "etag": "\"544792414398db8dfc834ccfcdbb98135e66b904498564d3579d388c5bfffb14\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:44 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\n  \u003cdiv itemscope itemtype=\"https://pagelike.test/_pl/modeling-resolvers-mixed-language-chain-e758d6/Person\"\u003e\n    \u003cspan itemprop=\"code\"\u003ex\u003c/span\u003e\n  \u003c/div\u003e\n\u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 3 (public GET shows x-s-j)",
+      "method": "GET",
+      "path": "/_pl/modeling-resolvers-mixed-language-chain-e758d6/p.html",
+      "status": 200,
+      "headers": {
+        "accept-ranges": "selector, bytes",
+        "cache-control": "public, max-age=5",
+        "content-length": "201",
+        "content-type": "text/html",
+        "etag": "W/\"ddeb611a31c5d0e152a3fad7512d68e48898cb846df64b1b6a6b3e54a01bb37f\"",
+        "vary": "Host, Range, Accept"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\n  \u003cdiv itemscope itemtype=\"https://pagelike.test/_pl/modeling-resolvers-mixed-language-chain-e758d6/Person\"\u003e\n    \u003cspan itemprop=\"code\"\u003ex-s-j\u003c/span\u003e\n  \u003c/div\u003e\n\u003c/body\u003e\u003c/html\u003e\n"
+    }
+  ],
+  "outcome": "pass",
+  "target": "local"
+}

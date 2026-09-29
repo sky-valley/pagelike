@@ -1,0 +1,50 @@
+{
+  "case": "modeling.uniqueness.rewrite-own-value",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (register declarations through the public plane (takes effect for the next request))",
+      "method": "PUT",
+      "path": "/_pl/modeling-uniqueness-rewrite-own-value-77b6c9/schema.html",
+      "status": 201,
+      "headers": {
+        "content-length": "528",
+        "content-type": "text/html",
+        "etag": "\"a1eefc1bd36380a809b0313fa037c4415ac8f7312675120b4700c8043195965c\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:45 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\n  \u003cdiv hidden itemscope itemtype=\"https://pagelove.org/Schema\"\u003e\n    \u003cmeta itemprop=\"type\" content=\"https://pagelike.test/_pl/modeling-uniqueness-rewrite-own-value-77b6c9/Project\"\u003e\n    \u003cli itemprop=\"property\" itemscope itemtype=\"https://pagelove.org/Property\"\u003e\n      \u003cmeta itemprop=\"name\" content=\"slug\"\u003e\n      \u003cmeta itemprop=\"type\" content=\"https://schema.host/Text\"\u003e\n      \u003cmeta itemprop=\"cardinality\" content=\"1..1\"\u003e\n      \u003cmeta itemprop=\"unique\" content=\"true\"\u003e\n    \u003c/li\u003e\n  \u003c/div\u003e\n\u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 2 (create)",
+      "method": "PUT",
+      "path": "/_pl/modeling-uniqueness-rewrite-own-value-77b6c9/p.html",
+      "status": 201,
+      "headers": {
+        "content-length": "205",
+        "content-type": "text/html",
+        "etag": "\"0148d413f833c1c0ca43fac9148dbc3fa16564e10911f87b7909aa330f241bd5\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:45 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\n  \u003cdiv itemscope itemtype=\"https://pagelike.test/_pl/modeling-uniqueness-rewrite-own-value-77b6c9/Project\"\u003e\n    \u003cmeta itemprop=\"slug\" content=\"launch\"\u003e\n  \u003c/div\u003e\n\u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 3 (replace the same document with the same slug)",
+      "method": "PUT",
+      "path": "/_pl/modeling-uniqueness-rewrite-own-value-77b6c9/p.html",
+      "status": 200,
+      "headers": {
+        "content-length": "221",
+        "content-type": "text/html",
+        "etag": "\"33f5211ed8ca3fc11639e4fe13d8ff9738f0e838e5da82697c76dd0947575676\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:45 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\n  \u003cdiv itemscope itemtype=\"https://pagelike.test/_pl/modeling-uniqueness-rewrite-own-value-77b6c9/Project\"\u003e\n    \u003cmeta itemprop=\"slug\" content=\"launch\"\u003e\n  \u003c/div\u003e\n  \u003cp\u003eedited\u003c/p\u003e\n\u003c/body\u003e\u003c/html\u003e\n"
+    }
+  ],
+  "outcome": "pass",
+  "target": "local"
+}

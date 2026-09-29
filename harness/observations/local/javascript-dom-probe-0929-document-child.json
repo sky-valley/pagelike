@@ -1,0 +1,37 @@
+{
+  "case": "javascript.dom.probe-0929.document-children",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (PUT the page (public plane; registers inline declarations))",
+      "method": "PUT",
+      "path": "/_pl/javascript-dom-probe-0929-document-child-54e6a6/probe.html",
+      "status": 201,
+      "headers": {
+        "content-length": "2950",
+        "content-type": "text/html",
+        "etag": "\"aea43f529757747c609db610de95eb1a371138e042546219bc2a3ca73acd5305\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:42 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml xmlns:t=\"https://pagelike.test/_pl/javascript-dom-probe-0929-document-child-54e6a6/Pdocumentchildren\"\u003e\u003cbody\u003e\n\u003cmain\u003e\n\u003ct:probe\u003e\u003c/t:probe\u003e\n\u003c/main\u003e\n\u003cdiv hidden itemscope itemtype=\"https://pagelove.org/Schema\"\u003e\n\u003cmeta itemprop=\"type\" content=\"https://pagelike.test/_pl/javascript-dom-probe-0929-document-child-54e6a6/Pdocumentchildren\"\u003e\n\u003cul\u003e\n\u003cli itemprop=\"property\" itemscope itemtype=\"https://pagelove.org/Method\"\u003e\n\u003cmeta itemprop=\"name\" content=\"probe\"\u003e\n\u003cdiv itemprop=\"implementation\" itemscope itemtype=\"https://pagelove.org/JavaScript/Module\"\u003e\n\u003cscript itemprop=\"source\" type=\"module\"\u003e\nconst H = (x) =\u003e String(x).replace(/[\u003c\u003e\"]/g, (c) =\u003e ({ '\u003c': '[', '\u003e': ']', '\"': \"'\" })[c]);\nconst T = (f) =\u003e { try { return H(f()); } catch (e) { return 'E:' + e.name; } };\nconst J = (x) =\u003e JSON.stringify(x);\nconst X = (n) =\u003e new XMLSerializer().serializeToString(n);\nconst N = (n) =\u003e (n === null ? 'null' : n === undefined ? 'undef' : typeof n === 'object' ? 'node:' + n.nodeName : typeof n + ':' + n);\nexport default function () {\nconst P = new DOMParser();\nconst mk = () =\u003e P.parseFromString('\u003cp id=\"a\"\u003ea\u003c/p\u003e\u003cp id=\"b\"\u003eb\u003c/p\u003e', 'text/html');\nconst r = [];\nr.push(T(() =\u003e { const d = mk(); d.appendChild(d.createElement('i')); return X(d); }));\nr.push(T(() =\u003e { const d = mk(); d.appendChild(d.createTextNode('t')); return X(d); }));\nr.push(T(() =\u003e { const d = mk(); d.insertBefore(d.createElement('i'), d.firstChild); return X(d) + '/' + N(d.documentElement); }));\nr.push(T(() =\u003e { const d = mk(); d.querySelector('#a').before('s', d.createElement('u')); return X(d); }));\nr.push(T(() =\u003e { const d = mk(); d.querySelector('#a').after(d.createElement('u')); return X(d); }));\nr.push(T(() =\u003e { const d = mk(); d.querySelector('#a').replaceWith(d.createElement('u')); return X(d) + '/' + N(d.documentElement); }));\nr.push(T(() =\u003e { const d = mk(); d.querySelector('#a').remove(); return X(d) + '/' + N(d.documentElement); }));\nr.push(T(() =\u003e { const d = mk(); d.removeChild(d.firstChild); return X(d); }));\nr.push(T(() =\u003e { const d = mk(); d.querySelector('#b').insertAdjacentHTML('afterend', '\u003ci\u003ei\u003c/i\u003e'); return X(d); }));\nr.push(T(() =\u003e { const d = mk(); d.querySelector('#a').outerHTML = '\u003cb\u003e1\u003c/b\u003e\u003cb\u003e2\u003c/b\u003e'; return X(d); }));\nr.push(T(() =\u003e J(mk().textContent)));\nr.push(T(() =\u003e { const d = P.parseFromString('', 'text/html'); d.appendChild(d.createElement('p')); return X(d) + '/' + N(d.documentElement); }));\nr.push(T(() =\u003e { const d = mk(); const f = d.createDocumentFragment(); f.appendChild(d.createElement('i')); f.appendChild(d.createElement('u')); d.appendChild(f); return X(d); }));\nr.push(T(() =\u003e { const d = mk(); return N(d.querySelector('#a').parentNode) + '/' + N(d.querySelector('#a').parentElement) + '/' + d.contains(d.querySelector('#b')) + '/' + d.getElementsByTagNameNS('*', 'p').length + '/' + d.querySelectorAll('*').length; }));\nreturn ['R:', r.join(' ## ')].join('');\n}\n\u003c/script\u003e\n\u003c/div\u003e\n\u003c/li\u003e\n\u003c/ul\u003e\n\u003c/div\u003e\n\u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 2 (GET \u003cmain\u003e: the method result is inserted as text)",
+      "method": "GET",
+      "path": "/_pl/javascript-dom-probe-0929-document-child-54e6a6/probe.html",
+      "status": 206,
+      "headers": {
+        "accept-ranges": "selector, bytes",
+        "content-length": "481",
+        "content-range": "selector main",
+        "content-type": "text/html",
+        "etag": "\"24f16e8f3daab45d03d687393e02e7a8170850425d2b0ad2aa5c7371a5b0bf13-24f16e8f3daab45d03d687393e02e7a8170850425d2b0ad2aa5c7371a5b0bf13-1\"",
+        "vary": "Host, Range, Accept"
+      },
+      "body": "\u003cmain\u003e\nR:[p id='a']a[/p][p id='b']b[/p][i][/i] ## [p id='a']a[/p][p id='b']b[/p]t ## [i][/i][p id='a']a[/p][p id='b']b[/p]/node:I ## s[u][/u][p id='a']a[/p][p id='b']b[/p] ## [p id='a']a[/p][u][/u][p id='b']b[/p] ## [u][/u][p id='b']b[/p]/node:U ## [p id='b']b[/p]/node:P ## [p id='b']b[/p] ## [p id='a']a[/p][p id='b']b[/p][i]i[/i] ## [b]1[/b][b]2[/b][p id='b']b[/p] ## 'ab' ## [p][/p]/node:P ## [p id='a']a[/p][p id='b']b[/p][i][/i][u][/u] ## node:#document/null/true/2/2\n\u003c/main\u003e"
+    }
+  ],
+  "outcome": "pass",
+  "target": "local"
+}

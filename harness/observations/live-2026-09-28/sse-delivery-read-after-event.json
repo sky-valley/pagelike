@@ -1,0 +1,56 @@
+{
+  "case": "sse.delivery.read-after-event",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 2",
+      "events": [
+        {
+          "event": "pagelove-connection",
+          "data": "2519f008-a189-4da1-9f22-f92f5c8ec070"
+        }
+      ]
+    },
+    {
+      "step": "step 3 (write)",
+      "method": "PUT",
+      "path": "/_pl/sse-delivery-read-after-event-a560e6/doc.html",
+      "status": 206,
+      "headers": {
+        "content-length": "18",
+        "content-range": "selector h1",
+        "content-type": "text/html",
+        "etag": "\"420c15cf60f67febfdc60de9ba0de9d59b53199dfe0f9bbb05dfcb10e3202601-420c15cf60f67febfdc60de9ba0de9d59b53199dfe0f9bbb05dfcb10e3202601-2\"",
+        "last-modified": "Mon, 28 Sep 2026 22:34:08 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003ch1\u003eCommitted\u003c/h1\u003e"
+    },
+    {
+      "step": "step 4",
+      "events": [
+        {
+          "id": "v1~462701f6acc4.1790634848584-0",
+          "event": "mutation",
+          "data": "\u003carticle itemscope itemtype=\"https://pagelove.org/Mutation\"\u003e\n  \u003cspan itemprop=\"method\"\u003ePUT\u003c/span\u003e\n  \u003cspan itemprop=\"selector\"\u003eh1\u003c/span\u003e\n  \u003cspan itemprop=\"etag\"\u003ec4a9be1b0c8d98c15c14e125aaba7296ddb4a70a9f6edca5490f6f536be9d265\u003c/span\u003e\n  \u003cspan itemprop=\"path\"\u003e/_pl/sse-delivery-read-after-event-a560e6/doc.html\u003c/span\u003e\n  \u003cspan itemprop=\"host\"\u003elive-test-host.onpagelove.com\u003c/span\u003e\n  \u003cdiv itemprop=\"body\"\u003e\u003ch1\u003eCommitted\u003c/h1\u003e\u003c/div\u003e\n\u003c/article\u003e"
+        }
+      ]
+    },
+    {
+      "step": "step 5 (read after the event)",
+      "method": "GET",
+      "path": "/_pl/sse-delivery-read-after-event-a560e6/doc.html",
+      "status": 206,
+      "headers": {
+        "content-length": "18",
+        "content-range": "selector h1",
+        "content-type": "text/html",
+        "etag": "\"420c15cf60f67febfdc60de9ba0de9d59b53199dfe0f9bbb05dfcb10e3202601-420c15cf60f67febfdc60de9ba0de9d59b53199dfe0f9bbb05dfcb10e3202601-2\"",
+        "vary": "Host, Range, Accept"
+      },
+      "body": "\u003ch1\u003eCommitted\u003c/h1\u003e"
+    }
+  ],
+  "outcome": "pass",
+  "target": "live"
+}

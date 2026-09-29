@@ -1,0 +1,37 @@
+{
+  "case": "javascript.methods.document-scoped-to-host",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (PUT the page (public plane; registers inline declarations))",
+      "method": "PUT",
+      "path": "/_pl/javascript-methods-document-scoped-to-ho-cbb132/m.html",
+      "status": 201,
+      "headers": {
+        "content-length": "733",
+        "content-type": "text/html",
+        "etag": "\"9a61aca098a296d936d7ba785d016cea57b72040ae06795b5f9c397175cbb514\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:43 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml xmlns:t=\"https://pagelike.test/_pl/javascript-methods-document-scoped-to-ho-cbb132/Scope\"\u003e\u003cbody\u003e\n\u003cmain\u003e\n\u003ct:count\u003e\u003cp\u003ea\u003c/p\u003e\u003cp\u003eb\u003c/p\u003e\u003c/t:count\u003e\n\u003cp\u003eoutside\u003c/p\u003e\n\u003c/main\u003e\n\u003cdiv hidden itemscope itemtype=\"https://pagelove.org/Schema\"\u003e\n\u003cmeta itemprop=\"type\" content=\"https://pagelike.test/_pl/javascript-methods-document-scoped-to-ho-cbb132/Scope\"\u003e\n\u003cul\u003e\n\u003cli itemprop=\"property\" itemscope itemtype=\"https://pagelove.org/Method\"\u003e\n\u003cmeta itemprop=\"name\" content=\"count\"\u003e\n\u003cdiv itemprop=\"implementation\" itemscope itemtype=\"https://pagelove.org/JavaScript/Module\"\u003e\n\u003cscript itemprop=\"source\" type=\"module\"\u003e\nexport default () =\u003e 'COUNT:' + document.querySelectorAll('p').length;\n\u003c/script\u003e\n\u003c/div\u003e\n\u003c/li\u003e\n\u003c/ul\u003e\n\u003c/div\u003e\n\u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 2 (GET the composed page)",
+      "method": "GET",
+      "path": "/_pl/javascript-methods-document-scoped-to-ho-cbb132/m.html",
+      "status": 206,
+      "headers": {
+        "accept-ranges": "selector, bytes",
+        "content-length": "37",
+        "content-range": "selector main",
+        "content-type": "text/html",
+        "etag": "\"dd63361bf9093e5cdeab364a30b3fa457bff92763b7d6045b5febba95fabce54-dd63361bf9093e5cdeab364a30b3fa457bff92763b7d6045b5febba95fabce54-1\"",
+        "vary": "Host, Range, Accept"
+      },
+      "body": "\u003cmain\u003e\nCOUNT:2\n\u003cp\u003eoutside\u003c/p\u003e\n\u003c/main\u003e"
+    }
+  ],
+  "outcome": "pass",
+  "target": "local"
+}

@@ -1,0 +1,74 @@
+{
+  "case": "reacting.th.exit-never-fires",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (install a handler (Order.status becomes processing -\u003e POST ${SINK}/payments))",
+      "method": "PUT",
+      "path": "/_pl/reacting-th-exit-never-fires-970780/r/handlers.html",
+      "status": 201,
+      "headers": {
+        "content-length": "544",
+        "content-type": "text/html",
+        "etag": "\"c33d3c42a92ceabe3f0d58a3881a71d40e0f15096ceb186f49a4d5b1314d3c54\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:49 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\n\u003cdiv itemscope itemtype=\"https://pagelove.org/TransitionHandler\"\u003e\n  \u003cmeta itemprop=\"selector\" content=\"[itemtype='https://pagelike.test/_pl/reacting-th-exit-never-fires-970780/Order']\"\u003e\n  \u003cmeta itemprop=\"property\" content=\"status\"\u003e\n  \u003cmeta itemprop=\"becomes\" content=\"processing\"\u003e\n  \u003cdiv itemprop=\"action\" itemscope itemtype=\"https://pagelove.org/HttpRequest\"\u003e\n    \u003cmeta itemprop=\"url\" content=\"http://127.0.0.1:53606/c-6bb6e27b/payments\"\u003e\n    \u003cmeta itemprop=\"method\" content=\"POST\"\u003e\n  \u003c/div\u003e\n\u003c/div\u003e\n\u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 2 (seed order-1 at pending)",
+      "method": "PUT",
+      "path": "/_pl/reacting-th-exit-never-fires-970780/orders/order-1.html",
+      "status": 201,
+      "headers": {
+        "content-length": "232",
+        "content-type": "text/html",
+        "etag": "\"c41280a8c6182ca862d2908697e1ed16d56c61160de07ebaa880d6bb3d5d4a12\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:49 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\u003cdiv id=\"order1\" itemscope itemtype=\"https://pagelike.test/_pl/reacting-th-exit-never-fires-970780/Order\"\u003e\u003cmeta itemprop=\"status\" content=\"pending\"\u003e\u003cspan itemprop=\"total\"\u003e42.00\u003c/span\u003e\u003c/div\u003e\u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 3 (move order-1 to processing)",
+      "method": "PUT",
+      "path": "/_pl/reacting-th-exit-never-fires-970780/orders/order-1.html",
+      "status": 206,
+      "headers": {
+        "content-length": "192",
+        "content-range": "selector #order1",
+        "content-type": "text/html",
+        "etag": "\"db37ca36e3f594932ff6a34e37fbd05953e008caff582f5aaf2456170f6d6b93-db37ca36e3f594932ff6a34e37fbd05953e008caff582f5aaf2456170f6d6b93-2\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:49 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003cdiv id=\"order1\" itemscope itemtype=\"https://pagelike.test/_pl/reacting-th-exit-never-fires-970780/Order\"\u003e\u003cmeta itemprop=\"status\" content=\"processing\"\u003e\u003cspan itemprop=\"total\"\u003e42.00\u003c/span\u003e\u003c/div\u003e"
+    },
+    {
+      "step": "step 4",
+      "method": "POST",
+      "path": "${SINK}/payments",
+      "headers": {
+        "accept-encoding": "gzip",
+        "content-length": "587",
+        "content-type": "text/html",
+        "user-agent": "Go-http-client/1.1"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\n  \u003chead\u003e\u003ctitle\u003eTransition\u003c/title\u003e\u003c/head\u003e\n  \u003cbody itemscope itemtype=\"https://pagelove.org/Transition\"\u003e\n    \u003cmeta itemprop=\"path\" content=\"/_pl/reacting-th-exit-never-fires-970780/orders/order-1.html\"\u003e\n    \u003cmeta itemprop=\"selector\" content=\"[itemtype=\u0026quot;https://pagelike.test/_pl/reacting-th-exit-never-fires-970780/Order\u0026quot;]\"\u003e\n    \u003cdiv id=\"order1\" itemscope itemtype=\"https://pagelike.test/_pl/reacting-th-exit-never-fires-970780/Order\" itemprop=\"body\"\u003e\u003cmeta itemprop=\"status\" content=\"processing\"\u003e\u003cspan itemprop=\"total\"\u003e42.00\u003c/span\u003e\u003c/div\u003e\n  \u003c/body\u003e\n\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 5 (delete the processing order)",
+      "method": "DELETE",
+      "path": "/_pl/reacting-th-exit-never-fires-970780/orders/order-1.html",
+      "status": 204,
+      "headers": {
+        "etag": "\"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:49 GMT",
+        "vary": "Host, Range"
+      }
+    }
+  ],
+  "outcome": "pass",
+  "target": "local"
+}

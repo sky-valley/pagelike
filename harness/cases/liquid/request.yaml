@@ -1,0 +1,340 @@
+# The request object in templates. Spec: docs/spec/liquid.md §7 (R-LIQ-60..65).
+defaults:
+  area: liquid
+  requires: [liquid]
+cases:
+  - id: liquid.request.json-debug
+    title: "{{ request | json: 2 }} pretty-prints the request object; reading it makes the page private"
+    feature: request object
+    evidence: documented
+    source: "docs languages/liquid/templating §Request object (<pre>{{ request | json: 2 }}</pre>); languages/liquid/filters/data §json; languages/sessel/reference/syntax §Context variables (request.auth read → Cache-Control: private)"
+    confidence: medium
+    live: true
+    notes: "R-LIQ-63, R-LIQ-64, R-LIQ-190. Quotes may appear raw or escaped depending on P-LIQ-1, so the regexes accept both."
+    site:
+      settings: {default_get: allow}
+      files:
+        - path: "${P}/debug.html"
+          body: |
+            <!DOCTYPE html>
+            <html xmlns:pagelove="https://pagelove.org/1.0"><body>
+            <section class="debug" pagelove:template="text/liquid">
+            <pre>{{ request | json: 2 }}</pre>
+            </section>
+            </body></html>
+      rules: [{actor: "*", resource: "${P}/*", method: [GET, HEAD], action: Allow}]
+    steps:
+      - name: read
+        as: anonymous
+        request: {method: GET, path: "${P}/debug.html?foo=bar"}
+        expect:
+          status: 200
+          body_matches: '(?s)<pre>\{\n  .*(&quot;|&#34;|")method(&quot;|&#34;|"): (&quot;|&#34;|")GET(&quot;|&#34;|")'
+          body_contains: ["foo", "bar", "headers", "auth"]
+          header_matches: {Cache-Control: "(?i)(^|[ ,])private([ ,]|$)"}
+
+  - id: liquid.request.method-path-query
+    title: request.method, request.path (no query) and decoded request.query values
+    feature: request object
+    evidence: documented
+    source: "docs reference/reading-and-writing/Request-Document §Examples (Method: GET / Path: …) and §Fields (query parsed); languages/sessel/reference/syntax §Context variables (request.query.*)"
+    confidence: high
+    live: true
+    notes: R-LIQ-60. '+' in a query value decodes to a space (form decoding, medium).
+    site:
+      settings: {default_get: allow}
+      files:
+        - path: "${P}/req.html"
+          body: |
+            <!DOCTYPE html>
+            <html xmlns:p="https://pagelove.org/1.0"><body>
+              <div itemscope itemtype="urn:liquid:result" p:template="text/liquid">
+                <span itemprop="method">{{ request.method }}</span>
+                <span itemprop="path">{{ request.path }}</span>
+                <span itemprop="q">{{ request.query.q }}</span>
+                <span itemprop="r">{{ request.query.r }}</span>
+                <span itemprop="missing">[{{ request.query.nope }}]</span>
+                <span itemprop="params">{{ request.params.size }}</span>
+              </div>
+            </body></html>
+      rules: [{actor: "*", resource: "${P}/*", method: [GET, HEAD], action: Allow}]
+    steps:
+      - name: read
+        as: anonymous
+        request: {method: GET, path: "${P}/req.html?q=hello%20world&r=a+b"}
+        expect:
+          status: 200
+          microdata: {method: GET, q: hello world, r: a b, missing: "[]", params: "0"}
+          body_contains: ['<span itemprop="path">${P}/req.html</span>']
+
+  - id: liquid.request.custom-header-private
+    title: request.headers exposes lower-cased request headers; reading them makes the page private
+    feature: request object
+    evidence: documented
+    source: "docs languages/sessel/reference/syntax §Context variables (request.headers.*); reference/composing-pages/JavaScript-Expression-Binding §Caching (request.headers is per-user → private)"
+    confidence: medium
+    live: true
+    notes: R-LIQ-60, R-LIQ-64, P-LIQ-19.
+    site:
+      settings: {default_get: allow}
+      files:
+        - path: "${P}/hdr.html"
+          body: |
+            <!DOCTYPE html>
+            <html xmlns:p="https://pagelove.org/1.0"><body>
+              <p id="o" p:template="text/liquid">[{{ request.headers['x-pagelike-case'] }}]</p>
+            </body></html>
+      rules: [{actor: "*", resource: "${P}/*", method: [GET, HEAD], action: Allow}]
+    steps:
+      - name: read
+        as: anonymous
+        request: {method: GET, path: "${P}/hdr.html", headers: {X-Pagelike-Case: "Hello-Header"}}
+        expect:
+          status: 200
+          body_contains: ['<p id="o">[Hello-Header]</p>']
+          header_matches: {Cache-Control: "(?i)(^|[ ,])private([ ,]|$)"}
+
+  - id: liquid.request.shop-authorization-header-absent
+    title: The shop's auth partial shows no admin links when no Authorization header is sent
+    feature: request object
+    evidence: demo-source
+    source: "pagelove-shop/site/partials.html@d887054:9-22 ({% if request.headers.authorization %}…{% endif %})"
+    confidence: high
+    live: true
+    notes: R-LIQ-60, R-LIQ-203 (missing header → nil → falsy).
+    site:
+      settings: {default_get: allow}
+      files:
+        - path: "${P}/partials.html"
+          body: |
+            <!DOCTYPE html>
+            <html lang="en" xmlns:p="https://pagelove.org/1.0">
+            <head><meta charset="UTF-8"><title>chrome</title></head>
+            <body>
+              <header id="chrome" class="site-nav" role="banner">
+                <nav>
+                  <a href="/index.html">Shop</a>
+                  <span id="admin" p:template="text/liquid">{% if request.headers.authorization %}<a href="/admin/index.html">Orders</a>
+                  <a href="/admin/products.html">Products</a>{% endif %}</span>
+                </nav>
+              </header>
+            </body>
+            </html>
+      rules: [{actor: "*", resource: "${P}/*", method: [GET, HEAD], action: Allow}]
+    steps:
+      - name: anonymous shopper
+        as: anonymous
+        request: {method: GET, path: "${P}/partials.html"}
+        expect:
+          status: 200
+          body_contains: ['<span id="admin"></span>']
+          body_not_contains: ["Orders"]
+
+  - id: liquid.request.route-params
+    title: A parameterized route exposes captured segments as request.params (percent-decoded)
+    feature: request object
+    evidence: documented
+    source: "docs reference/composing-pages/Parameterized-Routes §Reading captured parameters (Liquid accessor lost in the scrape, spec C-15) and §Resolution ('Captured values are percent-decoded')"
+    confidence: high
+    live: true
+    notes: "R-LIQ-60 (params, path is the concrete URL). Cross-area X-4. Whole-document reads: routes resolve only for whole-document reads, a selector GET of a route URL is 404 (R-COMP-107; docs/compat/decisions.md D-1)."
+    site:
+      settings: {default_get: allow}
+      files:
+        - path: "${P}/users/:id/profile.html"
+          body: |
+            <!DOCTYPE html>
+            <html xmlns:p="https://pagelove.org/1.0">
+              <body>
+                <main id="m" p:template="text/liquid">{{ request.params.id }}|{{ request.path }}</main>
+              </body>
+            </html>
+      rules: [{actor: "*", resource: "${P}/*", method: [GET, HEAD], action: Allow}]
+    steps:
+      - name: numeric id
+        as: anonymous
+        request: {method: GET, path: "${P}/users/42/profile.html"}
+        expect:
+          status: 200
+          body_contains: ['<main id="m">42|${P}/users/42/profile.html</main>']
+      - name: percent-decoded id
+        as: anonymous
+        request: {method: GET, path: "${P}/users/alice b/profile.html"}  # the runner percent-encodes the space
+        expect:
+          status: 200
+          body_contains: ["alice b|"]
+
+  - id: liquid.request.anonymous-auth-empty
+    title: "Anonymous requests: request.auth.* are empty and falsy, never an error (kanban whoami)"
+    feature: request.auth
+    evidence: demo-source
+    source: "pagelove-kanban/site/app.js@85109ab:653 (whoami template) and :131-146 ('empty when anonymous'); docs languages/sessel/reference/syntax §Authenticated identity in composition ('empty (falsy) — there is no error')"
+    confidence: medium
+    live: true
+    notes: R-LIQ-61. Authenticated rendering is covered by permissions-identity (authz.identity.request-auth-in-liquid).
+    site:
+      settings: {default_get: allow}
+      files:
+        - path: "${P}/board.html"
+          body: |
+            <!DOCTYPE html>
+            <html lang="en" xmlns:pagelove="https://pagelove.org/1.0">
+            <body class="board">
+            <div id="whoami-server" hidden pagelove:template="text/liquid">{{ request.auth.username }}|{{ request.auth.claims.name }}|{{ request.auth.claims.email }}|{{ request.auth.claims.picture }}|{% for r in request.auth.role %}{{ r }} {% endfor %}</div>
+            <div id="ui" pagelove:template="text/liquid">{% if request.auth.username %}<span>{{ request.auth.claims.name }}</span>{% else %}<a href="/auth/login">Login</a>{% endif %}|{{ request.auth.roles.size }}</div>
+            </body>
+            </html>
+      rules: [{actor: "*", resource: "${P}/*", method: [GET, HEAD], action: Allow}]
+    steps:
+      - name: whoami is four separators
+        as: anonymous
+        request: {method: GET, path: "${P}/board.html", headers: {Range: "selector=#whoami-server"}}
+        expect:
+          status: 206
+          body_matches: '^<div id="whoami-server" hidden(="")?>\|\|\|\|</div>$'
+      - name: auth-aware UI shows the login link
+        as: anonymous
+        request: {method: GET, path: "${P}/board.html", headers: {Range: "selector=#ui"}}
+        expect:
+          status: 206
+          body_contains: ['<a href="/auth/login">Login</a>|0']
+
+  - id: liquid.request.bare-rule-names-nil
+    title: Rule-only names (method, path, auth) are not bound in templates and render empty
+    feature: undefined variables
+    evidence: inferred
+    source: "docs languages/sessel/reference/syntax §Context variables (bare names are rule-only, 'not bound in composition'); languages/liquid/filters/array §push (unassigned variable is nil); pagelike decision R-LIQ-203"
+    confidence: low
+    live: true
+    notes: "R-LIQ-62, spec C-2, P-LIQ-3. Competing claim in liquid.request.bare-rule-names-error."
+    site:
+      settings: {default_get: allow}
+      files:
+        - path: "${P}/bare.html"
+          body: |
+            <!DOCTYPE html>
+            <html xmlns:p="https://pagelove.org/1.0"><body>
+              <p id="o" p:template="text/liquid">[{{ method }}|{{ path }}|{{ auth.claims.email }}]</p>
+            </body></html>
+      rules: [{actor: "*", resource: "${P}/*", method: [GET, HEAD], action: Allow}]
+    steps:
+      - name: read
+        as: anonymous
+        request: {method: GET, path: "${P}/bare.html"}
+        expect:
+          status: 200
+          body_contains: ['<p id="o">[||]</p>']
+
+  - id: liquid.request.bare-rule-names-error
+    title: "Disputed: referencing a rule-only name in a template raises 'undefined variable'"
+    feature: undefined variables
+    evidence: documented
+    source: "docs languages/sessel/reference/syntax §Authenticated identity in composition ('Referencing the bare form (e.g. auth.claims.email) in an expression binding or template raises undefined variable')"
+    confidence: low
+    live: true
+    status: disputed
+    notes: "Spec C-2: pagelike follows the lax reading (liquid.request.bare-rule-names-nil). If this passes live, the output degrades to an inline Error item (R-LIQ-200)."
+    site:
+      settings: {default_get: allow}
+      files:
+        - path: "${P}/bare2.html"
+          body: |
+            <!DOCTYPE html>
+            <html xmlns:p="https://pagelove.org/1.0"><body>
+              <p id="o" p:template="text/liquid">[{{ auth.claims.email }}]</p>
+            </body></html>
+      rules: [{actor: "*", resource: "${P}/*", method: [GET, HEAD], action: Allow}]
+    steps:
+      - name: read
+        as: anonymous
+        request: {method: GET, path: "${P}/bare2.html"}
+        expect:
+          status: 200
+          body_matches: 'itemtype="https?://pagelove.org/(1\.0/)?Error"'
+
+  - id: liquid.request.form-post-resource-creation
+    title: "POST to a template: request.method is POST and request.body holds the decoded form fields"
+    feature: request.body
+    evidence: documented
+    source: "docs reference/composing-pages/Resource-Creation §Templated creation and §Examples (POST slug=hello-world&title=Hello+World&content=First+post → 301 Location …/hello-world.html); pagelove-polls/site/templates/new-poll.html@c9270e5:7-21 (request.body.*)"
+    confidence: high
+    live: true
+    notes: >-
+      R-LIQ-60, cross-area X-3 (resource creation). The template source was lost in the docs
+      scrape (spec C-15) and is reconstructed. Location is matched as a suffix (path or absolute URL).
+    site:
+      settings: {default_get: allow}
+      files:
+        - path: "${P}/sspi-rc-templates/new-entry.html"
+          body: |
+            <!DOCTYPE html>
+            <html xmlns:p="https://pagelove.org/1.0" p:template="text/liquid">
+            <head><base href="${P}/sspi-rc-entries/{{ request.body.slug }}.html"><title>{{ request.body.title | escape }}</title></head>
+            <body>
+              <article id="entry"><h1>{{ request.body.title | escape }}</h1><p class="content">{{ request.body.content | escape }}</p><p class="via">{{ request.method }}</p></article>
+            </body>
+            </html>
+      rules:
+        - {actor: "*", resource: "${P}/*", method: [GET, HEAD], action: Allow}
+        - {actor: "*", resource: "${P}/sspi-rc-templates/*", method: [POST], action: Allow}
+        - {actor: "*", resource: "${P}/sspi-rc-entries/*", method: [PUT], action: Allow}
+    steps:
+      - name: post the form
+        as: anonymous
+        request:
+          method: POST
+          path: "${P}/sspi-rc-templates/new-entry.html"
+          headers: {Content-Type: "application/x-www-form-urlencoded"}
+          body: "slug=hello-world&title=Hello+World&content=First+post"
+        expect:
+          status: 301
+          header_matches: {Location: "${P}/sspi-rc-entries/hello-world\\.html$"}
+      - name: the created entry
+        as: anonymous
+        request: {method: GET, path: "${P}/sspi-rc-entries/hello-world.html", headers: {Range: "selector=#entry"}}
+        expect:
+          status: 206
+          body_contains: ["<h1>Hello World</h1>", '<p class="content">First post</p>', '<p class="via">POST</p>']
+
+  - id: liquid.request.created-document-shape
+    title: A created document is stored rendered, without p:template and without the <base> element
+    feature: request.body
+    evidence: demo-source
+    source: "pagelove-polls/site/polls/kfd47o4zqd.html@c9270e5:2,10 (generated poll: <html lang=\"en\" xmlns:p=…> with no p:template, the <base href> line empty)"
+    confidence: low
+    live: true
+    notes: "Cross-area X-3, P-LIQ-20. The poll page's provenance predates the current template (docs/decisions/0003)."
+    site:
+      settings: {default_get: allow}
+      files:
+        - path: "${P}/tpl/new.html"
+          body: |
+            <!DOCTYPE html>
+            <html lang="en" xmlns:p="https://pagelove.org/1.0" p:template="text/liquid">
+            <head><title>{{ request.body.title }}</title>
+            <base href="${P}/made/{{ request.body.slug }}.html">
+            </head>
+            <body><h1>{{ request.body.title }}</h1></body>
+            </html>
+      rules:
+        - {actor: "*", resource: "${P}/*", method: [GET, HEAD], action: Allow}
+        - {actor: "*", resource: "${P}/tpl/*", method: [POST], action: Allow}
+        - {actor: "*", resource: "${P}/made/*", method: [PUT], action: Allow}
+    steps:
+      - name: create
+        as: anonymous
+        request:
+          method: POST
+          path: "${P}/tpl/new.html"
+          headers: {Content-Type: "application/x-www-form-urlencoded"}
+          body: "slug=doc1&title=Made"
+        expect:
+          status: 301
+      - name: stored source via the authoring plane
+        as: author
+        plane: dav
+        request: {method: GET, path: "${P}/made/doc1.html"}
+        expect:
+          status: 200
+          body_contains: ["<h1>Made</h1>", "<title>Made</title>"]
+          body_not_contains: ["p:template", "<base", "{{"]

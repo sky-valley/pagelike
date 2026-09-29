@@ -1,0 +1,93 @@
+{
+  "case": "sse.echo.all-tabs-of-session-suppressed",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (sse open tab_a)",
+      "method": "GET",
+      "path": "/_pl/sse-echo-all-tabs-of-session-suppressed-820c6b/doc.html",
+      "status": 200,
+      "headers": {
+        "cache-control": "no-cache",
+        "content-type": "text/event-stream",
+        "x-accel-buffering": "no"
+      }
+    },
+    {
+      "step": "step 2 (sse open tab_b)",
+      "method": "GET",
+      "path": "/_pl/sse-echo-all-tabs-of-session-suppressed-820c6b/doc.html",
+      "status": 200,
+      "headers": {
+        "cache-control": "no-cache",
+        "content-type": "text/event-stream",
+        "x-accel-buffering": "no"
+      }
+    },
+    {
+      "step": "step 3 (sse open bob_tab)",
+      "method": "GET",
+      "path": "/_pl/sse-echo-all-tabs-of-session-suppressed-820c6b/doc.html",
+      "status": 200,
+      "headers": {
+        "cache-control": "no-cache",
+        "content-type": "text/event-stream",
+        "x-accel-buffering": "no"
+      }
+    },
+    {
+      "step": "step 4",
+      "events": [
+        {
+          "event": "pagelove-connection",
+          "data": "644dd51e-8956-42a0-9d8d-8322a459b80d"
+        }
+      ]
+    },
+    {
+      "step": "step 5",
+      "events": [
+        {
+          "event": "pagelove-connection",
+          "data": "243d23a7-770d-47f2-a8db-da160f7070eb"
+        }
+      ]
+    },
+    {
+      "step": "step 6",
+      "events": [
+        {
+          "event": "pagelove-connection",
+          "data": "a5d9dc18-566d-40cb-88db-0892f56bba81"
+        }
+      ]
+    },
+    {
+      "step": "step 7 (alice writes without a token)",
+      "method": "PUT",
+      "path": "/_pl/sse-echo-all-tabs-of-session-suppressed-820c6b/doc.html",
+      "status": 206,
+      "headers": {
+        "content-length": "16",
+        "content-range": "selector h1",
+        "content-type": "text/html",
+        "etag": "\"b641212aa6b40b574a0a74eab9896c95094c873c11095bc203909d496bea754b-b641212aa6b40b574a0a74eab9896c95094c873c11095bc203909d496bea754b-2\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:57 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003ch1\u003eTabless\u003c/h1\u003e"
+    },
+    {
+      "step": "step 8",
+      "events": [
+        {
+          "id": "v1~d9df4d60e361.1790649657180-1",
+          "event": "mutation",
+          "data": "\u003carticle itemscope itemtype=\"https://pagelove.org/Mutation\"\u003e\n  \u003cspan itemprop=\"method\"\u003ePUT\u003c/span\u003e\n  \u003cspan itemprop=\"selector\"\u003eh1\u003c/span\u003e\n  \u003cspan itemprop=\"etag\"\u003ee7a5874997642b77ccbcea7aa74e480334e74697c3b2a0afac1ce582d43a2c8b\u003c/span\u003e\n  \u003cspan itemprop=\"path\"\u003e/_pl/sse-echo-all-tabs-of-session-suppressed-820c6b/doc.html\u003c/span\u003e\n  \u003cspan itemprop=\"host\"\u003et.localhost\u003c/span\u003e\n  \u003cdiv itemprop=\"body\"\u003e\u003ch1\u003eTabless\u003c/h1\u003e\u003c/div\u003e\n\u003c/article\u003e"
+        }
+      ]
+    }
+  ],
+  "outcome": "pass",
+  "target": "local"
+}

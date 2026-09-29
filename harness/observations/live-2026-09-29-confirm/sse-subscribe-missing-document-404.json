@@ -1,0 +1,50 @@
+{
+  "case": "sse.subscribe.missing-document-404",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (sse open s1)",
+      "method": "GET",
+      "path": "/_pl/sse-subscribe-missing-document-404-71ea2f/missing.html",
+      "status": 200,
+      "headers": {
+        "cache-control": "no-cache",
+        "content-type": "text/event-stream"
+      }
+    },
+    {
+      "step": "step 2",
+      "events": [
+        {
+          "event": "pagelove-connection",
+          "data": "a2c7c916-e695-4842-abde-b9d2cd2251f4"
+        }
+      ]
+    },
+    {
+      "step": "step 3 (create the document)",
+      "method": "PUT",
+      "path": "/_pl/sse-subscribe-missing-document-404-71ea2f/missing.html",
+      "status": 201,
+      "headers": {
+        "content-type": "text/html",
+        "etag": "\"b27c59e102a0e2c4bfe079e07789e1906ace1ca552510b7e524e264dfbb68c8a\"",
+        "last-modified": "Tue, 29 Sep 2026 00:19:34 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\u003chtml\u003e\u003cbody\u003e\u003cp\u003enow here\u003c/p\u003e\n                \u003cdiv style=\"\n                            position: fixed;\n                            bottom: 0;\n                            left: 0;\n                            right: 0;\n                            padding: 8px;\n                            background: #f0f0f0;\n                            text-align: center;\n                            font-size: 12px;\n                            color: #666;\n                            z-index: 9999;\n                            opacity: 0.8;\n                            border-top: 1px solid #ddd;\n                        \"\u003e\n                    Powered by\n                    \u003ca href=\"https://pagelove.com/\" style=\"color: #4a90d9; text-decoration: none\"\u003ePagelove\u003c/a\u003e\n                \u003c/div\u003e\n            \u003c/body\u003e\u003c/html\u003e"
+    },
+    {
+      "step": "step 4",
+      "events": [
+        {
+          "id": "v1~d96e2fbe59d5.1790641174949-0",
+          "event": "mutation",
+          "data": "\u003carticle itemscope itemtype=\"https://pagelove.org/Mutation\"\u003e\n  \u003cspan itemprop=\"method\"\u003ePUT\u003c/span\u003e\n  \u003cspan itemprop=\"selector\"\u003e\u003c/span\u003e\n  \u003cspan itemprop=\"etag\"\u003eb27c59e102a0e2c4bfe079e07789e1906ace1ca552510b7e524e264dfbb68c8a\u003c/span\u003e\n  \u003cspan itemprop=\"path\"\u003e/_pl/sse-subscribe-missing-document-404-71ea2f/missing.html\u003c/span\u003e\n  \u003cspan itemprop=\"host\"\u003elive-test-host.onpagelove.com\u003c/span\u003e\n  \u003cdiv itemprop=\"body\"\u003e\u003c!DOCTYPE html\u003e\u003chtml\u003e\u003cbody\u003e\u003cp\u003enow here\u003c/p\u003e\u003c/body\u003e\u003c/html\u003e\u003c/div\u003e\n\u003c/article\u003e"
+        }
+      ]
+    }
+  ],
+  "outcome": "pass",
+  "target": "live"
+}

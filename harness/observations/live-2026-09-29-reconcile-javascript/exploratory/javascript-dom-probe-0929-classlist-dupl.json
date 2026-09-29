@@ -1,0 +1,35 @@
+{
+  "case": "javascript.dom.probe-0929.classlist-duplicates",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (PUT the page (public plane; registers inline declarations))",
+      "method": "PUT",
+      "path": "/_pl/javascript-dom-probe-0929-classlist-dupl-20ec36/probe.html",
+      "status": 201,
+      "headers": {
+        "content-type": "text/html",
+        "etag": "\"9e31473144a534673ca2f5e6b3236ae61e81ef1a5c2d2e17c068c8f4552cf626\"",
+        "last-modified": "Tue, 29 Sep 2026 01:31:49 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml xmlns:t=\"https://pagelike.test/_pl/javascript-dom-probe-0929-classlist-dupl-20ec36/Pclasslistduplicates\"\u003e\u003cbody\u003e\n\u003cmain\u003e\n\u003ct:probe\u003e\u003c/t:probe\u003e\n\u003c/main\u003e\n\u003cdiv hidden itemscope itemtype=\"https://pagelove.org/Schema\"\u003e\n\u003cmeta itemprop=\"type\" content=\"https://pagelike.test/_pl/javascript-dom-probe-0929-classlist-dupl-20ec36/Pclasslistduplicates\"\u003e\n\u003cul\u003e\n\u003cli itemprop=\"property\" itemscope itemtype=\"https://pagelove.org/Method\"\u003e\n\u003cmeta itemprop=\"name\" content=\"probe\"\u003e\n\u003cdiv itemprop=\"implementation\" itemscope itemtype=\"https://pagelove.org/JavaScript/Module\"\u003e\n\u003cscript itemprop=\"source\" type=\"module\"\u003e\nconst H = (x) =\u003e String(x).replace(/[\u003c\u003e\"]/g, (c) =\u003e ({ '\u003c': '[', '\u003e': ']', '\"': \"'\" })[c]);\nconst T = (f) =\u003e { try { return H(f()); } catch (e) { return 'E:' + e.name; } };\nconst J = (x) =\u003e JSON.stringify(x);\nconst X = (n) =\u003e new XMLSerializer().serializeToString(n);\nconst N = (n) =\u003e (n === null ? 'null' : n === undefined ? 'undef' : typeof n === 'object' ? 'node:' + n.nodeName : typeof n + ':' + n);\nexport default function () {\nconst d = new DOMParser().parseFromString('\u003cp id=\"p1\" class=\"a b a\"\u003e\u003c/p\u003e\u003cp id=\"p2\" class=\"q\"\u003e\u003c/p\u003e\u003cp id=\"p3\" class=\" a  b \"\u003e\u003c/p\u003e\u003cp id=\"p4\" class=\"a b a\"\u003e\u003c/p\u003e\u003cp id=\"p5\" class=\"a b a\"\u003e\u003c/p\u003e\u003cp id=\"p6\"\u003e\u003c/p\u003e\u003cp id=\"p7\" class=\"a\"\u003e\u003c/p\u003e\u003cp id=\"p8\" class=\"a b\"\u003e\u003c/p\u003e', 'text/html');\nconst g = (id) =\u003e d.getElementById(id);\nconst p1 = g('p1'), p2 = g('p2'), p3 = g('p3'), p4 = g('p4'), p5 = g('p5'), p6 = g('p6'), p7 = g('p7'), p8 = g('p8');\nconst r1 = [T(() =\u003e { p1.classList.remove('a'); return J(p1.getAttribute('class')); }), T(() =\u003e p1.classList.contains('a')), T(() =\u003e p1.classList.length)];\nconst r2 = [T(() =\u003e { p2.classList.remove('q'); return p2.hasAttribute('class'); }), T(() =\u003e J(p2.getAttribute('class'))), T(() =\u003e p2.classList.length), T(() =\u003e J(p2.classList.value))];\nconst r3 = [T(() =\u003e p3.classList.length), T(() =\u003e J(p3.classList.value)), T(() =\u003e J([...p3.classList])), T(() =\u003e { p3.classList.add('c'); return J(p3.getAttribute('class')); })];\nconst r4 = [T(() =\u003e p4.classList.toggle('a')), T(() =\u003e J(p4.getAttribute('class'))), T(() =\u003e p4.classList.contains('a'))];\nconst r5 = [T(() =\u003e p5.classList.replace('a', 'b')), T(() =\u003e J(p5.getAttribute('class')))];\nconst r6 = [T(() =\u003e p6.classList.length), T(() =\u003e J(p6.classList.value)), T(() =\u003e { p6.classList.add('x'); return J(p6.getAttribute('class')); }), T(() =\u003e { p6.classList.toggle('x'); return p6.hasAttribute('class'); }), T(() =\u003e J(p6.getAttribute('class')))];\nconst cl = p7.classList;\nconst r7 = [T(() =\u003e J(cl.item(-1))), T(() =\u003e J(cl.item(1))), T(() =\u003e J(cl.item(0))), T(() =\u003e J(cl.item('0'))), T(() =\u003e cl.toString()), T(() =\u003e p7.classList === cl), T(() =\u003e { cl.add(''); return 'ok'; }), T(() =\u003e { cl.add('a b'); return 'ok'; }), T(() =\u003e cl.contains('')), T(() =\u003e J(p7.getAttribute('class'))), T(() =\u003e { cl.value = ''; return p7.hasAttribute('class'); }), T(() =\u003e J(p7.getAttribute('class')))];\nconst r8 = [T(() =\u003e p8.classList.toggle('a', true)), T(() =\u003e p8.classList.toggle('c', false)), T(() =\u003e { p8.classList.add('b', 'b', 'd'); return J(p8.getAttribute('class')); }), T(() =\u003e p8.classList.replace('b', 'b')), T(() =\u003e J(p8.getAttribute('class'))), T(() =\u003e p8.classList.replace('a', 'd')), T(() =\u003e J(p8.getAttribute('class')))];\nreturn 'R:' + [r1, r2, r3, r4, r5, r6, r7, r8].map((x) =\u003e x.join('|')).join(' ## ');\n}\n\u003c/script\u003e\n\u003c/div\u003e\n\u003c/li\u003e\n\u003c/ul\u003e\n\u003cmeta itemprop=\"@id\" content=\"https://schema.host/419sql3j\"\u003e\u003cmeta itemprop=\"path\" content=\"/Schemahttps://schema.host/419sql3j.html\"\u003e\u003c/div\u003e\n\n                \u003cdiv style=\"\n                            position: fixed;\n                            bottom: 0;\n                            left: 0;\n                            right: 0;\n                            padding: 8px;\n                            background: #f0f0f0;\n                            text-align: center;\n                            font-size: 12px;\n                            color: #666;\n                            z-index: 9999;\n                            opacity: 0.8;\n                            border-top: 1px solid #ddd;\n                        \"\u003e\n                    Powered by\n                    \u003ca href=\"https://pagelove.com/\" style=\"color: #4a90d9; text-decoration: none\"\u003ePagelove\u003c/a\u003e\n                \u003c/div\u003e\n            \u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 2 (GET \u003cmain\u003e: the method result is inserted as text)",
+      "method": "GET",
+      "path": "/_pl/javascript-dom-probe-0929-classlist-dupl-20ec36/probe.html",
+      "status": 206,
+      "headers": {
+        "content-length": "270",
+        "content-range": "selector main",
+        "content-type": "text/html",
+        "etag": "\"dc35992a9a03db4f89ce2e1745c5db596971ad801a9420e59028b343c80f7630-dc35992a9a03db4f89ce2e1745c5db596971ad801a9420e59028b343c80f7630-1\"",
+        "vary": "Host, Range, Accept"
+      },
+      "body": "\u003cmain\u003e\nR:'b'|false|1 ## false|null|0|'' ## 2|' a  b '|['a','b']|'a b c' ## false|'b'|false ## true|'b a' ## 0|''|'x'|false|null ## undefined|undefined|'a'|E:TypeError|[object Object]|false|ok|ok|false|'a a b'|true|'' ## true|false|'a b d'|true|'a b d'|true|'d b'\n\u003c/main\u003e"
+    }
+  ],
+  "outcome": "pass",
+  "target": "live"
+}

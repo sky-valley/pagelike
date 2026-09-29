@@ -1,0 +1,33 @@
+{
+  "case": "rw.delete.first-match-only",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (delete li)",
+      "method": "DELETE",
+      "path": "/_pl/rw-delete-first-match-only-298131/multi.html",
+      "status": 204,
+      "headers": {
+        "etag": "\"a7542a226d53b46ab4951fb5665b73cba291c45586b68613cbeb7f9d68c90b75\"",
+        "last-modified": "Mon, 28 Sep 2026 22:26:06 GMT",
+        "vary": "Host, Range"
+      }
+    },
+    {
+      "step": "step 2 (remaining items)",
+      "method": "GET",
+      "path": "/_pl/rw-delete-first-match-only-298131/multi.html",
+      "status": 206,
+      "headers": {
+        "content-length": "35",
+        "content-range": "selector ul",
+        "content-type": "text/html",
+        "etag": "\"1c37b4e9f95cbd649245d9babd261eb78760bf0d2accb264e41830833cbb8da1-1c37b4e9f95cbd649245d9babd261eb78760bf0d2accb264e41830833cbb8da1-2\"",
+        "vary": "Host, Range, Accept"
+      },
+      "body": "\u003cul\u003e\u003cli\u003etwo\u003c/li\u003e\u003cli\u003ethree\u003c/li\u003e\u003c/ul\u003e"
+    }
+  ],
+  "outcome": "pass",
+  "target": "live"
+}

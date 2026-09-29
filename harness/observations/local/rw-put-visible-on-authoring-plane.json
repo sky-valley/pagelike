@@ -1,0 +1,37 @@
+{
+  "case": "rw.put.visible-on-authoring-plane",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (public selector PUT)",
+      "method": "PUT",
+      "path": "/_pl/rw-put-visible-on-authoring-plane-35360d/dav.html",
+      "status": 206,
+      "headers": {
+        "content-length": "14",
+        "content-range": "selector h1",
+        "content-type": "text/html",
+        "etag": "\"f645c3746f76f6f9691789b360ff0d361328f738ffed98258584fad6c7a9f6a5-f645c3746f76f6f9691789b360ff0d361328f738ffed98258584fad6c7a9f6a5-2\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:56 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003ch1\u003eAfter\u003c/h1\u003e"
+    },
+    {
+      "step": "step 2 (authoring plane sees it)",
+      "method": "GET",
+      "path": "/_pl/rw-put-visible-on-authoring-plane-35360d/dav.html",
+      "status": 200,
+      "headers": {
+        "accept-ranges": "bytes",
+        "content-length": "57",
+        "content-type": "text/html",
+        "etag": "\"18b91d83af10bdf1018df4712a322019dfb68e150f25a451a3eaedc161b4093c\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:56 GMT"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\u003ch1\u003eAfter\u003c/h1\u003e\u003c/body\u003e\u003c/html\u003e\n"
+    }
+  ],
+  "outcome": "pass",
+  "target": "local"
+}

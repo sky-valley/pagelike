@@ -1,0 +1,36 @@
+{
+  "case": "reacting.gates.malformed-when-skips-trigger",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (install a trigger with a text gate)",
+      "method": "PUT",
+      "path": "/_pl/reacting-gates-malformed-when-skips-trig-73cd7d/r/triggers.html",
+      "status": 201,
+      "headers": {
+        "content-length": "581",
+        "content-type": "text/html",
+        "etag": "\"5ee9a6d3602d4d344a9f8cfd41bf68b13212e4e6547c9c62b7d50fb1237202ad\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:48 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\n\u003cdiv hidden itemscope itemtype=\"https://pagelove.org/Trigger\"\u003e\n  \u003cmeta itemprop=\"resource\" content=\"/_pl/reacting-gates-malformed-when-skips-trig-73cd7d/d/*\"\u003e\n  \u003cmeta itemprop=\"method\" content=\"PUT\"\u003e\n  \u003cmeta itemprop=\"when\" content=\"true\"\u003e\n  \u003cdiv itemprop=\"action\" itemscope itemtype=\"https://pagelove.org/Sessel\"\u003e\n    \u003cscript itemprop=\"source\" type=\"text/sessel\"\u003e\n      @schema HTTPResponse url(\"https://pagelove.org/HTTPResponse\");\n      throw new HTTPResponse { status: 409, message: \"text-gate-fired\" }\n    \u003c/script\u003e\n  \u003c/div\u003e\n\u003c/div\u003e\n\u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 2 (the trigger is skipped and the write proceeds)",
+      "method": "PUT",
+      "path": "/_pl/reacting-gates-malformed-when-skips-trig-73cd7d/d/x.html",
+      "status": 201,
+      "headers": {
+        "content-length": "8",
+        "content-type": "text/html",
+        "etag": "\"31d8e07ec305ac4e2515d1f0b1c8c603b3858044eb7d97807d6d0970838cb0be\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:48 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003cp\u003ex\u003c/p\u003e"
+    }
+  ],
+  "outcome": "pass",
+  "target": "local"
+}

@@ -1,0 +1,38 @@
+{
+  "case": "comp.sx.normalization",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1",
+      "method": "GET",
+      "path": "/_pl/comp-sx-normalization-a87085/sx.html",
+      "status": 206,
+      "headers": {
+        "accept-ranges": "selector, bytes",
+        "content-length": "40",
+        "content-range": "selector #p3:equals('Spaced out text')",
+        "content-type": "text/html",
+        "etag": "\"91134778e69627325ab5a9c8dd3b6c1245bac412792c4768c93aa317860a0a74-91134778e69627325ab5a9c8dd3b6c1245bac412792c4768c93aa317860a0a74-1\"",
+        "vary": "Host, Range, Accept"
+      },
+      "body": "\u003cp id=\"p3\"\u003e\n   Spaced\n\t  out   text\n\u003c/p\u003e"
+    },
+    {
+      "step": "step 2",
+      "method": "GET",
+      "path": "/_pl/comp-sx-normalization-a87085/sx.html",
+      "status": 206,
+      "headers": {
+        "accept-ranges": "selector, bytes",
+        "content-length": "22",
+        "content-range": "selector #nfd:equals('café')",
+        "content-type": "text/html",
+        "etag": "\"a877c7b5f7ce67558a3f9014178d55d2f92abb7d3e3954c4f6c97bcf8a0adb51-a877c7b5f7ce67558a3f9014178d55d2f92abb7d3e3954c4f6c97bcf8a0adb51-1\"",
+        "vary": "Host, Range, Accept"
+      },
+      "body": "\u003cp id=\"nfd\"\u003ecafé\u003c/p\u003e"
+    }
+  ],
+  "outcome": "pass",
+  "target": "local"
+}

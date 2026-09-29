@@ -1,0 +1,194 @@
+# Reacting: races (412), the WebDAV repair path and rule propagation (spec R-REACT-5, 73..75).
+# See discovery.yaml and transition-constraint.yaml for conventions.
+anchors:
+  open_rules: &open_rules
+    - {actor: "*", resource: "${P}/*", method: [GET, HEAD, PUT, POST, DELETE], action: Allow}
+  install_entry_and_step: &install_entry_and_step
+    name: install entry pending and step pending -> processing (no exit rule)
+    as: anonymous
+    request:
+      method: PUT
+      path: "${P}/transitions/rules.html"
+      headers: {Content-Type: text/html}
+      body: |
+        <!DOCTYPE html>
+        <html><body>
+        <div itemscope itemtype="https://pagelove.org/TransitionConstraint">
+          <meta itemprop="selector" content="[itemtype='https://pagelike.test${P}/Order']">
+          <meta itemprop="property" content="status">
+          <meta itemprop="to" content="pending">
+        </div>
+        <div itemscope itemtype="https://pagelove.org/TransitionConstraint">
+          <meta itemprop="selector" content="[itemtype='https://pagelike.test${P}/Order']">
+          <meta itemprop="property" content="status">
+          <meta itemprop="from" content="pending">
+          <meta itemprop="to" content="processing">
+        </div>
+        </body></html>
+    expect: {status: [200, 201, 204]}
+  seed_order1_pending: &seed_order1_pending
+    name: seed order-1 at pending
+    as: anonymous
+    request:
+      method: PUT
+      path: "${P}/orders/order-1.html"
+      headers: {Content-Type: text/html}
+      body: |
+        <!DOCTYPE html>
+        <html><body><div id="order1" itemscope itemtype="https://pagelike.test${P}/Order"><meta itemprop="status" content="pending"></div></body></html>
+    expect: {status: [200, 201, 204]}
+  step_to_processing: &step_to_processing
+    as: anonymous
+    request:
+      method: PUT
+      path: "${P}/orders/order-1.html"
+      headers: {Content-Type: text/html, Range: "selector=#order1"}
+      body: '<div id="order1" itemscope itemtype="https://pagelike.test${P}/Order"><meta itemprop="status" content="processing"></div>'
+    expect: {status: [200, 204, 206, 412, 422]}
+defaults:
+  area: reacting
+  site:
+    settings: {default_get: allow}
+    rules: *open_rules
+cases:
+  - id: reacting.tc.concurrent-same-step-one-wins
+    title: Two clients racing the same step never both apply it over stale state; the loser gets 412
+    feature: TransitionConstraint (concurrency)
+    evidence: documented
+    source: "docs reference/reacting-to-changes/TransitionConstraint §Concurrent writes; recipes/declaring-a-state-machine §Watch the illegal step fail (snapshot 2026-09-28)"
+    confidence: medium
+    requires: []
+    live: true
+    notes: "spec: R-REACT-73, contradiction C15. The harness cannot assert 'exactly one 2xx' across parallel steps, so each accepts 2xx/412/422; the state is checked afterwards. A later identical write is an unchanged value and passes (not 422 as the docs suggest)."
+    steps:
+      - *install_entry_and_step
+      - *seed_order1_pending
+      - parallel:
+          - *step_to_processing
+          - *step_to_processing
+      - name: the order is processing
+        as: anonymous
+        request: {method: GET, path: "${P}/orders/order-1.html"}
+        expect: {status: 200, body_contains: ['content="processing"']}
+      - name: re-sending the same step after re-reading writes an unchanged value and passes
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/orders/order-1.html"
+          headers: {Content-Type: text/html, Range: "selector=#order1"}
+          body: '<div id="order1" itemscope itemtype="https://pagelike.test${P}/Order"><meta itemprop="status" content="processing"></div>'
+        expect: {status: [200, 204, 206]}
+      - name: an undeclared step from the new state is rejected
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/orders/order-1.html"
+          headers: {Content-Type: text/html, Range: "selector=#order1"}
+          body: '<div id="order1" itemscope itemtype="https://pagelike.test${P}/Order"><meta itemprop="status" content="pending"></div>'
+        expect: {status: 422}
+
+  - id: reacting.tc.webdav-bypass-repair
+    title: "The repair path: WebDAV writes are never transition-validated (undeclared state, undeletable document)"
+    feature: TransitionConstraint (WebDAV bypass)
+    evidence: documented
+    source: "docs reference/reacting-to-changes/TransitionConstraint §WebDAV bypasses constraints; recipes/declaring-a-state-machine §The repair path: WebDAV (snapshot 2026-09-28)"
+    confidence: high
+    requires: [webdav]
+    live: true
+    notes: "spec: R-REACT-75. There is no exit rule, so the public DELETE fails while the authoring DELETE succeeds."
+    steps:
+      - *install_entry_and_step
+      - *seed_order1_pending
+      - name: the public plane cannot delete it
+        as: anonymous
+        request: {method: DELETE, path: "${P}/orders/order-1.html"}
+        expect: {status: 422}
+      - name: an author sets an undeclared state over WebDAV
+        as: author
+        plane: dav
+        request:
+          method: PUT
+          path: "${P}/orders/order-1.html"
+          headers: {Content-Type: text/html}
+          body: '<!DOCTYPE html><html><body><div id="order1" itemscope itemtype="https://pagelike.test${P}/Order"><meta itemprop="status" content="refunded"></div></body></html>'
+        expect: {status: [200, 201, 204]}
+      - name: the public plane sees the repaired state
+        as: anonymous
+        request: {method: GET, path: "${P}/orders/order-1.html"}
+        expect: {status: 200, body_contains: ['content="refunded"']}
+      - name: an author deletes it over WebDAV
+        as: author
+        plane: dav
+        request: {method: DELETE, path: "${P}/orders/order-1.html"}
+        expect: {status: [200, 204]}
+      - name: gone
+        as: anonymous
+        request: {method: GET, path: "${P}/orders/order-1.html"}
+        expect: {status: 404}
+
+  - id: reacting.tc.webdav-rules-take-effect-within-60s
+    title: Constraints edited over WebDAV bind within 60 seconds
+    feature: TransitionConstraint (taking effect)
+    evidence: documented
+    source: "docs reference/reacting-to-changes/TransitionConstraint §Taking effect ('Rules edited over WebDAV instead take effect within 60 seconds') (snapshot 2026-09-28)"
+    confidence: high
+    requires: [slow]
+    live: true
+    notes: "spec: R-REACT-5, R-REACT-74. The rules are uploaded by the runner over WebDAV (site.files)."
+    site:
+      settings: {default_get: allow}
+      rules: *open_rules
+      files:
+        - path: "${P}/transitions/rules.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+            <div itemscope itemtype="https://pagelove.org/TransitionConstraint">
+              <meta itemprop="selector" content="[itemtype='https://pagelike.test${P}/Order']">
+              <meta itemprop="property" content="status">
+              <meta itemprop="to" content="pending">
+            </div>
+            </body></html>
+    steps:
+      - sleep_ms: 61000
+      - name: an undeclared entry is rejected
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/orders/o.html"
+          headers: {Content-Type: text/html}
+          body: '<!DOCTYPE html><html><body><div itemscope itemtype="https://pagelike.test${P}/Order"><meta itemprop="status" content="processing"></div></body></html>'
+        expect: {status: 422}
+
+  - id: reacting.tc.webdav-rules-immediate-pagelike
+    title: "pagelike: constraints written over WebDAV bind for the next request"
+    feature: TransitionConstraint (taking effect)
+    evidence: inferred
+    source: "spec R-REACT-5 (pagelike applies on commit, a permitted special case of 'within 60 seconds'); protocol R-PROTO-112"
+    confidence: high
+    requires: []
+    live: false
+    notes: "Not live: PageLove may take up to 60 s."
+    site:
+      settings: {default_get: allow}
+      rules: *open_rules
+      files:
+        - path: "${P}/transitions/rules.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+            <div itemscope itemtype="https://pagelove.org/TransitionConstraint">
+              <meta itemprop="selector" content="[itemtype='https://pagelike.test${P}/Order']">
+              <meta itemprop="property" content="status">
+              <meta itemprop="to" content="pending">
+            </div>
+            </body></html>
+    steps:
+      - name: an undeclared entry is rejected immediately
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/orders/o.html"
+          headers: {Content-Type: text/html}
+          body: '<!DOCTYPE html><html><body><div itemscope itemtype="https://pagelike.test${P}/Order"><meta itemprop="status" content="processing"></div></body></html>'
+        expect: {status: 422}

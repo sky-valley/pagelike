@@ -1,0 +1,2329 @@
+# Modeling: primitive types, enums, nested schema types, unknown types, value extraction.
+# Spec: docs/spec/modeling.md §4-5 (R-MOD-19..R-MOD-26).
+cases:
+  - id: modeling.types.text-accepts-anything
+    title: "Text accepts any string"
+    area: modeling
+    feature: "primitive types"
+    evidence: documented
+    source: "docs reference/modeling-data/Types §Primitive types (snapshot 2026-09-28); docs reference/modeling-data/Types §Validation examples (snapshot 2026-09-28)"
+    confidence: high
+    requires: []
+    live: true
+    notes: "spec: R-MOD-21."
+    site:
+      settings:
+        default_get: allow
+      rules:
+        - actor: "*"
+          resource: "${P}/*"
+          method: [GET, HEAD, PUT, POST, DELETE, MOVE]
+          action: Allow
+        - actor: "*"
+          resource: "${P}/*/*"
+          method: [GET, HEAD, PUT, POST, DELETE, MOVE]
+          action: Allow
+    steps:
+      - name: "register declarations through the public plane (takes effect for the next request)"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/schema.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div hidden itemscope itemtype="https://pagelove.org/Schema">
+                <meta itemprop="type" content="https://pagelike.test${P}/Value">
+                <div itemprop="property" itemscope itemtype="https://pagelove.org/Property">
+                  <meta itemprop="name" content="v">
+                  <meta itemprop="type" content="https://schema.host/Text">
+                  <meta itemprop="cardinality" content="1..1">
+                </div>
+              </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "valid: \"\""
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/ok-0.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div itemscope itemtype="https://pagelike.test${P}/Value">
+                <meta itemprop="v" content="">
+              </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "valid: \"hello\""
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/ok-1.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div itemscope itemtype="https://pagelike.test${P}/Value">
+                <meta itemprop="v" content="hello">
+              </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "valid: \"<b>bold</b>\""
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/ok-2.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div itemscope itemtype="https://pagelike.test${P}/Value">
+                <meta itemprop="v" content="&lt;b&gt;bold&lt;/b&gt;">
+              </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+  - id: modeling.types.url
+    title: "URL requires a scheme"
+    area: modeling
+    feature: "primitive types"
+    evidence: documented
+    source: "docs reference/modeling-data/Types §Primitive types (snapshot 2026-09-28); docs reference/modeling-data/Types §Validation examples (snapshot 2026-09-28); pagelove-shop/site/schemas.html@d887054:92-94"
+    confidence: high
+    requires: []
+    live: true
+    notes: "spec: R-MOD-21. The origin-relative path is demo-source evidence (shop stores image paths as Text because URL requires a scheme)."
+    site:
+      settings:
+        default_get: allow
+      rules:
+        - actor: "*"
+          resource: "${P}/*"
+          method: [GET, HEAD, PUT, POST, DELETE, MOVE]
+          action: Allow
+        - actor: "*"
+          resource: "${P}/*/*"
+          method: [GET, HEAD, PUT, POST, DELETE, MOVE]
+          action: Allow
+    steps:
+      - name: "register declarations through the public plane (takes effect for the next request)"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/schema.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div hidden itemscope itemtype="https://pagelove.org/Schema">
+                <meta itemprop="type" content="https://pagelike.test${P}/Value">
+                <div itemprop="property" itemscope itemtype="https://pagelove.org/Property">
+                  <meta itemprop="name" content="v">
+                  <meta itemprop="type" content="https://schema.host/URL">
+                  <meta itemprop="cardinality" content="1..1">
+                </div>
+              </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "valid: \"https://example.com\""
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/ok-0.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div itemscope itemtype="https://pagelike.test${P}/Value">
+                <meta itemprop="v" content="https://example.com">
+              </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "valid: \"mailto:a@b.com\""
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/ok-1.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div itemscope itemtype="https://pagelike.test${P}/Value">
+                <meta itemprop="v" content="mailto:a@b.com">
+              </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "invalid: \"not-a-url\""
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/bad-0.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div itemscope itemtype="https://pagelike.test${P}/Value">
+                <meta itemprop="v" content="not-a-url">
+              </div>
+            </body></html>
+        expect:
+          status: 422
+          header_matches:
+            Content-Type: "^text/html"
+          body_contains: ["https://pagelove.org/SchemaViolation", type]
+      - name: "invalid: \"\""
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/bad-1.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div itemscope itemtype="https://pagelike.test${P}/Value">
+                <meta itemprop="v" content="">
+              </div>
+            </body></html>
+        expect:
+          status: 422
+          header_matches:
+            Content-Type: "^text/html"
+          body_contains: ["https://pagelove.org/SchemaViolation", type]
+      - name: "invalid: \"/images/product-abc.webp\""
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/bad-2.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div itemscope itemtype="https://pagelike.test${P}/Value">
+                <meta itemprop="v" content="/images/product-abc.webp">
+              </div>
+            </body></html>
+        expect:
+          status: 422
+          header_matches:
+            Content-Type: "^text/html"
+          body_contains: ["https://pagelove.org/SchemaViolation", type]
+  - id: modeling.types.number
+    title: "Number must parse as a float"
+    area: modeling
+    feature: "primitive types"
+    evidence: documented
+    source: "docs reference/modeling-data/Types §Primitive types (snapshot 2026-09-28); docs reference/modeling-data/Types §Validation examples (snapshot 2026-09-28)"
+    confidence: high
+    requires: []
+    live: true
+    notes: "spec: R-MOD-21."
+    site:
+      settings:
+        default_get: allow
+      rules:
+        - actor: "*"
+          resource: "${P}/*"
+          method: [GET, HEAD, PUT, POST, DELETE, MOVE]
+          action: Allow
+        - actor: "*"
+          resource: "${P}/*/*"
+          method: [GET, HEAD, PUT, POST, DELETE, MOVE]
+          action: Allow
+    steps:
+      - name: "register declarations through the public plane (takes effect for the next request)"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/schema.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div hidden itemscope itemtype="https://pagelove.org/Schema">
+                <meta itemprop="type" content="https://pagelike.test${P}/Value">
+                <div itemprop="property" itemscope itemtype="https://pagelove.org/Property">
+                  <meta itemprop="name" content="v">
+                  <meta itemprop="type" content="https://schema.host/Number">
+                  <meta itemprop="cardinality" content="1..1">
+                </div>
+              </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "valid: \"42\""
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/ok-0.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div itemscope itemtype="https://pagelike.test${P}/Value">
+                <meta itemprop="v" content="42">
+              </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "valid: \"3.14\""
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/ok-1.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div itemscope itemtype="https://pagelike.test${P}/Value">
+                <meta itemprop="v" content="3.14">
+              </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "valid: \"-7.5\""
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/ok-2.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div itemscope itemtype="https://pagelike.test${P}/Value">
+                <meta itemprop="v" content="-7.5">
+              </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "invalid: \"hello\""
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/bad-0.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div itemscope itemtype="https://pagelike.test${P}/Value">
+                <meta itemprop="v" content="hello">
+              </div>
+            </body></html>
+        expect:
+          status: 422
+          header_matches:
+            Content-Type: "^text/html"
+          body_contains: ["https://pagelove.org/SchemaViolation", type]
+      - name: "invalid: \"\""
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/bad-1.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div itemscope itemtype="https://pagelike.test${P}/Value">
+                <meta itemprop="v" content="">
+              </div>
+            </body></html>
+        expect:
+          status: 422
+          header_matches:
+            Content-Type: "^text/html"
+          body_contains: ["https://pagelove.org/SchemaViolation", type]
+  - id: modeling.types.integer
+    title: "Integer must parse as a signed 64-bit integer"
+    area: modeling
+    feature: "primitive types"
+    evidence: documented
+    source: "docs reference/modeling-data/Types §Primitive types (snapshot 2026-09-28); docs reference/modeling-data/Types §Validation examples (snapshot 2026-09-28)"
+    confidence: high
+    requires: []
+    live: true
+    notes: "spec: R-MOD-21."
+    site:
+      settings:
+        default_get: allow
+      rules:
+        - actor: "*"
+          resource: "${P}/*"
+          method: [GET, HEAD, PUT, POST, DELETE, MOVE]
+          action: Allow
+        - actor: "*"
+          resource: "${P}/*/*"
+          method: [GET, HEAD, PUT, POST, DELETE, MOVE]
+          action: Allow
+    steps:
+      - name: "register declarations through the public plane (takes effect for the next request)"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/schema.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div hidden itemscope itemtype="https://pagelove.org/Schema">
+                <meta itemprop="type" content="https://pagelike.test${P}/Value">
+                <div itemprop="property" itemscope itemtype="https://pagelove.org/Property">
+                  <meta itemprop="name" content="v">
+                  <meta itemprop="type" content="https://schema.host/Integer">
+                  <meta itemprop="cardinality" content="1..1">
+                </div>
+              </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "valid: \"100\""
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/ok-0.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div itemscope itemtype="https://pagelike.test${P}/Value">
+                <meta itemprop="v" content="100">
+              </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "valid: \"-42\""
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/ok-1.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div itemscope itemtype="https://pagelike.test${P}/Value">
+                <meta itemprop="v" content="-42">
+              </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "valid: \"0\""
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/ok-2.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div itemscope itemtype="https://pagelike.test${P}/Value">
+                <meta itemprop="v" content="0">
+              </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "invalid: \"3.14\""
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/bad-0.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div itemscope itemtype="https://pagelike.test${P}/Value">
+                <meta itemprop="v" content="3.14">
+              </div>
+            </body></html>
+        expect:
+          status: 422
+          header_matches:
+            Content-Type: "^text/html"
+          body_contains: ["https://pagelove.org/SchemaViolation", type]
+      - name: "invalid: \"abc\""
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/bad-1.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div itemscope itemtype="https://pagelike.test${P}/Value">
+                <meta itemprop="v" content="abc">
+              </div>
+            </body></html>
+        expect:
+          status: 422
+          header_matches:
+            Content-Type: "^text/html"
+          body_contains: ["https://pagelove.org/SchemaViolation", type]
+      - name: "invalid: \"\""
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/bad-2.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div itemscope itemtype="https://pagelike.test${P}/Value">
+                <meta itemprop="v" content="">
+              </div>
+            </body></html>
+        expect:
+          status: 422
+          header_matches:
+            Content-Type: "^text/html"
+          body_contains: ["https://pagelove.org/SchemaViolation", type]
+  - id: modeling.types.boolean
+    title: "Boolean is exactly lowercase true or false"
+    area: modeling
+    feature: "primitive types"
+    evidence: documented
+    source: "docs reference/modeling-data/Types §Primitive types (snapshot 2026-09-28); docs reference/modeling-data/Types §Validation examples (snapshot 2026-09-28)"
+    confidence: high
+    requires: []
+    live: true
+    notes: "spec: R-MOD-21."
+    site:
+      settings:
+        default_get: allow
+      rules:
+        - actor: "*"
+          resource: "${P}/*"
+          method: [GET, HEAD, PUT, POST, DELETE, MOVE]
+          action: Allow
+        - actor: "*"
+          resource: "${P}/*/*"
+          method: [GET, HEAD, PUT, POST, DELETE, MOVE]
+          action: Allow
+    steps:
+      - name: "register declarations through the public plane (takes effect for the next request)"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/schema.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div hidden itemscope itemtype="https://pagelove.org/Schema">
+                <meta itemprop="type" content="https://pagelike.test${P}/Value">
+                <div itemprop="property" itemscope itemtype="https://pagelove.org/Property">
+                  <meta itemprop="name" content="v">
+                  <meta itemprop="type" content="https://schema.host/Boolean">
+                  <meta itemprop="cardinality" content="1..1">
+                </div>
+              </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "valid: \"true\""
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/ok-0.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div itemscope itemtype="https://pagelike.test${P}/Value">
+                <meta itemprop="v" content="true">
+              </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "valid: \"false\""
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/ok-1.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div itemscope itemtype="https://pagelike.test${P}/Value">
+                <meta itemprop="v" content="false">
+              </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "invalid: \"True\""
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/bad-0.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div itemscope itemtype="https://pagelike.test${P}/Value">
+                <meta itemprop="v" content="True">
+              </div>
+            </body></html>
+        expect:
+          status: 422
+          header_matches:
+            Content-Type: "^text/html"
+          body_contains: ["https://pagelove.org/SchemaViolation", type]
+      - name: "invalid: \"1\""
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/bad-1.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div itemscope itemtype="https://pagelike.test${P}/Value">
+                <meta itemprop="v" content="1">
+              </div>
+            </body></html>
+        expect:
+          status: 422
+          header_matches:
+            Content-Type: "^text/html"
+          body_contains: ["https://pagelove.org/SchemaViolation", type]
+      - name: "invalid: \"\""
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/bad-2.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div itemscope itemtype="https://pagelike.test${P}/Value">
+                <meta itemprop="v" content="">
+              </div>
+            </body></html>
+        expect:
+          status: 422
+          header_matches:
+            Content-Type: "^text/html"
+          body_contains: ["https://pagelove.org/SchemaViolation", type]
+  - id: modeling.types.datetime
+    title: "DateTime is RFC 3339; date-only rejected"
+    area: modeling
+    feature: "primitive types"
+    evidence: documented
+    source: "docs reference/modeling-data/Types §Primitive types (snapshot 2026-09-28); docs reference/modeling-data/Types §Validation examples (snapshot 2026-09-28)"
+    confidence: high
+    requires: []
+    live: true
+    notes: "spec: R-MOD-21."
+    site:
+      settings:
+        default_get: allow
+      rules:
+        - actor: "*"
+          resource: "${P}/*"
+          method: [GET, HEAD, PUT, POST, DELETE, MOVE]
+          action: Allow
+        - actor: "*"
+          resource: "${P}/*/*"
+          method: [GET, HEAD, PUT, POST, DELETE, MOVE]
+          action: Allow
+    steps:
+      - name: "register declarations through the public plane (takes effect for the next request)"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/schema.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div hidden itemscope itemtype="https://pagelove.org/Schema">
+                <meta itemprop="type" content="https://pagelike.test${P}/Value">
+                <div itemprop="property" itemscope itemtype="https://pagelove.org/Property">
+                  <meta itemprop="name" content="v">
+                  <meta itemprop="type" content="https://schema.host/DateTime">
+                  <meta itemprop="cardinality" content="1..1">
+                </div>
+              </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "valid: \"2024-01-15T10:30:00Z\""
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/ok-0.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div itemscope itemtype="https://pagelike.test${P}/Value">
+                <meta itemprop="v" content="2024-01-15T10:30:00Z">
+              </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "invalid: \"2024-01-15\""
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/bad-0.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div itemscope itemtype="https://pagelike.test${P}/Value">
+                <meta itemprop="v" content="2024-01-15">
+              </div>
+            </body></html>
+        expect:
+          status: 422
+          header_matches:
+            Content-Type: "^text/html"
+          body_contains: ["https://pagelove.org/SchemaViolation", type]
+      - name: "invalid: \"not-a-date\""
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/bad-1.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div itemscope itemtype="https://pagelike.test${P}/Value">
+                <meta itemprop="v" content="not-a-date">
+              </div>
+            </body></html>
+        expect:
+          status: 422
+          header_matches:
+            Content-Type: "^text/html"
+          body_contains: ["https://pagelove.org/SchemaViolation", type]
+  - id: modeling.types.date
+    title: "Date is YYYY-MM-DD and calendar-valid"
+    area: modeling
+    feature: "primitive types"
+    evidence: documented
+    source: "docs reference/modeling-data/Types §Primitive types (snapshot 2026-09-28); docs reference/modeling-data/Types §Validation examples (snapshot 2026-09-28)"
+    confidence: high
+    requires: []
+    live: true
+    notes: "spec: R-MOD-21."
+    site:
+      settings:
+        default_get: allow
+      rules:
+        - actor: "*"
+          resource: "${P}/*"
+          method: [GET, HEAD, PUT, POST, DELETE, MOVE]
+          action: Allow
+        - actor: "*"
+          resource: "${P}/*/*"
+          method: [GET, HEAD, PUT, POST, DELETE, MOVE]
+          action: Allow
+    steps:
+      - name: "register declarations through the public plane (takes effect for the next request)"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/schema.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div hidden itemscope itemtype="https://pagelove.org/Schema">
+                <meta itemprop="type" content="https://pagelike.test${P}/Value">
+                <div itemprop="property" itemscope itemtype="https://pagelove.org/Property">
+                  <meta itemprop="name" content="v">
+                  <meta itemprop="type" content="https://schema.host/Date">
+                  <meta itemprop="cardinality" content="1..1">
+                </div>
+              </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "valid: \"2024-01-15\""
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/ok-0.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div itemscope itemtype="https://pagelike.test${P}/Value">
+                <meta itemprop="v" content="2024-01-15">
+              </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "valid: \"2024-02-29\""
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/ok-1.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div itemscope itemtype="https://pagelike.test${P}/Value">
+                <meta itemprop="v" content="2024-02-29">
+              </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "invalid: \"2023-02-29\""
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/bad-0.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div itemscope itemtype="https://pagelike.test${P}/Value">
+                <meta itemprop="v" content="2023-02-29">
+              </div>
+            </body></html>
+        expect:
+          status: 422
+          header_matches:
+            Content-Type: "^text/html"
+          body_contains: ["https://pagelove.org/SchemaViolation", type]
+      - name: "invalid: \"15/01/2024\""
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/bad-1.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div itemscope itemtype="https://pagelike.test${P}/Value">
+                <meta itemprop="v" content="15/01/2024">
+              </div>
+            </body></html>
+        expect:
+          status: 422
+          header_matches:
+            Content-Type: "^text/html"
+          body_contains: ["https://pagelove.org/SchemaViolation", type]
+      - name: "invalid: \"2024-01-15T10:30:00Z\""
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/bad-2.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div itemscope itemtype="https://pagelike.test${P}/Value">
+                <meta itemprop="v" content="2024-01-15T10:30:00Z">
+              </div>
+            </body></html>
+        expect:
+          status: 422
+          header_matches:
+            Content-Type: "^text/html"
+          body_contains: ["https://pagelove.org/SchemaViolation", type]
+  - id: modeling.types.string-alias
+    title: "String is an alias of Text"
+    area: modeling
+    feature: "primitive types"
+    evidence: documented
+    source: "docs reference/modeling-data/Types §Primitive types (snapshot 2026-09-28); docs reference/modeling-data/Types §Validation examples (snapshot 2026-09-28)"
+    confidence: high
+    requires: []
+    live: true
+    notes: "spec: R-MOD-21."
+    site:
+      settings:
+        default_get: allow
+      rules:
+        - actor: "*"
+          resource: "${P}/*"
+          method: [GET, HEAD, PUT, POST, DELETE, MOVE]
+          action: Allow
+        - actor: "*"
+          resource: "${P}/*/*"
+          method: [GET, HEAD, PUT, POST, DELETE, MOVE]
+          action: Allow
+    steps:
+      - name: "register declarations through the public plane (takes effect for the next request)"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/schema.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div hidden itemscope itemtype="https://pagelove.org/Schema">
+                <meta itemprop="type" content="https://pagelike.test${P}/Value">
+                <div itemprop="property" itemscope itemtype="https://pagelove.org/Property">
+                  <meta itemprop="name" content="v">
+                  <meta itemprop="type" content="https://schema.host/String">
+                  <meta itemprop="cardinality" content="1..1">
+                </div>
+              </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "valid: \"\""
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/ok-0.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div itemscope itemtype="https://pagelike.test${P}/Value">
+                <meta itemprop="v" content="">
+              </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "valid: \"anything at all\""
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/ok-1.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div itemscope itemtype="https://pagelike.test${P}/Value">
+                <meta itemprop="v" content="anything at all">
+              </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+  - id: modeling.types.floatingpoint-alias
+    title: "FloatingPoint is the same as Number"
+    area: modeling
+    feature: "primitive types"
+    evidence: documented
+    source: "docs reference/modeling-data/Types §Primitive types (snapshot 2026-09-28); docs reference/modeling-data/Types §Validation examples (snapshot 2026-09-28)"
+    confidence: high
+    requires: []
+    live: true
+    notes: "spec: R-MOD-21."
+    site:
+      settings:
+        default_get: allow
+      rules:
+        - actor: "*"
+          resource: "${P}/*"
+          method: [GET, HEAD, PUT, POST, DELETE, MOVE]
+          action: Allow
+        - actor: "*"
+          resource: "${P}/*/*"
+          method: [GET, HEAD, PUT, POST, DELETE, MOVE]
+          action: Allow
+    steps:
+      - name: "register declarations through the public plane (takes effect for the next request)"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/schema.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div hidden itemscope itemtype="https://pagelove.org/Schema">
+                <meta itemprop="type" content="https://pagelike.test${P}/Value">
+                <div itemprop="property" itemscope itemtype="https://pagelove.org/Property">
+                  <meta itemprop="name" content="v">
+                  <meta itemprop="type" content="https://schema.host/FloatingPoint">
+                  <meta itemprop="cardinality" content="1..1">
+                </div>
+              </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "valid: \"1.5\""
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/ok-0.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div itemscope itemtype="https://pagelike.test${P}/Value">
+                <meta itemprop="v" content="1.5">
+              </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "valid: \"-2\""
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/ok-1.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div itemscope itemtype="https://pagelike.test${P}/Value">
+                <meta itemprop="v" content="-2">
+              </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "invalid: \"x\""
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/bad-0.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div itemscope itemtype="https://pagelike.test${P}/Value">
+                <meta itemprop="v" content="x">
+              </div>
+            </body></html>
+        expect:
+          status: 422
+          header_matches:
+            Content-Type: "^text/html"
+          body_contains: ["https://pagelove.org/SchemaViolation", type]
+      - name: "invalid: \"\""
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/bad-1.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div itemscope itemtype="https://pagelike.test${P}/Value">
+                <meta itemprop="v" content="">
+              </div>
+            </body></html>
+        expect:
+          status: 422
+          header_matches:
+            Content-Type: "^text/html"
+          body_contains: ["https://pagelove.org/SchemaViolation", type]
+  - id: modeling.types.cardinal
+    title: "Cardinal accepts only the four cardinality strings"
+    area: modeling
+    feature: "primitive types"
+    evidence: documented
+    source: "docs reference/modeling-data/Types §Primitive types (snapshot 2026-09-28); docs reference/modeling-data/Types §Validation examples (snapshot 2026-09-28)"
+    confidence: medium
+    requires: []
+    live: true
+    notes: "spec: R-MOD-21. Cardinal is documented as used internally by schema definitions; using it on a user property is inferred to behave like other primitives."
+    site:
+      settings:
+        default_get: allow
+      rules:
+        - actor: "*"
+          resource: "${P}/*"
+          method: [GET, HEAD, PUT, POST, DELETE, MOVE]
+          action: Allow
+        - actor: "*"
+          resource: "${P}/*/*"
+          method: [GET, HEAD, PUT, POST, DELETE, MOVE]
+          action: Allow
+    steps:
+      - name: "register declarations through the public plane (takes effect for the next request)"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/schema.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div hidden itemscope itemtype="https://pagelove.org/Schema">
+                <meta itemprop="type" content="https://pagelike.test${P}/Value">
+                <div itemprop="property" itemscope itemtype="https://pagelove.org/Property">
+                  <meta itemprop="name" content="v">
+                  <meta itemprop="type" content="https://schema.host/Cardinal">
+                  <meta itemprop="cardinality" content="1..1">
+                </div>
+              </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "valid: \"0..1\""
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/ok-0.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div itemscope itemtype="https://pagelike.test${P}/Value">
+                <meta itemprop="v" content="0..1">
+              </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "valid: \"1..1\""
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/ok-1.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div itemscope itemtype="https://pagelike.test${P}/Value">
+                <meta itemprop="v" content="1..1">
+              </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "valid: \"0..n\""
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/ok-2.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div itemscope itemtype="https://pagelike.test${P}/Value">
+                <meta itemprop="v" content="0..n">
+              </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "valid: \"1..n\""
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/ok-3.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div itemscope itemtype="https://pagelike.test${P}/Value">
+                <meta itemprop="v" content="1..n">
+              </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "invalid: \"2..3\""
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/bad-0.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div itemscope itemtype="https://pagelike.test${P}/Value">
+                <meta itemprop="v" content="2..3">
+              </div>
+            </body></html>
+        expect:
+          status: 422
+          header_matches:
+            Content-Type: "^text/html"
+          body_contains: ["https://pagelove.org/SchemaViolation", type]
+      - name: "invalid: \"1..*\""
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/bad-1.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div itemscope itemtype="https://pagelike.test${P}/Value">
+                <meta itemprop="v" content="1..*">
+              </div>
+            </body></html>
+        expect:
+          status: 422
+          header_matches:
+            Content-Type: "^text/html"
+          body_contains: ["https://pagelove.org/SchemaViolation", type]
+      - name: "invalid: \"\""
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/bad-2.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div itemscope itemtype="https://pagelike.test${P}/Value">
+                <meta itemprop="v" content="">
+              </div>
+            </body></html>
+        expect:
+          status: 422
+          header_matches:
+            Content-Type: "^text/html"
+          body_contains: ["https://pagelove.org/SchemaViolation", type]
+  - id: modeling.types.unknown-type-url-passes
+    title: "A type URL that matches nothing is ignored"
+    area: modeling
+    feature: "primitive types"
+    evidence: documented
+    source: "docs reference/modeling-data/Types §Unknown types (snapshot 2026-09-28)"
+    confidence: high
+    requires: []
+    live: true
+    notes: "spec: R-MOD-25."
+    site:
+      settings:
+        default_get: allow
+      rules:
+        - actor: "*"
+          resource: "${P}/*"
+          method: [GET, HEAD, PUT, POST, DELETE, MOVE]
+          action: Allow
+        - actor: "*"
+          resource: "${P}/*/*"
+          method: [GET, HEAD, PUT, POST, DELETE, MOVE]
+          action: Allow
+    steps:
+      - name: "register declarations through the public plane (takes effect for the next request)"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/schema.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div hidden itemscope itemtype="https://pagelove.org/Schema">
+                <meta itemprop="type" content="https://pagelike.test${P}/Value">
+                <div itemprop="property" itemscope itemtype="https://pagelove.org/Property">
+                  <meta itemprop="name" content="v">
+                  <meta itemprop="type" content="https://pagelike.test${P}/NotDeclaredAnywhere">
+                  <meta itemprop="cardinality" content="1..1">
+                </div>
+              </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "valid: \"anything\""
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/ok-0.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div itemscope itemtype="https://pagelike.test${P}/Value">
+                <meta itemprop="v" content="anything">
+              </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "valid: \"\""
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/ok-1.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div itemscope itemtype="https://pagelike.test${P}/Value">
+                <meta itemprop="v" content="">
+              </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+  - id: modeling.types.client-type-urls-unknown-to-server
+    title: "The client-side type URLs (https://pagelove.org/Integer etc.) are unknown to the server"
+    area: modeling
+    feature: "primitive types"
+    evidence: inferred
+    source: "docs reference/modeling-data/Types §Unknown types (snapshot 2026-09-28); docs languages/javascript/client/schema-definitions-in-html §Examples (snapshot 2026-09-28)"
+    confidence: medium
+    requires: []
+    live: true
+    notes: "spec: R-MOD-25."
+    site:
+      settings:
+        default_get: allow
+      rules:
+        - actor: "*"
+          resource: "${P}/*"
+          method: [GET, HEAD, PUT, POST, DELETE, MOVE]
+          action: Allow
+        - actor: "*"
+          resource: "${P}/*/*"
+          method: [GET, HEAD, PUT, POST, DELETE, MOVE]
+          action: Allow
+    steps:
+      - name: "register declarations through the public plane (takes effect for the next request)"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/schema.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div hidden itemscope itemtype="https://pagelove.org/Schema">
+                <meta itemprop="type" content="https://pagelike.test${P}/Value">
+                <div itemprop="property" itemscope itemtype="https://pagelove.org/Property">
+                  <meta itemprop="name" content="v">
+                  <meta itemprop="type" content="https://pagelove.org/Integer">
+                  <meta itemprop="cardinality" content="1..1">
+                </div>
+              </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "valid: \"abc\""
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/ok-0.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div itemscope itemtype="https://pagelike.test${P}/Value">
+                <meta itemprop="v" content="abc">
+              </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+  - id: modeling.types.omitted-type-passes
+    title: "A property without type accepts any value"
+    area: modeling
+    feature: "primitive types"
+    evidence: documented
+    source: "docs reference/modeling-data/Types §When to reach for it (snapshot 2026-09-28)"
+    confidence: high
+    requires: []
+    live: true
+    notes: "spec: R-MOD-25."
+    site:
+      settings:
+        default_get: allow
+      rules:
+        - actor: "*"
+          resource: "${P}/*"
+          method: [GET, HEAD, PUT, POST, DELETE, MOVE]
+          action: Allow
+        - actor: "*"
+          resource: "${P}/*/*"
+          method: [GET, HEAD, PUT, POST, DELETE, MOVE]
+          action: Allow
+    steps:
+      - name: "register declarations through the public plane (takes effect for the next request)"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/schema.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div hidden itemscope itemtype="https://pagelove.org/Schema">
+                <meta itemprop="type" content="https://pagelike.test${P}/Value">
+                <div itemprop="property" itemscope itemtype="https://pagelove.org/Property">
+                  <meta itemprop="name" content="v">
+                  <meta itemprop="cardinality" content="1..1">
+                </div>
+              </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "any value accepted"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/a.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div itemscope itemtype="https://pagelike.test${P}/Value">
+                <meta itemprop="v" content="x y z">
+              </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+  - id: modeling.types.text-content-value
+    title: "Elements without a value attribute are checked by their text content"
+    area: modeling
+    feature: "value extraction"
+    evidence: documented
+    source: "docs reference/modeling-data/Types §How type validation runs (snapshot 2026-09-28); docs reference/composing-pages/Selector-Extensions §Text content vs microdata values (snapshot 2026-09-28)"
+    confidence: high
+    requires: []
+    live: true
+    notes: "spec: R-MOD-19."
+    site:
+      settings:
+        default_get: allow
+      rules:
+        - actor: "*"
+          resource: "${P}/*"
+          method: [GET, HEAD, PUT, POST, DELETE, MOVE]
+          action: Allow
+        - actor: "*"
+          resource: "${P}/*/*"
+          method: [GET, HEAD, PUT, POST, DELETE, MOVE]
+          action: Allow
+    steps:
+      - name: "register declarations through the public plane (takes effect for the next request)"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/schema.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div hidden itemscope itemtype="https://pagelove.org/Schema">
+                <meta itemprop="type" content="https://pagelike.test${P}/Value">
+                <div itemprop="property" itemscope itemtype="https://pagelove.org/Property">
+                  <meta itemprop="name" content="v">
+                  <meta itemprop="type" content="https://schema.host/Integer">
+                  <meta itemprop="cardinality" content="1..1">
+                </div>
+              </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "span text 42 accepted"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/a.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div itemscope itemtype="https://pagelike.test${P}/Value">
+                <span itemprop="v">42</span>
+              </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "span text abc rejected"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/b.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div itemscope itemtype="https://pagelike.test${P}/Value">
+                <span itemprop="v">abc</span>
+              </div>
+            </body></html>
+        expect:
+          status: 422
+          header_matches:
+            Content-Type: "^text/html"
+          body_contains: ["https://pagelove.org/SchemaViolation", type]
+  - id: modeling.types.whitespace-not-trimmed
+    title: "Values are used verbatim: surrounding whitespace makes an Integer invalid"
+    area: modeling
+    feature: "value extraction"
+    evidence: documented
+    source: "docs languages/sessel/reference/element §.value() (snapshot 2026-09-28) (verbatim; same value as uniqueness/reference constraints)"
+    confidence: medium
+    requires: []
+    live: true
+    notes: "spec: R-MOD-19, R-MOD-22. Type checks are inferred to use the same extraction as uniqueness; probe P-MOD-7."
+    site:
+      settings:
+        default_get: allow
+      rules:
+        - actor: "*"
+          resource: "${P}/*"
+          method: [GET, HEAD, PUT, POST, DELETE, MOVE]
+          action: Allow
+        - actor: "*"
+          resource: "${P}/*/*"
+          method: [GET, HEAD, PUT, POST, DELETE, MOVE]
+          action: Allow
+    steps:
+      - name: "register declarations through the public plane (takes effect for the next request)"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/schema.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div hidden itemscope itemtype="https://pagelove.org/Schema">
+                <meta itemprop="type" content="https://pagelike.test${P}/Value">
+                <div itemprop="property" itemscope itemtype="https://pagelove.org/Property">
+                  <meta itemprop="name" content="v">
+                  <meta itemprop="type" content="https://schema.host/Integer">
+                  <meta itemprop="cardinality" content="1..1">
+                </div>
+              </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "content with spaces rejected"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/a.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div itemscope itemtype="https://pagelike.test${P}/Value">
+                <meta itemprop="v" content=" 42 ">
+              </div>
+            </body></html>
+        expect:
+          status: 422
+          header_matches:
+            Content-Type: "^text/html"
+          body_contains: ["https://pagelove.org/SchemaViolation", type]
+      - name: "text with spaces rejected"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/b.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div itemscope itemtype="https://pagelike.test${P}/Value">
+                <span itemprop="v"> 42 </span>
+              </div>
+            </body></html>
+        expect:
+          status: 422
+          header_matches:
+            Content-Type: "^text/html"
+          body_contains: ["https://pagelove.org/SchemaViolation", type]
+  - id: modeling.types.time-datetime-attribute
+    title: "A <time> element's value is its datetime attribute (demo pattern)"
+    area: modeling
+    feature: "value extraction"
+    evidence: demo-source
+    source: "demo-apps/demo-02-show-and-tell/index.html@c4dd883:64 with schema/submission.html:30-34; docs reference/composing-pages/Selector-Extensions §Text content vs microdata values (snapshot 2026-09-28)"
+    confidence: high
+    requires: []
+    live: true
+    notes: "spec: R-MOD-19."
+    site:
+      settings:
+        default_get: allow
+      rules:
+        - actor: "*"
+          resource: "${P}/*"
+          method: [GET, HEAD, PUT, POST, DELETE, MOVE]
+          action: Allow
+        - actor: "*"
+          resource: "${P}/*/*"
+          method: [GET, HEAD, PUT, POST, DELETE, MOVE]
+          action: Allow
+    steps:
+      - name: "register declarations through the public plane (takes effect for the next request)"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/schema.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div hidden itemscope itemtype="https://pagelove.org/Schema">
+                <meta itemprop="type" content="https://pagelike.test${P}/Value">
+                <div itemprop="property" itemscope itemtype="https://pagelove.org/Property">
+                  <meta itemprop="name" content="createdAt">
+                  <meta itemprop="type" content="https://schema.host/DateTime">
+                  <meta itemprop="cardinality" content="1..1">
+                </div>
+              </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "time with datetime and human text accepted"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/a.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div itemscope itemtype="https://pagelike.test${P}/Value">
+                <time itemprop="createdAt" datetime="2026-08-18T10:00:00Z">Aug 18</time>
+              </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "time with datetime and empty text accepted"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/b.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div itemscope itemtype="https://pagelike.test${P}/Value">
+                <time itemprop="createdAt" datetime="2026-08-18T11:00:00Z"></time>
+              </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "time without datetime falls back to text"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/c.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div itemscope itemtype="https://pagelike.test${P}/Value">
+                <time itemprop="createdAt">Aug 18</time>
+              </div>
+            </body></html>
+        expect:
+          status: 422
+          header_matches:
+            Content-Type: "^text/html"
+          body_contains: ["https://pagelove.org/SchemaViolation", type]
+  - id: modeling.types.time-text-content-literal
+    title: "Literal reading of the Types page: a <time> is checked by its text content"
+    area: modeling
+    feature: "value extraction"
+    evidence: documented
+    source: "docs reference/modeling-data/Types §How type validation runs (snapshot 2026-09-28)"
+    confidence: low
+    requires: []
+    live: true
+    status: disputed
+    notes: "spec: R-MOD-19. Contradiction C9: loses to Selector-Extensions microdata values and the live demo-02 schema; kept to record the claim."
+    site:
+      settings:
+        default_get: allow
+      rules:
+        - actor: "*"
+          resource: "${P}/*"
+          method: [GET, HEAD, PUT, POST, DELETE, MOVE]
+          action: Allow
+        - actor: "*"
+          resource: "${P}/*/*"
+          method: [GET, HEAD, PUT, POST, DELETE, MOVE]
+          action: Allow
+    steps:
+      - name: "register declarations through the public plane (takes effect for the next request)"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/schema.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div hidden itemscope itemtype="https://pagelove.org/Schema">
+                <meta itemprop="type" content="https://pagelike.test${P}/Value">
+                <div itemprop="property" itemscope itemtype="https://pagelove.org/Property">
+                  <meta itemprop="name" content="createdAt">
+                  <meta itemprop="type" content="https://schema.host/DateTime">
+                  <meta itemprop="cardinality" content="1..1">
+                </div>
+              </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "time with datetime but non-datetime text rejected"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/a.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div itemscope itemtype="https://pagelike.test${P}/Value">
+                <time itemprop="createdAt" datetime="2026-08-18T10:00:00Z">Aug 18</time>
+              </div>
+            </body></html>
+        expect:
+          status: 422
+          header_matches:
+            Content-Type: "^text/html"
+          body_contains: ["https://pagelove.org/SchemaViolation", type]
+  - id: modeling.types.anchor-href-value
+    title: "An <a> element's value is its raw href"
+    area: modeling
+    feature: "value extraction"
+    evidence: documented
+    source: "docs reference/composing-pages/Selector-Extensions §Text content vs microdata values (snapshot 2026-09-28); pagelove-shop/site/schemas.html@d887054:92-94"
+    confidence: medium
+    requires: []
+    live: true
+    notes: "spec: R-MOD-19."
+    site:
+      settings:
+        default_get: allow
+      rules:
+        - actor: "*"
+          resource: "${P}/*"
+          method: [GET, HEAD, PUT, POST, DELETE, MOVE]
+          action: Allow
+        - actor: "*"
+          resource: "${P}/*/*"
+          method: [GET, HEAD, PUT, POST, DELETE, MOVE]
+          action: Allow
+    steps:
+      - name: "register declarations through the public plane (takes effect for the next request)"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/schema.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div hidden itemscope itemtype="https://pagelove.org/Schema">
+                <meta itemprop="type" content="https://pagelike.test${P}/Value">
+                <div itemprop="property" itemscope itemtype="https://pagelove.org/Property">
+                  <meta itemprop="name" content="homepage">
+                  <meta itemprop="type" content="https://schema.host/URL">
+                  <meta itemprop="cardinality" content="1..1">
+                </div>
+              </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "absolute href accepted"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/a.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div itemscope itemtype="https://pagelike.test${P}/Value">
+                <a itemprop="homepage" href="https://example.com/">Home</a>
+              </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "relative href rejected (not resolved against the document)"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/b.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div itemscope itemtype="https://pagelike.test${P}/Value">
+                <a itemprop="homepage" href="/about">https://example.com/about</a>
+              </div>
+            </body></html>
+        expect:
+          status: 422
+          header_matches:
+            Content-Type: "^text/html"
+          body_contains: ["https://pagelove.org/SchemaViolation", type]
+  - id: modeling.types.nested-item-as-primitive-value
+    title: "A nested item used as the value of a primitive-typed property is a type violation"
+    area: modeling
+    feature: "primitive types"
+    evidence: inferred
+    source: "pagelike decision (docs/spec/modeling.md R-MOD-21)"
+    confidence: low
+    requires: []
+    live: true
+    notes: "spec: R-MOD-21. Probe P-MOD-13."
+    site:
+      settings:
+        default_get: allow
+      rules:
+        - actor: "*"
+          resource: "${P}/*"
+          method: [GET, HEAD, PUT, POST, DELETE, MOVE]
+          action: Allow
+        - actor: "*"
+          resource: "${P}/*/*"
+          method: [GET, HEAD, PUT, POST, DELETE, MOVE]
+          action: Allow
+    steps:
+      - name: "register declarations through the public plane (takes effect for the next request)"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/schema.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div hidden itemscope itemtype="https://pagelove.org/Schema">
+                <meta itemprop="type" content="https://pagelike.test${P}/Value">
+                <div itemprop="property" itemscope itemtype="https://pagelove.org/Property">
+                  <meta itemprop="name" content="v">
+                  <meta itemprop="type" content="https://schema.host/Text">
+                  <meta itemprop="cardinality" content="1..1">
+                </div>
+              </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "item value for a Text property rejected"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/a.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div itemscope itemtype="https://pagelike.test${P}/Value">
+                <div itemscope itemtype="https://pagelike.test${P}/Inner" itemprop="v">
+                  <meta itemprop="x" content="1">
+                </div>
+              </div>
+            </body></html>
+        expect:
+          status: 422
+          header_matches:
+            Content-Type: "^text/html"
+          body_contains: ["https://pagelove.org/SchemaViolation", type]
+  - id: modeling.types.number-grammar-edges
+    title: "Number accepts f64 syntax variants and rejects hex, underscores and whitespace"
+    area: modeling
+    feature: "primitive types"
+    evidence: inferred
+    source: "pagelike grammar (docs/spec/modeling.md R-MOD-21) from 'Must parse as a floating-point number (f64)', docs reference/modeling-data/Types §Primitive types (snapshot 2026-09-28); docs reference/modeling-data/Types §Validation examples (snapshot 2026-09-28)"
+    confidence: low
+    requires: []
+    live: true
+    notes: "spec: R-MOD-21. Probe P-MOD-8."
+    site:
+      settings:
+        default_get: allow
+      rules:
+        - actor: "*"
+          resource: "${P}/*"
+          method: [GET, HEAD, PUT, POST, DELETE, MOVE]
+          action: Allow
+        - actor: "*"
+          resource: "${P}/*/*"
+          method: [GET, HEAD, PUT, POST, DELETE, MOVE]
+          action: Allow
+    steps:
+      - name: "register declarations through the public plane (takes effect for the next request)"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/schema.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div hidden itemscope itemtype="https://pagelove.org/Schema">
+                <meta itemprop="type" content="https://pagelike.test${P}/Value">
+                <div itemprop="property" itemscope itemtype="https://pagelove.org/Property">
+                  <meta itemprop="name" content="v">
+                  <meta itemprop="type" content="https://schema.host/Number">
+                  <meta itemprop="cardinality" content="1..1">
+                </div>
+              </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "valid: \"1e3\""
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/ok-0.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div itemscope itemtype="https://pagelike.test${P}/Value">
+                <meta itemprop="v" content="1e3">
+              </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "valid: \".5\""
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/ok-1.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div itemscope itemtype="https://pagelike.test${P}/Value">
+                <meta itemprop="v" content=".5">
+              </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "valid: \"+3\""
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/ok-2.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div itemscope itemtype="https://pagelike.test${P}/Value">
+                <meta itemprop="v" content="+3">
+              </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "valid: \"inf\""
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/ok-3.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div itemscope itemtype="https://pagelike.test${P}/Value">
+                <meta itemprop="v" content="inf">
+              </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "valid: \"NaN\""
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/ok-4.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div itemscope itemtype="https://pagelike.test${P}/Value">
+                <meta itemprop="v" content="NaN">
+              </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "invalid: \"0x10\""
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/bad-0.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div itemscope itemtype="https://pagelike.test${P}/Value">
+                <meta itemprop="v" content="0x10">
+              </div>
+            </body></html>
+        expect:
+          status: 422
+          header_matches:
+            Content-Type: "^text/html"
+          body_contains: ["https://pagelove.org/SchemaViolation", type]
+      - name: "invalid: \"1_000\""
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/bad-1.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div itemscope itemtype="https://pagelike.test${P}/Value">
+                <meta itemprop="v" content="1_000">
+              </div>
+            </body></html>
+        expect:
+          status: 422
+          header_matches:
+            Content-Type: "^text/html"
+          body_contains: ["https://pagelove.org/SchemaViolation", type]
+      - name: "invalid: \" 1\""
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/bad-2.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div itemscope itemtype="https://pagelike.test${P}/Value">
+                <meta itemprop="v" content=" 1">
+              </div>
+            </body></html>
+        expect:
+          status: 422
+          header_matches:
+            Content-Type: "^text/html"
+          body_contains: ["https://pagelove.org/SchemaViolation", type]
+  - id: modeling.types.integer-grammar-edges
+    title: "Integer accepts a sign and leading zeros and rejects overflow"
+    area: modeling
+    feature: "primitive types"
+    evidence: inferred
+    source: "pagelike grammar (docs/spec/modeling.md R-MOD-21) from 'Must parse as a 64-bit signed integer (i64)', docs reference/modeling-data/Types §Primitive types (snapshot 2026-09-28); docs reference/modeling-data/Types §Validation examples (snapshot 2026-09-28)"
+    confidence: low
+    requires: []
+    live: true
+    notes: "spec: R-MOD-21. Probe P-MOD-9."
+    site:
+      settings:
+        default_get: allow
+      rules:
+        - actor: "*"
+          resource: "${P}/*"
+          method: [GET, HEAD, PUT, POST, DELETE, MOVE]
+          action: Allow
+        - actor: "*"
+          resource: "${P}/*/*"
+          method: [GET, HEAD, PUT, POST, DELETE, MOVE]
+          action: Allow
+    steps:
+      - name: "register declarations through the public plane (takes effect for the next request)"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/schema.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div hidden itemscope itemtype="https://pagelove.org/Schema">
+                <meta itemprop="type" content="https://pagelike.test${P}/Value">
+                <div itemprop="property" itemscope itemtype="https://pagelove.org/Property">
+                  <meta itemprop="name" content="v">
+                  <meta itemprop="type" content="https://schema.host/Integer">
+                  <meta itemprop="cardinality" content="1..1">
+                </div>
+              </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "valid: \"+5\""
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/ok-0.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div itemscope itemtype="https://pagelike.test${P}/Value">
+                <meta itemprop="v" content="+5">
+              </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "valid: \"007\""
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/ok-1.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div itemscope itemtype="https://pagelike.test${P}/Value">
+                <meta itemprop="v" content="007">
+              </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "valid: \"9223372036854775807\""
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/ok-2.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div itemscope itemtype="https://pagelike.test${P}/Value">
+                <meta itemprop="v" content="9223372036854775807">
+              </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "invalid: \"9223372036854775808\""
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/bad-0.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div itemscope itemtype="https://pagelike.test${P}/Value">
+                <meta itemprop="v" content="9223372036854775808">
+              </div>
+            </body></html>
+        expect:
+          status: 422
+          header_matches:
+            Content-Type: "^text/html"
+          body_contains: ["https://pagelove.org/SchemaViolation", type]
+      - name: "invalid: \" 5\""
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/bad-1.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div itemscope itemtype="https://pagelike.test${P}/Value">
+                <meta itemprop="v" content=" 5">
+              </div>
+            </body></html>
+        expect:
+          status: 422
+          header_matches:
+            Content-Type: "^text/html"
+          body_contains: ["https://pagelove.org/SchemaViolation", type]
+      - name: "invalid: \"1e3\""
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/bad-2.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div itemscope itemtype="https://pagelike.test${P}/Value">
+                <meta itemprop="v" content="1e3">
+              </div>
+            </body></html>
+        expect:
+          status: 422
+          header_matches:
+            Content-Type: "^text/html"
+          body_contains: ["https://pagelove.org/SchemaViolation", type]
+  - id: modeling.types.datetime-grammar-edges
+    title: "DateTime accepts fractional seconds and offsets and requires an offset"
+    area: modeling
+    feature: "primitive types"
+    evidence: inferred
+    source: "RFC 3339 date-time; docs reference/modeling-data/Types §Primitive types (snapshot 2026-09-28); docs reference/modeling-data/Types §Validation examples (snapshot 2026-09-28)"
+    confidence: medium
+    requires: []
+    live: true
+    notes: "spec: R-MOD-21. Probe P-MOD-10."
+    site:
+      settings:
+        default_get: allow
+      rules:
+        - actor: "*"
+          resource: "${P}/*"
+          method: [GET, HEAD, PUT, POST, DELETE, MOVE]
+          action: Allow
+        - actor: "*"
+          resource: "${P}/*/*"
+          method: [GET, HEAD, PUT, POST, DELETE, MOVE]
+          action: Allow
+    steps:
+      - name: "register declarations through the public plane (takes effect for the next request)"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/schema.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div hidden itemscope itemtype="https://pagelove.org/Schema">
+                <meta itemprop="type" content="https://pagelike.test${P}/Value">
+                <div itemprop="property" itemscope itemtype="https://pagelove.org/Property">
+                  <meta itemprop="name" content="v">
+                  <meta itemprop="type" content="https://schema.host/DateTime">
+                  <meta itemprop="cardinality" content="1..1">
+                </div>
+              </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "valid: \"2024-01-15T10:30:00.123+01:00\""
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/ok-0.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div itemscope itemtype="https://pagelike.test${P}/Value">
+                <meta itemprop="v" content="2024-01-15T10:30:00.123+01:00">
+              </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "valid: \"2024-01-15T10:30:00-05:00\""
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/ok-1.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div itemscope itemtype="https://pagelike.test${P}/Value">
+                <meta itemprop="v" content="2024-01-15T10:30:00-05:00">
+              </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "invalid: \"2024-01-15T10:30:00\""
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/bad-0.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div itemscope itemtype="https://pagelike.test${P}/Value">
+                <meta itemprop="v" content="2024-01-15T10:30:00">
+              </div>
+            </body></html>
+        expect:
+          status: 422
+          header_matches:
+            Content-Type: "^text/html"
+          body_contains: ["https://pagelove.org/SchemaViolation", type]
+      - name: "invalid: \"2024-01-15 10:30\""
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/bad-1.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div itemscope itemtype="https://pagelike.test${P}/Value">
+                <meta itemprop="v" content="2024-01-15 10:30">
+              </div>
+            </body></html>
+        expect:
+          status: 422
+          header_matches:
+            Content-Type: "^text/html"
+          body_contains: ["https://pagelove.org/SchemaViolation", type]

@@ -1,0 +1,50 @@
+{
+  "case": "protocol.move.cross-document-501",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (cross-document element move)",
+      "method": "MOVE",
+      "path": "/_pl/protocol-move-cross-document-501-df2c1e/board.html",
+      "status": 501,
+      "headers": {
+        "content-length": "214",
+        "content-type": "text/html",
+        "vary": "Host, Range"
+      },
+      "body": "\u003cdiv itemscope itemtype=\"https://dombase.pagelove.team/ns/error/MoveCrossResource\"\u003e\u003cul itemprop=\"problems\"\u003e\u003cli itemprop=\"problem\"\u003e\u003cspan itemprop=\"message\"\u003eCross-resource MOVE is not supported\u003c/span\u003e\u003c/li\u003e\u003c/ul\u003e\u003c/div\u003e"
+    },
+    {
+      "step": "step 2 (source unchanged)",
+      "method": "GET",
+      "path": "/_pl/protocol-move-cross-document-501-df2c1e/board.html",
+      "status": 206,
+      "headers": {
+        "accept-ranges": "selector, bytes",
+        "content-length": "190",
+        "content-range": "selector #lane-todo",
+        "content-type": "text/html",
+        "etag": "\"d90c29204f276cf47c317794655fce214e63b474a3c86245437cf3b7de13b11c-d90c29204f276cf47c317794655fce214e63b474a3c86245437cf3b7de13b11c-1\"",
+        "vary": "Host, Range, Accept"
+      },
+      "body": "\u003csection class=\"lane\" id=\"lane-todo\"\u003e\u003carticle class=\"card\" id=\"card-1\"\u003eOne\u003c/article\u003e\u003carticle class=\"card\" id=\"card-2\"\u003eTwo\u003c/article\u003e\u003carticle class=\"card\" id=\"card-3\"\u003eThree\u003c/article\u003e\u003c/section\u003e"
+    },
+    {
+      "step": "step 3 (destination unchanged)",
+      "method": "GET",
+      "path": "/_pl/protocol-move-cross-document-501-df2c1e/other.html",
+      "status": 200,
+      "headers": {
+        "accept-ranges": "selector, bytes",
+        "content-length": "90",
+        "content-type": "text/html",
+        "etag": "\"d91223828d96c49277f2f97cc127a044e60906f829125b071d01f9e30a216759\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:48 GMT",
+        "vary": "Host, Range, Accept"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\u003csection class=\"lane\" id=\"lane-done\"\u003e\u003c/section\u003e\u003c/body\u003e\u003c/html\u003e\n"
+    }
+  ],
+  "outcome": "pass",
+  "target": "local"
+}

@@ -1,0 +1,25 @@
+{
+  "case": "rw.md.multiple-itemprop-tokens",
+  "failures": [
+    "step 1 (both names present) GET ${P}/tokens.html: json = {\n  \"@context\": \"http://schema.org/\",\n  \"@type\": \"Person\",\n  \"name alternateName\": \"Zed\"\n}, want {\"@context\":\"http://schema.org/\",\"@type\":\"Person\",\"alternateName\":\"Zed\",\"name\":\"Zed\"}"
+  ],
+  "observations": [
+    {
+      "step": "step 1 (both names present)",
+      "method": "GET",
+      "path": "/_pl/rw-md-multiple-itemprop-tokens-792e19/tokens.html",
+      "status": 200,
+      "headers": {
+        "accept-ranges": "bytes",
+        "content-length": "90",
+        "content-type": "application/ld+json; charset=utf-8",
+        "etag": "\"6f70129efcc65db8dd38115176f9d5602e742a9c96cbd610502c77f09ca08b2b\"",
+        "last-modified": "Mon, 28 Sep 2026 22:27:22 GMT",
+        "vary": "Host, Range, Accept"
+      },
+      "body": "{\n  \"@context\": \"http://schema.org/\",\n  \"@type\": \"Person\",\n  \"name alternateName\": \"Zed\"\n}"
+    }
+  ],
+  "outcome": "fail",
+  "target": "live"
+}

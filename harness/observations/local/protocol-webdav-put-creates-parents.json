@@ -1,0 +1,33 @@
+{
+  "case": "protocol.webdav.put-creates-parents",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (deep put)",
+      "method": "PUT",
+      "path": "/_pl/protocol-webdav-put-creates-parents-590a6a/deep/er/doc.html",
+      "status": 201,
+      "headers": {
+        "content-length": "56",
+        "content-type": "text/html",
+        "etag": "\"5bc550462167fba7a07df6a659d57a98458a235e69cc79bde27ff574118aa9fd\""
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\u003ch1\u003eDeep\u003c/h1\u003e\u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 2 (parent collection lists it)",
+      "method": "PROPFIND",
+      "path": "/_pl/protocol-webdav-put-creates-parents-590a6a/deep/er/",
+      "status": 207,
+      "headers": {
+        "content-length": "988",
+        "content-type": "application/xml; charset=utf-8",
+        "etag": "\"sha256:93de467ebfa1828826edcf652c52639be18fd2d341d56518c9fa92344db0cef5\"",
+        "vary": "Depth"
+      },
+      "body": "\u003c?xml version=\"1.0\" encoding=\"utf-8\" ?\u003e\n\u003cD:multistatus xmlns:D=\"DAV:\"\u003e\n  \u003cD:response\u003e\n    \u003cD:href\u003e/_pl/protocol-webdav-put-creates-parents-590a6a/deep/er/\u003c/D:href\u003e\n    \u003cD:propstat\u003e\n      \u003cD:prop\u003e\n      \u003cD:resourcetype\u003e\u003cD:collection/\u003e\u003c/D:resourcetype\u003e\n      \u003cD:getetag\u003e\"sha256:93de467ebfa1828826edcf652c52639be18fd2d341d56518c9fa92344db0cef5\"\u003c/D:getetag\u003e\n      \u003c/D:prop\u003e\n      \u003cD:status\u003eHTTP/1.1 200 OK\u003c/D:status\u003e\n    \u003c/D:propstat\u003e\n  \u003c/D:response\u003e\n  \u003cD:response\u003e\n    \u003cD:href\u003e/_pl/protocol-webdav-put-creates-parents-590a6a/deep/er/doc.html\u003c/D:href\u003e\n    \u003cD:propstat\u003e\n      \u003cD:prop\u003e\n      \u003cD:resourcetype/\u003e\n      \u003cD:getcontenttype\u003etext/html\u003c/D:getcontenttype\u003e\n      \u003cD:getcontentlength\u003e56\u003c/D:getcontentlength\u003e\n      \u003cD:getlastmodified\u003eTue, 29 Sep 2026 02:40:48 GMT\u003c/D:getlastmodified\u003e\n      \u003cD:getetag\u003e\"5bc550462167fba7a07df6a659d57a98458a235e69cc79bde27ff574118aa9fd\"\u003c/D:getetag\u003e\n      \u003c/D:prop\u003e\n      \u003cD:status\u003eHTTP/1.1 200 OK\u003c/D:status\u003e\n    \u003c/D:propstat\u003e\n  \u003c/D:response\u003e\n\u003c/D:multistatus\u003e\n"
+    }
+  ],
+  "outcome": "pass",
+  "target": "local"
+}

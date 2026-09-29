@@ -1,0 +1,38 @@
+{
+  "case": "authz.identity.request-auth-in-liquid",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (signed-in rendering)",
+      "method": "GET",
+      "path": "/_pl/authz-identity-request-auth-in-liquid-6497e9/whoami.html",
+      "status": 200,
+      "headers": {
+        "accept-ranges": "selector, bytes",
+        "cache-control": "private",
+        "content-length": "135",
+        "content-type": "text/html",
+        "etag": "W/\"e40f7241402b9cebcc061481ea82303582afafb00ac10f10a607bbc98acd268e\"",
+        "vary": "Host, Range, Accept"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\n  \u003cdiv id=\"who\"\u003e[sub-alice|alice@example.com|alice@example.com;editors;staff;users;]\u003c/div\u003e\n\u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 2 (anonymous rendering is empty, not an error)",
+      "method": "GET",
+      "path": "/_pl/authz-identity-request-auth-in-liquid-6497e9/whoami.html",
+      "status": 200,
+      "headers": {
+        "accept-ranges": "selector, bytes",
+        "cache-control": "private",
+        "content-length": "71",
+        "content-type": "text/html",
+        "etag": "W/\"429c1f14c4af8f52180a4b49d0df6657ad0cba470e8007ed5efa6227a32a5710\"",
+        "vary": "Host, Range, Accept"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\n  \u003cdiv id=\"who\"\u003e[||]\u003c/div\u003e\n\u003c/body\u003e\u003c/html\u003e\n"
+    }
+  ],
+  "outcome": "pass",
+  "target": "local"
+}

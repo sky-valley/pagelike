@@ -1,0 +1,48 @@
+{
+  "case": "modeling.shapes.no-selector-applies-to-root",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (register declarations through the public plane (takes effect for the next request))",
+      "method": "PUT",
+      "path": "/_pl/modeling-shapes-no-selector-applies-to-r-0b5672/shapes.html",
+      "status": 201,
+      "headers": {
+        "content-length": "278",
+        "content-type": "text/html",
+        "etag": "\"79b0a845ef9359bbeea9880bc1e27fb431cb6b72172ac46898c5b542bf48802b\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:45 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\n  \u003cdiv hidden itemscope itemtype=\"https://pagelove.org/ShapeConstraint\"\u003e\n    \u003cmeta itemprop=\"resource\" content=\"/_pl/modeling-shapes-no-selector-applies-to-r-0b5672/pages/*\"\u003e\n    \u003ccode itemprop=\"constraint\"\u003e:has(main)\u003c/code\u003e\n  \u003c/div\u003e\n\u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 2 (page with main accepted)",
+      "method": "PUT",
+      "path": "/_pl/modeling-shapes-no-selector-applies-to-r-0b5672/pages/a.html",
+      "status": 201,
+      "headers": {
+        "content-length": "68",
+        "content-type": "text/html",
+        "etag": "\"799ec74f0b41c947cc7e5bd5414140fe9574f39ec84960b2b8c1004f919440fc\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:45 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\n  \u003cmain\u003e\u003cp\u003ex\u003c/p\u003e\u003c/main\u003e\n\u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 3 (page without main rejected)",
+      "method": "PUT",
+      "path": "/_pl/modeling-shapes-no-selector-applies-to-r-0b5672/pages/b.html",
+      "status": 422,
+      "headers": {
+        "content-length": "371",
+        "content-type": "text/html",
+        "vary": "Host, Range"
+      },
+      "body": "\u003cdiv itemscope itemtype=\"https://dombase.pagelove.team/ns/error/ShapeConstraint\"\u003e\u003cul itemprop=\"problems\"\u003e\u003cli itemprop=\"problem\"\u003e\u003cspan itemprop=\"message\"\u003eShape constraints violated\u003c/span\u003e\u003c/li\u003e\u003cli itemprop=\"problem\"\u003e\u003cspan itemprop=\"message\"\u003ehttps://pagelove.org/ShapeConstraint :root: Element matching ':root' does not satisfy constraint ':has(main)'\u003c/span\u003e\u003c/li\u003e\u003c/ul\u003e\u003c/div\u003e"
+    }
+  ],
+  "outcome": "pass",
+  "target": "local"
+}

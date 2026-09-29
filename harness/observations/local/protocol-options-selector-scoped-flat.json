@@ -1,0 +1,47 @@
+{
+  "case": "protocol.options.selector-scoped-flat",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (selector-scoped Allow contains PUT and POST)",
+      "method": "OPTIONS",
+      "path": "/_pl/protocol-options-selector-scoped-flat-ec6bf9/doc.html",
+      "status": 200,
+      "headers": {
+        "accept-query": "text/css-selector, text/sessel",
+        "accept-ranges": "selector",
+        "allow": "GET, HEAD, PUT, POST, OPTIONS",
+        "content-length": "0",
+        "vary": "Authorization, Accept"
+      }
+    },
+    {
+      "step": "step 2 (selector-scoped Allow still carries the document-level GET and OPTIONS)",
+      "method": "OPTIONS",
+      "path": "/_pl/protocol-options-selector-scoped-flat-ec6bf9/doc.html",
+      "status": 200,
+      "headers": {
+        "accept-query": "text/css-selector, text/sessel",
+        "accept-ranges": "selector",
+        "allow": "GET, HEAD, PUT, POST, OPTIONS",
+        "content-length": "0",
+        "vary": "Authorization, Accept"
+      }
+    },
+    {
+      "step": "step 3 (document-level Allow also lists what selector-scoped rules grant)",
+      "method": "OPTIONS",
+      "path": "/_pl/protocol-options-selector-scoped-flat-ec6bf9/doc.html",
+      "status": 200,
+      "headers": {
+        "accept-query": "text/css-selector, text/sessel",
+        "accept-ranges": "selector",
+        "allow": "GET, HEAD, PUT, POST, OPTIONS",
+        "content-length": "0",
+        "vary": "Authorization, Accept"
+      }
+    }
+  ],
+  "outcome": "pass",
+  "target": "local"
+}

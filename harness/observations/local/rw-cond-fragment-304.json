@@ -1,0 +1,33 @@
+{
+  "case": "rw.cond.fragment-304",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (fragment read)",
+      "method": "GET",
+      "path": "/_pl/rw-cond-fragment-304-ad5fda/frag.html",
+      "status": 206,
+      "headers": {
+        "accept-ranges": "selector, bytes",
+        "content-length": "17",
+        "content-range": "selector h1",
+        "content-type": "text/html",
+        "etag": "\"6ddb8701307a9552191a668adc13db44e143dd1125a5f7583b04d3d21602efc3-6ddb8701307a9552191a668adc13db44e143dd1125a5f7583b04d3d21602efc3-1\"",
+        "vary": "Host, Range, Accept"
+      },
+      "body": "\u003ch1\u003eFragment\u003c/h1\u003e"
+    },
+    {
+      "step": "step 2 (fragment revalidation)",
+      "method": "GET",
+      "path": "/_pl/rw-cond-fragment-304-ad5fda/frag.html",
+      "status": 304,
+      "headers": {
+        "etag": "\"6ddb8701307a9552191a668adc13db44e143dd1125a5f7583b04d3d21602efc3-6ddb8701307a9552191a668adc13db44e143dd1125a5f7583b04d3d21602efc3-1\"",
+        "vary": "Host, Range"
+      }
+    }
+  ],
+  "outcome": "pass",
+  "target": "local"
+}

@@ -1,0 +1,441 @@
+# Content negotiation: HTML default, JSON-LD, all-matches multipart / @graph.
+# Spec: docs/spec/reading-writing.md §5, §6, §7 (R-RW-31..49).
+cases:
+  - id: rw.cn.jsonld-single-item
+    title: Accept application/ld+json returns the single item as a flat JSON-LD object
+    area: reading-writing
+    feature: JSON-LD negotiation
+    evidence: documented
+    source: "docs reference/reading-and-writing/Content-Negotiation §Context inference, §Example (snapshot 2026-09-28)"
+    confidence: high
+    requires: []
+    live: true
+    site:
+      settings: {default_get: allow}
+      files:
+        - path: "${P}/content-neg-jsonld-test.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div itemscope itemtype="http://schema.org/Person">
+                <span itemprop="name">Alice</span>
+              </div>
+            </body></html>
+      rules:
+        - {actor: "*", resource: "${P}/*", method: [GET, HEAD], action: Allow}
+    steps:
+      - name: request JSON-LD
+        as: anonymous
+        request:
+          method: GET
+          path: "${P}/content-neg-jsonld-test.html"
+          headers: {Accept: "application/ld+json"}
+        expect:
+          status: 200
+          header_matches:
+            Content-Type: "^application/ld\\+json"
+            Vary: "(?i)(^|[ ,])accept([ ,]|$)"
+          headers_present: [ETag]
+          body_json:
+            "@context": "http://schema.org/"
+            "@type": Person
+            name: Alice
+
+  - id: rw.cn.jsonld-graph-hoisted-context
+    title: Several top-level items with one vocabulary become @graph with a hoisted @context
+    area: reading-writing
+    feature: JSON-LD negotiation
+    evidence: documented
+    source: "docs reference/reading-and-writing/Content-Negotiation §Multiple items (snapshot 2026-09-28)"
+    confidence: high
+    requires: []
+    live: true
+    site:
+      settings: {default_get: allow}
+      files:
+        - path: "${P}/people.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div itemscope itemtype="http://schema.org/Person"><span itemprop="name">Alice</span></div>
+              <div itemscope itemtype="http://schema.org/Person"><span itemprop="name">Bob</span></div>
+            </body></html>
+      rules:
+        - {actor: "*", resource: "${P}/*", method: [GET, HEAD], action: Allow}
+    steps:
+      - name: request JSON-LD
+        as: anonymous
+        request:
+          method: GET
+          path: "${P}/people.html"
+          headers: {Accept: "application/ld+json"}
+        expect:
+          status: 200
+          body_json:
+            "@context": "http://schema.org/"
+            "@graph":
+              - {"@type": Person, name: Alice}
+              - {"@type": Person, name: Bob}
+
+  - id: rw.cn.jsonld-graph-mixed-vocabularies
+    title: Items from different vocabularies each carry their own @context inside @graph
+    area: reading-writing
+    feature: JSON-LD negotiation
+    evidence: documented
+    source: "docs reference/reading-and-writing/Content-Negotiation §Multiple items ('When items use different vocabularies, each item carries its own @context') (snapshot 2026-09-28)"
+    confidence: medium
+    requires: []
+    live: true
+    notes: "Absence of a top-level @context in the mixed case is implied, not stated."
+    site:
+      settings: {default_get: allow}
+      files:
+        - path: "${P}/mixed.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div itemscope itemtype="http://schema.org/Person"><span itemprop="name">Alice</span></div>
+              <div itemscope itemtype="https://pagelove.org/Poll"><span itemprop="title">Lunch</span></div>
+            </body></html>
+      rules:
+        - {actor: "*", resource: "${P}/*", method: [GET, HEAD], action: Allow}
+    steps:
+      - name: request JSON-LD
+        as: anonymous
+        request:
+          method: GET
+          path: "${P}/mixed.html"
+          headers: {Accept: "application/ld+json"}
+        expect:
+          status: 200
+          body_json:
+            "@graph":
+              - {"@context": "http://schema.org/", "@type": Person, name: Alice}
+              - {"@context": "https://pagelove.org/", "@type": Poll, title: Lunch}
+
+  - id: rw.cn.jsonld-non-url-type
+    title: A non-URL itemtype becomes @type with no @context
+    area: reading-writing
+    feature: JSON-LD negotiation
+    evidence: documented
+    source: "docs reference/reading-and-writing/Content-Negotiation §Context inference ('For non-URL itemtype values, the full string is used as @type with no @context') (snapshot 2026-09-28)"
+    confidence: high
+    requires: []
+    live: true
+    site:
+      settings: {default_get: allow}
+      files:
+        - path: "${P}/widget.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body><div itemscope itemtype="Widget"><span itemprop="label">Gizmo</span></div></body></html>
+      rules:
+        - {actor: "*", resource: "${P}/*", method: [GET, HEAD], action: Allow}
+    steps:
+      - name: request JSON-LD
+        as: anonymous
+        request:
+          method: GET
+          path: "${P}/widget.html"
+          headers: {Accept: "application/ld+json"}
+        expect:
+          status: 200
+          body_json:
+            "@type": Widget
+            label: Gizmo
+
+  - id: rw.cn.jsonld-nested-item-not-top-level
+    title: An item used as a property value is nested, not a separate top-level item
+    area: reading-writing
+    feature: JSON-LD negotiation
+    evidence: inferred
+    source: "WHATWG microdata (top-level items have no itemprop); docs Content-Negotiation §Multiple items"
+    confidence: medium
+    requires: []
+    live: true
+    site:
+      settings: {default_get: allow}
+      files:
+        - path: "${P}/nested.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div itemscope itemtype="http://schema.org/Person">
+                <span itemprop="name">Alice</span>
+                <div itemprop="address" itemscope itemtype="http://schema.org/PostalAddress">
+                  <span itemprop="addressLocality">Paris</span>
+                </div>
+              </div>
+            </body></html>
+      rules:
+        - {actor: "*", resource: "${P}/*", method: [GET, HEAD], action: Allow}
+    steps:
+      - name: request JSON-LD
+        as: anonymous
+        request:
+          method: GET
+          path: "${P}/nested.html"
+          headers: {Accept: "application/ld+json"}
+        expect:
+          status: 200
+          body_contains: ["PostalAddress", "Paris", "address"]
+          body_not_contains: ["@graph"]
+
+  - id: rw.cn.default-html
+    title: Without Accept, or with an unsupported or browser Accept, HTML is returned (never 406)
+    area: reading-writing
+    feature: Content negotiation
+    evidence: documented
+    source: "docs reference/reading-and-writing/Content-Negotiation §Supported media types ('When no Accept header is present, or when it does not match a supported type, HTML is returned') (snapshot 2026-09-28)"
+    confidence: high
+    requires: []
+    live: true
+    notes: "The browser-Accept and */* steps follow from R-RW-36 (inferred, high)."
+    site:
+      settings: {default_get: allow}
+      files:
+        - path: "${P}/neg.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body><div itemscope itemtype="http://schema.org/Person"><span itemprop="name">Alice</span></div></body></html>
+      rules:
+        - {actor: "*", resource: "${P}/*", method: [GET, HEAD], action: Allow}
+    steps:
+      - name: no Accept
+        as: anonymous
+        request: {method: GET, path: "${P}/neg.html"}
+        expect:
+          status: 200
+          header_matches: {Content-Type: "^text/html"}
+      - name: unsupported type
+        as: anonymous
+        request:
+          method: GET
+          path: "${P}/neg.html"
+          headers: {Accept: "image/png"}
+        expect:
+          status: 200
+          header_matches: {Content-Type: "^text/html"}
+      - name: plain JSON is not JSON-LD
+        as: anonymous
+        request:
+          method: GET
+          path: "${P}/neg.html"
+          headers: {Accept: "application/json"}
+        expect:
+          status: 200
+          header_matches: {Content-Type: "^text/html"}
+      - name: browser default Accept
+        as: anonymous
+        request:
+          method: GET
+          path: "${P}/neg.html"
+          headers: {Accept: "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8"}
+        expect:
+          status: 200
+          header_matches: {Content-Type: "^text/html"}
+      - name: wildcard
+        as: anonymous
+        request:
+          method: GET
+          path: "${P}/neg.html"
+          headers: {Accept: "*/*"}
+        expect:
+          status: 200
+          header_matches: {Content-Type: "^text/html"}
+
+  - id: rw.cn.representations-have-distinct-etags
+    title: The HTML and JSON-LD representations of one URL have different ETags
+    area: reading-writing
+    feature: Content negotiation
+    evidence: inferred
+    source: "RFC 9110 §8.8.3 (entity tags are representation-specific); docs Content-Negotiation §Vary header"
+    confidence: medium
+    requires: []
+    live: true
+    site:
+      settings: {default_get: allow}
+      files:
+        - path: "${P}/two-reps.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body><div itemscope itemtype="http://schema.org/Person"><span itemprop="name">Alice</span></div></body></html>
+      rules:
+        - {actor: "*", resource: "${P}/*", method: [GET, HEAD], action: Allow}
+    steps:
+      - name: HTML
+        as: anonymous
+        request: {method: GET, path: "${P}/two-reps.html"}
+        expect: {status: 200}
+        capture: {h: header.ETag}
+      - name: JSON-LD
+        as: anonymous
+        request:
+          method: GET
+          path: "${P}/two-reps.html"
+          headers: {Accept: "application/ld+json"}
+        expect:
+          status: 200
+          etag_differs: "${h}"
+
+  - id: rw.cn.blob-ignores-accept
+    title: Non-HTML resources ignore Accept and are returned unchanged
+    area: reading-writing
+    feature: Content negotiation
+    evidence: documented
+    source: "docs reference/reading-and-writing/Content-Negotiation §Non-HTML resources (snapshot 2026-09-28)"
+    confidence: high
+    requires: []
+    live: true
+    site:
+      settings: {default_get: allow}
+      files:
+        - path: "${P}/data.json"
+          content_type: application/json
+          body: '{"name":"widget","price":29.99}'
+      rules:
+        - {actor: "*", resource: "${P}/*", method: [GET, HEAD], action: Allow}
+    steps:
+      - name: ask a JSON blob for JSON-LD
+        as: anonymous
+        request:
+          method: GET
+          path: "${P}/data.json"
+          headers: {Accept: "application/ld+json"}
+        expect:
+          status: 200
+          header_matches: {Content-Type: "^application/json"}
+          body: '{"name":"widget","price":29.99}'
+
+  - id: rw.cn.xml-ignores-jsonld
+    title: An XML document is always served as XML, regardless of Accept
+    area: reading-writing
+    feature: Content negotiation
+    evidence: documented
+    source: "docs reference/composing-pages/XML-Documents §Differences from HTML composition (snapshot 2026-09-28)"
+    confidence: high
+    requires: []
+    live: true
+    site:
+      settings: {default_get: allow}
+      files:
+        - path: "${P}/feed.xml"
+          content_type: application/atom+xml
+          body: |
+            <?xml version="1.0" encoding="UTF-8"?>
+            <feed xmlns="http://www.w3.org/2005/Atom"><title>Feed</title><entry><id>urn:1</id></entry></feed>
+      rules:
+        - {actor: "*", resource: "${P}/*", method: [GET, HEAD], action: Allow}
+    steps:
+      - name: ask for JSON-LD
+        as: anonymous
+        request:
+          method: GET
+          path: "${P}/feed.xml"
+          headers: {Accept: "application/ld+json"}
+        expect:
+          status: 200
+          header_matches: {Content-Type: "^application/atom\\+xml"}
+          body_contains: ["<entry>", "urn:1"]
+
+  - id: rw.cn.jsonld-selector-all-matches
+    title: A selector read with Accept application/ld+json answers every match as a @graph
+    area: reading-writing
+    feature: All-matches reads
+    evidence: documented
+    source: "docs reference/permissions/AuthorizationRule §Selectors that match several elements ('answered with every match ... as a @graph array'); Content-Negotiation ('applies to both full-document and selector requests') (snapshot 2026-09-28)"
+    confidence: medium
+    requires: []
+    live: true
+    notes: "Status 200 vs 206 undocumented (Q-9); pagelike uses 206."
+    site:
+      settings: {default_get: allow}
+      files:
+        - path: "${P}/team.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div class="person" itemscope itemtype="http://schema.org/Person"><span itemprop="name">Alice</span></div>
+              <div class="person" itemscope itemtype="http://schema.org/Person"><span itemprop="name">Bob</span></div>
+              <div itemscope itemtype="http://schema.org/Organization"><span itemprop="name">Acme Corp</span></div>
+            </body></html>
+      rules:
+        - {actor: "*", resource: "${P}/*", method: [GET, HEAD], action: Allow}
+    steps:
+      - name: all people as JSON-LD
+        as: anonymous
+        request:
+          method: GET
+          path: "${P}/team.html"
+          headers: {Range: "selector=.person", Accept: "application/ld+json"}
+        expect:
+          status: [200, 206]
+          header_matches: {Content-Type: "^application/ld\\+json"}
+          body_contains: ["@graph", "Alice", "Bob"]
+          body_not_contains: ["Acme Corp", "Organization"]
+
+  - id: rw.cn.multipart-selector-all-matches
+    title: A selector read with Accept multipart/mixed answers every match as a multipart body
+    area: reading-writing
+    feature: All-matches reads
+    evidence: documented
+    source: "docs reference/permissions/AuthorizationRule §Selectors that match several elements ('A GET that sends Accept: multipart/mixed ... is answered with every match') (snapshot 2026-09-28)"
+    confidence: medium
+    requires: []
+    live: true
+    notes: "Part headers and status unspecified (Q-9); pagelike: 206, per-part Content-Type/Content-Range/ETag, CRLF framing."
+    site:
+      settings: {default_get: allow}
+      files:
+        - path: "${P}/items.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body><ul><li class="item">first</li><li class="item">second</li><li class="item">third</li></ul><p>outside</p></body></html>
+      rules:
+        - {actor: "*", resource: "${P}/*", method: [GET, HEAD], action: Allow}
+    steps:
+      - name: every match
+        as: anonymous
+        request:
+          method: GET
+          path: "${P}/items.html"
+          headers: {Range: "selector=.item", Accept: "multipart/mixed"}
+        expect:
+          status: [200, 206]
+          header_matches: {Content-Type: "^multipart/mixed;\\s*boundary="}
+          body_contains: ['<li class="item">first</li>', '<li class="item">second</li>', '<li class="item">third</li>']
+          body_not_contains: ["outside"]
+
+  - id: rw.cn.jsonld-from-composed-page
+    title: JSON-LD is extracted from the rendered (composed) page
+    area: reading-writing
+    feature: JSON-LD negotiation
+    evidence: documented
+    source: "docs reference/reading-and-writing/Content-Negotiation §JSON-LD serialization ('extracts HTML Microdata from the rendered page'); See also: templating 'runs before negotiation' (snapshot 2026-09-28)"
+    confidence: medium
+    requires: [liquid]
+    live: true
+    site:
+      settings: {default_get: allow}
+      files:
+        - path: "${P}/rendered.html"
+          body: |
+            <!DOCTYPE html>
+            <html xmlns:p="https://pagelove.org/1.0"><body>
+              <div itemscope itemtype="http://schema.org/Person">
+                <span itemprop="name" p:template="text/liquid">{{ "Ali" | append: "ce" }}</span>
+              </div>
+            </body></html>
+      rules:
+        - {actor: "*", resource: "${P}/*", method: [GET, HEAD], action: Allow}
+    steps:
+      - name: JSON-LD of the rendered page
+        as: anonymous
+        request:
+          method: GET
+          path: "${P}/rendered.html"
+          headers: {Accept: "application/ld+json"}
+        expect:
+          status: 200
+          body_contains: ["Alice"]
+          body_not_contains: ["{{", "append"]

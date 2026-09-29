@@ -1,0 +1,37 @@
+{
+  "case": "javascript.jbind.stamp-value",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (PUT the page (public plane; registers inline declarations))",
+      "method": "PUT",
+      "path": "/_pl/javascript-jbind-stamp-value-eb7df1/j.html",
+      "status": 201,
+      "headers": {
+        "content-length": "226",
+        "content-type": "text/html",
+        "etag": "\"4e479c9d4dccc157ee641095f271c7f89106ceb46604f884083ae40bccccc60e\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:43 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml xmlns:j=\"https://pagelove.org/Binding/JavaScript\" xmlns:p=\"https://pagelove.org/1.0\"\u003e\u003cbody\u003e\n\u003cmain\u003e\n\u003cdiv j:greeting=\"'hello from ' + 'JavaScript'\"\u003e\u003cp:stamp greeting\u003e\u003c/p:stamp\u003e\u003c/div\u003e\n\u003c/main\u003e\n\u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 2 (GET the composed page)",
+      "method": "GET",
+      "path": "/_pl/javascript-jbind-stamp-value-eb7df1/j.html",
+      "status": 206,
+      "headers": {
+        "accept-ranges": "selector, bytes",
+        "content-length": "47",
+        "content-range": "selector main",
+        "content-type": "text/html",
+        "etag": "\"0ed66ea3044dec39ce7185480f7654425b69d5e9c152ce7ef440f1fc58391028-0ed66ea3044dec39ce7185480f7654425b69d5e9c152ce7ef440f1fc58391028-1\"",
+        "vary": "Host, Range, Accept"
+      },
+      "body": "\u003cmain\u003e\n\u003cdiv\u003ehello from JavaScript\u003c/div\u003e\n\u003c/main\u003e"
+    }
+  ],
+  "outcome": "pass",
+  "target": "local"
+}

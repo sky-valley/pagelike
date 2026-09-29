@@ -1,0 +1,733 @@
+# Apps: demo-apps (research/upstream/demo-apps@c4dd883), after prepare-deploy.py.
+# Spec: docs/spec/apps.md A8, §7.8 (ACC-DM-*), W-19..W-24.
+# Vocabulary itemtypes are https://pagelike.test${P}/vocab/<Type> (the upstream
+# __PAGELOVE_HOST__ token, made unique per run because uniqueness and schemas
+# are host-wide); rule and shape resources are rewritten under ${P}.
+# Every write is the demo's own writeFragment() request (app.js): Range
+# "selector=…", Content-Type text/html only when there is a body.
+cases:
+  - id: apps.demos.event-rsvp-unique
+    title: "Event demo: RSVP once per member (unique rsvpKey), cancel, promote from the waitlist"
+    area: apps
+    feature: "demo: event"
+    evidence: demo-source
+    source: "demo-apps demo-01-event/index.html@c4dd883:101-176, app.js:44-162, schema/event.html:35-55; docs/LIVE-TESTING.md §3.1"
+    confidence: high
+    requires: []
+    live: true
+    notes: "R-MOD-30, R-MOD-72 (the app shows a friendly message when the 422 body matches /uniqueness/i), R-MOD-65 (closed shapes on #pl-rsvps and #pl-rsvps > li)."
+    site:
+      settings: {default_get: allow}
+      files:
+        - path: "${P}/demo-01-event/schema/event.html"
+          body: |
+            <!DOCTYPE html>
+            <html lang="en">
+            <head><meta charset="UTF-8"><title>Schema — RSVP</title></head>
+            <body>
+            <div itemscope itemtype="https://pagelove.org/Schema">
+              <meta itemprop="type" content="https://pagelike.test${P}/vocab/RSVP">
+              <div itemprop="property" itemscope itemtype="https://pagelove.org/Property">
+                <meta itemprop="name" content="rsvpKey"><meta itemprop="type" content="https://schema.host/Text"><meta itemprop="cardinality" content="1..1"><meta itemprop="unique" content="true">
+              </div>
+              <div itemprop="property" itemscope itemtype="https://pagelove.org/Property">
+                <meta itemprop="name" content="rsvpEventId"><meta itemprop="type" content="https://schema.host/Text"><meta itemprop="cardinality" content="1..1">
+              </div>
+              <div itemprop="property" itemscope itemtype="https://pagelove.org/Property">
+                <meta itemprop="name" content="attendee"><meta itemprop="type" content="https://schema.host/Text"><meta itemprop="cardinality" content="1..1">
+              </div>
+              <div itemprop="property" itemscope itemtype="https://pagelove.org/Property">
+                <meta itemprop="name" content="rsvpStatus"><meta itemprop="type" content="https://schema.host/Text"><meta itemprop="cardinality" content="1..1">
+              </div>
+            </div>
+            </body>
+            </html>
+        - path: "${P}/demo-01-event/index.html"
+          body: |
+            <!DOCTYPE html>
+            <html lang="en">
+            <head><meta charset="UTF-8"><title>Event — Trail Runners Fall Meetup</title></head>
+            <body>
+            <h1>Trail Runners — Fall Meetup</h1>
+            <ul id="pl-rsvps" aria-label="RSVPs" hidden>
+              <li id="rsvp-alice" itemscope itemtype="https://pagelike.test${P}/vocab/RSVP">
+                <meta itemprop="rsvpKey" content="event-fall-meetup:alice">
+                <meta itemprop="rsvpEventId" content="event-fall-meetup">
+                <meta itemprop="attendee" content="alice">
+                <meta itemprop="rsvpStatus" content="waitlist">
+              </li>
+            </ul>
+            <div hidden itemscope itemtype="https://pagelove.org/ShapeConstraint">
+              <meta itemprop="resource" content="${P}/demo-01-event/index.html">
+              <meta itemprop="selector" content="#pl-rsvps">
+              <code itemprop="permit">ul[id="pl-rsvps"][aria-label][hidden]</code>
+              <code itemprop="permit">li[id^="rsvp-"][itemscope][itemtype]</code>
+              <code itemprop="permit">meta[itemprop="rsvpKey"][content]</code>
+              <code itemprop="permit">meta[itemprop="rsvpEventId"][content]</code>
+              <code itemprop="permit">meta[itemprop="attendee"][content]</code>
+              <code itemprop="permit">meta[itemprop="rsvpStatus"][content]</code>
+            </div>
+            <div hidden itemscope itemtype="https://pagelove.org/ShapeConstraint">
+              <meta itemprop="resource" content="${P}/demo-01-event/index.html">
+              <meta itemprop="selector" content="#pl-rsvps > li">
+              <code itemprop="permit">li[id^="rsvp-"][itemscope][itemtype]</code>
+              <code itemprop="permit">meta[itemprop="rsvpKey"][content]</code>
+              <code itemprop="permit">meta[itemprop="rsvpEventId"][content]</code>
+              <code itemprop="permit">meta[itemprop="attendee"][content]</code>
+              <code itemprop="permit">meta[itemprop="rsvpStatus"][content]</code>
+            </div>
+            <div hidden itemscope itemtype="https://pagelove.org/AuthorizationRule">
+              <meta itemprop="actor" content="*">
+              <meta itemprop="resource" content="${P}/demo-01-event/index.html">
+              <meta itemprop="method" content="GET">
+              <meta itemprop="action" content="Allow">
+            </div>
+            <div hidden itemscope itemtype="https://pagelove.org/AuthorizationRule">
+              <meta itemprop="actor" content="*">
+              <meta itemprop="resource" content="${P}/demo-01-event/index.html">
+              <meta itemprop="method" content="POST">
+              <meta itemprop="selector" content="#pl-rsvps">
+              <meta itemprop="action" content="Allow">
+            </div>
+            <div hidden itemscope itemtype="https://pagelove.org/AuthorizationRule">
+              <meta itemprop="actor" content="*">
+              <meta itemprop="resource" content="${P}/demo-01-event/index.html">
+              <meta itemprop="method" content="DELETE">
+              <meta itemprop="selector" content="[id^='rsvp-']">
+              <meta itemprop="action" content="Allow">
+            </div>
+            <div hidden itemscope itemtype="https://pagelove.org/AuthorizationRule">
+              <meta itemprop="actor" content="*">
+              <meta itemprop="resource" content="${P}/demo-01-event/index.html">
+              <meta itemprop="method" content="PUT">
+              <meta itemprop="selector" content="[id^='rsvp-'] meta[itemprop='rsvpStatus']">
+              <meta itemprop="action" content="Allow">
+            </div>
+            </body>
+            </html>
+    steps:
+      - name: Elena RSVPs
+        as: anonymous
+        request:
+          method: POST
+          path: "${P}/demo-01-event/index.html"
+          headers: {Content-Type: "text/html", Range: "selector=#pl-rsvps"}
+          body: &elena |
+            <li id="rsvp-elena" itemscope itemtype="https://pagelike.test${P}/vocab/RSVP">
+              <meta itemprop="rsvpKey" content="event-fall-meetup:elena">
+              <meta itemprop="rsvpEventId" content="event-fall-meetup">
+              <meta itemprop="attendee" content="elena">
+              <meta itemprop="rsvpStatus" content="going">
+            </li>
+        expect: {status: [200, 201, 206]}
+      - name: the same member again (from another browser) is a uniqueness violation
+        as: anonymous
+        request:
+          method: POST
+          path: "${P}/demo-01-event/index.html"
+          headers: {Content-Type: "text/html", Range: "selector=#pl-rsvps"}
+          body: *elena
+        expect: {status: 422, body_matches: '(?i)uniqueness'}
+      - name: an RSVP with an attribute outside the shape is refused
+        as: anonymous
+        request:
+          method: POST
+          path: "${P}/demo-01-event/index.html"
+          headers: {Content-Type: "text/html", Range: "selector=#pl-rsvps"}
+          body: '<li id="rsvp-farid" class="x" itemscope itemtype="https://pagelike.test${P}/vocab/RSVP"><meta itemprop="rsvpKey" content="event-fall-meetup:farid"><meta itemprop="rsvpEventId" content="event-fall-meetup"><meta itemprop="attendee" content="farid"><meta itemprop="rsvpStatus" content="going"></li>'
+        expect: {status: 422}
+      - name: Elena cancels
+        as: anonymous
+        request:
+          method: DELETE
+          path: "${P}/demo-01-event/index.html"
+          headers: {Range: "selector=#rsvp-elena"}
+        expect: {status: [200, 204]}
+      - name: "waitlist promotion: PUT of the status meta by compound selector"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/demo-01-event/index.html"
+          headers: {Content-Type: "text/html", Range: "selector=#rsvp-alice meta[itemprop='rsvpStatus']"}
+          body: '<meta itemprop="rsvpStatus" content="going">'
+        expect: {status: [200, 204, 206]}
+      - name: Elena can RSVP again once her RSVP is gone
+        as: anonymous
+        request:
+          method: POST
+          path: "${P}/demo-01-event/index.html"
+          headers: {Content-Type: "text/html", Range: "selector=#pl-rsvps"}
+          body: *elena
+        expect: {status: [200, 201, 206]}
+      - name: final list
+        as: anonymous
+        request:
+          method: GET
+          path: "${P}/demo-01-event/index.html"
+          headers: {Range: "selector=#pl-rsvps"}
+        expect:
+          status: 206
+          body_contains: ['id="rsvp-elena"', 'id="rsvp-alice"', 'content="going"']
+          body_not_contains: ["rsvp-farid", "waitlist"]
+
+  - id: apps.demos.show-and-tell-composed-shapes
+    title: "Show and tell: comments pass the inner .comments shape inside the closed #pl-grid shape; reactions are unique"
+    area: apps
+    feature: "demo: show and tell"
+    evidence: demo-source
+    source: "demo-apps demo-02-show-and-tell/index.html@c4dd883:56-75, 177, 190-300; app.js:92-190; schema/reaction.html"
+    confidence: high
+    requires: []
+    live: true
+    notes: "R-MOD-67 (composed closed shapes: the comments list is owned by the .comments shape), R-MOD-30/72 (reactionKey unique)."
+    site:
+      settings: {default_get: allow}
+      files:
+        - path: "${P}/demo-02-show-and-tell/schema/reaction.html"
+          body: |
+            <!DOCTYPE html>
+            <html lang="en"><head><meta charset="UTF-8"><title>Schema — Reaction</title></head>
+            <body>
+            <div itemscope itemtype="https://pagelove.org/Schema">
+              <meta itemprop="type" content="https://pagelike.test${P}/vocab/ShowReaction">
+              <meta itemprop="name" content="Reaction">
+              <div itemprop="property" itemscope itemtype="https://pagelove.org/Property">
+                <meta itemprop="name" content="reactionKey">
+                <meta itemprop="type" content="https://schema.host/Text">
+                <meta itemprop="cardinality" content="1..1">
+                <meta itemprop="unique" content="true">
+              </div>
+            </div>
+            </body></html>
+        - path: "${P}/demo-02-show-and-tell/index.html"
+          body: |
+            <!DOCTYPE html>
+            <html lang="en">
+            <head><meta charset="UTF-8"><title>Show and tell</title></head>
+            <body>
+            <h1>Show and tell</h1>
+            <ul class="grid" id="pl-grid" aria-label="Submissions">
+            <li class="card" id="submission-birdhouse" data-author="alice" itemscope itemtype="https://pagelike.test${P}/vocab/ShowSubmission">
+              <div class="card-thumb" aria-hidden="true">🏠</div>
+              <div class="card-body">
+                <h2 class="card-title" itemprop="title">Cedar birdhouse</h2>
+                <p class="card-desc" itemprop="description">Built with hand tools.</p>
+                <ul class="tags"><li class="tag" itemprop="tags">woodworking</li></ul>
+                <p class="card-meta">by <strong itemprop="author">Alice</strong> · <time itemprop="createdAt" datetime="2026-08-18T10:00:00Z">Aug 18</time></p>
+                <div class="card-foot">
+                  <span class="reaction-count" data-count-for="submission-birdhouse">0</span>
+                  <button type="button" class="btn-react" data-react-for="submission-birdhouse">React</button>
+                  <button type="button" class="btn-ghost" data-comment-toggle="comments-submission-birdhouse">Comment</button>
+                </div>
+                <ul class="comments" id="comments-submission-birdhouse" aria-label="Comments" data-submission="submission-birdhouse"></ul>
+              </div>
+            </li>
+            </ul>
+            <ul id="pl-reactions" aria-label="Reactions" hidden></ul>
+            <div hidden itemscope itemtype="https://pagelove.org/ShapeConstraint">
+              <meta itemprop="resource" content="${P}/demo-02-show-and-tell/index.html">
+              <meta itemprop="selector" content="#pl-grid">
+              <code itemprop="permit">ul[class="grid"][id="pl-grid"][aria-label]</code>
+              <code itemprop="permit">li[class="card"][id^="submission-"][data-author][itemscope][itemtype]</code>
+              <code itemprop="permit">div[class="card-thumb"][aria-hidden]</code>
+              <code itemprop="permit">div[class="card-body"]</code>
+              <code itemprop="permit">h2[class="card-title"][itemprop="title"]</code>
+              <code itemprop="permit">p[class="card-desc"][itemprop="description"]</code>
+              <code itemprop="permit">ul[class="tags"]</code>
+              <code itemprop="permit">li[class="tag"][itemprop="tags"]</code>
+              <code itemprop="permit">p[class="card-meta"]</code>
+              <code itemprop="permit">strong[itemprop="author"]</code>
+              <code itemprop="permit">time[itemprop="createdAt"][datetime]</code>
+              <code itemprop="permit">div[class="card-foot"]</code>
+              <code itemprop="permit">span[class="reaction-count"][data-count-for]</code>
+              <code itemprop="permit">button[class="btn-react"][type="button"][data-react-for]</code>
+              <code itemprop="permit">button[class="btn-ghost"][type="button"][data-comment-toggle]</code>
+              <code itemprop="permit">ul[class="comments"][id^="comments-"][aria-label][data-submission]</code>
+            </div>
+            <div hidden itemscope itemtype="https://pagelove.org/ShapeConstraint">
+              <meta itemprop="resource" content="${P}/demo-02-show-and-tell/index.html">
+              <meta itemprop="selector" content=".comments">
+              <code itemprop="permit">ul[class="comments"][id^="comments-"][aria-label][data-submission]</code>
+              <code itemprop="permit">li[class="comment"][id^="comment-"][data-author][itemscope][itemtype]</code>
+              <code itemprop="permit">meta[itemprop="submissionId"][content]</code>
+              <code itemprop="permit">p[class="comment-meta"]</code>
+              <code itemprop="permit">strong[itemprop="author"]</code>
+              <code itemprop="permit">time[itemprop="createdAt"][datetime]</code>
+              <code itemprop="permit">p[class="comment-body"][itemprop="body"]</code>
+            </div>
+            <div hidden itemscope itemtype="https://pagelove.org/ShapeConstraint">
+              <meta itemprop="resource" content="${P}/demo-02-show-and-tell/index.html">
+              <meta itemprop="selector" content="#pl-reactions">
+              <code itemprop="permit">ul[id="pl-reactions"][aria-label][hidden]</code>
+              <code itemprop="permit">li[id^="reaction-"][data-submission][itemscope][itemtype]</code>
+              <code itemprop="permit">meta[itemprop="reactionKey"][content]</code>
+              <code itemprop="permit">meta[itemprop="submissionId"][content]</code>
+              <code itemprop="permit">meta[itemprop="voter"][content]</code>
+            </div>
+            <div hidden itemscope itemtype="https://pagelove.org/AuthorizationRule">
+              <meta itemprop="actor" content="*">
+              <meta itemprop="resource" content="${P}/demo-02-show-and-tell/index.html">
+              <meta itemprop="method" content="POST">
+              <meta itemprop="selector" content="#pl-grid">
+              <meta itemprop="action" content="Allow">
+            </div>
+            <div hidden itemscope itemtype="https://pagelove.org/AuthorizationRule">
+              <meta itemprop="actor" content="*">
+              <meta itemprop="resource" content="${P}/demo-02-show-and-tell/index.html">
+              <meta itemprop="method" content="POST">
+              <meta itemprop="selector" content=".comments">
+              <meta itemprop="action" content="Allow">
+            </div>
+            <div hidden itemscope itemtype="https://pagelove.org/AuthorizationRule">
+              <meta itemprop="actor" content="*">
+              <meta itemprop="resource" content="${P}/demo-02-show-and-tell/index.html">
+              <meta itemprop="method" content="POST">
+              <meta itemprop="selector" content="#pl-reactions">
+              <meta itemprop="action" content="Allow">
+            </div>
+            </body>
+            </html>
+    steps:
+      - name: comment on the birdhouse
+        as: anonymous
+        request:
+          method: POST
+          path: "${P}/demo-02-show-and-tell/index.html"
+          headers: {Content-Type: "text/html", Range: "selector=#comments-submission-birdhouse"}
+          body: |
+            <li class="comment" id="comment-mf1a2b" data-author="ben" itemscope itemtype="https://pagelike.test${P}/vocab/ShowComment">
+              <meta itemprop="submissionId" content="submission-birdhouse">
+              <p class="comment-meta"><strong itemprop="author">Ben</strong> <time itemprop="createdAt" datetime="2026-09-28T10:00:00.000Z"></time></p>
+              <p class="comment-body" itemprop="body">The angled roof is the best part.</p>
+            </li>
+        expect: {status: [200, 201, 206]}
+      - name: a comment carrying an image is refused
+        as: anonymous
+        request:
+          method: POST
+          path: "${P}/demo-02-show-and-tell/index.html"
+          headers: {Content-Type: "text/html", Range: "selector=#comments-submission-birdhouse"}
+          body: '<li class="comment" id="comment-bad" data-author="ben" itemscope itemtype="https://pagelike.test${P}/vocab/ShowComment"><meta itemprop="submissionId" content="submission-birdhouse"><p class="comment-body" itemprop="body">hi<img src="x"></p></li>'
+        expect: {status: 422}
+      - name: publish a project
+        as: anonymous
+        request:
+          method: POST
+          path: "${P}/demo-02-show-and-tell/index.html"
+          headers: {Content-Type: "text/html", Range: "selector=#pl-grid"}
+          body: |
+            <li class="card" id="submission-kite" data-author="carla" itemscope itemtype="https://pagelike.test${P}/vocab/ShowSubmission">
+              <div class="card-thumb" aria-hidden="true">🪁</div>
+              <div class="card-body">
+                <h2 class="card-title" itemprop="title">Kite</h2>
+                <p class="card-desc" itemprop="description">Paper and sticks.</p>
+                <ul class="tags"></ul>
+                <p class="card-meta">by <strong itemprop="author">Carla</strong> <time itemprop="createdAt" datetime="2026-09-28T10:00:00.000Z"></time></p>
+                <div class="card-foot">
+                  <span class="reaction-count" data-count-for="submission-kite">0</span>
+                  <button type="button" class="btn-react" data-react-for="submission-kite">React</button>
+                  <button type="button" class="btn-ghost" data-comment-toggle="comments-submission-kite">Comment</button>
+                </div>
+                <ul class="comments" id="comments-submission-kite" aria-label="Comments" data-submission="submission-kite"></ul>
+              </div>
+            </li>
+        expect: {status: [200, 201, 206]}
+      - name: react once
+        as: anonymous
+        request:
+          method: POST
+          path: "${P}/demo-02-show-and-tell/index.html"
+          headers: {Content-Type: "text/html", Range: "selector=#pl-reactions"}
+          body: '<li id="reaction-a1" data-submission="submission-kite" itemscope itemtype="https://pagelike.test${P}/vocab/ShowReaction"><meta itemprop="reactionKey" content="submission-kite:dmitri"><meta itemprop="submissionId" content="submission-kite"><meta itemprop="voter" content="dmitri"></li>'
+        expect: {status: [200, 201, 206]}
+      - name: the same voter reacting again is a uniqueness violation
+        as: anonymous
+        request:
+          method: POST
+          path: "${P}/demo-02-show-and-tell/index.html"
+          headers: {Content-Type: "text/html", Range: "selector=#pl-reactions"}
+          body: '<li id="reaction-a2" data-submission="submission-kite" itemscope itemtype="https://pagelike.test${P}/vocab/ShowReaction"><meta itemprop="reactionKey" content="submission-kite:dmitri"><meta itemprop="submissionId" content="submission-kite"><meta itemprop="voter" content="dmitri"></li>'
+        expect: {status: 422, body_matches: '(?i)uniqueness'}
+
+  - id: apps.demos.exchange-claim-and-transitions
+    title: "Resource exchange: the unique Claim stops a second claimant; transitions stop illegal status changes"
+    area: apps
+    feature: "demo: resource exchange"
+    evidence: demo-source
+    source: "demo-apps demo-03-resource-exchange/schema/listing.html@c4dd883:5-91, index.html:60-225, app.js:91-137, 165-185; docs recipes/declaring-a-state-machine (snapshot 2026-09-28)"
+    confidence: medium
+    requires: []
+    live: true
+    notes: "Transitions per the reacting area (TransitionConstraint strictness, entry rule); @key via <meta itemprop=\"@key\" content=\"true\"> on a unique property (R-MOD-33) pairs items in a multi-listing document. W-22: a same-value write (claimed→claimed) is not a transition and passes; the unique Claim is the real guard."
+    site:
+      settings: {default_get: allow}
+      files:
+        - path: "${P}/demo-03-resource-exchange/schema/listing.html"
+          body: |
+            <!DOCTYPE html>
+            <html lang="en"><head><meta charset="UTF-8"><title>Schema — Listing</title></head>
+            <body>
+            <div itemscope itemtype="https://pagelove.org/Schema">
+              <meta itemprop="type" content="https://pagelike.test${P}/vocab/Listing">
+              <div itemprop="property" itemscope itemtype="https://pagelove.org/Property">
+                <meta itemprop="name" content="listingId"><meta itemprop="type" content="https://schema.host/Text"><meta itemprop="cardinality" content="1..1"><meta itemprop="unique" content="true"><meta itemprop="@key" content="true">
+              </div>
+              <div itemprop="property" itemscope itemtype="https://pagelove.org/Property">
+                <meta itemprop="name" content="status"><meta itemprop="type" content="https://schema.host/Text"><meta itemprop="cardinality" content="1..1">
+              </div>
+            </div>
+            <div hidden itemscope itemtype="https://pagelove.org/TransitionConstraint">
+              <meta itemprop="selector" content="[itemtype='https://pagelike.test${P}/vocab/Listing']">
+              <meta itemprop="property" content="status">
+              <meta itemprop="to" content="open">
+            </div>
+            <div hidden itemscope itemtype="https://pagelove.org/TransitionConstraint">
+              <meta itemprop="selector" content="[itemtype='https://pagelike.test${P}/vocab/Listing']">
+              <meta itemprop="property" content="status">
+              <meta itemprop="from" content="open">
+              <meta itemprop="to" content="claimed">
+            </div>
+            <div hidden itemscope itemtype="https://pagelove.org/TransitionConstraint">
+              <meta itemprop="selector" content="[itemtype='https://pagelike.test${P}/vocab/Listing']">
+              <meta itemprop="property" content="status">
+              <meta itemprop="from" content="claimed">
+              <meta itemprop="to" content="completed">
+            </div>
+            <div hidden itemscope itemtype="https://pagelove.org/TransitionConstraint">
+              <meta itemprop="selector" content="[itemtype='https://pagelike.test${P}/vocab/Listing']">
+              <meta itemprop="property" content="status">
+              <meta itemprop="from" content="claimed">
+              <meta itemprop="to" content="open">
+            </div>
+            <div itemscope itemtype="https://pagelove.org/Schema">
+              <meta itemprop="type" content="https://pagelike.test${P}/vocab/Claim">
+              <div itemprop="property" itemscope itemtype="https://pagelove.org/Property">
+                <meta itemprop="name" content="listingId"><meta itemprop="type" content="https://schema.host/Text"><meta itemprop="cardinality" content="1..1"><meta itemprop="unique" content="true">
+              </div>
+            </div>
+            </body></html>
+        - path: "${P}/demo-03-resource-exchange/index.html"
+          body: |
+            <!DOCTYPE html>
+            <html lang="en"><head><meta charset="UTF-8"><title>Resource exchange</title></head>
+            <body>
+            <h1>Resource exchange</h1>
+            <ul class="listing-grid" id="pl-listings" aria-label="Listings">
+            <li class="listing" id="listing-ladder" data-author="alice" data-type="have" itemscope itemtype="https://pagelike.test${P}/vocab/Listing">
+              <meta itemprop="listingId" content="listing-ladder">
+              <span class="listing-type" data-type="have" itemprop="listingType">Have</span>
+              <h2 class="listing-title" itemprop="title">8ft step ladder</h2>
+              <p class="listing-desc" itemprop="description">Pickup only.</p>
+              <p class="listing-meta">by <strong itemprop="author">Alice</strong> · <span class="status-tag" id="status-listing-ladder" data-status="open" itemprop="status">open</span></p>
+              <div class="listing-actions" data-listing="listing-ladder"></div>
+            </li>
+            <li class="listing" id="listing-drill" data-author="ben" data-type="need" itemscope itemtype="https://pagelike.test${P}/vocab/Listing">
+              <meta itemprop="listingId" content="listing-drill">
+              <span class="listing-type" data-type="need" itemprop="listingType">Need</span>
+              <h2 class="listing-title" itemprop="title">Hammer drill</h2>
+              <p class="listing-desc" itemprop="description">One afternoon.</p>
+              <p class="listing-meta">by <strong itemprop="author">Ben</strong> · <span class="status-tag" id="status-listing-drill" data-status="open" itemprop="status">open</span></p>
+              <div class="listing-actions" data-listing="listing-drill"></div>
+            </li>
+            </ul>
+            <ul id="pl-claims" aria-label="Claims" hidden></ul>
+            <div hidden itemscope itemtype="https://pagelove.org/ShapeConstraint">
+              <meta itemprop="resource" content="${P}/demo-03-resource-exchange/index.html">
+              <meta itemprop="selector" content="#pl-listings">
+              <code itemprop="permit">ul[class="listing-grid"][id="pl-listings"][aria-label]</code>
+              <code itemprop="permit">li[class="listing"][id^="listing-"][data-author][data-type][itemscope][itemtype]</code>
+              <code itemprop="permit">meta[itemprop="listingId"][content]</code>
+              <code itemprop="permit">span[class="listing-type"][data-type][itemprop="listingType"]</code>
+              <code itemprop="permit">h2[class="listing-title"][itemprop="title"]</code>
+              <code itemprop="permit">p[class="listing-desc"][itemprop="description"]</code>
+              <code itemprop="permit">p[class="listing-meta"]</code>
+              <code itemprop="permit">strong[itemprop="author"]</code>
+              <code itemprop="permit">span[class="status-tag"][id^="status-"][data-status][itemprop="status"]</code>
+              <code itemprop="permit">div[class="listing-actions"][data-listing]</code>
+            </div>
+            <div hidden itemscope itemtype="https://pagelove.org/ShapeConstraint">
+              <meta itemprop="resource" content="${P}/demo-03-resource-exchange/index.html">
+              <meta itemprop="selector" content="#pl-claims">
+              <code itemprop="permit">ul[id="pl-claims"][aria-label][hidden]</code>
+              <code itemprop="permit">li[class="claim"][id^="claim-"][itemscope][itemtype]</code>
+              <code itemprop="permit">meta[itemprop="listingId"][content]</code>
+              <code itemprop="permit">meta[itemprop="claimant"][content]</code>
+              <code itemprop="permit">meta[itemprop="claimedAt"][content]</code>
+            </div>
+            <div hidden itemscope itemtype="https://pagelove.org/AuthorizationRule">
+              <meta itemprop="actor" content="*">
+              <meta itemprop="resource" content="${P}/demo-03-resource-exchange/index.html">
+              <meta itemprop="method" content="POST">
+              <meta itemprop="selector" content="#pl-listings">
+              <meta itemprop="action" content="Allow">
+            </div>
+            <div hidden itemscope itemtype="https://pagelove.org/AuthorizationRule">
+              <meta itemprop="actor" content="*">
+              <meta itemprop="resource" content="${P}/demo-03-resource-exchange/index.html">
+              <meta itemprop="method" content="PUT">
+              <meta itemprop="selector" content=".status-tag">
+              <meta itemprop="action" content="Allow">
+            </div>
+            <div hidden itemscope itemtype="https://pagelove.org/AuthorizationRule">
+              <meta itemprop="actor" content="*">
+              <meta itemprop="resource" content="${P}/demo-03-resource-exchange/index.html">
+              <meta itemprop="method" content="POST">
+              <meta itemprop="selector" content="#pl-claims">
+              <meta itemprop="action" content="Allow">
+            </div>
+            <div hidden itemscope itemtype="https://pagelove.org/AuthorizationRule">
+              <meta itemprop="actor" content="*">
+              <meta itemprop="resource" content="${P}/demo-03-resource-exchange/index.html">
+              <meta itemprop="method" content="DELETE">
+              <meta itemprop="selector" content=".claim">
+              <meta itemprop="action" content="Allow">
+            </div>
+            </body></html>
+    steps:
+      - name: alice claims the ladder (Claim record)
+        as: anonymous
+        request:
+          method: POST
+          path: "${P}/demo-03-resource-exchange/index.html"
+          headers: {Content-Type: "text/html", Range: "selector=#pl-claims"}
+          body: '<li class="claim" id="claim-listing-ladder" itemscope itemtype="https://pagelike.test${P}/vocab/Claim"><meta itemprop="listingId" content="listing-ladder"><meta itemprop="claimant" content="alice"><meta itemprop="claimedAt" content="2026-09-28T10:00:00.000Z"></li>'
+        expect: {status: [200, 201, 206]}
+      - name: "open → claimed"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/demo-03-resource-exchange/index.html"
+          headers: {Content-Type: "text/html", Range: "selector=#status-listing-ladder"}
+          body: '<span class="status-tag" id="status-listing-ladder" data-status="claimed" itemprop="status">claimed</span>'
+        expect: {status: [200, 204, 206]}
+      - name: "ben also sets claimed: same value, not a transition, so it passes (W-22)"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/demo-03-resource-exchange/index.html"
+          headers: {Content-Type: "text/html", Range: "selector=#status-listing-ladder"}
+          body: '<span class="status-tag" id="status-listing-ladder" data-status="claimed" itemprop="status">claimed</span>'
+        expect: {status: [200, 204, 206]}
+      - name: but ben's Claim record collides on listingId
+        as: anonymous
+        request:
+          method: POST
+          path: "${P}/demo-03-resource-exchange/index.html"
+          headers: {Content-Type: "text/html", Range: "selector=#pl-claims"}
+          body: '<li class="claim" id="claim-listing-ladder-b" itemscope itemtype="https://pagelike.test${P}/vocab/Claim"><meta itemprop="listingId" content="listing-ladder"><meta itemprop="claimant" content="ben"><meta itemprop="claimedAt" content="2026-09-28T10:00:01.000Z"></li>'
+        expect: {status: 422, body_matches: '(?i)uniqueness'}
+      - name: "claimed → completed"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/demo-03-resource-exchange/index.html"
+          headers: {Content-Type: "text/html", Range: "selector=#status-listing-ladder"}
+          body: '<span class="status-tag" id="status-listing-ladder" data-status="completed" itemprop="status">completed</span>'
+        expect: {status: [200, 204, 206]}
+      - name: "completed → claimed is not declared"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/demo-03-resource-exchange/index.html"
+          headers: {Content-Type: "text/html", Range: "selector=#status-listing-ladder"}
+          body: '<span class="status-tag" id="status-listing-ladder" data-status="claimed" itemprop="status">claimed</span>'
+        expect: {status: 422}
+      - name: "open → completed on the drill skips a step"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/demo-03-resource-exchange/index.html"
+          headers: {Content-Type: "text/html", Range: "selector=#status-listing-drill"}
+          body: '<span class="status-tag" id="status-listing-drill" data-status="completed" itemprop="status">completed</span>'
+        expect: {status: 422}
+      - name: a new listing enters at open (entry rule)
+        as: anonymous
+        request:
+          method: POST
+          path: "${P}/demo-03-resource-exchange/index.html"
+          headers: {Content-Type: "text/html", Range: "selector=#pl-listings"}
+          body: '<li class="listing" id="listing-tent" data-author="elena" data-type="have" itemscope itemtype="https://pagelike.test${P}/vocab/Listing"><meta itemprop="listingId" content="listing-tent"><span class="listing-type" data-type="have" itemprop="listingType">Have</span><h2 class="listing-title" itemprop="title">Tent</h2><p class="listing-desc" itemprop="description">Two person.</p><p class="listing-meta">by <strong itemprop="author">Elena</strong> · <span class="status-tag" id="status-listing-tent" data-status="open" itemprop="status">open</span></p><div class="listing-actions" data-listing="listing-tent"></div></li>'
+        expect: {status: [200, 201, 206]}
+      - name: a new listing cannot enter already claimed
+        as: anonymous
+        request:
+          method: POST
+          path: "${P}/demo-03-resource-exchange/index.html"
+          headers: {Content-Type: "text/html", Range: "selector=#pl-listings"}
+          body: '<li class="listing" id="listing-bike" data-author="elena" data-type="have" itemscope itemtype="https://pagelike.test${P}/vocab/Listing"><meta itemprop="listingId" content="listing-bike"><span class="listing-type" data-type="have" itemprop="listingType">Have</span><h2 class="listing-title" itemprop="title">Bike</h2><p class="listing-desc" itemprop="description">Road bike.</p><p class="listing-meta">by <strong itemprop="author">Elena</strong> · <span class="status-tag" id="status-listing-bike" data-status="claimed" itemprop="status">claimed</span></p><div class="listing-actions" data-listing="listing-bike"></div></li>'
+        expect: {status: 422}
+
+  - id: apps.demos.accountability-feed-gate
+    title: "Accountability: the members-only feed is 401 to anonymous readers, who may still post one check-in a day"
+    area: apps
+    feature: "demo: accountability"
+    evidence: demo-source
+    source: "demo-apps demo-04-accountability/feed.html@c4dd883:13-97, app.js:50-101, schema/checkin.html; scripts/check-live.py:59-61; README.md:45-66"
+    confidence: high
+    requires: []
+    live: true
+    notes: "R-PERM-40 (Deny * vs Allow users: different tiers), R-PERM-54, R-MOD-30/72 (checkInKey unique). The signed-in half is apps.demos.accountability-feed-member."
+    site:
+      settings: {default_get: allow}
+      files:
+        - path: "${P}/demo-04-accountability/schema/checkin.html"
+          body: &checkinschema |
+            <!DOCTYPE html>
+            <html lang="en"><head><meta charset="UTF-8"><title>Schema — CheckIn</title></head>
+            <body>
+            <div itemscope itemtype="https://pagelove.org/Schema">
+              <meta itemprop="type" content="https://pagelike.test${P}/vocab/CheckIn">
+              <div itemprop="property" itemscope itemtype="https://pagelove.org/Property">
+                <meta itemprop="name" content="checkInKey">
+                <meta itemprop="type" content="https://schema.host/Text">
+                <meta itemprop="cardinality" content="1..1">
+                <meta itemprop="unique" content="true">
+              </div>
+            </div>
+            </body></html>
+        - path: "${P}/demo-04-accountability/feed.html"
+          body: &feed |
+            <!DOCTYPE html>
+            <html lang="en">
+            <head><meta charset="UTF-8"><title>Feed — 100 Days of Practice (members only)</title></head>
+            <body>
+            <ul id="pl-checkins" aria-label="Check-ins">
+            <li class="checkin" id="checkin-alice-2026-08-20" data-author="alice" itemscope itemtype="https://pagelike.test${P}/vocab/CheckIn">
+              <meta itemprop="checkInKey" content="2026-08-20:alice">
+              <meta itemprop="author" content="alice">
+              <meta itemprop="date" content="2026-08-20">
+              <meta itemprop="goalProgress" content="on-track">
+              <meta itemprop="note" content="Full session in, felt good today.">
+              <meta itemprop="createdAt" content="2026-08-20T19:00:00Z">
+            </li>
+            </ul>
+            <div hidden itemscope itemtype="https://pagelove.org/ShapeConstraint">
+              <meta itemprop="resource" content="${P}/demo-04-accountability/feed.html">
+              <meta itemprop="selector" content="#pl-checkins > li">
+              <code itemprop="permit">li[class="checkin"][id^="checkin-"][data-author][itemscope][itemtype]</code>
+              <code itemprop="permit">meta[itemprop="checkInKey"][content]</code>
+              <code itemprop="permit">meta[itemprop="author"][content]</code>
+              <code itemprop="permit">meta[itemprop="date"][content]</code>
+              <code itemprop="permit">meta[itemprop="goalProgress"][content]</code>
+              <code itemprop="permit">meta[itemprop="note"][content]</code>
+              <code itemprop="permit">meta[itemprop="createdAt"][content]</code>
+            </div>
+            <div hidden itemscope itemtype="https://pagelove.org/AuthorizationRule">
+              <meta itemprop="actor" content="*">
+              <meta itemprop="resource" content="${P}/demo-04-accountability/feed.html">
+              <meta itemprop="method" content="GET">
+              <meta itemprop="action" content="Deny">
+            </div>
+            <div hidden itemscope itemtype="https://pagelove.org/AuthorizationRule">
+              <meta itemprop="actor" content="users">
+              <meta itemprop="resource" content="${P}/demo-04-accountability/feed.html">
+              <meta itemprop="method" content="GET">
+              <meta itemprop="action" content="Allow">
+            </div>
+            <div hidden itemscope itemtype="https://pagelove.org/AuthorizationRule">
+              <meta itemprop="actor" content="*">
+              <meta itemprop="resource" content="${P}/demo-04-accountability/feed.html">
+              <meta itemprop="method" content="POST">
+              <meta itemprop="selector" content="#pl-checkins">
+              <meta itemprop="action" content="Allow">
+            </div>
+            </body>
+            </html>
+    steps:
+      - name: "the gate probe: anonymous GET is a real 401"
+        as: anonymous
+        request: {method: GET, path: "${P}/demo-04-accountability/feed.html"}
+        expect: {status: 401, body_not_contains: ["Full session in"]}
+      - name: HEAD too
+        as: anonymous
+        request: {method: HEAD, path: "${P}/demo-04-accountability/feed.html"}
+        expect: {status: 401}
+      - name: an anonymous check-in is accepted
+        as: anonymous
+        request:
+          method: POST
+          path: "${P}/demo-04-accountability/feed.html"
+          headers: {Content-Type: "text/html", Range: "selector=#pl-checkins"}
+          body: &bencheckin |
+            <li class="checkin" id="checkin-ben-2026-09-28" data-author="ben" itemscope itemtype="https://pagelike.test${P}/vocab/CheckIn">
+              <meta itemprop="checkInKey" content="2026-09-28:ben">
+              <meta itemprop="author" content="ben">
+              <meta itemprop="date" content="2026-09-28">
+              <meta itemprop="goalProgress" content="on-track">
+              <meta itemprop="note" content="">
+              <meta itemprop="createdAt" content="2026-09-28T10:00:00.000Z">
+            </li>
+        expect: {status: [200, 201, 206]}
+      - name: a second check-in by the same member on the same day is refused
+        as: anonymous
+        request:
+          method: POST
+          path: "${P}/demo-04-accountability/feed.html"
+          headers: {Content-Type: "text/html", Range: "selector=#pl-checkins"}
+          body: *bencheckin
+        expect: {status: 422, body_matches: '(?i)uniqueness'}
+
+  - id: apps.demos.accountability-feed-member
+    title: "Any signed-in account reads the accountability feed"
+    area: apps
+    feature: "demo: accountability"
+    evidence: demo-source
+    source: "demo-apps demo-04-accountability/feed.html@c4dd883:13-24, 79-90; README.md:45-66 ('any account signed in to this host'); docs/LIVE-TESTING.md §3.4"
+    confidence: high
+    requires: [multi-actor]
+    live: false
+    notes: "R-PERM-15, R-PERM-40 (the users Allow outranks the * Deny)."
+    actors:
+      alice: {sub: alice, email: alice@example.com, email_verified: true, name: Alice}
+    site:
+      settings: {default_get: allow}
+      files:
+        - {path: "${P}/demo-04-accountability/schema/checkin.html", body: *checkinschema}
+        - {path: "${P}/demo-04-accountability/feed.html", body: *feed}
+    steps:
+      - name: signed-in read
+        as: alice
+        request: {method: GET, path: "${P}/demo-04-accountability/feed.html"}
+        expect: {status: 200, body_contains: ["Full session in"]}
+
+  - id: apps.demos.directory-index
+    title: "Demo routes are directory URLs served from index.html; the slash-less form redirects"
+    area: apps
+    feature: "demo apps: routing"
+    evidence: demo-source
+    source: "demo-apps scripts/check-live.py@c4dd883:12-21, 52-55; tests/demo-pages.spec.js:8-15; README.md:87-89"
+    confidence: high
+    requires: []
+    live: true
+    notes: "R-RW-3, R-RW-4, R-PERM-19 (the rule names index.html; the request uses the directory form), R-APPS-2."
+    site:
+      settings: {default_get: allow}
+      files:
+        - path: "${P}/demo-01-event/index.html"
+          body: |
+            <!DOCTYPE html>
+            <html lang="en"><head><meta charset="UTF-8"><title>Event — Trail Runners Fall Meetup</title></head>
+            <body><h1>Trail Runners — Fall Meetup</h1>
+            <div hidden itemscope itemtype="https://pagelove.org/AuthorizationRule">
+              <meta itemprop="actor" content="*">
+              <meta itemprop="resource" content="${P}/demo-01-event/index.html">
+              <meta itemprop="method" content="GET">
+              <meta itemprop="action" content="Allow">
+            </div>
+            </body></html>
+        - path: "${P}/demo-01-event/app.js"
+          content_type: text/javascript
+          body: '(() => { "use strict"; })();'
+    steps:
+      - name: directory URL
+        as: anonymous
+        request: {method: GET, path: "${P}/demo-01-event/"}
+        expect: {status: 200, body_contains: ["Trail Runners"]}
+      - name: slash-less URL redirects to the directory
+        as: anonymous
+        request: {method: GET, path: "${P}/demo-01-event"}
+        expect: {status: 301, header_matches: {Location: '^${P}/demo-01-event/$'}}
+      - name: a script asset without any rule is served as JavaScript (default-GET allow)
+        as: anonymous
+        request: {method: GET, path: "${P}/demo-01-event/app.js?v=11"}
+        expect: {status: 200, header_matches: {Content-Type: '^(text|application)/javascript'}}

@@ -1,0 +1,33 @@
+{
+  "case": "protocol.move-authz.move-rule-alone-insufficient",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (denied)",
+      "method": "MOVE",
+      "path": "/_pl/protocol-move-authz-move-rule-alone-insu-84e67c/board.html",
+      "status": 401,
+      "headers": {
+        "content-length": "430",
+        "content-type": "text/html; charset=utf-8"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\n\u003chead\u003e\n    \u003cmeta charset=\"UTF-8\"\u003e\n    \u003ctitle\u003e401 Unauthorized\u003c/title\u003e\n\u003c/head\u003e\n\u003cbody itemscope itemtype=\"https://pagelove.org/1.0/Error\"\u003e\n    \u003ch1\u003e401 Unauthorized\u003c/h1\u003e\n    \u003cp itemprop=\"message\"\u003eAuthentication required to access this resource.\u003c/p\u003e\n    \u003cdl\u003e\n        \u003cdt\u003eResource\u003c/dt\u003e\n        \u003cdd itemprop=\"resource\"\u003e/_pl/protocol-move-authz-move-rule-alone-insu-84e67c/board.html\u003c/dd\u003e\n    \u003c/dl\u003e\n\u003c/body\u003e\n\u003c/html\u003e"
+    },
+    {
+      "step": "step 2 (nothing moved)",
+      "method": "GET",
+      "path": "/_pl/protocol-move-authz-move-rule-alone-insu-84e67c/board.html",
+      "status": 206,
+      "headers": {
+        "content-length": "190",
+        "content-range": "selector #lane-todo",
+        "content-type": "text/html",
+        "etag": "\"d90c29204f276cf47c317794655fce214e63b474a3c86245437cf3b7de13b11c-d90c29204f276cf47c317794655fce214e63b474a3c86245437cf3b7de13b11c-1\"",
+        "vary": "Host, Range, Accept"
+      },
+      "body": "\u003csection class=\"lane\" id=\"lane-todo\"\u003e\u003carticle class=\"card\" id=\"card-1\"\u003eOne\u003c/article\u003e\u003carticle class=\"card\" id=\"card-2\"\u003eTwo\u003c/article\u003e\u003carticle class=\"card\" id=\"card-3\"\u003eThree\u003c/article\u003e\u003c/section\u003e"
+    }
+  ],
+  "outcome": "pass",
+  "target": "live"
+}

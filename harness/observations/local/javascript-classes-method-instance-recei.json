@@ -1,0 +1,47 @@
+{
+  "case": "javascript.classes.method-instance-receiver-no-document",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (register declarations through the public plane (takes effect for the next request))",
+      "method": "PUT",
+      "path": "/_pl/javascript-classes-method-instance-recei-6cb113/schema.html",
+      "status": 201,
+      "headers": {
+        "content-length": "2513",
+        "content-type": "text/html",
+        "etag": "\"4f84d6e8253dfdbd25d96a74902ee833a6ed5a1c48cbe24faaf90c446fa85625\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:42 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\n\u003cdiv hidden itemscope itemtype=\"https://pagelove.org/Schema\"\u003e\n\u003cmeta itemprop=\"type\" content=\"https://pagelike.test/_pl/javascript-classes-method-instance-recei-6cb113/Person\"\u003e\n\u003cdiv itemprop=\"property\" itemscope itemtype=\"https://pagelove.org/Property\"\u003e\n\u003cmeta itemprop=\"name\" content=\"firstName\"\u003e\n\u003cmeta itemprop=\"type\" content=\"https://schema.host/Text\"\u003e\n\u003cmeta itemprop=\"cardinality\" content=\"0..1\"\u003e\n\u003c/div\u003e\n\u003cdiv itemprop=\"property\" itemscope itemtype=\"https://pagelove.org/Property\"\u003e\n\u003cmeta itemprop=\"name\" content=\"lastName\"\u003e\n\u003cmeta itemprop=\"type\" content=\"https://schema.host/Text\"\u003e\n\u003cmeta itemprop=\"cardinality\" content=\"0..1\"\u003e\n\u003c/div\u003e\n\u003cdiv itemprop=\"property\" itemscope itemtype=\"https://pagelove.org/Property\"\u003e\n\u003cmeta itemprop=\"name\" content=\"name\"\u003e\n\u003cmeta itemprop=\"type\" content=\"https://schema.host/Text\"\u003e\n\u003cmeta itemprop=\"cardinality\" content=\"0..1\"\u003e\n\u003c/div\u003e\n\u003cdiv itemprop=\"property\" itemscope itemtype=\"https://pagelove.org/Property\"\u003e\n\u003cmeta itemprop=\"name\" content=\"fullName\"\u003e\n\u003cdiv itemprop=\"@computed\" itemscope itemtype=\"https://pagelove.org/JavaScript/Module\"\u003e\n\u003cscript itemprop=\"source\" type=\"module\"\u003e\nexport default function() { return this.firstName + \" \" + this.lastName; }\n\u003c/script\u003e\n\u003c/div\u003e\n\u003c/div\u003e\n\u003cul\u003e\n\u003cli itemprop=\"property\" itemscope itemtype=\"https://pagelove.org/Method\"\u003e\n\u003cmeta itemprop=\"name\" content=\"greet\"\u003e\n\u003cdiv itemprop=\"parameter\" itemscope itemtype=\"https://pagelove.org/Parameter\"\u003e\u003cmeta itemprop=\"name\" content=\"greeting\"\u003e\u003cmeta itemprop=\"type\" content=\"https://schema.host/Text\"\u003e\u003c/div\u003e\n\u003cdiv itemprop=\"implementation\" itemscope itemtype=\"https://pagelove.org/JavaScript/Module\"\u003e\n\u003cscript itemprop=\"source\" type=\"module\"\u003e\nexport default function(greeting) { return greeting + \", \" + this.name + \"!\"; }\n\u003c/script\u003e\n\u003c/div\u003e\n\u003c/li\u003e\n\u003cli itemprop=\"property\" itemscope itemtype=\"https://pagelove.org/Method\"\u003e\n\u003cmeta itemprop=\"name\" content=\"probe\"\u003e\n\u003cdiv itemprop=\"implementation\" itemscope itemtype=\"https://pagelove.org/JavaScript/Module\"\u003e\n\u003cscript itemprop=\"source\" type=\"module\"\u003e\nexport default function () { return typeof document + ':' + typeof Context; }\n\u003c/script\u003e\n\u003c/div\u003e\n\u003c/li\u003e\n\u003cli itemprop=\"property\" itemscope itemtype=\"https://pagelove.org/Method\"\u003e\n\u003cmeta itemprop=\"name\" content=\"kind\"\u003e\n\u003cmeta itemprop=\"static\" content=\"true\"\u003e\n\u003cdiv itemprop=\"implementation\" itemscope itemtype=\"https://pagelove.org/JavaScript/Module\"\u003e\n\u003cscript itemprop=\"source\" type=\"module\"\u003e\nexport default function () { return 'CLS:' + this.name; }\n\u003c/script\u003e\n\u003c/div\u003e\n\u003c/li\u003e\n\u003c/ul\u003e\n\u003c/div\u003e\n\u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 2 (PUT an instance (a.html))",
+      "method": "PUT",
+      "path": "/_pl/javascript-classes-method-instance-recei-6cb113/a.html",
+      "status": 201,
+      "headers": {
+        "content-length": "284",
+        "content-type": "text/html",
+        "etag": "\"e598fdaf969b599d1fe3b4395ba6b08abca198ced216e5f1507ac133da727314\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:42 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\n\u003cdiv itemscope itemtype=\"https://pagelike.test/_pl/javascript-classes-method-instance-recei-6cb113/Person\"\u003e\n\u003cmeta itemprop=\"firstName\" content=\"Ada\"\u003e\n\u003cmeta itemprop=\"lastName\" content=\"Lovelace\"\u003e\n\u003cmeta itemprop=\"name\" content=\"Ada\"\u003e\n\u003c/div\u003e\n\u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 3 (QUERY)",
+      "method": "QUERY",
+      "path": "/_pl/javascript-classes-method-instance-recei-6cb113/a.html",
+      "status": 200,
+      "headers": {
+        "content-length": "18",
+        "content-type": "application/sessel+json"
+      },
+      "body": "\"undefined:object\""
+    }
+  ],
+  "outcome": "pass",
+  "target": "local"
+}

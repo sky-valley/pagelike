@@ -1,0 +1,67 @@
+{
+  "case": "rw.up.content-hash-etag",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (tag of a)",
+      "method": "GET",
+      "path": "/_pl/rw-up-content-hash-etag-186f71/a.txt",
+      "status": 200,
+      "headers": {
+        "accept-ranges": "bytes",
+        "content-length": "15",
+        "content-type": "text/plain",
+        "etag": "\"8ca5bfb553e7ce32d7543bac5f91cdc3e28d650106da4e244c0eeb5e3a71ea64\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:56 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "identical bytes"
+    },
+    {
+      "step": "step 2 (same bytes elsewhere, same tag)",
+      "method": "GET",
+      "path": "/_pl/rw-up-content-hash-etag-186f71/b.txt",
+      "status": 200,
+      "headers": {
+        "accept-ranges": "bytes",
+        "content-length": "15",
+        "content-type": "text/plain",
+        "etag": "\"8ca5bfb553e7ce32d7543bac5f91cdc3e28d650106da4e244c0eeb5e3a71ea64\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:56 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "identical bytes"
+    },
+    {
+      "step": "step 3 (overwrite a)",
+      "method": "PUT",
+      "path": "/_pl/rw-up-content-hash-etag-186f71/a.txt",
+      "status": 200,
+      "headers": {
+        "content-length": "15",
+        "content-type": "text/plain",
+        "etag": "\"538a741c622733afe147819e939d82cc071edfbeb3eb49ed701a55975ac288b3\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:56 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "different bytes"
+    },
+    {
+      "step": "step 4 (new bytes, new tag)",
+      "method": "GET",
+      "path": "/_pl/rw-up-content-hash-etag-186f71/a.txt",
+      "status": 200,
+      "headers": {
+        "accept-ranges": "bytes",
+        "content-length": "15",
+        "content-type": "text/plain",
+        "etag": "\"538a741c622733afe147819e939d82cc071edfbeb3eb49ed701a55975ac288b3\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:56 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "different bytes"
+    }
+  ],
+  "outcome": "pass",
+  "target": "local"
+}

@@ -1,0 +1,179 @@
+# Date and time filters. Spec: docs/spec/liquid.md §15 (R-LIQ-170..178).
+defaults:
+  area: liquid
+  requires: [liquid]
+  evidence: documented
+  source: "docs languages/liquid/filters/date (snapshot 2026-09-28)"
+  confidence: high
+cases:
+  - id: liquid.filters-date.date-examples
+    title: "date formats an ISO date, an ISO datetime and \"now\" (docs examples)"
+    feature: date filters
+    live: true
+    notes: R-LIQ-170, R-LIQ-171.
+    site:
+      settings: {default_get: allow}
+      files:
+        - path: "${P}/date.html"
+          body: |
+            <!DOCTYPE html>
+            <html xmlns:p="https://pagelove.org/1.0"><body>
+              <div itemscope itemtype="urn:liquid:result" p:template="text/liquid">
+                <span itemprop="by">{{ "2026-04-12" | date: "%B %Y" }}</span>
+                <span itemprop="hm">{{ "2026-04-12T13:45:00Z" | date: "%H:%M" }}</span>
+                <span itemprop="now">{{ "now" | date: "%Y" }}</span>
+              </div>
+            </body></html>
+      rules: [{actor: "*", resource: "${P}/*", method: [GET, HEAD], action: Allow}]
+    steps:
+      - name: read
+        as: anonymous
+        request: {method: GET, path: "${P}/date.html"}
+        expect:
+          status: 200
+          microdata: {by: April 2026, hm: "13:45"}
+          body_matches: '<span itemprop="now">20[0-9]{2}</span>'
+
+  - id: liquid.filters-date.directives-and-default
+    title: The default format is %Y-%m-%d; every documented directive; unknown directives pass through
+    feature: date filters
+    live: true
+    notes: R-LIQ-171. Day-of-year, weekday and AM/PM values derived from the documented directive list.
+    site:
+      settings: {default_get: allow}
+      files:
+        - path: "${P}/dir.html"
+          body: |
+            <!DOCTYPE html>
+            <html xmlns:p="https://pagelove.org/1.0"><body>
+              <div itemscope itemtype="urn:liquid:result" p:template="text/liquid">
+                <span itemprop="default">{{ "2026-04-12T13:45:00Z" | date }}</span>
+                <span itemprop="all">{{ "2026-04-12T13:45:09Z" | date: "%Y|%m|%d|%H|%M|%S|%B|%b|%A|%a|%j|%p|%Z|%z|%%" }}</span>
+                <span itemprop="midnight">{{ "2026-04-12" | date: "%H:%M %z %j %A %a %b %p" }}</span>
+                <span itemprop="unknown">{{ "2026-04-02" | date: "%e/%m %y %-d" }}</span>
+              </div>
+            </body></html>
+      rules: [{actor: "*", resource: "${P}/*", method: [GET, HEAD], action: Allow}]
+    steps:
+      - name: read
+        as: anonymous
+        request: {method: GET, path: "${P}/dir.html"}
+        expect:
+          status: 200
+          microdata: {default: "2026-04-12", all: "2026|04|12|13|45|09|April|Apr|Sunday|Sun|102|PM|UTC|+0000|%", midnight: "00:00 +0000 102 Sunday Sun Apr AM", unknown: "%e/04 %y %-d"}
+
+  - id: liquid.filters-date.inputs-normalised-to-utc
+    title: Offsets are converted to UTC; no offset means UTC; Unix seconds (number or string) are accepted
+    feature: date filters
+    live: true
+    notes: R-LIQ-170, R-LIQ-175.
+    site:
+      settings: {default_get: allow}
+      files:
+        - path: "${P}/utc.html"
+          body: |
+            <!DOCTYPE html>
+            <html xmlns:p="https://pagelove.org/1.0"><body>
+              <div itemscope itemtype="urn:liquid:result" p:template="text/liquid">
+                <span itemprop="offset">{{ "2026-04-12T13:45:00+02:00" | date: "%H:%M" }}</span>
+                <span itemprop="nooffset">{{ "2026-04-12T13:45:00" | date: "%H:%M %Z %z" }}</span>
+                <span itemprop="unix">{{ 1767225600 | date: "%Y-%m-%d %H:%M" }}</span>
+                <span itemprop="unix_str">{{ "1767225600" | date: "%Y-%m-%d" }}</span>
+                <span itemprop="fraction">{{ "2026-09-14T21:40:00.000Z" | date: "%d %b %Y %H:%M:%S" }}</span>
+                <span itemprop="today">{{ "today" | date: "%H:%M:%S" }}</span>
+              </div>
+            </body></html>
+      rules: [{actor: "*", resource: "${P}/*", method: [GET, HEAD], action: Allow}]
+    steps:
+      - name: read
+        as: anonymous
+        request: {method: GET, path: "${P}/utc.html"}
+        expect:
+          status: 200
+          microdata: {offset: "11:45", nooffset: "13:45 UTC +0000", unix: "2026-01-01 00:00", unix_str: "2026-01-01", fraction: "14 Sep 2026 21:40:00", today: "00:00:00"}
+
+  - id: liquid.filters-date.arithmetic-and-unix
+    title: "date_add (fixed and \"now\") and unix_to_iso return ISO 8601 UTC strings ending in Z"
+    feature: date filters
+    live: true
+    notes: R-LIQ-172, R-LIQ-173.
+    site:
+      settings: {default_get: allow}
+      files:
+        - path: "${P}/add.html"
+          body: |
+            <!DOCTYPE html>
+            <html xmlns:p="https://pagelove.org/1.0"><body>
+              <div itemscope itemtype="urn:liquid:result" p:template="text/liquid">
+                <span itemprop="add">{{ "2026-01-01T00:00:00Z" | date_add: 3600 }}</span>
+                <span itemprop="add_neg">{{ "2026-01-01" | date_add: -60 }}</span>
+                <span itemprop="iso">{{ 1767225600 | unix_to_iso }}</span>
+                <span itemprop="now_plus">{{ "now" | date_add: 172800 }}</span>
+              </div>
+            </body></html>
+      rules: [{actor: "*", resource: "${P}/*", method: [GET, HEAD], action: Allow}]
+    steps:
+      - name: read
+        as: anonymous
+        request: {method: GET, path: "${P}/add.html"}
+        expect:
+          status: 200
+          microdata: {add: "2026-01-01T01:00:00Z", add_neg: "2025-12-31T23:59:00Z", iso: "2026-01-01T00:00:00Z"}
+          body_matches: '<span itemprop="now_plus">20[0-9]{2}-[01][0-9]-[0-3][0-9]T[0-2][0-9]:[0-5][0-9]:[0-5][0-9]Z</span>'
+
+  - id: liquid.filters-date.jekyll-formats
+    title: date_to_string, date_to_long_string, date_to_rfc822 and date_to_xmlschema (docs examples)
+    feature: date filters
+    live: true
+    notes: R-LIQ-174.
+    site:
+      settings: {default_get: allow}
+      files:
+        - path: "${P}/jekyll.html"
+          body: |
+            <!DOCTYPE html>
+            <html xmlns:p="https://pagelove.org/1.0"><body>
+              <div itemscope itemtype="urn:liquid:result" p:template="text/liquid">{% assign d = "2026-07-07T13:07:59Z" %}
+                <span itemprop="short">{{ d | date_to_string }}</span>
+                <span itemprop="long">{{ d | date_to_long_string }}</span>
+                <span itemprop="rfc822">{{ d | date_to_rfc822 }}</span>
+                <span itemprop="xmlschema">{{ d | date_to_xmlschema }}</span>
+              </div>
+            </body></html>
+      rules: [{actor: "*", resource: "${P}/*", method: [GET, HEAD], action: Allow}]
+    steps:
+      - name: read
+        as: anonymous
+        request: {method: GET, path: "${P}/jekyll.html"}
+        expect:
+          status: 200
+          microdata: {short: 07 Jul 2026, long: 07 July 2026, rfc822: "Tue, 07 Jul 2026 13:07:59 +0000", xmlschema: "2026-07-07T13:07:59+00:00"}
+
+  - id: liquid.filters-date.microdata-time-input
+    title: A <time datetime> microdata value feeds the date filters
+    feature: date filters
+    evidence: documented
+    source: "docs learn/build-a-blog (publishedAt from <time datetime>); languages/liquid/filters/date (ISO date input)"
+    live: true
+    notes: R-LIQ-177.
+    site:
+      settings: {default_get: allow}
+      files:
+        - path: "${P}/post.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body><article itemscope itemtype="https://blog.example${P}/Post"><time itemprop="publishedAt" datetime="2026-08-03">3 August 2026</time></article></body></html>
+        - path: "${P}/when.html"
+          body: |
+            <!DOCTYPE html>
+            <html xmlns:p="https://pagelove.org/1.0" xmlns:r="https://pagelove.org/Binding/CSS"><body>
+              <p id="o" r:posts="[itemtype='https://blog.example${P}/Post']" p:template="text/liquid">{% assign post = posts | first %}{{ post.publishedAt | date: "%d %B %Y" }}|{{ post.publishedAt | date_to_xmlschema }}</p>
+            </body></html>
+      rules: [{actor: "*", resource: "${P}/*", method: [GET, HEAD], action: Allow}]
+    steps:
+      - name: read
+        as: anonymous
+        request: {method: GET, path: "${P}/when.html", headers: {Range: "selector=#o"}}
+        expect:
+          status: 206
+          body_contains: [">03 August 2026|2026-08-03T00:00:00+00:00</p>"]

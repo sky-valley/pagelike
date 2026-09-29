@@ -1,0 +1,230 @@
+# SSE: who receives events, in which order, and which requests emit none.
+# Spec: docs/spec/sse.md R-SSE-18, R-SSE-26, R-SSE-27.
+cases:
+  - id: sse.delivery.fanout
+    title: Every subscriber of the path receives the same event with the same id
+    area: sse
+    feature: fan-out
+    evidence: documented
+    source: "docs reference/reading-and-writing/Server-Sent-Events intro — 'every subscriber receives the mutation' (snapshot 2026-09-28)"
+    confidence: high
+    requires: []
+    live: true
+    notes: "R-SSE-26, R-SSE-29 (same event, same id on every stream)."
+    site:
+      files:
+        - path: "${P}/doc.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body><h1>Original</h1></body></html>
+      rules:
+        - {actor: "*", resource: "${P}/*", method: [GET, PUT], action: Allow}
+    steps:
+      - sse_open: {name: s1, path: "${P}/doc.html", as: anonymous}
+      - sse_open: {name: s2, path: "${P}/doc.html", as: anonymous}
+      - sse_expect: {name: s1, event: pagelove-connection, within_ms: 3000}
+      - sse_expect: {name: s2, event: pagelove-connection, within_ms: 3000}
+      - name: write once
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/doc.html"
+          headers: {Range: "selector=h1", Content-Type: "text/html"}
+          body: "<h1>Broadcast</h1>"
+        expect: {status: 206}
+      - sse_expect:
+          name: s1
+          event: mutation
+          within_ms: 3000
+          data_contains: ["Broadcast"]
+          capture: {id1: id}
+      - sse_expect:
+          name: s2
+          event: mutation
+          within_ms: 3000
+          data_contains: ["Broadcast"]
+          id_matches: '^${id1}$'
+      - sse_close: {name: s1}
+      - sse_close: {name: s2}
+
+  - id: sse.delivery.other-path-not-delivered
+    title: A write to another document is not delivered to this path's subscribers
+    area: sse
+    feature: subscription scope
+    evidence: documented
+    source: "docs reference/reading-and-writing/Server-Sent-Events §Composed resources — 'covers the path you subscribed to, and nothing else' (snapshot 2026-09-28)"
+    confidence: high
+    requires: []
+    live: true
+    notes: "R-SSE-20, R-SSE-26."
+    site:
+      files:
+        - path: "${P}/a.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body><h1>A</h1></body></html>
+        - path: "${P}/b.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body><h1>B</h1></body></html>
+      rules:
+        - {actor: "*", resource: "${P}/*", method: [GET, PUT], action: Allow}
+    steps:
+      - sse_open: {name: sa, path: "${P}/a.html", as: anonymous}
+      - sse_open: {name: sb, path: "${P}/b.html", as: anonymous}
+      - sse_expect: {name: sa, event: pagelove-connection, within_ms: 3000}
+      - sse_expect: {name: sb, event: pagelove-connection, within_ms: 3000}
+      - name: write only to b
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/b.html"
+          headers: {Range: "selector=h1", Content-Type: "text/html"}
+          body: "<h1>B2</h1>"
+        expect: {status: 206}
+      - sse_expect:
+          name: sb
+          event: mutation
+          within_ms: 3000
+          data_microdata: {path: "${P}/b.html"}
+      - sse_expect_none: {name: sa, event: mutation, for_ms: 1500}
+      - sse_close: {name: sa}
+      - sse_close: {name: sb}
+
+  - id: sse.delivery.commit-order
+    title: Sequential writes arrive as events in the same order
+    area: sse
+    feature: ordering
+    evidence: inferred
+    source: "docs/spec/sse.md R-SSE-27 (replay 'after that ID' presupposes ordered, increasing ids)"
+    confidence: high
+    requires: []
+    live: true
+    notes: "Each write completes before the next starts."
+    site:
+      files:
+        - path: "${P}/doc.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body><p id="a">a</p><p id="b">b</p><p id="c">c</p></body></html>
+      rules:
+        - {actor: "*", resource: "${P}/*", method: [GET, PUT], action: Allow}
+    steps:
+      - sse_open: {name: s1, path: "${P}/doc.html", as: anonymous}
+      - sse_expect: {name: s1, event: pagelove-connection, within_ms: 3000}
+      - name: first write
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/doc.html"
+          headers: {Range: "selector=#a", Content-Type: "text/html"}
+          body: '<p id="a">one</p>'
+        expect: {status: 206}
+      - name: second write
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/doc.html"
+          headers: {Range: "selector=#b", Content-Type: "text/html"}
+          body: '<p id="b">two</p>'
+        expect: {status: 206}
+      - name: third write
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/doc.html"
+          headers: {Range: "selector=#c", Content-Type: "text/html"}
+          body: '<p id="c">three</p>'
+        expect: {status: 206}
+      - sse_expect: {name: s1, event: mutation, next: true, within_ms: 3000, data_microdata: {selector: "#a"}}
+      - sse_expect: {name: s1, event: mutation, next: true, within_ms: 3000, data_microdata: {selector: "#b"}}
+      - sse_expect: {name: s1, event: mutation, next: true, within_ms: 3000, data_microdata: {selector: "#c"}}
+      - sse_close: {name: s1}
+
+  - id: sse.delivery.read-after-event
+    title: After an event arrives, a GET of the document already shows the change
+    area: sse
+    feature: ordering
+    evidence: inferred
+    source: "docs/spec/sse.md R-SSE-27 (events are published after commit, docs/design.md write path step 6)"
+    confidence: high
+    requires: []
+    live: true
+    notes: "Clients such as pagelove-kanban/site/app.js@85109ab:397-399 refetch the document on every event."
+    site:
+      files:
+        - path: "${P}/doc.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body><h1>Original</h1></body></html>
+      rules:
+        - {actor: "*", resource: "${P}/*", method: [GET, PUT], action: Allow}
+    steps:
+      - sse_open: {name: s1, path: "${P}/doc.html", as: anonymous}
+      - sse_expect: {name: s1, event: pagelove-connection, within_ms: 3000}
+      - name: write
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/doc.html"
+          headers: {Range: "selector=h1", Content-Type: "text/html"}
+          body: "<h1>Committed</h1>"
+        expect: {status: 206}
+      - sse_expect: {name: s1, event: mutation, within_ms: 3000}
+      - name: read after the event
+        as: anonymous
+        request:
+          method: GET
+          path: "${P}/doc.html"
+          headers: {Range: "selector=h1"}
+        expect: {status: 206, body_contains: ["Committed"]}
+      - sse_close: {name: s1}
+
+  - id: sse.delivery.failed-writes-emit-nothing
+    title: Writes that fail (416, 412, 401) emit no mutation event
+    area: sse
+    feature: which requests emit
+    evidence: inferred
+    source: "docs/spec/sse.md R-SSE-18 (events describe modifications; a refused write modifies nothing)"
+    confidence: high
+    requires: []
+    live: true
+    notes: "The 412 uses a whole-document conditional PUT with an ETag that cannot be current (docs reference/reading-and-writing/PUT-method §Concurrency). DELETE is not granted, so it is refused with 401."
+    site:
+      files:
+        - path: "${P}/doc.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body><h1>Original</h1></body></html>
+      rules:
+        - {actor: "*", resource: "${P}/*", method: [GET, PUT], action: Allow}
+    steps:
+      - sse_open: {name: s1, path: "${P}/doc.html", as: anonymous}
+      - sse_expect: {name: s1, event: pagelove-connection, within_ms: 3000}
+      - name: selector matches nothing
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/doc.html"
+          headers: {Range: "selector=#does-not-exist", Content-Type: "text/html"}
+          body: '<p id="does-not-exist">x</p>'
+        expect: {status: 416}
+      - name: stale precondition
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/doc.html"
+          headers: {If-Match: '"sse-case-stale-etag"', Content-Type: "text/html"}
+          body: |
+            <!DOCTYPE html>
+            <html><body><h1>Should not land</h1></body></html>
+        expect: {status: 412}
+      - name: method not granted
+        as: anonymous
+        request:
+          method: DELETE
+          path: "${P}/doc.html"
+          headers: {Range: "selector=h1"}
+        expect: {status: 401}
+      - sse_expect_none: {name: s1, event: mutation, for_ms: 2000}
+      - sse_close: {name: s1}

@@ -1,0 +1,61 @@
+{
+  "case": "modeling.defaults.static-injected",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (register declarations through the public plane (takes effect for the next request))",
+      "method": "PUT",
+      "path": "/_pl/modeling-defaults-static-injected-ef5533/schema.html",
+      "status": 201,
+      "headers": {
+        "content-type": "text/html",
+        "etag": "\"0212d3139a96a1a04696751219be50eab98b8d8ceac03b6bb61037b0701cf955\"",
+        "last-modified": "Tue, 29 Sep 2026 00:47:46 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\n  \u003cdiv hidden itemscope itemtype=\"https://pagelove.org/Schema\"\u003e\n    \u003cmeta itemprop=\"type\" content=\"https://pagelike.test/_pl/modeling-defaults-static-injected-ef5533/Post\"\u003e\n    \u003cdiv itemprop=\"property\" itemscope itemtype=\"https://pagelove.org/Property\"\u003e\n      \u003cmeta itemprop=\"name\" content=\"title\"\u003e\n      \u003cmeta itemprop=\"type\" content=\"https://schema.host/Text\"\u003e\n      \u003cmeta itemprop=\"cardinality\" content=\"1..1\"\u003e\n    \u003c/div\u003e\n    \u003cdiv itemprop=\"property\" itemscope itemtype=\"https://pagelove.org/Property\"\u003e\n      \u003cmeta itemprop=\"name\" content=\"status\"\u003e\n      \u003cmeta itemprop=\"type\" content=\"https://schema.host/Text\"\u003e\n      \u003cmeta itemprop=\"cardinality\" content=\"0..1\"\u003e\n      \u003cmeta itemprop=\"default\" content=\"draft\"\u003e\n    \u003c/div\u003e\n  \u003cmeta itemprop=\"@id\" content=\"https://schema.host/t2hkifve\"\u003e\u003cmeta itemprop=\"path\" content=\"/Schemahttps://schema.host/t2hkifve.html\"\u003e\u003c/div\u003e\n\n                \u003cdiv style=\"\n                            position: fixed;\n                            bottom: 0;\n                            left: 0;\n                            right: 0;\n                            padding: 8px;\n                            background: #f0f0f0;\n                            text-align: center;\n                            font-size: 12px;\n                            color: #666;\n                            z-index: 9999;\n                            opacity: 0.8;\n                            border-top: 1px solid #ddd;\n                        \"\u003e\n                    Powered by\n                    \u003ca href=\"https://pagelove.com/\" style=\"color: #4a90d9; text-decoration: none\"\u003ePagelove\u003c/a\u003e\n                \u003c/div\u003e\n            \u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 2 (post without status)",
+      "method": "PUT",
+      "path": "/_pl/modeling-defaults-static-injected-ef5533/p.html",
+      "status": 201,
+      "headers": {
+        "content-type": "text/html",
+        "etag": "\"dcf77555d145f16cad23a32bfc350710142c0a4663b662f3404cfbc44428d17a\"",
+        "last-modified": "Tue, 29 Sep 2026 00:47:47 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\n  \u003cdiv itemscope itemtype=\"https://pagelike.test/_pl/modeling-defaults-static-injected-ef5533/Post\"\u003e\n    \u003cmeta itemprop=\"title\" content=\"Hello\"\u003e\n  \u003cmeta itemprop=\"status\" content=\"draft\"\u003e\u003c/div\u003e\n\n                \u003cdiv style=\"\n                            position: fixed;\n                            bottom: 0;\n                            left: 0;\n                            right: 0;\n                            padding: 8px;\n                            background: #f0f0f0;\n                            text-align: center;\n                            font-size: 12px;\n                            color: #666;\n                            z-index: 9999;\n                            opacity: 0.8;\n                            border-top: 1px solid #ddd;\n                        \"\u003e\n                    Powered by\n                    \u003ca href=\"https://pagelove.com/\" style=\"color: #4a90d9; text-decoration: none\"\u003ePagelove\u003c/a\u003e\n                \u003c/div\u003e\n            \u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 3 (stored state of p.html (authoring plane, raw))",
+      "method": "GET",
+      "path": "/_pl/modeling-defaults-static-injected-ef5533/p.html",
+      "status": 200,
+      "headers": {
+        "accept-ranges": "bytes",
+        "content-length": "238",
+        "content-type": "text/html",
+        "etag": "\"dcf77555d145f16cad23a32bfc350710142c0a4663b662f3404cfbc44428d17a\"",
+        "last-modified": "Tue, 29 Sep 2026 00:47:47 GMT"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\n  \u003cdiv itemscope itemtype=\"https://pagelike.test/_pl/modeling-defaults-static-injected-ef5533/Post\"\u003e\n    \u003cmeta itemprop=\"title\" content=\"Hello\"\u003e\n  \u003cmeta itemprop=\"status\" content=\"draft\"\u003e\u003c/div\u003e\n\u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 4 (public read shows the injected value)",
+      "method": "GET",
+      "path": "/_pl/modeling-defaults-static-injected-ef5533/p.html",
+      "status": 200,
+      "headers": {
+        "content-type": "text/html",
+        "etag": "\"dcf77555d145f16cad23a32bfc350710142c0a4663b662f3404cfbc44428d17a\"",
+        "last-modified": "Tue, 29 Sep 2026 00:47:47 GMT",
+        "vary": "Host, Range, Accept"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\n  \u003cdiv itemscope itemtype=\"https://pagelike.test/_pl/modeling-defaults-static-injected-ef5533/Post\"\u003e\n    \u003cmeta itemprop=\"title\" content=\"Hello\"\u003e\n  \u003cmeta itemprop=\"status\" content=\"draft\"\u003e\u003c/div\u003e\n\n                \u003cdiv style=\"\n                            position: fixed;\n                            bottom: 0;\n                            left: 0;\n                            right: 0;\n                            padding: 8px;\n                            background: #f0f0f0;\n                            text-align: center;\n                            font-size: 12px;\n                            color: #666;\n                            z-index: 9999;\n                            opacity: 0.8;\n                            border-top: 1px solid #ddd;\n                        \"\u003e\n                    Powered by\n                    \u003ca href=\"https://pagelove.com/\" style=\"color: #4a90d9; text-decoration: none\"\u003ePagelove\u003c/a\u003e\n                \u003c/div\u003e\n            \u003c/body\u003e\u003c/html\u003e\n"
+    }
+  ],
+  "outcome": "pass",
+  "target": "live"
+}

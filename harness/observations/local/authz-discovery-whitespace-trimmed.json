@@ -1,0 +1,90 @@
+{
+  "case": "authz.discovery.whitespace-trimmed",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (padded actor trimmed)",
+      "method": "PUT",
+      "path": "/_pl/authz-discovery-whitespace-trimmed-89fe4b/a.html",
+      "status": 206,
+      "headers": {
+        "content-length": "16",
+        "content-range": "selector #p1",
+        "content-type": "text/html",
+        "etag": "\"841a1e2bbb5207d9c240d32906372b337e798c218d38fefb099a33d831ea8a77-841a1e2bbb5207d9c240d32906372b337e798c218d38fefb099a33d831ea8a77-2\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:46 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003cp id=\"p1\"\u003eA\u003c/p\u003e"
+    },
+    {
+      "step": "step 2 (padded resource trimmed)",
+      "method": "PUT",
+      "path": "/_pl/authz-discovery-whitespace-trimmed-89fe4b/b.html",
+      "status": 206,
+      "headers": {
+        "content-length": "16",
+        "content-range": "selector #p1",
+        "content-type": "text/html",
+        "etag": "\"ecce7f5c8b65bdb714878ebad0dabb484a3d336448d9b4f58d811330e9279e1f-ecce7f5c8b65bdb714878ebad0dabb484a3d336448d9b4f58d811330e9279e1f-2\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:46 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003cp id=\"p1\"\u003eB\u003c/p\u003e"
+    },
+    {
+      "step": "step 3 (padded method trimmed)",
+      "method": "PUT",
+      "path": "/_pl/authz-discovery-whitespace-trimmed-89fe4b/c.html",
+      "status": 206,
+      "headers": {
+        "content-length": "16",
+        "content-range": "selector #p1",
+        "content-type": "text/html",
+        "etag": "\"50f2767ec0354cdd75d6a4f8f59c066985b3656baa488ceb7be2c5fea34e10b5-50f2767ec0354cdd75d6a4f8f59c066985b3656baa488ceb7be2c5fea34e10b5-2\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:46 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003cp id=\"p1\"\u003eC\u003c/p\u003e"
+    },
+    {
+      "step": "step 4 (padded selector trimmed)",
+      "method": "PUT",
+      "path": "/_pl/authz-discovery-whitespace-trimmed-89fe4b/d.html",
+      "status": 206,
+      "headers": {
+        "content-length": "16",
+        "content-range": "selector #p1",
+        "content-type": "text/html",
+        "etag": "\"e4f517e4abe60f7fa357b4c06f06ffd920f66aed9542adb6296462208e47be44-e4f517e4abe60f7fa357b4c06f06ffd920f66aed9542adb6296462208e47be44-2\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:46 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003cp id=\"p1\"\u003eD\u003c/p\u003e"
+    },
+    {
+      "step": "step 5 (padded allow grants nothing)",
+      "method": "PUT",
+      "path": "/_pl/authz-discovery-whitespace-trimmed-89fe4b/e.html",
+      "status": 401,
+      "headers": {
+        "content-length": "421",
+        "content-type": "text/html; charset=utf-8"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\n\u003chead\u003e\n    \u003cmeta charset=\"UTF-8\"\u003e\n    \u003ctitle\u003e401 Unauthorized\u003c/title\u003e\n\u003c/head\u003e\n\u003cbody itemscope itemtype=\"https://pagelove.org/1.0/Error\"\u003e\n    \u003ch1\u003e401 Unauthorized\u003c/h1\u003e\n    \u003cp itemprop=\"message\"\u003eAuthentication required to access this resource.\u003c/p\u003e\n    \u003cdl\u003e\n        \u003cdt\u003eResource\u003c/dt\u003e\n        \u003cdd itemprop=\"resource\"\u003e/_pl/authz-discovery-whitespace-trimmed-89fe4b/e.html\u003c/dd\u003e\n    \u003c/dl\u003e\n\u003c/body\u003e\n\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 6 (padded deny still refuses)",
+      "method": "PUT",
+      "path": "/_pl/authz-discovery-whitespace-trimmed-89fe4b/f.html",
+      "status": 401,
+      "headers": {
+        "content-length": "421",
+        "content-type": "text/html; charset=utf-8"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\n\u003chead\u003e\n    \u003cmeta charset=\"UTF-8\"\u003e\n    \u003ctitle\u003e401 Unauthorized\u003c/title\u003e\n\u003c/head\u003e\n\u003cbody itemscope itemtype=\"https://pagelove.org/1.0/Error\"\u003e\n    \u003ch1\u003e401 Unauthorized\u003c/h1\u003e\n    \u003cp itemprop=\"message\"\u003eAuthentication required to access this resource.\u003c/p\u003e\n    \u003cdl\u003e\n        \u003cdt\u003eResource\u003c/dt\u003e\n        \u003cdd itemprop=\"resource\"\u003e/_pl/authz-discovery-whitespace-trimmed-89fe4b/f.html\u003c/dd\u003e\n    \u003c/dl\u003e\n\u003c/body\u003e\n\u003c/html\u003e\n"
+    }
+  ],
+  "outcome": "pass",
+  "target": "local"
+}

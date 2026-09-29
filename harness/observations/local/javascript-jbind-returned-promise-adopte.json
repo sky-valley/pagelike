@@ -1,0 +1,37 @@
+{
+  "case": "javascript.jbind.returned-promise-adopted",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (PUT the page (public plane; registers inline declarations))",
+      "method": "PUT",
+      "path": "/_pl/javascript-jbind-returned-promise-adopte-3ed9ef/j.html",
+      "status": 201,
+      "headers": {
+        "content-length": "221",
+        "content-type": "text/html",
+        "etag": "\"8864b4117478efda8222d2003f035af89703084373551e77e4ef94b95ec86c92\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:43 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml xmlns:j=\"https://pagelove.org/Binding/JavaScript\" xmlns:p=\"https://pagelove.org/1.0\"\u003e\u003cbody\u003e\n\u003cmain\u003e\n\u003cdiv j:w=\"Promise.resolve('adopted' + '-value')\"\u003e\u003cp:stamp w\u003e\u003c/p:stamp\u003e\u003c/div\u003e\n\u003c/main\u003e\n\u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 2 (GET the composed page)",
+      "method": "GET",
+      "path": "/_pl/javascript-jbind-returned-promise-adopte-3ed9ef/j.html",
+      "status": 206,
+      "headers": {
+        "accept-ranges": "selector, bytes",
+        "content-length": "39",
+        "content-range": "selector main",
+        "content-type": "text/html",
+        "etag": "\"7217e76032e83509263baa2cb0b52a739f0f77e00db91cbb5455c07ddf500a21-7217e76032e83509263baa2cb0b52a739f0f77e00db91cbb5455c07ddf500a21-1\"",
+        "vary": "Host, Range, Accept"
+      },
+      "body": "\u003cmain\u003e\n\u003cdiv\u003eadopted-value\u003c/div\u003e\n\u003c/main\u003e"
+    }
+  ],
+  "outcome": "pass",
+  "target": "local"
+}

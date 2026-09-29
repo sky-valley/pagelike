@@ -1,0 +1,804 @@
+# Reacting: outbound HttpRequest actions (spec R-REACT-48..56).
+# See discovery.yaml for directory conventions.
+# These cases use the sink steps proposed in docs/spec/reacting.md §14
+# (sink_config, sink_expect, sink_expect_none, sink_expect_count). ${SINK} is
+# the per-case capture base URL; sink paths are relative to it. String
+# assertions in sink steps are ${...}-expanded like `expect`.
+anchors:
+  open_rules: &open_rules
+    - {actor: "*", resource: "${P}/*", method: [GET, HEAD, PUT, POST, DELETE], action: Allow}
+defaults:
+  area: reacting
+  requires: [outbound-http]
+  site:
+    settings: {default_get: allow}
+    rules: *open_rules
+cases:
+  - id: reacting.outbound.docs-quick-example
+    title: "Documented: a trigger on PUT/POST under /blog/ sends a static webhook after the response"
+    feature: outbound HttpRequest
+    evidence: documented
+    source: "docs reference/reacting-to-changes/HTTPRequest §Quick example; Trigger §Quick example (snapshot 2026-09-28)"
+    confidence: high
+    requires: [outbound-http, sessel]
+    live: true
+    notes: "spec: R-REACT-48, R-REACT-51, R-REACT-56. content-type is absent, so it defaults to text/html."
+    steps:
+      - name: install the documented trigger
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/r/triggers.html"
+          headers: {Content-Type: text/html}
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+            <div itemscope itemtype="https://pagelove.org/Trigger">
+              <meta itemprop="resource" content="${P}/blog/*">
+              <meta itemprop="method" content="PUT">
+              <meta itemprop="method" content="POST">
+              <div itemprop="action" itemscope itemtype="https://pagelove.org/HttpRequest">
+                <meta itemprop="url" content="${SINK}/notify">
+                <meta itemprop="method" content="POST">
+                <meta itemprop="body" content="Blog content updated">
+              </div>
+            </div>
+            </body></html>
+        expect: {status: [200, 201, 204]}
+      - name: a blog write succeeds
+        as: anonymous
+        request: {method: PUT, path: "${P}/blog/post.html", headers: {Content-Type: text/html}, body: "<!DOCTYPE html><html><body><h1>Post</h1></body></html>"}
+        expect: {status: [200, 201, 204]}
+      - sink_expect:
+          path: /notify
+          within_ms: 5000
+          method: POST
+          header_matches: {Content-Type: "^text/html"}
+          body: "Blog content updated"
+      - name: a write elsewhere sends nothing
+        as: anonymous
+        request: {method: PUT, path: "${P}/other/x.html", headers: {Content-Type: text/html}, body: "<p>x</p>"}
+        expect: {status: [200, 201, 204]}
+      - sink_expect_none: {path: /notify, for_ms: 2000}
+
+  - id: reacting.outbound.default-method-post
+    title: An HttpRequest without method is sent as POST
+    feature: outbound HttpRequest (method)
+    evidence: documented
+    source: "docs reference/reacting-to-changes/HTTPRequest §method ('Defaults to POST') (snapshot 2026-09-28)"
+    confidence: high
+    requires: [outbound-http]
+    live: true
+    notes: "spec: R-REACT-50."
+    steps:
+      - name: install
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/r/triggers.html"
+          headers: {Content-Type: text/html}
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+            <div hidden itemscope itemtype="https://pagelove.org/Trigger">
+              <meta itemprop="resource" content="${P}/d/*">
+              <meta itemprop="method" content="PUT">
+              <div itemprop="action" itemscope itemtype="https://pagelove.org/HttpRequest">
+                <meta itemprop="url" content="${SINK}/default-method">
+              </div>
+            </div>
+            </body></html>
+        expect: {status: [200, 201, 204]}
+      - {name: write, as: anonymous, request: {method: PUT, path: "${P}/d/x.html", headers: {Content-Type: text/html}, body: "<p>x</p>"}, expect: {status: [200, 201, 204]}}
+      - sink_expect: {path: /default-method, within_ms: 5000, method: POST}
+
+  - id: reacting.outbound.method-put
+    title: The method property selects the outbound method (PUT)
+    feature: outbound HttpRequest (method)
+    evidence: documented
+    source: "docs reference/reacting-to-changes/HTTPRequest §method ('Supported methods: GET, POST, PUT, DELETE, PATCH') (snapshot 2026-09-28)"
+    confidence: high
+    requires: [outbound-http]
+    live: true
+    notes: "spec: R-REACT-50. One trigger per outbound request: the serving path refuses a Trigger without exactly one action (R-REACT-4a, live 2026-09-29)."
+    steps:
+      - name: install
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/r/triggers.html"
+          headers: {Content-Type: text/html}
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+            <div hidden itemscope itemtype="https://pagelove.org/Trigger">
+              <meta itemprop="resource" content="${P}/d/*">
+              <meta itemprop="method" content="PUT">
+              <div itemprop="action" itemscope itemtype="https://pagelove.org/HttpRequest">
+                <meta itemprop="url" content="${SINK}/put-target">
+                <meta itemprop="method" content="PUT">
+                <meta itemprop="body" content="put-body">
+              </div>
+            </div>
+            <div hidden itemscope itemtype="https://pagelove.org/Trigger">
+              <meta itemprop="resource" content="${P}/d/*">
+              <meta itemprop="method" content="PUT">
+              <div itemprop="action" itemscope itemtype="https://pagelove.org/HttpRequest">
+                <meta itemprop="url" content="${SINK}/patch-target">
+                <meta itemprop="method" content="patch">
+                <meta itemprop="body" content="patch-body">
+              </div>
+            </div>
+            </body></html>
+        expect: {status: [200, 201, 204]}
+      - {name: write, as: anonymous, request: {method: PUT, path: "${P}/d/x.html", headers: {Content-Type: text/html}, body: "<p>x</p>"}, expect: {status: [200, 201, 204]}}
+      - sink_expect: {path: /put-target, within_ms: 5000, method: PUT, body: "put-body"}
+      - sink_expect: {path: /patch-target, within_ms: 5000, method: PATCH, body: "patch-body"}
+
+  - id: reacting.outbound.content-type-property
+    title: The content-type property sets the outbound Content-Type
+    feature: outbound HttpRequest (content-type)
+    evidence: documented
+    source: "docs reference/reacting-to-changes/HTTPRequest §content-type (snapshot 2026-09-28)"
+    confidence: high
+    requires: [outbound-http]
+    live: true
+    notes: "spec: R-REACT-51."
+    steps:
+      - name: install
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/r/triggers.html"
+          headers: {Content-Type: text/html}
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+            <div hidden itemscope itemtype="https://pagelove.org/Trigger">
+              <meta itemprop="resource" content="${P}/d/*">
+              <meta itemprop="method" content="PUT">
+              <div itemprop="action" itemscope itemtype="https://pagelove.org/HttpRequest">
+                <meta itemprop="url" content="${SINK}/json">
+                <meta itemprop="content-type" content="application/json">
+                <meta itemprop="body" content='{"ok":true}'>
+              </div>
+            </div>
+            </body></html>
+        expect: {status: [200, 201, 204]}
+      - {name: write, as: anonymous, request: {method: PUT, path: "${P}/d/x.html", headers: {Content-Type: text/html}, body: "<p>x</p>"}, expect: {status: [200, 201, 204]}}
+      - sink_expect:
+          path: /json
+          within_ms: 5000
+          headers: {Content-Type: "application/json"}
+          body_json: {ok: true}
+
+  - id: reacting.outbound.dynamic-url-sessel
+    title: "Documented: a dynamic Sessel url is built from the request path"
+    feature: outbound HttpRequest (dynamic properties)
+    evidence: documented
+    source: "docs reference/reacting-to-changes/HTTPRequest §Static vs dynamic properties (snapshot 2026-09-28)"
+    confidence: high
+    requires: [outbound-http, sessel]
+    live: true
+    notes: "spec: R-REACT-49, R-REACT-55. The docs concatenate host + '/' + path, producing a double slash that is sent as is; the case avoids the extra slash."
+    steps:
+      - name: install
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/r/triggers.html"
+          headers: {Content-Type: text/html}
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+            <div hidden itemscope itemtype="https://pagelove.org/Trigger">
+              <meta itemprop="resource" content="${P}/d/*">
+              <meta itemprop="method" content="PUT">
+              <div itemprop="action" itemscope itemtype="https://pagelove.org/HttpRequest">
+                <meta itemprop="method" content="POST">
+                <div itemprop="url" itemscope itemtype="https://pagelove.org/Sessel">
+                  <script itemprop="source" type="text/sessel">
+                    @schema Context url("https://pagelove.org/Context");
+                    "${SINK}/dyn" + Context.request.path
+                  </script>
+                </div>
+                <div itemprop="body" itemscope itemtype="https://pagelove.org/Sessel">
+                  <script itemprop="source" type="text/sessel">
+                    @schema Context url("https://pagelove.org/Context");
+                    Context.request.path
+                  </script>
+                </div>
+              </div>
+            </div>
+            </body></html>
+        expect: {status: [200, 201, 204]}
+      - {name: write, as: anonymous, request: {method: PUT, path: "${P}/d/x.html", headers: {Content-Type: text/html}, body: "<p>x</p>"}, expect: {status: [200, 201, 204]}}
+      - sink_expect:
+          path: "/dyn${P}/d/x.html"
+          within_ms: 5000
+          method: POST
+          body: "${P}/d/x.html"
+
+  - id: reacting.outbound.dynamic-url-js
+    title: A dynamic url may be a JavaScript/Module item; languages mix per property
+    feature: outbound HttpRequest (dynamic properties)
+    evidence: documented
+    source: "docs reference/reacting-to-changes/HTTPRequest §Static vs dynamic properties ('The language is selected per property by its itemtype') (snapshot 2026-09-28)"
+    confidence: high
+    requires: [outbound-http, server-js, sessel]
+    live: true
+    notes: "spec: R-REACT-3, R-REACT-55."
+    steps:
+      - name: install
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/r/triggers.html"
+          headers: {Content-Type: text/html}
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+            <div hidden itemscope itemtype="https://pagelove.org/Trigger">
+              <meta itemprop="resource" content="${P}/d/*">
+              <meta itemprop="method" content="PUT">
+              <div itemprop="action" itemscope itemtype="https://pagelove.org/HttpRequest">
+                <div itemprop="url" itemscope itemtype="https://pagelove.org/JavaScript/Module">
+                  <script type="module" itemprop="source">
+                    export default function(ctx) { return "${SINK}/js" + ctx.request.path; }
+                  </script>
+                </div>
+                <div itemprop="body" itemscope itemtype="https://pagelove.org/Sessel">
+                  <script itemprop="source" type="text/sessel">
+                    @schema Context url("https://pagelove.org/Context");
+                    "sessel-body:" + Context.request.method
+                  </script>
+                </div>
+                <meta itemprop="method" content="POST">
+              </div>
+            </div>
+            </body></html>
+        expect: {status: [200, 201, 204]}
+      - {name: write, as: anonymous, request: {method: PUT, path: "${P}/d/x.html", headers: {Content-Type: text/html}, body: "<p>x</p>"}, expect: {status: [200, 201, 204]}}
+      - sink_expect:
+          path: "/js${P}/d/x.html"
+          within_ms: 5000
+          body: "sessel-body:PUT"
+
+  - id: reacting.outbound.webhook-recipe-json-body
+    title: "Recipe: a processor on POST sends a JSON webhook whose body is built in Sessel"
+    feature: outbound HttpRequest (processor)
+    evidence: documented
+    source: "docs recipes/sending-a-webhook §Attach a Processor to the write (snapshot 2026-09-28)"
+    confidence: medium
+    requires: [outbound-http, sessel]
+    live: true
+    notes: "spec: R-REACT-51, R-REACT-55, R-REACT-56. The recipe's selector filter is omitted here: its meaning for POST appends is disputed (C6, see filters.yaml)."
+    site:
+      settings: {default_get: allow}
+      rules: *open_rules
+      files:
+        - path: "${P}/notes/list.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body><ul id="notes"></ul></body></html>
+    steps:
+      - name: install the recipe processor
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/r/processors.html"
+          headers: {Content-Type: text/html}
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+            <div itemscope itemtype="https://pagelove.org/Processor">
+              <meta itemprop="resource" content="${P}/notes/*">
+              <meta itemprop="method" content="POST">
+              <div itemprop="action" itemscope itemtype="https://pagelove.org/HttpRequest">
+                <meta itemprop="url" content="${SINK}/webhooks/note-created">
+                <meta itemprop="method" content="POST">
+                <meta itemprop="content-type" content="application/json">
+                <div itemprop="body" itemscope itemtype="https://pagelove.org/Sessel">
+                  <script itemprop="source" type="text/sessel">
+                    @schema Context url("https://pagelove.org/Context");
+                    "{\"path\": \"" + Context.request.path + "\"}"
+                  </script>
+                </div>
+              </div>
+            </div>
+            </body></html>
+        expect: {status: [200, 201, 204]}
+      - name: append a note
+        as: anonymous
+        request:
+          method: POST
+          path: "${P}/notes/list.html"
+          headers: {Content-Type: text/html, Range: "selector=#notes"}
+          body: '<li itemscope itemtype="https://pagelike.test/Note"><span itemprop="text">hi</span></li>'
+        expect: {status: [200, 201, 204, 206]}
+      - sink_expect:
+          path: /webhooks/note-created
+          within_ms: 5000
+          method: POST
+          headers: {Content-Type: "application/json"}
+          body: '{"path": "${P}/notes/list.html"}'
+
+  - id: reacting.outbound.header-pairs-repeat-order
+    title: Header Pairs are sent; repeated names are kept in declaration order
+    feature: outbound HttpRequest (headers)
+    evidence: documented
+    source: "docs reference/reacting-to-changes/HTTPRequest §header ('Repeats are kept … sent in the order you write them') (snapshot 2026-09-28)"
+    confidence: high
+    requires: [outbound-http]
+    live: true
+    notes: "spec: R-REACT-52. Only same-name order is asserted."
+    steps:
+      - name: install
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/r/triggers.html"
+          headers: {Content-Type: text/html}
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+            <div hidden itemscope itemtype="https://pagelove.org/Trigger">
+              <meta itemprop="resource" content="${P}/d/*">
+              <meta itemprop="method" content="PUT">
+              <div itemprop="action" itemscope itemtype="https://pagelove.org/HttpRequest">
+                <meta itemprop="url" content="${SINK}/headers">
+                <meta itemprop="content-type" content="application/json">
+                <div itemprop="header" itemscope itemtype="https://pagelove.org/Pair">
+                  <meta itemprop="key" content="X-Postmark-Server-Token">
+                  <meta itemprop="value" content="00000000-test-token">
+                </div>
+                <div itemprop="header" itemscope itemtype="https://pagelove.org/Pair">
+                  <meta itemprop="key" content="X-Multi">
+                  <meta itemprop="value" content="one">
+                </div>
+                <div itemprop="header" itemscope itemtype="https://pagelove.org/Pair">
+                  <meta itemprop="key" content="X-Multi">
+                  <meta itemprop="value" content="two">
+                </div>
+                <div itemprop="header" itemscope itemtype="https://pagelove.org/Pair">
+                  <meta itemprop="key" content="Accept">
+                  <meta itemprop="value" content="application/json">
+                </div>
+              </div>
+            </div>
+            </body></html>
+        expect: {status: [200, 201, 204]}
+      - {name: write, as: anonymous, request: {method: PUT, path: "${P}/d/x.html", headers: {Content-Type: text/html}, body: "<p>x</p>"}, expect: {status: [200, 201, 204]}}
+      - sink_expect:
+          path: /headers
+          within_ms: 5000
+          headers: {X-Postmark-Server-Token: "00000000-test-token", Accept: "application/json"}
+          header_values: {X-Multi: [one, two]}
+
+  - id: reacting.outbound.header-single-line
+    title: A header written as one line of text is split at its first colon
+    feature: outbound HttpRequest (headers)
+    evidence: documented
+    source: "docs reference/reacting-to-changes/HTTPRequest §header ('split on its first colon') (snapshot 2026-09-28)"
+    confidence: high
+    requires: [outbound-http]
+    live: true
+    notes: "spec: R-REACT-52. The second header's value contains a colon."
+    steps:
+      - name: install
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/r/triggers.html"
+          headers: {Content-Type: text/html}
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+            <div hidden itemscope itemtype="https://pagelove.org/Trigger">
+              <meta itemprop="resource" content="${P}/d/*">
+              <meta itemprop="method" content="PUT">
+              <div itemprop="action" itemscope itemtype="https://pagelove.org/HttpRequest">
+                <meta itemprop="url" content="${SINK}/single-line">
+                <meta itemprop="header" content="X-Api-Version: 2">
+                <meta itemprop="header" content="X-Target: https://example.com:8443/x">
+              </div>
+            </div>
+            </body></html>
+        expect: {status: [200, 201, 204]}
+      - {name: write, as: anonymous, request: {method: PUT, path: "${P}/d/x.html", headers: {Content-Type: text/html}, body: "<p>x</p>"}, expect: {status: [200, 201, 204]}}
+      - sink_expect:
+          path: /single-line
+          within_ms: 5000
+          headers: {X-Api-Version: "2", X-Target: "https://example.com:8443/x"}
+
+  - id: reacting.outbound.header-dynamic-value
+    title: "Documented: a header value can be a Sessel expression"
+    feature: outbound HttpRequest (headers)
+    evidence: documented
+    source: "docs reference/reacting-to-changes/HTTPRequest §header ('A header value can be dynamic') (snapshot 2026-09-28)"
+    confidence: high
+    requires: [outbound-http, sessel]
+    live: true
+    notes: "spec: R-REACT-52, R-REACT-55."
+    steps:
+      - name: install
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/r/triggers.html"
+          headers: {Content-Type: text/html}
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+            <div hidden itemscope itemtype="https://pagelove.org/Trigger">
+              <meta itemprop="resource" content="${P}/d/*">
+              <meta itemprop="method" content="PUT">
+              <div itemprop="action" itemscope itemtype="https://pagelove.org/HttpRequest">
+                <meta itemprop="url" content="${SINK}/dynamic-header">
+                <div itemprop="header" itemscope itemtype="https://pagelove.org/Pair">
+                  <meta itemprop="key" content="X-Request-Path">
+                  <div itemprop="value" itemscope itemtype="https://pagelove.org/Sessel">
+                    <script itemprop="source" type="text/sessel">
+                      @schema Context url("https://pagelove.org/Context");
+                      Context.request.path
+                    </script>
+                  </div>
+                </div>
+              </div>
+            </div>
+            </body></html>
+        expect: {status: [200, 201, 204]}
+      - {name: write, as: anonymous, request: {method: PUT, path: "${P}/d/x.html", headers: {Content-Type: text/html}, body: "<p>x</p>"}, expect: {status: [200, 201, 204]}}
+      - sink_expect:
+          path: /dynamic-header
+          within_ms: 5000
+          headers: {X-Request-Path: "${P}/d/x.html"}
+
+  - id: reacting.outbound.content-type-header-replaces-property
+    title: A Content-Type header replaces the content-type property and is sent once
+    feature: outbound HttpRequest (headers)
+    evidence: documented
+    source: "docs reference/reacting-to-changes/HTTPRequest §header ('Content-Type has one home') (snapshot 2026-09-28)"
+    confidence: high
+    requires: [outbound-http]
+    live: true
+    notes: "spec: R-REACT-53."
+    steps:
+      - name: install
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/r/triggers.html"
+          headers: {Content-Type: text/html}
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+            <div hidden itemscope itemtype="https://pagelove.org/Trigger">
+              <meta itemprop="resource" content="${P}/d/*">
+              <meta itemprop="method" content="PUT">
+              <div itemprop="action" itemscope itemtype="https://pagelove.org/HttpRequest">
+                <meta itemprop="url" content="${SINK}/ct">
+                <meta itemprop="content-type" content="text/plain">
+                <meta itemprop="body" content="x">
+                <div itemprop="header" itemscope itemtype="https://pagelove.org/Pair">
+                  <meta itemprop="key" content="Content-Type">
+                  <meta itemprop="value" content="application/json">
+                </div>
+              </div>
+            </div>
+            </body></html>
+        expect: {status: [200, 201, 204]}
+      - {name: write, as: anonymous, request: {method: PUT, path: "${P}/d/x.html", headers: {Content-Type: text/html}, body: "<p>x</p>"}, expect: {status: [200, 201, 204]}}
+      - sink_expect:
+          path: /ct
+          within_ms: 5000
+          header_values: {Content-Type: [application/json]}
+
+  - id: reacting.outbound.malformed-headers-dropped
+    title: Headers with invalid names or control characters are dropped; the rest of the request is sent
+    feature: outbound HttpRequest (headers)
+    evidence: documented
+    source: "docs reference/reacting-to-changes/HTTPRequest §header ('Malformed headers are dropped … including when a dynamic value produces one') (snapshot 2026-09-28)"
+    confidence: high
+    requires: [outbound-http, server-js]
+    live: true
+    notes: "spec: R-REACT-54. The dynamic value tries a CRLF header injection."
+    steps:
+      - name: install
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/r/triggers.html"
+          headers: {Content-Type: text/html}
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+            <div hidden itemscope itemtype="https://pagelove.org/Trigger">
+              <meta itemprop="resource" content="${P}/d/*">
+              <meta itemprop="method" content="PUT">
+              <div itemprop="action" itemscope itemtype="https://pagelove.org/HttpRequest">
+                <meta itemprop="url" content="${SINK}/malformed">
+                <div itemprop="header" itemscope itemtype="https://pagelove.org/Pair">
+                  <meta itemprop="key" content="X-Good">
+                  <meta itemprop="value" content="kept">
+                </div>
+                <div itemprop="header" itemscope itemtype="https://pagelove.org/Pair">
+                  <meta itemprop="key" content="Bad Name">
+                  <meta itemprop="value" content="dropped">
+                </div>
+                <div itemprop="header" itemscope itemtype="https://pagelove.org/Pair">
+                  <meta itemprop="key" content="X-Evil">
+                  <div itemprop="value" itemscope itemtype="https://pagelove.org/JavaScript/Module">
+                    <script type="module" itemprop="source">
+                      export default function(ctx) { return "a\r\nX-Injected: yes"; }
+                    </script>
+                  </div>
+                </div>
+              </div>
+            </div>
+            </body></html>
+        expect: {status: [200, 201, 204]}
+      - {name: write, as: anonymous, request: {method: PUT, path: "${P}/d/x.html", headers: {Content-Type: text/html}, body: "<p>x</p>"}, expect: {status: [200, 201, 204]}}
+      - sink_expect:
+          path: /malformed
+          within_ms: 5000
+          headers: {X-Good: "kept"}
+          headers_absent: [X-Evil, X-Injected, Bad-Name]
+
+  - id: reacting.outbound.ats-outbox-relay
+    title: "ATS outbox: a PUT of a JSON payload is relayed with its body and headers"
+    feature: outbound HttpRequest (relay)
+    evidence: demo-source
+    source: "pagelove-ats/site/outbox/index.html@8f200fc:10-32"
+    confidence: high
+    requires: [outbound-http, sessel]
+    live: true
+    notes: "spec: R-REACT-6 (blob paths), R-REACT-51, R-REACT-52. The Postmark URL is replaced by ${SINK} and the token by a test value."
+    steps:
+      - name: install the outbox trigger
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/outbox/index.html"
+          headers: {Content-Type: text/html}
+          body: |
+            <!DOCTYPE html>
+            <html lang="en" xmlns:p="https://pagelove.org/1.0">
+            <head><meta charset="UTF-8"><title>Outbox</title></head>
+            <body>
+            <div itemscope itemtype="https://pagelove.org/Trigger">
+              <meta itemprop="resource" content="${P}/outbox/E-*.json">
+              <meta itemprop="method" content="PUT">
+              <div itemprop="action" itemscope itemtype="https://pagelove.org/HttpRequest">
+                <meta itemprop="url" content="${SINK}/email">
+                <meta itemprop="method" content="POST">
+                <meta itemprop="content-type" content="application/json">
+                <div itemprop="header" itemscope itemtype="https://pagelove.org/Pair">
+                  <meta itemprop="key" content="X-Postmark-Server-Token">
+                  <meta itemprop="value" content="test-server-token">
+                </div>
+                <div itemprop="header" itemscope itemtype="https://pagelove.org/Pair">
+                  <meta itemprop="key" content="Accept">
+                  <meta itemprop="value" content="application/json">
+                </div>
+                <div itemprop="body" itemscope itemtype="https://pagelove.org/Sessel">
+                  <script itemprop="source" type="text/sessel">
+                    @schema Context url("https://pagelove.org/Context");
+                    Context.request.body
+                  </script>
+                </div>
+              </div>
+            </div>
+            </body>
+            </html>
+        expect: {status: [200, 201, 204]}
+      - name: queue an e-mail
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/outbox/E-1.json"
+          headers: {Content-Type: application/json}
+          body: '{"From":"hello@example.com","To":"cand@example.com","Subject":"Hi","TextBody":"Hello"}'
+        expect: {status: [200, 201, 204]}
+      - sink_expect:
+          path: /email
+          within_ms: 5000
+          method: POST
+          headers: {Content-Type: "application/json", X-Postmark-Server-Token: "test-server-token", Accept: "application/json"}
+          body_json: {From: hello@example.com, To: cand@example.com, Subject: Hi, TextBody: Hello}
+
+  - id: reacting.outbound.failure-does-not-affect-client
+    title: A failing webhook does not change the client's response
+    feature: outbound HttpRequest (fire-and-forget)
+    evidence: documented
+    source: "docs reference/reacting-to-changes/HTTPRequest §Retry ('Failures do not affect the client response (already sent)'), §Error handling (snapshot 2026-09-28)"
+    confidence: high
+    requires: [outbound-http]
+    live: true
+    notes: "spec: R-REACT-56, R-REACT-58."
+    steps:
+      - sink_config: {path: /down, responses: [500]}
+      - name: install
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/r/triggers.html"
+          headers: {Content-Type: text/html}
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+            <div hidden itemscope itemtype="https://pagelove.org/Trigger">
+              <meta itemprop="resource" content="${P}/d/*">
+              <meta itemprop="method" content="PUT">
+              <div itemprop="action" itemscope itemtype="https://pagelove.org/HttpRequest">
+                <meta itemprop="url" content="${SINK}/down">
+              </div>
+            </div>
+            </body></html>
+        expect: {status: [200, 201, 204]}
+      - {name: the write succeeds, as: anonymous, request: {method: PUT, path: "${P}/d/x.html", headers: {Content-Type: text/html}, body: "<p>x</p>"}, expect: {status: [200, 201, 204]}}
+      - sink_expect: {path: /down, within_ms: 5000}
+      - {name: the write is stored, as: anonymous, request: {method: GET, path: "${P}/d/x.html"}, expect: {status: 200}}
+
+  - id: reacting.outbound.queued-before-throw-still-sent
+    title: A request queued by an earlier trigger is still sent when a later trigger throws
+    feature: outbound HttpRequest (queue lifetime)
+    evidence: inferred
+    source: "spec R-REACT-9/R-REACT-56, decision C4 (lifecycle skips only steps 3-4 on a throw)"
+    confidence: low
+    requires: [outbound-http, sessel]
+    live: true
+    notes: "Probe P-4."
+    steps:
+      - name: install a.html (queues) and b.html (throws)
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/r/a.html"
+          headers: {Content-Type: text/html}
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+            <div hidden itemscope itemtype="https://pagelove.org/Trigger">
+              <meta itemprop="resource" content="${P}/d/*">
+              <meta itemprop="method" content="PUT">
+              <div itemprop="action" itemscope itemtype="https://pagelove.org/HttpRequest">
+                <meta itemprop="url" content="${SINK}/queued">
+              </div>
+            </div>
+            </body></html>
+        expect: {status: [200, 201, 204]}
+      - name: install the thrower
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/r/b.html"
+          headers: {Content-Type: text/html}
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+            <div hidden itemscope itemtype="https://pagelove.org/Trigger">
+              <meta itemprop="resource" content="${P}/d/*">
+              <meta itemprop="method" content="PUT">
+              <div itemprop="action" itemscope itemtype="https://pagelove.org/Sessel">
+                <script itemprop="source" type="text/sessel">
+                  @schema HTTPResponse url("https://pagelove.org/HTTPResponse");
+                  throw new HTTPResponse { status: 409, message: "stop" }
+                </script>
+              </div>
+            </div>
+            </body></html>
+        expect: {status: [200, 201, 204]}
+      - {name: refused, as: anonymous, request: {method: PUT, path: "${P}/d/x.html", headers: {Content-Type: text/html}, body: "<p>x</p>"}, expect: {status: 409}}
+      - sink_expect: {path: /queued, within_ms: 5000}
+
+  - id: reacting.outbound.dispatched-even-if-core-fails
+    title: A trigger-queued request is sent even when core processing then fails
+    feature: outbound HttpRequest (queue lifetime)
+    evidence: inferred
+    source: "spec R-REACT-56 (dispatch is not conditioned on success; docs never condition it)"
+    confidence: low
+    requires: [outbound-http]
+    live: true
+    notes: "Probe P-4 (core-failure variant). Core answers 404 for a selector PUT to a missing document."
+    steps:
+      - name: install
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/r/triggers.html"
+          headers: {Content-Type: text/html}
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+            <div hidden itemscope itemtype="https://pagelove.org/Trigger">
+              <meta itemprop="resource" content="${P}/d/*">
+              <meta itemprop="method" content="PUT">
+              <div itemprop="action" itemscope itemtype="https://pagelove.org/HttpRequest">
+                <meta itemprop="url" content="${SINK}/core-failed">
+              </div>
+            </div>
+            </body></html>
+        expect: {status: [200, 201, 204]}
+      - name: a selector PUT to a missing document fails in core
+        as: anonymous
+        request: {method: PUT, path: "${P}/d/missing.html", headers: {Content-Type: text/html, Range: "selector=h1"}, body: "<h1>x</h1>"}
+        expect: {status: 404}
+      - sink_expect: {path: /core-failed, within_ms: 5000}
+
+  - id: reacting.outbound.processor-status-filter-success-only
+    title: A processor with a 2xx status filter sends its webhook only for successful writes
+    feature: outbound HttpRequest (processor)
+    evidence: documented
+    source: "docs reference/reacting-to-changes/Processor §status, §action (HttpRequest in processors); recipes/sending-a-webhook (snapshot 2026-09-28)"
+    confidence: high
+    requires: [outbound-http, sessel]
+    live: true
+    notes: "spec: R-REACT-15, R-REACT-55, R-REACT-56. The body is built from Context.response.status."
+    steps:
+      - name: install
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/r/processors.html"
+          headers: {Content-Type: text/html}
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+            <div hidden itemscope itemtype="https://pagelove.org/Processor">
+              <meta itemprop="resource" content="${P}/d/*">
+              <meta itemprop="method" content="PUT">
+              <meta itemprop="status" content="2xx">
+              <div itemprop="action" itemscope itemtype="https://pagelove.org/HttpRequest">
+                <meta itemprop="url" content="${SINK}/success">
+                <div itemprop="body" itemscope itemtype="https://pagelove.org/Sessel">
+                  <script itemprop="source" type="text/sessel">
+                    @schema Context url("https://pagelove.org/Context");
+                    "status=" + Context.response.status.String()
+                  </script>
+                </div>
+              </div>
+            </div>
+            </body></html>
+        expect: {status: [200, 201, 204]}
+      - name: a failing write sends nothing
+        as: anonymous
+        request: {method: PUT, path: "${P}/d/missing.html", headers: {Content-Type: text/html, Range: "selector=h1"}, body: "<h1>x</h1>"}
+        expect: {status: 404}
+      - sink_expect_none: {path: /success, for_ms: 2000}
+      - name: a successful write sends one request
+        as: anonymous
+        request: {method: PUT, path: "${P}/d/x.html", headers: {Content-Type: text/html}, body: "<p>x</p>"}
+        expect: {status: [200, 201, 204]}
+      - sink_expect: {path: /success, within_ms: 5000, body_matches: "^status=20[01]$"}
+
+  - id: reacting.outbound.httprequest-uppercase-alias
+    title: The itemtype spelling https://pagelove.org/HTTPRequest is accepted as an alias
+    feature: outbound HttpRequest (itemtype)
+    evidence: documented
+    source: "docs reference/composing-pages/Resource-Binding §Trigger context (uses HTTPRequest) (snapshot 2026-09-28); spec R-REACT-48, decision C10"
+    confidence: low
+    requires: [outbound-http]
+    live: true
+    notes: "Probe P-13."
+    steps:
+      - name: install
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/r/triggers.html"
+          headers: {Content-Type: text/html}
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+            <div hidden itemscope itemtype="https://pagelove.org/Trigger">
+              <meta itemprop="resource" content="${P}/d/*">
+              <meta itemprop="method" content="PUT">
+              <div itemprop="action" itemscope itemtype="https://pagelove.org/HTTPRequest">
+                <meta itemprop="url" content="${SINK}/alias">
+              </div>
+            </div>
+            </body></html>
+        expect: {status: [200, 201, 204]}
+      - {name: write, as: anonymous, request: {method: PUT, path: "${P}/d/x.html", headers: {Content-Type: text/html}, body: "<p>x</p>"}, expect: {status: [200, 201, 204]}}
+      - sink_expect: {path: /alias, within_ms: 5000}

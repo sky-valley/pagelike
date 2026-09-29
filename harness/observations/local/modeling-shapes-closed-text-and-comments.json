@@ -1,0 +1,36 @@
+{
+  "case": "modeling.shapes-closed.text-and-comments-allowed",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (register declarations through the public plane (takes effect for the next request))",
+      "method": "PUT",
+      "path": "/_pl/modeling-shapes-closed-text-and-comments-9e1137/shapes.html",
+      "status": 201,
+      "headers": {
+        "content-length": "305",
+        "content-type": "text/html",
+        "etag": "\"6dd12e65148a9f52145914e30eac56629fe4487002c9ebe17539589e2882f1f2\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:45 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\n  \u003cdiv hidden itemscope itemtype=\"https://pagelove.org/ShapeConstraint\"\u003e\n    \u003cmeta itemprop=\"resource\" content=\"/_pl/modeling-shapes-closed-text-and-comments-9e1137/box/*\"\u003e\n    \u003ccode itemprop=\"selector\"\u003e#box\u003c/code\u003e\n    \u003ccode itemprop=\"permit\"\u003ep\u003c/code\u003e\n  \u003c/div\u003e\n\u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 2 (text and a comment accepted)",
+      "method": "PUT",
+      "path": "/_pl/modeling-shapes-closed-text-and-comments-9e1137/box/a.html",
+      "status": 201,
+      "headers": {
+        "content-length": "124",
+        "content-type": "text/html",
+        "etag": "\"0e7d1eb4f6384f8993b57a12778370bdc7b2bf83a08785287b556bfabbafd8a8\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:45 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\n  \u003cdiv id=\"box\"\u003e\n    loose text\n    \u003c!-- a comment --\u003e\n    \u003cp\u003epara\u003c/p\u003e\n  \u003c/div\u003e\n\u003c/body\u003e\u003c/html\u003e\n"
+    }
+  ],
+  "outcome": "pass",
+  "target": "local"
+}

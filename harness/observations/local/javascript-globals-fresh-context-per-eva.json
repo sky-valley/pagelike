@@ -1,0 +1,37 @@
+{
+  "case": "javascript.globals.fresh-context-per-evaluation",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (PUT the page (public plane; registers inline declarations))",
+      "method": "PUT",
+      "path": "/_pl/javascript-globals-fresh-context-per-eva-71812f/fresh.html",
+      "status": 201,
+      "headers": {
+        "content-length": "713",
+        "content-type": "text/html",
+        "etag": "\"671cfa1cf793019280fd17f60854db819d5d2b245bbb30124b8cff0beb684e17\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:43 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml xmlns:t=\"https://pagelike.test/_pl/javascript-globals-fresh-context-per-eva-71812f/Fresh\"\u003e\u003cbody\u003e\n\u003cmain\u003e\n\u003cp id=\"a\"\u003e\u003ct:ctr\u003e\u003c/t:ctr\u003e\u003c/p\u003e\u003cp id=\"b\"\u003e\u003ct:ctr\u003e\u003c/t:ctr\u003e\u003c/p\u003e\n\u003c/main\u003e\n\u003cdiv hidden itemscope itemtype=\"https://pagelove.org/Schema\"\u003e\n\u003cmeta itemprop=\"type\" content=\"https://pagelike.test/_pl/javascript-globals-fresh-context-per-eva-71812f/Fresh\"\u003e\n\u003cul\u003e\n\u003cli itemprop=\"property\" itemscope itemtype=\"https://pagelove.org/Method\"\u003e\n\u003cmeta itemprop=\"name\" content=\"ctr\"\u003e\n\u003cdiv itemprop=\"implementation\" itemscope itemtype=\"https://pagelove.org/JavaScript/Module\"\u003e\n\u003cscript itemprop=\"source\" type=\"module\"\u003e\nlet n = 0;\nexport default () =\u003e 'N' + (++n);\n\u003c/script\u003e\n\u003c/div\u003e\n\u003c/li\u003e\n\u003c/ul\u003e\n\u003c/div\u003e\n\u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 2 (GET the composed page)",
+      "method": "GET",
+      "path": "/_pl/javascript-globals-fresh-context-per-eva-71812f/fresh.html",
+      "status": 206,
+      "headers": {
+        "accept-ranges": "selector, bytes",
+        "content-length": "47",
+        "content-range": "selector main",
+        "content-type": "text/html",
+        "etag": "\"a0c04f7ae83f4795ee4a87f0e2e1973edc7675e4c03df75e66b4d83c90dc9ed4-a0c04f7ae83f4795ee4a87f0e2e1973edc7675e4c03df75e66b4d83c90dc9ed4-1\"",
+        "vary": "Host, Range, Accept"
+      },
+      "body": "\u003cmain\u003e\n\u003cp id=\"a\"\u003eN1\u003c/p\u003e\u003cp id=\"b\"\u003eN1\u003c/p\u003e\n\u003c/main\u003e"
+    }
+  ],
+  "outcome": "pass",
+  "target": "local"
+}

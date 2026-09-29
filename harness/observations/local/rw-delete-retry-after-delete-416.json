@@ -1,0 +1,31 @@
+{
+  "case": "rw.delete.retry-after-delete-416",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (first delete)",
+      "method": "DELETE",
+      "path": "/_pl/rw-delete-retry-after-delete-416-9b9cfb/twice.html",
+      "status": 204,
+      "headers": {
+        "etag": "\"49f45ab1766afefa2b5f8b7353f5c30c6fa456f46b5db677cc42d16fd1bb3a75\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:55 GMT",
+        "vary": "Host, Range"
+      }
+    },
+    {
+      "step": "step 2 (retry)",
+      "method": "DELETE",
+      "path": "/_pl/rw-delete-retry-after-delete-416-9b9cfb/twice.html",
+      "status": 416,
+      "headers": {
+        "content-length": "430",
+        "content-type": "text/html",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\u003cdiv itemscope itemtype=\"http://pagelove.org/Error\"\u003e\u003cspan itemprop=\"statusCode\"\u003e416\u003c/span\u003e\u003cspan itemprop=\"message\"\u003e\u003cdiv itemscope itemtype=\"https://dombase.pagelove.team/ns/error/selector-no-match\"\u003e\u003cul itemprop=\"problems\"\u003e\u003cli itemprop=\"problem\"\u003e\u003cspan itemprop=\"message\"\u003eselector \"#card-1\": selector matched no elements at the request path or any origin\u003c/span\u003e\u003c/li\u003e\u003c/ul\u003e\u003c/div\u003e\u003c/span\u003e\u003c/div\u003e\u003c/body\u003e\u003c/html\u003e"
+    }
+  ],
+  "outcome": "pass",
+  "target": "local"
+}

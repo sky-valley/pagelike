@@ -1,0 +1,58 @@
+{
+  "case": "reacting.outbound.queued-before-throw-still-sent",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (install a.html (queues) and b.html (throws))",
+      "method": "PUT",
+      "path": "/_pl/reacting-outbound-queued-before-throw-st-53ecb4/r/a.html",
+      "status": 201,
+      "headers": {
+        "content-length": "417",
+        "content-type": "text/html",
+        "etag": "\"9bb474f61a4c137ef97bf0ab339a545ff65d19fbef8c1c6ff9b87d4fee4c9739\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:48 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\n\u003cdiv hidden itemscope itemtype=\"https://pagelove.org/Trigger\"\u003e\n  \u003cmeta itemprop=\"resource\" content=\"/_pl/reacting-outbound-queued-before-throw-st-53ecb4/d/*\"\u003e\n  \u003cmeta itemprop=\"method\" content=\"PUT\"\u003e\n  \u003cdiv itemprop=\"action\" itemscope itemtype=\"https://pagelove.org/HttpRequest\"\u003e\n    \u003cmeta itemprop=\"url\" content=\"http://127.0.0.1:53431/c-7dee3f74/queued\"\u003e\n  \u003c/div\u003e\n\u003c/div\u003e\n\u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 2 (install the thrower)",
+      "method": "PUT",
+      "path": "/_pl/reacting-outbound-queued-before-throw-st-53ecb4/r/b.html",
+      "status": 201,
+      "headers": {
+        "content-length": "530",
+        "content-type": "text/html",
+        "etag": "\"d3050016abdf60c61f19a176cc0d1324f8dd6add380da7300912dfddad5f718a\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:48 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\n\u003cdiv hidden itemscope itemtype=\"https://pagelove.org/Trigger\"\u003e\n  \u003cmeta itemprop=\"resource\" content=\"/_pl/reacting-outbound-queued-before-throw-st-53ecb4/d/*\"\u003e\n  \u003cmeta itemprop=\"method\" content=\"PUT\"\u003e\n  \u003cdiv itemprop=\"action\" itemscope itemtype=\"https://pagelove.org/Sessel\"\u003e\n    \u003cscript itemprop=\"source\" type=\"text/sessel\"\u003e\n      @schema HTTPResponse url(\"https://pagelove.org/HTTPResponse\");\n      throw new HTTPResponse { status: 409, message: \"stop\" }\n    \u003c/script\u003e\n  \u003c/div\u003e\n\u003c/div\u003e\n\u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 3 (refused)",
+      "method": "PUT",
+      "path": "/_pl/reacting-outbound-queued-before-throw-st-53ecb4/d/x.html",
+      "status": 409,
+      "headers": {
+        "content-length": "4",
+        "content-type": "text/html; charset=utf-8"
+      },
+      "body": "stop"
+    },
+    {
+      "step": "step 4",
+      "method": "POST",
+      "path": "${SINK}/queued",
+      "headers": {
+        "accept-encoding": "gzip",
+        "content-length": "0",
+        "content-type": "text/html",
+        "user-agent": "Go-http-client/1.1"
+      }
+    }
+  ],
+  "outcome": "pass",
+  "target": "local"
+}

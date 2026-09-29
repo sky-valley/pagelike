@@ -1,0 +1,51 @@
+{
+  "case": "reacting.th.when-gate-error-no-delivery",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (install a handler whose gate raises a type error)",
+      "method": "PUT",
+      "path": "/_pl/reacting-th-when-gate-error-no-delivery-6c7c87/r/handlers.html",
+      "status": 201,
+      "headers": {
+        "content-length": "671",
+        "content-type": "text/html",
+        "etag": "\"e6d9d66ce1766457de682486197677875c068ccb117fb929f9ac5c23bc0cbd3b\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:52 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\n\u003cdiv itemscope itemtype=\"https://pagelove.org/TransitionHandler\"\u003e\n  \u003cmeta itemprop=\"selector\" content=\"[itemtype='https://pagelike.test/_pl/reacting-th-when-gate-error-no-delivery-6c7c87/Order']\"\u003e\n  \u003cmeta itemprop=\"property\" content=\"status\"\u003e\n  \u003cmeta itemprop=\"becomes\" content=\"processing\"\u003e\n  \u003cdiv itemprop=\"when\" itemscope itemtype=\"https://pagelove.org/Sessel\"\u003e\n    \u003cscript itemprop=\"source\" type=\"text/sessel\"\u003e\"abc\".Integer() \u003e 0\u003c/script\u003e\n  \u003c/div\u003e\n  \u003cdiv itemprop=\"action\" itemscope itemtype=\"https://pagelove.org/HttpRequest\"\u003e\n    \u003cmeta itemprop=\"url\" content=\"http://127.0.0.1:53656/c-c594893c/erroring\"\u003e\n  \u003c/div\u003e\n\u003c/div\u003e\n\u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 2 (the write commits normally)",
+      "method": "PUT",
+      "path": "/_pl/reacting-th-when-gate-error-no-delivery-6c7c87/orders/o.html",
+      "status": 201,
+      "headers": {
+        "content-length": "197",
+        "content-type": "text/html",
+        "etag": "\"4972dcbe97e62409505cc2d3d84821a08b49d6c3a81dd362547e8f68a2bf1d5b\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:52 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\u003chtml\u003e\u003cbody\u003e\u003cdiv itemscope itemtype=\"https://pagelike.test/_pl/reacting-th-when-gate-error-no-delivery-6c7c87/Order\"\u003e\u003cmeta itemprop=\"status\" content=\"processing\"\u003e\u003c/div\u003e\u003c/body\u003e\u003c/html\u003e"
+    },
+    {
+      "step": "step 4 (stored)",
+      "method": "GET",
+      "path": "/_pl/reacting-th-when-gate-error-no-delivery-6c7c87/orders/o.html",
+      "status": 200,
+      "headers": {
+        "accept-ranges": "selector, bytes",
+        "content-length": "197",
+        "content-type": "text/html",
+        "etag": "\"4972dcbe97e62409505cc2d3d84821a08b49d6c3a81dd362547e8f68a2bf1d5b\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:52 GMT",
+        "vary": "Host, Range, Accept"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\u003chtml\u003e\u003cbody\u003e\u003cdiv itemscope itemtype=\"https://pagelike.test/_pl/reacting-th-when-gate-error-no-delivery-6c7c87/Order\"\u003e\u003cmeta itemprop=\"status\" content=\"processing\"\u003e\u003c/div\u003e\u003c/body\u003e\u003c/html\u003e"
+    }
+  ],
+  "outcome": "pass",
+  "target": "local"
+}

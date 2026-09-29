@@ -1,0 +1,528 @@
+# Reacting: `when` gates and `otherwise` (spec R-REACT-17, 18, 24, 34).
+# See discovery.yaml for directory conventions.
+anchors:
+  open_rules: &open_rules
+    - {actor: "*", resource: "${P}/*", method: [GET, HEAD, PUT, POST, DELETE], action: Allow}
+defaults:
+  area: reacting
+  site:
+    settings: {default_get: allow}
+    rules: *open_rules
+cases:
+  - id: reacting.gates.when-truthy-runs-action
+    title: A truthy Sessel when runs the action
+    feature: when gate
+    evidence: documented
+    source: "docs reference/reacting-to-changes/Trigger §when (snapshot 2026-09-28)"
+    confidence: high
+    requires: [sessel]
+    live: true
+    notes: "spec: R-REACT-17."
+    steps:
+      - name: install a gated trigger (no method filter; the gate selects PUT)
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/r/triggers.html"
+          headers: {Content-Type: text/html}
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+            <div hidden itemscope itemtype="https://pagelove.org/Trigger">
+              <meta itemprop="resource" content="${P}/d/*">
+              <div itemprop="when" itemscope itemtype="https://pagelove.org/Sessel">
+                <script itemprop="source" type="text/sessel">
+                  @schema Context url("https://pagelove.org/Context");
+                  Context.request.method == "PUT"
+                </script>
+              </div>
+              <div itemprop="action" itemscope itemtype="https://pagelove.org/Sessel">
+                <script itemprop="source" type="text/sessel">
+                  @schema HTTPResponse url("https://pagelove.org/HTTPResponse");
+                  throw new HTTPResponse { status: 409, message: "gate-open" }
+                </script>
+              </div>
+            </div>
+            </body></html>
+        expect: {status: [200, 201, 204]}
+      - name: PUT passes the gate and the action throws
+        as: anonymous
+        request: {method: PUT, path: "${P}/d/x.html", headers: {Content-Type: text/html}, body: "<p>x</p>"}
+        expect: {status: 409, body_contains: ["gate-open"]}
+      - name: GET fails the gate, the trigger is skipped (404 from core)
+        as: anonymous
+        request: {method: GET, path: "${P}/d/x.html"}
+        expect: {status: 404}
+
+  - id: reacting.gates.falsy-values-skip
+    title: "false, null, 0 and the empty string all skip the trigger"
+    feature: when gate
+    evidence: documented
+    source: "docs reference/reacting-to-changes/Trigger §when ('If the expression evaluates to a falsy value (null, false, 0, empty string), the trigger is skipped') (snapshot 2026-09-28)"
+    confidence: high
+    requires: [sessel]
+    live: true
+    notes: "spec: R-REACT-17."
+    steps:
+      - name: install four triggers whose gates are falsy
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/r/triggers.html"
+          headers: {Content-Type: text/html}
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+            <div hidden itemscope itemtype="https://pagelove.org/Trigger">
+              <meta itemprop="resource" content="${P}/d/*">
+              <meta itemprop="method" content="PUT">
+              <div itemprop="when" itemscope itemtype="https://pagelove.org/Sessel"><script itemprop="source" type="text/sessel">false</script></div>
+              <div itemprop="action" itemscope itemtype="https://pagelove.org/Sessel"><script itemprop="source" type="text/sessel">
+                @schema HTTPResponse url("https://pagelove.org/HTTPResponse");
+                throw new HTTPResponse { status: 409, message: "false-fired" }
+              </script></div>
+            </div>
+            <div hidden itemscope itemtype="https://pagelove.org/Trigger">
+              <meta itemprop="resource" content="${P}/d/*">
+              <meta itemprop="method" content="PUT">
+              <div itemprop="when" itemscope itemtype="https://pagelove.org/Sessel"><script itemprop="source" type="text/sessel">null</script></div>
+              <div itemprop="action" itemscope itemtype="https://pagelove.org/Sessel"><script itemprop="source" type="text/sessel">
+                @schema HTTPResponse url("https://pagelove.org/HTTPResponse");
+                throw new HTTPResponse { status: 409, message: "null-fired" }
+              </script></div>
+            </div>
+            <div hidden itemscope itemtype="https://pagelove.org/Trigger">
+              <meta itemprop="resource" content="${P}/d/*">
+              <meta itemprop="method" content="PUT">
+              <div itemprop="when" itemscope itemtype="https://pagelove.org/Sessel"><script itemprop="source" type="text/sessel">0</script></div>
+              <div itemprop="action" itemscope itemtype="https://pagelove.org/Sessel"><script itemprop="source" type="text/sessel">
+                @schema HTTPResponse url("https://pagelove.org/HTTPResponse");
+                throw new HTTPResponse { status: 409, message: "zero-fired" }
+              </script></div>
+            </div>
+            <div hidden itemscope itemtype="https://pagelove.org/Trigger">
+              <meta itemprop="resource" content="${P}/d/*">
+              <meta itemprop="method" content="PUT">
+              <div itemprop="when" itemscope itemtype="https://pagelove.org/Sessel"><script itemprop="source" type="text/sessel">""</script></div>
+              <div itemprop="action" itemscope itemtype="https://pagelove.org/Sessel"><script itemprop="source" type="text/sessel">
+                @schema HTTPResponse url("https://pagelove.org/HTTPResponse");
+                throw new HTTPResponse { status: 409, message: "empty-fired" }
+              </script></div>
+            </div>
+            </body></html>
+        expect: {status: [200, 201, 204]}
+      - name: the write proceeds
+        as: anonymous
+        request: {method: PUT, path: "${P}/d/x.html", headers: {Content-Type: text/html}, body: "<p>x</p>"}
+        expect: {status: [200, 201, 204]}
+
+  - id: reacting.gates.js-when
+    title: A JavaScript/Module when gate receives ctx and gates the action
+    feature: when gate (JavaScript)
+    evidence: documented
+    source: "docs reference/reacting-to-changes/Trigger §when (JavaScript example; 'dispatch is by itemtype') (snapshot 2026-09-28)"
+    confidence: high
+    requires: [server-js, sessel]
+    live: true
+    notes: "spec: R-REACT-17, R-REACT-19."
+    steps:
+      - name: install a trigger with the documented JS gate
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/r/triggers.html"
+          headers: {Content-Type: text/html}
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+            <div hidden itemscope itemtype="https://pagelove.org/Trigger">
+              <meta itemprop="resource" content="${P}/d/*">
+              <div itemprop="when" itemscope itemtype="https://pagelove.org/JavaScript/Module">
+                <script type="module" itemprop="source">
+                  export default function(ctx) {
+                    return ctx.request.method === "PUT";
+                  }
+                </script>
+              </div>
+              <div itemprop="action" itemscope itemtype="https://pagelove.org/Sessel">
+                <script itemprop="source" type="text/sessel">
+                  @schema HTTPResponse url("https://pagelove.org/HTTPResponse");
+                  throw new HTTPResponse { status: 409, message: "js-gate-open" }
+                </script>
+              </div>
+            </div>
+            </body></html>
+        expect: {status: [200, 201, 204]}
+      - name: PUT passes the JS gate
+        as: anonymous
+        request: {method: PUT, path: "${P}/d/x.html", headers: {Content-Type: text/html}, body: "<p>x</p>"}
+        expect: {status: 409, body_contains: ["js-gate-open"]}
+      - name: GET does not
+        as: anonymous
+        request: {method: GET, path: "${P}/d/x.html"}
+        expect: {status: 404}
+
+  - id: reacting.gates.otherwise-runs-when-falsy
+    title: "otherwise runs instead of action when the gate is falsy (require X, otherwise reject)"
+    feature: otherwise
+    evidence: documented
+    source: "docs reference/reacting-to-changes/Trigger §otherwise (snapshot 2026-09-28)"
+    confidence: high
+    requires: [sessel]
+    live: true
+    notes: "spec: R-REACT-17/18. Uses the lower-case header name so the case does not depend on decision C2 (tested in context.yaml). The action is the documented no-op `1`."
+    steps:
+      - name: install the documented otherwise trigger
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/r/triggers.html"
+          headers: {Content-Type: text/html}
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+            <div hidden itemscope itemtype="https://pagelove.org/Trigger">
+              <meta itemprop="resource" content="${P}/d/*">
+              <meta itemprop="method" content="PUT">
+              <div itemprop="when" itemscope itemtype="https://pagelove.org/Sessel">
+                <script itemprop="source" type="text/sessel">
+                  @schema Context url("https://pagelove.org/Context");
+                  Context.request.headers["authorization"] != null
+                </script>
+              </div>
+              <div itemprop="action" itemscope itemtype="https://pagelove.org/Sessel">
+                <script itemprop="source" type="text/sessel">1</script>
+              </div>
+              <div itemprop="otherwise" itemscope itemtype="https://pagelove.org/Sessel">
+                <script itemprop="source" type="text/sessel">
+                  @schema HTTPResponse url("https://pagelove.org/HTTPResponse");
+                  throw new HTTPResponse { status: 401, body: "Authorization required" }
+                </script>
+              </div>
+            </div>
+            </body></html>
+        expect: {status: [200, 201, 204]}
+      - name: without an Authorization header the otherwise branch rejects
+        as: anonymous
+        request: {method: PUT, path: "${P}/d/x.html", headers: {Content-Type: text/html}, body: "<p>x</p>"}
+        expect: {status: 401, body_contains: ["Authorization required"]}
+      - name: with the header the action (a no-op) runs and the write proceeds
+        as: anonymous
+        request: {method: PUT, path: "${P}/d/x.html", headers: {Content-Type: text/html, Authorization: "Bearer pagelike-test-token"}, body: "<p>x</p>"}
+        expect: {status: [200, 201, 204]}
+
+  - id: reacting.gates.otherwise-ignored-without-when
+    title: otherwise is never evaluated when the trigger has no when
+    feature: otherwise
+    evidence: documented
+    source: "docs reference/reacting-to-changes/Trigger §otherwise ('if when is omitted, otherwise is never evaluated') (snapshot 2026-09-28)"
+    confidence: high
+    requires: [sessel]
+    live: true
+    notes: "spec: R-REACT-17."
+    steps:
+      - name: install a gate-less trigger whose otherwise would throw
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/r/triggers.html"
+          headers: {Content-Type: text/html}
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+            <div hidden itemscope itemtype="https://pagelove.org/Trigger">
+              <meta itemprop="resource" content="${P}/d/*">
+              <meta itemprop="method" content="PUT">
+              <div itemprop="action" itemscope itemtype="https://pagelove.org/Sessel">
+                <script itemprop="source" type="text/sessel">1</script>
+              </div>
+              <div itemprop="otherwise" itemscope itemtype="https://pagelove.org/Sessel">
+                <script itemprop="source" type="text/sessel">
+                  @schema HTTPResponse url("https://pagelove.org/HTTPResponse");
+                  throw new HTTPResponse { status: 409, message: "otherwise-ran" }
+                </script>
+              </div>
+            </div>
+            </body></html>
+        expect: {status: [200, 201, 204]}
+      - name: the write proceeds
+        as: anonymous
+        request: {method: PUT, path: "${P}/d/x.html", headers: {Content-Type: text/html}, body: "<p>x</p>"}
+        expect: {status: [200, 201, 204]}
+
+  - id: reacting.gates.shop-basic-auth-gate
+    title: "Shop admin gate: compare the Authorization header with a credential stored in an unreadable document"
+    feature: when/otherwise with store query
+    evidence: demo-source
+    source: "pagelove-shop/site/admin-auth.html@d887054:19-35; site/rules.html@d887054:55-59; site/private/admin.example.html@d887054:8-11"
+    confidence: high
+    requires: [sessel]
+    live: true
+    notes: "spec: R-REACT-23, R-REACT-24, R-REACT-29. The bare Sessel selector queries the whole site without per-request authorization, so it reads the private credential that anonymous GETs cannot. The credential is a test value (base64 of test:test). The gate carries the documented no-op action `1`: the serving path refuses a Trigger without exactly one action (R-REACT-4a, live 2026-09-29)."
+    site:
+      settings: {default_get: allow}
+      rules:
+        - {actor: "*", resource: "${P}/*", method: [GET, HEAD, PUT, POST, DELETE], action: Allow}
+        - {actor: "*", resource: "${P}/private/*", method: [GET, HEAD, PUT, POST, DELETE], action: Deny}
+      files:
+        - path: "${P}/private/admin.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+            <div itemscope itemtype="https://pagelike.test${P}/AdminCredential">
+              <meta itemprop="authorization" content="Basic dGVzdDp0ZXN0">
+              <meta itemprop="username" content="test">
+            </div>
+            </body></html>
+        - path: "${P}/admin/index.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body><h1>Orders dashboard</h1></body></html>
+    steps:
+      - name: install the admin gate
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/r/admin-auth.html"
+          headers: {Content-Type: text/html}
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+            <div itemscope itemtype="https://pagelove.org/Trigger">
+              <meta itemprop="resource" content="${P}/admin/*">
+              <meta itemprop="method" content="GET">
+              <div itemprop="when" itemscope itemtype="https://pagelove.org/Sessel">
+                <script itemprop="source" type="text/sessel">
+            @schema Context url("https://pagelove.org/Context");
+            (Context.request.headers["authorization"] ?? "") == ${[itemtype="https://pagelike.test${P}/AdminCredential"] [itemprop="authorization"]}.first().value()
+                </script>
+              </div>
+              <div itemprop="action" itemscope itemtype="https://pagelove.org/Sessel">
+                <script itemprop="source" type="text/sessel">1</script>
+              </div>
+              <div itemprop="otherwise" itemscope itemtype="https://pagelove.org/Sessel">
+                <script itemprop="source" type="text/sessel">
+            @schema HTTPResponse url("https://pagelove.org/HTTPResponse");
+            @schema Pair url("https://pagelove.org/Pair");
+            throw new HTTPResponse { status: 401, header: new Pair { key: "WWW-Authenticate", value: "Basic realm=\"pagelike test\"" }, body: "Authorization required" }
+                </script>
+              </div>
+            </div>
+            </body></html>
+        expect: {status: [200, 201, 204]}
+      - name: the credential document itself is not readable
+        as: anonymous
+        request: {method: GET, path: "${P}/private/admin.html"}
+        expect: {status: 401}
+      - name: no credential - 401 with a Basic challenge
+        as: anonymous
+        request: {method: GET, path: "${P}/admin/index.html"}
+        expect:
+          status: 401
+          headers: {WWW-Authenticate: 'Basic realm="pagelike test"'}
+          body_contains: ["Authorization required"]
+      - name: wrong credential - still 401
+        as: anonymous
+        request: {method: GET, path: "${P}/admin/index.html", headers: {Authorization: "Basic d3Jvbmc6d3Jvbmc="}}
+        expect: {status: 401}
+      - name: matching credential - the page is served
+        as: anonymous
+        request: {method: GET, path: "${P}/admin/index.html", headers: {Authorization: "Basic dGVzdDp0ZXN0"}}
+        expect: {status: 200, body_contains: ["Orders dashboard"]}
+
+  - id: reacting.gates.when-runtime-error-fails-request
+    title: A runtime error in a when gate fails the request with an HTML microdata error body
+    feature: runtime errors
+    evidence: documented
+    source: "docs reference/reacting-to-changes/Trigger §Error handling ('the request fails with an HTML Microdata error body'); languages/sessel String .Integer() throws on unparseable input (snapshot 2026-09-28)"
+    confidence: low
+    requires: [sessel]
+    live: true
+    notes: "spec: R-REACT-34. Failure and microdata body are documented; status 500 is a pagelike decision (probe P-16)."
+    steps:
+      - name: install a trigger whose gate raises a type error
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/r/triggers.html"
+          headers: {Content-Type: text/html}
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+            <div hidden itemscope itemtype="https://pagelove.org/Trigger">
+              <meta itemprop="resource" content="${P}/d/*">
+              <meta itemprop="method" content="PUT">
+              <div itemprop="when" itemscope itemtype="https://pagelove.org/Sessel">
+                <script itemprop="source" type="text/sessel">"abc".Integer() > 0</script>
+              </div>
+              <div itemprop="action" itemscope itemtype="https://pagelove.org/Sessel">
+                <script itemprop="source" type="text/sessel">1</script>
+              </div>
+            </div>
+            </body></html>
+        expect: {status: [200, 201, 204]}
+      - name: the request fails
+        as: anonymous
+        request: {method: PUT, path: "${P}/d/x.html", headers: {Content-Type: text/html}, body: "<p>x</p>"}
+        expect:
+          status: 500
+          header_matches: {Content-Type: "^text/html"}
+          body_contains: ["itemscope"]
+      - name: nothing was written
+        as: anonymous
+        request: {method: GET, path: "${P}/d/x.html"}
+        expect: {status: 404}
+
+  - id: reacting.gates.malformed-when-skips-trigger
+    title: A when that is plain text (not a Sessel or JavaScript item) makes the trigger malformed, so it is skipped
+    feature: malformed items
+    evidence: inferred
+    source: "spec R-REACT-4/R-REACT-17, pagelike decision; docs Trigger §Error handling ('it is skipped')"
+    confidence: low
+    requires: [sessel]
+    live: true
+    notes: "Skipping a malformed guard fails open; see spec R-REACT-4."
+    steps:
+      - name: install a trigger with a text gate
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/r/triggers.html"
+          headers: {Content-Type: text/html}
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+            <div hidden itemscope itemtype="https://pagelove.org/Trigger">
+              <meta itemprop="resource" content="${P}/d/*">
+              <meta itemprop="method" content="PUT">
+              <meta itemprop="when" content="true">
+              <div itemprop="action" itemscope itemtype="https://pagelove.org/Sessel">
+                <script itemprop="source" type="text/sessel">
+                  @schema HTTPResponse url("https://pagelove.org/HTTPResponse");
+                  throw new HTTPResponse { status: 409, message: "text-gate-fired" }
+                </script>
+              </div>
+            </div>
+            </body></html>
+        expect: {status: [200, 201, 204]}
+      - name: the trigger is skipped and the write proceeds
+        as: anonymous
+        request: {method: PUT, path: "${P}/d/x.html", headers: {Content-Type: text/html}, body: "<p>x</p>"}
+        expect: {status: [200, 201, 204]}
+
+  - id: reacting.gates.several-when-all-must-pass
+    title: A serving-path write storing a trigger with two when values is refused (422, platform schema Handler.when 0..1)
+    feature: when gate
+    evidence: live-observed
+    source: "harness/observations/live-2026-09-29-reconcile-reacting/reacting-discovery-probe-0929-handler-sh.json (2026-09-29, step 'trigger with two when values')"
+    confidence: high
+    requires: [sessel]
+    live: true
+    notes: "spec: R-REACT-17, R-REACT-4a (live 2026-09-29). The id keeps its old name. Stored items (WebDAV) with several gates still need every gate truthy: reacting.gates.several-when-all-must-pass-stored (local only)."
+    steps:
+      - name: install a trigger with a true gate and a false gate
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/r/triggers.html"
+          headers: {Content-Type: text/html}
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+            <div hidden itemscope itemtype="https://pagelove.org/Trigger">
+              <meta itemprop="resource" content="${P}/d/*">
+              <meta itemprop="method" content="PUT">
+              <div itemprop="when" itemscope itemtype="https://pagelove.org/Sessel"><script itemprop="source" type="text/sessel">true</script></div>
+              <div itemprop="when" itemscope itemtype="https://pagelove.org/Sessel"><script itemprop="source" type="text/sessel">false</script></div>
+              <div itemprop="action" itemscope itemtype="https://pagelove.org/Sessel">
+                <script itemprop="source" type="text/sessel">
+                  @schema HTTPResponse url("https://pagelove.org/HTTPResponse");
+                  throw new HTTPResponse { status: 409, message: "and-failed" }
+                </script>
+              </div>
+            </div>
+            </body></html>
+        expect:
+          status: 422
+          body_contains: ["https://pagelove.org/SchemaViolation", "[https://pagelove.org/Handler].when: cardinality 0..1 violated: expected at most 1 value, found 2"]
+      - name: no trigger was installed, so PUT proceeds
+        as: anonymous
+        request: {method: PUT, path: "${P}/d/x.html", headers: {Content-Type: text/html}, body: "<p>x</p>"}
+        expect: {status: [200, 201, 204]}
+
+  - id: reacting.gates.several-when-all-must-pass-stored
+    title: With several when values on a stored trigger (written over WebDAV), every gate must be truthy
+    feature: when gate
+    evidence: inferred
+    source: "spec R-REACT-17, pagelike decision (AND)"
+    confidence: low
+    requires: [sessel]
+    live: false
+    notes: "Local only: the serving path refuses a second when (reacting.gates.several-when-all-must-pass), and a WebDAV-written trigger takes up to 60 s to bind on PageLove (R-REACT-5)."
+    site:
+      settings: {default_get: allow}
+      rules: *open_rules
+      files:
+        - path: "${P}/r/triggers.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+            <div hidden itemscope itemtype="https://pagelove.org/Trigger">
+              <meta itemprop="resource" content="${P}/d/*">
+              <meta itemprop="method" content="PUT">
+              <div itemprop="when" itemscope itemtype="https://pagelove.org/Sessel"><script itemprop="source" type="text/sessel">true</script></div>
+              <div itemprop="when" itemscope itemtype="https://pagelove.org/Sessel"><script itemprop="source" type="text/sessel">false</script></div>
+              <div itemprop="action" itemscope itemtype="https://pagelove.org/Sessel">
+                <script itemprop="source" type="text/sessel">
+                  @schema HTTPResponse url("https://pagelove.org/HTTPResponse");
+                  throw new HTTPResponse { status: 409, message: "and-failed" }
+                </script>
+              </div>
+            </div>
+            </body></html>
+    steps:
+      - name: the trigger is skipped
+        as: anonymous
+        request: {method: PUT, path: "${P}/d/x.html", headers: {Content-Type: text/html}, body: "<p>x</p>"}
+        expect: {status: [200, 201, 204]}
+
+  - id: reacting.gates.js-when-empty-array-falsy
+    title: A JavaScript gate returning an empty array is falsy (converted value, Sessel truthiness)
+    feature: when gate (JavaScript)
+    evidence: inferred
+    source: "spec R-REACT-17, decision C11; docs languages/sessel §Truthiness"
+    confidence: low
+    requires: [server-js, sessel]
+    live: true
+    notes: "Probe P-14."
+    steps:
+      - name: install a trigger with a JS gate returning []
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/r/triggers.html"
+          headers: {Content-Type: text/html}
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+            <div hidden itemscope itemtype="https://pagelove.org/Trigger">
+              <meta itemprop="resource" content="${P}/d/*">
+              <meta itemprop="method" content="PUT">
+              <div itemprop="when" itemscope itemtype="https://pagelove.org/JavaScript/Module">
+                <script type="module" itemprop="source">
+                  export default function(ctx) { return []; }
+                </script>
+              </div>
+              <div itemprop="action" itemscope itemtype="https://pagelove.org/Sessel">
+                <script itemprop="source" type="text/sessel">
+                  @schema HTTPResponse url("https://pagelove.org/HTTPResponse");
+                  throw new HTTPResponse { status: 409, message: "array-truthy" }
+                </script>
+              </div>
+            </div>
+            </body></html>
+        expect: {status: [200, 201, 204]}
+      - name: the trigger is skipped
+        as: anonymous
+        request: {method: PUT, path: "${P}/d/x.html", headers: {Content-Type: text/html}, body: "<p>x</p>"}
+        expect: {status: [200, 201, 204]}

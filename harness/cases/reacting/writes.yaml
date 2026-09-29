@@ -1,0 +1,432 @@
+# Reacting: writes from trigger actions (spec R-REACT-36..41).
+# See discovery.yaml for directory conventions.
+anchors:
+  open_rules: &open_rules
+    - {actor: "*", resource: "${P}/*", method: [GET, HEAD, PUT, POST, DELETE], action: Allow}
+defaults:
+  area: reacting
+  site:
+    settings: {default_get: allow}
+    rules: *open_rules
+cases:
+  - id: reacting.writes.side-effect-write
+    title: "Documented: Pagelove.PUT(item, '/other/path') writes a document as a side effect"
+    feature: side-effect writes
+    evidence: documented
+    source: "docs reference/reacting-to-changes/Trigger §Writing from triggers, §Side-effect writes (snapshot 2026-09-28)"
+    confidence: high
+    requires: [sessel]
+    live: true
+    notes: "spec: R-REACT-36. The anonymous requester may PUT under ${P}/*, so the side-effect write passes authorization."
+    steps:
+      - name: install the documented side-effect trigger
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/r/triggers.html"
+          headers: {Content-Type: text/html}
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+            <div hidden itemscope itemtype="https://pagelove.org/Trigger">
+              <meta itemprop="resource" content="${P}/d/*">
+              <meta itemprop="method" content="PUT">
+              <div itemprop="action" itemscope itemtype="https://pagelove.org/Sessel">
+                <script itemprop="source" type="text/sessel">
+                  @schema Pagelove url("https://pagelove.org/1.0");
+                  @schema Thing url("https://schema.org/Thing");
+                  let item = new Thing { name: "side-effect-doc" };
+                  Pagelove.PUT(item, "${P}/side-effects/record.html")
+                </script>
+              </div>
+            </div>
+            </body></html>
+        expect: {status: [200, 201, 204]}
+      - name: the triggering write proceeds
+        as: anonymous
+        request: {method: PUT, path: "${P}/d/x.html", headers: {Content-Type: text/html}, body: "<!DOCTYPE html><html><body><p>main</p></body></html>"}
+        expect: {status: [200, 201, 204]}
+      - name: the side-effect document exists
+        as: anonymous
+        request: {method: GET, path: "${P}/side-effects/record.html"}
+        expect:
+          status: 200
+          body_contains: ["side-effect-doc", "https://schema.org/Thing"]
+      - name: the main document was written too
+        as: anonymous
+        request: {method: GET, path: "${P}/d/x.html"}
+        expect: {status: 200, body_contains: ["main"]}
+
+  - id: reacting.writes.side-effect-survives-later-throw
+    title: A committed side-effect write is not rolled back when a later trigger throws
+    feature: side-effect writes
+    evidence: documented
+    source: "docs reference/reacting-to-changes/Trigger §Error handling for writes ('not rolled back if a later trigger throws or errors') (snapshot 2026-09-28)"
+    confidence: high
+    requires: [sessel]
+    live: true
+    notes: "spec: R-REACT-36, R-REACT-9."
+    steps:
+      - name: install a writer (a.html) and a thrower (b.html) in one step each
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/r/a.html"
+          headers: {Content-Type: text/html}
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+            <div hidden itemscope itemtype="https://pagelove.org/Trigger">
+              <meta itemprop="resource" content="${P}/d/*">
+              <meta itemprop="method" content="PUT">
+              <div itemprop="action" itemscope itemtype="https://pagelove.org/Sessel">
+                <script itemprop="source" type="text/sessel">
+                  @schema Pagelove url("https://pagelove.org/1.0");
+                  @schema Thing url("https://schema.org/Thing");
+                  Pagelove.PUT(new Thing { name: "survivor" }, "${P}/side/record.html")
+                </script>
+              </div>
+            </div>
+            </body></html>
+        expect: {status: [200, 201, 204]}
+      - name: install the thrower
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/r/b.html"
+          headers: {Content-Type: text/html}
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+            <div hidden itemscope itemtype="https://pagelove.org/Trigger">
+              <meta itemprop="resource" content="${P}/d/*">
+              <meta itemprop="method" content="PUT">
+              <div itemprop="action" itemscope itemtype="https://pagelove.org/Sessel">
+                <script itemprop="source" type="text/sessel">
+                  @schema HTTPResponse url("https://pagelove.org/HTTPResponse");
+                  throw new HTTPResponse { status: 409, message: "later-throw" }
+                </script>
+              </div>
+            </div>
+            </body></html>
+        expect: {status: [200, 201, 204]}
+      - name: the request is refused by the later trigger
+        as: anonymous
+        request: {method: PUT, path: "${P}/d/x.html", headers: {Content-Type: text/html}, body: "<p>main</p>"}
+        expect: {status: 409}
+      - name: the side-effect write stands
+        as: anonymous
+        request: {method: GET, path: "${P}/side/record.html"}
+        expect: {status: 200, body_contains: ["survivor"]}
+      - name: the main write did not happen
+        as: anonymous
+        request: {method: GET, path: "${P}/d/x.html"}
+        expect: {status: 404}
+
+  - id: reacting.writes.body-transformation
+    title: "Documented: Pagelove.PUT(item, Context.request.path) replaces the request body in flight"
+    feature: body transformation
+    evidence: documented
+    source: "docs reference/reacting-to-changes/Trigger §Body transformation (snapshot 2026-09-28)"
+    confidence: high
+    requires: [sessel]
+    live: true
+    notes: "spec: R-REACT-37."
+    steps:
+      - name: install the documented transformer
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/r/triggers.html"
+          headers: {Content-Type: text/html}
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+            <div hidden itemscope itemtype="https://pagelove.org/Trigger">
+              <meta itemprop="resource" content="${P}/d/*">
+              <meta itemprop="method" content="PUT">
+              <div itemprop="action" itemscope itemtype="https://pagelove.org/Sessel">
+                <script itemprop="source" type="text/sessel">
+                  @schema Context url("https://pagelove.org/Context");
+                  @schema Pagelove url("https://pagelove.org/1.0");
+                  @schema Article url("https://schema.org/Article");
+                  let transformed = new Article {
+                    name: "transformed-by-trigger"
+                  };
+                  Pagelove.PUT(transformed, Context.request.path)
+                </script>
+              </div>
+            </div>
+            </body></html>
+        expect: {status: [200, 201, 204]}
+      - name: the client sends one body
+        as: anonymous
+        request: {method: PUT, path: "${P}/d/post.html", headers: {Content-Type: text/html}, body: "<!DOCTYPE html><html><body><p>original-body</p></body></html>"}
+        expect: {status: [200, 201, 204]}
+      - name: the stored document is the transformed one
+        as: anonymous
+        request: {method: GET, path: "${P}/d/post.html"}
+        expect:
+          status: 200
+          body_contains: ["transformed-by-trigger", "https://schema.org/Article"]
+          body_not_contains: ["original-body"]
+
+  - id: reacting.writes.transformation-discarded-on-throw
+    title: A body transformation is discarded when a later trigger throws
+    feature: body transformation
+    evidence: documented
+    source: "docs reference/reacting-to-changes/Trigger §Error handling for writes ('Body transformations … are transient') (snapshot 2026-09-28)"
+    confidence: high
+    requires: [sessel]
+    live: true
+    notes: "spec: R-REACT-37."
+    steps:
+      - name: install a transformer (a.html)
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/r/a.html"
+          headers: {Content-Type: text/html}
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+            <div hidden itemscope itemtype="https://pagelove.org/Trigger">
+              <meta itemprop="resource" content="${P}/d/*">
+              <meta itemprop="method" content="PUT">
+              <div itemprop="action" itemscope itemtype="https://pagelove.org/Sessel">
+                <script itemprop="source" type="text/sessel">
+                  @schema Context url("https://pagelove.org/Context");
+                  @schema Pagelove url("https://pagelove.org/1.0");
+                  @schema Article url("https://schema.org/Article");
+                  Pagelove.PUT(new Article { name: "never-stored" }, Context.request.path)
+                </script>
+              </div>
+            </div>
+            </body></html>
+        expect: {status: [200, 201, 204]}
+      - name: install a thrower (b.html)
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/r/b.html"
+          headers: {Content-Type: text/html}
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+            <div hidden itemscope itemtype="https://pagelove.org/Trigger">
+              <meta itemprop="resource" content="${P}/d/*">
+              <meta itemprop="method" content="PUT">
+              <div itemprop="action" itemscope itemtype="https://pagelove.org/Sessel">
+                <script itemprop="source" type="text/sessel">
+                  @schema HTTPResponse url("https://pagelove.org/HTTPResponse");
+                  throw new HTTPResponse { status: 409, message: "stop" }
+                </script>
+              </div>
+            </div>
+            </body></html>
+        expect: {status: [200, 201, 204]}
+      - name: refused
+        as: anonymous
+        request: {method: PUT, path: "${P}/d/new.html", headers: {Content-Type: text/html}, body: "<p>original</p>"}
+        expect: {status: 409}
+      - name: nothing was stored at the request path
+        as: anonymous
+        request: {method: GET, path: "${P}/d/new.html"}
+        expect: {status: 404}
+
+  - id: reacting.writes.chained-transformations-last-wins
+    title: Each trigger sees the body left by the previous transformation; the last one wins
+    feature: body transformation
+    evidence: documented
+    source: "docs reference/reacting-to-changes/Trigger §Chaining ('Each trigger in the chain sees the body as left by the previous trigger's Pagelove.PUT(). The last writer wins.') (snapshot 2026-09-28)"
+    confidence: high
+    requires: [sessel]
+    live: true
+    notes: "spec: R-REACT-38. The second transformer refuses with 417 if it does not see the first transformation."
+    steps:
+      - name: install both transformers in one document (document order)
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/r/triggers.html"
+          headers: {Content-Type: text/html}
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+            <div hidden itemscope itemtype="https://pagelove.org/Trigger">
+              <meta itemprop="resource" content="${P}/d/*">
+              <meta itemprop="method" content="PUT">
+              <div itemprop="action" itemscope itemtype="https://pagelove.org/Sessel">
+                <script itemprop="source" type="text/sessel">
+                  @schema Context url("https://pagelove.org/Context");
+                  @schema Pagelove url("https://pagelove.org/1.0");
+                  @schema Article url("https://schema.org/Article");
+                  Pagelove.PUT(new Article { name: "first-transform" }, Context.request.path)
+                </script>
+              </div>
+            </div>
+            <div hidden itemscope itemtype="https://pagelove.org/Trigger">
+              <meta itemprop="resource" content="${P}/d/*">
+              <meta itemprop="method" content="PUT">
+              <div itemprop="action" itemscope itemtype="https://pagelove.org/Sessel">
+                <script itemprop="source" type="text/sessel">
+                  @schema Context url("https://pagelove.org/Context");
+                  @schema Pagelove url("https://pagelove.org/1.0");
+                  @schema Article url("https://schema.org/Article");
+                  @schema HTTPResponse url("https://pagelove.org/HTTPResponse");
+                  if (Context.request.body.contains("first-transform") == false) {
+                    throw new HTTPResponse { status: 417, message: "did not see the first transformation" }
+                  }
+                  Pagelove.PUT(new Article { name: "second-transform" }, Context.request.path)
+                </script>
+              </div>
+            </div>
+            </body></html>
+        expect: {status: [200, 201, 204]}
+      - name: write
+        as: anonymous
+        request: {method: PUT, path: "${P}/d/post.html", headers: {Content-Type: text/html}, body: "<p>original</p>"}
+        expect: {status: [200, 201, 204]}
+      - name: the last transformation is stored
+        as: anonymous
+        request: {method: GET, path: "${P}/d/post.html"}
+        expect:
+          status: 200
+          body_contains: ["second-transform"]
+          body_not_contains: ["first-transform", "original"]
+
+  - id: reacting.writes.js-action-has-no-write-provider
+    title: A JavaScript action cannot call Pagelove.PUT; the attempt is a runtime error and writes nothing
+    feature: side-effect writes (JavaScript)
+    evidence: documented
+    source: "docs reference/reacting-to-changes/Trigger §Writing from triggers ('a Sessel-only capability … without a write provider') (snapshot 2026-09-28)"
+    confidence: low
+    requires: [server-js]
+    live: true
+    notes: "spec: R-REACT-41, R-REACT-34. No write is documented; the ReferenceError and 500 are inferred."
+    steps:
+      - name: install a JS action that tries to write
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/r/triggers.html"
+          headers: {Content-Type: text/html}
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+            <div hidden itemscope itemtype="https://pagelove.org/Trigger">
+              <meta itemprop="resource" content="${P}/d/*">
+              <meta itemprop="method" content="PUT">
+              <div itemprop="action" itemscope itemtype="https://pagelove.org/JavaScript/Module">
+                <script type="module" itemprop="source">
+                  export default function(ctx) {
+                    Pagelove.PUT({ name: "js-write" }, "${P}/side/js.html");
+                  }
+                </script>
+              </div>
+            </div>
+            </body></html>
+        expect: {status: [200, 201, 204]}
+      - name: the request fails
+        as: anonymous
+        request: {method: PUT, path: "${P}/d/x.html", headers: {Content-Type: text/html}, body: "<p>x</p>"}
+        expect: {status: 500}
+      - name: nothing was written
+        as: anonymous
+        request: {method: GET, path: "${P}/side/js.html"}
+        expect: {status: 404}
+
+  - id: reacting.writes.pagelove-delete
+    title: Pagelove.DELETE(path) deletes a document as a side effect
+    feature: side-effect writes
+    evidence: documented
+    source: "docs reference/reacting-to-changes/Trigger §Writing from triggers (Pagelove.DELETE exists; signature inferred) (snapshot 2026-09-28)"
+    confidence: low
+    requires: [sessel]
+    live: true
+    notes: "spec: R-REACT-39. The one-argument signature is a pagelike decision."
+    site:
+      settings: {default_get: allow}
+      rules: *open_rules
+      files:
+        - path: "${P}/side/old.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body><p>old</p></body></html>
+    steps:
+      - name: install a deleting trigger
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/r/triggers.html"
+          headers: {Content-Type: text/html}
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+            <div hidden itemscope itemtype="https://pagelove.org/Trigger">
+              <meta itemprop="resource" content="${P}/d/*">
+              <meta itemprop="method" content="PUT">
+              <div itemprop="action" itemscope itemtype="https://pagelove.org/Sessel">
+                <script itemprop="source" type="text/sessel">
+                  @schema Pagelove url("https://pagelove.org/1.0");
+                  Pagelove.DELETE("${P}/side/old.html")
+                </script>
+              </div>
+            </div>
+            </body></html>
+        expect: {status: [200, 201, 204]}
+      - name: trigger a write
+        as: anonymous
+        request: {method: PUT, path: "${P}/d/x.html", headers: {Content-Type: text/html}, body: "<p>x</p>"}
+        expect: {status: [200, 201, 204]}
+      - name: the old document is gone
+        as: anonymous
+        request: {method: GET, path: "${P}/side/old.html"}
+        expect: {status: 404}
+
+  - id: reacting.writes.side-effect-denied-writes-nothing
+    title: A side-effect write the requester is not authorized for writes nothing and fails the request
+    feature: side-effect writes (authorization)
+    evidence: documented
+    source: "docs reference/reacting-to-changes/Trigger §Side-effect writes ('including authorization checks') (snapshot 2026-09-28); spec R-REACT-40"
+    confidence: low
+    requires: [sessel]
+    live: true
+    notes: "Authorization of the nested write is documented; the resulting status (500 in pagelike, maybe 401 on PageLove) is not. Probe P-10."
+    site:
+      settings: {default_get: allow}
+      rules:
+        - {actor: "*", resource: "${P}/*", method: [GET, HEAD, PUT, POST, DELETE], action: Allow}
+        - {actor: "*", resource: "${P}/locked/*", method: [PUT, POST, DELETE], action: Deny}
+    steps:
+      - name: install a trigger that writes into the locked area
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/r/triggers.html"
+          headers: {Content-Type: text/html}
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+            <div hidden itemscope itemtype="https://pagelove.org/Trigger">
+              <meta itemprop="resource" content="${P}/d/*">
+              <meta itemprop="method" content="PUT">
+              <div itemprop="action" itemscope itemtype="https://pagelove.org/Sessel">
+                <script itemprop="source" type="text/sessel">
+                  @schema Pagelove url("https://pagelove.org/1.0");
+                  @schema Thing url("https://schema.org/Thing");
+                  Pagelove.PUT(new Thing { name: "should-not-exist" }, "${P}/locked/x.html")
+                </script>
+              </div>
+            </div>
+            </body></html>
+        expect: {status: [200, 201, 204]}
+      - name: the request fails
+        as: anonymous
+        request: {method: PUT, path: "${P}/d/x.html", headers: {Content-Type: text/html}, body: "<p>x</p>"}
+        expect: {status: [401, 403, 500]}
+      - name: nothing was written in the locked area (read over the authoring plane)
+        as: author
+        plane: dav
+        request: {method: GET, path: "${P}/locked/x.html"}
+        expect: {status: 404}

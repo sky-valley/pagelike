@@ -1,0 +1,23 @@
+{
+  "case": "sessel.query.sel.sub-select-provenance",
+  "failures": [
+    "step 1 (sub-select) QUERY ${P}/doc.html: json = [[\"a\",\"b\"],0,false], want [[\"a\",\"b\"],2,true]"
+  ],
+  "observations": [
+    {
+      "step": "step 1 (sub-select)",
+      "method": "QUERY",
+      "path": "/_pl/sessel-query-sel-sub-select-provenance-a21328/doc.html",
+      "status": 200,
+      "headers": {
+        "accept-ranges": "bytes",
+        "content-length": "19",
+        "content-type": "application/sessel+json",
+        "vary": "Host, Range"
+      },
+      "body": "[[\"a\",\"b\"],0,false]"
+    }
+  ],
+  "outcome": "fail",
+  "target": "live"
+}

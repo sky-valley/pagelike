@@ -1,0 +1,23 @@
+{
+  "case": "rw.cond.get-if-match-stale",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (stale If-Match on a fragment GET)",
+      "method": "GET",
+      "path": "/_pl/rw-cond-get-if-match-stale-daddaa/gim.html",
+      "status": 206,
+      "headers": {
+        "accept-ranges": "selector, bytes",
+        "content-length": "15",
+        "content-range": "selector #x",
+        "content-type": "text/html",
+        "etag": "\"9990358bb6cf8c0120e1e163f171e54fe570692e955091b2740247d2f76dc336-9990358bb6cf8c0120e1e163f171e54fe570692e955091b2740247d2f76dc336-1\"",
+        "vary": "Host, Range, Accept"
+      },
+      "body": "\u003cp id=\"x\"\u003ex\u003c/p\u003e"
+    }
+  ],
+  "outcome": "pass",
+  "target": "local"
+}

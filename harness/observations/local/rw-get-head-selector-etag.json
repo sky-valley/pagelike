@@ -1,0 +1,37 @@
+{
+  "case": "rw.get.head-selector-etag",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (HEAD the element)",
+      "method": "HEAD",
+      "path": "/_pl/rw-get-head-selector-etag-900e6a/head.html",
+      "status": 206,
+      "headers": {
+        "accept-ranges": "selector, bytes",
+        "content-length": "45",
+        "content-range": "selector #note-42",
+        "content-type": "text/html",
+        "etag": "\"c305a4b37cfaceec0c5b5d23b1aa935b5e278d4bd78bc26a79dd33aaef7b7f9e-c305a4b37cfaceec0c5b5d23b1aa935b5e278d4bd78bc26a79dd33aaef7b7f9e-1\"",
+        "vary": "Host, Range, Accept"
+      }
+    },
+    {
+      "step": "step 2 (GET the same element has the same ETag)",
+      "method": "GET",
+      "path": "/_pl/rw-get-head-selector-etag-900e6a/head.html",
+      "status": 206,
+      "headers": {
+        "accept-ranges": "selector, bytes",
+        "content-length": "45",
+        "content-range": "selector #note-42",
+        "content-type": "text/html",
+        "etag": "\"c305a4b37cfaceec0c5b5d23b1aa935b5e278d4bd78bc26a79dd33aaef7b7f9e-c305a4b37cfaceec0c5b5d23b1aa935b5e278d4bd78bc26a79dd33aaef7b7f9e-1\"",
+        "vary": "Host, Range, Accept"
+      },
+      "body": "\u003carticle id=\"note-42\"\u003e\u003ch2\u003eNote\u003c/h2\u003e\u003c/article\u003e"
+    }
+  ],
+  "outcome": "pass",
+  "target": "local"
+}

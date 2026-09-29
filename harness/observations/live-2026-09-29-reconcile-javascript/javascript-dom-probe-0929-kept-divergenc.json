@@ -1,0 +1,35 @@
+{
+  "case": "javascript.dom.probe-0929.kept-divergences",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (PUT the page (public plane; registers inline declarations))",
+      "method": "PUT",
+      "path": "/_pl/javascript-dom-probe-0929-kept-divergenc-91f153/probe.html",
+      "status": 201,
+      "headers": {
+        "content-type": "text/html",
+        "etag": "\"4423372b826e741b3c07a2e0518bbb8df4566259fd206c9a412d1cff0e46acb9\"",
+        "last-modified": "Tue, 29 Sep 2026 01:54:02 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml xmlns:t=\"https://pagelike.test/_pl/javascript-dom-probe-0929-kept-divergenc-91f153/Pkeptdivergences\"\u003e\u003cbody\u003e\n\u003cmain\u003e\n\u003ct:probe\u003e\u003c/t:probe\u003e\n\u003c/main\u003e\n\u003cdiv hidden itemscope itemtype=\"https://pagelove.org/Schema\"\u003e\n\u003cmeta itemprop=\"type\" content=\"https://pagelike.test/_pl/javascript-dom-probe-0929-kept-divergenc-91f153/Pkeptdivergences\"\u003e\n\u003cul\u003e\n\u003cli itemprop=\"property\" itemscope itemtype=\"https://pagelove.org/Method\"\u003e\n\u003cmeta itemprop=\"name\" content=\"probe\"\u003e\n\u003cdiv itemprop=\"implementation\" itemscope itemtype=\"https://pagelove.org/JavaScript/Module\"\u003e\n\u003cscript itemprop=\"source\" type=\"module\"\u003e\nconst H = (x) =\u003e String(x).replace(/[\u003c\u003e\"]/g, (c) =\u003e ({ '\u003c': '[', '\u003e': ']', '\"': \"'\" })[c]);\nconst T = (f) =\u003e { try { return H(f()); } catch (e) { return 'E:' + e.name; } };\nconst J = (x) =\u003e JSON.stringify(x);\nconst X = (n) =\u003e new XMLSerializer().serializeToString(n);\nconst N = (n) =\u003e (n === null ? 'null' : n === undefined ? 'undef' : typeof n === 'object' ? 'node:' + n.nodeName : typeof n + ':' + n);\nexport default function () {\nconst P = new DOMParser();\nconst d = P.parseFromString('\u003cp id=\"p\" class=\"k m\"\u003ex\u003c/p\u003e', 'text/html');\nconst p = d.querySelector('#p');\nconst cl = [T(() =\u003e String(p.classList)), T(() =\u003e p.classList.value), T(() =\u003e p.className)];\nconst sc = [T(() =\u003e X(P.parseFromString('\u003cfoo\u003e\u003cbar/\u003e\u003cbaz\u003et\u003c/baz\u003e\u003c/foo\u003e', 'text/html'))), T(() =\u003e X(P.parseFromString('\u003cfoo\u003e\u003cbar/\u003e\u003cbaz\u003et\u003c/baz\u003e\u003c/foo\u003e', 'application/xml'))),\n  T(() =\u003e X(P.parseFromString('\u003cdiv\u003e\u003cspan/\u003e\u003ci\u003et\u003c/i\u003e\u003c/div\u003e', 'text/html'))), T(() =\u003e X(P.parseFromString('\u003cmy-el/\u003e\u003ci\u003et\u003c/i\u003e', 'text/html'))),\n  T(() =\u003e X(P.parseFromString('\u003cp\u003ea\u003cp\u003eb\u003ctable\u003e\u003ctr\u003e\u003ctd\u003ex\u003c/td\u003e\u003c/tr\u003e\u003c/table\u003e', 'text/html')))];\nreturn ['R:', cl.join('|'), ' ## ', sc.join(' ## ')].join('');\n}\n\u003c/script\u003e\n\u003c/div\u003e\n\u003c/li\u003e\n\u003c/ul\u003e\n\u003cmeta itemprop=\"@id\" content=\"https://schema.host/ees7pht1\"\u003e\u003cmeta itemprop=\"path\" content=\"/Schemahttps://schema.host/ees7pht1.html\"\u003e\u003c/div\u003e\n\n                \u003cdiv style=\"\n                            position: fixed;\n                            bottom: 0;\n                            left: 0;\n                            right: 0;\n                            padding: 8px;\n                            background: #f0f0f0;\n                            text-align: center;\n                            font-size: 12px;\n                            color: #666;\n                            z-index: 9999;\n                            opacity: 0.8;\n                            border-top: 1px solid #ddd;\n                        \"\u003e\n                    Powered by\n                    \u003ca href=\"https://pagelove.com/\" style=\"color: #4a90d9; text-decoration: none\"\u003ePagelove\u003c/a\u003e\n                \u003c/div\u003e\n            \u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 2 (GET \u003cmain\u003e: the method result is inserted as text)",
+      "method": "GET",
+      "path": "/_pl/javascript-dom-probe-0929-kept-divergenc-91f153/probe.html",
+      "status": 206,
+      "headers": {
+        "content-length": "233",
+        "content-range": "selector main",
+        "content-type": "text/html",
+        "etag": "\"29f9f142efbe78873ebbfa3cb768b9cef2cf895c204476361aa42dd72647e042-29f9f142efbe78873ebbfa3cb768b9cef2cf895c204476361aa42dd72647e042-1\"",
+        "vary": "Host, Range, Accept"
+      },
+      "body": "\u003cmain\u003e\nR:[object Object]|k m|k m ## [foo][bar][/bar][baz]t[/baz][/foo] ## [foo][bar][/bar][baz]t[/baz][/foo] ## [div][span][/span][i]t[/i][/div] ## [my-el][/my-el][i]t[/i] ## [p]a[p]b[table][tr][td]x[/td][/tr][/table][/p][/p]\n\u003c/main\u003e"
+    }
+  ],
+  "outcome": "pass",
+  "target": "live"
+}

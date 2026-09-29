@@ -1,0 +1,61 @@
+{
+  "case": "reacting.discovery.no-action-skipped",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (install an action-less trigger)",
+      "method": "PUT",
+      "path": "/_pl/reacting-discovery-no-action-skipped-96cd7b/r/triggers.html",
+      "status": 422,
+      "headers": {
+        "content-length": "727",
+        "content-type": "text/html; charset=utf-8",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\n  \u003chead\u003e\n    \u003ctitle\u003e422 Unprocessable Entity - Schema Violation\u003c/title\u003e\n  \u003c/head\u003e\n  \u003cbody itemscope itemtype=\"https://pagelove.org/SchemaViolation\"\u003e\n    \u003ch1 itemprop=\"name\"\u003eUnprocessable Entity\u003c/h1\u003e\n    \u003cmeta itemprop=\"statusCode\" content=\"422\"\u003e\n    \u003cp itemprop=\"description\"\u003eSchema validation failed\u003c/p\u003e\n    \u003cul\u003e\n      \u003cli itemprop=\"violations\" itemscope itemtype=\"https://pagelove.org/Violation\"\u003e\u003cspan itemprop=\"check\"\u003ecardinality\u003c/span\u003e\u003cspan itemprop=\"itemtype\"\u003ehttps://pagelove.org/Handler\u003c/span\u003e\u003cspan itemprop=\"property\"\u003eaction\u003c/span\u003e\u003cspan itemprop=\"message\"\u003e[https://pagelove.org/Handler].action: cardinality 1..1 violated: expected exactly 1 value, found 0\u003c/span\u003e\u003c/li\u003e\n    \u003c/ul\u003e\n  \u003c/body\u003e\n\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 2 (the trigger document was not stored)",
+      "method": "GET",
+      "path": "/_pl/reacting-discovery-no-action-skipped-96cd7b/r/triggers.html",
+      "status": 404,
+      "headers": {
+        "content-length": "362",
+        "content-type": "text/html",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\n  \u003chead\u003e\n    \u003ctitle\u003e404 Not Found - Error\u003c/title\u003e\n  \u003c/head\u003e\n  \u003cbody itemscope itemtype=\"http://pagelove.org/Error\"\u003e\n    \u003ch1 itemprop=\"name\"\u003eNot Found\u003c/h1\u003e\n    \u003cmeta itemprop=\"statusCode\" content=\"404\"\u003e\n    \u003cp itemprop=\"description\"\u003eDocument not found: /_pl/reacting-discovery-no-action-skipped-96cd7b/r/triggers.html\u003c/p\u003e\n  \u003c/body\u003e\n\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 3 (the write proceeds normally)",
+      "method": "PUT",
+      "path": "/_pl/reacting-discovery-no-action-skipped-96cd7b/d/x.html",
+      "status": 201,
+      "headers": {
+        "content-length": "62",
+        "content-type": "text/html",
+        "etag": "\"c2e3bf08d7950913cba22506f3926ce89b75642a26d9f8c5b38c31aac9df01d2\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:48 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\u003chtml\u003e\u003cbody\u003e\u003cp id=\"v\"\u003ewritten\u003c/p\u003e\u003c/body\u003e\u003c/html\u003e"
+    },
+    {
+      "step": "step 4 (read back)",
+      "method": "GET",
+      "path": "/_pl/reacting-discovery-no-action-skipped-96cd7b/d/x.html",
+      "status": 200,
+      "headers": {
+        "accept-ranges": "selector, bytes",
+        "content-length": "62",
+        "content-type": "text/html",
+        "etag": "\"c2e3bf08d7950913cba22506f3926ce89b75642a26d9f8c5b38c31aac9df01d2\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:48 GMT",
+        "vary": "Host, Range, Accept"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\u003chtml\u003e\u003cbody\u003e\u003cp id=\"v\"\u003ewritten\u003c/p\u003e\u003c/body\u003e\u003c/html\u003e"
+    }
+  ],
+  "outcome": "pass",
+  "target": "local"
+}

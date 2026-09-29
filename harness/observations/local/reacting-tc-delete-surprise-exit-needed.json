@@ -1,0 +1,118 @@
+{
+  "case": "reacting.tc.delete-surprise-exit-needed",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (install only the middle of the lifecycle (no exit rule))",
+      "method": "PUT",
+      "path": "/_pl/reacting-tc-delete-surprise-exit-needed-6285e5/transitions/rules.html",
+      "status": 201,
+      "headers": {
+        "content-length": "1018",
+        "content-type": "text/html",
+        "etag": "\"e35ea9f6b9baa1d0544320940b4fea0da9fef85203c2ed2f6a58ecbab5814ab6\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:49 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\n\u003cdiv itemscope itemtype=\"https://pagelove.org/TransitionConstraint\"\u003e\n  \u003cmeta itemprop=\"selector\" content=\"[itemtype='https://pagelike.test/_pl/reacting-tc-delete-surprise-exit-needed-6285e5/Order']\"\u003e\n  \u003cmeta itemprop=\"property\" content=\"status\"\u003e\n  \u003cmeta itemprop=\"to\" content=\"pending\"\u003e\n\u003c/div\u003e\n\u003cdiv itemscope itemtype=\"https://pagelove.org/TransitionConstraint\"\u003e\n  \u003cmeta itemprop=\"selector\" content=\"[itemtype='https://pagelike.test/_pl/reacting-tc-delete-surprise-exit-needed-6285e5/Order']\"\u003e\n  \u003cmeta itemprop=\"property\" content=\"status\"\u003e\n  \u003cmeta itemprop=\"from\" content=\"pending\"\u003e\n  \u003cmeta itemprop=\"to\" content=\"processing\"\u003e\n\u003c/div\u003e\n\u003cdiv itemscope itemtype=\"https://pagelove.org/TransitionConstraint\"\u003e\n  \u003cmeta itemprop=\"selector\" content=\"[itemtype='https://pagelike.test/_pl/reacting-tc-delete-surprise-exit-needed-6285e5/Order']\"\u003e\n  \u003cmeta itemprop=\"property\" content=\"status\"\u003e\n  \u003cmeta itemprop=\"from\" content=\"processing\"\u003e\n  \u003cmeta itemprop=\"to\" content=\"success\"\u003e\n\u003c/div\u003e\n\u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 2 (seed order-1 at pending (entry rule permits it))",
+      "method": "PUT",
+      "path": "/_pl/reacting-tc-delete-surprise-exit-needed-6285e5/orders/order-1.html",
+      "status": 201,
+      "headers": {
+        "content-length": "252",
+        "content-type": "text/html",
+        "etag": "\"14b06d1932d18d01406e445e384a1ecc9e8694b438986adb015d7ec96d1b42e7\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:49 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\n\u003cdiv id=\"order1\" itemscope itemtype=\"https://pagelike.test/_pl/reacting-tc-delete-surprise-exit-needed-6285e5/Order\"\u003e\n  \u003cmeta itemprop=\"status\" content=\"pending\"\u003e\n  \u003cspan itemprop=\"total\"\u003e42.00\u003c/span\u003e\n\u003c/div\u003e\n\u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 3 (take the legal step pending -\u003e processing with a selector PUT)",
+      "method": "PUT",
+      "path": "/_pl/reacting-tc-delete-surprise-exit-needed-6285e5/orders/order-1.html",
+      "status": 206,
+      "headers": {
+        "content-length": "210",
+        "content-range": "selector #order1",
+        "content-type": "text/html",
+        "etag": "\"da2c49daca5c9d88df9e1c8bff09ee7128ae010a0b329d6c3d2354c9bb7f34ce-da2c49daca5c9d88df9e1c8bff09ee7128ae010a0b329d6c3d2354c9bb7f34ce-2\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:49 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003cdiv id=\"order1\" itemscope itemtype=\"https://pagelike.test/_pl/reacting-tc-delete-surprise-exit-needed-6285e5/Order\"\u003e\n  \u003cmeta itemprop=\"status\" content=\"processing\"\u003e\n  \u003cspan itemprop=\"total\"\u003e42.00\u003c/span\u003e\n\u003c/div\u003e"
+    },
+    {
+      "step": "step 4 (report back processing -\u003e success)",
+      "method": "PUT",
+      "path": "/_pl/reacting-tc-delete-surprise-exit-needed-6285e5/orders/order-1.html",
+      "status": 206,
+      "headers": {
+        "content-length": "207",
+        "content-range": "selector #order1",
+        "content-type": "text/html",
+        "etag": "\"1db834da7542c7ba11d1a425d7e8c0887331097293f8cfdf8fcb032eb26d7dc7-1db834da7542c7ba11d1a425d7e8c0887331097293f8cfdf8fcb032eb26d7dc7-3\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:49 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003cdiv id=\"order1\" itemscope itemtype=\"https://pagelike.test/_pl/reacting-tc-delete-surprise-exit-needed-6285e5/Order\"\u003e\n  \u003cmeta itemprop=\"status\" content=\"success\"\u003e\n  \u003cspan itemprop=\"total\"\u003e42.00\u003c/span\u003e\n\u003c/div\u003e"
+    },
+    {
+      "step": "step 5 (deleting the document is an undeclared exit)",
+      "method": "DELETE",
+      "path": "/_pl/reacting-tc-delete-surprise-exit-needed-6285e5/orders/order-1.html",
+      "status": 422,
+      "headers": {
+        "content-length": "1175",
+        "content-type": "text/html; charset=utf-8",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\n  \u003chead\u003e\n    \u003ctitle\u003e422 Unprocessable Entity - Transition Constraint Violation\u003c/title\u003e\n  \u003c/head\u003e\n  \u003cbody itemscope itemtype=\"https://pagelove.org/ConstraintViolation\"\u003e\n    \u003ch1 itemprop=\"name\"\u003eUnprocessable Entity\u003c/h1\u003e\n    \u003cmeta itemprop=\"statusCode\" content=\"422\"\u003e\n    \u003cp itemprop=\"description\"\u003eTransition constraints violated\u003c/p\u003e\n    \u003cul\u003e\n      \u003cli itemprop=\"violations\" itemscope itemtype=\"https://pagelove.org/Violation\"\u003e\n        \u003cspan itemprop=\"constraintSelector\"\u003e[itemprop='status']\u003c/span\u003e\n        \u003cspan itemprop=\"failedConstraint\"\u003etransition(status)\u003c/span\u003e\n        \u003cspan itemprop=\"message\"\u003eTransition violation: 'https://pagelike.test/_pl/reacting-tc-delete-surprise-exit-needed-6285e5/Order' property 'status' may not change from 'success' to '' (constraint declared in '/_pl/reacting-tc-delete-surprise-exit-needed-6285e5/transitions/rules.html')\u003c/span\u003e\n        \u003cspan itemprop=\"itemtype\"\u003ehttps://pagelike.test/_pl/reacting-tc-delete-surprise-exit-needed-6285e5/Order\u003c/span\u003e\n        \u003cspan itemprop=\"property\"\u003estatus\u003c/span\u003e\n        \u003cspan itemprop=\"from\"\u003esuccess\u003c/span\u003e\n        \u003cspan itemprop=\"to\"\u003e\u003c/span\u003e\n      \u003c/li\u003e\n    \u003c/ul\u003e\n  \u003c/body\u003e\n\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 6 (the document still exists)",
+      "method": "GET",
+      "path": "/_pl/reacting-tc-delete-surprise-exit-needed-6285e5/orders/order-1.html",
+      "status": 200,
+      "headers": {
+        "accept-ranges": "selector, bytes",
+        "content-length": "252",
+        "content-type": "text/html",
+        "etag": "\"df3c501a3cfe82f9ed3c9b0961f886835edc30ad5bb65d7eabe428069a298939\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:49 GMT",
+        "vary": "Host, Range, Accept"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\n\u003cdiv id=\"order1\" itemscope itemtype=\"https://pagelike.test/_pl/reacting-tc-delete-surprise-exit-needed-6285e5/Order\"\u003e\n  \u003cmeta itemprop=\"status\" content=\"success\"\u003e\n  \u003cspan itemprop=\"total\"\u003e42.00\u003c/span\u003e\n\u003c/div\u003e\n\u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 7 (install the recipe's four rules (entry pending, pending-\u003eprocessing, processing-\u003esuccess, exit success))",
+      "method": "PUT",
+      "path": "/_pl/reacting-tc-delete-surprise-exit-needed-6285e5/transitions/rules.html",
+      "status": 200,
+      "headers": {
+        "content-length": "1314",
+        "content-type": "text/html",
+        "etag": "\"e2c6ec92b7689d3a88aa6777f848194c07e27fcf8467454947b7455643fb01b5\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:49 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\n\u003cdiv itemscope itemtype=\"https://pagelove.org/TransitionConstraint\"\u003e\n  \u003cmeta itemprop=\"selector\" content=\"[itemtype='https://pagelike.test/_pl/reacting-tc-delete-surprise-exit-needed-6285e5/Order']\"\u003e\n  \u003cmeta itemprop=\"property\" content=\"status\"\u003e\n  \u003cmeta itemprop=\"to\" content=\"pending\"\u003e\n\u003c/div\u003e\n\u003cdiv itemscope itemtype=\"https://pagelove.org/TransitionConstraint\"\u003e\n  \u003cmeta itemprop=\"selector\" content=\"[itemtype='https://pagelike.test/_pl/reacting-tc-delete-surprise-exit-needed-6285e5/Order']\"\u003e\n  \u003cmeta itemprop=\"property\" content=\"status\"\u003e\n  \u003cmeta itemprop=\"from\" content=\"pending\"\u003e\n  \u003cmeta itemprop=\"to\" content=\"processing\"\u003e\n\u003c/div\u003e\n\u003cdiv itemscope itemtype=\"https://pagelove.org/TransitionConstraint\"\u003e\n  \u003cmeta itemprop=\"selector\" content=\"[itemtype='https://pagelike.test/_pl/reacting-tc-delete-surprise-exit-needed-6285e5/Order']\"\u003e\n  \u003cmeta itemprop=\"property\" content=\"status\"\u003e\n  \u003cmeta itemprop=\"from\" content=\"processing\"\u003e\n  \u003cmeta itemprop=\"to\" content=\"success\"\u003e\n\u003c/div\u003e\n\u003cdiv itemscope itemtype=\"https://pagelove.org/TransitionConstraint\"\u003e\n  \u003cmeta itemprop=\"selector\" content=\"[itemtype='https://pagelike.test/_pl/reacting-tc-delete-surprise-exit-needed-6285e5/Order']\"\u003e\n  \u003cmeta itemprop=\"property\" content=\"status\"\u003e\n  \u003cmeta itemprop=\"from\" content=\"success\"\u003e\n\u003c/div\u003e\n\u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 8 (with the exit rule the same DELETE succeeds)",
+      "method": "DELETE",
+      "path": "/_pl/reacting-tc-delete-surprise-exit-needed-6285e5/orders/order-1.html",
+      "status": 204,
+      "headers": {
+        "etag": "\"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:49 GMT",
+        "vary": "Host, Range"
+      }
+    }
+  ],
+  "outcome": "pass",
+  "target": "local"
+}

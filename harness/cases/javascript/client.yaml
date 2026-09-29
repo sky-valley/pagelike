@@ -1,0 +1,533 @@
+# JavaScript area, Part B: the HTTP contract of the official browser client (beta-js @c204746),
+# docs/spec/javascript.md R-JS-100..R-JS-119. Each case replays requests exactly as beta-js builds
+# them (header spelling, generated selectors, bodies) and asserts only the response properties the
+# client reads. Overlaps with reading-writing R-RW-140/141 and protocol R-PROTO-21 are intentional:
+# these cases pin the client-facing sequence end to end. Also: a QUERY with a JavaScript body.
+# Spec: docs/spec/javascript.md. Generated; edit by hand freely.
+defaults:
+  area: "javascript"
+  evidence: "client-source"
+  confidence: "high"
+  requires: []
+  site:
+    settings:
+      default_get: "allow"
+    rules:
+      - actor: "*"
+        resource: "${P}/*"
+        method: ["GET", "HEAD", "PUT", "POST", "DELETE", "MOVE"]
+        action: "Allow"
+      - actor: "*"
+        resource: "${P}/*/*"
+        method: ["GET", "HEAD", "PUT", "POST", "DELETE", "MOVE"]
+        action: "Allow"
+      - actor: "*"
+        resource: "${P}/*/*/*"
+        method: ["GET", "HEAD", "PUT", "POST", "DELETE", "MOVE"]
+        action: "Allow"
+cases:
+  - id: "javascript.client.generated-root-path-selector"
+    title: "A beta-js path selector anchored at the root (html:nth-child(1) > body:nth-child(2) > ...) addresses the element"
+    feature: "client contract: selectors"
+    evidence: "client-source"
+    source: "beta-js/pagelove/primitives.mjs@c204746:8-64 (generateSelector) "
+    confidence: "high"
+    requires: []
+    live: true
+    notes: "spec: R-JS-104. html:nth-child(1) must match the root element (its parent is the document)."
+    site:
+      settings:
+        default_get: "allow"
+      files:
+        - path: "${P}/board.html"
+          body: |
+            <!DOCTYPE html>
+            <html><head><title>board</title></head><body>
+            <main id="board" itemscope itemtype="https://pagelike.test${P}/Board">
+            <h1>Board</h1>
+            <p>second child</p>
+            <ul id="123"><li>escaped-id-target</li></ul>
+            <article id="card" itemscope itemtype="https://pagelike.test${P}/Card" itemprop="card"><meta itemprop="title" content="T"><span itemprop="body">card-body</span></article>
+            <ul id="list"><li id="item-1">one</li></ul>
+            </main>
+            </body></html>
+      rules:
+        - actor: "*"
+          resource: "${P}/*"
+          method: ["GET", "HEAD", "PUT", "POST", "DELETE", "MOVE"]
+          action: "Allow"
+        - actor: "*"
+          resource: "${P}/*/*"
+          method: ["GET", "HEAD", "PUT", "POST", "DELETE", "MOVE"]
+          action: "Allow"
+        - actor: "*"
+          resource: "${P}/*/*/*"
+          method: ["GET", "HEAD", "PUT", "POST", "DELETE", "MOVE"]
+          action: "Allow"
+    steps:
+      - name: "GET with the generated root path"
+        as: "anonymous"
+        request:
+          method: "GET"
+          path: "${P}/board.html"
+          headers:
+            Range: "selector=html:nth-child(1) > body:nth-child(2) > main:nth-child(1) > p:nth-child(2)"
+        expect:
+          status: 206
+          body_html: "<p>second child</p>"
+  - id: "javascript.client.css-escaped-id-selector"
+    title: "A CSS.escape'd id selector (#\\31 23 for id 123) addresses the element"
+    feature: "client contract: selectors"
+    evidence: "client-source"
+    source: "beta-js/pagelove/primitives.mjs@c204746:33-35 (CSS.escape(this.id))"
+    confidence: "high"
+    requires: []
+    live: true
+    notes: "spec: R-JS-104."
+    site:
+      settings:
+        default_get: "allow"
+      files:
+        - path: "${P}/board.html"
+          body: |
+            <!DOCTYPE html>
+            <html><head><title>board</title></head><body>
+            <main id="board" itemscope itemtype="https://pagelike.test${P}/Board">
+            <h1>Board</h1>
+            <p>second child</p>
+            <ul id="123"><li>escaped-id-target</li></ul>
+            <article id="card" itemscope itemtype="https://pagelike.test${P}/Card" itemprop="card"><meta itemprop="title" content="T"><span itemprop="body">card-body</span></article>
+            <ul id="list"><li id="item-1">one</li></ul>
+            </main>
+            </body></html>
+      rules:
+        - actor: "*"
+          resource: "${P}/*"
+          method: ["GET", "HEAD", "PUT", "POST", "DELETE", "MOVE"]
+          action: "Allow"
+        - actor: "*"
+          resource: "${P}/*/*"
+          method: ["GET", "HEAD", "PUT", "POST", "DELETE", "MOVE"]
+          action: "Allow"
+        - actor: "*"
+          resource: "${P}/*/*/*"
+          method: ["GET", "HEAD", "PUT", "POST", "DELETE", "MOVE"]
+          action: "Allow"
+    steps:
+      - name: "GET #\\31 23"
+        as: "anonymous"
+        request:
+          method: "GET"
+          path: "${P}/board.html"
+          headers:
+            Range: "selector=#\\31 23"
+        expect:
+          status: 206
+          body_contains: ["escaped-id-target"]
+  - id: "javascript.client.itemprop-step-selector"
+    title: "An id-anchored itemprop step selector (#card > [itemprop=\"body\"]) addresses the element"
+    feature: "client contract: selectors"
+    evidence: "client-source"
+    source: "beta-js/pagelove/primitives.mjs@c204746:8-28 (stableStepSelector)"
+    confidence: "high"
+    requires: []
+    live: true
+    notes: "spec: R-JS-104."
+    site:
+      settings:
+        default_get: "allow"
+      files:
+        - path: "${P}/board.html"
+          body: |
+            <!DOCTYPE html>
+            <html><head><title>board</title></head><body>
+            <main id="board" itemscope itemtype="https://pagelike.test${P}/Board">
+            <h1>Board</h1>
+            <p>second child</p>
+            <ul id="123"><li>escaped-id-target</li></ul>
+            <article id="card" itemscope itemtype="https://pagelike.test${P}/Card" itemprop="card"><meta itemprop="title" content="T"><span itemprop="body">card-body</span></article>
+            <ul id="list"><li id="item-1">one</li></ul>
+            </main>
+            </body></html>
+      rules:
+        - actor: "*"
+          resource: "${P}/*"
+          method: ["GET", "HEAD", "PUT", "POST", "DELETE", "MOVE"]
+          action: "Allow"
+        - actor: "*"
+          resource: "${P}/*/*"
+          method: ["GET", "HEAD", "PUT", "POST", "DELETE", "MOVE"]
+          action: "Allow"
+        - actor: "*"
+          resource: "${P}/*/*/*"
+          method: ["GET", "HEAD", "PUT", "POST", "DELETE", "MOVE"]
+          action: "Allow"
+    steps:
+      - name: "GET the itemprop step"
+        as: "anonymous"
+        request:
+          method: "GET"
+          path: "${P}/board.html"
+          headers:
+            Range: "selector=#card > [itemprop=\"body\"]"
+        expect:
+          status: 206
+          body_html: "<span itemprop=\"body\">card-body</span>"
+  - id: "javascript.client.head-etag-then-conditional-writes"
+    title: "The lazy-ETag sequence: HEAD with Range returns an ETag; PUT with If-Match uses it; a stale tag gets 412 on writes and is ignored on GET"
+    feature: "client contract: ETags"
+    evidence: "client-source"
+    source: "beta-js/pagelove/primitives.mjs@c204746:258-273, 474-501; harness/observations/live-2026-09-28/rw-cond-get-if-match-stale.json (a GET with a stale If-Match is 206)"
+    confidence: "high"
+    requires: []
+    live: true
+    notes: >-
+      spec: R-JS-102 (R2, R4, R5), R-JS-105, R-JS-107, R-JS-108; reading-writing R-RW-140/141. The GET
+      step followed RFC 9110 (412) until the live reconciliation of 2026-09-28: PageLove ignores
+      If-Match on reads, and so does pagelike (rw.cond.get-if-match-stale, docs/compat/decisions.md).
+    site:
+      settings:
+        default_get: "allow"
+      files:
+        - path: "${P}/board.html"
+          body: |
+            <!DOCTYPE html>
+            <html><head><title>board</title></head><body>
+            <main id="board" itemscope itemtype="https://pagelike.test${P}/Board">
+            <h1>Board</h1>
+            <p>second child</p>
+            <ul id="123"><li>escaped-id-target</li></ul>
+            <article id="card" itemscope itemtype="https://pagelike.test${P}/Card" itemprop="card"><meta itemprop="title" content="T"><span itemprop="body">card-body</span></article>
+            <ul id="list"><li id="item-1">one</li></ul>
+            </main>
+            </body></html>
+      rules:
+        - actor: "*"
+          resource: "${P}/*"
+          method: ["GET", "HEAD", "PUT", "POST", "DELETE", "MOVE"]
+          action: "Allow"
+        - actor: "*"
+          resource: "${P}/*/*"
+          method: ["GET", "HEAD", "PUT", "POST", "DELETE", "MOVE"]
+          action: "Allow"
+        - actor: "*"
+          resource: "${P}/*/*/*"
+          method: ["GET", "HEAD", "PUT", "POST", "DELETE", "MOVE"]
+          action: "Allow"
+    steps:
+      - name: "HEAD #list (IntersectionObserver path)"
+        as: "anonymous"
+        request:
+          method: "HEAD"
+          path: "${P}/board.html"
+          headers:
+            Range: "selector=#list"
+        expect:
+          status: 206
+          headers_present: ["ETag"]
+        capture:
+          t1: "header.ETag"
+      - name: "element PUT with If-Match (Content-Type text/html;charset=UTF-8)"
+        as: "anonymous"
+        request:
+          method: "PUT"
+          path: "${P}/board.html"
+          headers:
+            Range: "selector=#list"
+            Content-Type: "text/html;charset=UTF-8"
+            If-Match: "${t1}"
+          body: "<ul id=\"list\"><li id=\"item-1\">one</li><li id=\"item-2\">two</li></ul>"
+        expect:
+          status: [200, 204, 206]
+          headers_present: ["ETag"]
+          etag_differs: "${t1}"
+      - name: "element GET with the stale If-Match (beta-js sends If-Match on GET): ignored"
+        as: "anonymous"
+        request:
+          method: "GET"
+          path: "${P}/board.html"
+          headers:
+            Range: "selector=#list"
+            If-Match: "${t1}"
+        expect:
+          status: 206
+          body_contains: ["item-2"]
+      - name: "element PUT with the stale If-Match"
+        as: "anonymous"
+        request:
+          method: "PUT"
+          path: "${P}/board.html"
+          headers:
+            Range: "selector=#list"
+            Content-Type: "text/html;charset=UTF-8"
+            If-Match: "${t1}"
+          body: "<ul id=\"list\"></ul>"
+        expect:
+          status: 412
+  - id: "javascript.client.post-response-is-one-node"
+    title: "An element POST returns exactly one node (the inserted element), which beta-js parses as a single node"
+    feature: "client contract: POST"
+    evidence: "client-source"
+    source: "beta-js/pagelove/primitives.mjs@c204746:343-399 (POST, htmlToNode)"
+    confidence: "high"
+    requires: []
+    live: true
+    notes: "spec: R-JS-102 (R6), R-JS-107, R-JS-108 (the ETag is the parent's when no Content-Location is sent)."
+    site:
+      settings:
+        default_get: "allow"
+      files:
+        - path: "${P}/board.html"
+          body: |
+            <!DOCTYPE html>
+            <html><head><title>board</title></head><body>
+            <main id="board" itemscope itemtype="https://pagelike.test${P}/Board">
+            <h1>Board</h1>
+            <p>second child</p>
+            <ul id="123"><li>escaped-id-target</li></ul>
+            <article id="card" itemscope itemtype="https://pagelike.test${P}/Card" itemprop="card"><meta itemprop="title" content="T"><span itemprop="body">card-body</span></article>
+            <ul id="list"><li id="item-1">one</li></ul>
+            </main>
+            </body></html>
+      rules:
+        - actor: "*"
+          resource: "${P}/*"
+          method: ["GET", "HEAD", "PUT", "POST", "DELETE", "MOVE"]
+          action: "Allow"
+        - actor: "*"
+          resource: "${P}/*/*"
+          method: ["GET", "HEAD", "PUT", "POST", "DELETE", "MOVE"]
+          action: "Allow"
+        - actor: "*"
+          resource: "${P}/*/*/*"
+          method: ["GET", "HEAD", "PUT", "POST", "DELETE", "MOVE"]
+          action: "Allow"
+    steps:
+      - name: "POST a child the way PLElement.POST does"
+        as: "anonymous"
+        request:
+          method: "POST"
+          path: "${P}/board.html"
+          headers:
+            Range: "selector=#list"
+            Content-Type: "text/html;charset=UTF-8"
+          body: "<li id=\"item-abc\">n</li>"
+        expect:
+          status: [200, 201, 206]
+          body_html: "<li id=\"item-abc\">n</li>"
+          headers_present: ["ETag"]
+  - id: "javascript.client.create-instance-markup-accepted"
+    title: "The article that Pagelove.create() builds (itemscope=\"\", generated item- id, meta/time children) is accepted by POST"
+    feature: "client contract: POST"
+    evidence: "client-source"
+    source: "beta-js/pagelove.mjs@c204746:348-386 (create), 854-875 (--create-instance)"
+    confidence: "high"
+    requires: []
+    live: true
+    notes: "spec: R-JS-113, R-JS-115."
+    site:
+      settings:
+        default_get: "allow"
+      files:
+        - path: "${P}/board.html"
+          body: |
+            <!DOCTYPE html>
+            <html><head><title>board</title></head><body>
+            <main id="board" itemscope itemtype="https://pagelike.test${P}/Board">
+            <h1>Board</h1>
+            <p>second child</p>
+            <ul id="123"><li>escaped-id-target</li></ul>
+            <article id="card" itemscope itemtype="https://pagelike.test${P}/Card" itemprop="card"><meta itemprop="title" content="T"><span itemprop="body">card-body</span></article>
+            <ul id="list"><li id="item-1">one</li></ul>
+            </main>
+            </body></html>
+      rules:
+        - actor: "*"
+          resource: "${P}/*"
+          method: ["GET", "HEAD", "PUT", "POST", "DELETE", "MOVE"]
+          action: "Allow"
+        - actor: "*"
+          resource: "${P}/*/*"
+          method: ["GET", "HEAD", "PUT", "POST", "DELETE", "MOVE"]
+          action: "Allow"
+        - actor: "*"
+          resource: "${P}/*/*/*"
+          method: ["GET", "HEAD", "PUT", "POST", "DELETE", "MOVE"]
+          action: "Allow"
+    steps:
+      - name: "POST the created article into the board"
+        as: "anonymous"
+        request:
+          method: "POST"
+          path: "${P}/board.html"
+          headers:
+            Range: "selector=#board"
+            Content-Type: "text/html;charset=UTF-8"
+          body: "<article itemscope=\"\" itemtype=\"https://pagelike.test${P}/Card\" id=\"item-mg3x1a2b9f\" itemprop=\"card\"><meta itemprop=\"title\" content=\"Untitled\"><time itemprop=\"createdAt\" datetime=\"2026-09-28T10:00:00.000Z\"></time></article>"
+        expect:
+          status: [200, 201, 206]
+      - name: "the article is addressable by its generated id"
+        as: "anonymous"
+        request:
+          method: "GET"
+          path: "${P}/board.html"
+          headers:
+            Range: "selector=#item-mg3x1a2b9f"
+        expect:
+          status: 206
+          body_contains: ["id=\"item-mg3x1a2b9f\"", "content=\"Untitled\"", "datetime=\"2026-09-28T10:00:00.000Z\""]
+  - id: "javascript.client.fallback-put-plain-content-type"
+    title: "The commit fallback PUT (Range #id, Content-Type text/html, unstripped contenteditable) is accepted"
+    feature: "client contract: PUT"
+    evidence: "client-source"
+    source: "beta-js/pagelove.mjs@c204746:944-953 (#persist fallback)"
+    confidence: "high"
+    requires: []
+    live: true
+    notes: "spec: R-JS-102 (R8), R-JS-106."
+    site:
+      settings:
+        default_get: "allow"
+      files:
+        - path: "${P}/board.html"
+          body: |
+            <!DOCTYPE html>
+            <html><head><title>board</title></head><body>
+            <main id="board" itemscope itemtype="https://pagelike.test${P}/Board">
+            <h1>Board</h1>
+            <p>second child</p>
+            <ul id="123"><li>escaped-id-target</li></ul>
+            <article id="card" itemscope itemtype="https://pagelike.test${P}/Card" itemprop="card"><meta itemprop="title" content="T"><span itemprop="body">card-body</span></article>
+            <ul id="list"><li id="item-1">one</li></ul>
+            </main>
+            </body></html>
+      rules:
+        - actor: "*"
+          resource: "${P}/*"
+          method: ["GET", "HEAD", "PUT", "POST", "DELETE", "MOVE"]
+          action: "Allow"
+        - actor: "*"
+          resource: "${P}/*/*"
+          method: ["GET", "HEAD", "PUT", "POST", "DELETE", "MOVE"]
+          action: "Allow"
+        - actor: "*"
+          resource: "${P}/*/*/*"
+          method: ["GET", "HEAD", "PUT", "POST", "DELETE", "MOVE"]
+          action: "Allow"
+    steps:
+      - name: "fallback PUT"
+        as: "anonymous"
+        request:
+          method: "PUT"
+          path: "${P}/board.html"
+          headers:
+            Range: "selector=#item-1"
+            Content-Type: "text/html"
+          body: "<li id=\"item-1\" contenteditable=\"\">one edited</li>"
+        expect:
+          status: [200, 204, 206]
+      - name: "GET the composed page"
+        as: "anonymous"
+        request:
+          method: "GET"
+          path: "${P}/board.html"
+          headers:
+            Range: "selector=#item-1"
+        expect:
+          status: 206
+          body_contains: ["one edited"]
+  - id: "javascript.client.delete-missing-is-416"
+    title: "DELETE of an element that no longer exists is 416, which the Droppable fallback treats as already deleted"
+    feature: "client contract: DELETE"
+    evidence: "client-source"
+    source: "beta-js/pagelove/component.mjs@c204746:929-944"
+    confidence: "high"
+    requires: []
+    live: true
+    notes: "spec: R-JS-107; reading-writing R-RW-82."
+    site:
+      settings:
+        default_get: "allow"
+      files:
+        - path: "${P}/board.html"
+          body: |
+            <!DOCTYPE html>
+            <html><head><title>board</title></head><body>
+            <main id="board" itemscope itemtype="https://pagelike.test${P}/Board">
+            <h1>Board</h1>
+            <p>second child</p>
+            <ul id="123"><li>escaped-id-target</li></ul>
+            <article id="card" itemscope itemtype="https://pagelike.test${P}/Card" itemprop="card"><meta itemprop="title" content="T"><span itemprop="body">card-body</span></article>
+            <ul id="list"><li id="item-1">one</li></ul>
+            </main>
+            </body></html>
+      rules:
+        - actor: "*"
+          resource: "${P}/*"
+          method: ["GET", "HEAD", "PUT", "POST", "DELETE", "MOVE"]
+          action: "Allow"
+        - actor: "*"
+          resource: "${P}/*/*"
+          method: ["GET", "HEAD", "PUT", "POST", "DELETE", "MOVE"]
+          action: "Allow"
+        - actor: "*"
+          resource: "${P}/*/*/*"
+          method: ["GET", "HEAD", "PUT", "POST", "DELETE", "MOVE"]
+          action: "Allow"
+    steps:
+      - name: "DELETE a missing id"
+        as: "anonymous"
+        request:
+          method: "DELETE"
+          path: "${P}/board.html"
+          headers:
+            Range: "selector=#item-gone"
+        expect:
+          status: 416
+  - id: "javascript.query.javascript-body-415"
+    title: "QUERY with a JavaScript body is not a supported query type (the Sessel path's 400, no Accept-Query)"
+    feature: "QUERY"
+    evidence: "live-observed"
+    source: "harness/observations/live-2026-09-28/protocol-query-sessel-415-unsupported-type.json and protocol-query-edge-415-unsupported-type.json (a non-css type is authorized as QUERY, then 400 'QUERY method requires Content-Type: text/sessel'); docs languages/javascript/server/javascript-in-schemas §When to reach for it ('HTTP queries' are Sessel-only); docs reference/protocol/QUERY (snapshot 2026-09-28) claims 415"
+    confidence: "medium"
+    requires: ["server-js"]
+    live: true
+    notes: >-
+      spec: R-JS-4; protocol R-PROTO-43 as reconciled with live PageLove (C-9 reversed,
+      docs/compat/decisions.md). The id keeps its original name. The rules grant QUERY, because
+      without that grant the answer is the QUERY denial (401).
+    site:
+      settings:
+        default_get: "allow"
+      rules:
+        - actor: "*"
+          resource: "${P}/*"
+          method: ["GET", "HEAD", "PUT", "POST", "DELETE", "MOVE", "QUERY"]
+          action: "Allow"
+    steps:
+      - name: "store a page"
+        as: "anonymous"
+        request:
+          method: "PUT"
+          path: "${P}/q.html"
+          headers:
+            Content-Type: "text/html"
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+            <h1>q</h1>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "QUERY text/javascript"
+        as: "anonymous"
+        request:
+          method: "QUERY"
+          path: "${P}/q.html"
+          headers:
+            Content-Type: "text/javascript"
+          body: "document.querySelector('h1')"
+        expect:
+          status: 400
+          headers_absent: ["Accept-Query"]
+          body_contains: ["QUERY method requires Content-Type: text/sessel"]

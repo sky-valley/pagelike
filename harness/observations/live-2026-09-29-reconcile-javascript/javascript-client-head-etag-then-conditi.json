@@ -1,0 +1,63 @@
+{
+  "case": "javascript.client.head-etag-then-conditional-writes",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (HEAD #list (IntersectionObserver path))",
+      "method": "HEAD",
+      "path": "/_pl/javascript-client-head-etag-then-conditi-b3f479/board.html",
+      "status": 206,
+      "headers": {
+        "content-length": "43",
+        "content-range": "selector #list",
+        "content-type": "text/html",
+        "etag": "\"3b3014b38564356f63c53aff67d90c59d7e3a6ce40911e54c91a8d7975bf07ef-3b3014b38564356f63c53aff67d90c59d7e3a6ce40911e54c91a8d7975bf07ef-1\"",
+        "vary": "Host, Range, Accept"
+      }
+    },
+    {
+      "step": "step 2 (element PUT with If-Match (Content-Type text/html;charset=UTF-8))",
+      "method": "PUT",
+      "path": "/_pl/javascript-client-head-etag-then-conditi-b3f479/board.html",
+      "status": 206,
+      "headers": {
+        "content-length": "67",
+        "content-range": "selector #list",
+        "content-type": "text/html",
+        "etag": "\"adc34bc0721f29cc6382b40baae02a3a0dcb9b45aa705fec4a2734629e0d436e-adc34bc0721f29cc6382b40baae02a3a0dcb9b45aa705fec4a2734629e0d436e-2\"",
+        "last-modified": "Tue, 29 Sep 2026 01:53:51 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003cul id=\"list\"\u003e\u003cli id=\"item-1\"\u003eone\u003c/li\u003e\u003cli id=\"item-2\"\u003etwo\u003c/li\u003e\u003c/ul\u003e"
+    },
+    {
+      "step": "step 3 (element GET with the stale If-Match (beta-js sends If-Match on GET): ignored)",
+      "method": "GET",
+      "path": "/_pl/javascript-client-head-etag-then-conditi-b3f479/board.html",
+      "status": 206,
+      "headers": {
+        "content-length": "67",
+        "content-range": "selector #list",
+        "content-type": "text/html",
+        "etag": "\"adc34bc0721f29cc6382b40baae02a3a0dcb9b45aa705fec4a2734629e0d436e-adc34bc0721f29cc6382b40baae02a3a0dcb9b45aa705fec4a2734629e0d436e-2\"",
+        "vary": "Host, Range, Accept"
+      },
+      "body": "\u003cul id=\"list\"\u003e\u003cli id=\"item-1\"\u003eone\u003c/li\u003e\u003cli id=\"item-2\"\u003etwo\u003c/li\u003e\u003c/ul\u003e"
+    },
+    {
+      "step": "step 4 (element PUT with the stale If-Match)",
+      "method": "PUT",
+      "path": "/_pl/javascript-client-head-etag-then-conditi-b3f479/board.html",
+      "status": 412,
+      "headers": {
+        "content-length": "172",
+        "content-type": "text/html",
+        "etag": "\"adc34bc0721f29cc6382b40baae02a3a0dcb9b45aa705fec4a2734629e0d436e-adc34bc0721f29cc6382b40baae02a3a0dcb9b45aa705fec4a2734629e0d436e-2\"",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\u003cdiv itemscope itemtype=\"http://pagelove.org/Error\"\u003e\u003cspan itemprop=\"message\"\u003ePrecondition Failed: ETag does not match\u003c/span\u003e\u003c/div\u003e\u003c/body\u003e\u003c/html\u003e"
+    }
+  ],
+  "outcome": "pass",
+  "target": "live"
+}

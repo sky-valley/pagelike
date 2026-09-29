@@ -1,0 +1,33 @@
+{
+  "case": "reacting.filters.selector-skipped-without-request-selector",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (install a trigger filtered on 'article')",
+      "method": "PUT",
+      "path": "/_pl/reacting-filters-selector-skipped-withou-b7f62f/r/triggers.html",
+      "status": 201,
+      "headers": {
+        "content-length": "588",
+        "content-type": "text/html",
+        "etag": "\"620ffd080a323c988fbabc4c6e1adde681fe25c16fdd74ee7cd06084aa7cac41\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:48 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\n\u003cdiv hidden itemscope itemtype=\"https://pagelove.org/Trigger\"\u003e\n  \u003cmeta itemprop=\"resource\" content=\"/_pl/reacting-filters-selector-skipped-withou-b7f62f/d/*\"\u003e\n  \u003cmeta itemprop=\"method\" content=\"PUT\"\u003e\n  \u003cmeta itemprop=\"selector\" content=\"article\"\u003e\n  \u003cdiv itemprop=\"action\" itemscope itemtype=\"https://pagelove.org/Sessel\"\u003e\n    \u003cscript itemprop=\"source\" type=\"text/sessel\"\u003e\n      @schema HTTPResponse url(\"https://pagelove.org/HTTPResponse\");\n      throw new HTTPResponse { status: 409, message: \"no-selector-hit\" }\n    \u003c/script\u003e\n  \u003c/div\u003e\n\u003c/div\u003e\n\u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 2 (a whole-document PUT (no selector) fires even though the document has no article)",
+      "method": "PUT",
+      "path": "/_pl/reacting-filters-selector-skipped-withou-b7f62f/d/doc.html",
+      "status": 409,
+      "headers": {
+        "content-length": "15",
+        "content-type": "text/html; charset=utf-8"
+      },
+      "body": "no-selector-hit"
+    }
+  ],
+  "outcome": "pass",
+  "target": "local"
+}

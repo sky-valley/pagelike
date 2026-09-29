@@ -1,0 +1,50 @@
+{
+  "case": "reacting.actions.sessel-throw-multiple-header-pairs",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (install)",
+      "method": "PUT",
+      "path": "/_pl/reacting-actions-sessel-throw-multiple-h-3f9d12/r/triggers.html",
+      "status": 201,
+      "headers": {
+        "content-length": "733",
+        "content-type": "text/html",
+        "etag": "\"c79aa2eb95fd4649a40b0e885a4724304d2a68e7631f6806a10d6e635cc5787b\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:48 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\n\u003cdiv hidden itemscope itemtype=\"https://pagelove.org/Trigger\"\u003e\n  \u003cmeta itemprop=\"resource\" content=\"/_pl/reacting-actions-sessel-throw-multiple-h-3f9d12/d/*\"\u003e\n  \u003cmeta itemprop=\"method\" content=\"PUT\"\u003e\n  \u003cdiv itemprop=\"action\" itemscope itemtype=\"https://pagelove.org/Sessel\"\u003e\n    \u003cscript itemprop=\"source\" type=\"text/sessel\"\u003e\n      @schema HTTPResponse url(\"https://pagelove.org/HTTPResponse\");\n      @schema Pair url(\"https://pagelove.org/Pair\");\n      throw new HTTPResponse {\n        status: 200,\n        body: \"Hello\",\n        header: new Pair { key: \"X-Custom\", value: \"one\" },\n        header: new Pair { key: \"Cache-Control\", value: \"no-cache\" }\n      }\n    \u003c/script\u003e\n  \u003c/div\u003e\n\u003c/div\u003e\n\u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 2 (the thrown 200 is returned with both headers)",
+      "method": "PUT",
+      "path": "/_pl/reacting-actions-sessel-throw-multiple-h-3f9d12/d/doc.html",
+      "status": 200,
+      "headers": {
+        "cache-control": "no-cache",
+        "content-length": "5",
+        "content-type": "text/html; charset=utf-8",
+        "x-custom": "one"
+      },
+      "body": "Hello"
+    },
+    {
+      "step": "step 3 (core never ran, so the document is unchanged)",
+      "method": "GET",
+      "path": "/_pl/reacting-actions-sessel-throw-multiple-h-3f9d12/d/doc.html",
+      "status": 200,
+      "headers": {
+        "accept-ranges": "selector, bytes",
+        "content-length": "67",
+        "content-type": "text/html",
+        "etag": "\"e31a2c1e0c49519ce7aa16bed087235d7b94cac10933616e6f4d9c92162b6bf8\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:48 GMT",
+        "vary": "Host, Range, Accept"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\u003ch1 id=\"h\"\u003eOriginal\u003c/h1\u003e\u003c/body\u003e\u003c/html\u003e\n"
+    }
+  ],
+  "outcome": "pass",
+  "target": "local"
+}

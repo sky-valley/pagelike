@@ -1,0 +1,33 @@
+{
+  "case": "reacting.filters.selector-no-match-does-not-fire",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (install a trigger filtered on h1)",
+      "method": "PUT",
+      "path": "/_pl/reacting-filters-selector-no-match-does-3f6886/r/triggers.html",
+      "status": 201,
+      "headers": {
+        "content-length": "580",
+        "content-type": "text/html",
+        "etag": "\"c2c8a52562ebdfe6e2f52406e47ad6ba4c6e2911cee8291ccb6d6adec5bef1d0\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:48 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\n\u003cdiv hidden itemscope itemtype=\"https://pagelove.org/Trigger\"\u003e\n  \u003cmeta itemprop=\"resource\" content=\"/_pl/reacting-filters-selector-no-match-does-3f6886/d/*\"\u003e\n  \u003cmeta itemprop=\"method\" content=\"PUT\"\u003e\n  \u003cmeta itemprop=\"selector\" content=\"h1\"\u003e\n  \u003cdiv itemprop=\"action\" itemscope itemtype=\"https://pagelove.org/Sessel\"\u003e\n    \u003cscript itemprop=\"source\" type=\"text/sessel\"\u003e\n      @schema HTTPResponse url(\"https://pagelove.org/HTTPResponse\");\n      throw new HTTPResponse { status: 409, message: \"h1-filter-hit\" }\n    \u003c/script\u003e\n  \u003c/div\u003e\n\u003c/div\u003e\n\u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 2 (a selector PUT for a missing element fires the trigger before core)",
+      "method": "PUT",
+      "path": "/_pl/reacting-filters-selector-no-match-does-3f6886/d/doc.html",
+      "status": 409,
+      "headers": {
+        "content-length": "13",
+        "content-type": "text/html; charset=utf-8"
+      },
+      "body": "h1-filter-hit"
+    }
+  ],
+  "outcome": "pass",
+  "target": "local"
+}

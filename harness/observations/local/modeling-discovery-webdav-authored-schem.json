@@ -1,0 +1,20 @@
+{
+  "case": "modeling.discovery.webdav-authored-schema-immediate-local",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (write right after WebDAV setup is already validated)",
+      "method": "PUT",
+      "path": "/_pl/modeling-discovery-webdav-authored-schem-a5e541/early.html",
+      "status": 422,
+      "headers": {
+        "content-length": "866",
+        "content-type": "text/html; charset=utf-8",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\n  \u003chead\u003e\n    \u003ctitle\u003e422 Unprocessable Entity - Schema Violation\u003c/title\u003e\n  \u003c/head\u003e\n  \u003cbody itemscope itemtype=\"https://pagelove.org/SchemaViolation\"\u003e\n    \u003ch1 itemprop=\"name\"\u003eUnprocessable Entity\u003c/h1\u003e\n    \u003cmeta itemprop=\"statusCode\" content=\"422\"\u003e\n    \u003cp itemprop=\"description\"\u003eSchema validation failed\u003c/p\u003e\n    \u003cul\u003e\n      \u003cli itemprop=\"violations\" itemscope itemtype=\"https://pagelove.org/Violation\"\u003e\n        \u003cspan itemprop=\"check\"\u003ecardinality\u003c/span\u003e\n        \u003cspan itemprop=\"itemtype\"\u003ehttps://pagelike.test/_pl/modeling-discovery-webdav-authored-schem-a5e541/Tag\u003c/span\u003e\n        \u003cspan itemprop=\"property\"\u003elabel\u003c/span\u003e\n        \u003cspan itemprop=\"message\"\u003e[https://pagelike.test/_pl/modeling-discovery-webdav-authored-schem-a5e541/Tag].label: cardinality 1..1 violated: expected exactly 1 value, found 0\u003c/span\u003e\n      \u003c/li\u003e\n    \u003c/ul\u003e\n  \u003c/body\u003e\n\u003c/html\u003e\n"
+    }
+  ],
+  "outcome": "pass",
+  "target": "local"
+}

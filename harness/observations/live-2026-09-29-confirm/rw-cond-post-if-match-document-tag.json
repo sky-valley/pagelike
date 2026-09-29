@@ -1,0 +1,89 @@
+{
+  "case": "rw.cond.post-if-match-document-tag",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (read the document)",
+      "method": "GET",
+      "path": "/_pl/rw-cond-post-if-match-document-tag-5647f3/cpost.html",
+      "status": 200,
+      "headers": {
+        "content-type": "text/html",
+        "etag": "\"d0400071718b80fd6ef191c0f8b64418896fd8cd7053cab0c98ef7795c1a36fb\"",
+        "last-modified": "Tue, 29 Sep 2026 00:18:12 GMT",
+        "vary": "Host, Range, Accept"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\u003cul id=\"l\"\u003e\u003cli\u003ebase\u003c/li\u003e\u003c/ul\u003e\n                \u003cdiv style=\"\n                            position: fixed;\n                            bottom: 0;\n                            left: 0;\n                            right: 0;\n                            padding: 8px;\n                            background: #f0f0f0;\n                            text-align: center;\n                            font-size: 12px;\n                            color: #666;\n                            z-index: 9999;\n                            opacity: 0.8;\n                            border-top: 1px solid #ddd;\n                        \"\u003e\n                    Powered by\n                    \u003ca href=\"https://pagelove.com/\" style=\"color: #4a90d9; text-decoration: none\"\u003ePagelove\u003c/a\u003e\n                \u003c/div\u003e\n            \u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 2 (read the anchor's tag)",
+      "method": "HEAD",
+      "path": "/_pl/rw-cond-post-if-match-document-tag-5647f3/cpost.html",
+      "status": 206,
+      "headers": {
+        "content-length": "29",
+        "content-range": "selector #l",
+        "content-type": "text/html",
+        "etag": "\"7519273daf15c1fe8fab5510aed0b3082a323813c07bd4108065bfd43a058c36-7519273daf15c1fe8fab5510aed0b3082a323813c07bd4108065bfd43a058c36-1\"",
+        "vary": "Host, Range, Accept"
+      }
+    },
+    {
+      "step": "step 3 (the document tag is stale for a selector write)",
+      "method": "POST",
+      "path": "/_pl/rw-cond-post-if-match-document-tag-5647f3/cpost.html",
+      "status": 412,
+      "headers": {
+        "content-length": "172",
+        "content-type": "text/html",
+        "etag": "\"7519273daf15c1fe8fab5510aed0b3082a323813c07bd4108065bfd43a058c36-7519273daf15c1fe8fab5510aed0b3082a323813c07bd4108065bfd43a058c36-1\"",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\u003cdiv itemscope itemtype=\"http://pagelove.org/Error\"\u003e\u003cspan itemprop=\"message\"\u003ePrecondition Failed: ETag does not match\u003c/span\u003e\u003c/div\u003e\u003c/body\u003e\u003c/html\u003e"
+    },
+    {
+      "step": "step 4 (conditional append with the anchor's tag)",
+      "method": "POST",
+      "path": "/_pl/rw-cond-post-if-match-document-tag-5647f3/cpost.html",
+      "status": 206,
+      "headers": {
+        "content-length": "26",
+        "content-range": "selector #l",
+        "content-type": "text/html",
+        "etag": "\"4eb0452004e57ee40d8e092e047a30779eaa8d923faa23738fe8e0984e80c45a-4eb0452004e57ee40d8e092e047a30779eaa8d923faa23738fe8e0984e80c45a-2\"",
+        "last-modified": "Tue, 29 Sep 2026 00:18:14 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003cli\u003efirst conditional\u003c/li\u003e"
+    },
+    {
+      "step": "step 5 (same tag again is stale)",
+      "method": "POST",
+      "path": "/_pl/rw-cond-post-if-match-document-tag-5647f3/cpost.html",
+      "status": 412,
+      "headers": {
+        "content-length": "172",
+        "content-type": "text/html",
+        "etag": "\"c94fb159564c3613b27a9e2675d6bd2227c7f02ad3561f513ee3ad9e8c07b8e4-c94fb159564c3613b27a9e2675d6bd2227c7f02ad3561f513ee3ad9e8c07b8e4-2\"",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\u003cdiv itemscope itemtype=\"http://pagelove.org/Error\"\u003e\u003cspan itemprop=\"message\"\u003ePrecondition Failed: ETag does not match\u003c/span\u003e\u003c/div\u003e\u003c/body\u003e\u003c/html\u003e"
+    },
+    {
+      "step": "step 6 (only the first landed)",
+      "method": "GET",
+      "path": "/_pl/rw-cond-post-if-match-document-tag-5647f3/cpost.html",
+      "status": 206,
+      "headers": {
+        "content-length": "55",
+        "content-range": "selector #l",
+        "content-type": "text/html",
+        "etag": "\"c94fb159564c3613b27a9e2675d6bd2227c7f02ad3561f513ee3ad9e8c07b8e4-c94fb159564c3613b27a9e2675d6bd2227c7f02ad3561f513ee3ad9e8c07b8e4-2\"",
+        "vary": "Host, Range, Accept"
+      },
+      "body": "\u003cul id=\"l\"\u003e\u003cli\u003ebase\u003c/li\u003e\u003cli\u003efirst conditional\u003c/li\u003e\u003c/ul\u003e"
+    }
+  ],
+  "outcome": "pass",
+  "target": "live"
+}

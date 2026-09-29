@@ -1,0 +1,37 @@
+{
+  "case": "javascript.dom.node-identity",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (PUT the page (public plane; registers inline declarations))",
+      "method": "PUT",
+      "path": "/_pl/javascript-dom-node-identity-6b7198/probe.html",
+      "status": 201,
+      "headers": {
+        "content-length": "1243",
+        "content-type": "text/html",
+        "etag": "\"baa78ae1ce83e48010630abfa0d1304b347d9c6a597441aad6cbe2c1307d81f8\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:43 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml xmlns:t=\"https://pagelike.test/_pl/javascript-dom-node-identity-6b7198/Dnodeidentity\"\u003e\u003cbody\u003e\n\u003cmain\u003e\n\u003ct:probe\u003e\u003c/t:probe\u003e\n\u003c/main\u003e\n\u003cdiv hidden itemscope itemtype=\"https://pagelove.org/Schema\"\u003e\n\u003cmeta itemprop=\"type\" content=\"https://pagelike.test/_pl/javascript-dom-node-identity-6b7198/Dnodeidentity\"\u003e\n\u003cul\u003e\n\u003cli itemprop=\"property\" itemscope itemtype=\"https://pagelove.org/Method\"\u003e\n\u003cmeta itemprop=\"name\" content=\"probe\"\u003e\n\u003cdiv itemprop=\"implementation\" itemscope itemtype=\"https://pagelove.org/JavaScript/Module\"\u003e\n\u003cscript itemprop=\"source\" type=\"module\"\u003e\nconst S = (...a) =\u003e a.map(String).join('|');\nexport default function () {\nconst d = new DOMParser().parseFromString('\u003cform id=\"f\"\u003e\u003cdiv class=\"row\"\u003e\u003cbutton id=\"b\" class=\"k\"\u003ex\u003c/button\u003e\u003c/div\u003e\u003c/form\u003e', 'text/html');\nconst b = d.querySelector('#b'), n = d.createElement('i');\nreturn 'R:' + S(b.closest('button') === b, d.querySelector('#b') === b, d.getElementById('b') === b, b.parentNode.firstChild === b, b.parentElement === b.parentNode, b.ownerDocument === d,\n  d.documentElement === d.firstChild, new Set([b, d.querySelector('#b')]).size, b.classList === b.classList, b.appendChild(n) === n, b.closest('button').id);\n}\n\u003c/script\u003e\n\u003c/div\u003e\n\u003c/li\u003e\n\u003c/ul\u003e\n\u003c/div\u003e\n\u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 2 (GET \u003cmain\u003e: the method result is inserted as text)",
+      "method": "GET",
+      "path": "/_pl/javascript-dom-node-identity-6b7198/probe.html",
+      "status": 206,
+      "headers": {
+        "accept-ranges": "selector, bytes",
+        "content-length": "65",
+        "content-range": "selector main",
+        "content-type": "text/html",
+        "etag": "\"b547455ea4224c607c0af966c5072daa5b1470e4cf65d615b42a181e1058ff9b-b547455ea4224c607c0af966c5072daa5b1470e4cf65d615b42a181e1058ff9b-1\"",
+        "vary": "Host, Range, Accept"
+      },
+      "body": "\u003cmain\u003e\nR:true|true|true|true|true|true|true|1|true|true|b\n\u003c/main\u003e"
+    }
+  ],
+  "outcome": "pass",
+  "target": "local"
+}

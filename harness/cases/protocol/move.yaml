@@ -1,0 +1,1024 @@
+# MOVE (public plane): placement, validation, whole-document moves, conditions,
+# concurrency, events (spec: docs/spec/protocol.md §9, R-PROTO-90..106).
+# Authorization-specific cases live in move-authz.yaml.
+#
+# Validation cases grant broad document-level rules so that only the condition
+# under test can fail; the documented examples use the three-check rules.
+cases:
+  - id: protocol.move.append-example
+    title: "Documented example: move card 3 to the end of the done lane (204)"
+    area: protocol
+    feature: MOVE element placement
+    evidence: documented
+    source: "docs reference/reading-and-writing/MOVE-method §Examples, Move a card to a different lane (snapshot 2026-09-28)"
+    confidence: high
+    requires: []
+    live: true
+    notes: R-PROTO-90/93/94/96. Rules are the documented three-check set with actor * instead of editors.
+    site:
+      files:
+        - path: "${P}/move-append-test.html"
+          body: &board |
+            <!DOCTYPE html>
+            <html><body>
+            <section class="lane" id="lane-todo"><article class="card" id="card-1">One</article><article class="card" id="card-2">Two</article><article class="card" id="card-3">Three</article></section>
+            <section class="lane" id="lane-done"><article class="card" id="card-4">Four</article></section>
+            </body></html>
+      rules: &three_checks
+        - {actor: "*", resource: "${P}/*", method: [GET], action: Allow}
+        - {actor: "*", resource: "${P}/*", method: [MOVE], selector: "", action: Allow}
+        - {actor: "*", resource: "${P}/*", method: [DELETE], selector: ".card", action: Allow}
+        - {actor: "*", resource: "${P}/*", method: [POST], selector: ".lane", action: Allow}
+    steps:
+      - name: move
+        as: anonymous
+        request:
+          method: MOVE
+          path: "${P}/move-append-test.html"
+          headers:
+            Range: "selector=#card-3"
+            Destination: "${P}/move-append-test.html"
+            Destination-Range: "selector=#lane-done; placement=append"
+        expect: {status: 204, body: ""}
+      - name: card 3 is the last child of the done lane
+        as: anonymous
+        request:
+          method: GET
+          path: "${P}/move-append-test.html"
+          headers: {Range: "selector=#lane-done"}
+        expect:
+          status: 206
+          body_html: '<section class="lane" id="lane-done"><article class="card" id="card-4">Four</article><article class="card" id="card-3">Three</article></section>'
+      - name: and no longer in the todo lane
+        as: anonymous
+        request:
+          method: GET
+          path: "${P}/move-append-test.html"
+          headers: {Range: "selector=#lane-todo"}
+        expect:
+          status: 206
+          body_html: '<section class="lane" id="lane-todo"><article class="card" id="card-1">One</article><article class="card" id="card-2">Two</article></section>'
+
+  - id: protocol.move.before-example
+    title: "Documented example: move a list item before another (204)"
+    area: protocol
+    feature: MOVE element placement
+    evidence: documented
+    source: "docs reference/reading-and-writing/MOVE-method §Examples, Move a sibling before another (snapshot 2026-09-28)"
+    confidence: high
+    requires: []
+    live: true
+    notes: R-PROTO-93/96. Check 3 for before keys on the anchor's parent (the ul).
+    site:
+      files:
+        - path: "${P}/move-before-test.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body><ul id="list"><li id="item-a">A</li><li id="item-b">B</li><li id="item-c">C</li></ul></body></html>
+      rules:
+        - {actor: "*", resource: "${P}/*", method: [GET, MOVE], action: Allow}
+        - {actor: "*", resource: "${P}/*", method: [DELETE], selector: "li", action: Allow}
+        - {actor: "*", resource: "${P}/*", method: [POST], selector: "ul", action: Allow}
+    steps:
+      - name: move c before a
+        as: anonymous
+        request:
+          method: MOVE
+          path: "${P}/move-before-test.html"
+          headers:
+            Range: "selector=#item-c"
+            Destination: "${P}/move-before-test.html"
+            Destination-Range: "selector=#item-a; placement=before"
+        expect: {status: 204}
+      - name: order is c, a, b
+        as: anonymous
+        request:
+          method: GET
+          path: "${P}/move-before-test.html"
+          headers: {Range: "selector=#list"}
+        expect:
+          status: 206
+          body_html: '<ul id="list"><li id="item-c">C</li><li id="item-a">A</li><li id="item-b">B</li></ul>'
+
+  - id: protocol.move.prepend-and-after
+    title: prepend inserts as first child; after inserts as next sibling
+    area: protocol
+    feature: MOVE element placement
+    evidence: documented
+    source: "docs reference/reading-and-writing/MOVE-method §Placement (snapshot 2026-09-28)"
+    confidence: high
+    requires: []
+    live: true
+    notes: R-PROTO-93.
+    site:
+      files:
+        - path: "${P}/board.html"
+          body: *board
+      rules: *three_checks
+    steps:
+      - name: prepend card 3 into done
+        as: anonymous
+        request:
+          method: MOVE
+          path: "${P}/board.html"
+          headers:
+            Range: "selector=#card-3"
+            Destination: "${P}/board.html"
+            Destination-Range: "selector=#lane-done; placement=prepend"
+        expect: {status: 204}
+      - name: move card 1 after card 4
+        as: anonymous
+        request:
+          method: MOVE
+          path: "${P}/board.html"
+          headers:
+            Range: "selector=#card-1"
+            Destination: "${P}/board.html"
+            Destination-Range: "selector=#card-4; placement=after"
+        expect: {status: 204}
+      - name: done lane is 3, 4, 1
+        as: anonymous
+        request:
+          method: GET
+          path: "${P}/board.html"
+          headers: {Range: "selector=#lane-done"}
+        expect:
+          status: 206
+          body_html: '<section class="lane" id="lane-done"><article class="card" id="card-3">Three</article><article class="card" id="card-4">Four</article><article class="card" id="card-1">One</article></section>'
+
+  - id: protocol.move.placement-case-insensitive
+    title: placement values are case-insensitive
+    area: protocol
+    feature: MOVE element placement
+    evidence: documented
+    source: "docs reference/reading-and-writing/MOVE-method §Placement (snapshot 2026-09-28)"
+    confidence: high
+    requires: []
+    live: true
+    notes: R-PROTO-93.
+    site:
+      files:
+        - path: "${P}/board.html"
+          body: *board
+      rules: *three_checks
+    steps:
+      - name: APPEND
+        as: anonymous
+        request:
+          method: MOVE
+          path: "${P}/board.html"
+          headers:
+            Range: "selector=#card-2"
+            Destination: "${P}/board.html"
+            Destination-Range: "selector=#lane-done; placement=APPEND"
+        expect: {status: 204}
+      - name: card 2 in done
+        as: anonymous
+        request:
+          method: GET
+          path: "${P}/board.html"
+          headers: {Range: "selector=#lane-done"}
+        expect: {status: 206, body_contains: ['id="card-2"']}
+
+  - id: protocol.move.incomplete-requests-422
+    title: Incomplete element moves and whole-document moves without Destination are 422
+    area: protocol
+    feature: MOVE validation
+    evidence: documented
+    source: "docs reference/reading-and-writing/MOVE-method §Headers, §Error cases (snapshot 2026-09-28)"
+    confidence: high
+    requires: []
+    live: true
+    notes: R-PROTO-92/99. Nothing may change.
+    site:
+      files:
+        - path: "${P}/board.html"
+          body: *board
+      rules: &broad
+        - {actor: "*", resource: "${P}/*", method: [GET, MOVE, DELETE, POST], action: Allow}
+    steps:
+      - name: Range without Destination-Range
+        as: anonymous
+        request:
+          method: MOVE
+          path: "${P}/board.html"
+          headers: {Range: "selector=#card-3", Destination: "${P}/board.html"}
+        expect: {status: 422}
+      - name: Destination-Range without Range
+        as: anonymous
+        request:
+          method: MOVE
+          path: "${P}/board.html"
+          headers: {Destination: "${P}/board.html", Destination-Range: "selector=#lane-done; placement=append"}
+        expect: {status: 422}
+      - name: Destination-Range without placement
+        as: anonymous
+        request:
+          method: MOVE
+          path: "${P}/board.html"
+          headers:
+            Range: "selector=#card-3"
+            Destination: "${P}/board.html"
+            Destination-Range: "selector=#lane-done"
+        expect: {status: 422}
+      - name: whole-document move without Destination
+        as: anonymous
+        request: {method: MOVE, path: "${P}/board.html"}
+        expect: {status: 422}
+      - name: document unchanged
+        as: anonymous
+        request:
+          method: GET
+          path: "${P}/board.html"
+          headers: {Range: "selector=#lane-todo"}
+        expect: {status: 206, body_contains: ['id="card-3"']}
+
+  - id: protocol.move.unknown-placement-422
+    title: An unknown placement value is rejected with 422
+    area: protocol
+    feature: MOVE validation
+    evidence: inferred
+    source: "docs reference/reading-and-writing/MOVE-method §Placement, §Error cases (snapshot 2026-09-28)"
+    confidence: medium
+    requires: []
+    live: true
+    notes: R-PROTO-93 (P-18).
+    site:
+      files:
+        - path: "${P}/board.html"
+          body: *board
+      rules: *broad
+    steps:
+      - name: sideways
+        as: anonymous
+        request:
+          method: MOVE
+          path: "${P}/board.html"
+          headers:
+            Range: "selector=#card-3"
+            Destination: "${P}/board.html"
+            Destination-Range: "selector=#lane-done; placement=sideways"
+        expect: {status: 422}
+
+  - id: protocol.move.cross-document-501
+    title: An element move whose Destination names another document is 501 MoveCrossResource and writes nothing
+    area: protocol
+    feature: MOVE validation
+    evidence: documented
+    source: "docs reference/reading-and-writing/MOVE-method §Error cases (snapshot 2026-09-28)"
+    confidence: high
+    requires: []
+    live: true
+    notes: R-PROTO-95, C-12.
+    site:
+      files:
+        - path: "${P}/board.html"
+          body: *board
+        - path: "${P}/other.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body><section class="lane" id="lane-done"></section></body></html>
+      rules: *broad
+    steps:
+      - name: cross-document element move
+        as: anonymous
+        request:
+          method: MOVE
+          path: "${P}/board.html"
+          headers:
+            Range: "selector=#card-3"
+            Destination: "${P}/other.html"
+            Destination-Range: "selector=#lane-done; placement=append"
+        expect:
+          status: 501
+          body_contains: ["MoveCrossResource"]
+      - name: source unchanged
+        as: anonymous
+        request:
+          method: GET
+          path: "${P}/board.html"
+          headers: {Range: "selector=#lane-todo"}
+        expect: {status: 206, body_contains: ['id="card-3"']}
+      - name: destination unchanged
+        as: anonymous
+        request: {method: GET, path: "${P}/other.html"}
+        expect: {status: 200, body_not_contains: ["card-3"]}
+
+  - id: protocol.move.source-absent-416
+    title: A source selector that matches nothing is 416
+    area: protocol
+    feature: MOVE validation
+    evidence: documented
+    source: "docs reference/reading-and-writing/MOVE-method §Error cases (snapshot 2026-09-28)"
+    confidence: high
+    requires: []
+    live: true
+    notes: R-PROTO-99. The actor may read the document, so absence is reported.
+    site:
+      files:
+        - path: "${P}/board.html"
+          body: *board
+      rules: *broad
+    steps:
+      - name: no such card
+        as: anonymous
+        request:
+          method: MOVE
+          path: "${P}/board.html"
+          headers:
+            Range: "selector=#card-99"
+            Destination: "${P}/board.html"
+            Destination-Range: "selector=#lane-done; placement=append"
+        expect: {status: 416}
+
+  - id: protocol.move.destination-absent-404
+    title: A destination selector that matches nothing is 404
+    area: protocol
+    feature: MOVE validation
+    evidence: documented
+    source: "docs reference/reading-and-writing/MOVE-method §Error cases (snapshot 2026-09-28)"
+    confidence: high
+    requires: []
+    live: true
+    notes: R-PROTO-99.
+    site:
+      files:
+        - path: "${P}/board.html"
+          body: *board
+      rules: *broad
+    steps:
+      - name: no such lane
+        as: anonymous
+        request:
+          method: MOVE
+          path: "${P}/board.html"
+          headers:
+            Range: "selector=#card-3"
+            Destination: "${P}/board.html"
+            Destination-Range: "selector=#lane-archive; placement=append"
+        expect: {status: 404}
+      - name: card 3 still in todo
+        as: anonymous
+        request:
+          method: GET
+          path: "${P}/board.html"
+          headers: {Range: "selector=#lane-todo"}
+        expect: {status: 206, body_contains: ['id="card-3"']}
+
+  - id: protocol.move.invalid-selectors-422
+    title: An unparsable source selector matches nothing (416); an unparsable destination selector is 422
+    area: protocol
+    feature: MOVE validation
+    evidence: live-observed
+    source: "harness/observations/live-2026-09-28/protocol-move-invalid-selectors-422.json (source: 416 selector-no-match; destination: 422 InvalidPath problems item); docs reference/reading-and-writing/MOVE-method §Error cases (snapshot 2026-09-28) claims 422 for both"
+    confidence: high
+    requires: []
+    live: true
+    notes: "The id keeps its original name. R-PROTO-99 / C-24 as reconciled with the live run (docs/compat/decisions.md)."
+    site:
+      files:
+        - path: "${P}/board.html"
+          body: *board
+      rules: *broad
+    steps:
+      - name: invalid source selector
+        as: anonymous
+        request:
+          method: MOVE
+          path: "${P}/board.html"
+          headers:
+            Range: "selector=#card-3["
+            Destination: "${P}/board.html"
+            Destination-Range: "selector=#lane-done; placement=append"
+        expect:
+          status: 416
+          body_contains: ['<span itemprop="message">selector "#card-3[": selector matched no elements at the request path or any origin</span>']
+      - name: invalid destination selector
+        as: anonymous
+        request:
+          method: MOVE
+          path: "${P}/board.html"
+          headers:
+            Range: "selector=#card-3"
+            Destination: "${P}/board.html"
+            Destination-Range: "selector=#lane-done[; placement=append"
+        expect:
+          status: 422
+          header_matches: {Content-Type: "^text/html$"}
+          body_contains:
+            - '<div itemscope itemtype="https://dombase.pagelove.team/ns/error/InvalidPath"><ul itemprop="problems">'
+            - "Invalid destination selector: invalid selector '#lane-done['"
+
+  - id: protocol.move.into-own-descendant-422
+    title: Moving an element into its own descendant is an illegal move (422)
+    area: protocol
+    feature: MOVE validation
+    evidence: documented
+    source: "docs reference/reading-and-writing/MOVE-method §Error cases (snapshot 2026-09-28)"
+    confidence: high
+    requires: []
+    live: true
+    notes: R-PROTO-94/99.
+    site:
+      files:
+        - path: "${P}/board.html"
+          body: *board
+      rules: *broad
+    steps:
+      - name: lane into its own card
+        as: anonymous
+        request:
+          method: MOVE
+          path: "${P}/board.html"
+          headers:
+            Range: "selector=#lane-todo"
+            Destination: "${P}/board.html"
+            Destination-Range: "selector=#card-1; placement=append"
+        expect: {status: 422}
+      - name: board unchanged
+        as: anonymous
+        request:
+          method: GET
+          path: "${P}/board.html"
+          headers: {Range: "selector=#card-1"}
+        expect: {status: 206, body_html: '<article class="card" id="card-1">One</article>'}
+
+  - id: protocol.move.first-source-match
+    title: A source selector matching several elements moves only the first in document order
+    area: protocol
+    feature: MOVE element semantics
+    evidence: documented
+    source: "docs reference/permissions/AuthorizationRule §Selectors that match several elements (\"A write changes only the first match\") (snapshot 2026-09-28)"
+    confidence: medium
+    requires: []
+    live: true
+    notes: R-PROTO-94.
+    site:
+      files:
+        - path: "${P}/board.html"
+          body: *board
+      rules: *broad
+    steps:
+      - name: move .card
+        as: anonymous
+        request:
+          method: MOVE
+          path: "${P}/board.html"
+          headers:
+            Range: "selector=.card"
+            Destination: "${P}/board.html"
+            Destination-Range: "selector=#lane-done; placement=append"
+        expect: {status: 204}
+      - name: only card 1 moved
+        as: anonymous
+        request:
+          method: GET
+          path: "${P}/board.html"
+          headers: {Range: "selector=#lane-done"}
+        expect:
+          status: 206
+          body_html: '<section class="lane" id="lane-done"><article class="card" id="card-4">Four</article><article class="card" id="card-1">One</article></section>'
+
+  - id: protocol.move.first-anchor-match
+    title: A destination selector matching several elements anchors on the first
+    area: protocol
+    feature: MOVE element semantics
+    evidence: inferred
+    source: "docs reference/permissions/AuthorizationRule §Selectors that match several elements; reference/glossary/selector-range-unit (snapshot 2026-09-28)"
+    confidence: medium
+    requires: []
+    live: true
+    notes: R-PROTO-94.
+    site:
+      files:
+        - path: "${P}/board.html"
+          body: *board
+      rules: *broad
+    steps:
+      - name: move card 4 to the first lane
+        as: anonymous
+        request:
+          method: MOVE
+          path: "${P}/board.html"
+          headers:
+            Range: "selector=#card-4"
+            Destination: "${P}/board.html"
+            Destination-Range: "selector=.lane; placement=append"
+        expect: {status: 204}
+      - name: card 4 ends the todo lane
+        as: anonymous
+        request:
+          method: GET
+          path: "${P}/board.html"
+          headers: {Range: "selector=#lane-todo"}
+        expect:
+          status: 206
+          body_html: '<section class="lane" id="lane-todo"><article class="card" id="card-1">One</article><article class="card" id="card-2">Two</article><article class="card" id="card-3">Three</article><article class="card" id="card-4">Four</article></section>'
+
+  - id: protocol.move.whole-document
+    title: A MOVE with no Range and no Destination-Range relocates the whole document and creates the destination
+    area: protocol
+    feature: MOVE whole document
+    evidence: documented
+    source: "docs reference/reading-and-writing/MOVE-method §Headers, §Whole-document MOVE, §Error cases (snapshot 2026-09-28)"
+    confidence: high
+    requires: []
+    live: true
+    notes: R-PROTO-98. Only MOVE rules are needed (checks 2 and 3 do not apply).
+    site:
+      files:
+        - path: "${P}/a.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body><h1>Relocated document</h1></body></html>
+      rules:
+        - {actor: "*", resource: "${P}/*", method: [GET, MOVE], action: Allow}
+    steps:
+      - name: move a to b
+        as: anonymous
+        request:
+          method: MOVE
+          path: "${P}/a.html"
+          headers: {Destination: "${P}/b.html"}
+        expect: {status: 204}
+      - name: source is gone
+        as: anonymous
+        request: {method: GET, path: "${P}/a.html"}
+        expect: {status: 404}
+      - name: destination has the content
+        as: anonymous
+        request: {method: GET, path: "${P}/b.html"}
+        expect: {status: 200, body_contains: ["Relocated document"]}
+
+  - id: protocol.move.whole-document-missing-source
+    title: A whole-document MOVE of a path with no document is 404
+    area: protocol
+    feature: MOVE whole document
+    evidence: inferred
+    source: "docs reference/reading-and-writing/GET-method, PUT-method error tables (snapshot 2026-09-28)"
+    confidence: medium
+    requires: []
+    live: true
+    notes: >-
+      R-PROTO-98. Live PageLove answers 500 with an Internal problems item saying the document was
+      not found (harness/observations/live-2026-09-28/protocol-move-whole-document-missing-source.json).
+      pagelike keeps the 404 (docs/compat/decisions.md, keep-standard: a server error for a client's
+      missing resource is a PageLove bug no client can rely on) and uses the write path's NotFound item;
+      protocol.move.whole-document-missing-source.live measures the divergence.
+    site:
+      rules:
+        - {actor: "*", resource: "${P}/*", method: [GET, MOVE], action: Allow}
+    steps:
+      - name: nothing to move
+        as: anonymous
+        request:
+          method: MOVE
+          path: "${P}/missing.html"
+          headers: {Destination: "${P}/b.html"}
+        expect:
+          status: 404
+          body: '<div itemscope itemtype="https://dombase.pagelove.team/ns/error/NotFound"><ul itemprop="problems"><li itemprop="problem"><span itemprop="message">document not found at request path: ${P}/missing.html</span></li></ul></div>'
+
+  - id: protocol.move.whole-document-missing-source.live
+    title: Live PageLove answers a whole-document MOVE of a missing path with 500
+    area: protocol
+    feature: MOVE whole document
+    status: live-divergence
+    evidence: live-observed
+    source: "harness/observations/live-2026-09-28/protocol-move-whole-document-missing-source.json (host live-test-host, 2026-09-28)"
+    confidence: high
+    requires: []
+    live: true
+    notes: "Measures a deliberate divergence (docs/compat/decisions.md, keep-standard). Runs only against --target live."
+    site:
+      rules:
+        - {actor: "*", resource: "${P}/*", method: [GET, MOVE], action: Allow}
+    steps:
+      - name: nothing to move
+        as: anonymous
+        request:
+          method: MOVE
+          path: "${P}/missing.html"
+          headers: {Destination: "${P}/b.html"}
+        expect:
+          status: 500
+          body: '<div itemscope itemtype="https://dombase.pagelove.team/ns/error/Internal"><ul itemprop="problems"><li itemprop="problem"><span itemprop="message">Document not found: ${P}/missing.html</span></li></ul></div>'
+
+  - id: protocol.move.element-move-missing-document
+    title: An element MOVE on a path with no document is 404
+    area: protocol
+    feature: MOVE validation
+    evidence: inferred
+    source: "docs reference/reading-and-writing/PUT-method, DELETE-method error tables (snapshot 2026-09-28)"
+    confidence: medium
+    requires: []
+    live: true
+    notes: R-PROTO-99.
+    site:
+      rules: *broad
+    steps:
+      - name: missing document
+        as: anonymous
+        request:
+          method: MOVE
+          path: "${P}/missing.html"
+          headers:
+            Range: "selector=#card-3"
+            Destination: "${P}/missing.html"
+            Destination-Range: "selector=#lane-done; placement=append"
+        expect: {status: 404}
+
+  - id: protocol.move.if-match-stale-412
+    title: A conditional MOVE with a stale document ETag is 412 and changes nothing
+    area: protocol
+    feature: MOVE conditional request
+    evidence: documented
+    source: "docs reference/reading-and-writing/MOVE-method §Concurrency (snapshot 2026-09-28)"
+    confidence: high
+    requires: []
+    live: true
+    notes: >-
+      R-PROTO-100, C-13 (the kanban app reports conditional writes failing on an older
+      build; the docs are followed).
+    site:
+      files:
+        - path: "${P}/board.html"
+          body: *board
+      rules: *broad
+    steps:
+      - name: read document ETag
+        as: anonymous
+        request: {method: GET, path: "${P}/board.html"}
+        expect: {status: 200, headers_present: [ETag]}
+        capture: {e1: header.ETag}
+      - name: someone else edits the document
+        as: anonymous
+        request:
+          method: POST
+          path: "${P}/board.html"
+          headers: {Range: "selector=#lane-done", Content-Type: "text/html"}
+          body: '<article class="card" id="card-5">Five</article>'
+        expect: {status: 206}
+      - name: stale conditional move
+        as: anonymous
+        request:
+          method: MOVE
+          path: "${P}/board.html"
+          headers:
+            Range: "selector=#card-3"
+            Destination: "${P}/board.html"
+            Destination-Range: "selector=#lane-done; placement=append"
+            If-Match: "${e1}"
+        expect: {status: 412}
+      - name: card 3 not moved
+        as: anonymous
+        request:
+          method: GET
+          path: "${P}/board.html"
+          headers: {Range: "selector=#lane-todo"}
+        expect: {status: 206, body_contains: ['id="card-3"']}
+
+  - id: protocol.move.if-match-current
+    title: A conditional element MOVE is compared with the source element's tag; the document's tag is 412, * succeeds
+    area: protocol
+    feature: MOVE conditional request
+    evidence: live-observed
+    source: "harness/observations/live-2026-09-28/protocol-move-if-match-current.json (document tag: 412 carrying the source #card-3's tag); docs reference/reading-and-writing/MOVE-method §Concurrency (snapshot 2026-09-28)"
+    confidence: high
+    requires: []
+    live: true
+    notes: "R-PROTO-100 as reconciled with the live run: only the source element's tag satisfies If-Match (docs/compat/decisions.md)."
+    site:
+      files:
+        - path: "${P}/board.html"
+          body: *board
+      rules: *broad
+    steps:
+      - name: read document ETag
+        as: anonymous
+        request: {method: GET, path: "${P}/board.html"}
+        expect: {status: 200}
+        capture: {e1: header.ETag}
+      - name: read the source element's tag
+        as: anonymous
+        request:
+          method: HEAD
+          path: "${P}/board.html"
+          headers: {Range: "selector=#card-3"}
+        expect: {status: 206}
+        capture: {src: header.ETag}
+      - name: the document tag is stale for an element MOVE
+        as: anonymous
+        request:
+          method: MOVE
+          path: "${P}/board.html"
+          headers:
+            Range: "selector=#card-3"
+            Destination: "${P}/board.html"
+            Destination-Range: "selector=#lane-done; placement=append"
+            If-Match: "${e1}"
+        expect:
+          status: 412
+          etag_equals: "${src}"
+      - name: conditional move with the source element's tag
+        as: anonymous
+        request:
+          method: MOVE
+          path: "${P}/board.html"
+          headers:
+            Range: "selector=#card-3"
+            Destination: "${P}/board.html"
+            Destination-Range: "selector=#lane-done; placement=append"
+            If-Match: "${src}"
+        expect: {status: 204}
+      - name: conditional move with If-Match star
+        as: anonymous
+        request:
+          method: MOVE
+          path: "${P}/board.html"
+          headers:
+            Range: "selector=#card-2"
+            Destination: "${P}/board.html"
+            Destination-Range: "selector=#lane-done; placement=append"
+            If-Match: "*"
+        expect: {status: 204}
+
+  - id: protocol.move.if-match-element-etag
+    title: A conditional MOVE carrying the source element's ETag (as beta-js sends) succeeds
+    area: protocol
+    feature: MOVE conditional request
+    evidence: client-source
+    source: "beta-js/pagelove/primitives.mjs@c204746:474-501 (HEAD + Range ETag stored on the element); beta-js/pagelove/component.mjs@c204746:764-803 (sent as If-Match on MOVE)"
+    confidence: low
+    requires: []
+    live: true
+    notes: R-PROTO-100 compatibility decision C-14 (P-13).
+    site:
+      files:
+        - path: "${P}/board.html"
+          body: *board
+      rules: *broad
+    steps:
+      - name: element ETag via HEAD with a selector range
+        as: anonymous
+        request:
+          method: HEAD
+          path: "${P}/board.html"
+          headers: {Range: "selector=#card-3"}
+        expect: {status: [200, 206], headers_present: [ETag]}
+        capture: {el: header.ETag}
+      - name: MOVE conditioned on the element ETag
+        as: anonymous
+        request:
+          method: MOVE
+          path: "${P}/board.html"
+          headers:
+            Range: "selector=#card-3"
+            Destination: "${P}/board.html"
+            Destination-Range: "selector=#lane-done; placement=append"
+            If-Match: "${el}"
+        expect: {status: 204}
+
+  - id: protocol.move.destination-absolute-url
+    title: Destination may be an absolute URL of the same document (as beta-js sends)
+    area: protocol
+    feature: MOVE headers
+    evidence: client-source
+    source: "beta-js/pagelove/component.mjs@c204746:771-779 (Destination is location.href without the fragment)"
+    confidence: medium
+    requires: []
+    live: true
+    notes: >-
+      R-PROTO-91, C-15. Needs the runner variable ${ORIGIN} (scheme://host[:port] of the
+      public plane). A query string on the Destination is ignored when comparing paths. Live
+      PageLove answers the query-string step 501 MoveCrossResource
+      (harness/observations/live-2026-09-28/protocol-move-destination-absolute-url.json), which
+      breaks beta-js on any page URL with a query; pagelike keeps ignoring the query as every
+      other lookup does (docs/compat/decisions.md, keep-standard); protocol.move.destination-absolute-url.live
+      measures the divergence.
+    site:
+      files:
+        - path: "${P}/board.html"
+          body: *board
+      rules: *broad
+    steps:
+      - name: absolute URL
+        as: anonymous
+        request:
+          method: MOVE
+          path: "${P}/board.html"
+          headers:
+            Range: "selector=#card-3"
+            Destination: "${ORIGIN}${P}/board.html"
+            Destination-Range: "selector=#lane-done; placement=append"
+        expect: {status: 204}
+      - name: absolute URL with a query string
+        as: anonymous
+        request:
+          method: MOVE
+          path: "${P}/board.html?view=board"
+          headers:
+            Range: "selector=#card-2"
+            Destination: "${ORIGIN}${P}/board.html?view=board"
+            Destination-Range: "selector=#lane-done; placement=append"
+        expect: {status: 204}
+
+  - id: protocol.move.destination-absolute-url.live
+    title: Live PageLove refuses a same-document MOVE whose Destination carries a query string (501)
+    area: protocol
+    feature: MOVE headers
+    status: live-divergence
+    evidence: live-observed
+    source: "harness/observations/live-2026-09-28/protocol-move-destination-absolute-url.json (host live-test-host, 2026-09-28)"
+    confidence: high
+    requires: []
+    live: true
+    notes: "Measures a deliberate divergence (docs/compat/decisions.md, keep-standard). Runs only against --target live."
+    site:
+      files:
+        - path: "${P}/board.html"
+          body: *board
+      rules: *broad
+    steps:
+      - name: absolute URL with a query string
+        as: anonymous
+        request:
+          method: MOVE
+          path: "${P}/board.html?view=board"
+          headers:
+            Range: "selector=#card-2"
+            Destination: "${ORIGIN}${P}/board.html?view=board"
+            Destination-Range: "selector=#lane-done; placement=append"
+        expect:
+          status: 501
+          body_contains: ["https://dombase.pagelove.team/ns/error/MoveCrossResource", "Cross-resource MOVE is not supported"]
+
+  - id: protocol.move.concurrent-moves-both-land
+    title: Two concurrent MOVEs in the same document both succeed and both take effect
+    area: protocol
+    feature: MOVE concurrency
+    evidence: documented
+    source: "docs reference/reading-and-writing/MOVE-method §Concurrency (snapshot 2026-09-28)"
+    confidence: high
+    requires: []
+    live: true
+    notes: >-
+      R-PROTO-101, C-13. pagelove-kanban/site/app.js@85109ab:29-40 measured lost moves on
+      an older build; the docs are followed.
+    site:
+      files:
+        - path: "${P}/board.html"
+          body: *board
+      rules: *broad
+    steps:
+      - parallel:
+          - as: anonymous
+            request:
+              method: MOVE
+              path: "${P}/board.html"
+              headers:
+                Range: "selector=#card-1"
+                Destination: "${P}/board.html"
+                Destination-Range: "selector=#lane-done; placement=append"
+            expect: {status: 204}
+          - as: anonymous
+            request:
+              method: MOVE
+              path: "${P}/board.html"
+              headers:
+                Range: "selector=#card-2"
+                Destination: "${P}/board.html"
+                Destination-Range: "selector=#lane-done; placement=append"
+            expect: {status: 204}
+      - name: both cards are in the done lane
+        as: anonymous
+        request:
+          method: GET
+          path: "${P}/board.html"
+          headers: {Range: "selector=#lane-done"}
+        expect:
+          status: 206
+          body_contains: ['id="card-1"', 'id="card-2"', 'id="card-4"']
+      - name: and neither is left in todo
+        as: anonymous
+        request:
+          method: GET
+          path: "${P}/board.html"
+          headers: {Range: "selector=#lane-todo"}
+        expect:
+          status: 206
+          body_not_contains: ['id="card-1"', 'id="card-2"']
+
+  - id: protocol.move.mutation-event
+    title: A successful element MOVE emits one mutation event with method, selector, destination and placement
+    area: protocol
+    feature: MOVE events
+    evidence: client-source
+    source: "beta-js/pagelove/sse.mjs@c204746:113-135,220-239; docs reference/reading-and-writing/Server-Sent-Events §Mutation event fields (placement row) (snapshot 2026-09-28)"
+    confidence: medium
+    requires: []
+    live: true
+    notes: >-
+      R-PROTO-103 (owned by docs/spec/sse.md). The stream and the write must not share a
+      session, or echo suppression hides the event; the runner must not reuse a cookie jar
+      between the stream and the write.
+    site:
+      files:
+        - path: "${P}/board.html"
+          body: *board
+      rules: *broad
+    steps:
+      - sse_open: {name: s1, path: "${P}/board.html", as: anonymous}
+      - name: move card 3
+        as: anonymous
+        request:
+          method: MOVE
+          path: "${P}/board.html"
+          headers:
+            Range: "selector=#card-3"
+            Destination: "${P}/board.html"
+            Destination-Range: "selector=#lane-done; placement=append"
+        expect: {status: 204}
+      - sse_expect:
+          name: s1
+          event: mutation
+          within_ms: 3000
+          data_contains: ['itemprop="method">MOVE']
+          data_microdata: {method: MOVE, selector: "#card-3", destination: "#lane-done", placement: append}
+      - sse_close: {name: s1}
+
+  - id: protocol.move.blob-with-ranges-422
+    title: An element MOVE on a non-HTML blob is 422
+    area: protocol
+    feature: MOVE validation
+    evidence: inferred
+    source: "docs reference/reading-and-writing/Uploading-Files §Serving (selector operations on blobs fail with 422) (snapshot 2026-09-28)"
+    confidence: medium
+    requires: []
+    live: true
+    notes: R-PROTO-99. Cross-area (reading-writing blobs).
+    site:
+      files:
+        - path: "${P}/data.json"
+          content_type: application/json
+          body: '{"a":1}'
+      rules: *broad
+    steps:
+      - name: selector move on JSON
+        as: anonymous
+        request:
+          method: MOVE
+          path: "${P}/data.json"
+          headers:
+            Range: "selector=a"
+            Destination: "${P}/data.json"
+            Destination-Range: "selector=b; placement=append"
+        expect: {status: 422}
+
+  - id: protocol.move.never-405
+    title: MOVE on an HTML document is never answered 405 (beta-js would disable MOVE for the page)
+    area: protocol
+    feature: MOVE client compatibility
+    evidence: client-source
+    source: "beta-js/pagelove/component.mjs@c204746:757-800"
+    confidence: high
+    requires: []
+    live: true
+    notes: R-PROTO-105. Even a denied MOVE must be 401/403, not 405.
+    site:
+      files:
+        - path: "${P}/board.html"
+          body: *board
+      rules:
+        - {actor: "*", resource: "${P}/*", method: [GET], action: Allow}
+    steps:
+      - name: denied MOVE
+        as: anonymous
+        request:
+          method: MOVE
+          path: "${P}/board.html"
+          headers:
+            Range: "selector=#card-3"
+            Destination: "${P}/board.html"
+            Destination-Range: "selector=#lane-done; placement=append"
+        expect: {status: [401, 403]}
+
+  - id: protocol.move.reserved-namespace-403
+    title: MOVE under /.pagelove/ is refused with 403
+    area: protocol
+    feature: MOVE validation
+    evidence: documented
+    source: "docs reference/reading-and-writing/PUT-method §Reserved namespace (snapshot 2026-09-28)"
+    confidence: high
+    root: true
+    requires: []
+    live: false
+    notes: R-PROTO-104. Root case (addresses a path outside the prefix); no document is created.
+    steps:
+      - name: whole-document move of a reserved path
+        as: anonymous
+        request:
+          method: MOVE
+          path: "/.pagelove/pagelike-probe.html"
+          headers: {Destination: "/.pagelove/pagelike-probe-2.html"}
+        expect: {status: 403}

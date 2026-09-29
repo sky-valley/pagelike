@@ -1,0 +1,37 @@
+{
+  "case": "javascript.methods.return-null-undefined-removes",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (PUT the page (public plane; registers inline declarations))",
+      "method": "PUT",
+      "path": "/_pl/javascript-methods-return-null-undefined-6d85d8/m.html",
+      "status": 201,
+      "headers": {
+        "content-length": "1031",
+        "content-type": "text/html",
+        "etag": "\"0a6a2ff9660debe9bde221496cf0c292c764abfa9ac7f4bf27df44f1c228e2a7\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:43 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml xmlns:t=\"https://pagelike.test/_pl/javascript-methods-return-null-undefined-6d85d8/RetNull\"\u003e\u003cbody\u003e\n\u003cmain\u003e\n\u003cdiv id=\"r-null\"\u003e[\u003ct:nul\u003echild\u003c/t:nul\u003e]\u003c/div\u003e\u003cdiv id=\"r-undef\"\u003e[\u003ct:und\u003echild\u003c/t:und\u003e]\u003c/div\u003e\n\u003c/main\u003e\n\u003cdiv hidden itemscope itemtype=\"https://pagelove.org/Schema\"\u003e\n\u003cmeta itemprop=\"type\" content=\"https://pagelike.test/_pl/javascript-methods-return-null-undefined-6d85d8/RetNull\"\u003e\n\u003cul\u003e\n\u003cli itemprop=\"property\" itemscope itemtype=\"https://pagelove.org/Method\"\u003e\n\u003cmeta itemprop=\"name\" content=\"nul\"\u003e\n\u003cdiv itemprop=\"implementation\" itemscope itemtype=\"https://pagelove.org/JavaScript/Module\"\u003e\n\u003cscript itemprop=\"source\" type=\"module\"\u003e\nexport default () =\u003e null;\n\u003c/script\u003e\n\u003c/div\u003e\n\u003c/li\u003e\n\u003cli itemprop=\"property\" itemscope itemtype=\"https://pagelove.org/Method\"\u003e\n\u003cmeta itemprop=\"name\" content=\"und\"\u003e\n\u003cdiv itemprop=\"implementation\" itemscope itemtype=\"https://pagelove.org/JavaScript/Module\"\u003e\n\u003cscript itemprop=\"source\" type=\"module\"\u003e\nexport default () =\u003e undefined;\n\u003c/script\u003e\n\u003c/div\u003e\n\u003c/li\u003e\n\u003c/ul\u003e\n\u003c/div\u003e\n\u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 2 (GET the composed page)",
+      "method": "GET",
+      "path": "/_pl/javascript-methods-return-null-undefined-6d85d8/m.html",
+      "status": 206,
+      "headers": {
+        "accept-ranges": "selector, bytes",
+        "content-length": "66",
+        "content-range": "selector main",
+        "content-type": "text/html",
+        "etag": "\"3fb7d0512b70d16a5a8554c2d44b3b38d25f9403f79476fa5e4dbd2248a4da3d-3fb7d0512b70d16a5a8554c2d44b3b38d25f9403f79476fa5e4dbd2248a4da3d-1\"",
+        "vary": "Host, Range, Accept"
+      },
+      "body": "\u003cmain\u003e\n\u003cdiv id=\"r-null\"\u003e[]\u003c/div\u003e\u003cdiv id=\"r-undef\"\u003e[]\u003c/div\u003e\n\u003c/main\u003e"
+    }
+  ],
+  "outcome": "pass",
+  "target": "local"
+}

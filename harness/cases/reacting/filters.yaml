@@ -1,0 +1,589 @@
+# Reacting: trigger/processor filters resource, method, selector (spec R-REACT-11..15).
+# See discovery.yaml for directory conventions.
+anchors:
+  open_rules: &open_rules
+    - {actor: "*", resource: "${P}/*", method: [GET, HEAD, PUT, POST, DELETE], action: Allow}
+defaults:
+  area: reacting
+  site:
+    settings: {default_get: allow}
+    rules: *open_rules
+cases:
+  - id: reacting.filters.resource-or
+    title: Several resource globs are OR-ed; a path matching none is unaffected
+    feature: resource filter
+    evidence: documented
+    source: "docs reference/reacting-to-changes/Trigger §resource ('Multiple resource values are OR'd') (snapshot 2026-09-28)"
+    confidence: high
+    requires: [sessel]
+    live: true
+    notes: "spec: R-REACT-12."
+    steps:
+      - name: install a trigger on two globs
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/r/triggers.html"
+          headers: {Content-Type: text/html}
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+            <div hidden itemscope itemtype="https://pagelove.org/Trigger">
+              <meta itemprop="resource" content="${P}/news/*">
+              <meta itemprop="resource" content="${P}/blog/*">
+              <meta itemprop="method" content="PUT">
+              <div itemprop="action" itemscope itemtype="https://pagelove.org/Sessel">
+                <script itemprop="source" type="text/sessel">
+                  @schema HTTPResponse url("https://pagelove.org/HTTPResponse");
+                  throw new HTTPResponse { status: 409, message: "glob-hit" }
+                </script>
+              </div>
+            </div>
+            </body></html>
+        expect: {status: [200, 201, 204]}
+      - name: first glob matches
+        as: anonymous
+        request: {method: PUT, path: "${P}/news/a.html", headers: {Content-Type: text/html}, body: "<p>a</p>"}
+        expect: {status: 409, body_contains: ["glob-hit"]}
+      - name: second glob matches
+        as: anonymous
+        request: {method: PUT, path: "${P}/blog/b.html", headers: {Content-Type: text/html}, body: "<p>b</p>"}
+        expect: {status: 409, body_contains: ["glob-hit"]}
+      - name: a path matching neither glob is unaffected
+        as: anonymous
+        request: {method: PUT, path: "${P}/other/c.html", headers: {Content-Type: text/html}, body: "<p>c</p>"}
+        expect: {status: [200, 201, 204]}
+
+  - id: reacting.filters.resource-star-crosses-segments
+    title: "'*' in a trigger resource glob crosses '/' (same engine as AuthorizationRule)"
+    feature: resource filter
+    evidence: inferred
+    source: "docs reference/permissions/AuthorizationRule (glob crosses segments, via spec R-PERM-20); docs Processor §Quick example (resource '*' matches every path) (snapshot 2026-09-28)"
+    confidence: medium
+    requires: [sessel]
+    live: true
+    notes: "spec: R-REACT-12, decision C5. Competing claim: reacting.filters.resource-star-direct-child-only (disputed)."
+    steps:
+      - name: install a trigger on ${P}/d/*
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/r/triggers.html"
+          headers: {Content-Type: text/html}
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+            <div hidden itemscope itemtype="https://pagelove.org/Trigger">
+              <meta itemprop="resource" content="${P}/d/*">
+              <meta itemprop="method" content="PUT">
+              <div itemprop="action" itemscope itemtype="https://pagelove.org/Sessel">
+                <script itemprop="source" type="text/sessel">
+                  @schema HTTPResponse url("https://pagelove.org/HTTPResponse");
+                  throw new HTTPResponse { status: 409, message: "deep-hit" }
+                </script>
+              </div>
+            </div>
+            </body></html>
+        expect: {status: [200, 201, 204]}
+      - name: a nested path two segments down matches
+        as: anonymous
+        request: {method: PUT, path: "${P}/d/a/b.html", headers: {Content-Type: text/html}, body: "<p>deep</p>"}
+        expect: {status: 409, body_contains: ["deep-hit"]}
+
+  - id: reacting.filters.resource-star-direct-child-only
+    title: "Competing claim: '/notes/*' matches only direct children of /notes/"
+    feature: resource filter
+    evidence: documented
+    source: "docs recipes/sending-a-webhook §Attach a Processor to the write ('/notes/* matches any direct child of /notes/') (snapshot 2026-09-28)"
+    confidence: low
+    status: disputed
+    requires: [sessel]
+    live: true
+    notes: "spec: R-REACT-12, C5. pagelike decided that '*' crosses '/'; this case records the recipe's claim for the live diff (probe P-5)."
+    steps:
+      - name: install a trigger on ${P}/d/*
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/r/triggers.html"
+          headers: {Content-Type: text/html}
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+            <div hidden itemscope itemtype="https://pagelove.org/Trigger">
+              <meta itemprop="resource" content="${P}/d/*">
+              <meta itemprop="method" content="PUT">
+              <div itemprop="action" itemscope itemtype="https://pagelove.org/Sessel">
+                <script itemprop="source" type="text/sessel">
+                  @schema HTTPResponse url("https://pagelove.org/HTTPResponse");
+                  throw new HTTPResponse { status: 409, message: "deep-hit" }
+                </script>
+              </div>
+            </div>
+            </body></html>
+        expect: {status: [200, 201, 204]}
+      - name: a nested path is not matched
+        as: anonymous
+        request: {method: PUT, path: "${P}/d/a/b.html", headers: {Content-Type: text/html}, body: "<p>deep</p>"}
+        expect: {status: [200, 201, 204]}
+
+  - id: reacting.filters.method-case-insensitive
+    title: "A serving-path write storing a trigger with method 'put' is refused (422: not a valid HTTPMethod); nothing is installed"
+    feature: method filter
+    evidence: live-observed
+    source: "harness/observations/live-2026-09-29/reacting-filters-method-case-insensitive.json (2026-09-29); docs reference/reacting-to-changes/Trigger §method ('Matching is case-insensitive') describes stored items"
+    confidence: high
+    requires: [sessel]
+    live: true
+    notes: "spec: R-REACT-13, R-REACT-4a (live 2026-09-29). The id keeps its old name. A stored lower-case method (WebDAV) still matches case-insensitively: reacting.filters.method-case-insensitive-stored (local only)."
+    steps:
+      - name: install a trigger declared with method 'put'
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/r/triggers.html"
+          headers: {Content-Type: text/html}
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+            <div hidden itemscope itemtype="https://pagelove.org/Trigger">
+              <meta itemprop="resource" content="${P}/d/*">
+              <meta itemprop="method" content="put">
+              <div itemprop="action" itemscope itemtype="https://pagelove.org/Sessel">
+                <script itemprop="source" type="text/sessel">
+                  @schema HTTPResponse url("https://pagelove.org/HTTPResponse");
+                  throw new HTTPResponse { status: 409, message: "lowercase-method" }
+                </script>
+              </div>
+            </div>
+            </body></html>
+        expect:
+          status: 422
+          body_contains: ["https://pagelove.org/SchemaViolation", '[https://pagelove.org/RequestHandler].method: Value "put" is not a valid https://pagelove.org/HTTPMethod (expected one of: "GET", "PUT", "POST", "DELETE", "PATCH", "MOVE", "*")']
+      - name: no trigger was installed, so PUT proceeds
+        as: anonymous
+        request: {method: PUT, path: "${P}/d/x.html", headers: {Content-Type: text/html}, body: "<p>x</p>"}
+        expect: {status: [200, 201, 204]}
+
+  - id: reacting.filters.method-case-insensitive-stored
+    title: A stored trigger (written over WebDAV) with method 'put' matches PUT requests case-insensitively
+    feature: method filter
+    evidence: documented
+    source: "docs reference/reacting-to-changes/Trigger §method ('Matching is case-insensitive') (snapshot 2026-09-28)"
+    confidence: medium
+    requires: [sessel]
+    live: false
+    notes: "spec: R-REACT-13. Local only: the serving path refuses the lower-case value (reacting.filters.method-case-insensitive), and a WebDAV-written trigger takes up to 60 s to bind on PageLove (R-REACT-5)."
+    site:
+      settings: {default_get: allow}
+      rules: *open_rules
+      files:
+        - path: "${P}/r/triggers.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+            <div hidden itemscope itemtype="https://pagelove.org/Trigger">
+              <meta itemprop="resource" content="${P}/d/*">
+              <meta itemprop="method" content="put">
+              <div itemprop="action" itemscope itemtype="https://pagelove.org/Sessel">
+                <script itemprop="source" type="text/sessel">
+                  @schema HTTPResponse url("https://pagelove.org/HTTPResponse");
+                  throw new HTTPResponse { status: 409, message: "lowercase-method" }
+                </script>
+              </div>
+            </div>
+            </body></html>
+    steps:
+      - name: PUT is matched
+        as: anonymous
+        request: {method: PUT, path: "${P}/d/x.html", headers: {Content-Type: text/html}, body: "<p>x</p>"}
+        expect: {status: 409, body_contains: ["lowercase-method"]}
+
+  - id: reacting.filters.get-implies-head
+    title: A trigger declared for GET also fires on HEAD, but not on PUT
+    feature: method filter
+    evidence: documented
+    source: "docs reference/reacting-to-changes/Trigger §method ('GET implies HEAD') (snapshot 2026-09-28)"
+    confidence: high
+    requires: [sessel]
+    live: true
+    notes: "spec: R-REACT-13."
+    site:
+      settings: {default_get: allow}
+      rules: *open_rules
+      files:
+        - path: "${P}/d/doc.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body><h1>Doc</h1></body></html>
+    steps:
+      - name: install a GET trigger
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/r/triggers.html"
+          headers: {Content-Type: text/html}
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+            <div hidden itemscope itemtype="https://pagelove.org/Trigger">
+              <meta itemprop="resource" content="${P}/d/*">
+              <meta itemprop="method" content="GET">
+              <div itemprop="action" itemscope itemtype="https://pagelove.org/Sessel">
+                <script itemprop="source" type="text/sessel">
+                  @schema HTTPResponse url("https://pagelove.org/HTTPResponse");
+                  throw new HTTPResponse { status: 409, message: "get-hit" }
+                </script>
+              </div>
+            </div>
+            </body></html>
+        expect: {status: [200, 201, 204]}
+      - name: GET fires
+        as: anonymous
+        request: {method: GET, path: "${P}/d/doc.html"}
+        expect: {status: 409, body_contains: ["get-hit"]}
+      - name: HEAD fires too
+        as: anonymous
+        request: {method: HEAD, path: "${P}/d/doc.html"}
+        expect: {status: 409}
+      - name: PUT does not
+        as: anonymous
+        request: {method: PUT, path: "${P}/d/doc.html", headers: {Content-Type: text/html}, body: "<!DOCTYPE html><html><body><h1>New</h1></body></html>"}
+        expect: {status: [200, 201, 204]}
+
+  - id: reacting.filters.omitted-filters-match-all
+    title: A trigger with only a resource filter matches every method
+    feature: filter combination
+    evidence: documented
+    source: "docs reference/reacting-to-changes/Trigger §Properties ('Omitting a filter means match all') (snapshot 2026-09-28)"
+    confidence: high
+    requires: [sessel]
+    live: true
+    notes: "spec: R-REACT-11."
+    site:
+      settings: {default_get: allow}
+      rules: *open_rules
+      files:
+        - path: "${P}/d/doc.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body><h1>Doc</h1></body></html>
+    steps:
+      - name: install a method-less trigger
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/r/triggers.html"
+          headers: {Content-Type: text/html}
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+            <div hidden itemscope itemtype="https://pagelove.org/Trigger">
+              <meta itemprop="resource" content="${P}/d/*">
+              <div itemprop="action" itemscope itemtype="https://pagelove.org/Sessel">
+                <script itemprop="source" type="text/sessel">
+                  @schema HTTPResponse url("https://pagelove.org/HTTPResponse");
+                  throw new HTTPResponse { status: 409, message: "any-method" }
+                </script>
+              </div>
+            </div>
+            </body></html>
+        expect: {status: [200, 201, 204]}
+      - {name: GET matches, as: anonymous, request: {method: GET, path: "${P}/d/doc.html"}, expect: {status: 409}}
+      - {name: PUT matches, as: anonymous, request: {method: PUT, path: "${P}/d/doc.html", headers: {Content-Type: text/html}, body: "<p>x</p>"}, expect: {status: 409}}
+      - {name: DELETE matches, as: anonymous, request: {method: DELETE, path: "${P}/d/doc.html"}, expect: {status: 409}}
+
+  - id: reacting.filters.selector-semantic-match
+    title: "The selector filter is not evaluated: a trigger filtered on 'article' fires for a selector PUT of the article and of the heading alike"
+    feature: selector filter
+    evidence: live-observed
+    source: "harness/observations/live-2026-09-29/reacting-filters-selector-semantic-match.json; harness/observations/live-2026-09-29-reconcile-reacting/reacting-filters-probe-0929-selector-sco.json (2026-09-29); the docs (Trigger §selector, 'resolved against the actual document (semantic matching)') say otherwise"
+    confidence: high
+    requires: [sessel]
+    live: true
+    notes: "spec: R-REACT-14 (live 2026-09-29). The id keeps its old name. The probe shows the same for documents without any article, for missing elements, and for POST, GET, DELETE and processors."
+    site:
+      settings: {default_get: allow}
+      rules: *open_rules
+      files:
+        - path: "${P}/d/doc.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+            <h1 id="h">Title</h1>
+            <article id="p1"><p>Body</p></article>
+            </body></html>
+    steps:
+      - name: install a selector-filtered trigger
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/r/triggers.html"
+          headers: {Content-Type: text/html}
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+            <div hidden itemscope itemtype="https://pagelove.org/Trigger">
+              <meta itemprop="resource" content="${P}/d/*">
+              <meta itemprop="method" content="PUT">
+              <meta itemprop="selector" content="article">
+              <div itemprop="action" itemscope itemtype="https://pagelove.org/Sessel">
+                <script itemprop="source" type="text/sessel">
+                  @schema HTTPResponse url("https://pagelove.org/HTTPResponse");
+                  throw new HTTPResponse { status: 409, message: "article-hit" }
+                </script>
+              </div>
+            </div>
+            </body></html>
+        expect: {status: [200, 201, 204]}
+      - name: a selector PUT targeting the article fires
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/d/doc.html"
+          headers: {Content-Type: text/html, Range: "selector=#p1"}
+          body: '<article id="p1"><p>Changed</p></article>'
+        expect: {status: 409, body_contains: ["article-hit"]}
+      - name: a selector PUT targeting the heading fires too
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/d/doc.html"
+          headers: {Content-Type: text/html, Range: "selector=#h"}
+          body: '<h1 id="h">New title</h1>'
+        expect: {status: 409, body_contains: ["article-hit"]}
+
+  - id: reacting.filters.selector-skipped-without-request-selector
+    title: A selector-filtered trigger matches a request that carries no selector
+    feature: selector filter
+    evidence: documented
+    source: "docs reference/reacting-to-changes/Trigger §selector ('If the request does not carry a selector … the trigger matches as if the filter were omitted') (snapshot 2026-09-28)"
+    confidence: high
+    requires: [sessel]
+    live: true
+    notes: "spec: R-REACT-14 (1)."
+    site:
+      settings: {default_get: allow}
+      rules: *open_rules
+      files:
+        - path: "${P}/d/doc.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body><h1 id="h">Title</h1></body></html>
+    steps:
+      - name: install a trigger filtered on 'article'
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/r/triggers.html"
+          headers: {Content-Type: text/html}
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+            <div hidden itemscope itemtype="https://pagelove.org/Trigger">
+              <meta itemprop="resource" content="${P}/d/*">
+              <meta itemprop="method" content="PUT">
+              <meta itemprop="selector" content="article">
+              <div itemprop="action" itemscope itemtype="https://pagelove.org/Sessel">
+                <script itemprop="source" type="text/sessel">
+                  @schema HTTPResponse url("https://pagelove.org/HTTPResponse");
+                  throw new HTTPResponse { status: 409, message: "no-selector-hit" }
+                </script>
+              </div>
+            </div>
+            </body></html>
+        expect: {status: [200, 201, 204]}
+      - name: a whole-document PUT (no selector) fires even though the document has no article
+        as: anonymous
+        request: {method: PUT, path: "${P}/d/doc.html", headers: {Content-Type: text/html}, body: "<!DOCTYPE html><html><body><p>x</p></body></html>"}
+        expect: {status: 409, body_contains: ["no-selector-hit"]}
+
+  - id: reacting.filters.selector-no-match-does-not-fire
+    title: A request selector that matches nothing still fires a selector-filtered trigger (the filter is not evaluated)
+    feature: selector filter
+    evidence: live-observed
+    source: "harness/observations/live-2026-09-29-reconcile-reacting/reacting-filters-probe-0929-selector-sco.json (2026-09-29, step 'selector PUT of a missing element')"
+    confidence: high
+    requires: [sessel]
+    live: true
+    notes: "spec: R-REACT-14 (live 2026-09-29). The id keeps its old name. The trigger runs before core, which would answer 416 (reading-writing R-RW-66)."
+    site:
+      settings: {default_get: allow}
+      rules: *open_rules
+      files:
+        - path: "${P}/d/doc.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body><h1 id="h">Title</h1></body></html>
+    steps:
+      - name: install a trigger filtered on h1
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/r/triggers.html"
+          headers: {Content-Type: text/html}
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+            <div hidden itemscope itemtype="https://pagelove.org/Trigger">
+              <meta itemprop="resource" content="${P}/d/*">
+              <meta itemprop="method" content="PUT">
+              <meta itemprop="selector" content="h1">
+              <div itemprop="action" itemscope itemtype="https://pagelove.org/Sessel">
+                <script itemprop="source" type="text/sessel">
+                  @schema HTTPResponse url("https://pagelove.org/HTTPResponse");
+                  throw new HTTPResponse { status: 409, message: "h1-filter-hit" }
+                </script>
+              </div>
+            </div>
+            </body></html>
+        expect: {status: [200, 201, 204]}
+      - name: a selector PUT for a missing element fires the trigger before core
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/d/doc.html"
+          headers: {Content-Type: text/html, Range: "selector=#missing"}
+          body: '<p id="missing">x</p>'
+        expect: {status: 409, body_contains: ["h1-filter-hit"]}
+
+  - id: reacting.filters.selector-post-append-key-element-is-list
+    title: A Note-filtered POST trigger fires for an append into a plain list (the filter is not evaluated)
+    feature: selector filter
+    evidence: live-observed
+    source: "harness/observations/live-2026-09-29-reconcile-reacting/reacting-filters-probe-0929-selector-sco.json (2026-09-29, step 'selector POST into #l')"
+    confidence: high
+    requires: [sessel]
+    live: true
+    notes: "spec: R-REACT-14, C6 (live 2026-09-29). The id keeps its old name: the key element no longer matters, so the webhook recipe's reading (reacting.filters.selector-post-append-matches-fragment) holds too."
+    site:
+      settings: {default_get: allow}
+      rules: *open_rules
+      files:
+        - path: "${P}/d/notes.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body><ul id="l"></ul></body></html>
+    steps:
+      - name: install a POST trigger filtered on the Note type
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/r/triggers.html"
+          headers: {Content-Type: text/html}
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+            <div hidden itemscope itemtype="https://pagelove.org/Trigger">
+              <meta itemprop="resource" content="${P}/d/*">
+              <meta itemprop="method" content="POST">
+              <meta itemprop="selector" content="[itemtype='https://pagelike.test${P}/Note']">
+              <div itemprop="action" itemscope itemtype="https://pagelove.org/Sessel">
+                <script itemprop="source" type="text/sessel">
+                  @schema HTTPResponse url("https://pagelove.org/HTTPResponse");
+                  throw new HTTPResponse { status: 409, message: "note-hit" }
+                </script>
+              </div>
+            </div>
+            </body></html>
+        expect: {status: [200, 201, 204]}
+      - name: appending a Note into the plain list fires
+        as: anonymous
+        request:
+          method: POST
+          path: "${P}/d/notes.html"
+          headers: {Content-Type: text/html, Range: "selector=#l"}
+          body: '<li itemscope itemtype="https://pagelike.test${P}/Note"><span itemprop="text">hi</span></li>'
+        expect: {status: 409, body_contains: ["note-hit"]}
+
+  - id: reacting.filters.selector-post-append-matches-fragment
+    title: "Webhook recipe: a Note-typed selector filter fires for a POST that appends a Note"
+    feature: selector filter
+    evidence: live-observed
+    source: "docs recipes/sending-a-webhook §Attach a Processor to the write (snapshot 2026-09-28); harness/observations/live-2026-09-29-reconcile-reacting/reacting-filters-probe-0929-selector-sco.json (2026-09-29: the filter is not evaluated)"
+    confidence: high
+    requires: [sessel]
+    live: true
+    notes: "spec C6 (live 2026-09-29): no longer disputed. The trigger fires because PageLove does not evaluate the selector filter, and pagelike follows it (R-REACT-14)."
+    site:
+      settings: {default_get: allow}
+      rules: *open_rules
+      files:
+        - path: "${P}/d/notes.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body><ul id="l"></ul></body></html>
+    steps:
+      - name: install a POST trigger filtered on the Note type
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/r/triggers.html"
+          headers: {Content-Type: text/html}
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+            <div hidden itemscope itemtype="https://pagelove.org/Trigger">
+              <meta itemprop="resource" content="${P}/d/*">
+              <meta itemprop="method" content="POST">
+              <meta itemprop="selector" content="[itemtype='https://pagelike.test${P}/Note']">
+              <div itemprop="action" itemscope itemtype="https://pagelove.org/Sessel">
+                <script itemprop="source" type="text/sessel">
+                  @schema HTTPResponse url("https://pagelove.org/HTTPResponse");
+                  throw new HTTPResponse { status: 409, message: "note-hit" }
+                </script>
+              </div>
+            </div>
+            </body></html>
+        expect: {status: [200, 201, 204]}
+      - name: appending a Note fires
+        as: anonymous
+        request:
+          method: POST
+          path: "${P}/d/notes.html"
+          headers: {Content-Type: text/html, Range: "selector=#l"}
+          body: '<li itemscope itemtype="https://pagelike.test${P}/Note"><span itemprop="text">hi</span></li>'
+        expect: {status: 409}
+
+  - id: reacting.filters.resource-directory-index
+    title: A resource glob naming index.html also matches the directory request that serves it
+    feature: resource filter
+    evidence: inferred
+    source: "spec R-REACT-12 via permissions R-PERM-19 (request path or canonical index path)"
+    confidence: low
+    requires: [sessel]
+    live: true
+    site:
+      settings: {default_get: allow}
+      rules: *open_rules
+      files:
+        - path: "${P}/d/index.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body><h1>Index</h1></body></html>
+    steps:
+      - name: install a GET trigger on the index document
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/r/triggers.html"
+          headers: {Content-Type: text/html}
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+            <div hidden itemscope itemtype="https://pagelove.org/Trigger">
+              <meta itemprop="resource" content="${P}/d/index.html">
+              <meta itemprop="method" content="GET">
+              <div itemprop="action" itemscope itemtype="https://pagelove.org/Sessel">
+                <script itemprop="source" type="text/sessel">
+                  @schema HTTPResponse url("https://pagelove.org/HTTPResponse");
+                  throw new HTTPResponse { status: 409, message: "index-hit" }
+                </script>
+              </div>
+            </div>
+            </body></html>
+        expect: {status: [200, 201, 204]}
+      - name: a GET for the directory fires
+        as: anonymous
+        request: {method: GET, path: "${P}/d/"}
+        expect: {status: 409, body_contains: ["index-hit"]}

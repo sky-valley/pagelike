@@ -1,0 +1,37 @@
+{
+  "case": "javascript.jbind.hyphenated-name-via-context",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (PUT the page (public plane; registers inline declarations))",
+      "method": "PUT",
+      "path": "/_pl/javascript-jbind-hyphenated-name-via-con-d73d65/j.html",
+      "status": 201,
+      "headers": {
+        "content-length": "237",
+        "content-type": "text/html",
+        "etag": "\"0b207abae16872ddd83804c8d87c17c20abcccc6ab916eb675de3e35c8818f63\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:43 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml xmlns:j=\"https://pagelove.org/Binding/JavaScript\" xmlns:p=\"https://pagelove.org/1.0\"\u003e\u003cbody\u003e\n\u003cmain\u003e\n\u003cdiv j:first-name=\"'Ada'\" j:out=\"'N=' + Context['first-name']\"\u003e\u003cp:stamp out\u003e\u003c/p:stamp\u003e\u003c/div\u003e\n\u003c/main\u003e\n\u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 2 (GET the composed page)",
+      "method": "GET",
+      "path": "/_pl/javascript-jbind-hyphenated-name-via-con-d73d65/j.html",
+      "status": 206,
+      "headers": {
+        "accept-ranges": "selector, bytes",
+        "content-length": "31",
+        "content-range": "selector main",
+        "content-type": "text/html",
+        "etag": "\"04c2d44bfd1613be05edf7e0bf9caf916bd98e0759736f170b796ecca8539c27-04c2d44bfd1613be05edf7e0bf9caf916bd98e0759736f170b796ecca8539c27-1\"",
+        "vary": "Host, Range, Accept"
+      },
+      "body": "\u003cmain\u003e\n\u003cdiv\u003eN=Ada\u003c/div\u003e\n\u003c/main\u003e"
+    }
+  ],
+  "outcome": "pass",
+  "target": "local"
+}

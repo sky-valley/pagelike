@@ -1,0 +1,35 @@
+{
+  "case": "javascript.dom.mutation-errors",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (PUT the page (public plane; registers inline declarations))",
+      "method": "PUT",
+      "path": "/_pl/javascript-dom-mutation-errors-a8c1bd/probe.html",
+      "status": 201,
+      "headers": {
+        "content-type": "text/html",
+        "etag": "\"3c9bc80e307f1fedd23c4fa74e481f0dadc0355627dc150b5c1b3cbdc2df9e0c\"",
+        "last-modified": "Tue, 29 Sep 2026 00:46:22 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml xmlns:t=\"https://pagelike.test/_pl/javascript-dom-mutation-errors-a8c1bd/Dmutationerrors\"\u003e\u003cbody\u003e\n\u003cmain\u003e\n\u003ct:probe\u003e\u003c/t:probe\u003e\n\u003c/main\u003e\n\u003cdiv hidden itemscope itemtype=\"https://pagelove.org/Schema\"\u003e\n\u003cmeta itemprop=\"type\" content=\"https://pagelike.test/_pl/javascript-dom-mutation-errors-a8c1bd/Dmutationerrors\"\u003e\n\u003cul\u003e\n\u003cli itemprop=\"property\" itemscope itemtype=\"https://pagelove.org/Method\"\u003e\n\u003cmeta itemprop=\"name\" content=\"probe\"\u003e\n\u003cdiv itemprop=\"implementation\" itemscope itemtype=\"https://pagelove.org/JavaScript/Module\"\u003e\n\u003cscript itemprop=\"source\" type=\"module\"\u003e\nconst S = (...a) =\u003e a.map(String).join('|');\nconst H = (x) =\u003e String(x).replace(/[\u003c\u003e\"]/g, (c) =\u003e ({ '\u003c': '[', '\u003e': ']', '\"': \"'\" })[c]);\nconst tryName = (f) =\u003e { try { f(); return 'ok'; } catch (e) { return e.name + ':' + e.code; } };\nexport default function () {\nconst d = new DOMParser().parseFromString('\u003cdiv id=\"o\"\u003e\u003cdiv id=\"i\"\u003e\u003c/div\u003e\u003c/div\u003e\u003cp id=\"x\"\u003e\u003c/p\u003e', 'text/html');\nconst o = d.querySelector('#o'), i = d.querySelector('#i'), x = d.querySelector('#x');\nconst r = (f) =\u003e { try { f(); return 'ok'; } catch (e) { return e.name + ':' + e.code + ':' + (e instanceof DOMException); } };\nreturn 'R:' + S(r(() =\u003e o.appendChild(o)), r(() =\u003e i.appendChild(o)), r(() =\u003e o.removeChild(x)), r(() =\u003e o.insertBefore(d.createElement('b'), x)), r(() =\u003e o.replaceChild(d.createElement('b'), x)), r(() =\u003e d.querySelector('p[')), r(() =\u003e o.matches('div[')), r(() =\u003e o.closest('div[')));\n}\n\u003c/script\u003e\n\u003c/div\u003e\n\u003c/li\u003e\n\u003c/ul\u003e\n\u003cmeta itemprop=\"@id\" content=\"https://schema.host/2s2nwzcv\"\u003e\u003cmeta itemprop=\"path\" content=\"/Schemahttps://schema.host/2s2nwzcv.html\"\u003e\u003c/div\u003e\n\n                \u003cdiv style=\"\n                            position: fixed;\n                            bottom: 0;\n                            left: 0;\n                            right: 0;\n                            padding: 8px;\n                            background: #f0f0f0;\n                            text-align: center;\n                            font-size: 12px;\n                            color: #666;\n                            z-index: 9999;\n                            opacity: 0.8;\n                            border-top: 1px solid #ddd;\n                        \"\u003e\n                    Powered by\n                    \u003ca href=\"https://pagelove.com/\" style=\"color: #4a90d9; text-decoration: none\"\u003ePagelove\u003c/a\u003e\n                \u003c/div\u003e\n            \u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 2 (GET \u003cmain\u003e: the method result is inserted as text)",
+      "method": "GET",
+      "path": "/_pl/javascript-dom-mutation-errors-a8c1bd/probe.html",
+      "status": 206,
+      "headers": {
+        "content-length": "197",
+        "content-range": "selector main",
+        "content-type": "text/html",
+        "etag": "\"9b4062cf40c370ca60fe84f89d577c927b9088faaa927dcd2ddffd1f5941f59e-9b4062cf40c370ca60fe84f89d577c927b9088faaa927dcd2ddffd1f5941f59e-1\"",
+        "vary": "Host, Range, Accept"
+      },
+      "body": "\u003cmain\u003e\nR:HierarchyRequestError:3:true|HierarchyRequestError:3:true|NotFoundError:8:true|NotFoundError:8:true|NotFoundError:8:true|SyntaxError:12:true|SyntaxError:12:true|SyntaxError:12:true\n\u003c/main\u003e"
+    }
+  ],
+  "outcome": "pass",
+  "target": "live"
+}

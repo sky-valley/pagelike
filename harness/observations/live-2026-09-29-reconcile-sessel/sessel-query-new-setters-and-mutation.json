@@ -1,0 +1,44 @@
+{
+  "case": "sessel.query.new.setters-and-mutation",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (setter chain)",
+      "method": "QUERY",
+      "path": "/_pl/sessel-query-new-setters-and-mutation-f0d9ed/product.html",
+      "status": 200,
+      "headers": {
+        "content-type": "text/html",
+        "vary": "Host, Range"
+      },
+      "body": "\u003cimg src=\"/images/banner.jpg\" alt=\"Banner\"\u003e"
+    },
+    {
+      "step": "step 2 (prepend, insertBefore, getHTML)",
+      "method": "QUERY",
+      "path": "/_pl/sessel-query-new-setters-and-mutation-f0d9ed/product.html",
+      "status": 200,
+      "headers": {
+        "accept-ranges": "bytes",
+        "content-length": "32",
+        "content-type": "application/sessel+json",
+        "vary": "Host, Range"
+      },
+      "body": "\"\u003cli\u003ea\u003c/li\u003e\u003cli\u003eb\u003c/li\u003e\u003cli\u003ec\u003c/li\u003e\""
+    },
+    {
+      "step": "step 3 (a sub-selected reference is a stored element)",
+      "method": "QUERY",
+      "path": "/_pl/sessel-query-new-setters-and-mutation-f0d9ed/product.html",
+      "status": 400,
+      "headers": {
+        "content-length": "414",
+        "content-type": "text/html",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\n  \u003chead\u003e\n    \u003ctitle\u003e400 Bad Request - Error\u003c/title\u003e\n  \u003c/head\u003e\n  \u003cbody itemscope itemtype=\"http://pagelove.org/Error\"\u003e\n    \u003ch1 itemprop=\"name\"\u003eBad Request\u003c/h1\u003e\n    \u003cmeta itemprop=\"statusCode\" content=\"400\"\u003e\n    \u003cp itemprop=\"description\"\u003eSessel evaluation error: type error: insertBefore() reference must be a mutable child element, not a stored element (at bytes 76..78)\u003c/p\u003e\n  \u003c/body\u003e\n\u003c/html\u003e"
+    }
+  ],
+  "outcome": "pass",
+  "target": "live"
+}

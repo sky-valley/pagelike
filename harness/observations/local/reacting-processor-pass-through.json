@@ -1,0 +1,37 @@
+{
+  "case": "reacting.processor.pass-through",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (install a read-only processor)",
+      "method": "PUT",
+      "path": "/_pl/reacting-processor-pass-through-17c4e1/r/processors.html",
+      "status": 201,
+      "headers": {
+        "content-length": "447",
+        "content-type": "text/html",
+        "etag": "\"1e3702f767bb08070cde35b27a4b009c66d03477e11b2ca292e170079c0f062e\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:49 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\n\u003cdiv hidden itemscope itemtype=\"https://pagelove.org/Processor\"\u003e\n  \u003cmeta itemprop=\"resource\" content=\"/_pl/reacting-processor-pass-through-17c4e1/d/*\"\u003e\n  \u003cdiv itemprop=\"action\" itemscope itemtype=\"https://pagelove.org/Sessel\"\u003e\n    \u003cscript itemprop=\"source\" type=\"text/sessel\"\u003e\n      @schema Context url(\"https://pagelove.org/Context\");\n      Context.response.status == 200\n    \u003c/script\u003e\n  \u003c/div\u003e\n\u003c/div\u003e\n\u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 2 (response is untouched)",
+      "method": "GET",
+      "path": "/_pl/reacting-processor-pass-through-17c4e1/d/doc.html",
+      "status": 200,
+      "headers": {
+        "accept-ranges": "selector, bytes",
+        "content-length": "61",
+        "content-type": "text/html",
+        "etag": "\"c157ad921b14f66de238811003ae2ff22fdeab3735266c6aecd6351e0027e1fe\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:49 GMT",
+        "vary": "Host, Range, Accept"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\u003ch1\u003eReal page\u003c/h1\u003e\u003c/body\u003e\u003c/html\u003e\n"
+    }
+  ],
+  "outcome": "pass",
+  "target": "local"
+}

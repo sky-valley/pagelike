@@ -1,0 +1,3445 @@
+# Sessel pure-expression tests (spec: docs/spec/sessel.md, area: sessel).
+#
+# This file is NOT an HTTP case file (harness.Load skips files named
+# expressions.yaml). It is a flat list of tests for the Sessel interpreter,
+# run in-process by internal/sessel tests against an isolated in-memory site,
+# which is why paths here are plain site paths ("/doc.html") rather than
+# ${P}-prefixed. Live verification goes through the HTTP cases in this
+# directory (query-*.yaml); a test can be replayed live by storing its
+# documents under ${P}, prefixing every absolute path in `expr` with ${P}, and
+# sending `expr` as `QUERY ${P}<context_path>` with Content-Type: text/sessel.
+#
+# Fields of each item:
+#   id              unique, `sessel.expr.<group>.<name>`
+#   expr            the Sessel program
+#   context_html    optional: the current document (self / document); it is
+#                   also part of the site. Absent → self is unbound.
+#   context_path    path of the current document (default "/doc.html")
+#   site            optional list of {path, body}: more stored documents.
+#                   Bare selector literals search context doc + site.
+#   prior_html      optional: pre-mutation version of the current document
+#                   (enables `from prior`); absent → prior is null.
+#   request         optional: {method, path, headers, query, params, body}
+#                   bound as `request` and `Context.request`.
+#   expect_json     expected result, compared as JSON after encoding with
+#                   application/sessel+json (numbers compare numerically, so
+#                   42 == 42.0 — Integer/Float distinctions are asserted via
+#                   `.String()`). Elements appear as
+#                   {"$type": "element", "$html": ..., "$source": ...}.
+#   expect_html     expected single-Element result, DOM-equivalent outer HTML
+#                   (whitespace between tags ignored, attribute order ignored,
+#                   `required` == `required=""`).
+#   expect_match    RE2 regexp the (String) result must match (random or
+#                   locale-dependent output).
+#   expect_error    the program must fail: `parse` (rejected before running),
+#                   `TypeError`, `RuntimeError`, or `any`.
+#   evidence        documented (default) | client-source | demo-source | inferred
+#   confidence      high (default) | medium | low
+#   status          disputed → losing side of a contradiction (spec §20)
+#   source          doc page tag + section (tags defined in spec §0.1)
+#   notes           free text
+- id: sessel.expr.lit.integer
+  expr: '42'
+  expect_json: 42
+  source: "[NUM] §Literal syntax"
+- id: sessel.expr.lit.decimal
+  expr: '3.14'
+  expect_json: 3.14
+  source: "[NUM] §Literal syntax"
+- id: sessel.expr.lit.negative-integer
+  expr: '-7'
+  expect_json: -7
+  source: "[NUM] §Literal syntax"
+- id: sessel.expr.lit.negative-decimal
+  expr: '-0.5'
+  expect_json: -0.5
+  source: "[NUM] §Literal syntax"
+- id: sessel.expr.lit.string-double
+  expr: '"hello"'
+  expect_json: "hello"
+  source: "[STR] §Literal syntax"
+- id: sessel.expr.lit.string-single
+  expr: "'hello'"
+  expect_json: "hello"
+  source: "[STR] §Literal syntax"
+- id: sessel.expr.lit.string-single-escaped-quote
+  expr: "'It\\'s fine'"
+  expect_json: "It's fine"
+  source: "[STR] §Literal syntax"
+- id: sessel.expr.lit.string-escaped-double
+  expr: '"{\"path\": \"" + "/a" + "\"}"'
+  expect_json: '{"path": "/a"}'
+  source: "[RWH] body expression"
+- id: sessel.expr.lit.string-backslash-escape
+  expr: '"a\\.b".count()'
+  expect_json: 4
+  source: "[PRP] §Validators regex source \"\\\\.\""
+- id: sessel.expr.lit.string-newline-escape
+  expr: '"a\nb".split("\n")'
+  expect_json: ["a", "b"]
+  source: "[LST] §reduce example uses \"\\n\""
+- id: sessel.expr.lit.empty-string
+  expr: '""'
+  expect_json: ""
+  source: "[TYP] §Type summary"
+- id: sessel.expr.lit.true
+  expr: 'true'
+  expect_json: true
+  source: "[TYP] §Boolean"
+- id: sessel.expr.lit.false
+  expr: 'false'
+  expect_json: false
+  source: "[TYP] §Boolean"
+- id: sessel.expr.lit.null
+  expr: 'null'
+  expect_json: null
+  source: "[TYP] §Null"
+- id: sessel.expr.lit.list
+  expr: '[1, 2, 3]'
+  expect_json: [1, 2, 3]
+  source: "[LST] §Literal syntax"
+- id: sessel.expr.lit.list-empty
+  expr: '[]'
+  expect_json: []
+  source: "[LST] §Literal syntax"
+- id: sessel.expr.lit.list-trailing-comma
+  expr: '[1, 2, 3,]'
+  expect_json: [1, 2, 3]
+  source: "[LST] §Literal syntax \"A trailing comma is allowed\""
+- id: sessel.expr.lit.list-mixed
+  expr: '[true, false, null]'
+  expect_json: [true, false, null]
+  source: "[LST] §Literal syntax"
+- id: sessel.expr.lit.list-nested
+  expr: '[[1, 2], [3, 4]]'
+  expect_json: [[1, 2], [3, 4]]
+  source: "[LST] §Literal syntax"
+- id: sessel.expr.lit.list-of-dicts
+  expr: '[{ name: "Widget", price: 42 }, { name: "Gadget", price: 15 }]'
+  expect_json: [{name: "Widget", price: 42}, {name: "Gadget", price: 15}]
+  source: "[LST] §Literal syntax"
+- id: sessel.expr.lit.dict
+  expr: '{ name: "Widget", price: 42 }'
+  expect_json: {name: "Widget", price: 42}
+  source: "[DCT] §Literal syntax"
+- id: sessel.expr.lit.dict-empty
+  expr: '{}'
+  expect_json: {}
+  source: "[DCT] §Literal syntax"
+- id: sessel.expr.lit.dict-quoted-key
+  expr: '{ "Content-Type": "text/html" }'
+  expect_json: {"Content-Type": "text/html"}
+  source: "[DCT] §Literal syntax"
+- id: sessel.expr.lit.dict-trailing-comma
+  expr: |-
+    {
+      name: "Widget",
+      price: 42,
+    }
+  expect_json: {name: "Widget", price: 42}
+  source: "[DCT] §Literal syntax"
+- id: sessel.expr.lit.dict-nested
+  expr: |-
+    {
+      product: { name: "Widget", price: 42 },
+      meta: { tags: ["sale", "new"] }
+    }
+  expect_json: {product: {name: "Widget", price: 42}, meta: {tags: ["sale", "new"]}}
+  source: "[DCT] §Literal syntax"
+- id: sessel.expr.lex.line-comment
+  expr: |-
+    // leading comment
+    1 + 1 // trailing comment
+  expect_json: 2
+  source: "[SES-Q] §Typed search (comments inside Sessel sources)"
+- id: sessel.expr.lex.comment-only-program
+  expr: |-
+    @schema Context url("https://pagelove.org/Context");
+    // Decode JWT claims and write to transient identity element
+  expect_json: null
+  source: "[TRG] §Authentication example (action body is only a comment)"
+  confidence: medium
+  notes: R-SESSEL-62 — an empty frame evaluates to null.
+- id: sessel.expr.lex.block-comment
+  expr: '1 /* c */ + 1'
+  expect_json: 2
+  evidence: inferred
+  confidence: low
+  source: "spec R-SESSEL-10 (SP-19)"
+- id: sessel.expr.lex.newlines-insignificant
+  expr: |-
+    1 +
+    2
+  expect_json: 3
+  source: "[SES-C] §Null handling (expressions split across lines)"
+- id: sessel.expr.lex.modulo-not-an-operator
+  expr: '7 % 2'
+  expect_error: parse
+  evidence: inferred
+  confidence: medium
+  source: "[SYN] §Operator precedence lists no %"
+- id: sessel.expr.lex.no-exponent-literal
+  expr: '1e3'
+  expect_error: any
+  evidence: inferred
+  confidence: low
+  source: "spec R-SESSEL-13 (SP-20)"
+  notes: Lexes as 1 followed by identifier e3 — either a parse error or an unresolved variable.
+- id: sessel.expr.arith.add
+  expr: '10 + 3'
+  expect_json: 13
+  source: "[NUM] §Arithmetic operators"
+- id: sessel.expr.arith.subtract
+  expr: '10 - 3'
+  expect_json: 7
+  source: "[NUM] §Arithmetic operators"
+- id: sessel.expr.arith.multiply
+  expr: '10 * 3'
+  expect_json: 30
+  source: "[NUM] §Arithmetic operators"
+- id: sessel.expr.arith.int-division-truncates
+  expr: '10 / 4'
+  expect_json: 2
+  source: "[NUM] §Arithmetic operators"
+- id: sessel.expr.arith.int-division-is-integer
+  expr: '(10 / 4).String()'
+  expect_json: "2"
+  source: "[NUM] §Arithmetic operators"
+- id: sessel.expr.arith.float-division
+  expr: '10.0 / 4'
+  expect_json: 2.5
+  source: "[NUM] §Arithmetic operators"
+- id: sessel.expr.arith.negative-division-toward-zero
+  expr: '-7 / 2'
+  expect_json: -3
+  evidence: inferred
+  confidence: medium
+  source: "[NUM] \"truncating toward zero\""
+- id: sessel.expr.arith.mixed-is-float
+  expr: '[(1 + 2.0).String(), (1 + 2.0) isa Float]'
+  expect_json: ["3", true]
+  source: "[NUM] \"When either operand is a float, the result is a float\""
+  confidence: medium
+  notes: A Float's .String() has no trailing .0 (R-SESSEL-92, live 2026-09-29); the kind shows through isa.
+- id: sessel.expr.arith.grouping
+  expr: '(40 + 5) * 1.1 > 49'
+  expect_json: true
+  source: "[NUM] §Arithmetic operators (subtotal example)"
+- id: sessel.expr.arith.precedence-mul-over-add
+  expr: '1 + 2 * 3'
+  expect_json: 7
+  source: "[SYN] §Operator precedence"
+- id: sessel.expr.arith.left-assoc-subtraction
+  expr: '10 - 3 - 2'
+  expect_json: 5
+  source: "[SYN] §Operator precedence (left associative)"
+- id: sessel.expr.arith.left-assoc-division
+  expr: '100 / 10 / 5'
+  expect_json: 2
+  source: "[SYN] §Operator precedence (left associative)"
+- id: sessel.expr.arith.unary-binds-looser-than-postfix
+  expr: '-5.abs()'
+  expect_json: -5
+  source: "[SYN] §Operator precedence (unary 8 < postfix 9); [NUM] writes (-5).abs()"
+- id: sessel.expr.arith.parenthesised-negative-abs
+  expr: '(-5).abs()'
+  expect_json: 5
+  source: "[NUM] §.abs()"
+- id: sessel.expr.arith.double-negation
+  expr: '- -3'
+  expect_json: 3
+  evidence: inferred
+  source: "[SYN] §Operator precedence (unary is right associative)"
+- id: sessel.expr.arith.division-by-zero
+  expr: '1 / 0'
+  expect_error: RuntimeError
+  source: "[SYN] §Try/Catch"
+- id: sessel.expr.arith.float-division-by-zero
+  expr: '1.0 / 0'
+  expect_error: RuntimeError
+  evidence: inferred
+  confidence: low
+  source: "spec R-SESSEL-81"
+- id: sessel.expr.arith.integer-overflow
+  expr: '9223372036854775807 + 1'
+  expect_error: RuntimeError
+  source: "[SYN] §Try/Catch (\"integer overflow\" is a RuntimeError)"
+  confidence: medium
+  notes: int64 width is inferred (SP-21).
+- id: sessel.expr.arith.float-imprecision
+  expr: '0.1 + 0.2 == 0.3'
+  expect_json: false
+  evidence: inferred
+  confidence: medium
+  source: "spec R-SESSEL-91 (IEEE-754 binary64)"
+- id: sessel.expr.arith.string-plus-integer-typeerror
+  expr: '"hello" + 42'
+  expect_error: TypeError
+  source: "[SYN] §Try/Catch"
+- id: sessel.expr.arith.integer-plus-string-typeerror
+  expr: '1 + "a"'
+  expect_error: TypeError
+  evidence: inferred
+  confidence: medium
+  source: "spec R-SESSEL-80"
+- id: sessel.expr.arith.string-minus-typeerror
+  expr: '"5" - 1'
+  expect_error: TypeError
+  evidence: inferred
+  confidence: medium
+  source: "spec R-SESSEL-81"
+- id: sessel.expr.arith.unary-minus-string-typeerror
+  expr: '-"x"'
+  expect_error: TypeError
+  evidence: inferred
+  confidence: medium
+  source: "spec R-SESSEL-82"
+- id: sessel.expr.arith.null-plus-typeerror
+  expr: 'null + 1'
+  expect_error: TypeError
+  evidence: inferred
+  confidence: medium
+  source: "spec R-SESSEL-80"
+- id: sessel.expr.cmp.greater
+  expr: '4 > 3'
+  expect_json: true
+  source: "[NUM] §Comparison operators"
+- id: sessel.expr.cmp.less
+  expr: '4 < 3'
+  expect_json: false
+  source: "[NUM] §Comparison operators"
+- id: sessel.expr.cmp.ge-le
+  expr: '[3 >= 3, 3 <= 2, 100 >= 100.0]'
+  expect_json: [true, false, true]
+  source: "[NUM] §Comparison operators"
+- id: sessel.expr.cmp.eq-ne
+  expr: '[1 == 1, 1 != 1, "a" == "a", "a" != "b"]'
+  expect_json: [true, false, true, true]
+  source: "[NUM] §Comparison operators"
+- id: sessel.expr.cmp.int-float-equal
+  expr: '1 == 1.0'
+  expect_json: true
+  evidence: inferred
+  confidence: medium
+  source: "spec R-SESSEL-83 (SP-9)"
+- id: sessel.expr.cmp.no-coercion-equality
+  expr: '1 == "1"'
+  expect_json: false
+  evidence: inferred
+  confidence: medium
+  source: "spec R-SESSEL-83 (SP-9)"
+- id: sessel.expr.cmp.null-equality
+  expr: '[null == null, null != null, null == false]'
+  expect_json: [true, false, false]
+  source: "[SES-Q] §self and prior (prior != null); spec R-SESSEL-83"
+  confidence: medium
+- id: sessel.expr.cmp.string-case-sensitive
+  expr: '"Chapter" == "chapter"'
+  expect_json: false
+  evidence: inferred
+  source: "spec R-SESSEL-83"
+- id: sessel.expr.cmp.spaceship-numbers
+  expr: '[1 <=> 2, 2 <=> 2, 3 <=> 2]'
+  expect_json: [-1, 0, 1]
+  source: "[NUM] §Comparison operators"
+- id: sessel.expr.cmp.spaceship-strings
+  expr: '["apple" <=> "banana", "b" <=> "b", "b" <=> "a"]'
+  expect_json: [-1, 0, 1]
+  source: "[SES-C] §Sorting (a.text() <=> b.text())"
+- id: sessel.expr.cmp.string-less-than-iso-dates
+  expr: '"2026-01-05" < "2026-03-01"'
+  expect_json: true
+  source: "[SCH] §Schema-level @validate (md[\"start-date\"].first() < md[\"end-date\"].first())"
+- id: sessel.expr.cmp.mixed-order-typeerror
+  expr: '1 < "2"'
+  expect_error: TypeError
+  evidence: inferred
+  confidence: low
+  source: "spec R-SESSEL-84"
+- id: sessel.expr.cmp.null-ordering-false
+  expr: '[null > 1, null < 1]'
+  expect_json: [false, false]
+  evidence: inferred
+  confidence: low
+  source: "spec R-SESSEL-84 (SP-8)"
+- id: sessel.expr.cmp.comparison-chain-left-assoc
+  expr: '1 < 2 == true'
+  expect_json: true
+  source: "[SYN] §Operator precedence (comparison is left associative)"
+- id: sessel.expr.logic.and-or
+  expr: '[true && false, true || false, false || false, true && true]'
+  expect_json: [false, true, false, true]
+  source: "[TYP] §Truthiness"
+- id: sessel.expr.logic.returns-boolean
+  expr: '"a" || "b"'
+  expect_json: true
+  evidence: inferred
+  confidence: medium
+  source: "[TYP] §Boolean (\"Produced by comparison and logical operators\"); SP-10"
+- id: sessel.expr.logic.and-truthiness
+  expr: '[1 && "x", 0 && "x", "" || 0]'
+  expect_json: [true, false, false]
+  evidence: inferred
+  confidence: medium
+  source: "[TYP] §Truthiness; spec R-SESSEL-85"
+- id: sessel.expr.logic.short-circuit-and
+  expr: 'false && (1 / 0 == 1)'
+  expect_json: false
+  evidence: inferred
+  confidence: medium
+  source: "spec R-SESSEL-85"
+- id: sessel.expr.logic.short-circuit-or
+  expr: 'true || (1 / 0 == 1)'
+  expect_json: true
+  evidence: inferred
+  confidence: medium
+  source: "spec R-SESSEL-85"
+- id: sessel.expr.logic.not
+  expr: '[!true, !false, !0, !"x", ![], !{}]'
+  expect_json: [false, true, true, false, true, true]
+  source: "[TYP] §Truthiness; [SYN] unary !"
+- id: sessel.expr.logic.and-binds-tighter-than-or
+  expr: 'true || false && false'
+  expect_json: true
+  source: "[SYN] §Operator precedence"
+- id: sessel.expr.truthy.falsy-table
+  expr: '[false, null, 0, 0.0, "", [], {}].map(v => v ? "t" : "f")'
+  expect_json: ["f", "f", "f", "f", "f", "f", "f"]
+  source: "[TYP] §Truthiness"
+- id: sessel.expr.truthy.truthy-values
+  expr: '[1, -1, 0.5, "0", "false", " ", [0], { a: null }, true].map(v => v ? "t" : "f")'
+  expect_json: ["t", "t", "t", "t", "t", "t", "t", "t", "t"]
+  source: "[TYP] §Truthiness"
+- id: sessel.expr.truthy.element-is-truthy
+  expr: '(new div {}) ? "t" : "f"'
+  expect_json: "t"
+  source: "[TYP] §Truthiness (\"all elements\")"
+- id: sessel.expr.truthy.temporal-selector-truthy
+  expr: '[Temporal.Duration.from("PT0S"), new Selector { "h1" }].map(v => v ? "t" : "f")'
+  expect_json: ["t", "t"]
+  source: "[TYP] §Truthiness (all Temporal values, all Selectors); [TMP] §Types"
+- id: sessel.expr.coalesce.null
+  expr: 'null ?? "Untitled"'
+  expect_json: "Untitled"
+  source: "[SES-Q] §Extracting data"
+- id: sessel.expr.coalesce.non-null-kept
+  expr: '"x" ?? "y"'
+  expect_json: "x"
+  source: "[SES-C] §Null handling"
+- id: sessel.expr.coalesce.zero-kept
+  expr: '0 ?? 5'
+  expect_json: 0
+  source: "[SES-C] §Null handling (only null is replaced)"
+  confidence: medium
+- id: sessel.expr.coalesce.empty-string-kept
+  expr: '"" ?? "x"'
+  expect_json: ""
+  source: "[SES-C] §Null handling"
+  confidence: medium
+- id: sessel.expr.coalesce.chain
+  expr: 'null ?? null ?? 3'
+  expect_json: 3
+  source: "[SYN] §Operator precedence (?? left associative)"
+- id: sessel.expr.coalesce.lazy-right
+  expr: '1 ?? (1 / 0)'
+  expect_json: 1
+  evidence: inferred
+  confidence: medium
+  source: "spec R-SESSEL-86"
+- id: sessel.expr.coalesce.lower-than-or
+  expr: 'null ?? false || true'
+  expect_json: true
+  source: "[SYN] §Operator precedence (?? below ||)"
+- id: sessel.expr.ternary.basic
+  expr: '4 > 0 ? "has items" : "empty"'
+  expect_json: "has items"
+  source: "[SES-C] §Null handling"
+- id: sessel.expr.ternary.right-assoc
+  expr: 'false ? 1 : false ? 2 : 3'
+  expect_json: 3
+  source: "[SYN] §Operator precedence (ternary right associative)"
+- id: sessel.expr.ternary.with-coalesce
+  expr: |-
+    let n = 1;
+    n > 0
+        ? null ?? "unnamed item"
+        : "no items"
+  expect_json: "unnamed item"
+  source: "[SES-C] §Null handling (ternary combined with ??)"
+- id: sessel.expr.ternary.lazy-branch
+  expr: 'true ? 1 : (1 / 0)'
+  expect_json: 1
+  evidence: inferred
+  source: "spec R-SESSEL-87"
+- id: sessel.expr.str.interpolation-basic
+  expr: 'let name = "world"; "hello #{name}"'
+  expect_json: "hello world"
+  source: "[STR] §String interpolation"
+- id: sessel.expr.str.interpolation-integer
+  expr: 'let name = "Sessel"; let version = 1; "#{name} version #{version}"'
+  expect_json: "Sessel version 1"
+  source: "[SYN] §String interpolation"
+- id: sessel.expr.str.interpolation-method-call
+  expr: 'let items = [1, 2, 3]; "total: #{items.count()}"'
+  expect_json: "total: 3"
+  source: "[SYN] §String interpolation"
+- id: sessel.expr.str.interpolation-arithmetic
+  expr: 'let price = 50; let quantity = 3; "#{price * quantity} GBP"'
+  expect_json: "150 GBP"
+  source: "[SYN] §String interpolation"
+- id: sessel.expr.str.interpolation-null-is-empty
+  expr: '"[#{null}]"'
+  expect_json: "[]"
+  source: "[SYN] §String interpolation (null → empty string)"
+- id: sessel.expr.str.interpolation-escaped
+  expr: '"\#{not interpolated}"'
+  expect_json: "#{not interpolated}"
+  source: "[SYN] §String interpolation"
+- id: sessel.expr.str.interpolation-float
+  expr: '"#{2.5}"'
+  expect_json: "2.5"
+  source: "[SYN] §String interpolation (coerced via .String())"
+- id: sessel.expr.str.interpolation-boolean
+  expr: '"#{1 < 2}"'
+  expect_json: "true"
+  source: "[SYN] §String interpolation"
+- id: sessel.expr.str.hash-without-brace
+  expr: '"#1 and # alone"'
+  expect_json: "#1 and # alone"
+  evidence: inferred
+  source: "spec R-SESSEL-14"
+- id: sessel.expr.str.interpolation-single-quotes
+  expr: "let n = 1; '#{n}'"
+  expect_json: "1"
+  evidence: inferred
+  confidence: low
+  source: "[STR] \"Both quote styles are equivalent\" (SC-18, SP-18)"
+- id: sessel.expr.str.concat
+  expr: '"hello" + " " + "world"'
+  expect_json: "hello world"
+  source: "[STR] §Concatenation"
+- id: sessel.expr.str.concat-with-string-conversion
+  expr: '"Showing first 10 of " + 25.String()'
+  expect_json: "Showing first 10 of 25"
+  source: "[SES-V] §if expressions"
+- id: sessel.expr.str.contains
+  expr: '"Chapter 1".contains("Chapter")'
+  expect_json: true
+  source: "[STR] §contains"
+- id: sessel.expr.str.contains-case-sensitive
+  expr: '"Chapter 1".contains("chapter")'
+  expect_json: false
+  evidence: inferred
+  source: "spec R-SESSEL-110"
+- id: sessel.expr.str.starts-with
+  expr: '"/products/shoes".startsWith("/products")'
+  expect_json: true
+  source: "[STR] §startsWith"
+- id: sessel.expr.str.ends-with
+  expr: '["/a/b.html".endsWith(".html"), "/a/b.htm".endsWith(".html")]'
+  expect_json: [true, false]
+  source: "[STR] §endsWith"
+- id: sessel.expr.str.matches-email
+  expr: '["a@b.c".matches("^[^@]+@[^@]+$"), "nope".matches("^[^@]+@[^@]+$")]'
+  expect_json: [true, false]
+  source: "[STR] §matches"
+- id: sessel.expr.str.matches-unanchored
+  expr: '"selector=#responses".matches("responses")'
+  expect_json: true
+  evidence: inferred
+  confidence: medium
+  source: "spec R-SESSEL-111 (search semantics; docs anchor explicitly)"
+- id: sessel.expr.str.matches-polls-guard
+  expr: '["selector=#r-abc123".matches("^selector=#r-[a-z0-9]{1,24}$"), "selector=#other".matches("^selector=#r-[a-z0-9]{1,24}$") == false]'
+  expect_json: [true, true]
+  evidence: demo-source
+  source: "pagelove-polls/site/admin/auth.html@c9270e5:117-122"
+- id: sessel.expr.str.matches-escaped-dot
+  expr: '["a@b.co".matches("^[^@]+@[^@]+\\.[^@]+$"), "a@bco".matches("^[^@]+@[^@]+\\.[^@]+$")]'
+  expect_json: [true, false]
+  source: "[PRP] §Validators"
+- id: sessel.expr.str.count
+  expr: '"Welcome".count()'
+  expect_json: 7
+  source: "[STR] §count"
+- id: sessel.expr.str.count-code-points
+  expr: '["héllo".count(), "日本語".count()]'
+  expect_json: [5, 3]
+  evidence: inferred
+  confidence: medium
+  source: "[STR] §count (\"length of the string in characters\")"
+- id: sessel.expr.str.is-empty
+  expr: '["".isEmpty(), "a".isEmpty()]'
+  expect_json: [true, false]
+  source: "[STR] §isEmpty"
+- id: sessel.expr.str.trim
+  expr: '"  hello  ".trim()'
+  expect_json: "hello"
+  source: "[STR] §trim"
+- id: sessel.expr.str.trim-newlines-tabs
+  expr: '"\n\t hi \n".trim()'
+  expect_json: "hi"
+  evidence: inferred
+  source: "spec R-SESSEL-113"
+- id: sessel.expr.str.lower
+  expr: '"Hello World".lower()'
+  expect_json: "hello world"
+  source: "[STR] §lower"
+- id: sessel.expr.str.upper
+  expr: '"Hello World".upper()'
+  expect_json: "HELLO WORLD"
+  source: "[STR] §upper"
+- id: sessel.expr.str.lowercase-alias
+  expr: '"My-Project".lowercase()'
+  expect_json: "my-project"
+  source: "[RTD] §Normalising on write; [RSV] (SC-6)"
+  confidence: medium
+- id: sessel.expr.str.trim-lowercase-chain
+  expr: '" Alice@Example.COM ".trim().lowercase()'
+  expect_json: "alice@example.com"
+  source: "[RSV] §Normalise email on write"
+  confidence: medium
+- id: sessel.expr.str.slugify
+  expr: '"Hello, World! 2026".slugify()'
+  expect_json: "hello-world-2026"
+  source: "[RSV] §Generate a slug on write (SC-6)"
+  evidence: inferred
+  confidence: low
+- id: sessel.expr.str.replace
+  expr: '"hello world".replace("world", "there")'
+  expect_json: "hello there"
+  source: "[STR] §replace"
+- id: sessel.expr.str.replace-all-occurrences
+  expr: '"a-b-c".replace("-", "+")'
+  expect_json: "a+b+c"
+  source: "[STR] §replace (\"all occurrences\")"
+- id: sessel.expr.str.replace-literal-pattern
+  expr: '"a.b.c".replace(".", "-")'
+  expect_json: "a-b-c"
+  evidence: inferred
+  confidence: low
+  source: "spec R-SESSEL-114 (SP-6)"
+- id: sessel.expr.str.split
+  expr: '"a,b,c".split(",")'
+  expect_json: ["a", "b", "c"]
+  source: "[STR] §split"
+- id: sessel.expr.str.split-empty-fields
+  expr: '"a,,b".split(",")'
+  expect_json: ["a", "", "b"]
+  evidence: inferred
+  confidence: medium
+  source: "spec R-SESSEL-115"
+- id: sessel.expr.str.split-no-delimiter
+  expr: '"abc".split(",")'
+  expect_json: ["abc"]
+  evidence: inferred
+  confidence: medium
+  source: "spec R-SESSEL-115"
+- id: sessel.expr.str.slice-range
+  expr: '"hello".slice(1, 3)'
+  expect_json: "el"
+  source: "[STR] §slice"
+- id: sessel.expr.str.slice-to-end
+  expr: '"hello".slice(1)'
+  expect_json: "ello"
+  source: "[STR] §slice"
+- id: sessel.expr.str.slice-negative-start
+  expr: '"hello".slice(-3)'
+  expect_json: "llo"
+  source: "[STR] §slice"
+- id: sessel.expr.str.slice-negative-both
+  expr: '"hello".slice(-3, -1)'
+  expect_json: "ll"
+  source: "[STR] §slice"
+- id: sessel.expr.str.slice-start-after-end
+  expr: '"hello".slice(3, 1)'
+  expect_json: ""
+  source: "[STR] §slice (start >= end → empty)"
+- id: sessel.expr.str.slice-clamped
+  expr: '["hello".slice(2, 99), "hello".slice(-99, 2), "hello".slice(10)]'
+  expect_json: ["llo", "he", ""]
+  source: "[STR] §slice (indices are clamped)"
+- id: sessel.expr.str.slice-code-points
+  expr: '"héllo".slice(1, 2)'
+  expect_json: "é"
+  evidence: inferred
+  confidence: medium
+  source: "[STR] §slice (\"operating on characters\")"
+- id: sessel.expr.str.string-identity
+  expr: '"abc".String()'
+  expect_json: "abc"
+  source: "[STR] §.String()"
+- id: sessel.expr.str.bool
+  expr: '["hello".Bool(), "".Bool()]'
+  expect_json: [true, false]
+  source: "[STR] §.Bool(); [TYP] §Type coercion"
+- id: sessel.expr.str.sha256
+  expr: '"hello".sha256()'
+  expect_json: "2cf24dba5fb0a30e26e83b2ac5b9e29e1b161e5c1fa7425e73043362938b9824"
+  source: "[STR] §.sha256()"
+- id: sessel.expr.str.sha256-empty
+  expr: '"".sha256()'
+  expect_json: "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  evidence: inferred
+  source: "[STR] §.sha256() (standard SHA-256)"
+- id: sessel.expr.str.sha256-utf8
+  expr: '"héllo".sha256()'
+  expect_json: "3c48591d8d098a4538f5e013dfcf406e948eac4d3277b10bf614e295d6068179"
+  evidence: inferred
+  confidence: medium
+  source: "spec R-SESSEL-118 (UTF-8 bytes)"
+- id: sessel.expr.str.hmac-sha256
+  expr: '"message".hmac_sha256("secret-key")'
+  expect_json: "287a3bd8a4fc7731a94c722079055323644d8798bd291bf9878abc9b8fd4b1d0"
+  source: "[STR] §.hmac_sha256(key)"
+  confidence: medium
+  notes: Receiver is the message, argument the key (inferred from the call shape).
+- id: sessel.expr.str.bcrypt-default-cost
+  expr: '"password".bcrypt()'
+  expect_match: '^\$2[aby]\$12\$[./A-Za-z0-9]{53}$'
+  source: "[STR] §.bcrypt() (default cost 12)"
+  confidence: medium
+- id: sessel.expr.str.bcrypt-custom-cost
+  expr: '"password".bcrypt({ cost: 10 })'
+  expect_match: '^\$2[aby]\$10\$[./A-Za-z0-9]{53}$'
+  source: "[STR] §.bcrypt()"
+  confidence: medium
+- id: sessel.expr.str.bcrypt-salted
+  expr: '"password".bcrypt({ cost: 4 }) != "password".bcrypt({ cost: 4 })'
+  expect_json: true
+  source: "[STR] §.bcrypt() (\"Each call produces a different result\")"
+- id: sessel.expr.str.argon2-default
+  expr: '"password".argon2()'
+  expect_match: '^\$argon2id\$v=19\$m=\d+,t=\d+,p=\d+\$[A-Za-z0-9+/]+\$[A-Za-z0-9+/]+$'
+  source: "[STR] §.argon2()"
+  confidence: medium
+- id: sessel.expr.str.argon2-params
+  expr: '"password".argon2({ memory: 19456, time: 2, length: 64 })'
+  expect_match: '^\$argon2id\$v=19\$m=19456,t=2,p=\d+\$[A-Za-z0-9+/]+\$[A-Za-z0-9+/]{86}$'
+  source: "[STR] §.argon2() (64 output bytes → 86 unpadded base64 characters)"
+  confidence: medium
+- id: sessel.expr.str.random-default
+  expr: 'String.random(8)'
+  expect_match: '^[A-Za-z0-9]{8}$'
+  source: "[STR] §String.random(length)"
+- id: sessel.expr.str.random-32
+  expr: 'String.random(32).count()'
+  expect_json: 32
+  source: "[STR] §String.random(length)"
+- id: sessel.expr.str.random-upper-digits
+  expr: 'String.random(32, { upper: true, digits: true })'
+  expect_match: '^[A-Z0-9]{32}$'
+  source: "[STR] §String.random(length, options)"
+- id: sessel.expr.str.random-minimums
+  expr: 'let s = String.random(12, { upper: 3, lower: 3, digits: 2 }); [s.count(), s.matches("^[A-Za-z0-9]+$"), s.matches("(.*[A-Z]){3}"), s.matches("(.*[a-z]){3}"), s.matches("(.*[0-9]){2}")]'
+  expect_json: [12, true, true, true, true]
+  source: "[STR] §String.random(length, options) (minimum guarantees)"
+- id: sessel.expr.str.random-url-safe
+  expr: 'String.random(20, { url_safe: true })'
+  expect_match: '^[A-Za-z0-9_-]{20}$'
+  source: "[STR] §String.random(length, options)"
+- id: sessel.expr.str.random-custom-chars
+  expr: 'String.random(20, { chars: "AEIOU" })'
+  expect_match: '^[AEIOU]{20}$'
+  source: "[STR] §String.random(length, options)"
+- id: sessel.expr.str.random-chars-min
+  expr: 'let s = String.random(32, { alphanumeric: true, chars: "-_", chars_min: 2 }); [s.matches("^[A-Za-z0-9_-]{32}$"), s.matches("([^-_]*[-_]){2}")]'
+  expect_json: [true, true]
+  source: "[STR] §String.random(length, options)"
+- id: sessel.expr.str.random-key-default
+  expr: 'String.random(1, { lower: true }) + String.random(7, { lower: true, digits: true })'
+  expect_match: '^[a-z][a-z0-9]{7}$'
+  source: "[PRP] §Auto-generated default"
+- id: sessel.expr.num.abs
+  expr: '[(-5).abs(), 5.abs(), (-3.14).abs()]'
+  expect_json: [5, 5, 3.14]
+  source: "[NUM] §.abs()"
+- id: sessel.expr.num.abs-keeps-kind
+  expr: '[(-5).abs().String(), (-2.0).abs().String(), (-2.0).abs() isa Float]'
+  expect_json: ["5", "2", true]
+  source: "[NUM] §.abs() (same numeric type)"
+  confidence: medium
+- id: sessel.expr.num.floor
+  expr: '[3.7.floor(), (-3.2).floor(), 42.floor()]'
+  expect_json: [3, -4, 42]
+  source: "[NUM] §.floor()"
+- id: sessel.expr.num.floor-returns-integer
+  expr: '3.7.floor().String()'
+  expect_json: "3"
+  source: "[NUM] §.floor() (Returns: integer)"
+- id: sessel.expr.num.ceil
+  expr: '[3.2.ceil(), (-3.7).ceil(), 42.ceil()]'
+  expect_json: [4, -3, 42]
+  source: "[NUM] §.ceil()"
+- id: sessel.expr.num.round
+  expr: '[3.5.round(), 3.4.round(), (-3.5).round(), 42.round(), 2.5.round()]'
+  expect_json: [4, 3, -4, 42, 3]
+  source: "[NUM] §.round() (ties away from zero)"
+- id: sessel.expr.num.to-string
+  expr: '[4.String(), (-7).String(), 3.14.String()]'
+  expect_json: ["4", "-7", "3.14"]
+  source: "[NUM] §.String()"
+- id: sessel.expr.num.float-string-no-point
+  expr: '[42.Float().String(), 100.0.String(), "#{2.0}", (1.0 * 10000000000000000).String(), (0.00000015).String(), (-0.0).String()]'
+  expect_json: ["42", "100", "2", "10000000000000000", "0.00000015", "-0"]
+  evidence: live-observed
+  source: "live 2026-09-29 (harness/observations/live-2026-09-29-reconcile-sessel/sessel-query-probe-0929-values.json)"
+  notes: Supersedes the docs' "42.0" (R-SESSEL-92). JSON keeps the point (sessel.expr.json.* and sessel.query.values.float-json-encoding).
+- id: sessel.expr.num.number-smart-parse
+  expr: '["42".Number(), "3.14".Number()]'
+  expect_json: [42, 3.14]
+  source: "[NUM] §Number coercion"
+- id: sessel.expr.num.number-smart-parse-kinds
+  expr: '["42".Number() isa Integer, "3.0".Number() isa Float, "3.0".Number().String()]'
+  expect_json: [true, true, "3"]
+  source: "[TYP] §Type coercion (\"42\" returns integer, \"3.14\" returns float)"
+  confidence: medium
+- id: sessel.expr.num.number-invalid-null
+  expr: '["abc".Number(), "".Number()]'
+  expect_json: [null, null]
+  source: "[STR] §.Number() (returns null if not a valid number)"
+- id: sessel.expr.num.number-negative
+  expr: '"-7".Number()'
+  expect_json: -7
+  evidence: inferred
+  confidence: medium
+  source: "spec R-SESSEL-94"
+- id: sessel.expr.num.number-fallback
+  expr: '"n/a".Number() ?? 0'
+  expect_json: 0
+  source: "[NUM] §How numbers arise"
+- id: sessel.expr.num.number-unchanged
+  expr: '[5.Number(), 2.5.Number()]'
+  expect_json: [5, 2.5]
+  source: "[NUM] §Number coercion (Returns unchanged)"
+- id: sessel.expr.num.integer-truncates
+  expr: '[3.14.Integer(), (-3.7).Integer(), 7.Integer()]'
+  expect_json: [3, -3, 7]
+  source: "[NUM] §Number coercion (truncates toward zero)"
+- id: sessel.expr.num.integer-parse
+  expr: '"5".Integer()'
+  expect_json: 5
+  source: "[TYP] §Type coercion"
+- id: sessel.expr.num.integer-decimal-string-throws
+  expr: '"5.0".Integer()'
+  expect_error: TypeError
+  source: "[NUM] §How numbers arise; [STR] §.Integer() (SC-1)"
+  confidence: medium
+- id: sessel.expr.num.integer-decimal-string-null-disputed
+  expr: '"5.0".Integer()'
+  expect_json: null
+  status: disputed
+  source: "[TYP] §Type coercion (\"5.0\" → null) — losing side of SC-1"
+  confidence: low
+- id: sessel.expr.num.integer-garbage-throws
+  expr: 'try { "abc".Integer() } catch (e) { e.type }'
+  expect_json: "TypeError"
+  source: "[STR] §.Integer() (\"Throws a type error\")"
+  confidence: medium
+- id: sessel.expr.num.float-parse
+  expr: '["42".Float().String(), "3.14".Float().String(), "42".Float() isa Float]'
+  expect_json: ["42", "3.14", true]
+  source: "[STR] §.Float()"
+- id: sessel.expr.num.float-widen
+  expr: '42.Float() == 42'
+  expect_json: true
+  source: "[NUM] §Number coercion (widens)"
+- id: sessel.expr.num.float-garbage-throws
+  expr: '"abc".Float()'
+  expect_error: TypeError
+  source: "[STR] §.Float() (SC-1)"
+  confidence: medium
+- id: sessel.expr.num.bool
+  expr: '[0.Bool(), 1.Bool(), 0.0.Bool(), (-2).Bool()]'
+  expect_json: [false, true, false, true]
+  source: "[TYP] §Type coercion"
+- id: sessel.expr.num.null-propagates-through-coercion
+  expr: '[null.Number(), null.Integer(), null.String(), null.Bool()]'
+  expect_json: [null, null, null, null]
+  source: "[TYP] §Type coercion (\"Null propagates through coercion\")"
+  confidence: medium
+- id: sessel.expr.num.integer-random-range
+  expr: 'let r = Integer.random(1, 6); r >= 1 && r <= 6 && r.String() == r.Integer().String()'
+  expect_json: true
+  source: "[NUM] §Integer.random"
+- id: sessel.expr.num.integer-random-inclusive-equal
+  expr: 'Integer.random(5, 5)'
+  expect_json: 5
+  source: "[NUM] §Number.random (min == max returns min)"
+- id: sessel.expr.num.integer-random-swapped
+  expr: 'let r = Integer.random(10, 1); r >= 1 && r <= 10'
+  expect_json: true
+  source: "[NUM] (\"if min > max, the bounds are silently swapped\")"
+- id: sessel.expr.num.float-random-range
+  expr: 'let r = Float.random(0.0, 1.0); r >= 0 && r < 1 && r.String().contains(".")'
+  expect_json: true
+  source: "[NUM] §Float.random"
+- id: sessel.expr.num.float-random-promotes
+  expr: 'let r = Float.random(1, 10); r >= 1 && r < 10 && r.String().contains(".")'
+  expect_json: true
+  source: "[NUM] §Float.random (integer args are promoted)"
+- id: sessel.expr.num.number-random-integer
+  expr: 'let r = Number.random(1, 10); r >= 1 && r <= 10 && r.String().contains(".") == false'
+  expect_json: true
+  source: "[NUM] §Number.random"
+- id: sessel.expr.num.number-random-float
+  expr: 'let r = Number.random(1, 10.0); r >= 1 && r < 10 && r.String().contains(".")'
+  expect_json: true
+  source: "[NUM] §Number.random (mixed args → float)"
+- id: sessel.expr.num.integer-random-requires-integers
+  expr: 'Integer.random(1.5, 3)'
+  expect_error: TypeError
+  evidence: inferred
+  confidence: low
+  source: "[NUM] §Integer.random (\"Both arguments must be integers\")"
+- id: sessel.expr.types.namespace-shadowed
+  expr: 'let String = "hello"; String'
+  expect_json: "hello"
+  source: "[TYP] §Name resolution"
+- id: sessel.expr.types.string-function
+  expr: 'String(42)'
+  expect_json: "42"
+  source: "[TMP] §String coercion (String(value)); spec R-SESSEL-65"
+  confidence: medium
+- id: sessel.expr.types.isa-primitives
+  expr: '[1 isa Integer, 1.5 isa Float, 1 isa Number, "a" isa String, [] isa List, {} isa Map, null isa Null, true isa Bool]'
+  expect_json: [true, true, true, true, true, true, true, true]
+  evidence: inferred
+  confidence: low
+  source: "[TYP] §Type Namespaces; spec R-SESSEL-88"
+- id: sessel.expr.types.isa-mismatch
+  expr: '["a" isa Integer, (new p {}) isa Element]'
+  expect_json: [false, true]
+  evidence: inferred
+  confidence: low
+  source: "spec R-SESSEL-88"
+- id: sessel.expr.let.basic
+  expr: 'let count = 4; let label = count > 0 ? "items found" : "no items"; label'
+  expect_json: "items found"
+  source: "[SES-V] §let bindings"
+- id: sessel.expr.let.later-references-earlier
+  expr: |-
+    let a = 2;
+    let b = a * 3;
+    a + b
+  expect_json: 8
+  source: "[SYN] §let bindings"
+- id: sessel.expr.let.without-semicolons
+  expr: |-
+    let a = 1
+    let b = 2
+    a + b
+  expect_json: 3
+  source: "[SYN] §Grammar (frame_body := (statement ';'?)* expr?)"
+  confidence: medium
+- id: sessel.expr.let.trailing-semicolon
+  expr: 'let x = 5; x;'
+  expect_json: 5
+  source: "[SYN] §return keyword (\"A trailing semicolon … does not change the block's value\")"
+- id: sessel.expr.let.as-expression-in-lambda
+  expr: |-
+    [1, 2].map(n =>
+      let d = n * 10;
+      let e = d + 1;
+      e
+    )
+  expect_json: [11, 21]
+  source: "[SES-V] §Putting it all together (let chain as a lambda body)"
+- id: sessel.expr.let.shadowing
+  expr: 'let x = 1; let x = x + 1; x'
+  expect_json: 2
+  evidence: inferred
+  confidence: medium
+  source: "spec R-SESSEL-61"
+- id: sessel.expr.let.prior-is-ordinary-identifier
+  expr: 'let prior = 5; prior + 1'
+  expect_json: 6
+  source: "[SYN] §Block-level from (prior is contextual)"
+- id: sessel.expr.let.unresolved-variable
+  expr: 'someVar'
+  expect_error: RuntimeError
+  source: "[SYN] §Try/Catch (unresolved variable is a RuntimeError)"
+- id: sessel.expr.let.unresolved-variable-caught
+  expr: 'try { someVar } catch (e) { if (e.type == "RuntimeError") { "not found" } else { "unexpected" } }'
+  expect_json: "not found"
+  source: "[SYN] §Try/Catch"
+- id: sessel.expr.let.auth-names-unbound-in-composition
+  expr: 'auth.claims.email'
+  expect_error: RuntimeError
+  source: "[SYN] §Authenticated identity in composition (raises undefined variable)"
+  confidence: medium
+- id: sessel.expr.let.dict-in-scope-of-if-body
+  expr: 'if (true) { let inner = 1; inner }'
+  expect_json: 1
+  source: "[SYN] §if expressions (bindings scoped to the body)"
+- id: sessel.expr.let.if-binding-not-visible-after
+  expr: 'if (true) { let inner = 1; inner }; inner'
+  expect_error: RuntimeError
+  source: "[SYN] §if expressions (\"let bindings inside a body are scoped to that body\")"
+  confidence: medium
+- id: sessel.expr.if.first-branch
+  expr: |-
+    let count = 12;
+    if (count > 10) {
+      "many items"
+    } else if (count > 0) {
+      "some"
+    } else {
+      "no items"
+    }
+  expect_json: "many items"
+  source: "[SES-C] §Null handling"
+- id: sessel.expr.if.else-if-branch
+  expr: 'let count = 3; if (count > 10) { "Showing first 10 of " + count.String() } else if (count > 0) { count.String() + " items" } else { "No items found" }'
+  expect_json: "3 items"
+  source: "[SES-V] §if expressions"
+- id: sessel.expr.if.else-branch
+  expr: 'let count = 0; if (count > 10) { "a" } else if (count > 0) { "b" } else { "No items found" }'
+  expect_json: "No items found"
+  source: "[SES-V] §if expressions"
+- id: sessel.expr.if.no-else-null
+  expr: 'if (false) { "has items" }'
+  expect_json: null
+  source: "[SYN] §if expressions"
+- id: sessel.expr.if.as-let-value
+  expr: 'let hour = 9; let greeting = if (hour < 12) { "Good morning" } else { "Hello" }; greeting'
+  expect_json: "Good morning"
+  source: "[SYN] §if expressions"
+- id: sessel.expr.if.multi-statement-body
+  expr: |-
+    let items = [1, 2, 3];
+    if (items.count() > 0) {
+      let total = items.map(i => i * 2).reduce(0, (a, b) => a + b);
+      "Total: " + total.String()
+    }
+  expect_json: "Total: 12"
+  source: "[SYN] §if expressions"
+- id: sessel.expr.if.later-conditions-not-evaluated
+  expr: 'if (true) { 1 } else if (1 / 0 == 1) { 2 }'
+  expect_json: 1
+  source: "[SYN] §if expressions (\"No subsequent conditions … are evaluated\")"
+- id: sessel.expr.if.statements-without-semicolon
+  expr: |-
+    let r = "ok";
+    if (false) { throw "a" }
+    if (false) { throw "b" }
+    r
+  expect_json: "ok"
+  evidence: demo-source
+  source: "pagelove-polls/site/admin/auth.html@c9270e5:116-125"
+- id: sessel.expr.try.success-value
+  expr: 'try { "hello" } catch (e) { "caught" }'
+  expect_json: "hello"
+  source: "[SYN] §Try/Catch"
+- id: sessel.expr.try.type-mismatch
+  expr: 'try { "hello" + 42 } catch (e) { "type mismatch" }'
+  expect_json: "type mismatch"
+  source: "[SYN] §Try/Catch"
+- id: sessel.expr.try.division-type
+  expr: 'try { 1 / 0 } catch (e) { e.type }'
+  expect_json: "RuntimeError"
+  source: "[SYN] §Try/Catch"
+- id: sessel.expr.try.message
+  expr: 'try { "a" + 1 } catch (e) { "Error: " + e.message }'
+  expect_json: "Error: type error: cannot use 'a' in arithmetic"
+  evidence: live-observed
+  source: "live 2026-09-29 (harness/observations/live-2026-09-29-reconcile-sessel/sessel-query-probe-0929-values.json)"
+  notes: Supersedes the docs' "Cannot add String and Integer" (R-SESSEL-80).
+- id: sessel.expr.try.arithmetic-messages
+  expr: '[try { 1 + "a" } catch (e) { e.message }, try { "5" * "2" } catch (e) { e.message }, try { true + 1 } catch (e) { e.message }, try { [1, "b"] + 1 } catch (e) { e.message }, try { {a: 1} - 1 } catch (e) { e.message }]'
+  expect_json: ["type error: cannot use 'a' in arithmetic", "type error: cannot use '5' in arithmetic", "type error: cannot use 'true' in arithmetic", "type error: cannot use '1, b' in arithmetic", "type error: cannot use '{\"a\":1}' in arithmetic"]
+  evidence: live-observed
+  source: "live 2026-09-29 (harness/observations/live-2026-09-29-reconcile-sessel/sessel-query-probe-0929-values.json)"
+  notes: The first non-numeric operand is quoted; numeric Strings are not coerced.
+- id: sessel.expr.try.type-of-type-error
+  expr: 'try { "a" + 1 } catch (e) { e.type }'
+  expect_json: "TypeError"
+  source: "[SYN] §Try/Catch (type column)"
+  confidence: medium
+- id: sessel.expr.try.catch-keys
+  expr: 'try { 1 / 0 } catch (e) { e.keys().sort(k => k) }'
+  expect_json: ["message", "type"]
+  source: "[SYN] §Try/Catch (\"a dictionary with two keys\")"
+  confidence: medium
+- id: sessel.expr.try.null-propagation-not-error
+  expr: 'try { null.text() } catch (e) { "caught" }'
+  expect_json: null
+  source: "[SYN] §Try/Catch"
+- id: sessel.expr.try.nested-rethrow
+  expr: 'try { try { 1 / 0 } catch (e) { throw e } } catch (f) { f.type }'
+  expect_json: "RuntimeError"
+  evidence: inferred
+  confidence: low
+  source: "spec R-SESSEL-342 (a caught error dictionary rethrown keeps its type)"
+- id: sessel.expr.try.catch-variable-scoped
+  expr: 'try { 1 / 0 } catch (e) { 1 }; e'
+  expect_error: RuntimeError
+  evidence: inferred
+  confidence: medium
+  source: "spec R-SESSEL-341"
+- id: sessel.expr.throw.uncaught-string
+  expr: 'throw "boom"'
+  expect_error: any
+  source: "[SYN] §Grammar throw_expr"
+- id: sessel.expr.throw.caught-string-message
+  expr: 'try { throw "boom" } catch (e) { e.message }'
+  expect_json: "boom"
+  evidence: inferred
+  confidence: low
+  source: "spec R-SESSEL-342 (SP-14)"
+- id: sessel.expr.return.early-from-lambda
+  expr: |-
+    ["a", "", "c"].map((el, i) => {
+      if (i > 1) { return null }
+      let name = el;
+      if (name == "") { return "unnamed" }
+      name.upper()
+    })
+  expect_json: ["A", "unnamed", null]
+  source: "[SYN] §return keyword"
+- id: sessel.expr.return.top-level
+  expr: 'return 5; 6'
+  expect_json: 5
+  evidence: inferred
+  confidence: low
+  source: "spec R-SESSEL-66"
+- id: sessel.expr.lambda.single-param
+  expr: '[5, 20, 11].filter(el => el > 10)'
+  expect_json: [20, 11]
+  source: "[SYN] §Single-parameter lambdas"
+- id: sessel.expr.lambda.parenthesised-single-param
+  expr: '[1, 2].all((el) => el > 0)'
+  expect_json: true
+  source: "[PRP] §Validators ((el) => …)"
+- id: sessel.expr.lambda.index-param
+  expr: '["a", "b"].map((el, i) => i.String() + ". " + el)'
+  expect_json: ["0. a", "1. b"]
+  source: "[SYN] §Multi-parameter lambdas"
+- id: sessel.expr.lambda.list-param
+  expr: '[1, 2, 3, 4].filter((el, i, list) => i < list.count() / 2)'
+  expect_json: [1, 2]
+  source: "[SYN] §Multi-parameter lambdas"
+- id: sessel.expr.lambda.rest-collects-extras
+  expr: '["x", "y"].map((el, ...extras) => extras.count())'
+  expect_json: [2, 2]
+  source: "[SYN] §Rest parameters (extras is [index, list] for .map())"
+- id: sessel.expr.lambda.rest-first-element-index
+  expr: '["x", "y"].map((el, ...extras) => extras.first())'
+  expect_json: [0, 1]
+  source: "[SYN] §Rest parameters"
+- id: sessel.expr.lambda.stored-and-called
+  expr: 'let f = (first, ...rest) => rest.count(); f(1, 2, 3)'
+  expect_json: 2
+  source: "[SYN] §Rest parameters (lambdas stored in variables)"
+  confidence: medium
+- id: sessel.expr.lambda.missing-argument-null
+  expr: 'let f = (a, b) => b; f(1)'
+  expect_json: null
+  evidence: inferred
+  confidence: medium
+  source: "spec R-SESSEL-64"
+- id: sessel.expr.lambda.two-rest-params-parse-error
+  expr: '[1].map((...a, ...b) => 1)'
+  expect_error: parse
+  source: "[SYN] §Rest parameters (\"Only one rest parameter is allowed and it must be last\")"
+- id: sessel.expr.lambda.rest-not-last-parse-error
+  expr: '[1].map((...a, b) => 1)'
+  expect_error: parse
+  source: "[SYN] §Rest parameters"
+- id: sessel.expr.lambda.block-body
+  expr: |-
+    [{ c: "b", p: 2 }, { c: "a", p: 9 }, { c: "b", p: 1 }].sort((a, b) => {
+      let cat = a.c <=> b.c;
+      cat != 0 ? cat : a.p <=> b.p
+    }).map(x => x.p)
+  expect_json: [9, 1, 2]
+  source: "[SYN] §Block bodies"
+- id: sessel.expr.lambda.map-literal-body
+  expr: '[1, 2].map(p => { name: p.String(), double: p * 2 })'
+  expect_json: [{name: "1", double: 2}, {name: "2", double: 4}]
+  source: "[SES-C] §Transforming (mapping to dictionaries)"
+- id: sessel.expr.lambda.closure
+  expr: |-
+    let threshold = 10;
+    let aboveThreshold = n => n > threshold;
+    [5, 15, 25].filter(aboveThreshold)
+  expect_json: [15, 25]
+  source: "[SYN] §Closures"
+- id: sessel.expr.lambda.closure-by-reference
+  expr: 'let d = {}; let f = x => d.v; d.v = 7; f(0)'
+  expect_json: 7
+  source: "[SYN] §Closures (\"capture variables … by reference\")"
+  confidence: medium
+- id: sessel.expr.lambda.param-shadows-capture
+  expr: 'let x = 1; let f = x => x * 10; f(5)'
+  expect_json: 50
+  source: "[SYN] §Closures (\"Lambda parameters shadow captured variables\")"
+- id: sessel.expr.lambda.nested
+  expr: '[[1, 2], [3]].map(xs => xs.map(x => x + 1))'
+  expect_json: [[2, 3], [4]]
+  source: "[SYN] §Nesting"
+- id: sessel.expr.lambda.not-callable
+  expr: 'let x = 5; x(1)'
+  expect_error: TypeError
+  evidence: inferred
+  confidence: low
+  source: "spec R-SESSEL-65"
+- id: sessel.expr.destructure.dict
+  expr: 'let user = { name: "Ada", role: "admin" }; let { name, role } = user; name + "/" + role'
+  expect_json: "Ada/admin"
+  source: "[SYN] §Destructuring"
+- id: sessel.expr.destructure.dict-rename
+  expr: 'let user = { name: "Ada", role: "admin" }; let { name: n, role: r } = user; n + "/" + r'
+  expect_json: "Ada/admin"
+  source: "[SYN] §Destructuring"
+- id: sessel.expr.destructure.dict-missing-key
+  expr: 'let { missing } = { a: 1 }; missing'
+  expect_json: null
+  source: "[SYN] §Destructuring (\"Accessing a missing key produces null\")"
+- id: sessel.expr.destructure.list
+  expr: 'let items = [10, 20, 30]; let [first, second] = items; first + second'
+  expect_json: 30
+  source: "[SYN] §Destructuring"
+- id: sessel.expr.destructure.list-rest
+  expr: 'let [head, ...rest] = [1, 2, 3]; [head, rest]'
+  expect_json: [1, [2, 3]]
+  source: "[SYN] §Destructuring"
+- id: sessel.expr.destructure.list-out-of-bounds
+  expr: 'let [a, b, c] = [1]; [a, b, c]'
+  expect_json: [1, null, null]
+  source: "[SYN] §Destructuring (\"Out-of-bounds positions are null\")"
+- id: sessel.expr.destructure.rest-empty
+  expr: 'let [a, ...rest] = [1]; rest'
+  expect_json: []
+  source: "[SYN] §Destructuring (rest via .slice())"
+- id: sessel.expr.destructure.element
+  context_html: '<!DOCTYPE html><html><body><div itemscope itemtype="https://example.com/User"><span itemprop="name">Ada</span><meta itemprop="role" content="admin"></div></body></html>'
+  expr: 'let user = (${[itemscope]} from self).first(); let { name, role } = user; [name, role]'
+  expect_json: ["Ada", "admin"]
+  source: "[SYN] §Destructuring (works with Elements)"
+  confidence: medium
+- id: sessel.expr.assign.dot
+  expr: 'let product = {}; product.name = "Widget"; product.price = 9.99; product'
+  expect_json: {name: "Widget", price: 9.99}
+  source: "[SES-V] §Building dictionaries; [DCT] §Dot assignment"
+- id: sessel.expr.assign.subscript
+  expr: 'let product = {}; let key = "name"; product[key] = "Widget"; product'
+  expect_json: {name: "Widget"}
+  source: "[DCT] §Subscript assignment"
+- id: sessel.expr.assign.header-key
+  expr: 'let headers = {}; headers["Content-Type"] = "text/html"; headers'
+  expect_json: {"Content-Type": "text/html"}
+  source: "[SYN] §Dictionary property assignment"
+- id: sessel.expr.assign.replace-keeps-position
+  expr: 'let d = { a: 1, b: 2 }; d.a = 3; d.keys()'
+  expect_json: ["a", "b"]
+  source: "[DCT] §Property assignment (\"replace its value if it already exists\")"
+  confidence: medium
+- id: sessel.expr.assign.nested-dotted
+  expr: 'let d = { inner: {} }; d.inner.x = 1; d'
+  expect_json: {inner: {x: 1}}
+  evidence: inferred
+  confidence: medium
+  source: "[PRC] Context.response.body = … (dotted target)"
+- id: sessel.expr.assign.index-after-path-parse-error
+  expr: 'let d = { h: {} }; d.h["X"] = 1; d'
+  expect_error: parse
+  evidence: client-source
+  confidence: medium
+  source: "beta-js/cors.html@c204746:22-23 (\"index assignment is not a valid assignment target\")"
+- id: sessel.expr.assign.plain-rebind-parse-error
+  expr: 'let x = 1; x = 2; x'
+  expect_error: parse
+  evidence: inferred
+  confidence: low
+  source: "spec R-SESSEL-35"
+- id: sessel.expr.dict.dot-access
+  expr: 'let product = { name: "Widget", price: 42 }; [product.name, product.price]'
+  expect_json: ["Widget", 42]
+  source: "[DCT] §Dot access"
+- id: sessel.expr.dict.subscript-access
+  expr: 'let product = { name: "Widget" }; let k = "name"; [product["name"], product[k]]'
+  expect_json: ["Widget", "Widget"]
+  source: "[DCT] §Subscript access"
+- id: sessel.expr.dict.missing-key-null
+  expr: 'let product = { name: "Widget" }; [product.missing, product["missing"]]'
+  expect_json: [null, null]
+  source: "[DCT] §Access"
+- id: sessel.expr.dict.keys
+  expr: '{ name: "Widget", price: 42 }.keys()'
+  expect_json: ["name", "price"]
+  source: "[DCT] §.keys()"
+- id: sessel.expr.dict.values
+  expr: '{ name: "Widget", price: 42 }.values()'
+  expect_json: ["Widget", 42]
+  source: "[DCT] §.values()"
+- id: sessel.expr.dict.entries
+  expr: '{ name: "Widget", price: 42 }.entries()'
+  expect_json: [{key: "name", value: "Widget"}, {key: "price", value: 42}]
+  source: "[DCT] §.entries()"
+- id: sessel.expr.dict.contains
+  expr: '[{ name: "Widget" }.contains("name"), { name: "Widget" }.contains("price")]'
+  expect_json: [true, false]
+  source: "[DCT] §.contains(key)"
+- id: sessel.expr.dict.count
+  expr: '{ name: "Widget", price: 42 }.count()'
+  expect_json: 2
+  source: "[DCT] §.count()"
+- id: sessel.expr.dict.is-empty
+  expr: '[{}.isEmpty(), { name: "Widget" }.isEmpty()]'
+  expect_json: [true, false]
+  source: "[DCT] §.isEmpty()"
+- id: sessel.expr.dict.get
+  expr: '[{ name: "Widget" }.get("name", "Unknown"), { name: "Widget" }.get("price", 0)]'
+  expect_json: ["Widget", 0]
+  source: "[DCT] §.get(key, default)"
+- id: sessel.expr.dict.get-requires-two-args
+  expr: '{ name: "Widget" }.get("name")'
+  expect_error: TypeError
+  source: "[DCT] §.get (\"Both arguments are required\")"
+  confidence: medium
+- id: sessel.expr.dict.get-default-lazy
+  expr: '{ a: 1 }.get("a", 1 / 0)'
+  expect_json: 1
+  source: "[DCT] §.get (\"otherwise evaluates and returns default\")"
+  confidence: low
+- id: sessel.expr.dict.delete
+  expr: '{ name: "Widget", price: 42 }.delete("price")'
+  expect_json: {name: "Widget"}
+  source: "[DCT] §.delete(key)"
+- id: sessel.expr.dict.delete-missing
+  expr: '{ name: "Widget" }.delete("missing")'
+  expect_json: {name: "Widget"}
+  source: "[DCT] §.delete(key)"
+- id: sessel.expr.dict.delete-leaves-original
+  expr: 'let d = { a: 1, b: 2 }; let e = d.delete("a"); [d.count(), e.count()]'
+  expect_json: [2, 1]
+  source: "[DCT] §.delete (\"The original dictionary is unchanged\")"
+- id: sessel.expr.dict.merge
+  expr: '{ name: "Widget", price: 42 }.merge({ price: 50, stock: 10 })'
+  expect_json: {name: "Widget", price: 50, stock: 10}
+  source: "[DCT] §.merge(other)"
+- id: sessel.expr.dict.method-vs-key
+  expr: 'let d = { keys: "k" }; [d.keys, d.keys()]'
+  expect_json: ["k", ["keys"]]
+  evidence: inferred
+  confidence: medium
+  source: "spec R-SESSEL-76"
+- id: sessel.expr.list.count
+  expr: '[1, 2, 3].count()'
+  expect_json: 3
+  source: "[LST] §count()"
+- id: sessel.expr.list.is-empty
+  expr: '[[].isEmpty(), [1].isEmpty()]'
+  expect_json: [true, false]
+  source: "[LST] §isEmpty()"
+- id: sessel.expr.list.first-last
+  expr: '[[1, 2, 3].first(), [1, 2, 3].last()]'
+  expect_json: [1, 3]
+  source: "[LST] §first(), §last()"
+- id: sessel.expr.list.first-last-empty
+  expr: '[[].first(), [].last()]'
+  expect_json: [null, null]
+  source: "[LST] §first(), §last()"
+- id: sessel.expr.list.at
+  expr: '[10, 20, 30].at(2)'
+  expect_json: 30
+  source: "[LST] §at(n)"
+- id: sessel.expr.list.at-negative
+  expr: '[[10, 20, 30].at(-1), [10, 20, 30].at(-2)]'
+  expect_json: [30, 20]
+  source: "[LST] §at(n)"
+- id: sessel.expr.list.at-out-of-range
+  expr: '[[10, 20].at(5), [10, 20].at(-3)]'
+  expect_json: [null, null]
+  source: "[LST] §at(n)"
+- id: sessel.expr.list.subscript
+  expr: 'let items = [10, 20, 30]; items[0]'
+  expect_json: 10
+  source: "[SYN] §Subscript access"
+- id: sessel.expr.list.subscript-out-of-range
+  expr: '[10][5]'
+  expect_json: null
+  evidence: inferred
+  confidence: medium
+  source: "spec R-SESSEL-74"
+- id: sessel.expr.list.slice
+  expr: '[[0, 1, 2, 3, 4, 5, 6].slice(0, 5), [0, 1, 2, 3].slice(2)]'
+  expect_json: [[0, 1, 2, 3, 4], [2, 3]]
+  source: "[LST] §slice"
+- id: sessel.expr.list.slice-negative
+  expr: '[[0, 1, 2, 3, 4].slice(-3, -1), [0, 1, 2, 3, 4].slice(-2)]'
+  expect_json: [[2, 3], [3, 4]]
+  source: "[LST] §slice"
+- id: sessel.expr.list.slice-clamped
+  expr: '[[1, 2].slice(1, 99), [1, 2].slice(5), [1, 2, 3].slice(2, 1)]'
+  expect_json: [[2], [], []]
+  evidence: inferred
+  confidence: medium
+  source: "spec R-SESSEL-143"
+- id: sessel.expr.list.sum-numbers
+  expr: '[1, 2, 3].sum()'
+  expect_json: 6
+  source: "[LST] §sum()"
+- id: sessel.expr.list.sum-strings-parsed
+  expr: '["1", "2.5", "x"].sum()'
+  expect_json: 3.5
+  source: "[LST] §sum() (\"Non-numeric values are skipped\")"
+  confidence: medium
+- id: sessel.expr.list.sum-integer-kind
+  expr: '[[1, 2].sum() isa Integer, [1, 2.0].sum() isa Float]'
+  expect_json: [true, true]
+  source: "[NUM] (\".sum(), .min(), .max() preserve the integer type when all inputs are integers\")"
+- id: sessel.expr.list.sum-empty
+  expr: '[].sum()'
+  expect_json: 0
+  evidence: inferred
+  confidence: medium
+  source: "spec R-SESSEL-144"
+- id: sessel.expr.list.min-max
+  expr: '[[3, 1, 2].min(), [3, 1, 2].max()]'
+  expect_json: [1, 3]
+  source: "[LST] §min(), §max()"
+- id: sessel.expr.list.min-max-skip-non-numeric
+  expr: '[["x", 4, "2"].min(), ["x", 4, "2"].max()]'
+  expect_json: [2, 4]
+  source: "[LST] §min() (\"Non-numeric values are skipped\")"
+  confidence: medium
+- id: sessel.expr.list.min-max-none
+  expr: '[["a", "b"].min(), [].max()]'
+  expect_json: [null, null]
+  source: "[LST] §min() (\"Returns null if no numeric values\")"
+- id: sessel.expr.list.filter
+  expr: '["3", "12", "7", "20"].filter(el => el.Integer() > 10)'
+  expect_json: ["12", "20"]
+  source: "[SES-C] §Filtering"
+- id: sessel.expr.list.filter-count
+  expr: '["3", "12", "7", "20"].filter(el => el.Integer() > 10).count()'
+  expect_json: 2
+  source: "[SES-C] §Filtering"
+- id: sessel.expr.list.filter-by-index
+  expr: '[1, 2, 3, 4, 5, 6, 7].filter((el, i) => i < 5)'
+  expect_json: [1, 2, 3, 4, 5]
+  source: "[SES-C] §Filtering"
+- id: sessel.expr.list.reject
+  expr: '["a", "", "b"].reject(el => el == "")'
+  expect_json: ["a", "b"]
+  source: "[LST] §reject"
+- id: sessel.expr.list.reject-by-index
+  expr: '[1, 2, 3, 4, 5, 6].reject((el, i) => i < 5)'
+  expect_json: [6]
+  source: "[LST] §reject"
+- id: sessel.expr.list.find
+  expr: '["Gadget", "Widget", "Widget"].find(el => el == "Widget")'
+  expect_json: "Widget"
+  source: "[LST] §find"
+- id: sessel.expr.list.find-none
+  expr: '[1, 2].find(el => el > 100)'
+  expect_json: null
+  source: "[LST] §find"
+- id: sessel.expr.list.map
+  expr: '["1", "2"].map(el => el.Integer())'
+  expect_json: [1, 2]
+  source: "[LST] §map"
+- id: sessel.expr.list.each-returns-original
+  expr: '[1, 2].each(x => x * 2)'
+  expect_json: [1, 2]
+  source: "[LST] §each (\"returns the original list unchanged\")"
+- id: sessel.expr.list.take-while
+  expr: '[1, 2, 3, 10, 4].takeWhile(n => n < 5)'
+  expect_json: [1, 2, 3]
+  source: "[LST] §takeWhile"
+- id: sessel.expr.list.drop-while
+  expr: '[1, 2, 3, 10, 4].dropWhile(n => n < 5)'
+  expect_json: [10, 4]
+  source: "[LST] §dropWhile"
+- id: sessel.expr.list.all
+  expr: '[["a", "b"].all(el => el.count() > 0), ["a", ""].all(el => el.count() > 0)]'
+  expect_json: [true, false]
+  source: "[SES-C] §Checking conditions"
+- id: sessel.expr.list.all-empty
+  expr: '[].all(el => false)'
+  expect_json: true
+  source: "[SES-C] §Checking conditions (true for an empty list)"
+- id: sessel.expr.list.all-with-index
+  expr: '["x", "", "y"].all((el, i) => i == 0 || el != "")'
+  expect_json: false
+  source: "[LST] §all"
+- id: sessel.expr.list.any
+  expr: '[[50, 120].any(el => el > 100), [50].any(el => el > 100)]'
+  expect_json: [true, false]
+  source: "[SES-C] §Checking conditions"
+- id: sessel.expr.list.any-empty
+  expr: '[].any(el => true)'
+  expect_json: false
+  source: "[SES-C] §Checking conditions (false for an empty list)"
+- id: sessel.expr.list.unique
+  expr: '[1, 2, 2, 3].unique()'
+  expect_json: [1, 2, 3]
+  source: "[SES-C] §Collection validation"
+- id: sessel.expr.list.unique-text-representation
+  expr: '[1, "1", 2].unique()'
+  expect_json: [1, 2]
+  source: "[LST] §unique (\"compared by text representation\")"
+  confidence: medium
+- id: sessel.expr.list.subset
+  expr: '[["red", "blue"].subset(["red", "green", "blue"]), ["red", "pink"].subset(["red", "blue"])]'
+  expect_json: [true, false]
+  source: "[LST] §subset"
+- id: sessel.expr.list.subset-empty
+  expr: '[].subset(["a"])'
+  expect_json: true
+  source: "[LST] §subset (\"Returns true if this list is empty\")"
+- id: sessel.expr.list.disjoint
+  expr: '[["a", "b"].disjoint(["c"]), ["a", "b"].disjoint(["b"])]'
+  expect_json: [true, false]
+  source: "[LST] §disjoint"
+- id: sessel.expr.list.disjoint-empty
+  expr: '[[].disjoint(["a"]), ["a"].disjoint([])]'
+  expect_json: [true, true]
+  source: "[LST] §disjoint (\"Returns true if either list is empty\")"
+- id: sessel.expr.list.contains
+  expr: '["admin", "editor", "viewer"].contains("admin")'
+  expect_json: true
+  source: "[LST] §contains"
+- id: sessel.expr.list.contains-text-representation
+  expr: '[1, 2].contains("1")'
+  expect_json: true
+  source: "[LST] §contains (\"Comparison uses text representation\")"
+  confidence: medium
+- id: sessel.expr.list.sort-key
+  expr: '["b", "c", "a"].sort(el => el)'
+  expect_json: ["a", "b", "c"]
+  source: "[LST] §sort (key-extraction mode)"
+- id: sessel.expr.list.sort-key-numeric
+  expr: '[{ p: "40" }, { p: "120" }, { p: "15" }].sort(el => el.p.Number()).map(el => el.p)'
+  expect_json: ["15", "40", "120"]
+  source: "[LST] §sort (el.attr(\"data-price\").Number() pattern)"
+- id: sessel.expr.list.sort-comparator
+  expr: '["pear", "apple", "fig"].sort((a, b) => a <=> b)'
+  expect_json: ["apple", "fig", "pear"]
+  source: "[LST] §sort (comparator mode)"
+- id: sessel.expr.list.sort-comparator-descending
+  expr: '[3, 1, 2].sort((a, b) => b <=> a)'
+  expect_json: [3, 2, 1]
+  source: "[LST] §sort (comparator mode)"
+- id: sessel.expr.list.sort-stable
+  expr: '[{ k: 1, v: "a" }, { k: 0, v: "b" }, { k: 1, v: "c" }, { k: 0, v: "d" }].sort(x => x.k).map(x => x.v)'
+  expect_json: ["b", "d", "a", "c"]
+  source: "[LST] §sort (\"The sort is stable\")"
+- id: sessel.expr.list.sort-returns-new
+  expr: 'let xs = [2, 1]; let ys = xs.sort(x => x); [xs, ys]'
+  expect_json: [[2, 1], [1, 2]]
+  source: "[LST] §sort (\"Returns a new list\")"
+- id: sessel.expr.list.reverse
+  expr: '[1, 2, 3].reverse()'
+  expect_json: [3, 2, 1]
+  source: "[LST] §reverse"
+- id: sessel.expr.list.flatten
+  expr: '[[1, 2], [3, [4, 5]]].flatten()'
+  expect_json: [1, 2, 3, 4, 5]
+  source: "[LST] §flatten (recursive)"
+- id: sessel.expr.list.join
+  expr: '["a", "b", "c"].join(", ")'
+  expect_json: "a, b, c"
+  source: "[LST] §join"
+- id: sessel.expr.list.join-converts
+  expr: '[1, 2.5, true].join("|")'
+  expect_json: "1|2.5|true"
+  source: "[LST] §join (\"Each value is converted to its string representation\")"
+- id: sessel.expr.list.join-empty
+  expr: '[].join(", ")'
+  expect_json: ""
+  evidence: inferred
+  source: "spec R-SESSEL-157"
+- id: sessel.expr.list.reduce
+  expr: '[1, 2, 3, 4].reduce(0, (acc, el) => acc + el)'
+  expect_json: 10
+  source: "[LST] §reduce"
+- id: sessel.expr.list.reduce-js-order
+  expr: '[1, 2, 3, 4].reduce((acc, el) => acc + el, 0)'
+  expect_json: 10
+  source: "[LST] §reduce (JavaScript argument order accepted)"
+- id: sessel.expr.list.reduce-seedless
+  expr: '[1, 2, 3, 4].reduce((acc, el) => acc + el)'
+  expect_json: 10
+  source: "[LST] §reduce (callback alone: first element seeds)"
+- id: sessel.expr.list.reduce-seedless-empty-error
+  expr: '[].reduce((acc, el) => acc + el)'
+  expect_error: any
+  source: "[LST] §reduce (\"an empty list is an error\")"
+- id: sessel.expr.list.reduce-empty-initial
+  expr: '[].reduce("init", (acc, el) => acc + el)'
+  expect_json: "init"
+  source: "[LST] §reduce (\"the initial value is returned unchanged\")"
+- id: sessel.expr.list.reduce-strings
+  expr: '["a", "b"].reduce("", (acc, el) => acc + el + "\n")'
+  expect_json: "a\nb\n"
+  source: "[LST] §reduce"
+- id: sessel.expr.list.reduce-right
+  expr: '["a", "b", "c"].reduceRight("", (acc, el) => acc + el)'
+  expect_json: "cba"
+  source: "[LST] §reduceRight"
+- id: sessel.expr.list.reduce-right-empty
+  expr: '[].reduceRight(7, (acc, el) => acc + el)'
+  expect_json: 7
+  source: "[LST] §reduceRight"
+- id: sessel.expr.list.method-chain
+  expr: '[1, 2, 3, 4, 5, 6].filter(n => n > 2).map(n => n * 10).slice(0, 2).join("-")'
+  expect_json: "30-40"
+  source: "[SES-C] §Filtering (composable)"
+- id: sessel.expr.sel.first-text
+  context_html: &basic |-
+    <!DOCTYPE html><html lang="en"><head><title>T</title></head><body><div id="main"><h1>Welcome</h1><p class="intro">Hi</p><p>Second</p></div><ul id="list"><li>3</li><li>12</li><li>7</li><li>20</li></ul><a class="nav" href="/about.html">About</a><a class="external" href="https://example.com/x">Ext</a><div class="item">one</div><div class="item">two</div></body></html>
+  expr: '${h1}.first().text()'
+  expect_json: "Welcome"
+  source: "[SES-Q] §Extracting data"
+- id: sessel.expr.sel.returns-list
+  context_html: *basic
+  expr: '${h1}'
+  expect_json: [{"$type": "element", "$html": "<h1>Welcome</h1>", "$source": "/doc.html"}]
+  source: "[SES-Q] §What is a selector? (\"A selector always returns a list\"); [QRY] element tagging"
+- id: sessel.expr.sel.first-element
+  context_html: *basic
+  expr: '${h1}.first()'
+  expect_html: '<h1>Welcome</h1>'
+  source: "[SES-C] §Accessing elements"
+- id: sessel.expr.sel.empty-list
+  context_html: *basic
+  expr: '${table}'
+  expect_json: []
+  source: "[SES-Q] (\"The list may be empty if nothing matches\")"
+- id: sessel.expr.sel.first-of-empty-null
+  context_html: *basic
+  expr: '${table}.first()'
+  expect_json: null
+  source: "[SES-Q] §Extracting data"
+- id: sessel.expr.sel.null-chain-fallback
+  context_html: *basic
+  expr: '${#subtitle}.first().text() ?? "Untitled"'
+  expect_json: "Untitled"
+  source: "[SES-C] §Null handling"
+- id: sessel.expr.sel.attr
+  context_html: *basic
+  expr: '${a.nav}.first().attr("href")'
+  expect_json: "/about.html"
+  source: "[SES-Q] §Extracting data"
+- id: sessel.expr.sel.attr-starts-with
+  context_html: *basic
+  expr: '${a}.first().attr("href").startsWith("/products")'
+  expect_json: false
+  source: "[STR] §startsWith"
+- id: sessel.expr.sel.count
+  context_html: *basic
+  expr: '${div.item}.count()'
+  expect_json: 2
+  source: "[SES-C] §Counting"
+- id: sessel.expr.sel.count-compare
+  context_html: *basic
+  expr: '[${div.item}.count() > 3, ${h1}.count() == 1]'
+  expect_json: [false, true]
+  source: "[SES-C] §Counting"
+- id: sessel.expr.sel.last-at-slice
+  context_html: *basic
+  expr: '[${p}.last().text(), ${li}.at(2).text(), ${li}.slice(0, 2).map(e => e.text()), ${li}.at(-1).text()]'
+  expect_json: ["Second", "7", ["3", "12"], "20"]
+  source: "[SES-C] §Accessing elements; [LST] §at(n)"
+- id: sessel.expr.sel.filter-integer
+  context_html: *basic
+  expr: '${li}.filter(el => el.text().Integer() > 10).map(el => el.text())'
+  expect_json: ["12", "20"]
+  source: "[SES-C] §Filtering"
+- id: sessel.expr.sel.filter-then-first
+  context_html: *basic
+  expr: '${li}.filter(el => el.text().Integer() > 10).first().text()'
+  expect_json: "12"
+  source: "[SES-C] §Filtering"
+- id: sessel.expr.sel.map-index
+  context_html: *basic
+  expr: '${li}.map((el, i) => i.String() + ". " + el.text())'
+  expect_json: ["0. 3", "1. 12", "2. 7", "3. 20"]
+  source: "[SES-C] §Transforming"
+- id: sessel.expr.sel.all-text-nonempty
+  context_html: *basic
+  expr: '${div.item}.all(el => el.text().count() > 0)'
+  expect_json: true
+  source: "[SES-C] §Checking conditions"
+- id: sessel.expr.sel.sort-text-reverse
+  context_html: *basic
+  expr: '${li}.sort(el => el.text().Number()).reverse().map(el => el.text())'
+  expect_json: ["20", "12", "7", "3"]
+  source: "[LST] §reverse; §sort"
+- id: sessel.expr.sel.sort-comparator-text
+  context_html: *basic
+  expr: '${li}.sort((a, b) => a.text() <=> b.text()).map(el => el.text())'
+  expect_json: ["12", "20", "3", "7"]
+  source: "[SES-C] §Sorting (comparator with <=> on text)"
+- id: sessel.expr.sel.join-text
+  context_html: *basic
+  expr: '${li}.map(el => el.text()).join(", ")'
+  expect_json: "3, 12, 7, 20"
+  source: "[SES-C] §Sorting, reversing, and flattening"
+- id: sessel.expr.sel.from-self
+  context_html: *basic
+  expr: '(${div.item} from self).count()'
+  expect_json: 2
+  source: "[SES-Q] §The from clause"
+- id: sessel.expr.sel.from-self-parenthesised-first
+  context_html: *basic
+  expr: '(${h1} from self).first().path()'
+  expect_json: "/doc.html"
+  source: "[ELM] §.path()"
+- id: sessel.expr.sel.document-alias
+  context_html: *basic
+  expr: '(${h1} from document).count()'
+  expect_json: 1
+  source: "[SYN] §Grammar (from_source := 'self' | 'document' | expr); §Context variables"
+  confidence: medium
+- id: sessel.expr.sel.self-root
+  context_html: *basic
+  expr: 'self.attr("lang")'
+  expect_json: "en"
+  source: "[SES-Q] §self and prior (\"evaluates to the document's root element\")"
+- id: sessel.expr.sel.self-sub-select
+  context_html: *basic
+  expr: 'self.${ h1 }.first().text()'
+  expect_json: "Welcome"
+  source: "[SES-Q] §self; [ELM] §Sub-select"
+- id: sessel.expr.sel.self-unbound
+  expr: 'self'
+  expect_error: any
+  source: "[QRY] §Sessel mode (self unbound on a directory)"
+  notes: No context_html → self is unbound; QUERY maps this to 416.
+- id: sessel.expr.sel.embedded-variable
+  context_html: &status |-
+    <!DOCTYPE html><html><body><span itemprop="status">active</span><span itemprop="status">archived</span><span itemprop="status">active</span><div data-cat="tools">T</div><div data-cat="toys">Y</div></body></html>
+  expr: 'let status = "active"; (${[itemprop="status"]:equals(status)} from self).count()'
+  expect_json: 2
+  source: "[SES-Q] §Expressions inside selectors"
+- id: sessel.expr.sel.quoted-literal
+  context_html: *status
+  expr: '(${[itemprop="status"]:equals("archived")} from self).count()'
+  expect_json: 1
+  source: "[SES-Q] §Expressions inside selectors (quoted values are CSS literals)"
+- id: sessel.expr.sel.embedded-attribute-value
+  context_html: *status
+  expr: 'let cat = "toys"; (${div[data-cat=cat]} from self).first().text()'
+  expect_json: "Y"
+  source: "[SYN] §Expression embedding"
+- id: sessel.expr.sel.embedded-method-chain
+  context_html: *status
+  site:
+    - path: /config.html
+      body: '<!DOCTYPE html><html><body><span itemprop="category">tools</span></body></html>'
+  expr: |-
+    let category = ${[itemprop="category"]} from "/config.html";
+    (${div[data-cat=category.first().text()]} from self).first().text()
+  expect_json: "T"
+  source: "[SES-Q] §Expressions inside selectors (method chain)"
+- id: sessel.expr.sel.embedded-sub-select
+  context_html: |-
+    <!DOCTYPE html><html><body><div id="host"><span itemprop="id">k2</span></div><div data-id="k1">one</div><div data-id="k2">two</div></body></html>
+  expr: 'let host = (${#host} from self).first(); (${div[data-id=host.${ [itemprop="id"] }.first().value()]} from self).first().text()'
+  expect_json: "two"
+  source: "[SYN] §Expression embedding (sub-select inside a selector)"
+- id: sessel.expr.sel.embedded-threshold
+  context_html: &prices |-
+    <!DOCTYPE html><html><body><span itemprop="price">30</span><span itemprop="price">75</span><span itemprop="price">120</span></body></html>
+  expr: 'let threshold = 50; (${[itemprop="price"]:greater-than(threshold)} from self).count()'
+  expect_json: 2
+  source: "[SYN] §Expression embedding"
+- id: sessel.expr.sel.greater-than-quoted
+  context_html: *prices
+  expr: '(${[itemprop="price"]:greater-than("50")} from self).count()'
+  expect_json: 2
+  source: "[SYN] §Expression embedding (quoted form)"
+- id: sessel.expr.sel.less-than-literal
+  context_html: *prices
+  expr: '(${[itemprop="price"]:less-than(100)} from self).map(e => e.text())'
+  expect_json: ["30", "75"]
+  source: "[SYN] §Selector literals (:less-than(n))"
+- id: sessel.expr.sel.contains-pseudo
+  context_html: |-
+    <!DOCTYPE html><html><body><h1>Chapter 1</h1><h1>Preface</h1></body></html>
+  expr: '(${h1:contains("Chapter")} from self).count()'
+  expect_json: 1
+  source: "[SYN] §Selector literals"
+- id: sessel.expr.sel.value-equals-pseudo
+  context_html: |-
+    <!DOCTYPE html><html><body><meta itemprop="hostname" content="localhost"><data itemprop="score" value="42">Forty-two</data></body></html>
+  expr: '[(${[itemprop="hostname"]:value-equals("localhost")} from self).count(), (${[itemprop="score"]:value-equals("42")} from self).count(), (${[itemprop="score"]:equals("42")} from self).count()]'
+  expect_json: [1, 1, 0]
+  source: "[SXT] §Value matching"
+- id: sessel.expr.sel.unquoted-ident-fallback
+  context_html: |-
+    <!DOCTYPE html><html><body><meta itemprop="hostname" content="localhost"></body></html>
+  expr: '(${[itemprop=hostname]} from self).count()'
+  expect_json: 1
+  evidence: inferred
+  confidence: low
+  source: "spec R-SESSEL-202 fallback (SC-2, SP-2)"
+- id: sessel.expr.sel.has-with-request-param
+  context_html: |-
+    <!DOCTYPE html><html><body><article itemscope itemtype="https://blog.example/Post"><meta itemprop="slug" content="hello-world"><meta itemprop="status" content="Published"><h1>Hello</h1></article><article itemscope itemtype="https://blog.example/Post"><meta itemprop="slug" content="draft"><meta itemprop="status" content="Draft"><h1>Draft</h1></article></body></html>
+  request: {method: GET, path: /posts/hello-world.html, params: {slug: hello-world}}
+  expr: "${[itemtype='https://blog.example/Post']:has([itemprop='slug']:value-equals(request.params.slug)):has([itemprop='status']:value-equals('Published'))}.first().${h1}.first().text()"
+  expect_json: "Hello"
+  evidence: demo-source
+  source: "[BLG] e:post binding; pagelove-shop/site/products/:slug.html@d887054:13"
+- id: sessel.expr.sel.template-inert
+  context_html: &tpl |-
+    <!DOCTYPE html><html><body><template id="cart-row"><tr><td itemprop="price">29.99</td></tr></template><div id="d">x</div></body></html>
+  expr: '(${[itemprop="price"]} from self).count()'
+  expect_json: 0
+  source: "[ELM] §.children() / §.content() (selectors do not descend into <template>)"
+  confidence: medium
+- id: sessel.expr.sel.template-content
+  context_html: *tpl
+  expr: '${template#cart-row}.first().content().${ [itemprop="price"] }.first().value()'
+  expect_json: "29.99"
+  source: "[ELM] §.content()"
+- id: sessel.expr.sel.template-content-list
+  context_html: *tpl
+  expr: '${template}.first().content().count()'
+  expect_json: 1
+  source: "[ELM] §.content() (→ [<tr>…</tr>])"
+- id: sessel.expr.sel.content-non-template-null
+  context_html: *tpl
+  expr: '${div}.first().content()'
+  expect_json: null
+  source: "[ELM] §.content()"
+- id: sessel.expr.sel.sub-select-list
+  context_html: &sections |-
+    <!DOCTYPE html><html><body><section><li>a</li><li>b</li></section><section><li>c</li></section></body></html>
+  expr: '(${section} from self).${ li }.map(e => e.text())'
+  expect_json: ["a", "b", "c"]
+  source: "[ELM] §Sub-select (on a List)"
+- id: sessel.expr.sel.from-element-map-flatten
+  context_html: *sections
+  expr: '(${section} from self).map(s => ${li} from s).flatten().count()'
+  expect_json: 3
+  source: "[SES-C] §Sorting, reversing, and flattening"
+- id: sessel.expr.sel.sub-select-map-flatten
+  context_html: *sections
+  expr: '(${section} from self).map(s => s.${ li }).flatten().map(e => e.text())'
+  expect_json: ["a", "b", "c"]
+  source: "[LST] §flatten"
+- id: sessel.expr.sel.sub-select-first
+  context_html: *sections
+  expr: '${section}.first().${ li }.count()'
+  expect_json: 2
+  source: "[ELM] §Sub-select"
+- id: sessel.expr.sel.sub-select-child-combinator
+  context_html: |-
+    <!DOCTYPE html><html><body><div id="p" itemscope><span itemprop="name">Outer</span><div><span itemprop="name">Inner</span></div></div></body></html>
+  expr: 'let product = ${#p}.first(); [product.${ > [itemprop="name"] }.count(), product.${ [itemprop="name"] }.count()]'
+  expect_json: [1, 2]
+  source: "[ELM] §Sub-select (combinators relative to the element root)"
+- id: sessel.expr.sel.sub-select-excludes-self
+  context_html: *sections
+  expr: '${section}.first().${ section }.count()'
+  expect_json: 0
+  evidence: inferred
+  confidence: medium
+  source: "spec R-SESSEL-211"
+- id: sessel.expr.sel.nested-lambda-selectors
+  context_html: |-
+    <!DOCTYPE html><html><body><div id="a">A</div><div id="b">B</div><span data-parent="b">s</span></body></html>
+  expr: '${div}.filter(d => ${span}.filter(s => s.attr("data-parent") == d.attr("id")).count() > 0).map(d => d.attr("id"))'
+  expect_json: ["b"]
+  source: "[SYN] §Nesting"
+- id: sessel.expr.sel.block-from-self
+  context_html: *basic
+  expr: |-
+    from self {
+      ${h1}.first().text() == "Welcome" &&
+      ${p}.count() > 0
+    }
+  expect_json: true
+  source: "[SES-Q] §Block-level from"
+- id: sessel.expr.sel.selector-method-provenance
+  context_html: *basic
+  expr: '[${h1}.first().selector(), ${#main}.first().selector()]'
+  expect_json: ["#main > h1:nth-child(1)", "#main"]
+  source: "[ELM] §.selector()"
+- id: sessel.expr.sel.selector-no-id-ancestor
+  context_html: '<!DOCTYPE html><html><head></head><body><h2>x</h2></body></html>'
+  expr: '${h2}.first().selector()'
+  expect_json: "html > body:nth-child(2) > h2:nth-child(1)"
+  evidence: inferred
+  confidence: low
+  source: "spec R-SESSEL-225 (SP-28)"
+- id: sessel.expr.sel.document-root
+  context_html: *basic
+  expr: '${h1}.first().document().attr("lang")'
+  expect_json: "en"
+  source: "[ELM] §.document()"
+- id: sessel.expr.sel.children
+  context_html: *basic
+  expr: '[${ul}.first().children().count(), ${div}.first().children().first().text()]'
+  expect_json: [4, "Welcome"]
+  source: "[ELM] §.children()"
+- id: sessel.expr.sel.children-exclude-text
+  context_html: '<!DOCTYPE html><html><body><p>text <b>bold</b> more <i>it</i></p></body></html>'
+  expr: '${p}.first().children().count()'
+  expect_json: 2
+  source: "[ELM] §.children() (\"Text nodes are excluded\")"
+- id: sessel.expr.sel.parent
+  context_html: *basic
+  expr: '[${li}.first().parent().attr("id"), ${li}.first().parent().parent().selector(), ${html}.first().parent()]'
+  expect_json: ["list", "html > body:nth-child(2)", null]
+  source: "[ELM] §.parent()"
+  confidence: medium
+  notes: The second item also depends on the no-id .selector() rule (inferred).
+- id: sessel.expr.sel.clone-loses-path
+  context_html: *basic
+  expr: 'let c = ${h1}.first().clone(); [c.path(), c.text(), ${h1}.first().path()]'
+  expect_json: [null, "Welcome", "/doc.html"]
+  source: "[ELM] §.clone()"
+- id: sessel.expr.sel.clone-in-map
+  context_html: *basic
+  expr: '${li}.map(e => e.clone()).count()'
+  expect_json: 4
+  source: "[ELM] §.clone()"
+- id: sessel.expr.sel.clone-mutable
+  context_html: *basic
+  expr: '${h1}.first().clone().text("Changed").text()'
+  expect_json: "Changed"
+  source: "[ELM] §.clone() (\"The clone is a ConstructedElement (mutable)\")"
+- id: sessel.expr.sel.queried-immutable
+  context_html: *basic
+  expr: '${h1}.first().text("Changed")'
+  expect_error: TypeError
+  evidence: inferred
+  confidence: low
+  source: "[ELM] §Setting data (\"only available on constructed elements\"); spec R-SESSEL-220"
+- id: sessel.expr.sel.get-html-queried
+  context_html: *basic
+  expr: '${div#main}.first().getHTML()'
+  expect_json: '<h1>Welcome</h1><p class="intro">Hi</p><p>Second</p>'
+  source: "[ELM] §.getHTML()"
+- id: sessel.expr.sel.invalid-selector
+  context_html: *basic
+  expr: '${div[}'
+  expect_error: any
+  source: "[RSB] §Error cases (invalid CSS selector fails)"
+  confidence: medium
+- id: sessel.expr.val.a-href
+  context_html: &values |-
+    <!DOCTYPE html><html><head><link id="v-link" href="/style.css" rel="stylesheet"><meta id="v-meta" name="d" content="summary"></head><body><a id="v-a" href="/a">A</a><map name="m"><area id="v-area" href="/area" alt="x"></map><audio id="v-audio" src="/s.mp3"></audio><embed id="v-embed" src="/e.swf"><iframe id="v-iframe" src="/f.html"></iframe><img id="v-img" src="/i.png"><video id="v-video" src="/v.mp4"><source id="v-source" src="/s.webm"><track id="v-track" src="/t.vtt"></video><object id="v-object" data="/o.pdf"></object><data id="v-data" value="7">seven</data><meter id="v-meter" value="0.5">half</meter><time id="v-time" datetime="2026-01-02">Jan 2</time><time id="v-time2">Jan 3</time><span id="v-span">  spaced  </span><span id="v-empty"></span><a id="v-nohref">no link</a><img id="v-nosrc" alt="none"><input id="v-bool" type="checkbox" checked><time id="v-time3"></time></body></html>
+  expr: '[${#v-a}.first().value(), ${#v-area}.first().value(), ${#v-link}.first().value()]'
+  expect_json: ["/a", "/area", "/style.css"]
+  source: "[ELM] §.value() (a, area, link → href)"
+- id: sessel.expr.val.src-elements
+  context_html: *values
+  expr: '[${#v-audio}, ${#v-embed}, ${#v-iframe}, ${#v-img}, ${#v-source}, ${#v-track}, ${#v-video}].map(l => l.first().value())'
+  expect_json: ["/s.mp3", "/e.swf", "/f.html", "/i.png", "/s.webm", "/t.vtt", "/v.mp4"]
+  source: "[ELM] §.value() (src elements)"
+- id: sessel.expr.val.object-meta-data-meter
+  context_html: *values
+  expr: '[${#v-object}.first().value(), ${#v-meta}.first().value(), ${#v-data}.first().value(), ${#v-meter}.first().value()]'
+  expect_json: ["/o.pdf", "summary", "7", "0.5"]
+  source: "[ELM] §.value() (object → data, meta → content, data/meter → value)"
+- id: sessel.expr.val.time
+  context_html: *values
+  expr: '[${#v-time}.first().value(), ${#v-time2}.first().value()]'
+  expect_json: ["2026-01-02", "Jan 3"]
+  source: "[ELM] §.value() (time → datetime, else text)"
+- id: sessel.expr.val.time-empty-null
+  context_html: *values
+  expr: '${#v-time3}.first().value()'
+  expect_json: null
+  evidence: inferred
+  confidence: low
+  source: "spec R-SESSEL-222"
+- id: sessel.expr.val.text-collapsed
+  context_html: *values
+  expr: '[${#v-span}.first().value(), ${#v-span}.first().text(), ${#v-span}.first().text().trim(), (new span { text: "  spaced  " }).text()]'
+  expect_json: ["spaced", "spaced", "spaced", "  spaced  "]
+  evidence: live-observed
+  source: "live 2026-09-29 (harness/observations/live-2026-09-29-reconcile-sessel/sessel-query-probe-0929-values.json)"
+  notes: A stored element's text() and text-content value() are whitespace-collapsed and trimmed; a constructed element's text() is raw (R-SESSEL-221/222).
+- id: sessel.expr.val.empty-text
+  context_html: *values
+  expr: '[${#v-empty}.first().value(), ${#v-empty}.first().text()]'
+  expect_json: [null, ""]
+  evidence: live-observed
+  source: "[ELM] §.value() (\"empty text is treated as absent\"); live 2026-09-29 (harness/observations/live-2026-09-29-reconcile-sessel/sessel-query-probe-0929-values.json)"
+  notes: text() is never null (live); value() of an empty text-content element is.
+- id: sessel.expr.val.missing-attribute-empty-string
+  context_html: *values
+  expr: '[${#v-nohref}.first().value(), ${#v-nosrc}.first().value()]'
+  expect_json: ["", ""]
+  source: "[ELM] §.value() (\"missing its value attribute … yields an empty string\")"
+- id: sessel.expr.val.text-of-data
+  context_html: *values
+  expr: '[${#v-data}.first().text(), ${#v-meta}.first().text()]'
+  expect_json: ["seven", ""]
+  source: "[ELM] §.text(); [SXT] (meta has empty text content)"
+- id: sessel.expr.val.attr-absent-null
+  context_html: *values
+  expr: '[${#v-img}.first().attr("alt"), ${#v-img}.first().attr("title")]'
+  expect_json: [null, null]
+  source: "[ELM] §.attr(name)"
+- id: sessel.expr.val.attr-boolean
+  context_html: *values
+  expr: '${#v-bool}.first().attr("checked")'
+  expect_json: ""
+  evidence: inferred
+  confidence: medium
+  source: "spec R-SESSEL-223"
+- id: sessel.expr.val.microdata
+  context_html: &item |-
+    <!DOCTYPE html><html><body><div id="widget" itemscope itemtype="https://example.com/Product"><span itemprop="name">Widget</span><data itemprop="price" value="29.99">$29.99</data></div><div itemscope itemtype="https://example.com/Product"><span itemprop="name">Gadget</span><meta itemprop="tag" content="a"><meta itemprop="tag" content="b"></div></body></html>
+  context_path: /products/widget.html
+  expr: '${[itemscope][itemtype*="Product"]}.first().microdata()'
+  expect_json: {"@type": "Product", name: "Widget", price: "29.99", "@id": "/products/widget.html#widget"}
+  source: "[ELM] §.microdata()"
+- id: sessel.expr.val.microdata-list
+  context_html: *item
+  context_path: /products/widget.html
+  expr: '${[itemscope]}.microdata().map(m => m.name)'
+  expect_json: ["Widget", "Gadget"]
+  source: "[ELM] §.microdata() (\"When called on a List of elements\")"
+- id: sessel.expr.val.microdata-repeated-list
+  context_html: *item
+  context_path: /products/widget.html
+  expr: '${[itemscope]}.last().microdata()["tag"]'
+  expect_json: ["a", "b"]
+  evidence: inferred
+  confidence: low
+  source: "spec R-SESSEL-233 (SC-3, SP-3)"
+- id: sessel.expr.val.microdata-first-lenient
+  context_html: *item
+  context_path: /products/widget.html
+  expr: 'let md = ${[itemscope]}.first().microdata(); md["name"].first()'
+  expect_json: "Widget"
+  source: "[SCH] §Schema-level @validate (md[\"email\"].first()); spec R-SESSEL-142 (SC-3)"
+  confidence: low
+- id: sessel.expr.val.microdata-non-item-null
+  context_html: *item
+  expr: '${span}.first().microdata()'
+  expect_json: null
+  source: "[ELM] §.microdata() (\"Returns null if the element has no itemscope\")"
+- id: sessel.expr.val.member-access-property
+  context_html: *item
+  expr: '[${#widget}.first().name, ${#widget}.first().price, ${[itemscope]}.last().tag, ${#widget}.first().missing]'
+  expect_json: ["Widget", "29.99", ["a", "b"], null]
+  source: "[PRP] §Reading a multi-valued property (selector route); [SYN] §Destructuring (message dispatch)"
+  confidence: medium
+- id: sessel.expr.val.provenance-path
+  context_html: *item
+  context_path: /team/benji.html
+  expr: '${span}.first().path()'
+  expect_json: "/team/benji.html"
+  source: "[ELM] §.path()"
+- id: sessel.expr.val.provenance-through-list-ops
+  context_html: *item
+  context_path: /team/benji.html
+  expr: '${[itemscope]}.reverse().first().${ span }.first().path()'
+  expect_json: "/team/benji.html"
+  source: "[ELM] §.path() (\"retain their source path through sub-selections and list operations\")"
+- id: sessel.expr.from.path
+  context_html: &home |-
+    <!DOCTYPE html><html><body><h1>Home</h1><span itemprop="tag">red</span><span itemprop="tag">blue</span><a class="nav" href="/products/shoes.html">Shoes</a></body></html>
+  site: &shop
+    - path: /products/shoes.html
+      body: '<!DOCTYPE html><html><body><h1>Nike</h1><data itemprop="price" value="100">100</data><a itemprop="related" href="/products/hats.html">hats</a></body></html>'
+    - path: /products/hats.html
+      body: '<!DOCTYPE html><html><body><h1>Cap</h1><data itemprop="price" value="25">25</data></body></html>'
+    - path: /orders/completed/1.html
+      body: '<!DOCTYPE html><html><body><span itemprop="status">urgent</span></body></html>'
+    - path: /orders/processing/2.html
+      body: '<!DOCTYPE html><html><body><span itemprop="status">urgent</span><span itemprop="status">normal</span></body></html>'
+    - path: /config/tags.html
+      body: '<!DOCTYPE html><html><body><span itemprop="allowed-tag">red</span><span itemprop="allowed-tag">blue</span><span itemprop="allowed-tag">green</span></body></html>'
+    - path: /published/a.html
+      body: '<!DOCTYPE html><html><body><span itemprop="tag">green</span></body></html>'
+    - path: /logo.png
+      content_type: image/png
+      body: 'PNG'
+  expr: '(${h1} from "/products/shoes.html").first().text()'
+  expect_json: "Nike"
+  source: "[SES-Q] §The from clause"
+- id: sessel.expr.from.path-provenance
+  context_html: *home
+  site: *shop
+  expr: '(${h1} from "/products/shoes.html").first().path()'
+  expect_json: "/products/shoes.html"
+  source: "[ELM] §.path()"
+- id: sessel.expr.from.document-of-other
+  context_html: *home
+  site: *shop
+  expr: '(${h1} from "/products/shoes.html").first().document().${ [itemprop="price"] }.first().value()'
+  expect_json: "100"
+  source: "[ELM] §.document() (\"navigating from a selected element back to its full document\")"
+- id: sessel.expr.from.glob-sum
+  context_html: *home
+  site: *shop
+  expr: '(${[itemprop="price"]} from "/products/*").sum()'
+  expect_json: 125
+  source: "[SES-C] §Aggregation (sum across documents)"
+- id: sessel.expr.from.glob-path-order
+  context_html: *home
+  site: *shop
+  expr: '(${h1} from "/products/*").map(e => e.path())'
+  expect_json: ["/products/hats.html", "/products/shoes.html"]
+  evidence: inferred
+  confidence: low
+  source: "spec R-SESSEL-204/205 (path order; SP-13)"
+- id: sessel.expr.from.dynamic-expression
+  context_html: *home
+  site: *shop
+  expr: '(${h1} from ${a.nav}.first().attr("href")).first().text()'
+  expect_json: "Nike"
+  source: "[SES-Q] §The from clause (\"Use another expression to determine the target path\")"
+- id: sessel.expr.from.dynamic-related
+  context_html: *home
+  site: *shop
+  expr: '(${h1} from (${[itemprop="related"]} from "/products/shoes.html").first().value()).first().text()'
+  expect_json: "Cap"
+  source: "[SES-Q] §The from clause"
+- id: sessel.expr.from.multi-source
+  context_html: *home
+  site: *shop
+  expr: '(${[itemprop="status"]} from "/orders/completed/*", "/orders/processing/*").count()'
+  expect_json: 3
+  source: "[SYN] §Multi-source from"
+- id: sessel.expr.from.self-and-path
+  context_html: *home
+  site: *shop
+  expr: '(${h1} from self, "/products/shoes.html").map(e => e.text())'
+  expect_json: ["Home", "Nike"]
+  source: "[SYN] §Multi-source from"
+- id: sessel.expr.from.list-of-paths
+  context_html: *home
+  site: *shop
+  expr: 'let paths = ["/products/hats.html", "/products/shoes.html"]; (${h1} from paths).count()'
+  expect_json: 2
+  source: "[SYN] §from clause (\"Any expression producing a string or list of strings\")"
+- id: sessel.expr.from.block-multi-source
+  context_html: *home
+  site: *shop
+  expr: |-
+    from "/orders/completed/*", "/orders/processing/*" {
+      ${[itemprop="status"]}.filter(el => el.text() == "urgent").count()
+    }
+  expect_json: 2
+  source: "[SYN] §Block-level from"
+- id: sessel.expr.from.block-path
+  context_html: *home
+  site: *shop
+  expr: |-
+    from "/products/shoes.html" {
+      ${h1}.first().text() == "Nike" &&
+      ${[itemprop="price"]}.first().value().Number() > 0
+    }
+  expect_json: true
+  source: "[SYN] §Block-level from"
+- id: sessel.expr.from.block-override
+  context_html: *home
+  site: *shop
+  expr: 'from "/products/shoes.html" { [${h1}.first().text(), (${h1} from self).first().text()] }'
+  expect_json: ["Nike", "Home"]
+  source: "[SYN] §Block-level from (\"Selectors with an explicit from clause … override\")"
+- id: sessel.expr.from.site-wide-default
+  context_html: *home
+  site: *shop
+  expr: '${h1}.count()'
+  expect_json: 3
+  source: "[SES-Q] §The from clause (\"By default, a selector queries across the entire site\")"
+- id: sessel.expr.from.site-wide-order
+  context_html: *home
+  site: *shop
+  expr: '${h1}.map(e => e.text())'
+  expect_json: ["Home", "Cap", "Nike"]
+  evidence: inferred
+  confidence: low
+  source: "spec R-SESSEL-204 (documents in path order; SP-13)"
+- id: sessel.expr.from.missing-document-empty
+  context_html: *home
+  site: *shop
+  expr: '(${h1} from "/nope.html").count()'
+  expect_json: 0
+  evidence: inferred
+  confidence: medium
+  source: "spec R-SESSEL-205 (SP-26)"
+- id: sessel.expr.from.blob-not-searched
+  context_html: *home
+  site: *shop
+  expr: '(${h1} from "/logo.png").count()'
+  expect_json: 0
+  evidence: inferred
+  confidence: low
+  source: "spec R-SESSEL-204"
+- id: sessel.expr.from.subset-across-documents
+  context_html: *home
+  site: *shop
+  expr: '(${[itemprop="tag"]} from self).subset(${[itemprop="allowed-tag"]} from "/config/tags.html")'
+  expect_json: true
+  source: "[SES-C] §Collection validation"
+  confidence: medium
+  notes: Needs the element text representation of R-SESSEL-89 (values compared, not markup).
+- id: sessel.expr.from.disjoint-across-documents
+  context_html: *home
+  site: *shop
+  expr: '(${[itemprop="tag"]} from self).disjoint(${[itemprop="tag"]} from "/published/*")'
+  expect_json: true
+  source: "[SES-C] §Collection validation"
+  confidence: medium
+- id: sessel.expr.from.contains-element-text
+  context_html: *home
+  site: *shop
+  expr: '(${[itemprop="tag"]} from self).contains("red")'
+  expect_json: true
+  evidence: inferred
+  confidence: low
+  source: "spec R-SESSEL-89 (SP-11)"
+- id: sessel.expr.from.unique-elements
+  context_html: '<!DOCTYPE html><html><body><span itemprop="category" id="c1">news</span><span itemprop="category" id="c2">sport</span><span itemprop="category" id="c3">news</span></body></html>'
+  expr: '(${[itemprop="category"]} from self).unique().map(e => e.attr("id"))'
+  expect_json: ["c1", "c2"]
+  source: "[SES-C] §Collection validation (${[itemprop=\"category\"]}.unique())"
+  confidence: medium
+- id: sessel.expr.from.prior-value
+  context_html: '<!DOCTYPE html><html><body><span itemprop="status">published</span></body></html>'
+  prior_html: '<!DOCTYPE html><html><body><span itemprop="status">draft</span></body></html>'
+  expr: '[(${[itemprop="status"]} from prior).first().value(), (${[itemprop="status"]} from self).first().value()]'
+  expect_json: ["draft", "published"]
+  source: "[SES-Q] §self and prior"
+- id: sessel.expr.from.prior-absent
+  context_html: '<!DOCTYPE html><html><body><span itemprop="status">new</span></body></html>'
+  expr: '(${[itemprop="status"]} from prior).count()'
+  expect_json: 0
+  evidence: inferred
+  confidence: low
+  source: "spec R-SESSEL-205 (prior null → nothing; SP-26)"
+- id: sessel.expr.from.prior-null-check
+  context_html: '<!DOCTYPE html><html><body><span itemprop="status">new</span></body></html>'
+  expr: 'prior != null'
+  expect_json: false
+  source: "[SES-Q] §self and prior (\"If the document is being created for the first time, prior is null\")"
+  confidence: low
+  notes: Requires the bare `prior` identifier binding of SC-12.
+- id: sessel.expr.from.null-source
+  context_html: *home
+  expr: '(${h1} from null).count()'
+  expect_json: 0
+  evidence: inferred
+  confidence: low
+  source: "spec R-SESSEL-205 (SP-26)"
+- id: sessel.expr.from.greedy-source-postfix
+  context_html: *home
+  expr: '${h1} from self.children()'
+  expect_json: [{"$type": "element", "$html": "<h1>Home</h1>", "$source": "/doc.html"}]
+  source: "[SYN] §from clause; spec R-SESSEL-36 (the source absorbs trailing postfix operators)"
+  confidence: medium
+- id: sessel.expr.selector.execute-self
+  context_html: *home
+  site: *shop
+  expr: '@schema Selector url("https://pagelove.org/Selector"); let sel = new Selector { "h1" }; sel.execute().count()'
+  expect_json: 1
+  source: "[SES-Q] §The Selector type (execute() ≡ from self)"
+  confidence: medium
+  notes: SC-4.
+- id: sessel.expr.selector.execute-path
+  context_html: *home
+  site: *shop
+  expr: '@schema Selector url("https://pagelove.org/Selector"); let sel = new Selector { "h1" }; sel.execute("/products/shoes.html").first().text()'
+  expect_json: "Nike"
+  source: "[SES-Q] §The Selector type"
+- id: sessel.expr.selector.execute-list
+  context_html: *home
+  site: *shop
+  expr: '@schema Selector url("https://pagelove.org/Selector"); let sel = new Selector { "h1" }; sel.execute(["/products/*", "/doc.html"]).count()'
+  expect_json: 3
+  source: "[SES-Q] §The Selector type (execute([\"/a/*\", \"/b/*\"]))"
+- id: sessel.expr.selector.to-string
+  expr: '@schema Selector url("https://pagelove.org/Selector"); let sel = new Selector { "[itemprop=\"price\"]" }; sel.toString()'
+  expect_json: '[itemprop="price"]'
+  source: "[SES-Q] §The Selector type"
+- id: sessel.expr.selector.to-string-simple
+  expr: '@schema Selector url("https://pagelove.org/Selector"); (new Selector { "h1.title" }).toString()'
+  expect_json: "h1.title"
+  source: "[TYP] §Selector"
+- id: sessel.expr.selector.selector-key-form
+  context_html: *home
+  expr: '@schema Selector url("https://pagelove.org/Selector"); new Selector { selector: "h1" }.execute().count()'
+  expect_json: 1
+  source: "[MEL] §Attribute-form example (new Selector { selector: parameters[0] })"
+  confidence: medium
+- id: sessel.expr.selector.inert-until-execute
+  expr: '@schema Selector url("https://pagelove.org/Selector"); let sel = new Selector { "h1" }; sel isa Selector'
+  expect_json: true
+  evidence: inferred
+  confidence: low
+  source: "[TYP] §Selector; spec R-SESSEL-88"
+- id: sessel.expr.selector.bare-name-is-element
+  expr: 'new Selector { "h1" }'
+  expect_html: '<selector>h1</selector>'
+  evidence: live-observed
+  source: "live 2026-09-29 (harness/observations/live-2026-09-29-reconcile-sessel/sessel-query-probe-0929-mutation-and-sel.json)"
+  notes: Without @schema Selector, `Selector` is an ordinary tag name (R-SESSEL-210).
+- id: sessel.expr.new.text
+  expr: 'new p { text: "Hello, World" }'
+  expect_html: '<p>Hello, World</p>'
+  source: "[SES-K] §The new keyword"
+- id: sessel.expr.new.h1
+  expr: 'new h1 { text: "My Title" }'
+  expect_html: '<h1>My Title</h1>'
+  source: "[SES-K] §The new keyword"
+- id: sessel.expr.new.empty
+  expr: 'new div {}'
+  expect_html: '<div></div>'
+  source: "[SES-K] §The new keyword"
+- id: sessel.expr.new.class-id
+  expr: 'new p.intro#main { text: "Welcome" }'
+  expect_html: '<p class="intro" id="main">Welcome</p>'
+  source: "[SES-K] §ID and classes"
+- id: sessel.expr.new.class-id-serialisation
+  expr: '(new p.intro#main { text: "Welcome" }).attr("class") + "|" + (new p.intro#main {}).attr("id")'
+  expect_json: "intro|main"
+  source: "[SES-K] §ID and classes"
+- id: sessel.expr.new.multiple-classes
+  expr: '(new div.card.featured {}).attr("class")'
+  expect_json: "card featured"
+  source: "[SES-K] §ID and classes"
+- id: sessel.expr.new.attributes
+  expr: 'new input[type="text"][name="email"][required] {}'
+  expect_html: '<input type="text" name="email" required>'
+  source: "[SES-K] §Attributes"
+- id: sessel.expr.new.boolean-attribute-value
+  expr: '(new input[required] {}).attr("required")'
+  expect_json: ""
+  evidence: inferred
+  confidence: medium
+  source: "[SES-K] §Attributes (\"A bare name produces a boolean attribute\")"
+- id: sessel.expr.new.namespaced-attributes
+  expr: 'new div[p|transient][p|ttl="3600"] {}'
+  expect_html: '<div p:transient p:ttl="3600"></div>'
+  source: "[SES-K] §Namespaced attributes"
+- id: sessel.expr.new.dynamic-attribute
+  context_html: '<!DOCTYPE html><html><body><a itemprop="url" href="https://example.com/p/1">P</a></body></html>'
+  expr: 'new a[href=${[itemprop="url"]}.first().value()] { text: "Read more" }'
+  expect_html: '<a href="https://example.com/p/1">Read more</a>'
+  source: "[SES-K] §Dynamic attribute values"
+- id: sessel.expr.new.dynamic-attribute-number
+  context_html: '<!DOCTYPE html><html><body><div class="item">a</div><div class="item">b</div><div class="item">c</div></body></html>'
+  expr: 'new div#main.card[data-count=${.item}.count()] {}'
+  expect_html: '<div id="main" class="card" data-count="3"></div>'
+  source: "[ELM] §Construction syntax summary"
+- id: sessel.expr.new.quoted-attribute-literal
+  expr: 'let x = "var"; (new div[data-v="x"] {}).attr("data-v")'
+  expect_json: "x"
+  source: "[SES-K] (\"Quoted values are always treated as literals\")"
+- id: sessel.expr.new.unquoted-attribute-expression
+  expr: 'let x = "var"; (new div[data-v=x] {}).attr("data-v")'
+  expect_json: "var"
+  source: "[SES-K] (\"unquoted values are always treated as expressions\")"
+- id: sessel.expr.new.unquoted-ident-fallback
+  expr: 'new input[type=checkbox][checked] {}'
+  expect_html: '<input type="checkbox" checked>'
+  source: "[SYN] §Construction syntax example (SC-2)"
+  confidence: low
+- id: sessel.expr.new.children
+  expr: |-
+    new article.post {
+      new h1 { text: "My Post" },
+      new p.body { text: "Content here." },
+      new footer { new small { text: "Posted today" } }
+    }
+  expect_html: |-
+    <article class="post">
+      <h1>My Post</h1>
+      <p class="body">Content here.</p>
+      <footer><small>Posted today</small></footer>
+    </article>
+  source: "[SES-K] §Children"
+- id: sessel.expr.new.null-child-skipped
+  expr: |-
+    let showDrafts = false;
+    new ul {
+      showDrafts ? new li { text: "Drafts" } : null,
+      new li { text: "Published" }
+    }
+  expect_html: '<ul><li>Published</li></ul>'
+  source: "[SES-K] §Null skipping and conditional children"
+- id: sessel.expr.new.if-child-without-else
+  expr: |-
+    let showDrafts = true;
+    new ul {
+      if (showDrafts) { new li { text: "Drafts" } },
+      new li { text: "Published" }
+    }
+  expect_html: '<ul><li>Drafts</li><li>Published</li></ul>'
+  source: "[SES-K] §Null skipping and conditional children"
+- id: sessel.expr.new.multi-branch-child
+  expr: |-
+    let role = "editor";
+    new div {
+      if (role == "admin") {
+        new span.badge { text: "Admin" }
+      } else if (role == "editor") {
+        new span.badge { text: "Editor" }
+      }
+    }
+  expect_html: '<div><span class="badge">Editor</span></div>'
+  source: "[SES-K] §Null skipping and conditional children"
+- id: sessel.expr.new.list-flattening
+  context_html: '<!DOCTYPE html><html><body><span itemprop="category">news</span><span itemprop="category">sport</span></body></html>'
+  expr: |-
+    new ul {
+      ${[itemprop="category"]}.map(el => new li { text: el.text() })
+    }
+  expect_html: '<ul><li>news</li><li>sport</li></ul>'
+  source: "[SES-K] §List flattening"
+- id: sessel.expr.new.void-br
+  expr: 'new br {}'
+  expect_html: '<br>'
+  source: "[SES-K] §Void elements"
+- id: sessel.expr.new.void-img
+  expr: 'new img[src="/photo.jpg"][alt="Photo"] {}'
+  expect_html: '<img src="/photo.jpg" alt="Photo">'
+  source: "[SES-K] §Void elements"
+- id: sessel.expr.new.void-serialisation
+  expr: '(new div { new br {}, new hr {} }).getHTML()'
+  expect_json: "<br><hr>"
+  source: "[SES-K] §Void elements (\"serialized without a closing tag\")"
+- id: sessel.expr.new.queried-child
+  context_html: '<!DOCTYPE html><html><body><h1 class="t">Title <em>x</em></h1></body></html>'
+  expr: 'new div.wrapper { ${h1}.first() }'
+  expect_html: '<div class="wrapper"><h1 class="t">Title <em>x</em></h1></div>'
+  source: "[SES-K] §Mixing queried and constructed elements"
+- id: sessel.expr.new.mixed-children
+  context_html: '<!DOCTYPE html><html><body><h1>Title</h1></body></html>'
+  expr: |-
+    new div {
+      ${h1}.first(),
+      new p { text: "Added content" }
+    }
+  expect_html: '<div><h1>Title</h1><p>Added content</p></div>'
+  source: "[SES-K] §Mixing queried and constructed elements"
+- id: sessel.expr.new.string-child
+  expr: 'let name = "Ada"; new p { "Hello, " + name + "!" }'
+  expect_html: '<p>Hello, Ada!</p>'
+  source: "[MEL] §Passing arguments (new p { \"Hello, \" + name + \"!\" })"
+- id: sessel.expr.new.nested-string-child
+  expr: 'new ul { new li { "foo" } }'
+  expect_html: '<ul><li>foo</li></ul>'
+  source: "[MTH] §Declaration"
+- id: sessel.expr.new.text-and-children-mixed
+  expr: 'new div { text: "hello", new p { text: "world" } }'
+  expect_html: '<div>hello<p>world</p></div>'
+  source: "[ELM] §.empty() example; [SES-K] (\"You can mix both\") (SC-8)"
+  confidence: medium
+- id: sessel.expr.new.text-number-coerced
+  expr: 'let price = 150; new span[itemprop="price"] { text: price }'
+  expect_html: '<span itemprop="price">150</span>'
+  source: "[SES-V] §Putting it all together (text: price with a Number)"
+  confidence: medium
+- id: sessel.expr.new.text-escaped
+  expr: '(new p { text: "a < b & c" }).getHTML()'
+  expect_json: "a &lt; b &amp; c"
+  evidence: inferred
+  confidence: medium
+  source: "spec R-SESSEL-247"
+- id: sessel.expr.new.dictionary-child-typeerror
+  expr: 'new div { { a: 1 } }'
+  expect_error: TypeError
+  evidence: inferred
+  confidence: low
+  source: "spec R-SESSEL-263"
+- id: sessel.expr.new.no-braces
+  expr: 'new p'
+  expect_html: '<p></p>'
+  source: "[SYN] §Grammar (construct_body optional) (SC-9)"
+  confidence: medium
+- id: sessel.expr.new.setter-text-no-braces
+  expr: 'new p.text("Hello, world")'
+  expect_html: '<p>Hello, world</p>'
+  source: "[ELM] §.text(expr)"
+- id: sessel.expr.new.setter-value-a
+  expr: 'new a[itemprop="url"].value("https://example.com")'
+  expect_html: '<a itemprop="url" href="https://example.com"></a>'
+  source: "[ELM] §.value(expr)"
+- id: sessel.expr.new.setter-value-meta
+  expr: 'new meta[itemprop="description"].value("A brief summary")'
+  expect_html: '<meta itemprop="description" content="A brief summary">'
+  source: "[ELM] §.value(expr)"
+- id: sessel.expr.new.setter-value-time
+  expr: 'new time[itemprop="pubdate"].value("2026-03-10")'
+  expect_html: '<time itemprop="pubdate" datetime="2026-03-10"></time>'
+  source: "[ELM] §.value(expr)"
+- id: sessel.expr.new.setter-value-img-chain
+  expr: 'new img {}.value("/images/banner.jpg").attr("alt", "Banner")'
+  expect_html: '<img src="/images/banner.jpg" alt="Banner">'
+  source: "[SES-K] §Method chaining on constructed elements"
+- id: sessel.expr.new.setter-value-text-element
+  expr: 'new span {}.value("plain")'
+  expect_html: '<span>plain</span>'
+  source: "[SES-K] (.value sets \"text content for everything else\")"
+- id: sessel.expr.new.setter-value-data
+  expr: '(new data {}.value("7")).attr("value")'
+  expect_json: "7"
+  source: "[ELM] §.value(expr) (value attribute for data)"
+- id: sessel.expr.new.setter-attr
+  expr: 'new div.attr("id", "main")'
+  expect_html: '<div id="main"></div>'
+  source: "[ELM] §.attr(name, expr)"
+- id: sessel.expr.new.setter-attr-then-class-method
+  expr: 'new div.card.attr("id", "x")'
+  expect_html: '<div class="card" id="x"></div>'
+  source: "[ELM] §Setting data; spec R-SESSEL-37 (.NAME( is a method call)"
+  confidence: medium
+- id: sessel.expr.new.setter-text-with-fallback
+  context_html: '<!DOCTYPE html><html><body><p>no name</p></body></html>'
+  expr: 'new h1 {}.text(${[itemprop="name"]}.first().value() ?? "Untitled")'
+  expect_html: '<h1>Untitled</h1>'
+  source: "[SES-K] §Method chaining on constructed elements"
+- id: sessel.expr.new.setter-returns-element
+  expr: '(new p {}.text("x")) isa Element'
+  expect_json: true
+  evidence: inferred
+  confidence: low
+  source: "[ELM] §Setting data (\"Each setter returns the modified element\")"
+- id: sessel.expr.new.set-text-alias
+  expr: '(new p {}).set_text("Hi")'
+  expect_html: '<p>Hi</p>'
+  source: "[RSV] §Normalise email on write (el.set_text) (SC-6)"
+  confidence: medium
+- id: sessel.expr.new.set-attr-alias
+  expr: '(new p {}).set_attr("data-org-name", "Acme")'
+  expect_html: '<p data-org-name="Acme"></p>'
+  source: "[RSV] §Cross-document queries (el.set_attr) (SC-6)"
+  confidence: medium
+- id: sessel.expr.new.product-card
+  context_html: '<!DOCTYPE html><html><body><span itemprop="name">Widget</span><data itemprop="price" value="29.99">$29.99</data><a itemprop="url" href="/p/widget">x</a></body></html>'
+  expr: |-
+    new div.card {
+      new h2 { text: ${[itemprop="name"]}.first().text() },
+      new span.price { text: ${[itemprop="price"]}.first().value() },
+      new a[href=${[itemprop="url"]}.first().value()] { text: "View product" }
+    }
+  expect_html: '<div class="card"><h2>Widget</h2><span class="price">29.99</span><a href="/p/widget">View product</a></div>'
+  source: "[SES-K] §A complete example"
+- id: sessel.expr.new.getHTML
+  expr: 'new div { new p { text: "hello" } }.getHTML()'
+  expect_json: "<p>hello</p>"
+  source: "[ELM] §.getHTML()"
+- id: sessel.expr.new.getHTML-empty
+  expr: 'new span {}.getHTML()'
+  expect_json: ""
+  source: "[ELM] §.getHTML()"
+- id: sessel.expr.new.innerhtml
+  expr: 'let el = new div { new p { text: "hello" } }; el.innerhtml().contains("hello")'
+  expect_json: true
+  source: "[ELM] §.innerhtml()"
+- id: sessel.expr.new.path-document-null
+  expr: '[(new div { }).path(), (new div { }).document()]'
+  expect_json: [null, null]
+  source: "[ELM] §.path(), §.document()"
+- id: sessel.expr.new.selector
+  expr: '[(new div#panel { }).selector(), (new span { }).selector()]'
+  expect_json: ["#panel", "span"]
+  source: "[ELM] §.selector()"
+- id: sessel.expr.new.parent-root-null
+  expr: '(new div { }).parent()'
+  expect_json: null
+  source: "[ELM] §.parent()"
+- id: sessel.expr.new.parent-chain
+  expr: 'let d = new div#outer { new p { new span { } } }; [d.children().first().parent().attr("id"), d.children().first().children().first().parent().parent().attr("id")]'
+  expect_json: ["outer", "outer"]
+  source: "[ELM] §.parent()"
+- id: sessel.expr.new.parent-transient-root
+  expr: '(new div#outer { new p { } }).children().first().parent().attr("id")'
+  expect_json: "outer"
+  source: "[ELM] §.parent() (\"even from a transient root\")"
+- id: sessel.expr.new.parent-live-link
+  expr: 'let d = new div#a { new p {} }; let c = d.children().first(); d.attr("id", "b"); c.parent().attr("id")'
+  expect_json: "b"
+  source: "[ELM] §.parent() (\"The link is live\")"
+- id: sessel.expr.new.clone-independent
+  expr: 'let a = new div.card { text: "hi" }; let b = a.clone(); b.text("changed"); [a.text(), b.text()]'
+  expect_json: ["hi", "changed"]
+  source: "[ELM] §.clone() (\"constructed → independent copy\")"
+- id: sessel.expr.new.append
+  expr: 'new ul {}.append(new li { text: "Item" })'
+  expect_html: '<ul><li>Item</li></ul>'
+  source: "[ELM] §.append(child)"
+- id: sessel.expr.new.prepend
+  expr: |-
+    let el = new ul { new li { text: "b" } };
+    let el2 = el.prepend(new li { text: "a" });
+    el2.children().first().text()
+  expect_json: "a"
+  source: "[ELM] §.prepend(child)"
+- id: sessel.expr.new.prepend-same-element
+  expr: 'let el = new ul { new li { text: "b" } }; el.prepend(new li { text: "a" }); el.children().count()'
+  expect_json: 2
+  source: "[ELM] §Mutation methods (\"modify the element tree and return the modified element\")"
+  confidence: medium
+- id: sessel.expr.new.set-html
+  expr: |-
+    let el = new div { text: "old" };
+    el.setHTML("<b>new</b>");
+    el.getHTML()
+  expect_json: "<b>new</b>"
+  source: "[ELM] §.setHTML(html)"
+- id: sessel.expr.new.empty-method
+  expr: |-
+    let el = new div { text: "hello", new p { text: "world" } };
+    let el2 = el.empty();
+    el2.children().count()
+  expect_json: 0
+  source: "[ELM] §.empty()"
+- id: sessel.expr.new.empty-removes-text
+  expr: 'let el = new div { text: "hello" }; el.empty(); el.text()'
+  expect_json: ""
+  source: "[ELM] §.empty() (\"Removes all children\"); §.text() (\"\" when no text, live 2026-09-29)"
+- id: sessel.expr.new.remove
+  expr: 'let el = new div { new p { text: "Hello" } }; el.${ p }.first().remove()'
+  expect_json: null
+  source: "[ELM] §.remove() (Returns null)"
+- id: sessel.expr.new.remove-effect
+  expr: 'let el = new div { new p { text: "Hello" }, new span {} }; el.children().first().remove(); el.getHTML()'
+  expect_json: "<span></span>"
+  source: "[ELM] §.remove(); §.parent() (children() handles are live)"
+- id: sessel.expr.new.remove-stored-is-noop
+  expr: 'let el = new div { new p { text: "Hello" }, new span {} }; el.${ p }.first().remove(); el.getHTML()'
+  expect_json: "<p>Hello</p><span></span>"
+  evidence: live-observed
+  source: "live 2026-09-29 (harness/observations/live-2026-09-29-reconcile-sessel/sessel-query-probe-0929-mutation-and-sel.json)"
+  notes: Sub-select results are stored elements even under a constructed element; remove() on one does nothing.
+- id: sessel.expr.new.replace-with
+  expr: 'let el = new div { new p { text: "old" } }; el.children().first().replaceWith(new span { text: "new" })'
+  expect_html: '<span>new</span>'
+  source: "[ELM] §.replaceWith(replacement) (returns the replacement)"
+- id: sessel.expr.new.replace-with-effect
+  expr: 'let el = new div { new p { text: "old" } }; el.children().first().replaceWith(new span { text: "new" }); el.getHTML()'
+  expect_json: "<span>new</span>"
+  source: "[ELM] §.replaceWith(replacement)"
+- id: sessel.expr.new.replace-with-stored-type-error
+  expr: 'let el = new div { new p { text: "old" } }; el.${ p }.first().replaceWith(new span { text: "new" })'
+  expect_error: TypeError
+  evidence: live-observed
+  source: "live 2026-09-29 (harness/observations/live-2026-09-29-reconcile-sessel/sessel-query-probe-0929-mutation-and-sel.json)"
+  notes: The docs' sub-select form; live answers "replaceWith() cannot be used on stored (immutable) elements".
+- id: sessel.expr.new.insert-before
+  expr: |-
+    let el = new ul { new li { text: "Second" } };
+    let newLi = new li { text: "First" };
+    newLi.insertBefore(el.children().first());
+    el.${ li }.map(x => x.text())
+  expect_json: ["First", "Second"]
+  source: "[ELM] §.insertBefore(referenceChild); §.parent() (children() handles are live)"
+- id: sessel.expr.new.insert-before-returns-receiver
+  expr: 'let el = new ul { new li { text: "Second" } }; new li { text: "First" }.insertBefore(el.children().first()).text()'
+  expect_json: "First"
+  source: "[ELM] §.insertBefore (\"Returns the receiver\")"
+- id: sessel.expr.new.insert-before-stored-reference
+  expr: 'let el = new ul { new li { text: "Second" } }; try { new li { text: "First" }.insertBefore(el.${ li }.first()) } catch (e) { [e.type, e.message] }'
+  expect_json: ["TypeError", "type error: insertBefore() reference must be a mutable child element, not a stored element"]
+  evidence: live-observed
+  source: "live 2026-09-29 (harness/observations/live-2026-09-29-reconcile-sessel/sessel-query-probe-0929-mutation-and-sel.json)"
+  notes: The docs' example passes a sub-select result, which live PageLove refuses (R-SESSEL-240).
+- id: sessel.expr.new.from-string
+  expr: 'Element.fromString("<p>hello</p>").getHTML()'
+  expect_json: "hello"
+  source: "[ELM] §Element.fromString(html)"
+- id: sessel.expr.new.from-string-empty
+  expr: 'Element.fromString("")'
+  expect_error: TypeError
+  source: "[ELM] §Element.fromString(html)"
+- id: sessel.expr.new.from-string-mutable
+  expr: 'Element.fromString("<p>a</p>").text("b")'
+  expect_html: '<p>b</p>'
+  source: "[ELM] §Element.fromString (\"Returns: constructed element\")"
+- id: sessel.expr.new.document-parse
+  expr: |-
+    let el = Document.parse("<div class='card'><p>Hello</p></div>");
+    [el.${p}.first()?.text(), el.attr("class")]
+  expect_json: ["Hello", "card"]
+  source: "[TYP] §Document (Document.parse)"
+- id: sessel.expr.new.svg-namespace
+  expr: |-
+    @namespace svg url("http://www.w3.org/2000/svg");
+    new svg|svg[width="200"][height="200"] {
+      new svg|circle[cx="100"][cy="100"][r="50"][fill="red"] {}
+    }
+  expect_html: '<svg width="200" height="200"><circle cx="100" cy="100" r="50" fill="red"></circle></svg>'
+  source: "[SES-V] §@namespace declarations"
+  confidence: low
+  notes: Serialisation of namespaced construction is inferred (SP-39).
+- id: sessel.expr.new.pagelove-namespace
+  expr: |-
+    @namespace p url("https://pagelove.org/Binding/CSS");
+    new div[p|transient][p|ttl="3600"] { new h1 { text: "Draft" } }
+  expect_html: '<div p:transient p:ttl="3600"><h1>Draft</h1></div>'
+  source: "[SES-V] §@namespace declarations"
+- id: sessel.expr.new.declaration-after-expression
+  expr: '1; @namespace p url("https://pagelove.org/Binding/CSS"); 2'
+  expect_error: parse
+  source: "[SYN] §Declarations (\"must appear before any expression\")"
+- id: sessel.expr.compose.putting-it-together
+  context_html: '<!DOCTYPE html><html><body><div itemprop="product" data-name="Anvil">150</div><div itemprop="product" data-name="Nail">20</div></body></html>'
+  expr: |-
+    @namespace p url("https://pagelove.org/Binding/CSS");
+    let products = ${[itemprop="product"]};
+    let count = products.count();
+    let header = new h2 { text: "Found " + count.String() + " products" };
+    let items = products.map(el =>
+      let name = el.attr("data-name");
+      let price = el.value().Number();
+      let badge = if (price > 100) { new span.premium { text: "Premium" } } else { new span.value { text: "Great value" } };
+      new li.product {
+        new span[itemprop="name"] { text: name },
+        new span[itemprop="price"] { text: price },
+        badge
+      }
+    );
+    new section.results[p|transient] {
+      header,
+      new ul { items }
+    }
+  expect_html: |-
+    <section class="results" p:transient>
+      <h2>Found 2 products</h2>
+      <ul>
+        <li class="product"><span itemprop="name">Anvil</span><span itemprop="price">150</span><span class="premium">Premium</span></li>
+        <li class="product"><span itemprop="name">Nail</span><span itemprop="price">20</span><span class="value">Great value</span></li>
+      </ul>
+    </section>
+  source: "[SES-V] §Putting it all together"
+  confidence: medium
+- id: sessel.expr.compose.summary-if
+  context_html: '<!DOCTYPE html><html><body><span itemprop="product">10</span><span itemprop="product">5</span></body></html>'
+  expr: |-
+    if (${[itemprop="product"]}.count() > 0) {
+      let products = ${[itemprop="product"]};
+      let total = products.map(p => p.value().Number()).reduce(0, (a, b) => a + b);
+      new div.summary { text: total.String() + " total" }
+    }
+  expect_html: '<div class="summary">15 total</div>'
+  source: "[SES-V] §if expressions"
+- id: sessel.expr.compose.message
+  expr: |-
+    let count = 25;
+    let message = if (count > 10) {
+      "Showing first 10 of " + count.String()
+    } else if (count > 0) {
+      count.String() + " items"
+    } else {
+      "No items found"
+    };
+    message
+  expect_json: "Showing first 10 of 25"
+  source: "[SES-V] §if expressions"
+- id: sessel.expr.schema.search-all
+  site: &configs
+    - path: /system/schemas.html
+      body: |-
+        <!DOCTYPE html><html><body>
+        <div itemscope itemtype="https://pagelove.org/Schema"><meta itemprop="type" content="https://example.com/UserConfig"><div itemprop="property" itemscope itemtype="https://pagelove.org/Property"><meta itemprop="name" content="org-id"></div><div itemprop="property" itemscope itemtype="https://pagelove.org/Property"><meta itemprop="name" content="theme"></div></div>
+        <div itemscope itemtype="https://pagelove.org/Schema"><meta itemprop="type" content="https://example.com/TeamConfig"><meta itemprop="parent" content="https://example.com/UserConfig"></div>
+        <div itemscope itemtype="https://pagelove.org/Schema"><meta itemprop="type" content="https://example.com/Project"><div itemprop="property" itemscope itemtype="https://pagelove.org/Property"><meta itemprop="name" content="slug"></div><div itemprop="property" itemscope itemtype="https://pagelove.org/Property"><meta itemprop="name" content="name"></div><div itemprop="property" itemscope itemtype="https://pagelove.org/Property"><meta itemprop="name" content="status"></div></div>
+        <div itemscope itemtype="https://pagelove.org/Schema"><meta itemprop="type" content="https://example.com/TeamGroup"><meta itemprop="name" content="TeamGroup"><meta itemprop="parent" content="https://pagelove.org/Group"><div itemprop="property" itemscope itemtype="https://pagelove.org/Property"><meta itemprop="name" content="domain"><meta itemprop="type" content="https://schema.host/Text"><meta itemprop="cardinality" content="1..1"></div><ul><li itemprop="property" itemscope itemtype="https://pagelove.org/Method"><meta itemprop="name" content="includes"><meta itemprop="returns" content="https://schema.host/Boolean"><ul><li itemprop="parameter" itemscope itemtype="https://pagelove.org/Parameter"><meta itemprop="name" content="email"><meta itemprop="type" content="https://schema.host/Text"></li></ul><div itemprop="implementation" itemscope itemtype="https://pagelove.org/Sessel"><script itemprop="source" type="text/sessel">email.endsWith(self.domain)</script></div></li></ul></div>
+        </body></html>
+    - path: /data/configs.html
+      body: |-
+        <!DOCTYPE html><html><body>
+        <div itemscope itemtype="https://example.com/UserConfig"><meta itemprop="org-id" content="abc"><meta itemprop="theme" content="dark"><meta itemprop="hostname" content="foo.com"></div>
+        <div itemscope itemtype="https://example.com/UserConfig"><meta itemprop="org-id" content="xyz"><meta itemprop="theme" content="light"><meta itemprop="alias" content="foo.com"></div>
+        <div itemscope itemtype="https://example.com/TeamConfig"><meta itemprop="org-id" content="abc"><meta itemprop="theme" content="blue"></div>
+        <div itemscope itemtype="https://example.com/TeamGroup"><span itemprop="name">example-staff</span><meta itemprop="domain" content="@example.com"></div>
+        </body></html>
+  expr: '@schema UserConfig url("https://example.com/UserConfig"); UserConfig.search().count()'
+  expect_json: 2
+  source: "[SES-Q] §Typed search with Class objects"
+- id: sessel.expr.schema.search-and
+  site: *configs
+  expr: '@schema UserConfig url("https://example.com/UserConfig"); UserConfig.search({ "org-id": "abc" }).map(c => c.theme)'
+  expect_json: ["dark"]
+  source: "[TYP] §.search() (AND filter)"
+- id: sessel.expr.schema.search-or
+  site: *configs
+  expr: '@schema HostConfig url("https://example.com/UserConfig"); HostConfig.search([{ hostname: "foo.com" }, { alias: "foo.com" }]).count()'
+  expect_json: 2
+  source: "[SES-Q] §OR criteria"
+- id: sessel.expr.schema.search-single-element-list
+  site: *configs
+  expr: '@schema UserConfig url("https://example.com/UserConfig"); UserConfig.search([{ "org-id": "xyz" }]).count() == UserConfig.search({ "org-id": "xyz" }).count()'
+  expect_json: true
+  source: "[SES-Q] §OR criteria (\"A single-element list behaves identically\")"
+- id: sessel.expr.schema.search-empty-list-all
+  site: *configs
+  expr: '@schema UserConfig url("https://example.com/UserConfig"); UserConfig.search([]).count()'
+  expect_json: 2
+  source: "[SES-Q] §OR criteria (\"An empty list matches all instances\")"
+- id: sessel.expr.schema.search-null-all
+  site: *configs
+  expr: '@schema UserConfig url("https://example.com/UserConfig"); UserConfig.search(null).count()'
+  expect_json: 2
+  source: "[TYP] §.search() (omitted or null → all)"
+- id: sessel.expr.schema.search-isa
+  site: *configs
+  expr: '@schema UserConfig url("https://example.com/UserConfig"); [UserConfig.search({}).count(), UserConfig.search({}, { "isa": true }).count()]'
+  expect_json: [2, 3]
+  source: "[SES-Q] §Polymorphic search with isa"
+- id: sessel.expr.schema.search-isa-or
+  site: *configs
+  expr: '@schema UserConfig url("https://example.com/UserConfig"); UserConfig.search([{ "org-id": "abc" }], { "isa": true }).map(c => c.theme)'
+  expect_json: ["dark", "blue"]
+  source: "[TYP] §.search() (OR + polymorphic)"
+- id: sessel.expr.schema.search-isa-actual-type
+  site: *configs
+  expr: '@schema UserConfig url("https://example.com/UserConfig"); @schema TeamConfig url("https://example.com/TeamConfig"); let r = UserConfig.search({ theme: "blue" }, { "isa": true }).first(); [r isa TeamConfig, r isa UserConfig, r.attr("itemtype")]'
+  expect_json: [true, true, "https://example.com/TeamConfig"]
+  source: "[TYP] §.search() (\"each instance carries its actual $schema\")"
+  confidence: medium
+- id: sessel.expr.schema.search-unknown-option
+  site: *configs
+  expr: '@schema UserConfig url("https://example.com/UserConfig"); UserConfig.search({}, { deep: true })'
+  expect_error: TypeError
+  source: "[TYP] §.search() (\"Unknown keys raise a TypeError\")"
+- id: sessel.expr.schema.search-isa-must-be-quoted
+  site: *configs
+  expr: '@schema UserConfig url("https://example.com/UserConfig"); UserConfig.search({}, { isa: true })'
+  expect_error: parse
+  source: "[SES-Q] (\"isa must be quoted — isa is a reserved keyword\")"
+- id: sessel.expr.schema.class-isa-class
+  site: *configs
+  expr: '@schema UserConfig url("https://example.com/UserConfig"); UserConfig isa Class'
+  expect_json: true
+  source: "[TYP] §Class"
+- id: sessel.expr.schema.instance-property
+  site: *configs
+  expr: '@schema UserConfig url("https://example.com/UserConfig"); UserConfig.search({ "org-id": "xyz" }).first().org-id'
+  expect_json: "xyz"
+  source: "[SES-Q] §Typed search (\"property access (.theme, .org-id)\")"
+  confidence: medium
+- id: sessel.expr.schema.construct
+  site: *configs
+  expr: '@schema UserConfig url("https://example.com/UserConfig"); let cls = UserConfig; let c = cls.construct({ "org-id": "abc", theme: "dark" }); [c.theme, c isa UserConfig]'
+  expect_json: ["dark", true]
+  source: "[TYP] §Class (.construct)"
+- id: sessel.expr.schema.new-instance
+  site: *configs
+  expr: '@schema Project url("https://example.com/Project"); let p = new Project { slug: "launch", name: "Product Launch" }; [p.name, p isa Project]'
+  expect_json: ["Product Launch", true]
+  source: "[TYP] §Instance; [SYN] §@schema"
+- id: sessel.expr.schema.instance-write
+  site: *configs
+  expr: '@schema Project url("https://example.com/Project"); let p = new Project { slug: "launch", status: "active" }; p.status = "archived"; p.status'
+  expect_json: "archived"
+  source: "[TYP] §Instance (\"You can also write properties\")"
+  confidence: medium
+- id: sessel.expr.schema.instance-is-element
+  site: *configs
+  expr: '@schema Project url("https://example.com/Project"); let p = new Project { slug: "launch" }; [p.attr("itemtype"), p.attr("itemscope") != null, p.children().count()]'
+  expect_json: ["https://example.com/Project", true, 1]
+  source: "[TYP] §Instance (\"Instances are microdata elements under the hood\")"
+  confidence: medium
+- id: sessel.expr.schema.instance-positional-child-parent
+  expr: '@schema Foo url("https://example.com/Foo"); let f = new Foo { new span { } }; f.children().first().parent().attr("itemtype")'
+  expect_json: "https://example.com/Foo"
+  source: "[TYP] §Instance"
+- id: sessel.expr.schema.instance-scalar-child-parent
+  expr: '@schema Foo url("https://example.com/Foo"); (new Foo { count: 5 }).children().first().parent().attr("itemtype")'
+  expect_json: "https://example.com/Foo"
+  source: "[TYP] §Instance"
+- id: sessel.expr.schema.instance-meta-shape
+  expr: '@schema Foo url("https://example.com/Foo"); (new Foo { count: 5 }).children().first().value()'
+  expect_json: "5"
+  evidence: inferred
+  confidence: medium
+  source: "[PRP] §Primary key (materialised <meta itemprop content>)"
+- id: sessel.expr.schema.method-call
+  site: *configs
+  expr: '@schema TeamGroup url("https://example.com/TeamGroup"); let g = TeamGroup.search().first(); [g.includes("a@example.com"), g.includes("b@other.org")]'
+  expect_json: [true, false]
+  source: "[GRP] §Custom membership (email.endsWith(self.domain))"
+  confidence: medium
+- id: sessel.expr.schema.reflection
+  context_html: '<!DOCTYPE html><html><body><div id="i" itemscope itemtype="https://example.com/Thing"><span itemprop="name">N</span><meta itemprop="k" content="v1"><meta itemprop="k" content="v2"></div></body></html>'
+  expr: |-
+    @schema Sessel url("https://pagelove.org/Sessel");
+    let el = ${#i}.first();
+    [Sessel.stored(el, "name"), Sessel.stored(el, "missing"), Sessel.properties(el), Sessel.schemaOf(el), Sessel.schemaOf(${span}.first())]
+  expect_json: ["N", null, ["name", "k"], "https://example.com/Thing", null]
+  source: "[TYP] §Reflection API"
+  confidence: medium
+- id: sessel.expr.schema.reflection-requires-declaration
+  context_html: '<!DOCTYPE html><html><body><div itemscope itemtype="https://example.com/Thing"></div></body></html>'
+  expr: 'Sessel.schemaOf(${[itemscope]}.first())'
+  expect_error: RuntimeError
+  source: "[TYP] §Reflection API (\"accessed through the Sessel schema, explicitly imported\")"
+  confidence: medium
+- id: sessel.expr.schema.http-response-instance
+  expr: |-
+    @schema HTTPResponse url("https://pagelove.org/HTTPResponse");
+    try { throw new HTTPResponse { status: 403, message: "<p>Forbidden</p>" } } catch (e) { e.status.String() }
+  expect_json: "403"
+  evidence: inferred
+  confidence: low
+  source: "[TRG] §Chain termination; spec R-SESSEL-342 (the caught Instance; status read through dispatch)"
+- id: sessel.expr.ctx.request-header-case-insensitive
+  request: {method: PUT, path: /polls/p1.html, headers: {Range: "selector=#responses", Authorization: "Basic x"}}
+  expr: |-
+    @schema Context url("https://pagelove.org/Context");
+    [Context.request.headers["range"], Context.request.headers["Authorization"], Context.request.headers["authorization"], Context.request.headers["X-Missing"]]
+  expect_json: ["selector=#responses", "Basic x", "Basic x", null]
+  evidence: demo-source
+  confidence: medium
+  source: "pagelove-polls/site/admin/auth.html@c9270e5:107; pagelove-shop/site/admin-auth.html@d887054:25; [TRG] §when"
+- id: sessel.expr.ctx.request-method-path
+  request: {method: PUT, path: /polls/p1.html}
+  expr: '@schema Context url("https://pagelove.org/Context"); [Context.request.method, Context.request.path, "https://hooks.example.com/" + Context.request.path]'
+  expect_json: ["PUT", "/polls/p1.html", "https://hooks.example.com//polls/p1.html"]
+  source: "[TRG] §Context; §Static vs dynamic properties"
+- id: sessel.expr.ctx.request-object
+  request: {method: GET, path: /users/42/profile.html, params: {id: "42"}, query: {q: "x"}}
+  expr: '[request.params.id, request.query.q, request.method, request.path]'
+  expect_json: ["42", "x", "GET", "/users/42/profile.html"]
+  source: "[RTE] §Reading captured parameters; [SYN] §Context variables"
+- id: sessel.expr.ctx.request-params-via-context
+  request: {method: GET, path: /users/42/profile.html, params: {id: "42"}}
+  expr: 'Context.request.params.id'
+  expect_json: "42"
+  source: "[RTE] (\"request.params.id, or Context.request.params.id\")"
+  confidence: medium
+- id: sessel.expr.ctx.anonymous-auth-null
+  request: {method: GET, path: /x.html}
+  expr: '[request.auth.claims.email, request.auth.claims.email != null]'
+  expect_json: [null, false]
+  source: "[SYN] §Authenticated identity in composition"
+  confidence: medium
+- id: sessel.expr.ctx.context-assignment
+  request: {method: GET, path: /x.html}
+  expr: '@schema Context url("https://pagelove.org/Context"); let name = "items"; Context[name] = [1, 2]; Context.items'
+  expect_json: [1, 2]
+  source: "[MEL] §Attribute-form example (Context[messageName] = result)"
+  confidence: medium
+- id: sessel.expr.ctx.context-dot-assignment
+  request: {method: GET, path: /x.html}
+  expr: '@schema Context url("https://pagelove.org/Context"); Context.greeting = "hi"; Context.greeting'
+  expect_json: "hi"
+  source: "[STP] (\"A Method that assigns Context.<name> = …\")"
+  confidence: medium
+- id: sessel.expr.null.method-on-null
+  expr: '[null.text(), null.first(), null.count(), null.upper()]'
+  expect_json: [null, null, null, null]
+  source: "[SES-C] §Null handling; [SYN] §Try/Catch"
+- id: sessel.expr.null.chain
+  context_html: '<!DOCTYPE html><html><body><p>x</p></body></html>'
+  expr: '${h2}.first().text().upper().count()'
+  expect_json: null
+  source: "[SES-C] §Null handling (\"produces null at each step\")"
+- id: sessel.expr.null.member-on-null
+  expr: 'let d = null; d.name'
+  expect_json: null
+  evidence: inferred
+  confidence: medium
+  source: "spec R-SESSEL-72"
+- id: sessel.expr.null.sub-select-on-null
+  expr: 'null.${ p }'
+  expect_json: null
+  evidence: inferred
+  confidence: medium
+  source: "[SYN] §Optional chaining (use ?? for sub-select); spec R-SESSEL-72"
+- id: sessel.expr.opt.method
+  expr: 'let a = null; a?.b().c()'
+  expect_json: null
+  source: "[SYN] §Optional chaining"
+- id: sessel.expr.opt.property
+  expr: 'let a = { b: null }; [a?.b?.c, null?.b?.c]'
+  expect_json: [null, null]
+  source: "[SYN] §Optional chaining"
+- id: sessel.expr.opt.short-circuit-args
+  expr: 'let a = null; a?.foo(1 / 0)'
+  expect_json: null
+  source: "[SYN] §Optional chaining (\"b() and c() are not called\")"
+  confidence: medium
+- id: sessel.expr.opt.subscript
+  expr: 'let h = null; let g = { k: 1 }; [h?.["k"], g?.["k"]]'
+  expect_json: [null, 1]
+  source: "[SYN] §Optional chaining (?.[key])"
+- id: sessel.expr.opt.non-null-passthrough
+  context_html: '<!DOCTYPE html><html><body><li>item</li></body></html>'
+  expr: '${li}.first()?.text()?.upper()'
+  expect_json: "ITEM"
+  source: "[SYN] §Optional chaining"
+- id: sessel.expr.opt.empty-list
+  context_html: '<!DOCTYPE html><html><body><p>x</p></body></html>'
+  expr: 'let items = ${li}; items.first()?.text()?.upper()'
+  expect_json: null
+  source: "[SYN] §Optional chaining (\"null if list is empty\")"
+- id: sessel.expr.opt.no-optional-sub-select
+  expr: 'let a = null; a?.${ p }'
+  expect_error: parse
+  source: "[SYN] §Optional chaining (\"It does not work with sub-select\")"
+  confidence: medium
+- id: sessel.expr.err.unknown-method
+  expr: '5.upper()'
+  expect_error: TypeError
+  evidence: inferred
+  confidence: low
+  source: "spec R-SESSEL-76 (SP-34)"
+- id: sessel.expr.err.user-throw-caught-type
+  expr: 'try { throw "x" } catch (e) { e.type }'
+  expect_json: "Error"
+  evidence: inferred
+  confidence: low
+  source: "spec R-SESSEL-342 (SP-14)"
+- id: sessel.expr.err.depth-limit
+  expr: 'let f = n => f(n + 1); f(0)'
+  expect_error: RuntimeError
+  source: "[SYN] §Try/Catch (\"the evaluation depth limit\")"
+  confidence: medium
+  notes: >-
+    Either the recursion reaches the depth limit (closures capture by reference, R-SESSEL-63) or
+    `f` is not yet bound inside its own initialiser (unresolved variable); both are RuntimeError.
+- id: sessel.expr.err.parse-unbalanced
+  expr: '((('
+  expect_error: parse
+  source: "[QRY] §Sessel mode Errors (expression that fails to parse)"
+- id: sessel.expr.err.parse-not-caught
+  expr: 'try { 1 + } catch (e) { "caught" }'
+  expect_error: parse
+  source: "spec R-SESSEL-40 (parse errors precede evaluation)"
+  confidence: medium
+- id: sessel.expr.tmp.plaindate-from-string
+  expr: 'String(Temporal.PlainDate.from("2026-03-23"))'
+  expect_json: "2026-03-23"
+  source: "[TMP] §PlainDate §Formatting (String(date))"
+- id: sessel.expr.tmp.plaindate-from-map
+  expr: 'Temporal.PlainDate.from({ year: 2026, month: 3, day: 23 }).toString()'
+  expect_json: "2026-03-23"
+  source: "[TMP] §PlainDate §Construction; §String coercion (.toString() ≡ String())"
+- id: sessel.expr.tmp.plaindate-accessors
+  expr: 'let date = Temporal.PlainDate.from("2026-03-23"); [date.year, date.month, date.day, date.dayOfWeek, date.dayOfYear, date.weekOfYear, date.daysInMonth, date.daysInYear, date.inLeapYear]'
+  expect_json: [2026, 3, 23, 1, 82, 13, 31, 365, false]
+  source: "[TMP] §PlainDate §Accessors"
+- id: sessel.expr.tmp.plaindate-accessors-page
+  expr: |-
+    let date = Temporal.PlainDate.from("2026-03-23");
+    "Year: #{date.year}, Month: #{date.month}, Day: #{date.day} / Day of week: #{date.dayOfWeek} / Leap year: #{date.inLeapYear}"
+  expect_json: "Year: 2026, Month: 3, Day: 23 / Day of week: 1 / Leap year: false"
+  source: "[TMP] §PlainDate §Testable examples (date-accessors.html)"
+  confidence: medium
+- id: sessel.expr.tmp.plaindate-leap
+  expr: 'let d = Temporal.PlainDate.from("2024-02-29"); [d.inLeapYear, d.daysInYear, d.dayOfYear, d.daysInMonth]'
+  expect_json: [true, 366, 60, 29]
+  evidence: inferred
+  source: "[TMP] §PlainDate §Accessors (ISO calendar)"
+- id: sessel.expr.tmp.plaindate-sunday-and-week-53
+  expr: '[Temporal.PlainDate.from("2026-03-29").dayOfWeek, Temporal.PlainDate.from("2027-01-01").weekOfYear, Temporal.PlainDate.from("2026-01-01").weekOfYear]'
+  expect_json: [7, 53, 1]
+  evidence: inferred
+  confidence: medium
+  source: "[TMP] §PlainDate §Accessors (ISO 8601 week numbering)"
+- id: sessel.expr.tmp.plaindate-add-month
+  expr: 'Temporal.PlainDate.from("2026-03-23").add(Temporal.Duration.from("P1M")).toString()'
+  expect_json: "2026-04-23"
+  source: "[TMP] §PlainDate §Arithmetic"
+- id: sessel.expr.tmp.plaindate-subtract-days
+  expr: 'Temporal.PlainDate.from("2026-03-23").subtract(Temporal.Duration.from("P7D")).toString()'
+  expect_json: "2026-03-16"
+  source: "[TMP] §PlainDate §Arithmetic"
+- id: sessel.expr.tmp.plaindate-add-month-end-constrained
+  expr: 'Temporal.PlainDate.from("2026-01-31").add(Temporal.Duration.from("P1M")).toString()'
+  expect_json: "2026-02-28"
+  evidence: inferred
+  confidence: medium
+  source: "spec R-SESSEL-301 (TC39 constrain)"
+- id: sessel.expr.tmp.plaindate-until
+  expr: 'Temporal.PlainDate.from("2026-03-23").until(Temporal.PlainDate.from("2026-12-31")).toString()'
+  expect_json: "P283D"
+  evidence: inferred
+  confidence: medium
+  source: "[TMP] §PlainDate §Arithmetic (\"Duration to end of year\"); TC39 default largest unit days (SP-22)"
+- id: sessel.expr.tmp.plaindate-since
+  expr: 'Temporal.PlainDate.from("2026-03-23").since(Temporal.PlainDate.from("2026-01-01")).days'
+  expect_json: 81
+  evidence: inferred
+  confidence: medium
+  source: "[TMP] §PlainDate §Arithmetic (SP-22)"
+- id: sessel.expr.tmp.plaindate-with
+  expr: '[Temporal.PlainDate.from("2026-03-23").with({ day: 1 }).toString(), Temporal.PlainDate.from("2026-03-23").with({ month: 12 }).toString()]'
+  expect_json: ["2026-03-01", "2026-12-23"]
+  source: "[TMP] §PlainDate §Field replacement"
+- id: sessel.expr.tmp.plaindate-arithmetic-page
+  expr: |-
+    let date = Temporal.PlainDate.from("2026-03-23");
+    [String(date.add(Temporal.Duration.from("P1M"))), String(date.subtract(Temporal.Duration.from("P7D"))), String(date.with({ day: 1 }))]
+  expect_json: ["2026-04-23", "2026-03-16", "2026-03-01"]
+  source: "[TMP] §PlainDate §Testable examples (date-arithmetic.html)"
+- id: sessel.expr.tmp.plaindate-to-plaindatetime
+  expr: 'let date = Temporal.PlainDate.from("2026-03-23"); [date.toPlainDateTime().toString(), date.toPlainDateTime(Temporal.PlainTime.from("09:00")).toString()]'
+  expect_json: ["2026-03-23T00:00:00", "2026-03-23T09:00:00"]
+  source: "[TMP] §PlainDate §Conversions"
+- id: sessel.expr.tmp.plaindate-to-zoned
+  expr: 'Temporal.PlainDate.from("2026-03-23").toZonedDateTime("Europe/London").toString()'
+  expect_json: "2026-03-23T00:00:00+00:00[Europe/London]"
+  source: "[TMP] §PlainDate §Conversions (ZonedDateTime at midnight)"
+  confidence: medium
+- id: sessel.expr.tmp.plaindate-compare
+  expr: '[Temporal.PlainDate.compare(Temporal.PlainDate.from("2026-01-01"), Temporal.PlainDate.from("2026-12-31")), Temporal.PlainDate.compare(Temporal.PlainDate.from("2026-12-31"), Temporal.PlainDate.from("2026-01-01")), Temporal.PlainDate.compare(Temporal.PlainDate.from("2026-05-05"), Temporal.PlainDate.from("2026-05-05"))]'
+  expect_json: [-1, 1, 0]
+  source: "[TMP] §PlainDate §Comparison"
+- id: sessel.expr.tmp.plaindate-equals
+  expr: '[Temporal.PlainDate.from("2026-03-23").equals(Temporal.PlainDate.from("2026-03-23")), Temporal.PlainDate.from("2026-03-23").equals(Temporal.PlainDate.from("2026-03-24"))]'
+  expect_json: [true, false]
+  source: "[TMP] §PlainDate §Equality"
+- id: sessel.expr.tmp.plaindate-format
+  expr: 'let date = Temporal.PlainDate.from("2026-03-23"); [date.format("yyyy-MM-dd"), date.format("dd/MM/yyyy"), date.format("MMMM d, yyyy")]'
+  expect_json: ["2026-03-23", "23/03/2026", "March 23, 2026"]
+  source: "[TMP] §PlainDate §Formatting; §Formatting patterns testable example"
+- id: sessel.expr.tmp.format-short-tokens
+  expr: 'let date = Temporal.PlainDate.from("2026-03-05"); [date.format("yy"), date.format("MMM"), date.format("M/d"), date.format("MM-dd")]'
+  expect_json: ["26", "Mar", "3/5", "03-05"]
+  source: "[TMP] §Formatting patterns"
+- id: sessel.expr.tmp.plaindate-locale
+  expr: 'let date = Temporal.PlainDate.from("2026-03-23"); [date.toLocaleString("en-US"), date.toLocaleString("de-DE"), date.toLocaleString("ja-JP")]'
+  expect_json: ["3/23/2026", "23.3.2026", "2026/3/23"]
+  source: "[TMP] §PlainDate §Formatting; §Formatting patterns (ICU4X)"
+- id: sessel.expr.tmp.isa
+  expr: 'let date = Temporal.PlainDate.from("2026-03-23"); [date isa Temporal.PlainDate, date isa Temporal.PlainDateTime, date isa Temporal]'
+  expect_json: [true, false, true]
+  source: "[TMP] §Type checking"
+- id: sessel.expr.tmp.plaindate-invalid
+  expr: 'Temporal.PlainDate.from("2026-02-30")'
+  expect_error: any
+  evidence: inferred
+  confidence: medium
+  source: "spec R-SESSEL-300 (SP-24)"
+- id: sessel.expr.tmp.plaintime-from
+  expr: '[String(Temporal.PlainTime.from("14:30:00")), String(Temporal.PlainTime.from("14:30:00.500")), String(Temporal.PlainTime.from("09:00"))]'
+  expect_json: ["14:30:00", "14:30:00.5", "09:00:00"]
+  source: "[TMP] §PlainTime §Construction; §String coercion"
+  confidence: medium
+  notes: Fraction trimming follows TC39 (R-SESSEL-300).
+- id: sessel.expr.tmp.plaintime-accessors
+  expr: 'let t = Temporal.PlainTime.from("14:30:45.123456789"); [t.hour, t.minute, t.second, t.millisecond, t.microsecond, t.nanosecond]'
+  expect_json: [14, 30, 45, 123, 456, 789]
+  source: "[TMP] §PlainTime §Accessors"
+- id: sessel.expr.tmp.plaintime-arithmetic
+  expr: 'let t = Temporal.PlainTime.from("14:30:00"); [String(t.add(Temporal.Duration.from("PT2H30M"))), String(t.subtract(Temporal.Duration.from("PT1H")))]'
+  expect_json: ["17:00:00", "13:30:00"]
+  source: "[TMP] §PlainTime §Arithmetic"
+- id: sessel.expr.tmp.plaintime-until-since
+  expr: 'let t = Temporal.PlainTime.from("14:30:00"); [String(t.until(Temporal.PlainTime.from("18:00:00"))), String(t.since(Temporal.PlainTime.from("09:00:00")))]'
+  expect_json: ["PT3H30M", "PT5H30M"]
+  source: "[TMP] §PlainTime §Arithmetic"
+- id: sessel.expr.tmp.plaintime-wraps
+  expr: 'Temporal.PlainTime.from("23:00").add(Temporal.Duration.from("PT2H")).toString()'
+  expect_json: "01:00:00"
+  evidence: inferred
+  confidence: medium
+  source: "spec R-SESSEL-302 (TC39 wrap-around)"
+- id: sessel.expr.tmp.plaintime-with
+  expr: '[String(Temporal.PlainTime.from("14:30:00").with({ hour: 9 })), String(Temporal.PlainTime.from("14:30:00").with({ minute: 0, second: 0 }))]'
+  expect_json: ["09:30:00", "14:00:00"]
+  source: "[TMP] §PlainTime §Field replacement"
+- id: sessel.expr.tmp.plaintime-to-plaindatetime
+  expr: 'Temporal.PlainTime.from("14:30:00").toPlainDateTime(Temporal.PlainDate.from("2026-03-23")).toString()'
+  expect_json: "2026-03-23T14:30:00"
+  source: "[TMP] §PlainTime §Conversions"
+- id: sessel.expr.tmp.plaintime-compare-equals
+  expr: '[Temporal.PlainTime.compare(Temporal.PlainTime.from("09:00:00"), Temporal.PlainTime.from("17:00:00")), Temporal.PlainTime.from("14:30:00").equals(Temporal.PlainTime.from("14:30:00"))]'
+  expect_json: [-1, true]
+  source: "[TMP] §PlainTime §Comparison, §Equality"
+- id: sessel.expr.tmp.plaintime-format
+  expr: 'let t = Temporal.PlainTime.from("14:30:00"); [t.format("HH:mm"), t.format("h:mm a")]'
+  expect_json: ["14:30", "2:30 PM"]
+  source: "[TMP] §PlainTime §Formatting; §Formatting patterns testable example (\"12-hour time: 2:30 PM\")"
+- id: sessel.expr.tmp.plaintime-format-midnight-12h
+  expr: 'let t = Temporal.PlainTime.from("00:05"); [t.format("h:mm a"), t.format("hh:mm"), t.format("H:mm"), t.format("HH:mm:ss")]'
+  expect_json: ["12:05 AM", "12:05", "0:05", "00:05:00"]
+  evidence: inferred
+  confidence: medium
+  source: "[TMP] §Formatting patterns (h, hh, H, HH, ss, a)"
+- id: sessel.expr.tmp.plaintime-locale
+  expr: 'Temporal.PlainTime.from("14:30:00").toLocaleString("en-US")'
+  expect_match: '^2:30:00[ \x{202F}]PM$'
+  source: "[TMP] §PlainTime §Formatting"
+- id: sessel.expr.tmp.plaindatetime-from-accessors
+  expr: 'let dt = Temporal.PlainDateTime.from("2026-03-23T14:30:45"); [dt.year, dt.month, dt.day, dt.hour, dt.minute, dt.second, dt.millisecond, dt.microsecond, dt.nanosecond]'
+  expect_json: [2026, 3, 23, 14, 30, 45, 0, 0, 0]
+  source: "[TMP] §PlainDateTime §Accessors"
+- id: sessel.expr.tmp.plaindatetime-arithmetic
+  expr: 'let dt = Temporal.PlainDateTime.from("2026-03-23T14:30:00"); [String(dt.add(Temporal.Duration.from("P1DT2H"))), String(dt.subtract(Temporal.Duration.from("PT30M")))]'
+  expect_json: ["2026-03-24T16:30:00", "2026-03-23T14:00:00"]
+  source: "[TMP] §PlainDateTime §Arithmetic"
+- id: sessel.expr.tmp.plaindatetime-until
+  expr: 'Temporal.PlainDateTime.from("2026-03-23T14:30:00").until(Temporal.PlainDateTime.from("2026-03-30T09:00:00")).toString()'
+  expect_json: "P6DT18H30M"
+  evidence: inferred
+  confidence: medium
+  source: "[TMP] §PlainDateTime §Arithmetic; TC39 default largest unit days (SP-22)"
+- id: sessel.expr.tmp.plaindatetime-with
+  expr: 'Temporal.PlainDateTime.from("2026-03-23T14:30:00").with({ hour: 9, minute: 0 }).toString()'
+  expect_json: "2026-03-23T09:00:00"
+  source: "[TMP] §PlainDateTime §Field replacement"
+- id: sessel.expr.tmp.plaindatetime-conversions
+  expr: 'let dt = Temporal.PlainDateTime.from("2026-03-23T14:30:00"); [String(dt.toPlainDate()), String(dt.toPlainTime()), dt.toZonedDateTime("America/New_York").offset]'
+  expect_json: ["2026-03-23", "14:30:00", "-04:00"]
+  source: "[TMP] §PlainDateTime §Conversions"
+- id: sessel.expr.tmp.plaindatetime-compare-equals
+  expr: '[Temporal.PlainDateTime.compare(Temporal.PlainDateTime.from("2026-03-23T09:00:00"), Temporal.PlainDateTime.from("2026-03-23T17:00:00")), Temporal.PlainDateTime.from("2026-03-23T14:30:00").equals(Temporal.PlainDateTime.from("2026-03-23T14:30:00"))]'
+  expect_json: [-1, true]
+  source: "[TMP] §PlainDateTime §Comparison, §Equality"
+- id: sessel.expr.tmp.plaindatetime-format
+  expr: 'let dt = Temporal.PlainDateTime.from("2026-03-23T14:30:00"); [dt.format("yyyy-MM-dd HH:mm"), dt.format("MMMM d, yyyy ''at'' h:mm a"), String(dt)]'
+  expect_json: ["2026-03-23 14:30", "March 23, 2026 at 2:30 PM", "2026-03-23T14:30:00"]
+  source: "[TMP] §PlainDateTime §Formatting"
+- id: sessel.expr.tmp.plaindatetime-locale-en-gb
+  expr: 'Temporal.PlainDateTime.from("2026-03-23T14:30:00").toLocaleString("en-GB")'
+  expect_json: "23/03/2026, 14:30:00"
+  source: "[TMP] §PlainDateTime §Formatting"
+- id: sessel.expr.tmp.instant-from-string
+  expr: '[String(Temporal.Instant.from("2026-03-23T14:30:00Z")), String(Temporal.Instant.from("2026-03-23T14:30:00.500Z"))]'
+  expect_json: ["2026-03-23T14:30:00Z", "2026-03-23T14:30:00.5Z"]
+  source: "[TMP] §Instant §Construction, §Formatting"
+  confidence: medium
+- id: sessel.expr.tmp.instant-from-offset
+  expr: 'Temporal.Instant.from("2026-03-23T15:30:00+01:00").toString()'
+  expect_json: "2026-03-23T14:30:00Z"
+  evidence: inferred
+  confidence: medium
+  source: "spec R-SESSEL-304"
+- id: sessel.expr.tmp.instant-requires-offset
+  expr: 'Temporal.Instant.from("2026-03-23T14:30:00")'
+  expect_error: any
+  evidence: inferred
+  confidence: medium
+  source: "spec R-SESSEL-304 (an exact moment needs Z or an offset)"
+- id: sessel.expr.tmp.instant-epoch
+  expr: 'let instant = Temporal.Instant.from("1970-01-01T00:00:01Z"); [instant.epochSeconds, instant.epochMilliseconds, instant.epochMicroseconds, instant.epochNanoseconds]'
+  expect_json: [1, 1000, 1000000, 1000000000]
+  source: "[TMP] §Instant §Accessors"
+- id: sessel.expr.tmp.instant-from-epoch-seconds
+  expr: 'Temporal.Instant.fromEpochSeconds(1).toString()'
+  expect_json: "1970-01-01T00:00:01Z"
+  source: "[TMP] §Instant §Construction"
+- id: sessel.expr.tmp.instant-page
+  expr: |-
+    let a = Temporal.Instant.from("2026-03-23T14:30:00Z");
+    [Temporal.Instant.from("1970-01-01T00:00:01Z").epochSeconds, String(a.add(Temporal.Duration.from("PT1H"))), Temporal.Instant.compare(Temporal.Instant.from("2026-03-23T14:00:00Z"), Temporal.Instant.from("2026-03-23T15:00:00Z"))]
+  expect_json: [1, "2026-03-23T15:30:00Z", -1]
+  source: "[TMP] §Instant §Testable examples (instant.html)"
+- id: sessel.expr.tmp.instant-subtract
+  expr: 'Temporal.Instant.from("2026-03-23T14:30:00Z").subtract(Temporal.Duration.from("PT30M")).toString()'
+  expect_json: "2026-03-23T14:00:00Z"
+  source: "[TMP] §Instant §Arithmetic"
+- id: sessel.expr.tmp.instant-until-since
+  expr: 'let instant = Temporal.Instant.from("2026-03-23T14:30:00Z"); [String(instant.until(Temporal.Instant.from("2026-03-23T18:00:00Z"))), String(instant.since(Temporal.Instant.from("2026-03-23T12:00:00Z")))]'
+  expect_json: ["PT3H30M", "PT2H30M"]
+  source: "[TMP] §Instant §Arithmetic (SC-10)"
+- id: sessel.expr.tmp.instant-to-zoned
+  expr: 'Temporal.Instant.from("2026-03-23T14:30:00Z").toZonedDateTimeISO("America/New_York").toString()'
+  expect_json: "2026-03-23T10:30:00-04:00[America/New_York]"
+  source: "[TMP] §Instant §Conversions"
+  confidence: medium
+- id: sessel.expr.tmp.instant-equals
+  expr: 'Temporal.Instant.from("2026-03-23T14:30:00Z").equals(Temporal.Instant.from("2026-03-23T14:30:00Z"))'
+  expect_json: true
+  source: "[TMP] §Instant §Equality"
+- id: sessel.expr.tmp.instant-format-utc
+  expr: 'Temporal.Instant.from("2026-03-23T14:30:00Z").format("yyyy-MM-dd HH:mm ''UTC''")'
+  expect_json: "2026-03-23 14:30 UTC"
+  source: "[TMP] §Instant §Formatting (\"formats in UTC\")"
+- id: sessel.expr.tmp.zoned-from
+  expr: 'String(Temporal.ZonedDateTime.from("2026-03-23T14:30:00[America/New_York]"))'
+  expect_json: "2026-03-23T14:30:00-04:00[America/New_York]"
+  source: "[TMP] §ZonedDateTime §Formatting"
+- id: sessel.expr.tmp.zoned-with-offset
+  expr: 'Temporal.ZonedDateTime.from("2026-03-23T14:30:00+05:30[Asia/Kolkata]").toInstant().toString()'
+  expect_json: "2026-03-23T09:00:00Z"
+  source: "[TMP] §ZonedDateTime §Construction"
+  confidence: medium
+- id: sessel.expr.tmp.zoned-accessors
+  expr: 'let zdt = Temporal.ZonedDateTime.from("2026-03-23T14:30:00[America/New_York]"); [zdt.year, zdt.month, zdt.day, zdt.hour, zdt.minute, zdt.second, zdt.millisecond, zdt.timeZoneId, zdt.offset]'
+  expect_json: [2026, 3, 23, 14, 30, 0, 0, "America/New_York", "-04:00"]
+  source: "[TMP] §ZonedDateTime §Accessors"
+- id: sessel.expr.tmp.zoned-winter-offset
+  expr: 'Temporal.ZonedDateTime.from("2026-01-15T12:00:00[America/New_York]").offset'
+  expect_json: "-05:00"
+  source: "[TMP] §ZonedDateTime §Accessors (\"-04:00 (or -05:00 depending on DST)\")"
+- id: sessel.expr.tmp.zoned-arithmetic
+  expr: 'let zdt = Temporal.ZonedDateTime.from("2026-03-23T14:30:00[America/New_York]"); [String(zdt.add(Temporal.Duration.from("P1DT2H"))), String(zdt.subtract(Temporal.Duration.from("PT1H")))]'
+  expect_json: ["2026-03-24T16:30:00-04:00[America/New_York]", "2026-03-23T13:30:00-04:00[America/New_York]"]
+  source: "[TMP] §ZonedDateTime §Arithmetic"
+  confidence: medium
+- id: sessel.expr.tmp.zoned-with-fields
+  expr: 'Temporal.ZonedDateTime.from("2026-03-23T14:30:00[America/New_York]").with({ hour: 9, minute: 0 }).toString()'
+  expect_json: "2026-03-23T09:00:00-04:00[America/New_York]"
+  source: "[TMP] §ZonedDateTime §Field replacement"
+- id: sessel.expr.tmp.zoned-with-timezone-key
+  expr: 'Temporal.ZonedDateTime.from("2026-03-23T14:30:00[America/New_York]").with({ timeZone: "Europe/London" }).toString()'
+  expect_json: "2026-03-23T14:30:00+00:00[Europe/London]"
+  source: "[TMP] §ZonedDateTime §Field replacement (\"re-interprets the wall clock time\")"
+  confidence: medium
+- id: sessel.expr.tmp.zoned-with-time-zone-method
+  expr: 'let zdt = Temporal.ZonedDateTime.from("2026-03-23T14:30:00[America/New_York]"); let l = zdt.withTimeZone("Europe/London"); [l.hour, l.timeZoneId, Temporal.ZonedDateTime.compare(zdt, l)]'
+  expect_json: [18, "Europe/London", 0]
+  source: "[TMP] §ZonedDateTime §Conversions (\"same instant, different timezone\")"
+- id: sessel.expr.tmp.zoned-conversions
+  expr: 'let zdt = Temporal.ZonedDateTime.from("2026-03-23T14:30:00[America/New_York]"); [String(zdt.toInstant()), String(zdt.toPlainDate()), String(zdt.toPlainTime()), String(zdt.toPlainDateTime())]'
+  expect_json: ["2026-03-23T18:30:00Z", "2026-03-23", "14:30:00", "2026-03-23T14:30:00"]
+  source: "[TMP] §ZonedDateTime §Conversions"
+- id: sessel.expr.tmp.zoned-compare
+  expr: 'Temporal.ZonedDateTime.compare(Temporal.ZonedDateTime.from("2026-03-23T09:00:00[America/New_York]"), Temporal.ZonedDateTime.from("2026-03-23T14:00:00[Europe/London]"))'
+  expect_json: -1
+  source: "[TMP] §ZonedDateTime §Comparison (compares the underlying instants)"
+- id: sessel.expr.tmp.zoned-equals-needs-same-zone
+  expr: 'let a = Temporal.ZonedDateTime.from("2026-03-23T14:30:00[America/New_York]"); let b = Temporal.ZonedDateTime.from("2026-03-23T18:30:00[Europe/London]"); [a.equals(b), Temporal.ZonedDateTime.compare(a, b), a.equals(Temporal.ZonedDateTime.from("2026-03-23T14:30:00[America/New_York]"))]'
+  expect_json: [false, 0, true]
+  source: "[TMP] §ZonedDateTime §Equality (SC-16: a pair that really is the same instant)"
+- id: sessel.expr.tmp.zoned-format-abbreviation
+  expr: 'Temporal.ZonedDateTime.from("2026-03-23T14:30:00[America/New_York]").format("yyyy-MM-dd HH:mm z")'
+  expect_json: "2026-03-23 14:30 EDT"
+  source: "[TMP] §ZonedDateTime §Formatting"
+- id: sessel.expr.tmp.zoned-page
+  expr: |-
+    let z = Temporal.Instant.from("2026-03-23T10:00:00Z").toZonedDateTimeISO("UTC");
+    [z.timeZoneId, z.withTimeZone("America/New_York").hour, String(z.toPlainDate())]
+  expect_json: ["UTC", 6, "2026-03-23"]
+  source: "[TMP] §ZonedDateTime §Testable examples (zoned.html; inputs reconstructed)"
+  confidence: medium
+- id: sessel.expr.tmp.duration-from
+  expr: '[String(Temporal.Duration.from("P1Y2M3DT4H5M6S")), String(Temporal.Duration.from("P1M")), String(Temporal.Duration.from("PT30M")), String(Temporal.Duration.from("P7D")), String(Temporal.Duration.from("-PT1H"))]'
+  expect_json: ["P1Y2M3DT4H5M6S", "P1M", "PT30M", "P7D", "-PT1H"]
+  source: "[TMP] §Duration §Construction"
+- id: sessel.expr.tmp.duration-from-map
+  expr: '[String(Temporal.Duration.from({ years: 1, months: 6 })), String(Temporal.Duration.from({ hours: 2, minutes: 30 })), String(Temporal.Duration.from({ days: 7 }))]'
+  expect_json: ["P1Y6M", "PT2H30M", "P7D"]
+  source: "[TMP] §Duration §Map construction"
+- id: sessel.expr.tmp.duration-requires-p
+  expr: 'Temporal.Duration.from("1Y")'
+  expect_error: any
+  source: "[TMP] §Duration §Construction (\"The P prefix is required\")"
+  confidence: medium
+- id: sessel.expr.tmp.duration-accessors
+  expr: 'let dur = Temporal.Duration.from("P1Y2M3DT4H5M6S"); [dur.years, dur.months, dur.weeks, dur.days, dur.hours, dur.minutes, dur.seconds, dur.milliseconds, dur.microseconds, dur.nanoseconds, dur.sign, dur.blank]'
+  expect_json: [1, 2, 0, 3, 4, 5, 6, 0, 0, 0, 1, false]
+  source: "[TMP] §Duration §Accessors"
+- id: sessel.expr.tmp.duration-with
+  expr: 'Temporal.Duration.from("P1Y2M3DT4H5M6S").with({ years: 2, hours: 0 }).toString()'
+  expect_json: "P2Y2M3DT5M6S"
+  source: "[TMP] §Duration §Field replacement"
+- id: sessel.expr.tmp.duration-add-relative
+  expr: 'Temporal.Duration.from("P1M").add(Temporal.Duration.from("P1M"), Temporal.PlainDate.from("2026-01-31")).toString()'
+  expect_json: "P2M"
+  source: "[TMP] §Duration §Calendar arithmetic and relativeTo"
+- id: sessel.expr.tmp.duration-add-calendar-needs-relative
+  expr: 'Temporal.Duration.from("P1M").add(Temporal.Duration.from("P1M"))'
+  expect_error: any
+  source: "[TMP] §Duration (\"These operations require a relativeTo argument\")"
+  confidence: medium
+- id: sessel.expr.tmp.duration-add-time
+  expr: 'Temporal.Duration.from("PT2H").add(Temporal.Duration.from("PT30M")).toString()'
+  expect_json: "PT2H30M"
+  source: "[TMP] §Duration (pure time durations need no relativeTo)"
+- id: sessel.expr.tmp.duration-total
+  expr: 'Temporal.Duration.from("P1Y").total("days", Temporal.PlainDate.from("2026-01-01")) == 365'
+  expect_json: true
+  source: "[TMP] §Duration §Calendar arithmetic and relativeTo (total)"
+- id: sessel.expr.tmp.duration-total-hours
+  expr: 'Temporal.Duration.from("PT2H30M").total("hours")'
+  expect_json: 2.5
+  evidence: inferred
+  confidence: medium
+  source: "spec R-SESSEL-306 (TC39 total)"
+- id: sessel.expr.tmp.duration-negation
+  expr: '[String(Temporal.Duration.from("P1M").negated()), String(Temporal.Duration.from("-PT2H").abs()), Temporal.Duration.from("-P1M").sign]'
+  expect_json: ["-P1M", "PT2H", -1]
+  source: "[TMP] §Duration §Negation and absolute value"
+- id: sessel.expr.tmp.duration-equals
+  expr: '[Temporal.Duration.from("P1M").equals(Temporal.Duration.from("P1M")), Temporal.Duration.from("P30D").equals(Temporal.Duration.from("P1M"))]'
+  expect_json: [true, false]
+  source: "[TMP] §Duration §Equality"
+- id: sessel.expr.tmp.duration-page
+  expr: |-
+    let d = Temporal.Duration.from("P1Y2M3DT4H5M6S");
+    [String(d), d.years, d.sign, String(Temporal.Duration.from("PT1H").negated()), Temporal.Duration.from("PT0S").blank]
+  expect_json: ["P1Y2M3DT4H5M6S", 1, 1, "-PT1H", true]
+  source: "[TMP] §Duration §Testable examples (duration.html; blank input reconstructed)"
+- id: sessel.expr.tmp.duration-zero-string
+  expr: 'String(Temporal.Duration.from("PT0S"))'
+  expect_json: "PT0S"
+  evidence: inferred
+  confidence: medium
+  source: "spec R-SESSEL-300 (TC39 canonical zero)"
+- id: sessel.expr.tmp.yearmonth
+  expr: 'let ym = Temporal.PlainYearMonth.from("2026-03"); [String(ym), ym.year, ym.month, ym.daysInMonth, ym.daysInYear, ym.inLeapYear]'
+  expect_json: ["2026-03", 2026, 3, 31, 365, false]
+  source: "[TMP] §PlainYearMonth §Accessors"
+- id: sessel.expr.tmp.yearmonth-from-map
+  expr: 'Temporal.PlainYearMonth.from({ year: 2026, month: 3 }).toString()'
+  expect_json: "2026-03"
+  source: "[TMP] §PlainYearMonth §Construction"
+- id: sessel.expr.tmp.yearmonth-arithmetic
+  expr: 'let ym = Temporal.PlainYearMonth.from("2026-03"); [String(ym.add(Temporal.Duration.from("P3M"))), String(ym.subtract(Temporal.Duration.from("P1Y")))]'
+  expect_json: ["2026-06", "2025-03"]
+  source: "[TMP] §PlainYearMonth §Arithmetic"
+- id: sessel.expr.tmp.yearmonth-until-since
+  expr: 'let ym = Temporal.PlainYearMonth.from("2026-03"); [String(ym.until(Temporal.PlainYearMonth.from("2027-01"))), String(ym.since(Temporal.PlainYearMonth.from("2026-01")))]'
+  expect_json: ["P10M", "P2M"]
+  source: "[TMP] §PlainYearMonth §Arithmetic"
+- id: sessel.expr.tmp.yearmonth-with-to-date
+  expr: '[String(Temporal.PlainYearMonth.from("2026-03").with({ month: 12 })), String(Temporal.PlainYearMonth.from("2026-03").toPlainDate(15))]'
+  expect_json: ["2026-12", "2026-03-15"]
+  source: "[TMP] §PlainYearMonth §Field replacement, §Conversions"
+- id: sessel.expr.tmp.yearmonth-compare-equals-format
+  expr: '[Temporal.PlainYearMonth.compare(Temporal.PlainYearMonth.from("2026-01"), Temporal.PlainYearMonth.from("2026-06")), Temporal.PlainYearMonth.from("2026-03").equals(Temporal.PlainYearMonth.from("2026-03")), Temporal.PlainYearMonth.from("2026-03").format("MMMM yyyy")]'
+  expect_json: [-1, true, "March 2026"]
+  source: "[TMP] §PlainYearMonth §Comparison, §Equality, §Formatting"
+- id: sessel.expr.tmp.monthday
+  expr: 'let md = Temporal.PlainMonthDay.from("--03-23"); [String(md), md.month, md.day]'
+  expect_json: ["--03-23", 3, 23]
+  source: "[TMP] §PlainMonthDay §Accessors"
+- id: sessel.expr.tmp.monthday-from-map
+  expr: 'Temporal.PlainMonthDay.from({ month: 3, day: 23 }).toString()'
+  expect_json: "--03-23"
+  source: "[TMP] §PlainMonthDay §Construction"
+- id: sessel.expr.tmp.monthday-with-to-date
+  expr: '[String(Temporal.PlainMonthDay.from("--03-23").with({ day: 1 })), String(Temporal.PlainMonthDay.from("--03-23").toPlainDate(2026))]'
+  expect_json: ["--03-01", "2026-03-23"]
+  source: "[TMP] §PlainMonthDay §Field replacement, §Conversions"
+- id: sessel.expr.tmp.monthday-equals-format
+  expr: '[Temporal.PlainMonthDay.from("--03-23").equals(Temporal.PlainMonthDay.from("--03-23")), Temporal.PlainMonthDay.from("--03-23").format("MMMM d")]'
+  expect_json: [true, "March 23"]
+  source: "[TMP] §PlainMonthDay §Equality, §Formatting"
+- id: sessel.expr.tmp.string-coercion-table
+  expr: '[String(Temporal.PlainDate.from("2026-03-23")), String(Temporal.PlainTime.from("14:30:00")), String(Temporal.PlainDateTime.from("2026-03-23T14:30:00")), String(Temporal.Instant.from("2026-03-23T14:30:00Z")), String(Temporal.Duration.from("P1Y2M3D")), String(Temporal.PlainYearMonth.from("2026-03")), String(Temporal.PlainMonthDay.from("--03-23"))]'
+  expect_json: ["2026-03-23", "14:30:00", "2026-03-23T14:30:00", "2026-03-23T14:30:00Z", "P1Y2M3D", "2026-03", "--03-23"]
+  source: "[TMP] §String coercion"
+- id: sessel.expr.tmp.to-string-equivalent
+  expr: 'let d = Temporal.Duration.from("P1Y2M3D"); d.toString() == String(d)'
+  expect_json: true
+  source: "[TMP] §String coercion (\".toString() is equivalent to String(value)\")"
+- id: sessel.expr.tmp.interpolation-iso
+  expr: 'let d = Temporal.PlainDate.from("2026-03-23"); "on #{d}"'
+  expect_json: "on 2026-03-23"
+  source: "[SYN] §String interpolation (coerced via .String()); [TMP] §String coercion"
+  confidence: medium
+- id: sessel.expr.tmp.json-encoding-iso
+  expr: '[Temporal.PlainDate.from("2026-03-23")]'
+  expect_json: ["2026-03-23"]
+  evidence: inferred
+  confidence: low
+  source: "spec R-SESSEL-97 (protocol P-21)"
+- id: sessel.expr.tmp.now-types
+  expr: '[Temporal.Now.instant() isa Temporal.Instant, Temporal.Now.zonedDateTimeISO("America/New_York").timeZoneId, Temporal.Now.plainDateISO("Europe/London") isa Temporal.PlainDate, Temporal.Now.plainTimeISO("Asia/Tokyo") isa Temporal.PlainTime, Temporal.Now.plainDateTimeISO("Australia/Sydney") isa Temporal.PlainDateTime, Temporal.Now.zonedDateTimeISO() isa Temporal.ZonedDateTime, Temporal.Now.plainDateISO() isa Temporal]'
+  expect_json: [true, "America/New_York", true, true, true, true, true]
+  source: "[TMP] §Temporal.Now"
+- id: sessel.expr.tmp.now-recent
+  expr: 'Temporal.Now.instant().epochSeconds > 1774276200'
+  expect_json: true
+  evidence: inferred
+  source: "[TMP] §Temporal.Now (current time is after 2026-03-23T14:30:00Z)"
+- id: sessel.expr.tmp.parse-date-time
+  expr: '"2026-04-08T09:15:00Z".parseDateTime().format("d MMMM yyyy")'
+  expect_json: "8 April 2026"
+  source: "[RTD] §Formatting a date on read (SC-6)"
+  confidence: low

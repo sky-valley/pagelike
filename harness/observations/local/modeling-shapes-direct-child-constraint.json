@@ -1,0 +1,48 @@
+{
+  "case": "modeling.shapes.direct-child-constraint",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (register declarations through the public plane (takes effect for the next request))",
+      "method": "PUT",
+      "path": "/_pl/modeling-shapes-direct-child-constraint-d79f78/shapes.html",
+      "status": 201,
+      "headers": {
+        "content-length": "341",
+        "content-type": "text/html",
+        "etag": "\"7721efb43e1db4ea19d62356eb644667f3d812b0ac3440d28df9658795510241\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:45 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\n  \u003cdiv hidden itemscope itemtype=\"https://pagelove.org/ShapeConstraint\"\u003e\n    \u003cmeta itemprop=\"resource\" content=\"/_pl/modeling-shapes-direct-child-constraint-d79f78/posts/*\"\u003e\n    \u003ccode itemprop=\"selector\"\u003earticle\u003c/code\u003e\n    \u003ccode itemprop=\"constraint\"\u003e:has(\u0026gt; [itemprop=\"title\"])\u003c/code\u003e\n  \u003c/div\u003e\n\u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 2 (title as direct child accepted)",
+      "method": "PUT",
+      "path": "/_pl/modeling-shapes-direct-child-constraint-d79f78/posts/a.html",
+      "status": 201,
+      "headers": {
+        "content-length": "93",
+        "content-type": "text/html",
+        "etag": "\"d5d90ccd9f74e52c03df7b8017c590b06c2d310bcba7ddfc3d5d4ab140eefce9\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:45 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\n  \u003carticle\u003e\u003ch1 itemprop=\"title\"\u003eT\u003c/h1\u003e\u003c/article\u003e\n\u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 3 (title nested deeper rejected)",
+      "method": "PUT",
+      "path": "/_pl/modeling-shapes-direct-child-constraint-d79f78/posts/b.html",
+      "status": 422,
+      "headers": {
+        "content-length": "394",
+        "content-type": "text/html",
+        "vary": "Host, Range"
+      },
+      "body": "\u003cdiv itemscope itemtype=\"https://dombase.pagelove.team/ns/error/ShapeConstraint\"\u003e\u003cul itemprop=\"problems\"\u003e\u003cli itemprop=\"problem\"\u003e\u003cspan itemprop=\"message\"\u003eShape constraints violated\u003c/span\u003e\u003c/li\u003e\u003cli itemprop=\"problem\"\u003e\u003cspan itemprop=\"message\"\u003ehttps://pagelove.org/ShapeConstraint article: Element matching 'article' does not satisfy constraint ':has(\u0026gt; [itemprop=\"title\"])'\u003c/span\u003e\u003c/li\u003e\u003c/ul\u003e\u003c/div\u003e"
+    }
+  ],
+  "outcome": "pass",
+  "target": "local"
+}

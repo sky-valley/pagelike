@@ -1,0 +1,163 @@
+{
+  "case": "sessel.query.probe-0929.from-and-path",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (path of a self element)",
+      "method": "QUERY",
+      "path": "/_pl/sessel-query-probe-0929-from-and-path-04d30d/doc.html",
+      "status": 200,
+      "headers": {
+        "accept-ranges": "bytes",
+        "content-length": "4",
+        "content-type": "application/sessel+json",
+        "vary": "Host, Range"
+      },
+      "body": "null"
+    },
+    {
+      "step": "step 2 (public-plane write of a second document)",
+      "method": "PUT",
+      "path": "/_pl/sessel-query-probe-0929-from-and-path-04d30d/pub.html",
+      "status": 201,
+      "headers": {
+        "content-type": "text/html",
+        "etag": "\"499f53f4d28d463021333b3dc9a007724a7c70609eb574116c9f45977e7047d6\"",
+        "last-modified": "Tue, 29 Sep 2026 01:49:40 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\u003chtml\u003e\u003cbody\u003e\u003ch1 data-case=\"/_pl/sessel-query-probe-0929-from-and-path-04d30d\"\u003ePub-q0929\u003c/h1\u003e\n                \u003cdiv style=\"\n                            position: fixed;\n                            bottom: 0;\n                            left: 0;\n                            right: 0;\n                            padding: 8px;\n                            background: #f0f0f0;\n                            text-align: center;\n                            font-size: 12px;\n                            color: #666;\n                            z-index: 9999;\n                            opacity: 0.8;\n                            border-top: 1px solid #ddd;\n                        \"\u003e\n                    Powered by\n                    \u003ca href=\"https://pagelove.com/\" style=\"color: #4a90d9; text-decoration: none\"\u003ePagelove\u003c/a\u003e\n                \u003c/div\u003e\n            \u003c/body\u003e\u003c/html\u003e"
+    },
+    {
+      "step": "step 3 (from path variants)",
+      "method": "QUERY",
+      "path": "/_pl/sessel-query-probe-0929-from-and-path-04d30d/doc.html",
+      "status": 200,
+      "headers": {
+        "accept-ranges": "bytes",
+        "content-length": "17",
+        "content-type": "application/sessel+json",
+        "vary": "Host, Range"
+      },
+      "body": "[0,0,0,0,0,0,0,0]"
+    },
+    {
+      "step": "step 4 (site-wide paths)",
+      "method": "QUERY",
+      "path": "/_pl/sessel-query-probe-0929-from-and-path-04d30d/doc.html",
+      "status": 200,
+      "headers": {
+        "accept-ranges": "bytes",
+        "content-length": "24",
+        "content-type": "application/sessel+json",
+        "vary": "Host, Range"
+      },
+      "body": "[[\"Welcome-q0929\",null]]"
+    },
+    {
+      "step": "step 5 (glob element path and document)",
+      "method": "QUERY",
+      "path": "/_pl/sessel-query-probe-0929-from-and-path-04d30d/doc.html",
+      "status": 200,
+      "headers": {
+        "accept-ranges": "bytes",
+        "content-length": "16",
+        "content-type": "application/sessel+json",
+        "vary": "Host, Range"
+      },
+      "body": "[null,null,null]"
+    },
+    {
+      "step": "step 6 (element as a from source and sub-select provenance)",
+      "method": "QUERY",
+      "path": "/_pl/sessel-query-probe-0929-from-and-path-04d30d/doc.html",
+      "status": 200,
+      "headers": {
+        "accept-ranges": "bytes",
+        "content-length": "12",
+        "content-type": "application/sessel+json",
+        "vary": "Host, Range"
+      },
+      "body": "[0,2,null,0]"
+    },
+    {
+      "step": "step 7 (path of a self element of a public-plane document)",
+      "method": "QUERY",
+      "path": "/_pl/sessel-query-probe-0929-from-and-path-04d30d/pub.html",
+      "status": 200,
+      "headers": {
+        "accept-ranges": "bytes",
+        "content-length": "16",
+        "content-type": "application/sessel+json",
+        "vary": "Host, Range"
+      },
+      "body": "[null,null,null]"
+    },
+    {
+      "step": "step 8 (self, document, multi-source and block-level from)",
+      "method": "QUERY",
+      "path": "/_pl/sessel-query-probe-0929-from-and-path-04d30d/doc.html",
+      "status": 200,
+      "headers": {
+        "accept-ranges": "bytes",
+        "content-length": "14",
+        "content-type": "application/sessel+json",
+        "vary": "Host, Range"
+      },
+      "body": "[null,0,1,0,1]"
+    },
+    {
+      "step": "step 9 (microdata of a self element has no @id)",
+      "method": "QUERY",
+      "path": "/_pl/sessel-query-probe-0929-from-and-path-04d30d/doc.html",
+      "status": 200,
+      "headers": {
+        "accept-ranges": "bytes",
+        "content-length": "20",
+        "content-type": "application/sessel+json",
+        "vary": "Host, Range"
+      },
+      "body": "[\"Product\",\"W\",null]"
+    },
+    {
+      "step": "step 10 (Pagelove.GET of another document)",
+      "method": "QUERY",
+      "path": "/_pl/sessel-query-probe-0929-from-and-path-04d30d/doc.html",
+      "status": 400,
+      "headers": {
+        "content-length": "345",
+        "content-type": "text/html",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\n  \u003chead\u003e\n    \u003ctitle\u003e400 Bad Request - Error\u003c/title\u003e\n  \u003c/head\u003e\n  \u003cbody itemscope itemtype=\"http://pagelove.org/Error\"\u003e\n    \u003ch1 itemprop=\"name\"\u003eBad Request\u003c/h1\u003e\n    \u003cmeta itemprop=\"statusCode\" content=\"400\"\u003e\n    \u003cp itemprop=\"description\"\u003eSessel evaluation error: unknown function: GET (at bytes 58..66)\u003c/p\u003e\n  \u003c/body\u003e\n\u003c/html\u003e"
+    },
+    {
+      "step": "step 11 (expressions of the reconciled query-selectors cases)",
+      "method": "QUERY",
+      "path": "/_pl/sessel-query-probe-0929-from-and-path-04d30d/doc.html",
+      "status": 200,
+      "headers": {
+        "accept-ranges": "bytes",
+        "content-length": "54",
+        "content-type": "application/sessel+json",
+        "vary": "Host, Range"
+      },
+      "body": "[[],0,[\"en\",\"Welcome-q0929\",0],[null,\"Welcome-q0929\"]]"
+    },
+    {
+      "step": "step 12 (sum over a glob that reaches nothing)",
+      "method": "QUERY",
+      "path": "/_pl/sessel-query-probe-0929-from-and-path-04d30d/doc.html",
+      "status": 200,
+      "headers": {
+        "accept-ranges": "bytes",
+        "content-length": "1",
+        "content-type": "application/sessel+json",
+        "vary": "Host, Range"
+      },
+      "body": "0"
+    }
+  ],
+  "outcome": "pass",
+  "target": "live"
+}

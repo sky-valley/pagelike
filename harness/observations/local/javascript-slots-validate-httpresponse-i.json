@@ -1,0 +1,34 @@
+{
+  "case": "javascript.slots.validate-httpresponse-itemtype-key",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (register declarations through the public plane (takes effect for the next request))",
+      "method": "PUT",
+      "path": "/_pl/javascript-slots-validate-httpresponse-i-4faedf/schema.html",
+      "status": 201,
+      "headers": {
+        "content-length": "743",
+        "content-type": "text/html",
+        "etag": "\"66850558d40300e12ee855d196290453c71b345ba602330d0c841c7a74b2585c\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:43 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\n\u003cdiv hidden itemscope itemtype=\"https://pagelove.org/Schema\"\u003e\n\u003cmeta itemprop=\"type\" content=\"https://pagelike.test/_pl/javascript-slots-validate-httpresponse-i-4faedf/Vvalidatehttpresponseitemtype\"\u003e\n\u003cdiv itemprop=\"property\" itemscope itemtype=\"https://pagelove.org/Property\"\u003e\n\u003cmeta itemprop=\"name\" content=\"v\"\u003e\n\u003cmeta itemprop=\"type\" content=\"https://schema.host/Text\"\u003e\n\u003cmeta itemprop=\"cardinality\" content=\"1..1\"\u003e\n\u003cdiv itemprop=\"@validate\" itemscope itemtype=\"https://pagelove.org/JavaScript/Module\"\u003e\n\u003cscript itemprop=\"source\" type=\"module\"\u003e\nexport default () =\u003e { throw { itemtype: 'https://pagelove.org/HTTPResponse', status: 409, message: 'taken-by-itemtype' }; };\n\u003c/script\u003e\n\u003c/div\u003e\n\u003c/div\u003e\n\u003c/div\u003e\n\u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 2 (PUT an instance (a.html))",
+      "method": "PUT",
+      "path": "/_pl/javascript-slots-validate-httpresponse-i-4faedf/a.html",
+      "status": 409,
+      "headers": {
+        "content-length": "17",
+        "content-type": "text/html; charset=utf-8",
+        "vary": "Host, Range"
+      },
+      "body": "taken-by-itemtype"
+    }
+  ],
+  "outcome": "pass",
+  "target": "local"
+}

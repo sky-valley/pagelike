@@ -1,0 +1,92 @@
+# Reacting: request lifecycle ordering (spec R-REACT-7..10).
+# See discovery.yaml for directory conventions.
+anchors:
+  open_rules: &open_rules
+    - {actor: "*", resource: "${P}/*", method: [GET, HEAD, PUT, POST, DELETE], action: Allow}
+  deny_x: &deny_x
+    settings: {default_get: allow}
+    rules:
+      - {actor: "*", resource: "${P}/*", method: [GET, HEAD, PUT, POST, DELETE], action: Allow}
+      - {actor: "*", resource: "${P}/d/x.html", method: [PUT], action: Deny}
+  throw_409_on_put: &throw_409_on_put
+    name: install a trigger that throws 409 on PUT under ${P}/d/
+    as: anonymous
+    request:
+      method: PUT
+      path: "${P}/r/triggers.html"
+      headers: {Content-Type: text/html}
+      body: |
+        <!DOCTYPE html>
+        <html><body>
+        <div hidden itemscope itemtype="https://pagelove.org/Trigger">
+          <meta itemprop="resource" content="${P}/d/*">
+          <meta itemprop="method" content="PUT">
+          <div itemprop="action" itemscope itemtype="https://pagelove.org/Sessel">
+            <script itemprop="source" type="text/sessel">
+              @schema HTTPResponse url("https://pagelove.org/HTTPResponse");
+              throw new HTTPResponse { status: 409, message: "trigger-ran" }
+            </script>
+          </div>
+        </div>
+        </body></html>
+    expect: {status: [200, 201, 204]}
+defaults:
+  area: reacting
+  site:
+    settings: {default_get: allow}
+    rules: *open_rules
+cases:
+  - id: reacting.lifecycle.authz-denial-before-triggers
+    title: An authorization denial is answered before triggers run
+    feature: lifecycle (authorization vs triggers)
+    evidence: inferred
+    source: "spec R-REACT-8, decision C1 (fail-safe order; ATS outbox relies on rules gating a mail-sending trigger: pagelove-ats/site/outbox/index.html@8f200fc:10-32, site/admin/auth.html@8f200fc:249-263)"
+    confidence: low
+    requires: [sessel]
+    live: true
+    notes: "Competing reading: reacting.lifecycle.triggers-before-authz (disputed). Probe P-1."
+    site: *deny_x
+    steps:
+      - *throw_409_on_put
+      - name: the denied PUT gets the authorization refusal, not the trigger's 409
+        as: anonymous
+        request: {method: PUT, path: "${P}/d/x.html", headers: {Content-Type: text/html}, body: "<p>x</p>"}
+        expect: {status: 401}
+
+  - id: reacting.lifecycle.triggers-before-authz
+    title: "Competing reading: triggers run before authorization, so the trigger's response wins"
+    feature: lifecycle (authorization vs triggers)
+    evidence: documented
+    source: "docs reference/reacting-to-changes/Trigger §Request lifecycle (trigger phase precedes 'Core processing'; authorization not placed) (snapshot 2026-09-28)"
+    confidence: low
+    status: disputed
+    requires: [sessel]
+    live: true
+    notes: "spec C1. pagelike authorizes first (reacting.lifecycle.authz-denial-before-triggers)."
+    site: *deny_x
+    steps:
+      - *throw_409_on_put
+      - name: the trigger answers before the authorization check
+        as: anonymous
+        request: {method: PUT, path: "${P}/d/x.html", headers: {Content-Type: text/html}, body: "<p>x</p>"}
+        expect: {status: 409}
+
+  - id: reacting.lifecycle.trigger-runs-before-core
+    title: A trigger throw pre-empts the error that core processing would have produced
+    feature: lifecycle (triggers before core)
+    evidence: documented
+    source: "docs reference/reacting-to-changes/Trigger §Request lifecycle ('If a trigger throws an HTTP response, steps 3--4 are skipped') (snapshot 2026-09-28)"
+    confidence: high
+    requires: [sessel]
+    live: true
+    notes: "spec: R-REACT-8, R-REACT-9. Core would answer 404 for a selector PUT to a missing document."
+    steps:
+      - *throw_409_on_put
+      - name: selector PUT to a missing document gets the trigger's response
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/d/missing.html"
+          headers: {Content-Type: text/html, Range: "selector=h1"}
+          body: "<h1>x</h1>"
+        expect: {status: 409, body_contains: ["trigger-ran"]}

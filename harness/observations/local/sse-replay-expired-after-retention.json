@@ -1,0 +1,97 @@
+{
+  "case": "sse.replay.expired-after-retention",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (sse open s1)",
+      "method": "GET",
+      "path": "/_pl/sse-replay-expired-after-retention-6f8df6/doc.html",
+      "status": 200,
+      "headers": {
+        "cache-control": "no-cache",
+        "content-type": "text/event-stream",
+        "x-accel-buffering": "no"
+      }
+    },
+    {
+      "step": "step 2",
+      "events": [
+        {
+          "event": "pagelove-connection",
+          "data": "ad199724-e79b-4304-a7f5-984f95cc063c"
+        }
+      ]
+    },
+    {
+      "step": "step 3 (write seen live)",
+      "method": "PUT",
+      "path": "/_pl/sse-replay-expired-after-retention-6f8df6/doc.html",
+      "status": 206,
+      "headers": {
+        "content-length": "18",
+        "content-range": "selector #a",
+        "content-type": "text/html",
+        "etag": "\"bf82ede4c75746d84dcb36f707e33b001d1633c1cde590483824e2bb3b38d6f8-bf82ede4c75746d84dcb36f707e33b001d1633c1cde590483824e2bb3b38d6f8-2\"",
+        "last-modified": "Tue, 29 Sep 2026 02:29:26 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003cp id=\"a\"\u003eseen\u003c/p\u003e"
+    },
+    {
+      "step": "step 4",
+      "events": [
+        {
+          "id": "v1~e395d69400e7.1790648966229-1",
+          "event": "mutation",
+          "data": "\u003carticle itemscope itemtype=\"https://pagelove.org/Mutation\"\u003e\n  \u003cspan itemprop=\"method\"\u003ePUT\u003c/span\u003e\n  \u003cspan itemprop=\"selector\"\u003e#a\u003c/span\u003e\n  \u003cspan itemprop=\"etag\"\u003e50c3871e73563b1357404070b794a0ba9202ed5c3f8ff566246977ef35b50557\u003c/span\u003e\n  \u003cspan itemprop=\"path\"\u003e/_pl/sse-replay-expired-after-retention-6f8df6/doc.html\u003c/span\u003e\n  \u003cspan itemprop=\"host\"\u003et.localhost\u003c/span\u003e\n  \u003cdiv itemprop=\"body\"\u003e\u003cp id=\"a\"\u003eseen\u003c/p\u003e\u003c/div\u003e\n\u003c/article\u003e"
+        }
+      ]
+    },
+    {
+      "step": "step 6 (write while disconnected)",
+      "method": "PUT",
+      "path": "/_pl/sse-replay-expired-after-retention-6f8df6/doc.html",
+      "status": 206,
+      "headers": {
+        "content-length": "22",
+        "content-range": "selector #b",
+        "content-type": "text/html",
+        "etag": "\"6f1c868740f3e35d10596858389609a8addad6f76f8e4f813b2b2bd826b2abce-6f1c868740f3e35d10596858389609a8addad6f76f8e4f813b2b2bd826b2abce-3\"",
+        "last-modified": "Tue, 29 Sep 2026 02:29:26 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003cp id=\"b\"\u003etoo-late\u003c/p\u003e"
+    },
+    {
+      "step": "step 8 (sse open s2)",
+      "method": "GET",
+      "path": "/_pl/sse-replay-expired-after-retention-6f8df6/doc.html",
+      "status": 200,
+      "headers": {
+        "cache-control": "no-cache",
+        "content-type": "text/event-stream",
+        "x-accel-buffering": "no"
+      }
+    },
+    {
+      "step": "step 9",
+      "events": [
+        {
+          "event": "pagelove-connection",
+          "data": "94fbb422-b0ee-49e6-ad63-3a30620c9c89"
+        }
+      ]
+    },
+    {
+      "step": "step 10",
+      "events": [
+        {
+          "event": "reset",
+          "data": "\u003carticle itemscope itemtype=\"https://pagelove.org/StreamReset\"\u003e\n  \u003cspan itemprop=\"reason\"\u003eevents-expired\u003c/span\u003e\n\u003c/article\u003e"
+        }
+      ]
+    }
+  ],
+  "outcome": "pass",
+  "target": "local"
+}

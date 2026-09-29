@@ -1,0 +1,48 @@
+{
+  "case": "authz.discovery.rule-change-effective-next-request",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (no rule for doc.html yet)",
+      "method": "PUT",
+      "path": "/_pl/authz-discovery-rule-change-effective-ne-8c08b9/doc.html",
+      "status": 401,
+      "headers": {
+        "content-length": "429",
+        "content-type": "text/html; charset=utf-8"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\n\u003chead\u003e\n    \u003cmeta charset=\"UTF-8\"\u003e\n    \u003ctitle\u003e401 Unauthorized\u003c/title\u003e\n\u003c/head\u003e\n\u003cbody itemscope itemtype=\"https://pagelove.org/1.0/Error\"\u003e\n    \u003ch1\u003e401 Unauthorized\u003c/h1\u003e\n    \u003cp itemprop=\"message\"\u003eAuthentication required to access this resource.\u003c/p\u003e\n    \u003cdl\u003e\n        \u003cdt\u003eResource\u003c/dt\u003e\n        \u003cdd itemprop=\"resource\"\u003e/_pl/authz-discovery-rule-change-effective-ne-8c08b9/doc.html\u003c/dd\u003e\n    \u003c/dl\u003e\n\u003c/body\u003e\n\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 2 (replace the rules document through the serving path)",
+      "method": "PUT",
+      "path": "/_pl/authz-discovery-rule-change-effective-ne-8c08b9/rules.html",
+      "status": 200,
+      "headers": {
+        "content-length": "686",
+        "content-type": "text/html",
+        "etag": "\"233a4af458387a0b6d59af11e2cfac4ec2f7925be83c9383778ee4caa85cce06\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:46 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\n  \u003cdiv itemscope itemtype=\"https://pagelove.org/AuthorizationRule\"\u003e\n    \u003cmeta itemprop=\"actor\" content=\"*\"\u003e\u003cmeta itemprop=\"resource\" content=\"/_pl/authz-discovery-rule-change-effective-ne-8c08b9/rules.html\"\u003e\n    \u003cmeta itemprop=\"method\" content=\"PUT\"\u003e\u003cmeta itemprop=\"action\" content=\"allow\"\u003e\n  \u003c/div\u003e\n  \u003cdiv itemscope itemtype=\"https://pagelove.org/AuthorizationRule\"\u003e\n    \u003cmeta itemprop=\"actor\" content=\"*\"\u003e\u003cmeta itemprop=\"resource\" content=\"/_pl/authz-discovery-rule-change-effective-ne-8c08b9/doc.html\"\u003e\n    \u003cmeta itemprop=\"method\" content=\"PUT\"\u003e\u003cmeta itemprop=\"selector\" content=\"h1\"\u003e\n    \u003cmeta itemprop=\"action\" content=\"allow\"\u003e\n  \u003c/div\u003e\n\u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 3 (the new rule applies immediately)",
+      "method": "PUT",
+      "path": "/_pl/authz-discovery-rule-change-effective-ne-8c08b9/doc.html",
+      "status": 206,
+      "headers": {
+        "content-length": "10",
+        "content-range": "selector h1",
+        "content-type": "text/html",
+        "etag": "\"0e3ab556a09b50a60589ff4d86bb2f9986936aab4c0a32b561633f9a5c1afaef-0e3ab556a09b50a60589ff4d86bb2f9986936aab4c0a32b561633f9a5c1afaef-2\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:46 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003ch1\u003eB\u003c/h1\u003e"
+    }
+  ],
+  "outcome": "pass",
+  "target": "local"
+}

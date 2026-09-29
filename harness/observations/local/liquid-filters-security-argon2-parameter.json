@@ -1,0 +1,83 @@
+{
+  "case": "liquid.filters-security.argon2-parameter-errors",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (page still renders)",
+      "method": "GET",
+      "path": "/_pl/liquid-filters-security-argon2-parameter-4fb3f1/argerr.html",
+      "status": 200,
+      "headers": {
+        "accept-ranges": "selector, bytes",
+        "cache-control": "public, max-age=5",
+        "content-length": "898",
+        "content-type": "text/html",
+        "etag": "W/\"339e005e76140c11c70fd83985ef0eb02768832a62bfcde95b38892d021ea9b3\"",
+        "vary": "Host, Range, Accept"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\n  \u003cp id=\"nosalt\"\u003e\u003cspan itemscope itemtype=\"https://pagelove.org/Error\"\u003e\u003cmeta itemprop=\"kind\" content=\"TemplateError\"\u003e\u003cspan itemprop=\"message\"\u003eargon2: format \"raw\" requires a salt of at least 8 bytes\u003c/span\u003e\u003c/span\u003e\u003c/p\u003e\n  \u003cp id=\"short\"\u003e\u003cspan itemscope itemtype=\"https://pagelove.org/Error\"\u003e\u003cmeta itemprop=\"kind\" content=\"TemplateError\"\u003e\u003cspan itemprop=\"message\"\u003eargon2: format \"raw\" requires a salt of at least 8 bytes\u003c/span\u003e\u003c/span\u003e\u003c/p\u003e\n  \u003cp id=\"len\"\u003e\u003cspan itemscope itemtype=\"https://pagelove.org/Error\"\u003e\u003cmeta itemprop=\"kind\" content=\"TemplateError\"\u003e\u003cspan itemprop=\"message\"\u003eargon2: length 100 is out of range [4, 64]\u003c/span\u003e\u003c/span\u003e\u003c/p\u003e\n  \u003cp id=\"cost\"\u003e\u003cspan itemscope itemtype=\"https://pagelove.org/Error\"\u003e\u003cmeta itemprop=\"kind\" content=\"TemplateError\"\u003e\u003cspan itemprop=\"message\"\u003ebcrypt: cost 99 is out of range [4, 31]\u003c/span\u003e\u003c/span\u003e\u003c/p\u003e\n  \u003cp id=\"after\"\u003eok\u003c/p\u003e\n\u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 2 (missing salt)",
+      "method": "GET",
+      "path": "/_pl/liquid-filters-security-argon2-parameter-4fb3f1/argerr.html",
+      "status": 206,
+      "headers": {
+        "accept-ranges": "selector, bytes",
+        "content-length": "214",
+        "content-range": "selector #nosalt",
+        "content-type": "text/html",
+        "etag": "\"5776dab8c1bb7693393fff1e1a3061121dccb70c5ca37fb622f36ba65a48ad18-5776dab8c1bb7693393fff1e1a3061121dccb70c5ca37fb622f36ba65a48ad18-1\"",
+        "vary": "Host, Range, Accept"
+      },
+      "body": "\u003cp id=\"nosalt\"\u003e\u003cspan itemscope itemtype=\"https://pagelove.org/Error\"\u003e\u003cmeta itemprop=\"kind\" content=\"TemplateError\"\u003e\u003cspan itemprop=\"message\"\u003eargon2: format \"raw\" requires a salt of at least 8 bytes\u003c/span\u003e\u003c/span\u003e\u003c/p\u003e"
+    },
+    {
+      "step": "step 3 (short salt)",
+      "method": "GET",
+      "path": "/_pl/liquid-filters-security-argon2-parameter-4fb3f1/argerr.html",
+      "status": 206,
+      "headers": {
+        "accept-ranges": "selector, bytes",
+        "content-length": "213",
+        "content-range": "selector #short",
+        "content-type": "text/html",
+        "etag": "\"ea658dd948cd5a1ca3e0cbcc769f94ffd9a6d9f438bc724a3b4703b7c478920f-ea658dd948cd5a1ca3e0cbcc769f94ffd9a6d9f438bc724a3b4703b7c478920f-1\"",
+        "vary": "Host, Range, Accept"
+      },
+      "body": "\u003cp id=\"short\"\u003e\u003cspan itemscope itemtype=\"https://pagelove.org/Error\"\u003e\u003cmeta itemprop=\"kind\" content=\"TemplateError\"\u003e\u003cspan itemprop=\"message\"\u003eargon2: format \"raw\" requires a salt of at least 8 bytes\u003c/span\u003e\u003c/span\u003e\u003c/p\u003e"
+    },
+    {
+      "step": "step 4 (length out of range)",
+      "method": "GET",
+      "path": "/_pl/liquid-filters-security-argon2-parameter-4fb3f1/argerr.html",
+      "status": 206,
+      "headers": {
+        "accept-ranges": "selector, bytes",
+        "content-length": "197",
+        "content-range": "selector #len",
+        "content-type": "text/html",
+        "etag": "\"5589ae83284b8254bee0ed10bb1b7eab5aee9562786b7ab9905e821e7d0837bf-5589ae83284b8254bee0ed10bb1b7eab5aee9562786b7ab9905e821e7d0837bf-1\"",
+        "vary": "Host, Range, Accept"
+      },
+      "body": "\u003cp id=\"len\"\u003e\u003cspan itemscope itemtype=\"https://pagelove.org/Error\"\u003e\u003cmeta itemprop=\"kind\" content=\"TemplateError\"\u003e\u003cspan itemprop=\"message\"\u003eargon2: length 100 is out of range [4, 64]\u003c/span\u003e\u003c/span\u003e\u003c/p\u003e"
+    },
+    {
+      "step": "step 5 (bcrypt cost out of range)",
+      "method": "GET",
+      "path": "/_pl/liquid-filters-security-argon2-parameter-4fb3f1/argerr.html",
+      "status": 206,
+      "headers": {
+        "accept-ranges": "selector, bytes",
+        "content-length": "195",
+        "content-range": "selector #cost",
+        "content-type": "text/html",
+        "etag": "\"fb60838c06c0f67982a1fc8a52f7cb0171b7988673396effc48e684667f1b48f-fb60838c06c0f67982a1fc8a52f7cb0171b7988673396effc48e684667f1b48f-1\"",
+        "vary": "Host, Range, Accept"
+      },
+      "body": "\u003cp id=\"cost\"\u003e\u003cspan itemscope itemtype=\"https://pagelove.org/Error\"\u003e\u003cmeta itemprop=\"kind\" content=\"TemplateError\"\u003e\u003cspan itemprop=\"message\"\u003ebcrypt: cost 99 is out of range [4, 31]\u003c/span\u003e\u003c/span\u003e\u003c/p\u003e"
+    }
+  ],
+  "outcome": "pass",
+  "target": "local"
+}

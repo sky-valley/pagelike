@@ -1,0 +1,33 @@
+{
+  "case": "reacting.processor.runs-on-authz-denial",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (install a 401 processor)",
+      "method": "PUT",
+      "path": "/_pl/reacting-processor-runs-on-authz-denial-558f2c/r/processors.html",
+      "status": 201,
+      "headers": {
+        "content-length": "510",
+        "content-type": "text/html",
+        "etag": "\"8f0ed81eae39ceb0c8c7f7012387c27ae3c386b771474047ab9fac433bdadf8f\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:49 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\n\u003cdiv hidden itemscope itemtype=\"https://pagelove.org/Processor\"\u003e\n  \u003cmeta itemprop=\"resource\" content=\"/_pl/reacting-processor-runs-on-authz-denial-558f2c/d/*\"\u003e\n  \u003cmeta itemprop=\"status\" content=\"401\"\u003e\n  \u003cdiv itemprop=\"action\" itemscope itemtype=\"https://pagelove.org/Sessel\"\u003e\n    \u003cscript itemprop=\"source\" type=\"text/sessel\"\u003e\n      @schema Context url(\"https://pagelove.org/Context\");\n      Context.response.body = \"custom-denial-page\"\n    \u003c/script\u003e\n  \u003c/div\u003e\n\u003c/div\u003e\n\u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 2 (the denial is rewritten)",
+      "method": "GET",
+      "path": "/_pl/reacting-processor-runs-on-authz-denial-558f2c/d/secret.html",
+      "status": 401,
+      "headers": {
+        "content-length": "18",
+        "content-type": "text/html; charset=utf-8"
+      },
+      "body": "custom-denial-page"
+    }
+  ],
+  "outcome": "pass",
+  "target": "local"
+}

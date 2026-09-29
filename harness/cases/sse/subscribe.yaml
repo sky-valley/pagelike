@@ -1,0 +1,499 @@
+# SSE: recognizing, authorizing and opening a subscription.
+# Spec: docs/spec/sse.md R-SSE-1..6. Harness extensions used here are listed in
+# docs/spec/sse.md section 6 (sse_open.expect, sse_expect.next, id_absent,
+# data_matches, data_not_contains, capture of `data`).
+# Identity assumption: `anonymous` carries no cookies, so every anonymous request
+# is its own session; named actors have one fixed session each.
+cases:
+  - id: sse.subscribe.response-head
+    title: GET with Accept text/event-stream opens a 200 text/event-stream response with Cache-Control no-cache
+    area: sse
+    feature: subscribe request and response head
+    evidence: documented
+    source: "docs reference/reading-and-writing/Server-Sent-Events §Subscribing (snapshot 2026-09-28)"
+    confidence: high
+    requires: []
+    live: true
+    notes: "R-SSE-1, R-SSE-5. An explicit GET rule is required because default-GET never grants a subscribe (R-SSE-3)."
+    site:
+      files:
+        - path: "${P}/doc.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body><h1>Original</h1><p>Content here.</p></body></html>
+      rules:
+        - {actor: "*", resource: "${P}/*", method: [GET], action: Allow}
+    steps:
+      - sse_open:
+          name: s1
+          path: "${P}/doc.html"
+          as: anonymous
+          expect:
+            status: 200
+            header_matches: {Content-Type: "^text/event-stream"}
+            headers: {Cache-Control: "no-cache"}
+            headers_absent: [Content-Length]
+      - sse_close: {name: s1}
+
+  - id: sse.subscribe.first-event-is-connection
+    title: The first event on a new stream is pagelove-connection carrying a non-empty token
+    area: sse
+    feature: pagelove-connection event
+    evidence: documented
+    source: "docs reference/reading-and-writing/Server-Sent-Events §Echo suppression (snapshot 2026-09-28); pagelove-polls/site/assets/poll.js@c9270e5:206"
+    confidence: high
+    requires: []
+    live: true
+    notes: "R-SSE-6. Token content is opaque; only non-emptiness is asserted."
+    site:
+      files:
+        - path: "${P}/doc.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body><h1>Original</h1></body></html>
+      rules:
+        - {actor: "*", resource: "${P}/*", method: [GET], action: Allow}
+    steps:
+      - sse_open: {name: s1, path: "${P}/doc.html", as: anonymous}
+      - sse_expect:
+          name: s1
+          event: pagelove-connection
+          next: true
+          within_ms: 3000
+          data_matches: '\S'
+      - sse_close: {name: s1}
+
+  - id: sse.subscribe.connection-event-precedes-mutation
+    title: A write issued right after opening is delivered only after the pagelove-connection event
+    area: sse
+    feature: pagelove-connection event
+    evidence: documented
+    source: "docs reference/reading-and-writing/Server-Sent-Events §Echo suppression — the token 'arrives before any mutation event' (snapshot 2026-09-28)"
+    confidence: high
+    requires: []
+    live: true
+    notes: "R-SSE-6. The writer is a separate anonymous session, so the write is not echo-suppressed."
+    site:
+      files:
+        - path: "${P}/doc.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body><h1>Original</h1></body></html>
+      rules:
+        - {actor: "*", resource: "${P}/*", method: [GET, PUT], action: Allow}
+    steps:
+      - sse_open: {name: s1, path: "${P}/doc.html", as: anonymous}
+      - name: write immediately
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/doc.html"
+          headers: {Range: "selector=h1", Content-Type: "text/html"}
+          body: "<h1>Immediately</h1>"
+        expect: {status: 206}
+      - sse_expect: {name: s1, event: pagelove-connection, next: true, within_ms: 3000}
+      - sse_expect:
+          name: s1
+          event: mutation
+          next: true
+          within_ms: 3000
+          data_contains: ["Immediately"]
+      - sse_close: {name: s1}
+
+  - id: sse.subscribe.connection-event-has-no-id
+    title: The pagelove-connection event carries no id field and its token has no whitespace
+    area: sse
+    feature: pagelove-connection event
+    evidence: inferred
+    source: "docs/spec/sse.md R-SSE-6 (an id would overwrite the browser's Last-Event-ID; the token is sent back as a header value, poll.js@c9270e5:80)"
+    confidence: medium
+    requires: []
+    live: true
+    notes: "Settles Q2. If PageLove sends an id here, revisit R-SSE-6 and R-SSE-31."
+    site:
+      files:
+        - path: "${P}/doc.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body><h1>Original</h1></body></html>
+      rules:
+        - {actor: "*", resource: "${P}/*", method: [GET], action: Allow}
+    steps:
+      - sse_open: {name: s1, path: "${P}/doc.html", as: anonymous}
+      - sse_expect:
+          name: s1
+          event: pagelove-connection
+          next: true
+          within_ms: 3000
+          id_absent: true
+          data_matches: '^[^\s]+$'
+      - sse_close: {name: s1}
+
+  - id: sse.subscribe.tokens-distinct-per-stream
+    title: Two streams on the same path receive different connection tokens
+    area: sse
+    feature: pagelove-connection event
+    evidence: documented
+    source: "docs reference/reading-and-writing/Server-Sent-Events §Echo suppression — 'an opaque token for that connection' (snapshot 2026-09-28)"
+    confidence: medium
+    requires: []
+    live: true
+    notes: "R-SSE-6. Distinctness is implied by 'for that connection'."
+    site:
+      files:
+        - path: "${P}/doc.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body><h1>Original</h1></body></html>
+      rules:
+        - {actor: "*", resource: "${P}/*", method: [GET], action: Allow}
+    steps:
+      - sse_open: {name: s1, path: "${P}/doc.html", as: anonymous}
+      - sse_expect:
+          name: s1
+          event: pagelove-connection
+          within_ms: 3000
+          capture: {tok1: data}
+      - sse_open: {name: s2, path: "${P}/doc.html", as: anonymous}
+      - sse_expect:
+          name: s2
+          event: pagelove-connection
+          within_ms: 3000
+          data_not_contains: ["${tok1}"]
+      - sse_close: {name: s1}
+      - sse_close: {name: s2}
+
+  - id: sse.subscribe.default-get-does-not-grant
+    title: With default-GET allow and no matching rule, a plain GET succeeds but a subscribe is denied
+    area: sse
+    feature: subscribe authorization
+    evidence: documented
+    source: "docs reference/reading-and-writing/Server-Sent-Events §Subscribing; docs reference/permissions/AuthorizationRule §Conflict resolution (snapshot 2026-09-28)"
+    confidence: high
+    requires: []
+    live: true
+    notes: "R-SSE-3. 401 (not 403) because the principal is anonymous; see contradiction C10. The denial is answered immediately, so a plain request step is used."
+    site:
+      settings:
+        default_get: allow
+      files:
+        - path: "${P}/doc.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body><h1>Original</h1></body></html>
+    steps:
+      - name: ordinary read is granted by default-GET
+        as: anonymous
+        request: {method: GET, path: "${P}/doc.html"}
+        expect: {status: 200, body_contains: ["Original"]}
+      - name: subscribe is not granted by default-GET
+        as: anonymous
+        request:
+          method: GET
+          path: "${P}/doc.html"
+          headers: {Accept: "text/event-stream"}
+        expect:
+          status: 401
+          header_matches: {Content-Type: "^text/html"}
+
+  - id: sse.subscribe.default-get-deny-no-rule
+    title: With default-GET deny and no matching rule, both GET and subscribe are denied
+    area: sse
+    feature: subscribe authorization
+    evidence: documented
+    source: "docs reference/permissions/AuthorizationRule §Conflict resolution (snapshot 2026-09-28)"
+    confidence: high
+    requires: []
+    live: true
+    notes: "R-SSE-3."
+    site:
+      settings:
+        default_get: deny
+      files:
+        - path: "${P}/doc.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body><h1>Original</h1></body></html>
+    steps:
+      - name: subscribe denied
+        as: anonymous
+        request:
+          method: GET
+          path: "${P}/doc.html"
+          headers: {Accept: "text/event-stream"}
+        expect: {status: 401}
+
+  - id: sse.subscribe.explicit-deny-rule
+    title: An explicit GET Deny rule refuses the subscribe even though another rule allows the folder
+    area: sse
+    feature: subscribe authorization
+    evidence: documented
+    source: "docs reference/reading-and-writing/Server-Sent-Events §Subscribing — same rules as any other read (snapshot 2026-09-28)"
+    confidence: high
+    requires: []
+    live: true
+    notes: "R-SSE-3. Both rules are at actor '*' specificity, so deny wins; the Deny names the exact path."
+    site:
+      files:
+        - path: "${P}/doc.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body><h1>Original</h1></body></html>
+      rules:
+        - {actor: "*", resource: "${P}/*", method: [GET], action: Allow}
+        - {actor: "*", resource: "${P}/doc.html", method: [GET], action: Deny}
+    steps:
+      - name: subscribe denied by explicit rule
+        as: anonymous
+        request:
+          method: GET
+          path: "${P}/doc.html"
+          headers: {Accept: "text/event-stream"}
+        expect: {status: 401}
+
+  - id: sse.subscribe.authenticated-denied-403
+    title: A signed-in principal with no matching rule is refused a subscribe with 403
+    area: sse
+    feature: subscribe authorization
+    evidence: inferred
+    source: "docs reference/reading-and-writing/MOVE-method §Denials and AuthorizationRule examples (401 unauthenticated / 403 authenticated), applied to subscribe per docs/spec/sse.md R-SSE-3"
+    confidence: medium
+    requires: [multi-actor]
+    live: false
+    notes: "Contradiction C10: the GET page's error table only says 403."
+    site:
+      settings:
+        default_get: allow
+      files:
+        - path: "${P}/doc.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body><h1>Original</h1></body></html>
+    actors:
+      alice: {sub: alice, email: alice@example.com, email_verified: true, roles: []}
+    steps:
+      - name: subscribe as alice without a rule
+        as: alice
+        request:
+          method: GET
+          path: "${P}/doc.html"
+          headers: {Accept: "text/event-stream"}
+        expect: {status: 403}
+
+  - id: sse.subscribe.group-rule-grants
+    title: A GET rule for a group admits its members to the stream and nobody else
+    area: sse
+    feature: subscribe authorization
+    evidence: documented
+    source: "docs reference/reading-and-writing/Server-Sent-Events §Subscribing; docs reference/permissions/AuthorizationRule §Groups and membership (snapshot 2026-09-28)"
+    confidence: high
+    requires: [multi-actor]
+    live: false
+    notes: "R-SSE-3."
+    site:
+      files:
+        - path: "${P}/doc.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body><h1>Original</h1></body></html>
+      rules:
+        - {actor: editors, resource: "${P}/*", method: [GET], action: Allow}
+    actors:
+      alice: {sub: alice, email: alice@example.com, email_verified: true, roles: [editors]}
+    steps:
+      - sse_open:
+          name: s1
+          path: "${P}/doc.html"
+          as: alice
+          expect: {status: 200, header_matches: {Content-Type: "^text/event-stream"}}
+      - sse_expect: {name: s1, event: pagelove-connection, next: true, within_ms: 3000}
+      - name: anonymous is refused
+        as: anonymous
+        request:
+          method: GET
+          path: "${P}/doc.html"
+          headers: {Accept: "text/event-stream"}
+        expect: {status: 401}
+      - sse_close: {name: s1}
+
+  - id: sse.subscribe.missing-document-404
+    title: Subscribing to an authorized path with no document opens a stream that carries its creation
+    area: sse
+    feature: subscribe to missing document
+    evidence: live-observed
+    source: "harness/observations/live-2026-09-28/sse-subscribe-missing-document-404.json (200 text/event-stream: ': connected', the connection event, then keepalives); docs/spec/sse.md R-SSE-4"
+    confidence: medium
+    requires: []
+    live: true
+    notes: >-
+      The id keeps its original name. Probe Q13 settled: PageLove opens a stream that waits for
+      the document (R-SSE-4 superseded, docs/compat/decisions.md). The creation step extends the
+      first observation.
+    site:
+      files:
+        - path: "${P}/other.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body><p>unrelated</p></body></html>
+      rules:
+        - {actor: "*", resource: "${P}/*", method: [GET, PUT], action: Allow}
+    steps:
+      - sse_open:
+          name: s1
+          path: "${P}/missing.html"
+          as: anonymous
+          expect:
+            status: 200
+            header_matches: {Content-Type: "^text/event-stream"}
+            headers: {Cache-Control: "no-cache"}
+      - sse_expect: {name: s1, event: pagelove-connection, next: true, within_ms: 3000}
+      - name: create the document
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/missing.html"
+          headers: {Content-Type: "text/html"}
+          body: "<!DOCTYPE html><html><body><p>now here</p></body></html>"
+        expect: {status: 201}
+      - sse_expect: {name: s1, event: mutation, within_ms: 3000, data_microdata: {method: PUT, selector: ""}}
+      - sse_close: {name: s1}
+
+  - id: sse.subscribe.wildcard-accept-is-not-a-subscribe
+    title: A browser-style Accept containing */* gets the HTML document, not a stream
+    area: sse
+    feature: subscribe request recognition
+    evidence: inferred
+    source: "docs/spec/sse.md R-SSE-1 (only an explicit text/event-stream media range subscribes)"
+    confidence: high
+    requires: []
+    live: true
+    notes: "Guards against treating wildcard Accept values as subscriptions."
+    site:
+      files:
+        - path: "${P}/doc.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body><h1>Original</h1></body></html>
+      rules:
+        - {actor: "*", resource: "${P}/*", method: [GET], action: Allow}
+    steps:
+      - name: navigation-style GET
+        as: anonymous
+        request:
+          method: GET
+          path: "${P}/doc.html"
+          headers: {Accept: "text/html,application/xhtml+xml,*/*;q=0.8"}
+        expect:
+          status: 200
+          header_matches: {Content-Type: "^text/html"}
+          body_contains: ["Original"]
+
+  - id: sse.subscribe.query-string-ignored
+    title: A subscription URL with a query string follows the document path without the query
+    area: sse
+    feature: subscription path
+    evidence: inferred
+    source: "beta-js/pagelove/sse.mjs@c204746:36 (default subscription URL keeps location.search); docs/spec/sse.md R-SSE-2"
+    confidence: medium
+    requires: []
+    live: true
+    notes: "The event path is the document path without the query."
+    site:
+      files:
+        - path: "${P}/doc.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body><h1>Original</h1></body></html>
+      rules:
+        - {actor: "*", resource: "${P}/*", method: [GET, PUT], action: Allow}
+    steps:
+      - sse_open: {name: s1, path: "${P}/doc.html?view=compact", as: anonymous}
+      - sse_expect: {name: s1, event: pagelove-connection, within_ms: 3000}
+      - name: write to the plain path
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/doc.html"
+          headers: {Range: "selector=h1", Content-Type: "text/html"}
+          body: "<h1>Queried</h1>"
+        expect: {status: 206}
+      - sse_expect:
+          name: s1
+          event: mutation
+          within_ms: 3000
+          data_microdata: {method: PUT, path: "${P}/doc.html"}
+          data_contains: ["Queried"]
+      - sse_close: {name: s1}
+
+  - id: sse.subscribe.conn-query-ignored
+    title: A legacy self-minted ?conn= value is ignored and never becomes the connection token
+    area: sse
+    feature: legacy connection channels
+    evidence: documented
+    source: "docs reference/reading-and-writing/Server-Sent-Events §Echo suppression, last paragraph (snapshot 2026-09-28)"
+    confidence: high
+    requires: []
+    live: true
+    notes: "R-SSE-39."
+    site:
+      files:
+        - path: "${P}/doc.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body><h1>Original</h1></body></html>
+      rules:
+        - {actor: "*", resource: "${P}/*", method: [GET, PUT], action: Allow}
+    steps:
+      - sse_open: {name: s1, path: "${P}/doc.html?conn=legacy-self-minted-token", as: anonymous}
+      - sse_expect:
+          name: s1
+          event: pagelove-connection
+          next: true
+          within_ms: 3000
+          data_not_contains: ["legacy-self-minted-token"]
+      - name: another session writes
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/doc.html"
+          headers: {Range: "selector=h1", Content-Type: "text/html"}
+          body: "<h1>Still delivered</h1>"
+        expect: {status: 206}
+      - sse_expect: {name: s1, event: mutation, within_ms: 3000, data_contains: ["Still delivered"]}
+      - sse_close: {name: s1}
+
+  - id: sse.subscribe.directory-index
+    title: A subscription to a directory URL receives writes to its index.html, reported with the index path
+    area: sse
+    feature: subscription path
+    evidence: inferred
+    source: "docs reference/reading-and-writing/GET-method §Directory requests; docs/spec/sse.md R-SSE-2, R-SSE-11"
+    confidence: low
+    requires: []
+    live: true
+    notes: "Probe Q14. The default PageloveSSE instance subscribes to location.href, which is a directory URL on index pages."
+    site:
+      files:
+        - path: "${P}/dir/index.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body><h1>Index</h1></body></html>
+      rules:
+        - {actor: "*", resource: "${P}/*", method: [GET, PUT], action: Allow}
+    steps:
+      - sse_open: {name: s1, path: "${P}/dir/", as: anonymous}
+      - sse_expect: {name: s1, event: pagelove-connection, within_ms: 3000}
+      - name: write the index document by its full path
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/dir/index.html"
+          headers: {Range: "selector=h1", Content-Type: "text/html"}
+          body: "<h1>Index v2</h1>"
+        expect: {status: 206}
+      - sse_expect:
+          name: s1
+          event: mutation
+          within_ms: 3000
+          data_microdata: {method: PUT, path: "${P}/dir/index.html"}
+      - sse_close: {name: s1}

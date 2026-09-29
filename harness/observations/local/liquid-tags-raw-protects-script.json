@@ -1,0 +1,23 @@
+{
+  "case": "liquid.tags.raw-protects-script",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (read)",
+      "method": "GET",
+      "path": "/_pl/liquid-tags-raw-protects-script-c73ef0/raw.html",
+      "status": 200,
+      "headers": {
+        "accept-ranges": "selector, bytes",
+        "cache-control": "public, max-age=5",
+        "content-length": "123",
+        "content-type": "text/html",
+        "etag": "W/\"f93626d5f366c56be91b71dcc9ffa71d172504d76bd0de907ad3b37f88e8e093\"",
+        "vary": "Host, Range, Accept"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\n\u003cp id=\"v\"\u003e2\u003c/p\u003e\n\u003cscript id=\"s\"\u003econst t = `${a}`; const u = \"{{ x }}\";\u003c/script\u003e\n\u003c/body\u003e\u003c/html\u003e\n"
+    }
+  ],
+  "outcome": "pass",
+  "target": "local"
+}

@@ -1,0 +1,45 @@
+{
+  "case": "reacting.filters.selector-semantic-match",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (install a selector-filtered trigger)",
+      "method": "PUT",
+      "path": "/_pl/reacting-filters-selector-semantic-match-5ff3f8/r/triggers.html",
+      "status": 201,
+      "headers": {
+        "content-type": "text/html",
+        "etag": "\"5860e20c26595a7e8044d7b8c3f13ef697a2e5df529b9eb8a629fd1ee08057b7\"",
+        "last-modified": "Tue, 29 Sep 2026 02:00:27 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\n\u003cdiv hidden itemscope itemtype=\"https://pagelove.org/Trigger\"\u003e\n  \u003cmeta itemprop=\"resource\" content=\"/_pl/reacting-filters-selector-semantic-match-5ff3f8/d/*\"\u003e\n  \u003cmeta itemprop=\"method\" content=\"PUT\"\u003e\n  \u003cmeta itemprop=\"selector\" content=\"article\"\u003e\n  \u003cdiv itemprop=\"action\" itemscope itemtype=\"https://pagelove.org/Sessel\"\u003e\n    \u003cscript itemprop=\"source\" type=\"text/sessel\"\u003e\n      @schema HTTPResponse url(\"https://pagelove.org/HTTPResponse\");\n      throw new HTTPResponse { status: 409, message: \"article-hit\" }\n    \u003c/script\u003e\n  \u003c/div\u003e\n\u003c/div\u003e\n\n                \u003cdiv style=\"\n                            position: fixed;\n                            bottom: 0;\n                            left: 0;\n                            right: 0;\n                            padding: 8px;\n                            background: #f0f0f0;\n                            text-align: center;\n                            font-size: 12px;\n                            color: #666;\n                            z-index: 9999;\n                            opacity: 0.8;\n                            border-top: 1px solid #ddd;\n                        \"\u003e\n                    Powered by\n                    \u003ca href=\"https://pagelove.com/\" style=\"color: #4a90d9; text-decoration: none\"\u003ePagelove\u003c/a\u003e\n                \u003c/div\u003e\n            \u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 2 (a selector PUT targeting the article fires)",
+      "method": "PUT",
+      "path": "/_pl/reacting-filters-selector-semantic-match-5ff3f8/d/doc.html",
+      "status": 409,
+      "headers": {
+        "content-length": "286",
+        "content-type": "text/html",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\n  \u003chead\u003e\n    \u003ctitle\u003e409 Conflict - Error\u003c/title\u003e\n  \u003c/head\u003e\n  \u003cbody itemscope itemtype=\"http://pagelove.org/Error\"\u003e\n    \u003ch1 itemprop=\"name\"\u003eConflict\u003c/h1\u003e\n    \u003cmeta itemprop=\"statusCode\" content=\"409\"\u003e\n    \u003cp itemprop=\"description\"\u003earticle-hit\u003c/p\u003e\n  \u003c/body\u003e\n\u003c/html\u003e"
+    },
+    {
+      "step": "step 3 (a selector PUT targeting the heading fires too)",
+      "method": "PUT",
+      "path": "/_pl/reacting-filters-selector-semantic-match-5ff3f8/d/doc.html",
+      "status": 409,
+      "headers": {
+        "content-length": "286",
+        "content-type": "text/html",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\n  \u003chead\u003e\n    \u003ctitle\u003e409 Conflict - Error\u003c/title\u003e\n  \u003c/head\u003e\n  \u003cbody itemscope itemtype=\"http://pagelove.org/Error\"\u003e\n    \u003ch1 itemprop=\"name\"\u003eConflict\u003c/h1\u003e\n    \u003cmeta itemprop=\"statusCode\" content=\"409\"\u003e\n    \u003cp itemprop=\"description\"\u003earticle-hit\u003c/p\u003e\n  \u003c/body\u003e\n\u003c/html\u003e"
+    }
+  ],
+  "outcome": "pass",
+  "target": "live"
+}

@@ -1,0 +1,32 @@
+{
+  "case": "protocol.query-sessel.400-body-errors",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (empty body)",
+      "method": "QUERY",
+      "path": "/_pl/protocol-query-sessel-400-body-errors-0256a4/doc.html",
+      "status": 422,
+      "headers": {
+        "content-length": "375",
+        "content-type": "text/html",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\n  \u003chead\u003e\n    \u003ctitle\u003e422 Unprocessable Entity - Error\u003c/title\u003e\n  \u003c/head\u003e\n  \u003cbody itemscope itemtype=\"http://pagelove.org/Error\"\u003e\n    \u003ch1 itemprop=\"name\"\u003eUnprocessable Entity\u003c/h1\u003e\n    \u003cmeta itemprop=\"statusCode\" content=\"422\"\u003e\n    \u003cp itemprop=\"description\"\u003eInvalid path: QUERY method requires a body containing the sessel expression\u003c/p\u003e\n  \u003c/body\u003e\n\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 2 (parse error)",
+      "method": "QUERY",
+      "path": "/_pl/protocol-query-sessel-400-body-errors-0256a4/doc.html",
+      "status": 400,
+      "headers": {
+        "content-length": "580",
+        "content-type": "text/html; charset=utf-8",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\n\u003chead\u003e\n\u003cmeta charset=\"UTF-8\"\u003e\n\u003ctitle\u003e400 Bad Request\u003c/title\u003e\n\u003c/head\u003e\n\u003cbody\u003e\n\u003carticle itemscope itemtype=\"https://pagelove.org/Error\"\u003e\n  \u003cmeta itemprop=\"status\" content=\"400\"\u003e\n  \u003cmeta itemprop=\"kind\" content=\"SesselParseError\"\u003e\n  \u003cdiv itemprop=\"type\" itemscope itemtype=\"https://dombase.pagelove.team/ns/error/SesselParseError\"\u003e\u003c/div\u003e\n  \u003cp itemprop=\"message\"\u003eSessel compilation error: parse error at 1:4: unexpected end of input\u003c/p\u003e\n  \u003cmeta itemprop=\"resource\" content=\"/_pl/protocol-query-sessel-400-body-errors-0256a4/doc.html\"\u003e\n\u003c/article\u003e\n\u003c/body\u003e\n\u003c/html\u003e\n"
+    }
+  ],
+  "outcome": "pass",
+  "target": "local"
+}

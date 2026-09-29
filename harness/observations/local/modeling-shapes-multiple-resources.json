@@ -1,0 +1,60 @@
+{
+  "case": "modeling.shapes.multiple-resources",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (register declarations through the public plane (takes effect for the next request))",
+      "method": "PUT",
+      "path": "/_pl/modeling-shapes-multiple-resources-69d7a6/shapes.html",
+      "status": 201,
+      "headers": {
+        "content-length": "428",
+        "content-type": "text/html",
+        "etag": "\"eae6b161cc04991b26efca26cbc2332d7abe070b9a55b9fc967ae023a3ab6bb2\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:45 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\n  \u003cdiv hidden itemscope itemtype=\"https://pagelove.org/ShapeConstraint\"\u003e\n    \u003cmeta itemprop=\"resource\" content=\"/_pl/modeling-shapes-multiple-resources-69d7a6/a/*\"\u003e\n    \u003cmeta itemprop=\"resource\" content=\"/_pl/modeling-shapes-multiple-resources-69d7a6/b/*\"\u003e\n    \u003ccode itemprop=\"selector\"\u003e[itemtype*=User]\u003c/code\u003e\n    \u003ccode itemprop=\"constraint\"\u003e:has([itemprop=\"email\"])\u003c/code\u003e\n  \u003c/div\u003e\n\u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 2 (rejected under the first resource)",
+      "method": "PUT",
+      "path": "/_pl/modeling-shapes-multiple-resources-69d7a6/a/u.html",
+      "status": 422,
+      "headers": {
+        "content-length": "407",
+        "content-type": "text/html",
+        "vary": "Host, Range"
+      },
+      "body": "\u003cdiv itemscope itemtype=\"https://dombase.pagelove.team/ns/error/ShapeConstraint\"\u003e\u003cul itemprop=\"problems\"\u003e\u003cli itemprop=\"problem\"\u003e\u003cspan itemprop=\"message\"\u003eShape constraints violated\u003c/span\u003e\u003c/li\u003e\u003cli itemprop=\"problem\"\u003e\u003cspan itemprop=\"message\"\u003ehttps://pagelove.org/ShapeConstraint [itemtype*=User]: Element matching '[itemtype*=User]' does not satisfy constraint ':has([itemprop=\"email\"])'\u003c/span\u003e\u003c/li\u003e\u003c/ul\u003e\u003c/div\u003e"
+    },
+    {
+      "step": "step 3 (rejected under the second resource)",
+      "method": "PUT",
+      "path": "/_pl/modeling-shapes-multiple-resources-69d7a6/b/u.html",
+      "status": 422,
+      "headers": {
+        "content-length": "407",
+        "content-type": "text/html",
+        "vary": "Host, Range"
+      },
+      "body": "\u003cdiv itemscope itemtype=\"https://dombase.pagelove.team/ns/error/ShapeConstraint\"\u003e\u003cul itemprop=\"problems\"\u003e\u003cli itemprop=\"problem\"\u003e\u003cspan itemprop=\"message\"\u003eShape constraints violated\u003c/span\u003e\u003c/li\u003e\u003cli itemprop=\"problem\"\u003e\u003cspan itemprop=\"message\"\u003ehttps://pagelove.org/ShapeConstraint [itemtype*=User]: Element matching '[itemtype*=User]' does not satisfy constraint ':has([itemprop=\"email\"])'\u003c/span\u003e\u003c/li\u003e\u003c/ul\u003e\u003c/div\u003e"
+    },
+    {
+      "step": "step 4 (accepted elsewhere)",
+      "method": "PUT",
+      "path": "/_pl/modeling-shapes-multiple-resources-69d7a6/c/u.html",
+      "status": 201,
+      "headers": {
+        "content-length": "146",
+        "content-type": "text/html",
+        "etag": "\"78c7aaa1c7b8beee9b0015f18ed5464386664721cd92bc0b759d4ad85a33f53f\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:45 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\n  \u003cdiv itemscope itemtype=\"https://example.org/User\"\u003e\n    \u003cspan itemprop=\"username\"\u003ex\u003c/span\u003e\n  \u003c/div\u003e\n\u003c/body\u003e\u003c/html\u003e\n"
+    }
+  ],
+  "outcome": "pass",
+  "target": "local"
+}

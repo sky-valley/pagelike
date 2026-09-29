@@ -1,0 +1,33 @@
+{
+  "case": "reacting.context.sessel-request-fields",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (install a trigger that echoes the context in a thrown body)",
+      "method": "PUT",
+      "path": "/_pl/reacting-context-sessel-request-fields-88084e/r/triggers.html",
+      "status": 201,
+      "headers": {
+        "content-type": "text/html",
+        "etag": "\"8d6f5faec8c38f8429322fffde069484df87ffc211afea0261904a84aa9f4715\"",
+        "last-modified": "Tue, 29 Sep 2026 00:49:06 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\n\u003cdiv hidden itemscope itemtype=\"https://pagelove.org/Trigger\"\u003e\n  \u003cmeta itemprop=\"resource\" content=\"/_pl/reacting-context-sessel-request-fields-88084e/d/*\"\u003e\n  \u003cmeta itemprop=\"method\" content=\"PUT\"\u003e\n  \u003cdiv itemprop=\"action\" itemscope itemtype=\"https://pagelove.org/Sessel\"\u003e\n    \u003cscript itemprop=\"source\" type=\"text/sessel\"\u003e\n      @schema Context url(\"https://pagelove.org/Context\");\n      @schema HTTPResponse url(\"https://pagelove.org/HTTPResponse\");\n      throw new HTTPResponse {\n        status: 409,\n        body: \"m=\" + Context.request.method + \";p=\" + Context.request.path + \";q=\" + (Context.request.query[\"a\"] ?? \"none\") + \";h=\" + (Context.request.headers[\"x-test\"] ?? \"none\") + \";b=\" + Context.request.body + \";end\"\n      }\n    \u003c/script\u003e\n  \u003c/div\u003e\n\u003c/div\u003e\n\n                \u003cdiv style=\"\n                            position: fixed;\n                            bottom: 0;\n                            left: 0;\n                            right: 0;\n                            padding: 8px;\n                            background: #f0f0f0;\n                            text-align: center;\n                            font-size: 12px;\n                            color: #666;\n                            z-index: 9999;\n                            opacity: 0.8;\n                            border-top: 1px solid #ddd;\n                        \"\u003e\n                    Powered by\n                    \u003ca href=\"https://pagelove.com/\" style=\"color: #4a90d9; text-decoration: none\"\u003ePagelove\u003c/a\u003e\n                \u003c/div\u003e\n            \u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 2 (every field is visible)",
+      "method": "PUT",
+      "path": "/_pl/reacting-context-sessel-request-fields-88084e/d/note.txt?a=1",
+      "status": 409,
+      "headers": {
+        "content-length": "96",
+        "content-type": "text/html",
+        "vary": "Host, Range"
+      },
+      "body": "m=PUT;p=/_pl/reacting-context-sessel-request-fields-88084e/d/note.txt;q=1;h=yes;b=hello-body;end"
+    }
+  ],
+  "outcome": "pass",
+  "target": "live"
+}

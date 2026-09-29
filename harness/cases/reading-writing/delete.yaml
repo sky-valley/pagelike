@@ -1,0 +1,314 @@
+# DELETE: selector removal and whole-document removal.
+# Spec: docs/spec/reading-writing.md §11 (R-RW-80..83).
+cases:
+  - id: rw.delete.selector-remove
+    title: DELETE with a selector removes the element and answers 204
+    area: reading-writing
+    feature: DELETE selector range
+    evidence: documented
+    source: "docs reference/reading-and-writing/DELETE-method §Remove an element (snapshot 2026-09-28)"
+    confidence: high
+    requires: []
+    live: true
+    site:
+      settings: {default_get: allow}
+      files:
+        - path: "${P}/delete-remove-test.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <h1>Title</h1>
+              <p>Keep this paragraph.</p>
+              <p>Remove this paragraph.</p>
+            </body></html>
+      rules:
+        - {actor: "*", resource: "${P}/*", method: [GET, HEAD, DELETE], action: Allow}
+    steps:
+      - name: remove the last paragraph
+        as: anonymous
+        request:
+          method: DELETE
+          path: "${P}/delete-remove-test.html"
+          headers: {Range: "selector=p:last-child"}
+        expect:
+          status: 204
+          body: ""
+      - name: verify the removal
+        as: anonymous
+        request: {method: GET, path: "${P}/delete-remove-test.html"}
+        expect:
+          status: 200
+          body_contains: ["<h1>Title</h1>", "<p>Keep this paragraph.</p>"]
+          body_not_contains: ["Remove this paragraph."]
+
+  - id: rw.delete.content-range
+    title: A selector DELETE answers 204 with the document's new tag and no Content-Range
+    area: reading-writing
+    feature: DELETE selector range
+    evidence: live-observed
+    source: "harness/observations/live-2026-09-28/rw-delete-content-range.json (204: ETag, Last-Modified, Vary: Host, Range; no Content-Range); docs reference/reading-and-writing/DELETE-method §When to reach for it (snapshot 2026-09-28) claims a Content-Range"
+    confidence: high
+    requires: []
+    live: true
+    notes: "The documented Content-Range is superseded by the live observation (docs/compat/decisions.md)."
+    site:
+      settings: {default_get: allow}
+      files:
+        - path: "${P}/cr.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body><p id="gone">bye</p><p>stay</p></body></html>
+      rules:
+        - {actor: "*", resource: "${P}/*", method: [GET, HEAD, DELETE], action: Allow}
+    steps:
+      - name: delete by id
+        as: anonymous
+        request:
+          method: DELETE
+          path: "${P}/cr.html"
+          headers: {Range: "selector=#gone"}
+        expect:
+          status: 204
+          headers_absent: [Content-Range]
+          headers_present: [ETag, Last-Modified]
+          headers: {Vary: "Host, Range"}
+        capture: {t: header.ETag}
+      - name: the tag is the document's
+        as: anonymous
+        request: {method: HEAD, path: "${P}/cr.html"}
+        expect:
+          status: 200
+          etag_equals: "${t}"
+
+  - id: rw.delete.whole-document
+    title: DELETE without a selector removes the document; later GET is 404
+    area: reading-writing
+    feature: DELETE whole document
+    evidence: documented
+    source: "docs reference/reading-and-writing/DELETE-method §Delete a whole document (snapshot 2026-09-28)"
+    confidence: high
+    requires: []
+    live: true
+    site:
+      settings: {default_get: allow}
+      files:
+        - path: "${P}/delete-whole-doc-test.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body><p>doomed</p></body></html>
+      rules:
+        - {actor: "*", resource: "${P}/*", method: [GET, HEAD, DELETE], action: Allow}
+    steps:
+      - name: delete the document
+        as: anonymous
+        request: {method: DELETE, path: "${P}/delete-whole-doc-test.html"}
+        expect:
+          status: 204
+          body: ""
+      - name: gone
+        as: anonymous
+        request: {method: GET, path: "${P}/delete-whole-doc-test.html"}
+        expect: {status: 404}
+
+  - id: rw.delete.missing-document-404
+    title: A whole DELETE of a missing path succeeds (204); a selector DELETE there is 404
+    area: reading-writing
+    feature: DELETE errors
+    evidence: live-observed
+    source: "harness/observations/live-2026-09-28/rw-delete-missing-document-404.json (whole: 204 with the ETag of empty content; selector: 404 NotFound problems item); docs reference/reading-and-writing/DELETE-method §Error cases (snapshot 2026-09-28) claims 404 for both"
+    confidence: high
+    requires: []
+    live: true
+    notes: "The id keeps its original name; the documented whole-delete 404 is superseded (docs/compat/decisions.md)."
+    site:
+      settings: {default_get: allow}
+      rules:
+        - {actor: "*", resource: "${P}/*", method: [GET, HEAD, DELETE], action: Allow}
+    steps:
+      - name: whole delete of a missing path
+        as: anonymous
+        request: {method: DELETE, path: "${P}/missing.html"}
+        expect:
+          status: 204
+          headers: {ETag: '"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"'}
+      - name: selector delete of a missing path
+        as: anonymous
+        request:
+          method: DELETE
+          path: "${P}/missing.html"
+          headers: {Range: "selector=p"}
+        expect:
+          status: 404
+          header_matches: {Content-Type: "^text/html$"}
+          body: '<div itemscope itemtype="https://dombase.pagelove.team/ns/error/NotFound"><ul itemprop="problems"><li itemprop="problem"><span itemprop="message">document not found at request path: ${P}/missing.html</span></li></ul></div>'
+      - name: still nothing there
+        as: anonymous
+        request: {method: GET, path: "${P}/missing.html"}
+        expect: {status: 404}
+
+  - id: rw.delete.no-match-416
+    title: A selector DELETE that matches nothing is 416
+    area: reading-writing
+    feature: DELETE errors
+    evidence: documented
+    source: "docs reference/reading-and-writing/DELETE-method §Error cases (snapshot 2026-09-28)"
+    confidence: high
+    requires: []
+    live: true
+    site:
+      settings: {default_get: allow}
+      files:
+        - path: "${P}/nomatch.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body><p>only</p></body></html>
+      rules:
+        - {actor: "*", resource: "${P}/*", method: [GET, HEAD, DELETE], action: Allow}
+    steps:
+      - name: delete an absent id
+        as: anonymous
+        request:
+          method: DELETE
+          path: "${P}/nomatch.html"
+          headers: {Range: "selector=#nope"}
+        expect: {status: 416}
+
+  - id: rw.delete.first-match-only
+    title: A selector DELETE matching several elements removes only the first
+    area: reading-writing
+    feature: DELETE selector range
+    evidence: documented
+    source: "docs reference/permissions/AuthorizationRule §Selectors that match several elements (snapshot 2026-09-28)"
+    confidence: high
+    requires: []
+    live: true
+    site:
+      settings: {default_get: allow}
+      files:
+        - path: "${P}/multi.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body><ul><li>one</li><li>two</li><li>three</li></ul></body></html>
+      rules:
+        - {actor: "*", resource: "${P}/*", method: [GET, HEAD, DELETE], action: Allow}
+    steps:
+      - name: delete li
+        as: anonymous
+        request:
+          method: DELETE
+          path: "${P}/multi.html"
+          headers: {Range: "selector=li"}
+        expect: {status: 204}
+      - name: remaining items
+        as: anonymous
+        request:
+          method: GET
+          path: "${P}/multi.html"
+          headers: {Range: "selector=ul"}
+        expect:
+          status: 206
+          body_html: "<ul><li>two</li><li>three</li></ul>"
+
+  - id: rw.delete.removes-descendants
+    title: A selector DELETE removes the element with all its descendants
+    area: reading-writing
+    feature: DELETE selector range
+    evidence: documented
+    source: "docs reference/reading-and-writing/DELETE-method intro ('removes one element and all its descendants') (snapshot 2026-09-28)"
+    confidence: high
+    requires: []
+    live: true
+    site:
+      settings: {default_get: allow}
+      files:
+        - path: "${P}/tree.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body><section id="s"><article id="inner"><p>deep text</p></article></section><footer>f</footer></body></html>
+      rules:
+        - {actor: "*", resource: "${P}/*", method: [GET, HEAD, DELETE], action: Allow}
+    steps:
+      - name: delete the section
+        as: anonymous
+        request:
+          method: DELETE
+          path: "${P}/tree.html"
+          headers: {Range: "selector=#s"}
+        expect: {status: 204}
+      - name: descendants gone too
+        as: anonymous
+        request:
+          method: GET
+          path: "${P}/tree.html"
+          headers: {Range: "selector=#inner"}
+        expect: {status: 416}
+      - name: siblings kept
+        as: anonymous
+        request:
+          method: GET
+          path: "${P}/tree.html"
+          headers: {Range: "selector=footer"}
+        expect:
+          status: 206
+          body_html: "<footer>f</footer>"
+
+  - id: rw.delete.retry-after-delete-416
+    title: Repeating a selector DELETE of the same element answers 416 (clients treat it as already gone)
+    area: reading-writing
+    feature: DELETE selector range
+    evidence: client-source
+    source: "beta-js/pagelove/component.mjs@c204746:929-943 (416 = already gone); pagelove-polls/site/assets/poll.js@c9270e5:90"
+    confidence: high
+    requires: []
+    live: true
+    site:
+      settings: {default_get: allow}
+      files:
+        - path: "${P}/twice.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body><article id="card-1">c</article></body></html>
+      rules:
+        - {actor: "*", resource: "${P}/*", method: [GET, HEAD, DELETE], action: Allow}
+    steps:
+      - name: first delete
+        as: anonymous
+        request:
+          method: DELETE
+          path: "${P}/twice.html"
+          headers: {Range: "selector=#card-1"}
+        expect: {status: 204}
+      - name: retry
+        as: anonymous
+        request:
+          method: DELETE
+          path: "${P}/twice.html"
+          headers: {Range: "selector=#card-1"}
+        expect: {status: 416}
+
+  - id: rw.delete.blob
+    title: A whole DELETE removes a blob
+    area: reading-writing
+    feature: DELETE whole document
+    evidence: inferred
+    source: "docs DELETE-method ('without a selector it removes the whole document'); Uploading-Files (blobs are ordinary stored resources)"
+    confidence: high
+    requires: []
+    live: true
+    site:
+      settings: {default_get: allow}
+      files:
+        - path: "${P}/data.json"
+          content_type: application/json
+          body: '{"a":1}'
+      rules:
+        - {actor: "*", resource: "${P}/*", method: [GET, HEAD, DELETE], action: Allow}
+    steps:
+      - name: delete the blob
+        as: anonymous
+        request: {method: DELETE, path: "${P}/data.json"}
+        expect: {status: 204}
+      - name: gone
+        as: anonymous
+        request: {method: GET, path: "${P}/data.json"}
+        expect: {status: 404}

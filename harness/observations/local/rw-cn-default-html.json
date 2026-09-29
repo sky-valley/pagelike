@@ -1,0 +1,83 @@
+{
+  "case": "rw.cn.default-html",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (no Accept)",
+      "method": "GET",
+      "path": "/_pl/rw-cn-default-html-a9fdf5/neg.html",
+      "status": 200,
+      "headers": {
+        "accept-ranges": "selector, bytes",
+        "content-length": "134",
+        "content-type": "text/html",
+        "etag": "\"fec9fcdc55d88d4c486182b1411b0dcb022bcd380a81a73e3ee44a1aec1be32a\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:56 GMT",
+        "vary": "Host, Range, Accept"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\u003cdiv itemscope itemtype=\"http://schema.org/Person\"\u003e\u003cspan itemprop=\"name\"\u003eAlice\u003c/span\u003e\u003c/div\u003e\u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 2 (unsupported type)",
+      "method": "GET",
+      "path": "/_pl/rw-cn-default-html-a9fdf5/neg.html",
+      "status": 200,
+      "headers": {
+        "accept-ranges": "selector, bytes",
+        "content-length": "134",
+        "content-type": "text/html",
+        "etag": "\"fec9fcdc55d88d4c486182b1411b0dcb022bcd380a81a73e3ee44a1aec1be32a\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:56 GMT",
+        "vary": "Host, Range, Accept"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\u003cdiv itemscope itemtype=\"http://schema.org/Person\"\u003e\u003cspan itemprop=\"name\"\u003eAlice\u003c/span\u003e\u003c/div\u003e\u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 3 (plain JSON is not JSON-LD)",
+      "method": "GET",
+      "path": "/_pl/rw-cn-default-html-a9fdf5/neg.html",
+      "status": 200,
+      "headers": {
+        "accept-ranges": "selector, bytes",
+        "content-length": "134",
+        "content-type": "text/html",
+        "etag": "\"fec9fcdc55d88d4c486182b1411b0dcb022bcd380a81a73e3ee44a1aec1be32a\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:56 GMT",
+        "vary": "Host, Range, Accept"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\u003cdiv itemscope itemtype=\"http://schema.org/Person\"\u003e\u003cspan itemprop=\"name\"\u003eAlice\u003c/span\u003e\u003c/div\u003e\u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 4 (browser default Accept)",
+      "method": "GET",
+      "path": "/_pl/rw-cn-default-html-a9fdf5/neg.html",
+      "status": 200,
+      "headers": {
+        "accept-ranges": "selector, bytes",
+        "content-length": "134",
+        "content-type": "text/html",
+        "etag": "\"fec9fcdc55d88d4c486182b1411b0dcb022bcd380a81a73e3ee44a1aec1be32a\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:56 GMT",
+        "vary": "Host, Range, Accept"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\u003cdiv itemscope itemtype=\"http://schema.org/Person\"\u003e\u003cspan itemprop=\"name\"\u003eAlice\u003c/span\u003e\u003c/div\u003e\u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 5 (wildcard)",
+      "method": "GET",
+      "path": "/_pl/rw-cn-default-html-a9fdf5/neg.html",
+      "status": 200,
+      "headers": {
+        "accept-ranges": "selector, bytes",
+        "content-length": "134",
+        "content-type": "text/html",
+        "etag": "\"fec9fcdc55d88d4c486182b1411b0dcb022bcd380a81a73e3ee44a1aec1be32a\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:56 GMT",
+        "vary": "Host, Range, Accept"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\u003cdiv itemscope itemtype=\"http://schema.org/Person\"\u003e\u003cspan itemprop=\"name\"\u003eAlice\u003c/span\u003e\u003c/div\u003e\u003c/body\u003e\u003c/html\u003e\n"
+    }
+  ],
+  "outcome": "pass",
+  "target": "local"
+}

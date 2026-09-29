@@ -1,0 +1,34 @@
+{
+  "case": "protocol.webdav.file-header-tag-differs-from-content-tag",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (content tag)",
+      "method": "GET",
+      "path": "/_pl/protocol-webdav-file-header-tag-differs-cad065/dav/a.html",
+      "status": 200,
+      "headers": {
+        "accept-ranges": "bytes",
+        "content-length": "53",
+        "content-type": "text/html",
+        "etag": "\"391106d5732638e3166bbe1da764f3efca05639b75ea5e8aacdf50502bf0b3f3\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:48 GMT"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\u003ch1\u003eA\u003c/h1\u003e\u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 2 (properties tag differs)",
+      "method": "PROPFIND",
+      "path": "/_pl/protocol-webdav-file-header-tag-differs-cad065/dav/a.html",
+      "status": 207,
+      "headers": {
+        "content-length": "610",
+        "content-type": "application/xml; charset=utf-8",
+        "etag": "\"propfind:sha256:54d439fe91c61d1f1a50be6c06e9befe5f13e8bdb05fe88ba105c5271a744e36\""
+      },
+      "body": "\u003c?xml version=\"1.0\" encoding=\"utf-8\" ?\u003e\n\u003cD:multistatus xmlns:D=\"DAV:\"\u003e\n  \u003cD:response\u003e\n    \u003cD:href\u003e/_pl/protocol-webdav-file-header-tag-differs-cad065/dav/a.html\u003c/D:href\u003e\n    \u003cD:propstat\u003e\n      \u003cD:prop\u003e\n      \u003cD:resourcetype/\u003e\n      \u003cD:getcontenttype\u003etext/html\u003c/D:getcontenttype\u003e\n      \u003cD:getcontentlength\u003e53\u003c/D:getcontentlength\u003e\n      \u003cD:getlastmodified\u003eTue, 29 Sep 2026 02:40:48 GMT\u003c/D:getlastmodified\u003e\n      \u003cD:getetag\u003e\"391106d5732638e3166bbe1da764f3efca05639b75ea5e8aacdf50502bf0b3f3\"\u003c/D:getetag\u003e\n      \u003c/D:prop\u003e\n      \u003cD:status\u003eHTTP/1.1 200 OK\u003c/D:status\u003e\n    \u003c/D:propstat\u003e\n  \u003c/D:response\u003e\n\u003c/D:multistatus\u003e\n"
+    }
+  ],
+  "outcome": "pass",
+  "target": "local"
+}

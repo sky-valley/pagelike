@@ -1,0 +1,28 @@
+{
+  "case": "sse.subscribe.first-event-is-connection",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (sse open s1)",
+      "method": "GET",
+      "path": "/_pl/sse-subscribe-first-event-is-connection-039342/doc.html",
+      "status": 200,
+      "headers": {
+        "cache-control": "no-cache",
+        "content-type": "text/event-stream",
+        "x-accel-buffering": "no"
+      }
+    },
+    {
+      "step": "step 2",
+      "events": [
+        {
+          "event": "pagelove-connection",
+          "data": "b16865ea-06d0-4480-b631-8ce07e34f887"
+        }
+      ]
+    }
+  ],
+  "outcome": "pass",
+  "target": "local"
+}

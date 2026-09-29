@@ -1,0 +1,472 @@
+# Absence vs denial: how 404/416 combine with 401/403 for reads and writes.
+# Spec: docs/spec/reading-writing.md §17 (R-RW-125..129), §18 (error documents).
+cases:
+  - id: rw.authz.absent-target-on-readable-page-416
+    title: A selector write whose target is absent on a readable page is 416
+    area: reading-writing
+    feature: Absence vs denial
+    evidence: documented
+    source: "docs reference/reading-and-writing/PUT-method 'Absence and denial are distinct' note (snapshot 2026-09-28)"
+    confidence: medium
+    requires: []
+    live: true
+    site:
+      settings: {default_get: allow}
+      files:
+        - path: "${P}/page.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <ul id="open"><li id="o1">one</li></ul>
+              <p id="plain">plain</p>
+            </body></html>
+      rules:
+        - {actor: "*", resource: "${P}/*", method: [GET, HEAD], action: Allow}
+        - {actor: "*", resource: "${P}/page.html", method: [PUT], selector: "#open li", action: Allow}
+    steps:
+      - name: allowed target present
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/page.html"
+          headers: {Range: "selector=#o1", Content-Type: "text/html"}
+          body: '<li id="o1">ONE</li>'
+        expect: {status: 206}
+      - name: target absent, page readable
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/page.html"
+          headers: {Range: "selector=#nothing-here", Content-Type: "text/html"}
+          body: "<p>x</p>"
+        expect: {status: 416}
+
+  - id: rw.authz.present-target-not-granted-401
+    title: A present target that no rule lets you write is refused (401 anonymous), never 416
+    area: reading-writing
+    feature: Absence vs denial
+    evidence: documented
+    source: "docs reference/reading-and-writing/PUT-method 'Absence and denial are distinct'; reference/permissions/AuthorizationRule §Testable examples (401 for anonymous) (snapshot 2026-09-28)"
+    confidence: high
+    requires: []
+    live: true
+    site:
+      settings: {default_get: allow}
+      files:
+        - path: "${P}/page.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <ul id="open"><li id="o1">one</li></ul>
+              <p id="plain">plain</p>
+            </body></html>
+      rules:
+        - {actor: "*", resource: "${P}/*", method: [GET, HEAD], action: Allow}
+        - {actor: "*", resource: "${P}/page.html", method: [PUT], selector: "#open li", action: Allow}
+    steps:
+      - name: write outside the granted selector
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/page.html"
+          headers: {Range: "selector=#plain", Content-Type: "text/html"}
+          body: '<p id="plain">hacked</p>'
+        expect: {status: 401}
+      - name: unchanged
+        as: anonymous
+        request:
+          method: GET
+          path: "${P}/page.html"
+          headers: {Range: "selector=#plain"}
+        expect:
+          status: 206
+          body_html: '<p id="plain">plain</p>'
+
+  - id: rw.authz.present-target-denied-401
+    title: A present target covered by a Deny rule is refused even though a broader Allow matches
+    area: reading-writing
+    feature: Absence vs denial
+    evidence: documented
+    source: "docs reference/reading-and-writing/PUT-method 'Absence and denial are distinct' ('a target that exists but is covered by a rule denying it'); AuthorizationRule §Conflict resolution (deny wins at equal specificity) (snapshot 2026-09-28)"
+    confidence: high
+    requires: []
+    live: true
+    site:
+      settings: {default_get: allow}
+      files:
+        - path: "${P}/page.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body><p id="free">free</p><p id="locked">locked</p></body></html>
+      rules:
+        - {actor: "*", resource: "${P}/*", method: [GET, HEAD], action: Allow}
+        - {actor: "*", resource: "${P}/page.html", method: [PUT], selector: "p", action: Allow}
+        - {actor: "*", resource: "${P}/page.html", method: [PUT], selector: "#locked", action: Deny}
+    steps:
+      - name: broader allow works
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/page.html"
+          headers: {Range: "selector=#free", Content-Type: "text/html"}
+          body: '<p id="free">edited</p>'
+        expect: {status: 206}
+      - name: denied element refused
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/page.html"
+          headers: {Range: "selector=#locked", Content-Type: "text/html"}
+          body: '<p id="locked">edited</p>'
+        expect: {status: 401}
+      - name: absent element on a readable page is still 416
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/page.html"
+          headers: {Range: "selector=#absent", Content-Type: "text/html"}
+          body: '<p id="absent">x</p>'
+        expect: {status: 416}
+
+  - id: rw.authz.unreadable-page-refuses-identically
+    title: On a page you cannot read, absent and present-but-not-granted targets are refused identically
+    area: reading-writing
+    feature: Absence vs denial
+    evidence: documented
+    source: "docs reference/reading-and-writing/PUT-method 'Absence and denial are distinct' ('a target you would not be permitted to read ... writes refuse identically whether the target exists or not') (snapshot 2026-09-28)"
+    confidence: medium
+    requires: []
+    live: true
+    site:
+      settings: {default_get: allow}
+      files:
+        - path: "${P}/secret.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body><div id="slot">drop box</div><p id="other">other</p></body></html>
+      rules:
+        - {actor: "*", resource: "${P}/*", method: [GET, HEAD], action: Allow}
+        - {actor: "*", resource: "${P}/secret.html", method: [GET, HEAD], action: Deny}
+        - {actor: "*", resource: "${P}/secret.html", method: [PUT], selector: "#slot", action: Allow}
+    steps:
+      - name: absent target
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/secret.html"
+          headers: {Range: "selector=#absent", Content-Type: "text/html"}
+          body: '<p id="absent">x</p>'
+        expect: {status: 401}
+      - name: present but not granted
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/secret.html"
+          headers: {Range: "selector=#other", Content-Type: "text/html"}
+          body: '<p id="other">x</p>'
+        expect: {status: 401}
+      - name: the page itself is not readable
+        as: anonymous
+        request:
+          method: GET
+          path: "${P}/secret.html"
+          headers: {Range: "selector=#nothing"}
+        expect: {status: 401}
+
+  - id: rw.authz.write-only-slot
+    title: A granted target on a page you cannot read can still be written
+    area: reading-writing
+    feature: Absence vs denial
+    evidence: inferred
+    source: "docs PUT-method 'Absence and denial are distinct' ('If you can write to part of a page you cannot read ...')"
+    confidence: low
+    requires: [webdav]
+    live: true
+    site:
+      settings: {default_get: allow}
+      files:
+        - path: "${P}/dropbox.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body><div id="slot">empty</div></body></html>
+      rules:
+        - {actor: "*", resource: "${P}/*", method: [GET, HEAD], action: Allow}
+        - {actor: "*", resource: "${P}/dropbox.html", method: [GET, HEAD], action: Deny}
+        - {actor: "*", resource: "${P}/dropbox.html", method: [PUT], selector: "#slot", action: Allow}
+    steps:
+      - name: write the slot
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/dropbox.html"
+          headers: {Range: "selector=#slot", Content-Type: "text/html"}
+          body: '<div id="slot">submitted</div>'
+        expect: {status: 206}
+      - name: author sees it on the authoring plane
+        as: author
+        plane: dav
+        request: {method: GET, path: "${P}/dropbox.html"}
+        expect:
+          status: 200
+          body_contains: ["submitted"]
+
+  - id: rw.authz.denied-fragment-read
+    title: Single-target reads check only the first match; all-matches reads refuse if any match is denied
+    area: reading-writing
+    feature: Absence vs denial
+    evidence: documented
+    source: "docs reference/permissions/AuthorizationRule §Selectors that match several elements (snapshot 2026-09-28)"
+    confidence: high
+    requires: []
+    live: true
+    notes: >-
+      Live PageLove (2026-09-28, harness/observations/live-2026-09-28/rw-authz-denied-fragment-read.json)
+      serves the denied element: a selector-scoped Deny does not override a resource-level Allow.
+      pagelike keeps the documented, safer behaviour (docs/compat/decisions.md, keep-documented-security);
+      rw.authz.denied-fragment-read.live measures the divergence.
+    site:
+      settings: {default_get: allow}
+      files:
+        - path: "${P}/mixed.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body><ul><li>public one</li><li class="secret">secret two</li><li>public three</li></ul></body></html>
+      rules:
+        - {actor: "*", resource: "${P}/*", method: [GET, HEAD], action: Allow}
+        - {actor: "*", resource: "${P}/mixed.html", method: [GET, HEAD], selector: ".secret", action: Deny}
+    steps:
+      - name: denied element read directly
+        as: anonymous
+        request:
+          method: GET
+          path: "${P}/mixed.html"
+          headers: {Range: "selector=.secret"}
+        expect:
+          status: 401
+          body_not_contains: ["secret two"]
+      - name: broad selector, first match public
+        as: anonymous
+        request:
+          method: GET
+          path: "${P}/mixed.html"
+          headers: {Range: "selector=li"}
+        expect:
+          status: 206
+          body_html: "<li>public one</li>"
+      - name: all matches as multipart
+        as: anonymous
+        request:
+          method: GET
+          path: "${P}/mixed.html"
+          headers: {Range: "selector=li", Accept: "multipart/mixed"}
+        expect:
+          status: 401
+          body_not_contains: ["secret two"]
+      - name: all matches as JSON-LD
+        as: anonymous
+        request:
+          method: GET
+          path: "${P}/mixed.html"
+          headers: {Range: "selector=li", Accept: "application/ld+json"}
+        expect:
+          status: 401
+          body_not_contains: ["secret two"]
+
+  - id: rw.authz.denied-fragment-read.live
+    title: "Live PageLove serves elements a selector-scoped Deny names when a resource-level rule allows the read"
+    area: reading-writing
+    feature: Absence vs denial
+    status: live-divergence
+    evidence: live-observed
+    source: "harness/observations/live-2026-09-28/rw-authz-denied-fragment-read.json (host live-test-host, 2026-09-28)"
+    confidence: high
+    requires: []
+    live: true
+    notes: >-
+      Measures a deliberate divergence (docs/compat/decisions.md, keep-documented-security):
+      pagelike refuses these reads (rw.authz.denied-fragment-read). Runs only against --target live.
+    site:
+      settings: {default_get: allow}
+      files:
+        - path: "${P}/mixed.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body><ul><li>public one</li><li class="secret">secret two</li><li>public three</li></ul></body></html>
+      rules:
+        - {actor: "*", resource: "${P}/*", method: [GET, HEAD], action: Allow}
+        - {actor: "*", resource: "${P}/mixed.html", method: [GET, HEAD], selector: ".secret", action: Deny}
+    steps:
+      - name: denied element served
+        as: anonymous
+        request:
+          method: GET
+          path: "${P}/mixed.html"
+          headers: {Range: "selector=.secret"}
+        expect:
+          status: 206
+          body_contains: ["secret two"]
+      - name: all matches as multipart include it
+        as: anonymous
+        request:
+          method: GET
+          path: "${P}/mixed.html"
+          headers: {Range: "selector=li", Accept: "multipart/mixed"}
+        expect:
+          status: 200
+          body_contains: ["secret two"]
+          multipart_parts: 3
+      - name: all matches as JSON-LD answered
+        as: anonymous
+        request:
+          method: GET
+          path: "${P}/mixed.html"
+          headers: {Range: "selector=li", Accept: "application/ld+json"}
+        expect: {status: 206}
+
+  - id: rw.authz.unreadable-area-missing-document
+    title: A missing document in an area you cannot read is refused, not 404
+    area: reading-writing
+    feature: Absence vs denial
+    evidence: inferred
+    source: "docs PUT/POST/DELETE 'Absence and denial are distinct' ('there is nothing there is itself information'); AuthorizationRule §Testable examples (Path restrictions -> 401)"
+    confidence: medium
+    requires: []
+    live: true
+    site:
+      settings: {default_get: allow}
+      rules:
+        - {actor: "*", resource: "${P}/*", method: [GET, HEAD], action: Allow}
+        - {actor: "*", resource: "${P}/hidden/*", method: [GET, HEAD], action: Deny}
+    steps:
+      - name: missing document under a denied prefix
+        as: anonymous
+        request: {method: GET, path: "${P}/hidden/nope.html"}
+        expect: {status: 401}
+
+  - id: rw.authz.no-method-grant
+    title: With no rule granting the method, selector writes are refused whether or not the target exists
+    area: reading-writing
+    feature: Absence vs denial
+    evidence: inferred
+    source: "docs AuthorizationRule §Conflict resolution ('When no rule matches at all, the request is denied'); spec R-RW-126, Q-19"
+    confidence: medium
+    requires: []
+    live: true
+    site:
+      settings: {default_get: allow}
+      files:
+        - path: "${P}/nodelete.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body><p id="present">here</p></body></html>
+      rules:
+        - {actor: "*", resource: "${P}/*", method: [GET, HEAD], action: Allow}
+    steps:
+      - name: delete a present element
+        as: anonymous
+        request:
+          method: DELETE
+          path: "${P}/nodelete.html"
+          headers: {Range: "selector=#present"}
+        expect: {status: 401}
+      - name: delete an absent element
+        as: anonymous
+        request:
+          method: DELETE
+          path: "${P}/nodelete.html"
+          headers: {Range: "selector=#absent"}
+        expect: {status: 401}
+      - name: whole-document delete
+        as: anonymous
+        request: {method: DELETE, path: "${P}/nodelete.html"}
+        expect: {status: 401}
+
+  - id: rw.authz.401-error-document
+    title: An anonymous denial carries the documented 401 Error document
+    area: reading-writing
+    feature: Error documents
+    evidence: documented
+    source: "docs reference/permissions/AuthorizationRule §Testable examples (401 body with itemtype https://pagelove.org/1.0/Error, message, resource) (snapshot 2026-09-28); read-probes.json case query-sessel"
+    confidence: medium
+    requires: []
+    live: true
+    site:
+      settings: {default_get: allow}
+      files:
+        - path: "${P}/authz-deny-test.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body><p>Original</p></body></html>
+      rules:
+        - {actor: "*", resource: "${P}/*", method: [GET, HEAD], action: Allow}
+    steps:
+      - name: unauthorized whole PUT
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/authz-deny-test.html"
+          headers: {Content-Type: "text/html"}
+          body: |
+            <!DOCTYPE html>
+            <html><body><p>Modified</p></body></html>
+        expect:
+          status: 401
+          header_matches: {Content-Type: "^text/html"}
+          microdata:
+            - type: "https://pagelove.org/1.0/Error"
+              properties:
+                resource: "${P}/authz-deny-test.html"
+      - name: unchanged
+        as: anonymous
+        request: {method: GET, path: "${P}/authz-deny-test.html"}
+        expect:
+          status: 200
+          body_contains: ["Original"]
+          body_not_contains: ["Modified"]
+
+  - id: rw.authz.authenticated-denial-403
+    title: The same denial is 403 for a signed-in actor and 401 for anonymous
+    area: reading-writing
+    feature: Absence vs denial
+    evidence: documented
+    source: "docs reference/reading-and-writing/MOVE-method §Denials (401 unauthenticated / 403 authenticated) (snapshot 2026-09-28)"
+    confidence: high
+    requires: [multi-actor]
+    live: false
+    site:
+      settings: {default_get: allow}
+      files:
+        - path: "${P}/team.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body><p id="mine">alice's</p><p id="theirs">bob's</p></body></html>
+      rules:
+        - {actor: "*", resource: "${P}/*", method: [GET, HEAD], action: Allow}
+        - {actor: alice, resource: "${P}/team.html", method: [PUT], selector: "#mine", action: Allow}
+    actors:
+      alice: {sub: alice, email: alice@example.com, email_verified: true, roles: []}
+    steps:
+      - name: alice writes her element
+        as: alice
+        request:
+          method: PUT
+          path: "${P}/team.html"
+          headers: {Range: "selector=#mine", Content-Type: "text/html"}
+          body: '<p id="mine">alice edited</p>'
+        expect: {status: 206}
+      - name: alice may not write the other element
+        as: alice
+        request:
+          method: PUT
+          path: "${P}/team.html"
+          headers: {Range: "selector=#theirs", Content-Type: "text/html"}
+          body: '<p id="theirs">alice edited</p>'
+        expect: {status: 403}
+      - name: anonymous gets 401 for the same write
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/team.html"
+          headers: {Range: "selector=#theirs", Content-Type: "text/html"}
+          body: '<p id="theirs">anon edited</p>'
+        expect: {status: 401}

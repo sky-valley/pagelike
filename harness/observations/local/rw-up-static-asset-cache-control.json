@@ -1,0 +1,72 @@
+{
+  "case": "rw.up.static-asset-cache-control",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (CSS)",
+      "method": "GET",
+      "path": "/_pl/rw-up-static-asset-cache-control-b54b56/site.css",
+      "status": 200,
+      "headers": {
+        "accept-ranges": "bytes",
+        "cache-control": "public, max-age=300",
+        "content-length": "16",
+        "content-type": "text/css",
+        "etag": "\"64c216c45aac23cc179bdb4d8e82fa0b28b99d17ceef385fca71e1dcfdd347db\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:56 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "p { margin: 0; }"
+    },
+    {
+      "step": "step 2 (JavaScript)",
+      "method": "GET",
+      "path": "/_pl/rw-up-static-asset-cache-control-b54b56/app.js",
+      "status": 200,
+      "headers": {
+        "accept-ranges": "bytes",
+        "cache-control": "public, max-age=300",
+        "content-length": "15",
+        "content-type": "text/javascript",
+        "etag": "\"35c146f76e129477c64061bc84511e1090f3d4d8059713e6663dd4b35b1f7642\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:56 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "console.log(1);"
+    },
+    {
+      "step": "step 3 (image)",
+      "method": "GET",
+      "path": "/_pl/rw-up-static-asset-cache-control-b54b56/logo.png",
+      "status": 200,
+      "headers": {
+        "accept-ranges": "bytes",
+        "cache-control": "public, max-age=300",
+        "content-length": "9",
+        "content-type": "image/png",
+        "etag": "\"ea80334363eed145dfeee51ebae7dc3f1cd7d0c7879f8bfd2070c061d3c33f56\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:56 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "png-bytes"
+    },
+    {
+      "step": "step 4 (font)",
+      "method": "GET",
+      "path": "/_pl/rw-up-static-asset-cache-control-b54b56/font.woff2",
+      "status": 200,
+      "headers": {
+        "accept-ranges": "bytes",
+        "cache-control": "public, max-age=300",
+        "content-length": "11",
+        "content-type": "font/woff2",
+        "etag": "\"a08fab20cf895c02f7753dbf6eaacf5fc7cc44af3c3813f46f0a1e31fe290127\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:56 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "woff2-bytes"
+    }
+  ],
+  "outcome": "pass",
+  "target": "local"
+}

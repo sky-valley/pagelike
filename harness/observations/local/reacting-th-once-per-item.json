@@ -1,0 +1,64 @@
+{
+  "case": "reacting.th.once-per-item",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (register Order with orderNumber as @key)",
+      "method": "PUT",
+      "path": "/_pl/reacting-th-once-per-item-378cea/schema.html",
+      "status": 201,
+      "headers": {
+        "content-length": "547",
+        "content-type": "text/html",
+        "etag": "\"c53098576aeff9b2edd255b7a1e58c93691eccd0dcc1df8c1ac02ca27afc08aa\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:49 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\n\u003cdiv hidden itemscope itemtype=\"https://pagelove.org/Schema\"\u003e\n  \u003cmeta itemprop=\"type\" content=\"https://pagelike.test/_pl/reacting-th-once-per-item-378cea/Order\"\u003e\n  \u003cdiv itemprop=\"property\" itemscope itemtype=\"https://pagelove.org/Property\"\u003e\n    \u003cmeta itemprop=\"name\" content=\"orderNumber\"\u003e\n    \u003cmeta itemprop=\"type\" content=\"https://schema.host/Text\"\u003e\n    \u003cmeta itemprop=\"cardinality\" content=\"1..1\"\u003e\n    \u003cmeta itemprop=\"unique\" content=\"true\"\u003e\n    \u003cmeta itemprop=\"@key\" content=\"true\"\u003e\n  \u003c/div\u003e\n\u003c/div\u003e\n\u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 2 (install a handler (Order.status becomes processing -\u003e POST ${SINK}/payments))",
+      "method": "PUT",
+      "path": "/_pl/reacting-th-once-per-item-378cea/r/handlers.html",
+      "status": 201,
+      "headers": {
+        "content-length": "541",
+        "content-type": "text/html",
+        "etag": "\"a3d40343cfc40151f7578c95f9e19fd7b7b3dd9ef366e41f6e0fe3e09bd93f2f\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:49 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\n\u003cdiv itemscope itemtype=\"https://pagelove.org/TransitionHandler\"\u003e\n  \u003cmeta itemprop=\"selector\" content=\"[itemtype='https://pagelike.test/_pl/reacting-th-once-per-item-378cea/Order']\"\u003e\n  \u003cmeta itemprop=\"property\" content=\"status\"\u003e\n  \u003cmeta itemprop=\"becomes\" content=\"processing\"\u003e\n  \u003cdiv itemprop=\"action\" itemscope itemtype=\"https://pagelove.org/HttpRequest\"\u003e\n    \u003cmeta itemprop=\"url\" content=\"http://127.0.0.1:53624/c-9b41b597/payments\"\u003e\n    \u003cmeta itemprop=\"method\" content=\"POST\"\u003e\n  \u003c/div\u003e\n\u003c/div\u003e\n\u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 3 (two pending orders)",
+      "method": "PUT",
+      "path": "/_pl/reacting-th-once-per-item-378cea/orders/batch.html",
+      "status": 201,
+      "headers": {
+        "content-length": "408",
+        "content-type": "text/html",
+        "etag": "\"aa9d08652f85cb056b4283a502ac5533dee70f696623fdb4b53a15b428178095\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:49 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\n\u003cdiv itemscope itemtype=\"https://pagelike.test/_pl/reacting-th-once-per-item-378cea/Order\"\u003e\u003cmeta itemprop=\"orderNumber\" content=\"10\"\u003e\u003cmeta itemprop=\"status\" content=\"pending\"\u003e\u003c/div\u003e\n\u003cdiv itemscope itemtype=\"https://pagelike.test/_pl/reacting-th-once-per-item-378cea/Order\"\u003e\u003cmeta itemprop=\"orderNumber\" content=\"11\"\u003e\u003cmeta itemprop=\"status\" content=\"pending\"\u003e\u003c/div\u003e\n\u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 4 (both become processing in one write)",
+      "method": "PUT",
+      "path": "/_pl/reacting-th-once-per-item-378cea/orders/batch.html",
+      "status": 200,
+      "headers": {
+        "content-length": "414",
+        "content-type": "text/html",
+        "etag": "\"837e604f679157c41a931ea73b01c16d14a8363e02363704044dd8f4f2f45e2d\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:49 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\n\u003cdiv itemscope itemtype=\"https://pagelike.test/_pl/reacting-th-once-per-item-378cea/Order\"\u003e\u003cmeta itemprop=\"orderNumber\" content=\"10\"\u003e\u003cmeta itemprop=\"status\" content=\"processing\"\u003e\u003c/div\u003e\n\u003cdiv itemscope itemtype=\"https://pagelike.test/_pl/reacting-th-once-per-item-378cea/Order\"\u003e\u003cmeta itemprop=\"orderNumber\" content=\"11\"\u003e\u003cmeta itemprop=\"status\" content=\"processing\"\u003e\u003c/div\u003e\n\u003c/body\u003e\u003c/html\u003e\n"
+    }
+  ],
+  "outcome": "pass",
+  "target": "local"
+}

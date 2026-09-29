@@ -1,0 +1,35 @@
+{
+  "case": "javascript.dom.tree-operations",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (PUT the page (public plane; registers inline declarations))",
+      "method": "PUT",
+      "path": "/_pl/javascript-dom-tree-operations-cdc634/probe.html",
+      "status": 201,
+      "headers": {
+        "content-type": "text/html",
+        "etag": "\"7e710ddb944aa645fb4ed606d0974ba87ebb281b7bd0aec461b6a68d147f7e6b\"",
+        "last-modified": "Tue, 29 Sep 2026 01:54:06 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml xmlns:t=\"https://pagelike.test/_pl/javascript-dom-tree-operations-cdc634/Dtreeoperations\"\u003e\u003cbody\u003e\n\u003cmain\u003e\n\u003ct:probe\u003e\u003c/t:probe\u003e\n\u003c/main\u003e\n\u003cdiv hidden itemscope itemtype=\"https://pagelove.org/Schema\"\u003e\n\u003cmeta itemprop=\"type\" content=\"https://pagelike.test/_pl/javascript-dom-tree-operations-cdc634/Dtreeoperations\"\u003e\n\u003cul\u003e\n\u003cli itemprop=\"property\" itemscope itemtype=\"https://pagelove.org/Method\"\u003e\n\u003cmeta itemprop=\"name\" content=\"probe\"\u003e\n\u003cdiv itemprop=\"implementation\" itemscope itemtype=\"https://pagelove.org/JavaScript/Module\"\u003e\n\u003cscript itemprop=\"source\" type=\"module\"\u003e\nconst S = (...a) =\u003e a.map(String).join('|');\nconst H = (x) =\u003e String(x).replace(/[\u003c\u003e\"]/g, (c) =\u003e ({ '\u003c': '[', '\u003e': ']', '\"': \"'\" })[c]);\nconst tryName = (f) =\u003e { try { f(); return 'ok'; } catch (e) { return e.name + ':' + e.code; } };\nexport default function () {\nconst d = new DOMParser().parseFromString('\u003cdiv id=\"root\"\u003e\u003cul id=\"l\"\u003e\u003cli\u003ea\u003c/li\u003e\u003cli\u003eb\u003c/li\u003e\u003c/ul\u003e\u003c/div\u003e', 'text/html');\nconst l = d.querySelector('#l');\nconst n = d.createElement('li'); n.textContent = 'top';\nconst r1 = l.insertBefore(n, l.firstChild) === n;\nconst tail = d.createElement('li'); tail.textContent = 'tail';\nl.insertBefore(tail, null);\nconst removed = l.removeChild(l.lastChild);\nconst r2 = removed.parentNode === null \u0026\u0026 removed.textContent === 'tail';\nconst repl = d.createElement('li'); repl.textContent = 'B';\nconst old = l.replaceChild(repl, l.children.item(2));\nconst frag = d.createDocumentFragment(); ['x', 'y'].forEach((t) =\u003e { const e = d.createElement('li'); e.textContent = t; frag.appendChild(e); });\nl.appendChild(frag);\nconst shallow = l.cloneNode(); const deep = l.cloneNode(true);\nconst other = new DOMParser().parseFromString('\u003cp\u003eq\u003c/p\u003e', 'text/html');\nconst box = d.createElement('div'); box.textContent = 'z'; box.textContent = '';\nreturn 'R:' + S(r1, r2, old.textContent, frag.childNodes.length, Array.from(l.children, (e) =\u003e e.textContent).join(','), shallow.hasChildNodes(), deep.children.length, l.contains(l.firstChild), l.contains(other.querySelector('p')), box.hasChildNodes(), d.ownerDocument, l.ownerDocument.nodeType, l.firstElementChild.textContent, l.childElementCount, l.lastElementChild.previousElementSibling.textContent, l.parentElement.tagName);\n}\n\u003c/script\u003e\n\u003c/div\u003e\n\u003c/li\u003e\n\u003c/ul\u003e\n\u003cmeta itemprop=\"@id\" content=\"https://schema.host/uxr8celc\"\u003e\u003cmeta itemprop=\"path\" content=\"/Schemahttps://schema.host/uxr8celc.html\"\u003e\u003c/div\u003e\n\n                \u003cdiv style=\"\n                            position: fixed;\n                            bottom: 0;\n                            left: 0;\n                            right: 0;\n                            padding: 8px;\n                            background: #f0f0f0;\n                            text-align: center;\n                            font-size: 12px;\n                            color: #666;\n                            z-index: 9999;\n                            opacity: 0.8;\n                            border-top: 1px solid #ddd;\n                        \"\u003e\n                    Powered by\n                    \u003ca href=\"https://pagelove.com/\" style=\"color: #4a90d9; text-decoration: none\"\u003ePagelove\u003c/a\u003e\n                \u003c/div\u003e\n            \u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 2 (GET \u003cmain\u003e: the method result is inserted as text)",
+      "method": "GET",
+      "path": "/_pl/javascript-dom-tree-operations-cdc634/probe.html",
+      "status": 206,
+      "headers": {
+        "content-length": "86",
+        "content-range": "selector main",
+        "content-type": "text/html",
+        "etag": "\"d5c4368aefa79a83d5bd694365573392c5ee1c0e54eb898c53f781c32eea9f4a-d5c4368aefa79a83d5bd694365573392c5ee1c0e54eb898c53f781c32eea9f4a-1\"",
+        "vary": "Host, Range, Accept"
+      },
+      "body": "\u003cmain\u003e\nR:true|true|b|0|top,a,B,x,y|false|5|true|false|false|null|9|top|5|x|DIV\n\u003c/main\u003e"
+    }
+  ],
+  "outcome": "pass",
+  "target": "live"
+}

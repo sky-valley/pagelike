@@ -1,0 +1,35 @@
+{
+  "case": "javascript.dom.probe-0929.inner-outer-steps",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (PUT the page (public plane; registers inline declarations))",
+      "method": "PUT",
+      "path": "/_pl/javascript-dom-probe-0929-inner-outer-st-f877e8/probe.html",
+      "status": 201,
+      "headers": {
+        "content-type": "text/html",
+        "etag": "\"84c55829ec4bc3ea2817e79f16b2de876dee8f8348f595a28157791bbaf5e8ad\"",
+        "last-modified": "Tue, 29 Sep 2026 01:31:55 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml xmlns:t=\"https://pagelike.test/_pl/javascript-dom-probe-0929-inner-outer-st-f877e8/Pinneroutersteps\"\u003e\u003cbody\u003e\n\u003cmain\u003e\n\u003ct:probe\u003e\u003c/t:probe\u003e\n\u003c/main\u003e\n\u003cdiv hidden itemscope itemtype=\"https://pagelove.org/Schema\"\u003e\n\u003cmeta itemprop=\"type\" content=\"https://pagelike.test/_pl/javascript-dom-probe-0929-inner-outer-st-f877e8/Pinneroutersteps\"\u003e\n\u003cul\u003e\n\u003cli itemprop=\"property\" itemscope itemtype=\"https://pagelove.org/Method\"\u003e\n\u003cmeta itemprop=\"name\" content=\"probe\"\u003e\n\u003cdiv itemprop=\"implementation\" itemscope itemtype=\"https://pagelove.org/JavaScript/Module\"\u003e\n\u003cscript itemprop=\"source\" type=\"module\"\u003e\nconst H = (x) =\u003e String(x).replace(/[\u003c\u003e\"]/g, (c) =\u003e ({ '\u003c': '[', '\u003e': ']', '\"': \"'\" })[c]);\nconst T = (f) =\u003e { try { return H(f()); } catch (e) { return 'E:' + e.name; } };\nconst J = (x) =\u003e JSON.stringify(x);\nconst X = (n) =\u003e new XMLSerializer().serializeToString(n);\nconst N = (n) =\u003e (n === null ? 'null' : n === undefined ? 'undef' : typeof n === 'object' ? 'node:' + n.nodeName : typeof n + ':' + n);\nexport default function () {\nconst d = new DOMParser().parseFromString('\u003cdiv id=\"root\"\u003e\u003csection id=\"s\"\u003e\u003cp\u003eOld\u003c/p\u003e\u003c/section\u003e\u003cul id=\"l\"\u003e\u003cli\u003e1\u003c/li\u003e\u003c/ul\u003e\u003c/div\u003e', 'text/html');\nconst root = d.querySelector('#root'), s = d.querySelector('#s'), l = d.querySelector('#l');\nconst out = [T(() =\u003e s.innerHTML), T(() =\u003e { s.innerHTML = '\u003cp\u003eLoaded.\u003c/p\u003e'; return s.innerHTML; }), T(() =\u003e l.outerHTML)];\nout.push(T(() =\u003e { l.insertAdjacentHTML('beforeend', '\u003cli\u003e2\u003c/li\u003e'); return 'ok'; }), T(() =\u003e { l.insertAdjacentHTML('AfterBegin', '\u003cli\u003e0\u003c/li\u003e'); return 'ok'; }), T(() =\u003e { l.insertAdjacentHTML('beforebegin', '\u003chr\u003e'); return 'ok'; }), T(() =\u003e { l.insertAdjacentHTML('afterend', '\u003cbr\u003e'); return 'ok'; }));\nout.push(T(() =\u003e Array.from(root.children, (e) =\u003e e.tagName).join(',')), T(() =\u003e Array.from(l.children, (e) =\u003e e.textContent).join(',')));\nout.push(T(() =\u003e { l.insertAdjacentHTML('middle', '\u003cli\u003ex\u003c/li\u003e'); return 'no-throw'; }));\nconst det = d.createElement('div');\nout.push(T(() =\u003e { det.insertAdjacentHTML('beforebegin', '\u003ci\u003ex\u003c/i\u003e'); return 'ok'; }), T(() =\u003e { det.outerHTML = '\u003cb\u003ex\u003c/b\u003e'; return 'no-throw'; }));\nout.push(T(() =\u003e { d.querySelector('hr').outerHTML = '\u003cspan id=\"sp\"\u003eS\u003c/span\u003e'; return d.querySelector('#sp').textContent; }), T(() =\u003e d.querySelectorAll('hr').length));\nconst d2 = new DOMParser().parseFromString('\u003cp id=\"t\"\u003et\u003c/p\u003e', 'text/html');\nconst top = [T(() =\u003e { d2.querySelector('#t').insertAdjacentHTML('afterend', '\u003ci\u003ei\u003c/i\u003e'); return X(d2); }), T(() =\u003e { d2.querySelector('#t').insertAdjacentHTML('beforebegin', '\u003cu\u003eu\u003c/u\u003e'); return X(d2); }), T(() =\u003e { d2.querySelector('#t').outerHTML = '\u003cb\u003eb\u003c/b\u003e'; return X(d2); })];\nreturn 'R:' + out.join('|') + ' ## ' + top.join('|');\n}\n\u003c/script\u003e\n\u003c/div\u003e\n\u003c/li\u003e\n\u003c/ul\u003e\n\u003cmeta itemprop=\"@id\" content=\"https://schema.host/052gn7n4\"\u003e\u003cmeta itemprop=\"path\" content=\"/Schemahttps://schema.host/052gn7n4.html\"\u003e\u003c/div\u003e\n\n                \u003cdiv style=\"\n                            position: fixed;\n                            bottom: 0;\n                            left: 0;\n                            right: 0;\n                            padding: 8px;\n                            background: #f0f0f0;\n                            text-align: center;\n                            font-size: 12px;\n                            color: #666;\n                            z-index: 9999;\n                            opacity: 0.8;\n                            border-top: 1px solid #ddd;\n                        \"\u003e\n                    Powered by\n                    \u003ca href=\"https://pagelove.com/\" style=\"color: #4a90d9; text-decoration: none\"\u003ePagelove\u003c/a\u003e\n                \u003c/div\u003e\n            \u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 2 (GET \u003cmain\u003e: the method result is inserted as text)",
+      "method": "GET",
+      "path": "/_pl/javascript-dom-probe-0929-inner-outer-st-f877e8/probe.html",
+      "status": 206,
+      "headers": {
+        "content-length": "238",
+        "content-range": "selector main",
+        "content-type": "text/html",
+        "etag": "\"f8534de8da18f53cee3cdeec0682a0b6b9da7f4dc596d29e272658c7a6a9ea5b-f8534de8da18f53cee3cdeec0682a0b6b9da7f4dc596d29e272658c7a6a9ea5b-1\"",
+        "vary": "Host, Range, Accept"
+      },
+      "body": "\u003cmain\u003e\nR:[p]Old[/p]|[p]Loaded.[/p]|[ul id='l'][li]1[/li][/ul]|ok|ok|ok|ok|SECTION,HR,UL,BR|0,1,2|E:SyntaxError|ok|E:NoModificationAllowedError|S|0 ## [p id='t']t[/p][i]i[/i]|[u]u[/u][p id='t']t[/p][i]i[/i]|[u]u[/u][b]b[/b][i]i[/i]\n\u003c/main\u003e"
+    }
+  ],
+  "outcome": "pass",
+  "target": "live"
+}

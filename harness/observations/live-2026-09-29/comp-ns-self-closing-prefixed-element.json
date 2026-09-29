@@ -1,0 +1,35 @@
+{
+  "case": "comp.ns.self-closing-prefixed-element",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (whole page)",
+      "method": "GET",
+      "path": "/_pl/comp-ns-self-closing-prefixed-element-a79cf9/page.html",
+      "status": 200,
+      "headers": {
+        "cache-control": "public, max-age=5",
+        "content-type": "text/html",
+        "etag": "W/\"5fdd224569c4704bb6d99c883091754994abce0766bdf04b068adb4f604f1c0a\"",
+        "vary": "Host, Range, Accept"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\n\u003cbody\u003e\n  \u003cheader id=\"nav\"\u003eNavigation\u003c/header\u003e\n  \u003cmain\u003e\u003cp\u003ePage content here.\u003c/p\u003e\u003c/main\u003e\n\n                \u003cdiv style=\"\n                            position: fixed;\n                            bottom: 0;\n                            left: 0;\n                            right: 0;\n                            padding: 8px;\n                            background: #f0f0f0;\n                            text-align: center;\n                            font-size: 12px;\n                            color: #666;\n                            z-index: 9999;\n                            opacity: 0.8;\n                            border-top: 1px solid #ddd;\n                        \"\u003e\n                    Powered by\n                    \u003ca href=\"https://pagelove.com/\" style=\"color: #4a90d9; text-decoration: none\"\u003ePagelove\u003c/a\u003e\n                \u003c/div\u003e\n            \u003c/body\u003e\n\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 2 (main is still a child of body)",
+      "method": "GET",
+      "path": "/_pl/comp-ns-self-closing-prefixed-element-a79cf9/page.html",
+      "status": 206,
+      "headers": {
+        "content-length": "38",
+        "content-range": "selector body \u003e main",
+        "content-type": "text/html",
+        "etag": "\"f7c3d612e5e401eba4e932b7ab8137c1d5ed654fca04f240c3a93098ec284e7d-f7c3d612e5e401eba4e932b7ab8137c1d5ed654fca04f240c3a93098ec284e7d-1\"",
+        "vary": "Host, Range, Accept"
+      },
+      "body": "\u003cmain\u003e\u003cp\u003ePage content here.\u003c/p\u003e\u003c/main\u003e"
+    }
+  ],
+  "outcome": "pass",
+  "target": "live"
+}

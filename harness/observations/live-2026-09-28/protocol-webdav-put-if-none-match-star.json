@@ -1,0 +1,45 @@
+{
+  "case": "protocol.webdav.put-if-none-match-star",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (existing path)",
+      "method": "PUT",
+      "path": "/_pl/protocol-webdav-put-if-none-match-star-cb7100/seed.html",
+      "status": 412,
+      "headers": {
+        "content-length": "447",
+        "content-type": "text/html; charset=utf-8"
+      },
+      "body": "\u003carticle itemscope itemtype=\"https://pagelove.org/Error\"\u003e\u003cmeta itemprop=\"status\" content=\"412\"\u003e\u003cmeta itemprop=\"kind\" content=\"Internal\"\u003e\u003cdiv itemprop=\"type\" itemscope itemtype=\"https://dombase.pagelove.team/ns/error/Internal\"\u003e\u003c/div\u003e\u003cdiv itemprop=\"detail\"\u003e\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\u003cdiv itemscope itemtype=\"http://pagelove.org/Error\"\u003e\u003cspan itemprop=\"message\"\u003ePrecondition Failed: resource already exists\u003c/span\u003e\u003c/div\u003e\u003c/body\u003e\u003c/html\u003e\u003c/div\u003e\u003c/article\u003e"
+    },
+    {
+      "step": "step 2 (content kept)",
+      "method": "GET",
+      "path": "/_pl/protocol-webdav-put-if-none-match-star-cb7100/seed.html",
+      "status": 200,
+      "headers": {
+        "accept-ranges": "bytes",
+        "content-length": "56",
+        "content-type": "text/html",
+        "etag": "\"3d4c38e5df0bda6ef6d8c8f88e6c295df57c370600b1b990f9bb108dc6b655bd\"",
+        "last-modified": "Mon, 28 Sep 2026 22:33:45 GMT"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\u003ch1\u003eSeed\u003c/h1\u003e\u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 3 (new path is created)",
+      "method": "PUT",
+      "path": "/_pl/protocol-webdav-put-if-none-match-star-cb7100/seed-2.html",
+      "status": 201,
+      "headers": {
+        "content-length": "58",
+        "content-type": "text/html",
+        "etag": "\"4d3288c78be975b6742f1be0b7609367015e58536071ed86687c834771121d67\""
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\u003ch1\u003eSeed 2\u003c/h1\u003e\u003c/body\u003e\u003c/html\u003e\n"
+    }
+  ],
+  "outcome": "pass",
+  "target": "live"
+}

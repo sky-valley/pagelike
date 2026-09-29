@@ -1,0 +1,75 @@
+{
+  "case": "apps.kanban.move-verified",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (drop card 1 at the end of Done)",
+      "method": "MOVE",
+      "path": "/_pl/apps-kanban-move-verified-6ecc84/boards/b1.html",
+      "status": 204,
+      "headers": {
+        "etag": "\"30d20d6336391f4575dca09b10b286edc49317a6b8041ec616e71653d3b4cce0\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:41 GMT",
+        "vary": "Host, Range"
+      }
+    },
+    {
+      "step": "step 2 (verification read (GET ?v=… of the destination container))",
+      "method": "GET",
+      "path": "/_pl/apps-kanban-move-verified-6ecc84/boards/b1.html?v=1",
+      "status": 206,
+      "headers": {
+        "accept-ranges": "selector, bytes",
+        "content-length": "206",
+        "content-range": "selector #L-done-cards",
+        "content-type": "text/html",
+        "etag": "\"c9eda2b21d07c09bf8fffb906213c9e48e947db4e51c6b3afd4d1c227863c939-c9eda2b21d07c09bf8fffb906213c9e48e947db4e51c6b3afd4d1c227863c939-2\"",
+        "vary": "Host, Range, Accept"
+      },
+      "body": "\u003cdiv class=\"cards\" id=\"L-done-cards\"\u003e\u003carticle class=\"card\" id=\"C-1\" itemscope itemtype=\"urn:board:Card\" draggable=\"true\"\u003e\u003cdiv class=\"card-title\" data-f=\"card-title\" itemprop=\"name\"\u003eOne\u003c/div\u003e\u003c/article\u003e\u003c/div\u003e"
+    },
+    {
+      "step": "step 3 (the card left its old list)",
+      "method": "GET",
+      "path": "/_pl/apps-kanban-move-verified-6ecc84/boards/b1.html",
+      "status": 206,
+      "headers": {
+        "accept-ranges": "selector, bytes",
+        "content-length": "371",
+        "content-range": "selector #L-todo-cards",
+        "content-type": "text/html",
+        "etag": "\"147491e6d928ca7a8a46ff319df0059a31e60b25dc2317b71b3be2dc893fb1fe-147491e6d928ca7a8a46ff319df0059a31e60b25dc2317b71b3be2dc893fb1fe-2\"",
+        "vary": "Host, Range, Accept"
+      },
+      "body": "\u003cdiv class=\"cards\" id=\"L-todo-cards\"\u003e\u003carticle class=\"card\" id=\"C-2\" itemscope itemtype=\"urn:board:Card\" draggable=\"true\"\u003e\u003cdiv class=\"card-title\" data-f=\"card-title\" itemprop=\"name\"\u003eTwo\u003c/div\u003e\u003c/article\u003e\u003carticle class=\"card\" id=\"C-3\" itemscope itemtype=\"urn:board:Card\" draggable=\"true\"\u003e\u003cdiv class=\"card-title\" data-f=\"card-title\" itemprop=\"name\"\u003eThree\u003c/div\u003e\u003c/article\u003e\u003c/div\u003e"
+    },
+    {
+      "step": "step 4 (drop card 2 before card 1)",
+      "method": "MOVE",
+      "path": "/_pl/apps-kanban-move-verified-6ecc84/boards/b1.html",
+      "status": 204,
+      "headers": {
+        "etag": "\"4008ddb01087f0d4d0d7d4d213f4ba62df6de2caea22ae8e57640d2229c34db0\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:41 GMT",
+        "vary": "Host, Range"
+      }
+    },
+    {
+      "step": "step 5 (Done now holds Two then One)",
+      "method": "GET",
+      "path": "/_pl/apps-kanban-move-verified-6ecc84/boards/b1.html?v=2",
+      "status": 206,
+      "headers": {
+        "accept-ranges": "selector, bytes",
+        "content-length": "369",
+        "content-range": "selector #L-done-cards",
+        "content-type": "text/html",
+        "etag": "\"9d64bade26efcf089e3d230e05278c924f13e473a97ae80d8e6a6227faf0accc-9d64bade26efcf089e3d230e05278c924f13e473a97ae80d8e6a6227faf0accc-3\"",
+        "vary": "Host, Range, Accept"
+      },
+      "body": "\u003cdiv class=\"cards\" id=\"L-done-cards\"\u003e\u003carticle class=\"card\" id=\"C-2\" itemscope itemtype=\"urn:board:Card\" draggable=\"true\"\u003e\u003cdiv class=\"card-title\" data-f=\"card-title\" itemprop=\"name\"\u003eTwo\u003c/div\u003e\u003c/article\u003e\u003carticle class=\"card\" id=\"C-1\" itemscope itemtype=\"urn:board:Card\" draggable=\"true\"\u003e\u003cdiv class=\"card-title\" data-f=\"card-title\" itemprop=\"name\"\u003eOne\u003c/div\u003e\u003c/article\u003e\u003c/div\u003e"
+    }
+  ],
+  "outcome": "pass",
+  "target": "local"
+}

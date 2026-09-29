@@ -1,0 +1,381 @@
+# Apps: pagelove-kanban (research/upstream/pagelove-kanban@85109ab).
+# Spec: docs/spec/apps.md A5, §7.5 (ACC-KB-*), R-APPS-9/16/25, W-1, W-2.
+# Requests are those of the app's fragment client PL.req (site/app.js:6-25):
+# "Range: selector=<sel>" plus "; placement=<p>" for POST only, MOVE with
+# "Destination: <same path>" and "Destination-Range: selector=<dest>; placement=<p>".
+# The template ships no rules; these cases use the open-mode rules of spec §6.3
+# (whole-resource grants), written with the rules shorthand.
+cases:
+  - id: apps.kanban.fragment-client-upsert
+    title: "Board writes: POST with placement, PUT-then-416-then-POST upsert, nested-selector PUT, DELETE"
+    area: apps
+    feature: "template: kanban"
+    evidence: demo-source
+    source: "pagelove-kanban site/app.js@85109ab:6-25 (PL.req), 51-61 (upsert on 416), 63-66 (setField), 1520-1529 (POST into a card), 2419-2431 (add list)"
+    confidence: high
+    requires: []
+    live: true
+    notes: "R-RW-66 (PUT never upserts: 416), R-RW-70..76, R-APPS-5 (?v= query ignored), R-APPS-25 (read-your-writes)."
+    site:
+      settings: {default_get: allow}
+      files:
+        - path: "${P}/boards/b1.html"
+          body: &board |
+            <!DOCTYPE html>
+            <html lang="en">
+            <head><meta charset="utf-8"><title>Launch — Board</title></head>
+            <body class="board" data-bg="ocean" data-board="b-test001" itemscope itemtype="urn:board:Board">
+            <meta data-f="board-bg" content="ocean">
+            <header class="topbar"><h1 class="board-name" data-f="board-name" itemprop="name">Launch</h1></header>
+            <main class="lists-row" id="lists"><section class="list" id="L-todo" itemscope itemtype="urn:board:List" draggable="true"><div class="list-head"><h2 class="list-title" data-f="list-name" itemprop="name">To do</h2></div><div class="cards" id="L-todo-cards"><article class="card" id="C-1" itemscope itemtype="urn:board:Card" draggable="true"><div class="card-title" data-f="card-title" itemprop="name">One</div></article><article class="card" id="C-2" itemscope itemtype="urn:board:Card" draggable="true"><div class="card-title" data-f="card-title" itemprop="name">Two</div></article><article class="card" id="C-3" itemscope itemtype="urn:board:Card" draggable="true"><div class="card-title" data-f="card-title" itemprop="name">Three</div></article></div></section><section class="list" id="L-done" itemscope itemtype="urn:board:List" draggable="true"><div class="list-head"><h2 class="list-title" data-f="list-name" itemprop="name">Done</h2></div><div class="cards" id="L-done-cards"></div></section></main>
+            <div hidden id="archive" itemprop="archive"></div>
+            <div hidden id="presence"></div>
+            <div hidden id="members"></div>
+            <div hidden id="activity"></div>
+            </body>
+            </html>
+      rules: &open
+        - {actor: "*", resource: "${P}/*", method: [GET, HEAD, OPTIONS, PUT, POST, DELETE, MOVE], action: Allow}
+    steps:
+      - name: add a list (POST #lists; placement=append)
+        as: anonymous
+        request:
+          method: POST
+          path: "${P}/boards/b1.html"
+          headers: {Range: "selector=#lists; placement=append", Content-Type: "text/html"}
+          body: '<section class="list" id="L-new" itemscope itemtype="urn:board:List" draggable="true"><div class="list-head"><h2 class="list-title" data-f="list-name" itemprop="name">Doing</h2></div><div class="cards" id="L-new-cards"></div></section>'
+        expect: {status: [200, 201, 206]}
+      - name: add a card to the just-created list (no staleness, W-2)
+        as: anonymous
+        request:
+          method: POST
+          path: "${P}/boards/b1.html"
+          headers: {Range: "selector=#L-new-cards; placement=append", Content-Type: "text/html"}
+          body: '<article class="card" id="C-9" itemscope itemtype="urn:board:Card" draggable="true"><div class="card-title" data-f="card-title" itemprop="name">Nine</div></article>'
+        expect: {status: [200, 201, 206]}
+      - name: "upsert, first try: PUT a field the card does not have yet"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/boards/b1.html"
+          headers: {Range: 'selector=#C-9 [data-f="card-due"]', Content-Type: "text/html"}
+          body: '<meta data-f="card-due" content="2026-10-01T00:00">'
+        expect: {status: 416}
+      - name: "upsert, fallback: POST the field into the card"
+        as: anonymous
+        request:
+          method: POST
+          path: "${P}/boards/b1.html"
+          headers: {Range: "selector=#C-9; placement=append", Content-Type: "text/html"}
+          body: '<meta data-f="card-due" content="2026-10-01T00:00">'
+        expect: {status: [200, 201, 206]}
+      - name: "upsert, second time: PUT now replaces the field"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/boards/b1.html"
+          headers: {Range: 'selector=#C-9 [data-f="card-due"]', Content-Type: "text/html"}
+          body: '<meta data-f="card-due" content="2026-10-02T00:00">'
+        expect: {status: [200, 204, 206]}
+      - name: rename the card (one-field PUT)
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/boards/b1.html"
+          headers: {Range: 'selector=#C-9 [data-f="card-title"]', Content-Type: "text/html"}
+          body: '<div class="card-title" data-f="card-title" itemprop="name">Renamed</div>'
+        expect: {status: [200, 204, 206]}
+      - name: read it back with a cache-busting query
+        as: anonymous
+        request:
+          method: GET
+          path: "${P}/boards/b1.html?v=1789423173000"
+          headers: {Range: "selector=#C-9"}
+        expect:
+          status: 206
+          body_contains: ["Renamed", 'content="2026-10-02T00:00"']
+          body_not_contains: ["2026-10-01"]
+      - name: create a missing container by POSTing into body
+        as: anonymous
+        request:
+          method: POST
+          path: "${P}/boards/b1.html"
+          headers: {Range: "selector=body; placement=append", Content-Type: "text/html"}
+          body: '<div hidden id="epics"></div>'
+        expect: {status: [200, 201, 206]}
+      - name: the container is addressable at once
+        as: anonymous
+        request:
+          method: POST
+          path: "${P}/boards/b1.html"
+          headers: {Range: "selector=#epics; placement=append", Content-Type: "text/html"}
+          body: '<article class="epic" id="E-1"><meta data-f="epic-name" content="Q4"></article>'
+        expect: {status: [200, 201, 206]}
+      - name: delete the card
+        as: anonymous
+        request:
+          method: DELETE
+          path: "${P}/boards/b1.html"
+          headers: {Range: "selector=#C-9"}
+        expect: {status: [200, 204]}
+      - name: deleting it again is 416
+        as: anonymous
+        request:
+          method: DELETE
+          path: "${P}/boards/b1.html"
+          headers: {Range: "selector=#C-9"}
+        expect: {status: 416}
+
+  - id: apps.kanban.move-verified
+    title: "Drag and drop: one MOVE per drop, and the verification read finds the card on the first try"
+    area: apps
+    feature: "template: kanban"
+    evidence: demo-source
+    source: "pagelove-kanban site/app.js@85109ab:10-12, 23 (MOVE headers), 29-49 (moveVerified), 3468-3486 (commitDrop: before next sibling, else append)"
+    confidence: high
+    requires: []
+    live: true
+    notes: "R-PROTO-90..96, R-PERM-47 (whole-resource grants satisfy all three checks), R-APPS-16, R-APPS-25. Destination is a path, as the app sends it."
+    site:
+      settings: {default_get: allow}
+      files:
+        - {path: "${P}/boards/b1.html", body: *board}
+      rules: *open
+    steps:
+      - name: drop card 1 at the end of Done
+        as: anonymous
+        request:
+          method: MOVE
+          path: "${P}/boards/b1.html"
+          headers:
+            Range: "selector=#C-1"
+            Destination: "${P}/boards/b1.html"
+            Destination-Range: "selector=#L-done-cards; placement=append"
+        expect: {status: [200, 204]}
+      - name: verification read (GET ?v=… of the destination container)
+        as: anonymous
+        request:
+          method: GET
+          path: "${P}/boards/b1.html?v=1"
+          headers: {Range: "selector=#L-done-cards"}
+        expect: {status: 206, body_contains: ['id="C-1"']}
+      - name: the card left its old list
+        as: anonymous
+        request:
+          method: GET
+          path: "${P}/boards/b1.html"
+          headers: {Range: "selector=#L-todo-cards"}
+        expect: {status: 206, body_not_contains: ['id="C-1"'], body_contains: ['id="C-2"', 'id="C-3"']}
+      - name: drop card 2 before card 1
+        as: anonymous
+        request:
+          method: MOVE
+          path: "${P}/boards/b1.html"
+          headers:
+            Range: "selector=#C-2"
+            Destination: "${P}/boards/b1.html"
+            Destination-Range: "selector=#C-1; placement=before"
+        expect: {status: [200, 204]}
+      - name: Done now holds Two then One
+        as: anonymous
+        request:
+          method: GET
+          path: "${P}/boards/b1.html?v=2"
+          headers: {Range: "selector=#L-done-cards"}
+        expect: {status: 206, body_matches: 'id="C-2"[\s\S]*id="C-1"'}
+
+  - id: apps.kanban.concurrent-moves-land
+    title: "Two simultaneous MOVEs in one board document both take effect"
+    area: apps
+    feature: "template: kanban"
+    evidence: documented
+    source: "docs reference/reading-and-writing/MOVE-method (atomic moves) (snapshot 2026-09-28); contradicted for an older build by pagelove-kanban site/app.js@85109ab:29-40"
+    confidence: high
+    requires: []
+    live: true
+    notes: "R-APPS-16, protocol C-13, apps W-1/C-7. The kanban comment reports ~3 in 4 concurrent pairs losing one move while answering 204; pagelike follows the docs."
+    site:
+      settings: {default_get: allow}
+      files:
+        - {path: "${P}/boards/b1.html", body: *board}
+      rules: *open
+    steps:
+      - parallel:
+          - as: anonymous
+            request:
+              method: MOVE
+              path: "${P}/boards/b1.html"
+              headers:
+                Range: "selector=#C-1"
+                Destination: "${P}/boards/b1.html"
+                Destination-Range: "selector=#L-done-cards; placement=append"
+            expect: {status: [200, 204]}
+          - as: anonymous
+            request:
+              method: MOVE
+              path: "${P}/boards/b1.html"
+              headers:
+                Range: "selector=#C-3"
+                Destination: "${P}/boards/b1.html"
+                Destination-Range: "selector=#L-done-cards; placement=append"
+            expect: {status: [200, 204]}
+      - name: both cards are in Done
+        as: anonymous
+        request:
+          method: GET
+          path: "${P}/boards/b1.html"
+          headers: {Range: "selector=#L-done-cards"}
+        expect: {status: 206, body_contains: ['id="C-1"', 'id="C-3"']}
+      - name: only card 2 is left in To do
+        as: anonymous
+        request:
+          method: GET
+          path: "${P}/boards/b1.html"
+          headers: {Range: "selector=#L-todo-cards"}
+        expect: {status: 206, body_contains: ['id="C-2"'], body_not_contains: ['id="C-1"', 'id="C-3"']}
+
+  - id: apps.kanban.home-prepend
+    title: "Creating a board prepends its tile to /index.html; the tile's fields are written one element at a time"
+    area: apps
+    feature: "template: kanban"
+    evidence: demo-source
+    source: "pagelove-kanban site/app.js@85109ab:541-561 (create board), 573 (star via setField), 633-639 (tile markup), 2509 (bg field on the home tile)"
+    confidence: high
+    requires: []
+    live: true
+    notes: "R-RW-71 (placement=prepend). The app writes to the literal /index.html path (app.js:542)."
+    site:
+      settings: {default_get: allow}
+      files:
+        - path: "${P}/index.html"
+          body: |
+            <!DOCTYPE html>
+            <html lang="en"><head><meta charset="utf-8"><title>Board</title></head>
+            <body class="home"><div class="home-wrap"><h1>Board</h1>
+            <ul class="board-grid" id="boards"><li class="board-tile" id="b-old0001" data-board="b-old0001" data-bg="sand" itemscope itemtype="urn:board:BoardRef"><a href="/boards/b-old0001.html" itemprop="name">Old</a><meta data-f="starred" content="false"><meta data-f="bg" content="sand"></li></ul>
+            <ul class="board-grid" id="archived-boards"></ul>
+            </div></body></html>
+      rules: *open
+    steps:
+      - name: create the board document (whole-document PUT)
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/boards/b-new0001.html"
+          headers: {Content-Type: "text/html"}
+          body: '<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><title>New — Board</title></head><body class="board" data-board="b-new0001"><main class="lists-row" id="lists"></main></body></html>'
+        expect: {status: [200, 201, 204]}
+      - name: prepend its tile on the home page
+        as: anonymous
+        request:
+          method: POST
+          path: "${P}/index.html"
+          headers: {Range: "selector=#boards; placement=prepend", Content-Type: "text/html"}
+          body: '<li class="board-tile" id="b-new0001" data-board="b-new0001" data-bg="forest" itemscope itemtype="urn:board:BoardRef"><a href="/boards/b-new0001.html" itemprop="name">New</a><meta data-f="starred" content="false"><meta data-f="bg" content="forest"><button class="tile-archive" type="button" aria-label="Archive board">Archive</button><button class="star" type="button" aria-pressed="false" aria-label="Star board">&#9733;</button></li>'
+        expect: {status: [200, 201, 206]}
+      - name: the new tile is first
+        as: anonymous
+        request:
+          method: GET
+          path: "${P}/index.html"
+          headers: {Range: "selector=#boards > li:first-child"}
+        expect: {status: 206, body_contains: ['id="b-new0001"']}
+      - name: star it (setField → PUT of one meta)
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/index.html"
+          headers: {Range: 'selector=#b-new0001 [data-f="starred"]', Content-Type: "text/html"}
+          body: '<meta data-f="starred" content="true">'
+        expect: {status: [200, 204, 206]}
+      - name: archive a board tile (MOVE into #archived-boards)
+        as: anonymous
+        request:
+          method: MOVE
+          path: "${P}/index.html"
+          headers:
+            Range: "selector=#b-old0001"
+            Destination: "${P}/index.html"
+            Destination-Range: "selector=#archived-boards; placement=append"
+        expect: {status: [200, 204]}
+      - name: final home state
+        as: anonymous
+        request:
+          method: GET
+          path: "${P}/index.html"
+          headers: {Range: "selector=#archived-boards"}
+        expect: {status: 206, body_contains: ['id="b-old0001"']}
+
+  - id: apps.kanban.whoami-template-any-prefix
+    title: "A Liquid template on a stored board works under the pagelove: prefix and renders empty claims for anonymous"
+    area: apps
+    feature: "template: kanban"
+    evidence: demo-source
+    source: "pagelove-kanban site/app.js@85109ab:643, 653 (board template: xmlns:pagelove, pagelove:template), 136-146 (client splits on |); docs reference/composing-pages/Includes §Namespace declaration ('the prefix can be any valid XML prefix') (snapshot 2026-09-28)"
+    confidence: medium
+    requires: [liquid]
+    live: true
+    notes: "R-APPS-9, R-APPS-10.4, R-COMP-11, R-COMP-14. request.auth.role (singular) is the kanban spelling (C-3); for anonymous every field is empty, so the text is four bars."
+    site:
+      settings: {default_get: allow}
+      files:
+        - path: "${P}/boards/w1.html"
+          body: &whoamiboard |
+            <!DOCTYPE html>
+            <html lang="en" xmlns:pagelove="https://pagelove.org/1.0">
+            <head><meta charset="utf-8"><title>Launch — Board</title></head>
+            <body class="board" data-bg="ocean" data-board="b-w1" itemscope itemtype="urn:board:Board">
+            <div id="whoami-server" hidden pagelove:template="text/liquid">{{ request.auth.username }}|{{ request.auth.claims.name }}|{{ request.auth.claims.email }}|{{ request.auth.claims.picture }}|{% for r in request.auth.role %}{{ r }} {% endfor %}</div>
+            <main class="lists-row" id="lists"></main>
+            </body>
+            </html>
+      rules: *open
+    steps:
+      - name: whole board (the app's sync read)
+        as: anonymous
+        request: {method: GET, path: "${P}/boards/w1.html?sync=1"}
+        expect:
+          status: 200
+          body_contains: ['id="whoami-server"']
+          body_not_contains: ["{{", "{%", "pagelove:template", "xmlns:pagelove"]
+      - name: the rendered identity line
+        as: anonymous
+        request:
+          method: GET
+          path: "${P}/boards/w1.html"
+          headers: {Range: "selector=#whoami-server"}
+        expect: {status: 206, body_contains: ["||||"]}
+      - name: the stored board keeps its template
+        as: author
+        plane: dav
+        request: {method: GET, path: "${P}/boards/w1.html"}
+        expect: {status: 200, body_contains: ['pagelove:template="text/liquid"', "{{ request.auth.username }}"]}
+
+  - id: apps.kanban.whoami-signed-in
+    title: "Signed in, the board's identity line carries sub|name|email|picture|roles"
+    area: apps
+    feature: "template: kanban"
+    evidence: demo-source
+    source: "pagelove-kanban site/app.js@85109ab:131-146, 653; docs languages/sessel/reference/syntax §Authenticated identity in composition (request.auth.username = OIDC sub) (snapshot 2026-09-28)"
+    confidence: medium
+    requires: [multi-actor, liquid]
+    live: false
+    notes: "R-APPS-10.4, R-PERM-13, R-PERM-74. No picture claim and no roles for this actor, so those two fields are empty."
+    actors:
+      alice: {sub: alice, email: alice@example.com, email_verified: true, name: Alice}
+    site:
+      settings: {default_get: allow}
+      files:
+        - {path: "${P}/boards/w1.html", body: *whoamiboard}
+      rules: *open
+    steps:
+      - name: identity line for alice
+        as: alice
+        request:
+          method: GET
+          path: "${P}/boards/w1.html"
+          headers: {Range: "selector=#whoami-server"}
+        expect:
+          status: 206
+          body_contains: ["alice|Alice|alice@example.com||"]
+          header_matches: {Cache-Control: "private"}

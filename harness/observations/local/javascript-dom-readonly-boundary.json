@@ -1,0 +1,37 @@
+{
+  "case": "javascript.dom.readonly-boundary",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (PUT the page (public plane; registers inline declarations))",
+      "method": "PUT",
+      "path": "/_pl/javascript-dom-readonly-boundary-5433a8/probe.html",
+      "status": 201,
+      "headers": {
+        "content-length": "1329",
+        "content-type": "text/html",
+        "etag": "\"00a4198ee5eae1870fb1830d83559a1a752bb285cd6599c12a46a96547dc46fb\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:43 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml xmlns:t=\"https://pagelike.test/_pl/javascript-dom-readonly-boundary-5433a8/Ro\"\u003e\u003cbody\u003e\n\u003cmain\u003e\n\u003ct:probe\u003e\u003cp id=\"p1\" class=\"c\"\u003ekeep\u003c/p\u003e\u003cul\u003e\u003cli\u003ei\u003c/li\u003e\u003c/ul\u003e\u003c/t:probe\u003e\n\u003c/main\u003e\n\u003cdiv hidden itemscope itemtype=\"https://pagelove.org/Schema\"\u003e\n\u003cmeta itemprop=\"type\" content=\"https://pagelike.test/_pl/javascript-dom-readonly-boundary-5433a8/Ro\"\u003e\n\u003cul\u003e\n\u003cli itemprop=\"property\" itemscope itemtype=\"https://pagelove.org/Method\"\u003e\n\u003cmeta itemprop=\"name\" content=\"probe\"\u003e\n\u003cdiv itemprop=\"implementation\" itemscope itemtype=\"https://pagelove.org/JavaScript/Module\"\u003e\n\u003cscript itemprop=\"source\" type=\"module\"\u003e\nconst S = (...a) =\u003e a.map(String).join('|');\nconst H = (x) =\u003e String(x).replace(/[\u003c\u003e\"]/g, (c) =\u003e ({ '\u003c': '[', '\u003e': ']', '\"': \"'\" })[c]);\nconst tryName = (f) =\u003e { try { f(); return 'ok'; } catch (e) { return e.name + ':' + e.code; } };\nexport default function () {\nconst p = document.querySelector('#p1');\nreturn 'RO:' + [tryName(() =\u003e p.setAttribute('id', 'x')), tryName(() =\u003e { p.textContent = 'y'; }), tryName(() =\u003e p.classList.add('d')), tryName(() =\u003e p.parentNode.appendChild(document.createElement('b'))), tryName(() =\u003e document.querySelectorAll('li').item(0).remove()), tryName(() =\u003e { p.innerHTML = '\u003cb\u003ez\u003c/b\u003e'; }), p.getAttribute('id'), p.textContent].join('|');\n}\n\u003c/script\u003e\n\u003c/div\u003e\n\u003c/li\u003e\n\u003c/ul\u003e\n\u003c/div\u003e\n\u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 2 (GET \u003cmain\u003e: the method result is inserted as text)",
+      "method": "GET",
+      "path": "/_pl/javascript-dom-readonly-boundary-5433a8/probe.html",
+      "status": 206,
+      "headers": {
+        "accept-ranges": "selector, bytes",
+        "content-length": "199",
+        "content-range": "selector main",
+        "content-type": "text/html",
+        "etag": "\"327014cd843fb4541ac12bd2a532dd0d0bba99a0ef48688691491aca6dc57fc0-327014cd843fb4541ac12bd2a532dd0d0bba99a0ef48688691491aca6dc57fc0-1\"",
+        "vary": "Host, Range, Accept"
+      },
+      "body": "\u003cmain\u003e\nRO:NoModificationAllowedError:7|NoModificationAllowedError:7|NoModificationAllowedError:7|NoModificationAllowedError:7|NoModificationAllowedError:7|NoModificationAllowedError:7|p1|keep\n\u003c/main\u003e"
+    }
+  ],
+  "outcome": "pass",
+  "target": "local"
+}

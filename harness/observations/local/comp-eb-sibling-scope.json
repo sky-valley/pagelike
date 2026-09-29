@@ -1,0 +1,38 @@
+{
+  "case": "comp.eb.sibling-scope",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (the declaring element sees it)",
+      "method": "GET",
+      "path": "/_pl/comp-eb-sibling-scope-effb04/page.html",
+      "status": 206,
+      "headers": {
+        "accept-ranges": "selector, bytes",
+        "content-length": "31",
+        "content-range": "selector #own",
+        "content-type": "text/html",
+        "etag": "\"20f05d490edff0ac83c7cd2854e8d090cc5487d91bfee7176b74c04ccdff9e67-20f05d490edff0ac83c7cd2854e8d090cc5487d91bfee7176b74c04ccdff9e67-1\"",
+        "vary": "Host, Range, Accept"
+      },
+      "body": "\u003cdiv id=\"own\"\u003eLOCAL-VALUE\u003c/div\u003e"
+    },
+    {
+      "step": "step 2 (the sibling does not)",
+      "method": "GET",
+      "path": "/_pl/comp-eb-sibling-scope-effb04/page.html",
+      "status": 206,
+      "headers": {
+        "accept-ranges": "selector, bytes",
+        "content-length": "40",
+        "content-range": "selector #sib",
+        "content-type": "text/html",
+        "etag": "\"b594faba1d0ea6e57c2c5d682b25f2c2c9887582e31681f9a23e5cb6192e948b-b594faba1d0ea6e57c2c5d682b25f2c2c9887582e31681f9a23e5cb6192e948b-1\"",
+        "vary": "Host, Range, Accept"
+      },
+      "body": "\u003cdiv id=\"sib\"\u003e\u003cspan\u003esibling\u003c/span\u003e\u003c/div\u003e"
+    }
+  ],
+  "outcome": "pass",
+  "target": "local"
+}

@@ -1,0 +1,67 @@
+{
+  "case": "comp.tr.child-mutation",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1",
+      "method": "GET",
+      "path": "/_pl/comp-tr-child-mutation-b059a8/cart.html",
+      "status": 200,
+      "headers": {
+        "accept-ranges": "selector, bytes",
+        "cache-control": "private",
+        "content-length": "114",
+        "content-type": "text/html",
+        "etag": "W/\"e9e5e06dfb71682c9bb4a3a7ea886337e4720f7220c234875503f49b168eb8a6\"",
+        "vary": "Host, Range, Accept"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\n\u003cbody\u003e\u003cul id=\"cart\"\u003e\u003cli id=\"item1\"\u003eApples\u003c/li\u003e\u003cli id=\"item2\"\u003eMilk\u003c/li\u003e\u003c/ul\u003e\u003c/body\u003e\n\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 2",
+      "method": "PUT",
+      "path": "/_pl/comp-tr-child-mutation-b059a8/cart.html",
+      "status": 206,
+      "headers": {
+        "cache-control": "private",
+        "content-length": "25",
+        "content-range": "selector #item1",
+        "content-type": "text/html",
+        "etag": "\"aa4a871f37dde43469e21c0776f629aa3f644c38269bd8980dfa76de85b702f9-aa4a871f37dde43469e21c0776f629aa3f644c38269bd8980dfa76de85b702f9-1\"",
+        "vary": "Host, Range"
+      },
+      "body": "\u003cli id=\"item1\"\u003ePears\u003c/li\u003e"
+    },
+    {
+      "step": "step 3",
+      "method": "GET",
+      "path": "/_pl/comp-tr-child-mutation-b059a8/cart.html",
+      "status": 200,
+      "headers": {
+        "accept-ranges": "selector, bytes",
+        "cache-control": "private",
+        "content-length": "113",
+        "content-type": "text/html",
+        "etag": "W/\"a1232c49146b0f97209f7b04250fda7493fca97413282f3b60c40776b09fbcb8\"",
+        "vary": "Host, Range, Accept"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\n\u003cbody\u003e\u003cul id=\"cart\"\u003e\u003cli id=\"item1\"\u003ePears\u003c/li\u003e\u003cli id=\"item2\"\u003eMilk\u003c/li\u003e\u003c/ul\u003e\u003c/body\u003e\n\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 4",
+      "method": "GET",
+      "path": "/_pl/comp-tr-child-mutation-b059a8/cart.html",
+      "status": 200,
+      "headers": {
+        "accept-ranges": "bytes",
+        "content-length": "161",
+        "content-type": "text/html",
+        "etag": "\"48955de0a9ea5c3b56099e5c74c57a4d272f9790a111c8398213ef228e497fd5\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:42 GMT"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml xmlns:p=\"https://pagelove.org/1.0\"\u003e\n\u003cbody\u003e\u003cul id=\"cart\" p:transient\u003e\u003cli id=\"item1\"\u003eApples\u003c/li\u003e\u003cli id=\"item2\"\u003eMilk\u003c/li\u003e\u003c/ul\u003e\u003c/body\u003e\n\u003c/html\u003e\n"
+    }
+  ],
+  "outcome": "pass",
+  "target": "local"
+}

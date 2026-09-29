@@ -1,0 +1,184 @@
+# Modeling: Method declarations on schemas (invocation is covered by the composition area).
+# Spec: docs/spec/modeling.md §14 (R-MOD-58..R-MOD-60).
+cases:
+  - id: modeling.methods.sessel-method-element
+    title: "A Method declared on a schema is dispatched by a method element once the document is PUT (docs urn:Test example)"
+    area: modeling
+    feature: methods
+    evidence: documented
+    source: "docs reference/modeling-data/Methods §Declaration (snapshot 2026-09-28); docs reference/composing-pages/Method-Elements §Element form (snapshot 2026-09-28)"
+    confidence: medium
+    requires: [sessel]
+    live: true
+    notes: "spec: R-MOD-58, R-MOD-60. Invocation semantics belong to the composition area; this case pins the declaration shape and its registration by PUT."
+    site:
+      settings:
+        default_get: allow
+      rules:
+        - actor: "*"
+          resource: "${P}/*"
+          method: [GET, HEAD, PUT, POST, DELETE, MOVE]
+          action: Allow
+        - actor: "*"
+          resource: "${P}/*/*"
+          method: [GET, HEAD, PUT, POST, DELETE, MOVE]
+          action: Allow
+    steps:
+      - name: "PUT a page carrying the schema inline and a method element"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/m.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html xmlns:t="https://pagelike.test${P}/MethodDemo"><body>
+              <main><t:foo></t:foo></main>
+              <div hidden itemscope itemtype="https://pagelove.org/Schema">
+                <meta itemprop="type" content="https://pagelike.test${P}/MethodDemo">
+                <ul>
+                  <li itemprop="property" itemscope itemtype="https://pagelove.org/Method">
+                    <meta itemprop="name" content="foo">
+                    <meta itemprop="returns" content="https://pagelove.org/Element">
+                    <div itemprop="implementation" itemscope itemtype="https://pagelove.org/Sessel">
+                      <script itemprop="source" type="text/sessel">new ul { new li { "foo" } }</script>
+                    </div>
+                  </li>
+                </ul>
+              </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "GET composes the method result in place"
+        as: anonymous
+        request:
+          method: GET
+          path: "${P}/m.html"
+        expect:
+          status: 200
+          body_contains: ["<li>foo</li>"]
+  - id: modeling.methods.js-method-element
+    title: "A Method with a JavaScript/Module implementation (docs JsDemo example)"
+    area: modeling
+    feature: methods
+    evidence: documented
+    source: "docs reference/composing-pages/Method-Elements §JavaScript example (snapshot 2026-09-28)"
+    confidence: medium
+    requires: [server-js]
+    live: true
+    notes: "spec: R-MOD-58."
+    site:
+      settings:
+        default_get: allow
+      rules:
+        - actor: "*"
+          resource: "${P}/*"
+          method: [GET, HEAD, PUT, POST, DELETE, MOVE]
+          action: Allow
+        - actor: "*"
+          resource: "${P}/*/*"
+          method: [GET, HEAD, PUT, POST, DELETE, MOVE]
+          action: Allow
+    steps:
+      - name: "PUT a page carrying the schema inline and a method element"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/j.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html xmlns:j="https://pagelike.test${P}/JsDemo"><body>
+              <main><j:hello></j:hello></main>
+              <div hidden itemscope itemtype="https://pagelove.org/Schema">
+                <meta itemprop="type" content="https://pagelike.test${P}/JsDemo">
+                <ul>
+                  <li itemprop="property" itemscope itemtype="https://pagelove.org/Method">
+                    <meta itemprop="name" content="hello">
+                    <meta itemprop="returns" content="https://pagelove.org/Element">
+                    <div itemprop="implementation" itemscope itemtype="https://pagelove.org/JavaScript/Module">
+                      <script itemprop="source" type="module">export default () => { const d = new DOMParser().parseFromString("<p>hello from JavaScript</p>", "text/html"); return d.querySelector("p"); };</script>
+                    </div>
+                  </li>
+                </ul>
+              </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "GET composes the JavaScript result"
+        as: anonymous
+        request:
+          method: GET
+          path: "${P}/j.html"
+        expect:
+          status: 200
+          body_contains: ["hello from JavaScript"]
+  - id: modeling.methods.not-a-data-property
+    title: "A Method declaration imposes no cardinality or type checks on instances"
+    area: modeling
+    feature: methods
+    evidence: inferred
+    source: "docs reference/modeling-data/Methods §Fields (snapshot 2026-09-28)"
+    confidence: medium
+    requires: []
+    live: true
+    notes: "spec: R-MOD-58."
+    site:
+      settings:
+        default_get: allow
+      rules:
+        - actor: "*"
+          resource: "${P}/*"
+          method: [GET, HEAD, PUT, POST, DELETE, MOVE]
+          action: Allow
+        - actor: "*"
+          resource: "${P}/*/*"
+          method: [GET, HEAD, PUT, POST, DELETE, MOVE]
+          action: Allow
+    steps:
+      - name: "register declarations through the public plane (takes effect for the next request)"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/schema.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div hidden itemscope itemtype="https://pagelove.org/Schema">
+                <meta itemprop="type" content="https://pagelike.test${P}/MethodDemo">
+                <div itemprop="property" itemscope itemtype="https://pagelove.org/Property">
+                  <meta itemprop="name" content="label">
+                  <meta itemprop="type" content="https://schema.host/Text">
+                  <meta itemprop="cardinality" content="0..1">
+                </div>
+                <ul>
+                  <li itemprop="property" itemscope itemtype="https://pagelove.org/Method">
+                    <meta itemprop="name" content="foo">
+                    <meta itemprop="returns" content="https://pagelove.org/Element">
+                    <div itemprop="implementation" itemscope itemtype="https://pagelove.org/Sessel">
+                      <script itemprop="source" type="text/sessel">new ul { new li { "foo" } }</script>
+                    </div>
+                  </li>
+                </ul>
+              </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "instance without foo accepted"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/a.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div itemscope itemtype="https://pagelike.test${P}/MethodDemo"></div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]

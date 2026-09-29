@@ -1,0 +1,365 @@
+# Whole templates from the tutorial and the official apps, run as written
+# (itemtypes/paths prefixed with ${P} for isolation).
+# Spec: docs/spec/liquid.md (all sections); sources cited per case.
+defaults:
+  area: liquid
+  requires: [liquid]
+cases:
+  - id: liquid.apps.blog-index-recent-posts
+    title: "Build-a-blog home page: where status, sort publishedAt, reverse, limit: 4"
+    feature: app templates
+    evidence: documented
+    source: "docs learn/build-a-blog §A home page that finds posts by itself (index.html template)"
+    confidence: high
+    live: true
+    site:
+      settings: {default_get: allow}
+      files:
+        - path: "${P}/data/posts/hello-world.html"
+          body: |
+            <!DOCTYPE html>
+            <html lang="en">
+            <head><meta charset="UTF-8"><title>data: hello-world</title></head>
+            <body>
+              <article itemscope itemtype="https://blog.example${P}/Post" id="post-hello-world">
+                <meta itemprop="slug" content="hello-world">
+                <meta itemprop="status" content="Published">
+                <meta itemprop="excerpt" content="The first post on Field Notes, and a look at how this blog works.">
+                <meta itemprop="displayDate" content="3 August 2026">
+                <meta itemprop="monthLabel" content="August 2026">
+                <h1 itemprop="title">Hello, world</h1>
+                <p class="byline"><time itemprop="publishedAt" datetime="2026-08-03">3 August 2026</time> · <span itemprop="author">Sam</span></p>
+                <div itemprop="body"><p>Welcome to Field Notes.</p></div>
+                <ul itemprop="comments" id="comments-hello-world" class="comment-list"></ul>
+              </article>
+            </body>
+            </html>
+        - path: "${P}/data/posts/second-thoughts.html"
+          body: |
+            <!DOCTYPE html>
+            <html lang="en">
+            <head><meta charset="UTF-8"><title>data: second-thoughts</title></head>
+            <body>
+              <article itemscope itemtype="https://blog.example${P}/Post" id="post-second-thoughts">
+                <meta itemprop="slug" content="second-thoughts">
+                <meta itemprop="status" content="Published">
+                <meta itemprop="excerpt" content="Second thoughts on the first post.">
+                <meta itemprop="displayDate" content="5 August 2026">
+                <meta itemprop="monthLabel" content="August 2026">
+                <h1 itemprop="title">Second thoughts</h1>
+                <p class="byline"><time itemprop="publishedAt" datetime="2026-08-05">5 August 2026</time> · <span itemprop="author">Sam</span></p>
+                <ul itemprop="comments" id="comments-second-thoughts" class="comment-list"></ul>
+              </article>
+            </body>
+            </html>
+        - path: "${P}/data/posts/draft.html"
+          body: |
+            <!DOCTYPE html>
+            <html lang="en"><body>
+              <article itemscope itemtype="https://blog.example${P}/Post" id="post-draft">
+                <meta itemprop="slug" content="draft"><meta itemprop="status" content="Draft">
+                <h1 itemprop="title">Unfinished</h1>
+                <time itemprop="publishedAt" datetime="2026-09-01">1 September 2026</time>
+              </article>
+            </body></html>
+        - path: "${P}/index.html"
+          body: |
+            <!DOCTYPE html>
+            <html lang="en" xmlns:p="https://pagelove.org/1.0" xmlns:r="https://pagelove.org/Binding/CSS">
+            <head>
+              <meta charset="UTF-8">
+              <title>Field Notes</title>
+            </head>
+            <body>
+              <h1>Field Notes</h1>
+
+              <section class="excerpts" r:posts="[itemtype='https://blog.example${P}/Post']" p:template="text/liquid">
+                {% assign recent = posts | where: "status", "Published" | sort: "publishedAt" | reverse %}
+                {% for post in recent limit: 4 %}
+                <article class="excerpt">
+                  <h2><a href="/posts/{{ post.slug }}.html">{{ post.title }}</a></h2>
+                  <p class="byline"><time datetime="{{ post.publishedAt }}">{{ post.displayDate }}</time> · {{ post.author }}</p>
+                  <p class="lede">{{ post.excerpt }}</p>
+                </article>
+                {% endfor %}
+              </section>
+            </body>
+            </html>
+      rules: [{actor: "*", resource: "${P}/*", method: [GET, HEAD], action: Allow}]
+    steps:
+      - name: home page
+        as: anonymous
+        request: {method: GET, path: "${P}/index.html"}
+        expect:
+          status: 200
+          body_contains:
+            - '<h2><a href="/posts/second-thoughts.html">Second thoughts</a></h2>'
+            - '<h2><a href="/posts/hello-world.html">Hello, world</a></h2>'
+            - '<p class="byline"><time datetime="2026-08-03">3 August 2026</time> · Sam</p>'
+            - '<p class="lede">The first post on Field Notes, and a look at how this blog works.</p>'
+            - '<section class="excerpts">'
+          body_matches: '(?s)Second thoughts.*Hello, world'
+          body_not_contains: ["Unfinished", "{%", "r:posts"]
+
+  - id: liquid.apps.blog-archive-month-headings
+    title: "Build-a-blog archive: a heading whenever the month label changes (assign inside a loop)"
+    feature: app templates
+    evidence: documented
+    source: "docs learn/build-a-blog §The archive (archive.html template)"
+    confidence: high
+    live: true
+    site:
+      settings: {default_get: allow}
+      files:
+        - path: "${P}/data/a.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body><article itemscope itemtype="https://blog.example${P}/Post"><meta itemprop="slug" content="a"><meta itemprop="status" content="Published"><meta itemprop="monthLabel" content="August 2026"><meta itemprop="displayDate" content="3 August 2026"><h1 itemprop="title">A</h1><time itemprop="publishedAt" datetime="2026-08-03">3 Aug</time></article></body></html>
+        - path: "${P}/data/b.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body><article itemscope itemtype="https://blog.example${P}/Post"><meta itemprop="slug" content="b"><meta itemprop="status" content="Published"><meta itemprop="monthLabel" content="August 2026"><meta itemprop="displayDate" content="5 August 2026"><h1 itemprop="title">B</h1><time itemprop="publishedAt" datetime="2026-08-05">5 Aug</time></article></body></html>
+        - path: "${P}/data/c.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body><article itemscope itemtype="https://blog.example${P}/Post"><meta itemprop="slug" content="c"><meta itemprop="status" content="Published"><meta itemprop="monthLabel" content="September 2026"><meta itemprop="displayDate" content="2 September 2026"><h1 itemprop="title">C</h1><time itemprop="publishedAt" datetime="2026-09-02">2 Sep</time></article></body></html>
+        - path: "${P}/archive.html"
+          body: |
+            <!DOCTYPE html>
+            <html lang="en" xmlns:p="https://pagelove.org/1.0" xmlns:r="https://pagelove.org/Binding/CSS">
+            <head><meta charset="UTF-8"><title>Archive — Field Notes</title></head>
+            <body>
+              <h1>Archive</h1>
+              <section class="archive" r:posts="[itemtype='https://blog.example${P}/Post']" p:template="text/liquid">
+                {% assign all = posts | where: "status", "Published" | sort: "publishedAt" | reverse %}
+                {% if all.size == 0 %}<p>No posts yet.</p>{% endif %}
+                {% assign last_m = "" %}
+                {% for post in all %}
+                  {% if post.monthLabel != last_m %}<h2>{{ post.monthLabel }}</h2>{% assign last_m = post.monthLabel %}{% endif %}
+                  <div class="archive-row"><a href="/posts/{{ post.slug }}.html">{{ post.title }}</a> <time datetime="{{ post.publishedAt }}">{{ post.displayDate }}</time></div>
+                {% endfor %}
+              </section>
+            </body>
+            </html>
+      rules: [{actor: "*", resource: "${P}/*", method: [GET, HEAD], action: Allow}]
+    steps:
+      - name: archive
+        as: anonymous
+        request: {method: GET, path: "${P}/archive.html"}
+        expect:
+          status: 200
+          body_matches: '(?s)<h2>September 2026</h2>\s*<div class="archive-row"><a href="/posts/c.html">C</a>.*<h2>August 2026</h2>\s*<div class="archive-row"><a href="/posts/b.html">B</a>.*<a href="/posts/a.html">A</a>'
+          body_not_contains: ["No posts yet."]
+
+  - id: liquid.apps.shop-index-grid
+    title: "Shop index: available products sorted by name, image or emoji fallback via != blank"
+    feature: app templates
+    evidence: demo-source
+    source: "pagelove-shop/site/index.html@d887054:20-32; site/data/products/*.html (data shape)"
+    confidence: medium
+    live: true
+    notes: R-LIQ-52, R-LIQ-58, R-LIQ-146.
+    site:
+      settings: {default_get: allow}
+      files:
+        - path: "${P}/data/products/cap.html"
+          body: |
+            <!DOCTYPE html>
+            <html lang="en"><body>
+              <div itemscope itemtype="https://shop.example${P}/Product" id="product-cap">
+                <meta itemprop="slug" content="cap"><meta itemprop="priceDisplay" content="£22.00"><meta itemprop="category" content="headwear">
+                <meta itemprop="emoji" content="🧢"><meta itemprop="available" content="yes"><meta itemprop="variant" content="One size">
+                <h1 itemprop="name">Pagelove Cap</h1>
+              </div>
+            </body></html>
+        - path: "${P}/data/products/mug.html"
+          body: |
+            <!DOCTYPE html>
+            <html lang="en"><body>
+              <div itemscope itemtype="https://shop.example${P}/Product" id="product-mug">
+                <meta itemprop="slug" content="mug"><meta itemprop="priceDisplay" content="£12.00"><meta itemprop="category" content="home">
+                <meta itemprop="emoji" content="☕"><meta itemprop="available" content="yes">
+                <meta itemprop="image" content="/uploads/mug-1.png"><meta itemprop="image" content="/uploads/mug-2.png">
+                <h1 itemprop="name">Pagelove Mug</h1>
+              </div>
+            </body></html>
+        - path: "${P}/data/products/hoodie.html"
+          body: |
+            <!DOCTYPE html>
+            <html lang="en"><body>
+              <div itemscope itemtype="https://shop.example${P}/Product" id="product-hoodie">
+                <meta itemprop="slug" content="hoodie"><meta itemprop="available" content="no"><h1 itemprop="name">Pagelove Hoodie</h1>
+              </div>
+            </body></html>
+        - path: "${P}/index.html"
+          body: |
+            <!DOCTYPE html>
+            <html lang="en" xmlns:p="https://pagelove.org/1.0" xmlns:r="https://pagelove.org/Binding/CSS">
+            <head><meta charset="UTF-8"><title>Pagelove Shop</title></head>
+            <body>
+              <main class="wrap">
+                <div class="grid" r:products="[itemtype='https://shop.example${P}/Product']" p:template="text/liquid">
+                  {% assign items = products | where: "available", "yes" | sort: "name" %}
+                  {% for p in items %}
+                  <a class="card" href="/products/{{ p.slug }}.html">
+                    {% assign shot = p.image | join: "," | split: "," | first %}
+                    {% if shot != blank %}<span class="thumb has-img"><img src="{{ shot }}" alt="{{ p.name }}" loading="lazy"></span>
+                    {% else %}<span class="thumb">{{ p.emoji }}</span>{% endif %}
+                    <span class="cat">{{ p.category }}</span>
+                    <h2>{{ p.name }}</h2>
+                    <span class="price">{{ p.priceDisplay }}</span>
+                  </a>
+                  {% endfor %}
+                </div>
+              </main>
+            </body>
+            </html>
+      rules: [{actor: "*", resource: "${P}/*", method: [GET, HEAD], action: Allow}]
+    steps:
+      - name: grid
+        as: anonymous
+        request: {method: GET, path: "${P}/index.html"}
+        expect:
+          status: 200
+          body_contains:
+            - '<span class="thumb">🧢</span>'
+            - '<img src="/uploads/mug-1.png" alt="Pagelove Mug" loading="lazy">'
+            - "<h2>Pagelove Cap</h2>"
+            - '<span class="price">£12.00</span>'
+          body_matches: '(?s)Pagelove Cap.*Pagelove Mug'
+          body_not_contains: ["Pagelove Hoodie", 'src=""']
+
+  - id: liquid.apps.shop-admin-data-attributes
+    title: "Shop admin: every Liquid expression inside attribute values, joins over single and repeated properties"
+    feature: app templates
+    evidence: demo-source
+    source: "pagelove-shop/site/admin/products.html@d887054:17-22"
+    confidence: medium
+    live: true
+    notes: R-LIQ-10 (Liquid in attribute values), R-LIQ-52.
+    site:
+      settings: {default_get: allow}
+      files:
+        - path: "${P}/data/p.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div itemscope itemtype="https://shop.example${P}/Product"><meta itemprop="slug" content="cap"><meta itemprop="sku" content="PL-CAP"><meta itemprop="price" content="2200"><meta itemprop="variant" content="One size"><h1 itemprop="name">Pagelove Cap</h1></div>
+              <div itemscope itemtype="https://shop.example${P}/Product"><meta itemprop="slug" content="tee"><meta itemprop="sku" content="PL-TEE"><meta itemprop="price" content="2800"><meta itemprop="variant" content="S"><meta itemprop="variant" content="M"><meta itemprop="variant" content="L"><meta itemprop="variant" content="XL"><meta itemprop="variant" content="XXL"><h1 itemprop="name">Pagelove T-shirt</h1></div>
+            </body></html>
+        - path: "${P}/admin-products.html"
+          body: |
+            <!DOCTYPE html>
+            <html lang="en" xmlns:p="https://pagelove.org/1.0" xmlns:r="https://pagelove.org/Binding/CSS"><body>
+                <ul class="admin-list" r:products="[itemtype='https://shop.example${P}/Product']" p:template="text/liquid">
+                  {% assign all = products | sort: "name" %}
+                  {% for p in all %}
+                  <li class="admin-row" data-slug="{{ p.slug }}" data-name="{{ p.name }}" data-sku="{{ p.sku }}" data-price="{{ p.price }}" data-variants="{{ p.variant | join: ',' }}" data-images="{{ p.image | join: ',' }}"></li>
+                  {% endfor %}
+                </ul>
+            </body></html>
+      rules: [{actor: "*", resource: "${P}/*", method: [GET, HEAD], action: Allow}]
+    steps:
+      - name: rows
+        as: anonymous
+        request: {method: GET, path: "${P}/admin-products.html"}
+        expect:
+          status: 200
+          body_contains:
+            # an empty value is serialized bare (live 2026-09-29, harness/observations/live-2026-09-29-serialize/liquid-apps-shop-admin-data-attributes.json)
+            - 'data-slug="cap" data-name="Pagelove Cap" data-sku="PL-CAP" data-price="2200" data-variants="One size" data-images>'
+            - 'data-variants="S,M,L,XL,XXL"'
+
+  - id: liquid.apps.polls-new-poll-end-to-end
+    title: "Polls: POST the form to the new-poll template; the created page has the options as table cells"
+    feature: app templates
+    evidence: demo-source
+    source: "pagelove-polls/site/templates/new-poll.html@c9270e5 (template); site/assets/create.js@c9270e5:47-80 (form encoding: options joined by ;; and fields by |); site/polls/kfd47o4zqd.html (expected shape)"
+    confidence: medium
+    live: true
+    notes: >-
+      R-LIQ-10 (Liquid between table cells), R-LIQ-60 (request.body), R-LIQ-75 (random: lower: true, digits: true),
+      cross-area X-3. The template is trimmed to its Liquid-bearing parts; <base href> is prefixed with ${P}.
+      The Location header is captured and followed; a live absolute Location may need the runner to strip the origin.
+    site:
+      settings: {default_get: allow}
+      files:
+        - path: "${P}/templates/new-poll.html"
+          body: |
+            <!DOCTYPE html>
+            <html lang="en" xmlns:p="https://pagelove.org/1.0" p:template="text/liquid">
+            <head>
+            <meta charset="utf-8">
+            <title>{% assign id = 10 | random: lower: true, digits: true %}
+            {% assign title = request.body.title | default: "" | strip %}
+            {% if title == "" %}{% assign title = "Untitled poll" %}{% endif %}
+            {{ title | escape }} · Polls by Pagelove</title>
+            <base href="${P}/polls/{{ id }}.html">
+            </head>
+            <body class="poll-page">
+            {% assign organizer = request.body.organizer | default: "" | strip %}
+            {% if organizer == "" %}{% assign organizer = "Someone" %}{% endif %}
+            {% assign desc = request.body.description | default: "" | strip %}
+            {% assign opts = request.body.options | default: "" | split: ";;" %}
+            {% if request.body.listed == "on" %}{% assign listed = "true" %}{% else %}{% assign listed = "false" %}{% endif %}
+            <main class="wrap">
+            <article id="poll" itemscope itemtype="{{ 'https://pagelove.org/Poll' }}">
+              <header class="poll-head">
+                <h1 itemprop="title">{{ title | escape }}</h1>
+                {% if desc != "" %}
+                <p class="desc" itemprop="description">{{ desc | escape }}</p>
+                {% endif %}
+                <p class="meta">Organised by <strong itemprop="organizer">{{ organizer | escape }}</strong> · created <time itemprop="created" datetime="{{ request.body.created | escape }}">{{ request.body.createdLabel | escape }}</time></p>
+                <meta itemprop="listed" content="{{ listed }}">
+                <meta itemprop="optionCount" content="{{ opts.size }}">
+              </header>
+              <table id="grid">
+                <thead>
+                  <tr>
+                    <th class="corner" scope="col">Participant</th>
+                    {% for o in opts %}
+                    {% assign f = o | split: "|" %}
+                    <th scope="col" id="o{{ forloop.index }}" data-option="o{{ forloop.index }}" itemprop="option" itemscope itemtype="https://pagelove.org/PollOption">
+                      <time itemprop="start" datetime="{{ f[0] | escape }}"><span class="dow">{{ f[1] | escape }}</span><span class="day">{{ f[2] | escape }}</span><span class="time">{{ f[3] | escape }}</span></time>
+                    </th>
+                    {% endfor %}
+                  </tr>
+                </thead>
+                <tbody id="responses"></tbody>
+              </table>
+            </article>
+            </main>
+            </body>
+            </html>
+      rules:
+        - {actor: "*", resource: "${P}/*", method: [GET, HEAD], action: Allow}
+        - {actor: "*", resource: "${P}/templates/*", method: [POST], action: Allow}
+        - {actor: "*", resource: "${P}/polls/*", method: [PUT], action: Allow}
+    steps:
+      - name: create a poll
+        as: anonymous
+        request:
+          method: POST
+          path: "${P}/templates/new-poll.html"
+          headers: {Content-Type: "application/x-www-form-urlencoded"}
+          body: "title=Team+lunch+at+the+new+place&organizer=Benji&description=Bring+appetite+%26+opinions.&listed=on&options=2026-09-18T12%3A30%7CFri%7C18+Sep%7C12%3A30%3B%3B2026-09-19%7CSat%7C19+Sep%7C&created=2026-09-14T21%3A40%3A00.000Z&createdLabel=14+Sept+2026"
+        expect:
+          status: 301
+          header_matches: {Location: "${P}/polls/[a-z0-9]{10}\\.html$"}
+        capture: {loc: header.Location}
+      - name: the created poll page
+        as: anonymous
+        request: {method: GET, path: "${loc}"}
+        expect:
+          status: 200
+          body_contains:
+            - '<h1 itemprop="title">Team lunch at the new place</h1>'
+            - '<p class="desc" itemprop="description">Bring appetite &amp; opinions.</p>'
+            - '<strong itemprop="organizer">Benji</strong>'
+            - 'itemtype="https://pagelove.org/Poll"'
+            - '<meta itemprop="optionCount" content="2">'
+            - '<th scope="col" id="o1" data-option="o1"'
+            - '<time itemprop="start" datetime="2026-09-18T12:30"><span class="dow">Fri</span><span class="day">18 Sep</span><span class="time">12:30</span></time>'
+            - '<span class="time"></span>'
+          body_matches: '(?s)<thead>\s*<tr>\s*<th class="corner" scope="col">Participant</th>.*id="o2".*</tr>\s*</thead>'
+          body_not_contains: ["{%", "{{", "p:template"]

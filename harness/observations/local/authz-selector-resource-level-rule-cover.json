@@ -1,0 +1,38 @@
+{
+  "case": "authz.selector.resource-level-rule-covers-selector-writes",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (selector PUT on h1)",
+      "method": "PUT",
+      "path": "/_pl/authz-selector-resource-level-rule-cover-c33035/doc.html",
+      "status": 206,
+      "headers": {
+        "content-length": "10",
+        "content-range": "selector h1",
+        "content-type": "text/html",
+        "etag": "\"a03c1af83d45af961e059d2f5295724383a8c8bdabb3955d60377a1b27a5c181-a03c1af83d45af961e059d2f5295724383a8c8bdabb3955d60377a1b27a5c181-2\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:47 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003ch1\u003eU\u003c/h1\u003e"
+    },
+    {
+      "step": "step 2 (selector PUT on p)",
+      "method": "PUT",
+      "path": "/_pl/authz-selector-resource-level-rule-cover-c33035/doc.html",
+      "status": 206,
+      "headers": {
+        "content-length": "15",
+        "content-range": "selector #p",
+        "content-type": "text/html",
+        "etag": "\"bb210536e44444c19005cd80322258af0c61bec7fa9cf9003e65bd2c0e91c5ab-bb210536e44444c19005cd80322258af0c61bec7fa9cf9003e65bd2c0e91c5ab-3\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:47 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003cp id=\"p\"\u003ey\u003c/p\u003e"
+    }
+  ],
+  "outcome": "pass",
+  "target": "local"
+}

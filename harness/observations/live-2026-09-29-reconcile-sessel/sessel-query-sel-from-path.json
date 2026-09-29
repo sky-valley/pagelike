@@ -1,0 +1,47 @@
+{
+  "case": "sessel.query.sel.from-path",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (literal path)",
+      "method": "QUERY",
+      "path": "/_pl/sessel-query-sel-from-path-fdbf32/doc.html",
+      "status": 200,
+      "headers": {
+        "accept-ranges": "bytes",
+        "content-length": "4",
+        "content-type": "application/sessel+json",
+        "vary": "Host, Range"
+      },
+      "body": "null"
+    },
+    {
+      "step": "step 2 (path from a variable)",
+      "method": "QUERY",
+      "path": "/_pl/sessel-query-sel-from-path-fdbf32/doc.html",
+      "status": 200,
+      "headers": {
+        "accept-ranges": "bytes",
+        "content-length": "4",
+        "content-type": "application/sessel+json",
+        "vary": "Host, Range"
+      },
+      "body": "null"
+    },
+    {
+      "step": "step 3 (missing document gives an empty list)",
+      "method": "QUERY",
+      "path": "/_pl/sessel-query-sel-from-path-fdbf32/doc.html",
+      "status": 200,
+      "headers": {
+        "accept-ranges": "bytes",
+        "content-length": "1",
+        "content-type": "application/sessel+json",
+        "vary": "Host, Range"
+      },
+      "body": "0"
+    }
+  ],
+  "outcome": "pass",
+  "target": "live"
+}

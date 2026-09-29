@@ -1,0 +1,37 @@
+{
+  "case": "javascript.dom.interface-scoping",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (PUT the page (public plane; registers inline declarations))",
+      "method": "PUT",
+      "path": "/_pl/javascript-dom-interface-scoping-9c2d18/probe.html",
+      "status": 201,
+      "headers": {
+        "content-length": "1282",
+        "content-type": "text/html",
+        "etag": "\"5b52095bf0a973b36ae1deefe1013be3d721c017b4cd07fe586b54ed162fa5a0\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:42 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml xmlns:t=\"https://pagelike.test/_pl/javascript-dom-interface-scoping-9c2d18/Dinterfacescoping\"\u003e\u003cbody\u003e\n\u003cmain\u003e\n\u003ct:probe\u003e\u003c/t:probe\u003e\n\u003c/main\u003e\n\u003cdiv hidden itemscope itemtype=\"https://pagelove.org/Schema\"\u003e\n\u003cmeta itemprop=\"type\" content=\"https://pagelike.test/_pl/javascript-dom-interface-scoping-9c2d18/Dinterfacescoping\"\u003e\n\u003cul\u003e\n\u003cli itemprop=\"property\" itemscope itemtype=\"https://pagelove.org/Method\"\u003e\n\u003cmeta itemprop=\"name\" content=\"probe\"\u003e\n\u003cdiv itemprop=\"implementation\" itemscope itemtype=\"https://pagelove.org/JavaScript/Module\"\u003e\n\u003cscript itemprop=\"source\" type=\"module\"\u003e\nconst S = (...a) =\u003e a.map(String).join('|');\nconst H = (x) =\u003e String(x).replace(/[\u003c\u003e\"]/g, (c) =\u003e ({ '\u003c': '[', '\u003e': ']', '\"': \"'\" })[c]);\nconst tryName = (f) =\u003e { try { f(); return 'ok'; } catch (e) { return e.name + ':' + e.code; } };\nexport default function () {\nconst d = new DOMParser().parseFromString('\u003cimg src=\"a.png\"\u003e\u003csection\u003e\u003c/section\u003e\u003caudio\u003e\u003c/audio\u003e\u003cp\u003et\u003c/p\u003e', 'text/html');\nconst q = (s) =\u003e d.querySelector(s);\nconst p = q('p'), t = p.firstChild, det = d.createElement('div');\nreturn 'R:' + S(t.tagName, p.data, p.length, q('img').href, q('section').href, q('audio').poster, det.parentNode, det.firstChild, det.nextElementSibling);\n}\n\u003c/script\u003e\n\u003c/div\u003e\n\u003c/li\u003e\n\u003c/ul\u003e\n\u003c/div\u003e\n\u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 2 (GET \u003cmain\u003e: the method result is inserted as text)",
+      "method": "GET",
+      "path": "/_pl/javascript-dom-interface-scoping-9c2d18/probe.html",
+      "status": 206,
+      "headers": {
+        "accept-ranges": "selector, bytes",
+        "content-length": "91",
+        "content-range": "selector main",
+        "content-type": "text/html",
+        "etag": "\"388b708ca18a27c1271f1cef8afcc1c71a8517651e76677ce673a82899db4dd1-388b708ca18a27c1271f1cef8afcc1c71a8517651e76677ce673a82899db4dd1-1\"",
+        "vary": "Host, Range, Accept"
+      },
+      "body": "\u003cmain\u003e\nR:undefined|undefined|undefined|undefined|undefined|undefined|null|null|null\n\u003c/main\u003e"
+    }
+  ],
+  "outcome": "pass",
+  "target": "local"
+}

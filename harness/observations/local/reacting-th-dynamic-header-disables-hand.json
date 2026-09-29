@@ -1,0 +1,36 @@
+{
+  "case": "reacting.th.dynamic-header-disables-handler",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (install a handler with a dynamic Authorization header)",
+      "method": "PUT",
+      "path": "/_pl/reacting-th-dynamic-header-disables-hand-c4b040/r/handlers.html",
+      "status": 201,
+      "headers": {
+        "content-length": "830",
+        "content-type": "text/html",
+        "etag": "\"3902fdb6b461037b80611cb8020f45df69bb6a535a29db38c605afe090279857\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:53 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\n\u003cdiv itemscope itemtype=\"https://pagelove.org/TransitionHandler\"\u003e\n  \u003cmeta itemprop=\"selector\" content=\"[itemtype='https://pagelike.test/_pl/reacting-th-dynamic-header-disables-hand-c4b040/Order']\"\u003e\n  \u003cmeta itemprop=\"property\" content=\"status\"\u003e\n  \u003cmeta itemprop=\"becomes\" content=\"processing\"\u003e\n  \u003cdiv itemprop=\"action\" itemscope itemtype=\"https://pagelove.org/HttpRequest\"\u003e\n    \u003cmeta itemprop=\"url\" content=\"http://127.0.0.1:53665/c-c6dbd6f9/dyn-header\"\u003e\n    \u003cdiv itemprop=\"header\" itemscope itemtype=\"https://pagelove.org/Pair\"\u003e\n      \u003cmeta itemprop=\"key\" content=\"Authorization\"\u003e\n      \u003cdiv itemprop=\"value\" itemscope itemtype=\"https://pagelove.org/Sessel\"\u003e\n        \u003cscript itemprop=\"source\" type=\"text/sessel\"\u003e\"Bearer \" + \"test-token\"\u003c/script\u003e\n      \u003c/div\u003e\n    \u003c/div\u003e\n  \u003c/div\u003e\n\u003c/div\u003e\n\u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 2 (create an order at processing)",
+      "method": "PUT",
+      "path": "/_pl/reacting-th-dynamic-header-disables-hand-c4b040/orders/o.html",
+      "status": 201,
+      "headers": {
+        "content-length": "198",
+        "content-type": "text/html",
+        "etag": "\"0ee30c2182f724ef214c31651452ac0e8d70e4f66127c57ef4cd0ca8286f7f7d\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:53 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\u003chtml\u003e\u003cbody\u003e\u003cdiv itemscope itemtype=\"https://pagelike.test/_pl/reacting-th-dynamic-header-disables-hand-c4b040/Order\"\u003e\u003cmeta itemprop=\"status\" content=\"processing\"\u003e\u003c/div\u003e\u003c/body\u003e\u003c/html\u003e"
+    }
+  ],
+  "outcome": "pass",
+  "target": "local"
+}

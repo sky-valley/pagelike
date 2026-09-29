@@ -1,0 +1,90 @@
+{
+  "case": "reacting.tc.key-change-is-exit-plus-entry",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (register the Order schema with orderNumber as @key)",
+      "method": "PUT",
+      "path": "/_pl/reacting-tc-key-change-is-exit-plus-entr-1df51d/schema.html",
+      "status": 201,
+      "headers": {
+        "content-length": "562",
+        "content-type": "text/html",
+        "etag": "\"47f322705976af2976d9e547ffc58fe539e9efbdea2c05ad8ef54ec9ea7ebeb0\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:55 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\n\u003cdiv hidden itemscope itemtype=\"https://pagelove.org/Schema\"\u003e\n  \u003cmeta itemprop=\"type\" content=\"https://pagelike.test/_pl/reacting-tc-key-change-is-exit-plus-entr-1df51d/Order\"\u003e\n  \u003cdiv itemprop=\"property\" itemscope itemtype=\"https://pagelove.org/Property\"\u003e\n    \u003cmeta itemprop=\"name\" content=\"orderNumber\"\u003e\n    \u003cmeta itemprop=\"type\" content=\"https://schema.host/Text\"\u003e\n    \u003cmeta itemprop=\"cardinality\" content=\"1..1\"\u003e\n    \u003cmeta itemprop=\"unique\" content=\"true\"\u003e\n    \u003cmeta itemprop=\"@key\" content=\"true\"\u003e\n  \u003c/div\u003e\n\u003c/div\u003e\n\u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 2 (install entry pending and step pending -\u003e processing)",
+      "method": "PUT",
+      "path": "/_pl/reacting-tc-key-change-is-exit-plus-entr-1df51d/transitions/rules.html",
+      "status": 201,
+      "headers": {
+        "content-length": "680",
+        "content-type": "text/html",
+        "etag": "\"1838122fff2133f4d94502295eb857638d61b595961603c244473d72828a5968\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:55 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\n\u003cdiv itemscope itemtype=\"https://pagelove.org/TransitionConstraint\"\u003e\n  \u003cmeta itemprop=\"selector\" content=\"[itemtype='https://pagelike.test/_pl/reacting-tc-key-change-is-exit-plus-entr-1df51d/Order']\"\u003e\n  \u003cmeta itemprop=\"property\" content=\"status\"\u003e\n  \u003cmeta itemprop=\"to\" content=\"pending\"\u003e\n\u003c/div\u003e\n\u003cdiv itemscope itemtype=\"https://pagelove.org/TransitionConstraint\"\u003e\n  \u003cmeta itemprop=\"selector\" content=\"[itemtype='https://pagelike.test/_pl/reacting-tc-key-change-is-exit-plus-entr-1df51d/Order']\"\u003e\n  \u003cmeta itemprop=\"property\" content=\"status\"\u003e\n  \u003cmeta itemprop=\"from\" content=\"pending\"\u003e\n  \u003cmeta itemprop=\"to\" content=\"processing\"\u003e\n\u003c/div\u003e\n\u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 3 (seed SKU-A at pending)",
+      "method": "PUT",
+      "path": "/_pl/reacting-tc-key-change-is-exit-plus-entr-1df51d/orders/rekey.html",
+      "status": 201,
+      "headers": {
+        "content-length": "240",
+        "content-type": "text/html",
+        "etag": "\"0b65f6325981081de7afc5536e34ea4eeab25fe525d2ccb314b242bd376a8837\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:55 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\u003chtml\u003e\u003cbody\u003e\u003cdiv itemscope itemtype=\"https://pagelike.test/_pl/reacting-tc-key-change-is-exit-plus-entr-1df51d/Order\"\u003e\u003cmeta itemprop=\"orderNumber\" content=\"SKU-A\"\u003e\u003cmeta itemprop=\"status\" content=\"pending\"\u003e\u003c/div\u003e\u003c/body\u003e\u003c/html\u003e"
+    },
+    {
+      "step": "step 4 (renaming the key needs an exit from pending, which is not declared)",
+      "method": "PUT",
+      "path": "/_pl/reacting-tc-key-change-is-exit-plus-entr-1df51d/orders/rekey.html",
+      "status": 422,
+      "headers": {
+        "content-length": "1233",
+        "content-type": "text/html; charset=utf-8",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\n  \u003chead\u003e\n    \u003ctitle\u003e422 Unprocessable Entity - Transition Constraint Violation\u003c/title\u003e\n  \u003c/head\u003e\n  \u003cbody itemscope itemtype=\"https://pagelove.org/ConstraintViolation\"\u003e\n    \u003ch1 itemprop=\"name\"\u003eUnprocessable Entity\u003c/h1\u003e\n    \u003cmeta itemprop=\"statusCode\" content=\"422\"\u003e\n    \u003cp itemprop=\"description\"\u003eTransition constraints violated\u003c/p\u003e\n    \u003cul\u003e\n      \u003cli itemprop=\"violations\" itemscope itemtype=\"https://pagelove.org/Violation\"\u003e\n        \u003cspan itemprop=\"constraintSelector\"\u003e[itemprop='status']\u003c/span\u003e\n        \u003cspan itemprop=\"failedConstraint\"\u003etransition(status)\u003c/span\u003e\n        \u003cspan itemprop=\"message\"\u003eTransition violation: 'https://pagelike.test/_pl/reacting-tc-key-change-is-exit-plus-entr-1df51d/Order' item 'SKU-A' property 'status' may not change from 'pending' to '' (constraint declared in '/_pl/reacting-tc-key-change-is-exit-plus-entr-1df51d/transitions/rules.html')\u003c/span\u003e\n        \u003cspan itemprop=\"itemtype\"\u003ehttps://pagelike.test/_pl/reacting-tc-key-change-is-exit-plus-entr-1df51d/Order\u003c/span\u003e\n        \u003cspan itemprop=\"property\"\u003estatus\u003c/span\u003e\n        \u003cspan itemprop=\"key\"\u003eSKU-A\u003c/span\u003e\n        \u003cspan itemprop=\"from\"\u003epending\u003c/span\u003e\n        \u003cspan itemprop=\"to\"\u003e\u003c/span\u003e\n      \u003c/li\u003e\n    \u003c/ul\u003e\n  \u003c/body\u003e\n\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 5 (declare an exit from pending)",
+      "method": "PUT",
+      "path": "/_pl/reacting-tc-key-change-is-exit-plus-entr-1df51d/transitions/exit.html",
+      "status": 201,
+      "headers": {
+        "content-length": "341",
+        "content-type": "text/html",
+        "etag": "\"e25745cb50789bd946b876b9fbbcdad99569abbd791571b01f3ed469cd289162\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:55 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\n\u003cdiv itemscope itemtype=\"https://pagelove.org/TransitionConstraint\"\u003e\n  \u003cmeta itemprop=\"selector\" content=\"[itemtype='https://pagelike.test/_pl/reacting-tc-key-change-is-exit-plus-entr-1df51d/Order']\"\u003e\n  \u003cmeta itemprop=\"property\" content=\"status\"\u003e\n  \u003cmeta itemprop=\"from\" content=\"pending\"\u003e\n\u003c/div\u003e\n\u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 6 (now the rename passes (exit from pending + entry at pending))",
+      "method": "PUT",
+      "path": "/_pl/reacting-tc-key-change-is-exit-plus-entr-1df51d/orders/rekey.html",
+      "status": 200,
+      "headers": {
+        "content-length": "240",
+        "content-type": "text/html",
+        "etag": "\"79fcacfcfc8fdade6405c36f44bf45dba28b20077934749663d7261c0c56b398\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:55 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\u003chtml\u003e\u003cbody\u003e\u003cdiv itemscope itemtype=\"https://pagelike.test/_pl/reacting-tc-key-change-is-exit-plus-entr-1df51d/Order\"\u003e\u003cmeta itemprop=\"orderNumber\" content=\"SKU-C\"\u003e\u003cmeta itemprop=\"status\" content=\"pending\"\u003e\u003c/div\u003e\u003c/body\u003e\u003c/html\u003e"
+    }
+  ],
+  "outcome": "pass",
+  "target": "local"
+}

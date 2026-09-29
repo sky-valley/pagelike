@@ -1,0 +1,67 @@
+{
+  "case": "sse.mutation.put-etag-matches-response",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (sse open s1)",
+      "method": "GET",
+      "path": "/_pl/sse-mutation-put-etag-matches-response-f4d401/doc.html",
+      "status": 200,
+      "headers": {
+        "cache-control": "no-cache",
+        "content-type": "text/event-stream",
+        "x-accel-buffering": "no"
+      }
+    },
+    {
+      "step": "step 2",
+      "events": [
+        {
+          "event": "pagelove-connection",
+          "data": "820e0a57-9da9-41a4-b04c-1bcfbce01b75"
+        }
+      ]
+    },
+    {
+      "step": "step 3 (write and keep the response ETag)",
+      "method": "PUT",
+      "path": "/_pl/sse-mutation-put-etag-matches-response-f4d401/doc.html",
+      "status": 206,
+      "headers": {
+        "content-length": "15",
+        "content-range": "selector h1",
+        "content-type": "text/html",
+        "etag": "\"d0f9dd796311f48e05cf00f591b178a4104ddb53eef8d10404a5322a9135e688-d0f9dd796311f48e05cf00f591b178a4104ddb53eef8d10404a5322a9135e688-2\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:59 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003ch1\u003eTagged\u003c/h1\u003e"
+    },
+    {
+      "step": "step 4 (the document's new tag)",
+      "method": "HEAD",
+      "path": "/_pl/sse-mutation-put-etag-matches-response-f4d401/doc.html",
+      "status": 200,
+      "headers": {
+        "accept-ranges": "selector, bytes",
+        "content-length": "58",
+        "content-type": "text/html",
+        "etag": "\"c564b3df5a9eb4892856a1084993a04dd273e479256bbf28b4f855cba16b9e3e\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:59 GMT",
+        "vary": "Host, Range, Accept"
+      }
+    },
+    {
+      "step": "step 5",
+      "events": [
+        {
+          "id": "v1~a206cf770651.1790649659954-1",
+          "event": "mutation",
+          "data": "\u003carticle itemscope itemtype=\"https://pagelove.org/Mutation\"\u003e\n  \u003cspan itemprop=\"method\"\u003ePUT\u003c/span\u003e\n  \u003cspan itemprop=\"selector\"\u003eh1\u003c/span\u003e\n  \u003cspan itemprop=\"etag\"\u003ec564b3df5a9eb4892856a1084993a04dd273e479256bbf28b4f855cba16b9e3e\u003c/span\u003e\n  \u003cspan itemprop=\"path\"\u003e/_pl/sse-mutation-put-etag-matches-response-f4d401/doc.html\u003c/span\u003e\n  \u003cspan itemprop=\"host\"\u003et.localhost\u003c/span\u003e\n  \u003cdiv itemprop=\"body\"\u003e\u003ch1\u003eTagged\u003c/h1\u003e\u003c/div\u003e\n\u003c/article\u003e"
+        }
+      ]
+    }
+  ],
+  "outcome": "pass",
+  "target": "local"
+}

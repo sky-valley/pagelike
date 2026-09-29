@@ -1,0 +1,50 @@
+{
+  "case": "reacting.outbound.header-pairs-repeat-order",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (install)",
+      "method": "PUT",
+      "path": "/_pl/reacting-outbound-header-pairs-repeat-or-267064/r/triggers.html",
+      "status": 201,
+      "headers": {
+        "content-length": "1228",
+        "content-type": "text/html",
+        "etag": "\"b49544ccd90d9c74a5014a256b2a116c76d9d32a4284a2ace5e86c581ef0ee66\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:48 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\n\u003cdiv hidden itemscope itemtype=\"https://pagelove.org/Trigger\"\u003e\n  \u003cmeta itemprop=\"resource\" content=\"/_pl/reacting-outbound-header-pairs-repeat-or-267064/d/*\"\u003e\n  \u003cmeta itemprop=\"method\" content=\"PUT\"\u003e\n  \u003cdiv itemprop=\"action\" itemscope itemtype=\"https://pagelove.org/HttpRequest\"\u003e\n    \u003cmeta itemprop=\"url\" content=\"http://127.0.0.1:53407/c-c1b13e1d/headers\"\u003e\n    \u003cmeta itemprop=\"content-type\" content=\"application/json\"\u003e\n    \u003cdiv itemprop=\"header\" itemscope itemtype=\"https://pagelove.org/Pair\"\u003e\n      \u003cmeta itemprop=\"key\" content=\"X-Postmark-Server-Token\"\u003e\n      \u003cmeta itemprop=\"value\" content=\"00000000-test-token\"\u003e\n    \u003c/div\u003e\n    \u003cdiv itemprop=\"header\" itemscope itemtype=\"https://pagelove.org/Pair\"\u003e\n      \u003cmeta itemprop=\"key\" content=\"X-Multi\"\u003e\n      \u003cmeta itemprop=\"value\" content=\"one\"\u003e\n    \u003c/div\u003e\n    \u003cdiv itemprop=\"header\" itemscope itemtype=\"https://pagelove.org/Pair\"\u003e\n      \u003cmeta itemprop=\"key\" content=\"X-Multi\"\u003e\n      \u003cmeta itemprop=\"value\" content=\"two\"\u003e\n    \u003c/div\u003e\n    \u003cdiv itemprop=\"header\" itemscope itemtype=\"https://pagelove.org/Pair\"\u003e\n      \u003cmeta itemprop=\"key\" content=\"Accept\"\u003e\n      \u003cmeta itemprop=\"value\" content=\"application/json\"\u003e\n    \u003c/div\u003e\n  \u003c/div\u003e\n\u003c/div\u003e\n\u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 2 (write)",
+      "method": "PUT",
+      "path": "/_pl/reacting-outbound-header-pairs-repeat-or-267064/d/x.html",
+      "status": 201,
+      "headers": {
+        "content-length": "8",
+        "content-type": "text/html",
+        "etag": "\"31d8e07ec305ac4e2515d1f0b1c8c603b3858044eb7d97807d6d0970838cb0be\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:48 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003cp\u003ex\u003c/p\u003e"
+    },
+    {
+      "step": "step 3",
+      "method": "POST",
+      "path": "${SINK}/headers",
+      "headers": {
+        "accept": "application/json",
+        "accept-encoding": "gzip",
+        "content-length": "0",
+        "content-type": "application/json",
+        "user-agent": "Go-http-client/1.1",
+        "x-multi": "one, two",
+        "x-postmark-server-token": "00000000-test-token"
+      }
+    }
+  ],
+  "outcome": "pass",
+  "target": "local"
+}

@@ -1,0 +1,132 @@
+# The Request Document / request context variable, and its caching effect.
+# Spec: docs/spec/reading-writing.md §19 (R-RW-135..138), §14 R-RW-103.
+cases:
+  - id: rw.reqdoc.liquid-method-and-path
+    title: A Liquid page renders the live request method and path
+    area: reading-writing
+    feature: Request Document
+    evidence: documented
+    source: "docs reference/reading-and-writing/Request-Document §Examples (Request object in a Liquid template) (snapshot 2026-09-28)"
+    confidence: high
+    requires: [liquid]
+    live: true
+    site:
+      settings: {default_get: allow}
+      files:
+        - path: "${P}/sspi-reqobj-page.html"
+          body: |
+            <!DOCTYPE html>
+            <html xmlns:p="https://pagelove.org/1.0" p:template="text/liquid">
+            <body>
+              <section>
+                <p>Method: {{ request.method }}</p>
+                <p>Path: {{ request.path }}</p>
+              </section>
+            </body>
+            </html>
+      rules:
+        - {actor: "*", resource: "${P}/*", method: [GET, HEAD], action: Allow}
+    steps:
+      - name: render
+        as: anonymous
+        request: {method: GET, path: "${P}/sspi-reqobj-page.html"}
+        expect:
+          status: 200
+          body_contains: ["<p>Method: GET</p>", "<p>Path: ${P}/sspi-reqobj-page.html</p>"]
+          body_not_contains: ["{{"]
+
+  - id: rw.reqdoc.query-parameters
+    title: Parsed query parameters are available as request.query.<name>; the path excludes the query
+    area: reading-writing
+    feature: Request Document
+    evidence: documented
+    source: "docs reference/reading-and-writing/Request-Document §Fields (query parsed as individual properties; request.query.*) (snapshot 2026-09-28)"
+    confidence: high
+    requires: [liquid]
+    live: true
+    site:
+      settings: {default_get: allow}
+      files:
+        - path: "${P}/q.html"
+          body: |
+            <!DOCTYPE html>
+            <html xmlns:p="https://pagelove.org/1.0" p:template="text/liquid">
+            <body><p id="foo">Foo: {{ request.query.foo }}</p><p id="path">Path: {{ request.path }}</p></body>
+            </html>
+      rules:
+        - {actor: "*", resource: "${P}/*", method: [GET, HEAD], action: Allow}
+    steps:
+      - name: render with a query
+        as: anonymous
+        request: {method: GET, path: "${P}/q.html?foo=bar"}
+        expect:
+          status: 200
+          body_contains: ["Foo: bar", "Path: ${P}/q.html<"]
+          body_not_contains: ["foo=bar<"]
+
+  - id: rw.reqdoc.auth-read-is-private
+    title: A page that reads request.auth is served Cache-Control private
+    area: reading-writing
+    feature: Caching headers
+    evidence: documented
+    source: "docs reference/reading-and-writing/Request-Document caching note; languages/sessel/reference/syntax ('a composed page that reads any request.auth.* member is ... served with Cache-Control: private') (snapshot 2026-09-28)"
+    confidence: medium
+    requires: [liquid]
+    live: true
+    notes: >-
+      Live PageLove serves this page "Cache-Control: public, max-age=5" with no Vary on the
+      session (harness/observations/live-2026-09-28/rw-reqdoc-auth-read-is-private.json), so a
+      shared cache could hand one visitor's personalized page to another. pagelike keeps the
+      documented private (docs/compat/decisions.md, keep-documented-security); other composed
+      pages adopt PageLove's public, max-age=5. rw.reqdoc.auth-read-is-private.live measures it.
+    site:
+      settings: {default_get: allow}
+      files:
+        - path: "${P}/me.html"
+          body: |
+            <!DOCTYPE html>
+            <html xmlns:p="https://pagelove.org/1.0" p:template="text/liquid">
+            <body><p>Signed in as: {{ request.auth.claims.email | default: "nobody" }}</p></body>
+            </html>
+      rules:
+        - {actor: "*", resource: "${P}/*", method: [GET, HEAD], action: Allow}
+    steps:
+      - name: render anonymously
+        as: anonymous
+        request: {method: GET, path: "${P}/me.html"}
+        expect:
+          status: 200
+          header_matches: {Cache-Control: "(?i)(^|[ ,])private([ ,]|$)"}
+          body_contains: ["Signed in as: nobody"]
+
+  - id: rw.reqdoc.auth-read-is-private.live
+    title: Live PageLove serves a page that reads request.auth as publicly cacheable
+    area: reading-writing
+    feature: Caching headers
+    status: live-divergence
+    evidence: live-observed
+    source: "harness/observations/live-2026-09-28/rw-reqdoc-auth-read-is-private.json (host live-test-host, 2026-09-28)"
+    confidence: high
+    requires: [liquid]
+    live: true
+    notes: "Measures a deliberate divergence (docs/compat/decisions.md, keep-documented-security). Runs only against --target live."
+    site:
+      settings: {default_get: allow}
+      files:
+        - path: "${P}/me.html"
+          body: |
+            <!DOCTYPE html>
+            <html xmlns:p="https://pagelove.org/1.0" p:template="text/liquid">
+            <body><p>Signed in as: {{ request.auth.claims.email | default: "nobody" }}</p></body>
+            </html>
+      rules:
+        - {actor: "*", resource: "${P}/*", method: [GET, HEAD], action: Allow}
+    steps:
+      - name: render anonymously
+        as: anonymous
+        request: {method: GET, path: "${P}/me.html"}
+        expect:
+          status: 200
+          headers: {Cache-Control: "public, max-age=5", Vary: "Host, Range, Accept"}
+          header_matches: {ETag: '^W/"[0-9a-f]{64}"$'}
+          body_contains: ["Signed in as: nobody"]

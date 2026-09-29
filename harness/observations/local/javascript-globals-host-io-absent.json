@@ -1,0 +1,37 @@
+{
+  "case": "javascript.globals.host-io-absent",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (PUT the page (public plane; registers inline declarations))",
+      "method": "PUT",
+      "path": "/_pl/javascript-globals-host-io-absent-508751/j.html",
+      "status": 201,
+      "headers": {
+        "content-length": "308",
+        "content-type": "text/html",
+        "etag": "\"4cc33bede6e440e5589c7efc89b383ba5a259280bab261691fe252d387c11a67\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:43 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml xmlns:j=\"https://pagelove.org/Binding/JavaScript\" xmlns:p=\"https://pagelove.org/1.0\"\u003e\u003cbody\u003e\n\u003cmain\u003e\n\u003cdiv j:g=\"'G1:' + [typeof fetch, typeof process, typeof require, typeof setTimeout, typeof setInterval, typeof HTTPResponse].join('|')\"\u003e\u003cp:stamp g\u003e\u003c/p:stamp\u003e\u003c/div\u003e\n\u003c/main\u003e\n\u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 2 (GET the composed page)",
+      "method": "GET",
+      "path": "/_pl/javascript-globals-host-io-absent-508751/j.html",
+      "status": 206,
+      "headers": {
+        "accept-ranges": "selector, bytes",
+        "content-length": "88",
+        "content-range": "selector main",
+        "content-type": "text/html",
+        "etag": "\"d7e757ffb7413d4f0eb8330a149f12826cc88a30bc2f10f3f1dfb9552d471acf-d7e757ffb7413d4f0eb8330a149f12826cc88a30bc2f10f3f1dfb9552d471acf-1\"",
+        "vary": "Host, Range, Accept"
+      },
+      "body": "\u003cmain\u003e\n\u003cdiv\u003eG1:undefined|undefined|undefined|undefined|undefined|undefined\u003c/div\u003e\n\u003c/main\u003e"
+    }
+  ],
+  "outcome": "pass",
+  "target": "local"
+}

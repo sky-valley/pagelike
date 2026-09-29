@@ -1,0 +1,1683 @@
+# Modeling: references (foreign keys), cascade and restrict.
+# Spec: docs/spec/modeling.md §9 (R-MOD-37..R-MOD-43).
+cases:
+  - id: modeling.references.unresolved-rejected
+    title: "A referencing value must match an existing value on the target type"
+    area: modeling
+    feature: references
+    evidence: documented
+    source: "docs reference/modeling-data/Property §References and cascade (snapshot 2026-09-28); docs recipes/linking-related-data §Referential integrity (snapshot 2026-09-28)"
+    confidence: high
+    requires: []
+    live: true
+    notes: "spec: R-MOD-38."
+    site:
+      settings:
+        default_get: allow
+      rules:
+        - actor: "*"
+          resource: "${P}/*"
+          method: [GET, HEAD, PUT, POST, DELETE, MOVE]
+          action: Allow
+        - actor: "*"
+          resource: "${P}/*/*"
+          method: [GET, HEAD, PUT, POST, DELETE, MOVE]
+          action: Allow
+    steps:
+      - name: "register declarations through the public plane (takes effect for the next request)"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/schema.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div hidden itemscope itemtype="https://pagelove.org/Schema">
+                <meta itemprop="type" content="https://pagelike.test${P}/Org">
+                <div itemprop="property" itemscope itemtype="https://pagelove.org/Property">
+                  <meta itemprop="name" content="identifier">
+                  <meta itemprop="type" content="https://schema.host/Text">
+                  <meta itemprop="cardinality" content="1..1">
+                  <meta itemprop="unique" content="true">
+                </div>
+              </div>
+              <div hidden itemscope itemtype="https://pagelove.org/Schema">
+                <meta itemprop="type" content="https://pagelike.test${P}/Member">
+                <div itemprop="property" itemscope itemtype="https://pagelove.org/Property">
+                  <meta itemprop="name" content="org">
+                  <meta itemprop="type" content="https://schema.host/Text">
+                  <meta itemprop="cardinality" content="1..1">
+                  <meta itemprop="references" content="https://pagelike.test${P}/Org#identifier">
+                </div>
+              </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "member pointing at a missing org"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/m.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div itemscope itemtype="https://pagelike.test${P}/Member">
+                <meta itemprop="org" content="acme">
+              </div>
+            </body></html>
+        expect:
+          status: 422
+          header_matches:
+            Content-Type: "^text/html"
+      - name: "m.html was not stored"
+        as: author
+        plane: dav
+        request:
+          method: GET
+          path: "${P}/m.html"
+        expect:
+          status: 404
+      - name: "create org acme"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/org.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div itemscope itemtype="https://pagelike.test${P}/Org">
+                <meta itemprop="identifier" content="acme">
+              </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "member now resolves"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/m.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div itemscope itemtype="https://pagelike.test${P}/Member">
+                <meta itemprop="org" content="acme">
+              </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+  - id: modeling.references.subtype-satisfies
+    title: "An instance of a declared subtype satisfies a reference to its ancestor"
+    area: modeling
+    feature: references
+    evidence: documented
+    source: "docs reference/modeling-data/Property §References and cascade (snapshot 2026-09-28) ('Subtypes count')"
+    confidence: high
+    requires: []
+    live: true
+    notes: "spec: R-MOD-12, R-MOD-38."
+    site:
+      settings:
+        default_get: allow
+      rules:
+        - actor: "*"
+          resource: "${P}/*"
+          method: [GET, HEAD, PUT, POST, DELETE, MOVE]
+          action: Allow
+        - actor: "*"
+          resource: "${P}/*/*"
+          method: [GET, HEAD, PUT, POST, DELETE, MOVE]
+          action: Allow
+    steps:
+      - name: "register declarations through the public plane (takes effect for the next request)"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/schema.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div hidden itemscope itemtype="https://pagelove.org/Schema">
+                <meta itemprop="type" content="https://pagelike.test${P}/Org">
+                <div itemprop="property" itemscope itemtype="https://pagelove.org/Property">
+                  <meta itemprop="name" content="identifier">
+                  <meta itemprop="type" content="https://schema.host/Text">
+                  <meta itemprop="cardinality" content="1..1">
+                  <meta itemprop="unique" content="true">
+                </div>
+              </div>
+              <div hidden itemscope itemtype="https://pagelove.org/Schema">
+                <meta itemprop="type" content="https://pagelike.test${P}/PartnerOrg">
+                <meta itemprop="parent" content="https://pagelike.test${P}/Org">
+                <div itemprop="property" itemscope itemtype="https://pagelove.org/Property">
+                  <meta itemprop="name" content="tier">
+                  <meta itemprop="type" content="https://schema.host/Text">
+                  <meta itemprop="cardinality" content="0..1">
+                </div>
+              </div>
+              <div hidden itemscope itemtype="https://pagelove.org/Schema">
+                <meta itemprop="type" content="https://pagelike.test${P}/Member">
+                <div itemprop="property" itemscope itemtype="https://pagelove.org/Property">
+                  <meta itemprop="name" content="org">
+                  <meta itemprop="type" content="https://schema.host/Text">
+                  <meta itemprop="cardinality" content="1..1">
+                  <meta itemprop="references" content="https://pagelike.test${P}/Org#identifier">
+                </div>
+              </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "partner org p1"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/partner.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div itemscope itemtype="https://pagelike.test${P}/PartnerOrg">
+                <meta itemprop="identifier" content="p1">
+              </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "member referencing p1"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/m.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div itemscope itemtype="https://pagelike.test${P}/Member">
+                <meta itemprop="org" content="p1">
+              </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+  - id: modeling.references.unrelated-type-does-not-satisfy
+    title: "An unrelated type holding the same value does not satisfy the reference"
+    area: modeling
+    feature: references
+    evidence: documented
+    source: "docs reference/modeling-data/Property §References and cascade (snapshot 2026-09-28) ('Only declared descendants qualify')"
+    confidence: high
+    requires: []
+    live: true
+    notes: "spec: R-MOD-38."
+    site:
+      settings:
+        default_get: allow
+      rules:
+        - actor: "*"
+          resource: "${P}/*"
+          method: [GET, HEAD, PUT, POST, DELETE, MOVE]
+          action: Allow
+        - actor: "*"
+          resource: "${P}/*/*"
+          method: [GET, HEAD, PUT, POST, DELETE, MOVE]
+          action: Allow
+    steps:
+      - name: "register declarations through the public plane (takes effect for the next request)"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/schema.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div hidden itemscope itemtype="https://pagelove.org/Schema">
+                <meta itemprop="type" content="https://pagelike.test${P}/Org">
+                <div itemprop="property" itemscope itemtype="https://pagelove.org/Property">
+                  <meta itemprop="name" content="identifier">
+                  <meta itemprop="type" content="https://schema.host/Text">
+                  <meta itemprop="cardinality" content="1..1">
+                  <meta itemprop="unique" content="true">
+                </div>
+              </div>
+              <div hidden itemscope itemtype="https://pagelove.org/Schema">
+                <meta itemprop="type" content="https://pagelike.test${P}/Club">
+                <div itemprop="property" itemscope itemtype="https://pagelove.org/Property">
+                  <meta itemprop="name" content="identifier">
+                  <meta itemprop="type" content="https://schema.host/Text">
+                  <meta itemprop="cardinality" content="1..1">
+                  <meta itemprop="unique" content="true">
+                </div>
+              </div>
+              <div hidden itemscope itemtype="https://pagelove.org/Schema">
+                <meta itemprop="type" content="https://pagelike.test${P}/Member">
+                <div itemprop="property" itemscope itemtype="https://pagelove.org/Property">
+                  <meta itemprop="name" content="org">
+                  <meta itemprop="type" content="https://schema.host/Text">
+                  <meta itemprop="cardinality" content="1..1">
+                  <meta itemprop="references" content="https://pagelike.test${P}/Org#identifier">
+                </div>
+              </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "club x"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/club.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div itemscope itemtype="https://pagelike.test${P}/Club">
+                <meta itemprop="identifier" content="x">
+              </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "member referencing x"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/m.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div itemscope itemtype="https://pagelike.test${P}/Member">
+                <meta itemprop="org" content="x">
+              </div>
+            </body></html>
+        expect:
+          status: 422
+          header_matches:
+            Content-Type: "^text/html"
+  - id: modeling.references.target-not-unique-rejects-writes
+    title: "A reference to a property that is not unique=true is a schema load error; writes to the type fail"
+    area: modeling
+    feature: references
+    evidence: documented
+    source: "docs reference/modeling-data/Property §Error cases (snapshot 2026-09-28)"
+    confidence: medium
+    requires: []
+    live: true
+    notes: "spec: R-MOD-37. The status is undocumented (C16). pagelike returns 422 check=schema."
+    site:
+      settings:
+        default_get: allow
+      rules:
+        - actor: "*"
+          resource: "${P}/*"
+          method: [GET, HEAD, PUT, POST, DELETE, MOVE]
+          action: Allow
+        - actor: "*"
+          resource: "${P}/*/*"
+          method: [GET, HEAD, PUT, POST, DELETE, MOVE]
+          action: Allow
+    steps:
+      - name: "register declarations through the public plane (takes effect for the next request)"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/schema.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div hidden itemscope itemtype="https://pagelove.org/Schema">
+                <meta itemprop="type" content="https://pagelike.test${P}/Org">
+                <div itemprop="property" itemscope itemtype="https://pagelove.org/Property">
+                  <meta itemprop="name" content="name">
+                  <meta itemprop="type" content="https://schema.host/Text">
+                  <meta itemprop="cardinality" content="1..1">
+                </div>
+              </div>
+              <div hidden itemscope itemtype="https://pagelove.org/Schema">
+                <meta itemprop="type" content="https://pagelike.test${P}/Member">
+                <div itemprop="property" itemscope itemtype="https://pagelove.org/Property">
+                  <meta itemprop="name" content="org">
+                  <meta itemprop="type" content="https://schema.host/Text">
+                  <meta itemprop="cardinality" content="1..1">
+                  <meta itemprop="references" content="https://pagelike.test${P}/Org#name">
+                </div>
+              </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "org named acme"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/org.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div itemscope itemtype="https://pagelike.test${P}/Org">
+                <meta itemprop="name" content="acme">
+              </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "any member write is rejected"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/m.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div itemscope itemtype="https://pagelike.test${P}/Member">
+                <meta itemprop="org" content="acme">
+              </div>
+            </body></html>
+        expect:
+          status: [422, 500]
+      - name: "m.html was not stored"
+        as: author
+        plane: dav
+        request:
+          method: GET
+          path: "${P}/m.html"
+        expect:
+          status: 404
+  - id: modeling.references.malformed-rejects-writes
+    title: "A references value without '#' is a schema load error; writes to the type fail"
+    area: modeling
+    feature: references
+    evidence: documented
+    source: "docs reference/modeling-data/Property §Error cases (snapshot 2026-09-28)"
+    confidence: medium
+    requires: []
+    live: true
+    notes: "spec: R-MOD-37. Contradiction C5: recipes/linking-related-data uses a bare type URL in references; the reference page wins."
+    site:
+      settings:
+        default_get: allow
+      rules:
+        - actor: "*"
+          resource: "${P}/*"
+          method: [GET, HEAD, PUT, POST, DELETE, MOVE]
+          action: Allow
+        - actor: "*"
+          resource: "${P}/*/*"
+          method: [GET, HEAD, PUT, POST, DELETE, MOVE]
+          action: Allow
+    steps:
+      - name: "register declarations through the public plane (takes effect for the next request)"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/schema.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div hidden itemscope itemtype="https://pagelove.org/Schema">
+                <meta itemprop="type" content="https://pagelike.test${P}/Org">
+                <div itemprop="property" itemscope itemtype="https://pagelove.org/Property">
+                  <meta itemprop="name" content="identifier">
+                  <meta itemprop="type" content="https://schema.host/Text">
+                  <meta itemprop="cardinality" content="1..1">
+                  <meta itemprop="unique" content="true">
+                </div>
+              </div>
+              <div hidden itemscope itemtype="https://pagelove.org/Schema">
+                <meta itemprop="type" content="https://pagelike.test${P}/Member">
+                <div itemprop="property" itemscope itemtype="https://pagelove.org/Property">
+                  <meta itemprop="name" content="org">
+                  <meta itemprop="type" content="https://schema.host/Text">
+                  <meta itemprop="cardinality" content="1..1">
+                  <meta itemprop="references" content="https://pagelike.test${P}/Org">
+                </div>
+              </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "org acme"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/org.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div itemscope itemtype="https://pagelike.test${P}/Org">
+                <meta itemprop="identifier" content="acme">
+              </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "any member write is rejected"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/m.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div itemscope itemtype="https://pagelike.test${P}/Member">
+                <meta itemprop="org" content="acme">
+              </div>
+            </body></html>
+        expect:
+          status: [422, 500]
+  - id: modeling.references.restrict-blocks-delete
+    title: "Deleting a referenced document under cascade=restrict returns 409 and changes nothing"
+    area: modeling
+    feature: cascade
+    evidence: documented
+    source: "docs reference/modeling-data/Property §References and cascade (snapshot 2026-09-28)"
+    confidence: high
+    requires: []
+    live: true
+    notes: "spec: R-MOD-39, R-MOD-43."
+    site:
+      settings:
+        default_get: allow
+      rules:
+        - actor: "*"
+          resource: "${P}/*"
+          method: [GET, HEAD, PUT, POST, DELETE, MOVE]
+          action: Allow
+        - actor: "*"
+          resource: "${P}/*/*"
+          method: [GET, HEAD, PUT, POST, DELETE, MOVE]
+          action: Allow
+    steps:
+      - name: "register declarations through the public plane (takes effect for the next request)"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/schema.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div hidden itemscope itemtype="https://pagelove.org/Schema">
+                <meta itemprop="type" content="https://pagelike.test${P}/Org">
+                <div itemprop="property" itemscope itemtype="https://pagelove.org/Property">
+                  <meta itemprop="name" content="identifier">
+                  <meta itemprop="type" content="https://schema.host/Text">
+                  <meta itemprop="cardinality" content="1..1">
+                  <meta itemprop="unique" content="true">
+                </div>
+              </div>
+              <div hidden itemscope itemtype="https://pagelove.org/Schema">
+                <meta itemprop="type" content="https://pagelike.test${P}/Member">
+                <div itemprop="property" itemscope itemtype="https://pagelove.org/Property">
+                  <meta itemprop="name" content="org">
+                  <meta itemprop="type" content="https://schema.host/Text">
+                  <meta itemprop="cardinality" content="1..1">
+                  <meta itemprop="references" content="https://pagelike.test${P}/Org#identifier">
+                  <meta itemprop="cascade" content="restrict">
+                </div>
+              </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "org acme"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/org.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div itemscope itemtype="https://pagelike.test${P}/Org">
+                <meta itemprop="identifier" content="acme">
+              </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "member of acme"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/m.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div itemscope itemtype="https://pagelike.test${P}/Member">
+                <meta itemprop="org" content="acme">
+              </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "delete the org document"
+        as: anonymous
+        request:
+          method: DELETE
+          path: "${P}/org.html"
+        expect:
+          status: 409
+      - name: "stored state of org.html (authoring plane, raw)"
+        as: author
+        plane: dav
+        request:
+          method: GET
+          path: "${P}/org.html"
+        expect:
+          status: 200
+          body_contains: ["content=\"acme\""]
+      - name: "stored state of m.html (authoring plane, raw)"
+        as: author
+        plane: dav
+        request:
+          method: GET
+          path: "${P}/m.html"
+        expect:
+          status: 200
+          body_contains: ["content=\"acme\""]
+  - id: modeling.references.cascade-deletes-required-referrer
+    title: "cascade=true with a 1..1 referrer deletes the referencing document"
+    area: modeling
+    feature: cascade
+    evidence: documented
+    source: "docs reference/modeling-data/Property §What the cascade does to referrers (snapshot 2026-09-28)"
+    confidence: high
+    requires: []
+    live: true
+    notes: "spec: R-MOD-41."
+    site:
+      settings:
+        default_get: allow
+      rules:
+        - actor: "*"
+          resource: "${P}/*"
+          method: [GET, HEAD, PUT, POST, DELETE, MOVE]
+          action: Allow
+        - actor: "*"
+          resource: "${P}/*/*"
+          method: [GET, HEAD, PUT, POST, DELETE, MOVE]
+          action: Allow
+    steps:
+      - name: "register declarations through the public plane (takes effect for the next request)"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/schema.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div hidden itemscope itemtype="https://pagelove.org/Schema">
+                <meta itemprop="type" content="https://pagelike.test${P}/Org">
+                <div itemprop="property" itemscope itemtype="https://pagelove.org/Property">
+                  <meta itemprop="name" content="identifier">
+                  <meta itemprop="type" content="https://schema.host/Text">
+                  <meta itemprop="cardinality" content="1..1">
+                  <meta itemprop="unique" content="true">
+                </div>
+              </div>
+              <div hidden itemscope itemtype="https://pagelove.org/Schema">
+                <meta itemprop="type" content="https://pagelike.test${P}/Member">
+                <div itemprop="property" itemscope itemtype="https://pagelove.org/Property">
+                  <meta itemprop="name" content="org">
+                  <meta itemprop="type" content="https://schema.host/Text">
+                  <meta itemprop="cardinality" content="1..1">
+                  <meta itemprop="references" content="https://pagelike.test${P}/Org#identifier">
+                  <meta itemprop="cascade" content="true">
+                </div>
+              </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "org acme"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/org.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div itemscope itemtype="https://pagelike.test${P}/Org">
+                <meta itemprop="identifier" content="acme">
+              </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "member of acme"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/m.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div itemscope itemtype="https://pagelike.test${P}/Member">
+                <meta itemprop="org" content="acme">
+              </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "delete the org document"
+        as: anonymous
+        request:
+          method: DELETE
+          path: "${P}/org.html"
+        expect:
+          status: [200, 204]
+      - name: "the referencing document was deleted"
+        as: author
+        plane: dav
+        request:
+          method: GET
+          path: "${P}/m.html"
+        expect:
+          status: 404
+  - id: modeling.references.cascade-removes-optional-reference
+    title: "cascade=true with a 0..1 referrer removes the property element and keeps the document"
+    area: modeling
+    feature: cascade
+    evidence: documented
+    source: "docs reference/modeling-data/Property §What the cascade does to referrers (snapshot 2026-09-28)"
+    confidence: high
+    requires: []
+    live: true
+    notes: "spec: R-MOD-41."
+    site:
+      settings:
+        default_get: allow
+      rules:
+        - actor: "*"
+          resource: "${P}/*"
+          method: [GET, HEAD, PUT, POST, DELETE, MOVE]
+          action: Allow
+        - actor: "*"
+          resource: "${P}/*/*"
+          method: [GET, HEAD, PUT, POST, DELETE, MOVE]
+          action: Allow
+    steps:
+      - name: "register declarations through the public plane (takes effect for the next request)"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/schema.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div hidden itemscope itemtype="https://pagelove.org/Schema">
+                <meta itemprop="type" content="https://pagelike.test${P}/Org">
+                <div itemprop="property" itemscope itemtype="https://pagelove.org/Property">
+                  <meta itemprop="name" content="identifier">
+                  <meta itemprop="type" content="https://schema.host/Text">
+                  <meta itemprop="cardinality" content="1..1">
+                  <meta itemprop="unique" content="true">
+                </div>
+              </div>
+              <div hidden itemscope itemtype="https://pagelove.org/Schema">
+                <meta itemprop="type" content="https://pagelike.test${P}/Member">
+                <div itemprop="property" itemscope itemtype="https://pagelove.org/Property">
+                  <meta itemprop="name" content="org">
+                  <meta itemprop="type" content="https://schema.host/Text">
+                  <meta itemprop="cardinality" content="0..1">
+                  <meta itemprop="references" content="https://pagelike.test${P}/Org#identifier">
+                  <meta itemprop="cascade" content="true">
+                </div>
+              </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "org acme"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/org.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div itemscope itemtype="https://pagelike.test${P}/Org">
+                <meta itemprop="identifier" content="acme">
+              </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "member of acme"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/m.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div itemscope itemtype="https://pagelike.test${P}/Member">
+                <meta itemprop="org" content="acme">
+                <p>keep me</p>
+              </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "delete the org document"
+        as: anonymous
+        request:
+          method: DELETE
+          path: "${P}/org.html"
+        expect:
+          status: [200, 204]
+      - name: "stored state of m.html (authoring plane, raw)"
+        as: author
+        plane: dav
+        request:
+          method: GET
+          path: "${P}/m.html"
+        expect:
+          status: 200
+          body_contains: ["keep me"]
+          body_not_contains: ["content=\"acme\""]
+  - id: modeling.references.cascade-one-to-many
+    title: "cascade=true with a 1..n referrer removes the value, and deletes the document when it was the last"
+    area: modeling
+    feature: cascade
+    evidence: documented
+    source: "docs reference/modeling-data/Property §What the cascade does to referrers (snapshot 2026-09-28)"
+    confidence: high
+    requires: []
+    live: true
+    notes: "spec: R-MOD-41."
+    site:
+      settings:
+        default_get: allow
+      rules:
+        - actor: "*"
+          resource: "${P}/*"
+          method: [GET, HEAD, PUT, POST, DELETE, MOVE]
+          action: Allow
+        - actor: "*"
+          resource: "${P}/*/*"
+          method: [GET, HEAD, PUT, POST, DELETE, MOVE]
+          action: Allow
+    steps:
+      - name: "register declarations through the public plane (takes effect for the next request)"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/schema.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div hidden itemscope itemtype="https://pagelove.org/Schema">
+                <meta itemprop="type" content="https://pagelike.test${P}/Org">
+                <div itemprop="property" itemscope itemtype="https://pagelove.org/Property">
+                  <meta itemprop="name" content="identifier">
+                  <meta itemprop="type" content="https://schema.host/Text">
+                  <meta itemprop="cardinality" content="1..1">
+                  <meta itemprop="unique" content="true">
+                </div>
+              </div>
+              <div hidden itemscope itemtype="https://pagelove.org/Schema">
+                <meta itemprop="type" content="https://pagelike.test${P}/Member">
+                <div itemprop="property" itemscope itemtype="https://pagelove.org/Property">
+                  <meta itemprop="name" content="orgs">
+                  <meta itemprop="type" content="https://schema.host/Text">
+                  <meta itemprop="cardinality" content="1..n">
+                  <meta itemprop="references" content="https://pagelike.test${P}/Org#identifier">
+                  <meta itemprop="cascade" content="true">
+                </div>
+              </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "org acme"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/acme.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div itemscope itemtype="https://pagelike.test${P}/Org">
+                <meta itemprop="identifier" content="acme">
+              </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "org globex"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/globex.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div itemscope itemtype="https://pagelike.test${P}/Org">
+                <meta itemprop="identifier" content="globex">
+              </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "member of both"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/m.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div itemscope itemtype="https://pagelike.test${P}/Member">
+                <meta itemprop="orgs" content="acme">
+                <meta itemprop="orgs" content="globex">
+              </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "delete acme"
+        as: anonymous
+        request:
+          method: DELETE
+          path: "${P}/acme.html"
+        expect:
+          status: [200, 204]
+      - name: "stored state of m.html (authoring plane, raw)"
+        as: author
+        plane: dav
+        request:
+          method: GET
+          path: "${P}/m.html"
+        expect:
+          status: 200
+          body_contains: ["content=\"globex\""]
+          body_not_contains: ["content=\"acme\""]
+      - name: "delete globex"
+        as: anonymous
+        request:
+          method: DELETE
+          path: "${P}/globex.html"
+        expect:
+          status: [200, 204]
+      - name: "the member document was deleted with its last value"
+        as: author
+        plane: dav
+        request:
+          method: GET
+          path: "${P}/m.html"
+        expect:
+          status: 404
+  - id: modeling.references.restrict-upgrades-all-referrers
+    title: "If any referrer of a source property uses restrict, deletes are blocked for all"
+    area: modeling
+    feature: cascade
+    evidence: documented
+    source: "docs reference/modeling-data/Property §References and cascade (snapshot 2026-09-28) ('upgraded to restrict')"
+    confidence: high
+    requires: []
+    live: true
+    notes: "spec: R-MOD-39."
+    site:
+      settings:
+        default_get: allow
+      rules:
+        - actor: "*"
+          resource: "${P}/*"
+          method: [GET, HEAD, PUT, POST, DELETE, MOVE]
+          action: Allow
+        - actor: "*"
+          resource: "${P}/*/*"
+          method: [GET, HEAD, PUT, POST, DELETE, MOVE]
+          action: Allow
+    steps:
+      - name: "register declarations through the public plane (takes effect for the next request)"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/schema.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div hidden itemscope itemtype="https://pagelove.org/Schema">
+                <meta itemprop="type" content="https://pagelike.test${P}/Org">
+                <div itemprop="property" itemscope itemtype="https://pagelove.org/Property">
+                  <meta itemprop="name" content="identifier">
+                  <meta itemprop="type" content="https://schema.host/Text">
+                  <meta itemprop="cardinality" content="1..1">
+                  <meta itemprop="unique" content="true">
+                </div>
+              </div>
+              <div hidden itemscope itemtype="https://pagelove.org/Schema">
+                <meta itemprop="type" content="https://pagelike.test${P}/Member">
+                <div itemprop="property" itemscope itemtype="https://pagelove.org/Property">
+                  <meta itemprop="name" content="org">
+                  <meta itemprop="type" content="https://schema.host/Text">
+                  <meta itemprop="cardinality" content="1..1">
+                  <meta itemprop="references" content="https://pagelike.test${P}/Org#identifier">
+                  <meta itemprop="cascade" content="true">
+                </div>
+              </div>
+              <div hidden itemscope itemtype="https://pagelove.org/Schema">
+                <meta itemprop="type" content="https://pagelike.test${P}/Badge">
+                <div itemprop="property" itemscope itemtype="https://pagelove.org/Property">
+                  <meta itemprop="name" content="org">
+                  <meta itemprop="type" content="https://schema.host/Text">
+                  <meta itemprop="cardinality" content="1..1">
+                  <meta itemprop="references" content="https://pagelike.test${P}/Org#identifier">
+                  <meta itemprop="cascade" content="restrict">
+                </div>
+              </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "org acme"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/org.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div itemscope itemtype="https://pagelike.test${P}/Org">
+                <meta itemprop="identifier" content="acme">
+              </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "member (cascade) of acme"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/m.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div itemscope itemtype="https://pagelike.test${P}/Member">
+                <meta itemprop="org" content="acme">
+              </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "badge (restrict) of acme"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/b.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div itemscope itemtype="https://pagelike.test${P}/Badge">
+                <meta itemprop="org" content="acme">
+              </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "delete org"
+        as: anonymous
+        request:
+          method: DELETE
+          path: "${P}/org.html"
+        expect:
+          status: 409
+      - name: "stored state of m.html (authoring plane, raw)"
+        as: author
+        plane: dav
+        request:
+          method: GET
+          path: "${P}/m.html"
+        expect:
+          status: 200
+          body_contains: ["content=\"acme\""]
+  - id: modeling.references.change-rewrites-referrers
+    title: "When a referenced value changes, cascade=true rewrites the referrers"
+    area: modeling
+    feature: cascade
+    evidence: documented
+    source: "docs reference/modeling-data/Property §What the cascade does to referrers (snapshot 2026-09-28)"
+    confidence: medium
+    requires: []
+    live: true
+    notes: "spec: R-MOD-42."
+    site:
+      settings:
+        default_get: allow
+      rules:
+        - actor: "*"
+          resource: "${P}/*"
+          method: [GET, HEAD, PUT, POST, DELETE, MOVE]
+          action: Allow
+        - actor: "*"
+          resource: "${P}/*/*"
+          method: [GET, HEAD, PUT, POST, DELETE, MOVE]
+          action: Allow
+    steps:
+      - name: "register declarations through the public plane (takes effect for the next request)"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/schema.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div hidden itemscope itemtype="https://pagelove.org/Schema">
+                <meta itemprop="type" content="https://pagelike.test${P}/Org">
+                <div itemprop="property" itemscope itemtype="https://pagelove.org/Property">
+                  <meta itemprop="name" content="identifier">
+                  <meta itemprop="type" content="https://schema.host/Text">
+                  <meta itemprop="cardinality" content="1..1">
+                  <meta itemprop="unique" content="true">
+                </div>
+              </div>
+              <div hidden itemscope itemtype="https://pagelove.org/Schema">
+                <meta itemprop="type" content="https://pagelike.test${P}/Member">
+                <div itemprop="property" itemscope itemtype="https://pagelove.org/Property">
+                  <meta itemprop="name" content="org">
+                  <meta itemprop="type" content="https://schema.host/Text">
+                  <meta itemprop="cardinality" content="1..1">
+                  <meta itemprop="references" content="https://pagelike.test${P}/Org#identifier">
+                  <meta itemprop="cascade" content="true">
+                </div>
+              </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "org acme"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/org.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div itemscope itemtype="https://pagelike.test${P}/Org" id="o">
+                <meta itemprop="identifier" content="acme">
+              </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "member of acme"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/m.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div itemscope itemtype="https://pagelike.test${P}/Member">
+                <meta itemprop="org" content="acme">
+              </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "rename the org identifier"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/org.html"
+          headers:
+            Range: "selector=#o > meta[itemprop=\"identifier\"]"
+            Content-Type: text/html
+          body: "<meta itemprop=\"identifier\" content=\"acme2\">"
+        expect:
+          status: [200, 204, 206]
+      - name: "stored state of m.html (authoring plane, raw)"
+        as: author
+        plane: dav
+        request:
+          method: GET
+          path: "${P}/m.html"
+        expect:
+          status: 200
+          body_contains: ["content=\"acme2\""]
+  - id: modeling.references.removing-required-referenced-value-is-422
+    title: "Removing the only value of a 1..1 referenced property is rejected before any cascade"
+    area: modeling
+    feature: cascade
+    evidence: documented
+    source: "docs reference/modeling-data/Property §What triggers a cascade (snapshot 2026-09-28)"
+    confidence: high
+    requires: []
+    live: true
+    notes: "spec: R-MOD-40. Body vocabulary live 2026-09-29: selector writes answer a dombase Cardinality problems item (harness/observations/live-2026-09-29-reconcile-modeling/modeling-probe-0929-write-envelopes.json)."
+    site:
+      settings:
+        default_get: allow
+      rules:
+        - actor: "*"
+          resource: "${P}/*"
+          method: [GET, HEAD, PUT, POST, DELETE, MOVE]
+          action: Allow
+        - actor: "*"
+          resource: "${P}/*/*"
+          method: [GET, HEAD, PUT, POST, DELETE, MOVE]
+          action: Allow
+    steps:
+      - name: "register declarations through the public plane (takes effect for the next request)"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/schema.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div hidden itemscope itemtype="https://pagelove.org/Schema">
+                <meta itemprop="type" content="https://pagelike.test${P}/Org">
+                <div itemprop="property" itemscope itemtype="https://pagelove.org/Property">
+                  <meta itemprop="name" content="identifier">
+                  <meta itemprop="type" content="https://schema.host/Text">
+                  <meta itemprop="cardinality" content="1..1">
+                  <meta itemprop="unique" content="true">
+                </div>
+              </div>
+              <div hidden itemscope itemtype="https://pagelove.org/Schema">
+                <meta itemprop="type" content="https://pagelike.test${P}/Member">
+                <div itemprop="property" itemscope itemtype="https://pagelove.org/Property">
+                  <meta itemprop="name" content="org">
+                  <meta itemprop="type" content="https://schema.host/Text">
+                  <meta itemprop="cardinality" content="1..1">
+                  <meta itemprop="references" content="https://pagelike.test${P}/Org#identifier">
+                  <meta itemprop="cascade" content="true">
+                </div>
+              </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "org acme"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/org.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div itemscope itemtype="https://pagelike.test${P}/Org" id="o">
+                <meta itemprop="identifier" content="acme">
+              </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "member of acme"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/m.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div itemscope itemtype="https://pagelike.test${P}/Member">
+                <meta itemprop="org" content="acme">
+              </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "delete the org identifier element"
+        as: anonymous
+        request:
+          method: DELETE
+          path: "${P}/org.html"
+          headers:
+            Range: "selector=#o > meta[itemprop=\"identifier\"]"
+        expect:
+          status: 422
+          header_matches:
+            Content-Type: "^text/html"
+          body_contains: ["https://dombase.pagelove.team/ns/error/Cardinality", "violated", "(cardinality)"]
+      - name: "stored state of m.html (authoring plane, raw)"
+        as: author
+        plane: dav
+        request:
+          method: GET
+          path: "${P}/m.html"
+        expect:
+          status: 200
+          body_contains: ["content=\"acme\""]
+  - id: modeling.references.optional-referenced-value-delete-cascades
+    title: "Removing a 0..1 referenced value with a selector DELETE triggers the cascade"
+    area: modeling
+    feature: cascade
+    evidence: documented
+    source: "docs reference/modeling-data/Property §What triggers a cascade (snapshot 2026-09-28)"
+    confidence: high
+    requires: []
+    live: true
+    notes: "spec: R-MOD-40, R-MOD-41."
+    site:
+      settings:
+        default_get: allow
+      rules:
+        - actor: "*"
+          resource: "${P}/*"
+          method: [GET, HEAD, PUT, POST, DELETE, MOVE]
+          action: Allow
+        - actor: "*"
+          resource: "${P}/*/*"
+          method: [GET, HEAD, PUT, POST, DELETE, MOVE]
+          action: Allow
+    steps:
+      - name: "register declarations through the public plane (takes effect for the next request)"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/schema.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div hidden itemscope itemtype="https://pagelove.org/Schema">
+                <meta itemprop="type" content="https://pagelike.test${P}/Org">
+                <div itemprop="property" itemscope itemtype="https://pagelove.org/Property">
+                  <meta itemprop="name" content="identifier">
+                  <meta itemprop="type" content="https://schema.host/Text">
+                  <meta itemprop="cardinality" content="0..1">
+                  <meta itemprop="unique" content="true">
+                </div>
+              </div>
+              <div hidden itemscope itemtype="https://pagelove.org/Schema">
+                <meta itemprop="type" content="https://pagelike.test${P}/Member">
+                <div itemprop="property" itemscope itemtype="https://pagelove.org/Property">
+                  <meta itemprop="name" content="org">
+                  <meta itemprop="type" content="https://schema.host/Text">
+                  <meta itemprop="cardinality" content="0..1">
+                  <meta itemprop="references" content="https://pagelike.test${P}/Org#identifier">
+                  <meta itemprop="cascade" content="true">
+                </div>
+              </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "org acme"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/org.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div itemscope itemtype="https://pagelike.test${P}/Org" id="o">
+                <meta itemprop="identifier" content="acme">
+              </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "member of acme"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/m.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div itemscope itemtype="https://pagelike.test${P}/Member">
+                <meta itemprop="org" content="acme">
+                <p>stays</p>
+              </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "delete the org identifier element"
+        as: anonymous
+        request:
+          method: DELETE
+          path: "${P}/org.html"
+          headers:
+            Range: "selector=#o > meta[itemprop=\"identifier\"]"
+        expect:
+          status: 204
+      - name: "stored state of m.html (authoring plane, raw)"
+        as: author
+        plane: dav
+        request:
+          method: GET
+          path: "${P}/m.html"
+        expect:
+          status: 200
+          body_contains: [stays]
+          body_not_contains: ["content=\"acme\""]
+  - id: modeling.references.no-cascade-leaves-dangling
+    title: "Without cascade, deleting the target succeeds and referrers keep the value"
+    area: modeling
+    feature: cascade
+    evidence: documented
+    source: "docs reference/modeling-data/Property §References and cascade (snapshot 2026-09-28) ('omitted / \"false\": No cascade behaviour')"
+    confidence: high
+    requires: []
+    live: true
+    notes: "spec: R-MOD-39."
+    site:
+      settings:
+        default_get: allow
+      rules:
+        - actor: "*"
+          resource: "${P}/*"
+          method: [GET, HEAD, PUT, POST, DELETE, MOVE]
+          action: Allow
+        - actor: "*"
+          resource: "${P}/*/*"
+          method: [GET, HEAD, PUT, POST, DELETE, MOVE]
+          action: Allow
+    steps:
+      - name: "register declarations through the public plane (takes effect for the next request)"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/schema.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div hidden itemscope itemtype="https://pagelove.org/Schema">
+                <meta itemprop="type" content="https://pagelike.test${P}/Org">
+                <div itemprop="property" itemscope itemtype="https://pagelove.org/Property">
+                  <meta itemprop="name" content="identifier">
+                  <meta itemprop="type" content="https://schema.host/Text">
+                  <meta itemprop="cardinality" content="1..1">
+                  <meta itemprop="unique" content="true">
+                </div>
+              </div>
+              <div hidden itemscope itemtype="https://pagelove.org/Schema">
+                <meta itemprop="type" content="https://pagelike.test${P}/Member">
+                <div itemprop="property" itemscope itemtype="https://pagelove.org/Property">
+                  <meta itemprop="name" content="org">
+                  <meta itemprop="type" content="https://schema.host/Text">
+                  <meta itemprop="cardinality" content="1..1">
+                  <meta itemprop="references" content="https://pagelike.test${P}/Org#identifier">
+                </div>
+              </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "org acme"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/org.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div itemscope itemtype="https://pagelike.test${P}/Org">
+                <meta itemprop="identifier" content="acme">
+              </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "member of acme"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/m.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div itemscope itemtype="https://pagelike.test${P}/Member">
+                <meta itemprop="org" content="acme">
+              </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "delete org"
+        as: anonymous
+        request:
+          method: DELETE
+          path: "${P}/org.html"
+        expect:
+          status: [200, 204]
+      - name: "stored state of m.html (authoring plane, raw)"
+        as: author
+        plane: dav
+        request:
+          method: GET
+          path: "${P}/m.html"
+        expect:
+          status: 200
+          body_contains: ["content=\"acme\""]
+  - id: modeling.references.ondelete-field-ignored
+    title: "The recipe's onDelete field has no effect; only cascade is recognised"
+    area: modeling
+    feature: cascade
+    evidence: inferred
+    source: "docs reference/modeling-data/Property §Fields (snapshot 2026-09-28) (cascade is the field name)"
+    confidence: medium
+    requires: []
+    live: true
+    notes: "spec: R-MOD-39. Contradiction C5; the losing claim is modeling.references.ondelete-recipe-restrict."
+    site:
+      settings:
+        default_get: allow
+      rules:
+        - actor: "*"
+          resource: "${P}/*"
+          method: [GET, HEAD, PUT, POST, DELETE, MOVE]
+          action: Allow
+        - actor: "*"
+          resource: "${P}/*/*"
+          method: [GET, HEAD, PUT, POST, DELETE, MOVE]
+          action: Allow
+    steps:
+      - name: "register declarations through the public plane (takes effect for the next request)"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/schema.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div hidden itemscope itemtype="https://pagelove.org/Schema">
+                <meta itemprop="type" content="https://pagelike.test${P}/Org">
+                <div itemprop="property" itemscope itemtype="https://pagelove.org/Property">
+                  <meta itemprop="name" content="identifier">
+                  <meta itemprop="type" content="https://schema.host/Text">
+                  <meta itemprop="cardinality" content="1..1">
+                  <meta itemprop="unique" content="true">
+                </div>
+              </div>
+              <div hidden itemscope itemtype="https://pagelove.org/Schema">
+                <meta itemprop="type" content="https://pagelike.test${P}/Member">
+                <div itemprop="property" itemscope itemtype="https://pagelove.org/Property">
+                  <meta itemprop="name" content="org">
+                  <meta itemprop="type" content="https://schema.host/Text">
+                  <meta itemprop="cardinality" content="1..1">
+                  <meta itemprop="references" content="https://pagelike.test${P}/Org#identifier">
+                  <meta itemprop="onDelete" content="restrict">
+                </div>
+              </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "org acme"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/org.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div itemscope itemtype="https://pagelike.test${P}/Org">
+                <meta itemprop="identifier" content="acme">
+              </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "member of acme"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/m.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div itemscope itemtype="https://pagelike.test${P}/Member">
+                <meta itemprop="org" content="acme">
+              </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "delete org"
+        as: anonymous
+        request:
+          method: DELETE
+          path: "${P}/org.html"
+        expect:
+          status: [200, 204]
+  - id: modeling.references.ondelete-recipe-restrict
+    title: "Recipe claim: onDelete=restrict blocks the delete with 409"
+    area: modeling
+    feature: cascade
+    evidence: documented
+    source: "docs recipes/linking-related-data §Cascade and restrict on delete (snapshot 2026-09-28)"
+    confidence: low
+    requires: []
+    live: true
+    status: disputed
+    notes: "spec: R-MOD-39. Recipe also claims 'Restrict is the default for required references'; the reference page says omitted means no cascade behaviour."
+    site:
+      settings:
+        default_get: allow
+      rules:
+        - actor: "*"
+          resource: "${P}/*"
+          method: [GET, HEAD, PUT, POST, DELETE, MOVE]
+          action: Allow
+        - actor: "*"
+          resource: "${P}/*/*"
+          method: [GET, HEAD, PUT, POST, DELETE, MOVE]
+          action: Allow
+    steps:
+      - name: "register declarations through the public plane (takes effect for the next request)"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/schema.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div hidden itemscope itemtype="https://pagelove.org/Schema">
+                <meta itemprop="type" content="https://pagelike.test${P}/Org">
+                <div itemprop="property" itemscope itemtype="https://pagelove.org/Property">
+                  <meta itemprop="name" content="identifier">
+                  <meta itemprop="type" content="https://schema.host/Text">
+                  <meta itemprop="cardinality" content="1..1">
+                  <meta itemprop="unique" content="true">
+                </div>
+              </div>
+              <div hidden itemscope itemtype="https://pagelove.org/Schema">
+                <meta itemprop="type" content="https://pagelike.test${P}/Member">
+                <div itemprop="property" itemscope itemtype="https://pagelove.org/Property">
+                  <meta itemprop="name" content="org">
+                  <meta itemprop="type" content="https://schema.host/Text">
+                  <meta itemprop="cardinality" content="1..1">
+                  <meta itemprop="references" content="https://pagelike.test${P}/Org#identifier">
+                  <meta itemprop="onDelete" content="restrict">
+                </div>
+              </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "org acme"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/org.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div itemscope itemtype="https://pagelike.test${P}/Org">
+                <meta itemprop="identifier" content="acme">
+              </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "member of acme"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/m.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div itemscope itemtype="https://pagelike.test${P}/Member">
+                <meta itemprop="org" content="acme">
+              </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "delete org"
+        as: anonymous
+        request:
+          method: DELETE
+          path: "${P}/org.html"
+        expect:
+          status: 409

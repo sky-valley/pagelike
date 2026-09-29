@@ -1,0 +1,65 @@
+{
+  "case": "modeling.defaults.selector-post-new-item-gets-default",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (register declarations through the public plane (takes effect for the next request))",
+      "method": "PUT",
+      "path": "/_pl/modeling-defaults-selector-post-new-item-2e7351/schema.html",
+      "status": 201,
+      "headers": {
+        "content-length": "786",
+        "content-type": "text/html",
+        "etag": "\"520e099a86f731c27c289ad2aeb38f66a25cba58b066012dff0063a28a570a76\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:44 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\n  \u003cdiv hidden itemscope itemtype=\"https://pagelove.org/Schema\"\u003e\n    \u003cmeta itemprop=\"type\" content=\"https://pagelike.test/_pl/modeling-defaults-selector-post-new-item-2e7351/Post\"\u003e\n    \u003cdiv itemprop=\"property\" itemscope itemtype=\"https://pagelove.org/Property\"\u003e\n      \u003cmeta itemprop=\"name\" content=\"title\"\u003e\n      \u003cmeta itemprop=\"type\" content=\"https://schema.host/Text\"\u003e\n      \u003cmeta itemprop=\"cardinality\" content=\"1..1\"\u003e\n    \u003c/div\u003e\n    \u003cdiv itemprop=\"property\" itemscope itemtype=\"https://pagelove.org/Property\"\u003e\n      \u003cmeta itemprop=\"name\" content=\"status\"\u003e\n      \u003cmeta itemprop=\"type\" content=\"https://schema.host/Text\"\u003e\n      \u003cmeta itemprop=\"cardinality\" content=\"0..1\"\u003e\n      \u003cmeta itemprop=\"default\" content=\"draft\"\u003e\n    \u003c/div\u003e\n  \u003c/div\u003e\n\u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 2 (seed an empty list)",
+      "method": "PUT",
+      "path": "/_pl/modeling-defaults-selector-post-new-item-2e7351/list.html",
+      "status": 201,
+      "headers": {
+        "content-length": "67",
+        "content-type": "text/html",
+        "etag": "\"418155b0b07cda81c4721d180342e222e131ec5e01dcd8d11d0610472ac388c0\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:44 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\n  \u003cul id=\"posts\"\u003e\u003c/ul\u003e\n\u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 3 (append a post without status)",
+      "method": "POST",
+      "path": "/_pl/modeling-defaults-selector-post-new-item-2e7351/list.html",
+      "status": 206,
+      "headers": {
+        "content-length": "195",
+        "content-range": "selector #posts",
+        "content-type": "text/html",
+        "etag": "\"4c81725d3b4091aba9b24b6c4ae1f9a35e4a8c581c805a0a0f84f05480352505-4c81725d3b4091aba9b24b6c4ae1f9a35e4a8c581c805a0a0f84f05480352505-2\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:44 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003cli itemscope itemtype=\"https://pagelike.test/_pl/modeling-defaults-selector-post-new-item-2e7351/Post\"\u003e\n  \u003cmeta itemprop=\"title\" content=\"Appended\"\u003e\n\u003cmeta itemprop=\"status\" content=\"draft\"\u003e\u003c/li\u003e"
+    },
+    {
+      "step": "step 4 (stored state of list.html (authoring plane, raw))",
+      "method": "GET",
+      "path": "/_pl/modeling-defaults-selector-post-new-item-2e7351/list.html",
+      "status": 200,
+      "headers": {
+        "accept-ranges": "bytes",
+        "content-length": "263",
+        "content-type": "text/html",
+        "etag": "\"884e97b24f7a559c0cce4f131962c20f2ae1b2d4c12d7a1897bbed50bab104eb\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:44 GMT"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\n  \u003cul id=\"posts\"\u003e\u003cli itemscope itemtype=\"https://pagelike.test/_pl/modeling-defaults-selector-post-new-item-2e7351/Post\"\u003e\n  \u003cmeta itemprop=\"title\" content=\"Appended\"\u003e\n\u003cmeta itemprop=\"status\" content=\"draft\"\u003e\u003c/li\u003e\n\u003c/ul\u003e\n\u003c/body\u003e\u003c/html\u003e\n"
+    }
+  ],
+  "outcome": "pass",
+  "target": "local"
+}

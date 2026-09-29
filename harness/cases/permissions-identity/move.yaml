@@ -1,0 +1,689 @@
+# MOVE authorization (spec R-PERM-5, 47..49).
+# All element moves use this board:
+#   #lane-todo.lane > #card-1.card, #card-2.card ; #lane-done.lane > #card-3.card
+cases:
+  - id: authz.move.no-rule-denied
+    title: MOVE is default-deny even on a host that allows unmatched reads
+    area: permissions-identity
+    feature: MOVE authorization
+    evidence: documented
+    source: "docs reference/reading-and-writing/MOVE-method §Authorization ('MOVE is always default-deny')"
+    confidence: high
+    requires: []
+    live: true
+    site:
+      files:
+        - path: "${P}/board.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <section id="lane-todo" class="lane"><article id="card-1" class="card">One</article><article id="card-2" class="card">Two</article></section>
+              <section id="lane-done" class="lane"><article id="card-3" class="card">Three</article></section>
+            </body></html>
+    steps:
+      - name: element MOVE with no rules
+        as: anonymous
+        request:
+          method: MOVE
+          path: "${P}/board.html"
+          headers: {Range: "selector=#card-1", Destination: "${P}/board.html", Destination-Range: "selector=#lane-done; placement=append"}
+        expect: {status: 401}
+
+  - id: authz.move.three-checks-allow
+    title: MOVE succeeds when MOVE (document), DELETE (source) and POST (destination) are all granted
+    area: permissions-identity
+    feature: MOVE authorization
+    evidence: documented
+    source: "docs reference/reading-and-writing/MOVE-method §The three checks, §Example: allowing editors to reorder cards (actor changed to * for an anonymous run)"
+    confidence: high
+    requires: []
+    live: true
+    site:
+      files:
+        - path: "${P}/board.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <section id="lane-todo" class="lane"><article id="card-1" class="card">One</article><article id="card-2" class="card">Two</article></section>
+              <section id="lane-done" class="lane"><article id="card-3" class="card">Three</article></section>
+            </body></html>
+        - path: "${P}/rules.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+            <table itemscope itemtype="https://pagelove.org/AuthorizationRule">
+              <tbody>
+                <tr><td itemprop="actor">*</td><td itemprop="resource">${P}/board.html</td>
+                    <td itemprop="method">MOVE</td><td itemprop="selector"></td><td itemprop="action">Allow</td></tr>
+              </tbody>
+            </table>
+            <table itemscope itemtype="https://pagelove.org/AuthorizationRule">
+              <tbody>
+                <tr><td itemprop="actor">*</td><td itemprop="resource">${P}/board.html</td>
+                    <td itemprop="method">DELETE</td><td itemprop="selector">.card</td><td itemprop="action">Allow</td></tr>
+              </tbody>
+            </table>
+            <table itemscope itemtype="https://pagelove.org/AuthorizationRule">
+              <tbody>
+                <tr><td itemprop="actor">*</td><td itemprop="resource">${P}/board.html</td>
+                    <td itemprop="method">POST</td><td itemprop="selector">.lane</td><td itemprop="action">Allow</td></tr>
+              </tbody>
+            </table>
+            </body></html>
+    steps:
+      - name: append card-1 to the done lane
+        as: anonymous
+        request:
+          method: MOVE
+          path: "${P}/board.html"
+          headers: {Range: "selector=#card-1", Destination: "${P}/board.html", Destination-Range: "selector=#lane-done; placement=append"}
+        expect: {status: 204}
+      - name: card-1 is now in the done lane
+        as: author
+        plane: dav
+        request: {method: GET, path: "${P}/board.html"}
+        expect:
+          status: 200
+          body_contains: ['<article id="card-3" class="card">Three</article><article id="card-1" class="card">One</article>']
+      - name: reorder with placement=before (POST keyed on the anchor's parent lane)
+        as: anonymous
+        request:
+          method: MOVE
+          path: "${P}/board.html"
+          headers: {Range: "selector=#card-1", Destination: "${P}/board.html", Destination-Range: "selector=#card-3; placement=before"}
+        expect: {status: 204}
+
+  - id: authz.move.missing-delete-rule
+    title: Without a DELETE grant on the source, MOVE is refused (check 2)
+    area: permissions-identity
+    feature: MOVE authorization
+    evidence: documented
+    source: "docs reference/reading-and-writing/MOVE-method §The three checks ('Granting MOVE alone is not sufficient')"
+    confidence: high
+    requires: []
+    live: true
+    site:
+      files:
+        - path: "${P}/board.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <section id="lane-todo" class="lane"><article id="card-1" class="card">One</article></section>
+              <section id="lane-done" class="lane"><article id="card-3" class="card">Three</article></section>
+            </body></html>
+        - path: "${P}/rules.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div itemscope itemtype="https://pagelove.org/AuthorizationRule">
+                <meta itemprop="actor" content="*"><meta itemprop="resource" content="${P}/board.html">
+                <meta itemprop="method" content="MOVE"><meta itemprop="action" content="Allow">
+              </div>
+              <div itemscope itemtype="https://pagelove.org/AuthorizationRule">
+                <meta itemprop="actor" content="*"><meta itemprop="resource" content="${P}/board.html">
+                <meta itemprop="method" content="POST"><meta itemprop="selector" content=".lane">
+                <meta itemprop="action" content="Allow">
+              </div>
+            </body></html>
+    steps:
+      - name: MOVE refused
+        as: anonymous
+        request:
+          method: MOVE
+          path: "${P}/board.html"
+          headers: {Range: "selector=#card-1", Destination: "${P}/board.html", Destination-Range: "selector=#lane-done; placement=append"}
+        expect: {status: 401}
+
+  - id: authz.move.missing-post-rule
+    title: Without a POST grant at the destination, MOVE is refused (check 3)
+    area: permissions-identity
+    feature: MOVE authorization
+    evidence: documented
+    source: "docs reference/reading-and-writing/MOVE-method §The three checks"
+    confidence: high
+    requires: []
+    live: true
+    site:
+      files:
+        - path: "${P}/board.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <section id="lane-todo" class="lane"><article id="card-1" class="card">One</article></section>
+              <section id="lane-done" class="lane"><article id="card-3" class="card">Three</article></section>
+            </body></html>
+        - path: "${P}/rules.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div itemscope itemtype="https://pagelove.org/AuthorizationRule">
+                <meta itemprop="actor" content="*"><meta itemprop="resource" content="${P}/board.html">
+                <meta itemprop="method" content="MOVE"><meta itemprop="action" content="Allow">
+              </div>
+              <div itemscope itemtype="https://pagelove.org/AuthorizationRule">
+                <meta itemprop="actor" content="*"><meta itemprop="resource" content="${P}/board.html">
+                <meta itemprop="method" content="DELETE"><meta itemprop="selector" content=".card">
+                <meta itemprop="action" content="Allow">
+              </div>
+            </body></html>
+    steps:
+      - name: MOVE refused
+        as: anonymous
+        request:
+          method: MOVE
+          path: "${P}/board.html"
+          headers: {Range: "selector=#card-1", Destination: "${P}/board.html", Destination-Range: "selector=#lane-done; placement=append"}
+        expect: {status: 401}
+
+  - id: authz.move.missing-move-rule
+    title: DELETE and POST grants alone do not authorize a MOVE (check 1)
+    area: permissions-identity
+    feature: MOVE authorization
+    evidence: documented
+    source: "docs reference/reading-and-writing/MOVE-method §Authorization ('Every MOVE needs at least one explicit AuthorizationRule'), §The three checks"
+    confidence: high
+    requires: []
+    live: true
+    site:
+      files:
+        - path: "${P}/board.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <section id="lane-todo" class="lane"><article id="card-1" class="card">One</article></section>
+              <section id="lane-done" class="lane"><article id="card-3" class="card">Three</article></section>
+            </body></html>
+        - path: "${P}/rules.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div itemscope itemtype="https://pagelove.org/AuthorizationRule">
+                <meta itemprop="actor" content="*"><meta itemprop="resource" content="${P}/board.html">
+                <meta itemprop="method" content="DELETE"><meta itemprop="selector" content=".card">
+                <meta itemprop="action" content="Allow">
+              </div>
+              <div itemscope itemtype="https://pagelove.org/AuthorizationRule">
+                <meta itemprop="actor" content="*"><meta itemprop="resource" content="${P}/board.html">
+                <meta itemprop="method" content="POST"><meta itemprop="selector" content=".lane">
+                <meta itemprop="action" content="Allow">
+              </div>
+            </body></html>
+    steps:
+      - name: MOVE refused
+        as: anonymous
+        request:
+          method: MOVE
+          path: "${P}/board.html"
+          headers: {Range: "selector=#card-1", Destination: "${P}/board.html", Destination-Range: "selector=#lane-done; placement=append"}
+        expect: {status: 401}
+
+  - id: authz.move.allow-with-selector-discarded
+    title: A MOVE Allow rule carrying a selector is discarded, so the MOVE is refused
+    area: permissions-identity
+    feature: MOVE rule normalization
+    evidence: documented
+    source: "docs reference/reading-and-writing/MOVE-method §A MOVE rule must not carry a selector (WRONG example); reference/permissions/AuthorizationRule §selector"
+    confidence: high
+    requires: []
+    live: true
+    site:
+      files:
+        - path: "${P}/board.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <section id="lane-todo" class="lane"><article id="card-1" class="card">One</article></section>
+              <section id="lane-done" class="lane"><article id="card-3" class="card">Three</article></section>
+            </body></html>
+        - path: "${P}/rules.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body><table><tbody>
+              <tr itemscope itemtype="https://pagelove.org/AuthorizationRule">
+                <td itemprop="actor">*</td><td itemprop="resource">${P}/board.html</td>
+                <td itemprop="method">MOVE</td><td itemprop="selector">.card</td><td itemprop="action">Allow</td>
+              </tr>
+              <tr itemscope itemtype="https://pagelove.org/AuthorizationRule">
+                <td itemprop="actor">*</td><td itemprop="resource">${P}/board.html</td>
+                <td itemprop="method">DELETE</td><td itemprop="selector">.card</td><td itemprop="action">Allow</td>
+              </tr>
+              <tr itemscope itemtype="https://pagelove.org/AuthorizationRule">
+                <td itemprop="actor">*</td><td itemprop="resource">${P}/board.html</td>
+                <td itemprop="method">POST</td><td itemprop="selector">.lane</td><td itemprop="action">Allow</td>
+              </tr>
+            </tbody></table></body></html>
+    steps:
+      - name: MOVE refused
+        as: anonymous
+        request:
+          method: MOVE
+          path: "${P}/board.html"
+          headers: {Range: "selector=#card-1", Destination: "${P}/board.html", Destination-Range: "selector=#lane-done; placement=append"}
+        expect: {status: 401}
+
+  - id: authz.move.allow-with-selector-discarded-in-full
+    title: A discarded MOVE Allow rule also loses the other methods it listed
+    area: permissions-identity
+    feature: MOVE rule normalization
+    evidence: documented
+    source: "docs reference/permissions/AuthorizationRule §selector ('An Allow rule written that way is discarded in full … so it grants nothing')"
+    confidence: medium
+    requires: []
+    live: true
+    site:
+      files:
+        - path: "${P}/board.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <section id="lane-todo" class="lane"><article id="card-1" class="card">One</article></section>
+              <section id="lane-done" class="lane"><article id="card-3" class="card">Three</article></section>
+            </body></html>
+        - path: "${P}/rules.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div itemscope itemtype="https://pagelove.org/AuthorizationRule">
+                <meta itemprop="actor" content="*"><meta itemprop="resource" content="${P}/board.html">
+                <meta itemprop="method" content="MOVE"><meta itemprop="method" content="DELETE">
+                <meta itemprop="selector" content=".card"><meta itemprop="action" content="Allow">
+              </div>
+            </body></html>
+    steps:
+      - name: selector DELETE on a card is not granted by the discarded rule
+        as: anonymous
+        request: {method: DELETE, path: "${P}/board.html", headers: {Range: "selector=#card-1"}}
+        expect: {status: 401}
+
+  - id: authz.move.deny-with-selector-widened
+    title: A MOVE Deny rule with a selector is widened to the whole resource
+    area: permissions-identity
+    feature: MOVE rule normalization
+    evidence: documented
+    source: "docs reference/reading-and-writing/MOVE-method §A MOVE rule must not carry a selector ('A Deny rule with a selector is kept, with the selector treated as absent')"
+    confidence: high
+    requires: []
+    live: true
+    site:
+      files:
+        - path: "${P}/board.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <section id="lane-todo" class="lane"><article id="card-1" class="card">One</article></section>
+              <section id="lane-done" class="lane"><article id="card-3" class="card">Three</article></section>
+            </body></html>
+        - path: "${P}/rules.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div itemscope itemtype="https://pagelove.org/AuthorizationRule">
+                <meta itemprop="actor" content="*"><meta itemprop="resource" content="${P}/board.html">
+                <meta itemprop="method" content="MOVE"><meta itemprop="action" content="Allow">
+              </div>
+              <div itemscope itemtype="https://pagelove.org/AuthorizationRule">
+                <meta itemprop="actor" content="*"><meta itemprop="resource" content="${P}/board.html">
+                <meta itemprop="method" content="DELETE"><meta itemprop="selector" content=".card">
+                <meta itemprop="action" content="Allow">
+              </div>
+              <div itemscope itemtype="https://pagelove.org/AuthorizationRule">
+                <meta itemprop="actor" content="*"><meta itemprop="resource" content="${P}/board.html">
+                <meta itemprop="method" content="POST"><meta itemprop="selector" content=".lane">
+                <meta itemprop="action" content="Allow">
+              </div>
+              <div itemscope itemtype="https://pagelove.org/AuthorizationRule">
+                <meta itemprop="actor" content="*"><meta itemprop="resource" content="${P}/board.html">
+                <meta itemprop="method" content="MOVE"><meta itemprop="selector" content="#card-3">
+                <meta itemprop="action" content="Deny">
+              </div>
+            </body></html>
+    steps:
+      - name: moving a different card is refused too
+        as: anonymous
+        request:
+          method: MOVE
+          path: "${P}/board.html"
+          headers: {Range: "selector=#card-1", Destination: "${P}/board.html", Destination-Range: "selector=#lane-done; placement=append"}
+        expect: {status: 401}
+
+  - id: authz.move.deny-with-selector-widens-other-methods
+    title: Other methods listed on a widened MOVE Deny lose the selector too
+    area: permissions-identity
+    feature: MOVE rule normalization
+    evidence: documented
+    source: "docs reference/reading-and-writing/MOVE-method §A MOVE rule must not carry a selector ('a Deny on MOVE and DELETE with selector=.card refuses both for the whole document')"
+    confidence: high
+    requires: []
+    live: true
+    site:
+      files:
+        - path: "${P}/board.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <section id="lane-todo" class="lane"><article id="card-1" class="card">One</article><p id="note">note</p></section>
+            </body></html>
+        - path: "${P}/rules.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div itemscope itemtype="https://pagelove.org/AuthorizationRule">
+                <meta itemprop="actor" content="*"><meta itemprop="resource" content="${P}/board.html">
+                <meta itemprop="method" content="DELETE"><meta itemprop="action" content="Allow">
+              </div>
+              <div itemscope itemtype="https://pagelove.org/AuthorizationRule">
+                <meta itemprop="actor" content="*"><meta itemprop="resource" content="${P}/board.html">
+                <meta itemprop="method" content="MOVE"><meta itemprop="method" content="DELETE">
+                <meta itemprop="selector" content=".card"><meta itemprop="action" content="Deny">
+              </div>
+            </body></html>
+    steps:
+      - name: DELETE of a non-card element is refused (deny widened to the document)
+        as: anonymous
+        request: {method: DELETE, path: "${P}/board.html", headers: {Range: "selector=#note"}}
+        expect: {status: 401}
+
+  - id: authz.move.delete-rule-narrowed
+    title: Narrowing the DELETE rule narrows which moves are possible
+    area: permissions-identity
+    feature: MOVE authorization
+    evidence: documented
+    source: "docs reference/reading-and-writing/MOVE-method §Example ('A DELETE rule scoped to #lane-todo > .card permits moving cards out of the todo lane only')"
+    confidence: high
+    requires: []
+    live: true
+    site:
+      files:
+        - path: "${P}/board.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <section id="lane-todo" class="lane"><article id="card-1" class="card">One</article></section>
+              <section id="lane-done" class="lane"><article id="card-3" class="card">Three</article></section>
+            </body></html>
+        - path: "${P}/rules.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div itemscope itemtype="https://pagelove.org/AuthorizationRule">
+                <meta itemprop="actor" content="*"><meta itemprop="resource" content="${P}/board.html">
+                <meta itemprop="method" content="MOVE"><meta itemprop="action" content="Allow">
+              </div>
+              <div itemscope itemtype="https://pagelove.org/AuthorizationRule">
+                <meta itemprop="actor" content="*"><meta itemprop="resource" content="${P}/board.html">
+                <meta itemprop="method" content="DELETE"><meta itemprop="selector" content="#lane-todo &gt; .card">
+                <meta itemprop="action" content="Allow">
+              </div>
+              <div itemscope itemtype="https://pagelove.org/AuthorizationRule">
+                <meta itemprop="actor" content="*"><meta itemprop="resource" content="${P}/board.html">
+                <meta itemprop="method" content="POST"><meta itemprop="selector" content=".lane">
+                <meta itemprop="action" content="Allow">
+              </div>
+            </body></html>
+    steps:
+      - name: moving a card out of the done lane is refused
+        as: anonymous
+        request:
+          method: MOVE
+          path: "${P}/board.html"
+          headers: {Range: "selector=#card-3", Destination: "${P}/board.html", Destination-Range: "selector=#lane-todo; placement=append"}
+        expect: {status: 401}
+      - name: moving a card out of the todo lane is allowed
+        as: anonymous
+        request:
+          method: MOVE
+          path: "${P}/board.html"
+          headers: {Range: "selector=#card-1", Destination: "${P}/board.html", Destination-Range: "selector=#lane-done; placement=append"}
+        expect: {status: 204}
+
+  - id: authz.move.whole-document-needs-both-paths
+    title: A whole-document MOVE needs a MOVE grant on the source and on the destination
+    area: permissions-identity
+    feature: whole-document MOVE authorization
+    evidence: documented
+    source: "docs reference/reading-and-writing/MOVE-method §Whole-document MOVE"
+    confidence: high
+    requires: []
+    live: true
+    site:
+      files:
+        - path: "${P}/src.html"
+          body: '<!DOCTYPE html><html><body><h1>Doc</h1></body></html>'
+        - path: "${P}/rules.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div itemscope itemtype="https://pagelove.org/AuthorizationRule">
+                <meta itemprop="actor" content="*"><meta itemprop="resource" content="${P}/src.html">
+                <meta itemprop="resource" content="${P}/granted/*">
+                <meta itemprop="method" content="MOVE"><meta itemprop="action" content="Allow">
+              </div>
+            </body></html>
+    steps:
+      - name: destination without a MOVE grant
+        as: anonymous
+        request: {method: MOVE, path: "${P}/src.html", headers: {Destination: "${P}/elsewhere/dst.html"}}
+        expect: {status: 401}
+      - name: destination with a MOVE grant
+        as: anonymous
+        request: {method: MOVE, path: "${P}/src.html", headers: {Destination: "${P}/granted/dst.html"}}
+        expect: {status: 204}
+
+  - id: authz.move.whole-document-deny-at-destination
+    title: A Deny matching the destination refuses a whole-document MOVE even when the source is allowed
+    area: permissions-identity
+    feature: whole-document MOVE authorization
+    evidence: documented
+    source: "docs reference/reading-and-writing/MOVE-method §Whole-document MOVE ('a deny rule matching either path refuses the whole request')"
+    confidence: high
+    requires: []
+    live: true
+    site:
+      files:
+        - path: "${P}/src.html"
+          body: '<!DOCTYPE html><html><body><h1>Doc</h1></body></html>'
+        - path: "${P}/rules.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div itemscope itemtype="https://pagelove.org/AuthorizationRule">
+                <meta itemprop="actor" content="*"><meta itemprop="resource" content="${P}/*">
+                <meta itemprop="method" content="MOVE"><meta itemprop="action" content="Allow">
+              </div>
+              <div itemscope itemtype="https://pagelove.org/AuthorizationRule">
+                <meta itemprop="actor" content="*"><meta itemprop="resource" content="${P}/protected/*">
+                <meta itemprop="method" content="MOVE"><meta itemprop="action" content="Deny">
+              </div>
+            </body></html>
+    steps:
+      - name: move into the protected area refused
+        as: anonymous
+        request: {method: MOVE, path: "${P}/src.html", headers: {Destination: "${P}/protected/x.html"}}
+        expect: {status: 401}
+      - name: source still in place
+        as: author
+        plane: dav
+        request: {method: GET, path: "${P}/src.html"}
+        expect: {status: 200}
+
+  - id: authz.move.source-absent-readable-416
+    title: A missing MOVE source or anchor is refused (401) when DELETE/POST are granted only by selector-scoped rules, even on a readable page
+    area: permissions-identity
+    feature: MOVE absence vs denial
+    evidence: live-observed
+    source: "harness/observations/live-2026-09-28/authz-move-source-absent-readable-416.json (401 for both); docs reference/reading-and-writing/MOVE-method §Error cases (source no match -> 416)"
+    confidence: high
+    requires: []
+    live: true
+    notes: >-
+      The id keeps its original name. PageLove cannot run the DELETE (source) or POST (anchor)
+      element check on an absent element, so it refuses unless that method is granted on the whole
+      document (protocol.move.source-absent-416 and destination-absent-404, with document-level
+      rules, still answer 416/404); R-PERM-49 as reconciled (docs/compat/decisions.md).
+    site:
+      files:
+        - path: "${P}/board.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <section id="lane-todo" class="lane"><article id="card-1" class="card">One</article></section>
+              <section id="lane-done" class="lane"></section>
+            </body></html>
+        - path: "${P}/rules.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div itemscope itemtype="https://pagelove.org/AuthorizationRule">
+                <meta itemprop="actor" content="*"><meta itemprop="resource" content="${P}/board.html">
+                <meta itemprop="method" content="GET"><meta itemprop="method" content="MOVE">
+                <meta itemprop="action" content="Allow">
+              </div>
+              <div itemscope itemtype="https://pagelove.org/AuthorizationRule">
+                <meta itemprop="actor" content="*"><meta itemprop="resource" content="${P}/board.html">
+                <meta itemprop="method" content="DELETE"><meta itemprop="selector" content=".card">
+                <meta itemprop="action" content="Allow">
+              </div>
+              <div itemscope itemtype="https://pagelove.org/AuthorizationRule">
+                <meta itemprop="actor" content="*"><meta itemprop="resource" content="${P}/board.html">
+                <meta itemprop="method" content="POST"><meta itemprop="selector" content=".lane">
+                <meta itemprop="action" content="Allow">
+              </div>
+            </body></html>
+    steps:
+      - name: missing source
+        as: anonymous
+        request:
+          method: MOVE
+          path: "${P}/board.html"
+          headers: {Range: "selector=#card-9", Destination: "${P}/board.html", Destination-Range: "selector=#lane-done; placement=append"}
+        expect: {status: 401}
+      - name: missing destination
+        as: anonymous
+        request:
+          method: MOVE
+          path: "${P}/board.html"
+          headers: {Range: "selector=#card-1", Destination: "${P}/board.html", Destination-Range: "selector=#lane-nope; placement=append"}
+        expect: {status: 401}
+
+  - id: authz.move.source-absent-unreadable-denied
+    title: A missing MOVE source is a denial when the actor may not read the document
+    area: permissions-identity
+    feature: MOVE absence vs denial
+    evidence: inferred
+    source: "docs reference/reading-and-writing/MOVE-method §Denials ('Authorization for MOVE fails closed'); PUT/POST/DELETE-method 'Absence and denial are distinct' note"
+    confidence: medium
+    requires: []
+    live: true
+    notes: Compatibility decision C11.
+    site:
+      files:
+        - path: "${P}/board.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <section id="lane-todo" class="lane"><article id="card-1" class="card">One</article></section>
+              <section id="lane-done" class="lane"></section>
+            </body></html>
+        - path: "${P}/rules.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div itemscope itemtype="https://pagelove.org/AuthorizationRule">
+                <meta itemprop="actor" content="*"><meta itemprop="resource" content="${P}/board.html">
+                <meta itemprop="method" content="GET"><meta itemprop="action" content="Deny">
+              </div>
+              <div itemscope itemtype="https://pagelove.org/AuthorizationRule">
+                <meta itemprop="actor" content="*"><meta itemprop="resource" content="${P}/board.html">
+                <meta itemprop="method" content="MOVE"><meta itemprop="action" content="Allow">
+              </div>
+              <div itemscope itemtype="https://pagelove.org/AuthorizationRule">
+                <meta itemprop="actor" content="*"><meta itemprop="resource" content="${P}/board.html">
+                <meta itemprop="method" content="DELETE"><meta itemprop="selector" content=".card">
+                <meta itemprop="action" content="Allow">
+              </div>
+              <div itemscope itemtype="https://pagelove.org/AuthorizationRule">
+                <meta itemprop="actor" content="*"><meta itemprop="resource" content="${P}/board.html">
+                <meta itemprop="method" content="POST"><meta itemprop="selector" content=".lane">
+                <meta itemprop="action" content="Allow">
+              </div>
+            </body></html>
+    steps:
+      - name: missing source on an unreadable page
+        as: anonymous
+        request:
+          method: MOVE
+          path: "${P}/board.html"
+          headers: {Range: "selector=#card-9", Destination: "${P}/board.html", Destination-Range: "selector=#lane-done; placement=append"}
+        expect: {status: 401}
+      - name: an existing card still moves (write allowed without read)
+        as: anonymous
+        request:
+          method: MOVE
+          path: "${P}/board.html"
+          headers: {Range: "selector=#card-1", Destination: "${P}/board.html", Destination-Range: "selector=#lane-done; placement=append"}
+        expect: {status: 204}
+
+  - id: authz.move.denied-authenticated-403
+    title: MOVE denials are 401 anonymous, 403 authenticated (editors example)
+    area: permissions-identity
+    feature: MOVE denials
+    evidence: documented
+    source: "docs reference/reading-and-writing/MOVE-method §Denials, §Example: allowing editors to reorder cards"
+    confidence: high
+    requires: [multi-actor]
+    live: false
+    site:
+      files:
+        - path: "${P}/board.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <section id="lane-todo" class="lane"><article id="card-1" class="card">One</article><article id="card-2" class="card">Two</article></section>
+              <section id="lane-done" class="lane"><article id="card-3" class="card">Three</article></section>
+            </body></html>
+        - path: "${P}/groups.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body><div itemscope itemtype="https://pagelove.org/Group">
+              <meta itemprop="name" content="editors"><meta itemprop="member" content="alice@example.com">
+            </div></body></html>
+        - path: "${P}/rules.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body><table itemscope itemtype="https://pagelove.org/AuthorizationRule"><tbody>
+              <tr><td itemprop="actor">editors</td><td itemprop="resource">${P}/board.html</td>
+                  <td itemprop="method">MOVE</td><td itemprop="selector"></td><td itemprop="action">Allow</td></tr>
+            </tbody></table>
+            <table itemscope itemtype="https://pagelove.org/AuthorizationRule"><tbody>
+              <tr><td itemprop="actor">editors</td><td itemprop="resource">${P}/board.html</td>
+                  <td itemprop="method">DELETE</td><td itemprop="selector">.card</td><td itemprop="action">Allow</td></tr>
+            </tbody></table>
+            <table itemscope itemtype="https://pagelove.org/AuthorizationRule"><tbody>
+              <tr><td itemprop="actor">editors</td><td itemprop="resource">${P}/board.html</td>
+                  <td itemprop="method">POST</td><td itemprop="selector">.lane</td><td itemprop="action">Allow</td></tr>
+            </tbody></table></body></html>
+    actors:
+      alice: {sub: sub-alice, email: alice@example.com, email_verified: true, roles: []}
+      bob: {sub: sub-bob, email: bob@example.com, email_verified: true, roles: []}
+    steps:
+      - name: anonymous refused with 401
+        as: anonymous
+        request:
+          method: MOVE
+          path: "${P}/board.html"
+          headers: {Range: "selector=#card-1", Destination: "${P}/board.html", Destination-Range: "selector=#lane-done; placement=append"}
+        expect: {status: 401}
+      - name: non-editor refused with 403
+        as: bob
+        request:
+          method: MOVE
+          path: "${P}/board.html"
+          headers: {Range: "selector=#card-1", Destination: "${P}/board.html", Destination-Range: "selector=#lane-done; placement=append"}
+        expect: {status: 403}
+      - name: editor moves the card
+        as: alice
+        request:
+          method: MOVE
+          path: "${P}/board.html"
+          headers: {Range: "selector=#card-1", Destination: "${P}/board.html", Destination-Range: "selector=#lane-done; placement=append"}
+        expect: {status: 204}

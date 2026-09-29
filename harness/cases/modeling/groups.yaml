@@ -1,0 +1,814 @@
+# Modeling: required combinations (GroupConstraint).
+# Spec: docs/spec/modeling.md §13 (R-MOD-54..R-MOD-57).
+cases:
+  - id: modeling.groups.exactly-one-auth-method
+    title: "Exactly one of password / oauth-token must be present (docs UserAuth example)"
+    area: modeling
+    feature: "group constraints"
+    evidence: documented
+    source: "docs reference/modeling-data/GroupConstraint §Examples (snapshot 2026-09-28)"
+    confidence: high
+    requires: []
+    live: true
+    notes: "spec: R-MOD-54, R-MOD-57. Documented message format: group '<name>' constraint violated: <cardinality error>."
+    site:
+      settings:
+        default_get: allow
+      rules:
+        - actor: "*"
+          resource: "${P}/*"
+          method: [GET, HEAD, PUT, POST, DELETE, MOVE]
+          action: Allow
+        - actor: "*"
+          resource: "${P}/*/*"
+          method: [GET, HEAD, PUT, POST, DELETE, MOVE]
+          action: Allow
+    steps:
+      - name: "register declarations through the public plane (takes effect for the next request)"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/schema.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div hidden itemscope itemtype="https://pagelove.org/Schema">
+                <meta itemprop="type" content="https://pagelike.test${P}/UserAuth">
+                <meta itemprop="name" content="UserAuth">
+                <div itemprop="property" itemscope itemtype="https://pagelove.org/Property">
+                  <meta itemprop="name" content="password">
+                  <meta itemprop="type" content="https://schema.host/Text">
+                  <meta itemprop="cardinality" content="0..1">
+                  <meta itemprop="group" content="auth-method">
+                </div>
+                <div itemprop="property" itemscope itemtype="https://pagelove.org/Property">
+                  <meta itemprop="name" content="oauth-token">
+                  <meta itemprop="type" content="https://schema.host/Text">
+                  <meta itemprop="cardinality" content="0..1">
+                  <meta itemprop="group" content="auth-method">
+                </div>
+                <div itemprop="constraint" itemscope itemtype="https://schema.host/GroupConstraint">
+                  <meta itemprop="group" content="auth-method">
+                  <meta itemprop="cardinality" content="1..1">
+                </div>
+              </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "alice with password only accepted"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/alice.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div itemscope itemtype="https://pagelike.test${P}/UserAuth">
+                <meta itemprop="password" content="hashed-secret">
+              </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "bob with both rejected"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/bob.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div itemscope itemtype="https://pagelike.test${P}/UserAuth">
+                <meta itemprop="password" content="hashed-secret">
+                <meta itemprop="oauth-token" content="token123">
+              </div>
+            </body></html>
+        expect:
+          status: 422
+          header_matches:
+            Content-Type: "^text/html"
+          body_contains: ["https://pagelove.org/SchemaViolation", group, auth-method]
+      - name: "carol with neither rejected"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/carol.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div itemscope itemtype="https://pagelike.test${P}/UserAuth"></div>
+            </body></html>
+        expect:
+          status: 422
+          header_matches:
+            Content-Type: "^text/html"
+          body_contains: ["https://pagelove.org/SchemaViolation", group]
+  - id: modeling.groups.at-least-one-contact
+    title: "At least one of email / phone / address (1..n)"
+    area: modeling
+    feature: "group constraints"
+    evidence: documented
+    source: "docs reference/modeling-data/GroupConstraint §Examples (snapshot 2026-09-28)"
+    confidence: high
+    requires: []
+    live: true
+    notes: "spec: R-MOD-55."
+    site:
+      settings:
+        default_get: allow
+      rules:
+        - actor: "*"
+          resource: "${P}/*"
+          method: [GET, HEAD, PUT, POST, DELETE, MOVE]
+          action: Allow
+        - actor: "*"
+          resource: "${P}/*/*"
+          method: [GET, HEAD, PUT, POST, DELETE, MOVE]
+          action: Allow
+    steps:
+      - name: "register declarations through the public plane (takes effect for the next request)"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/schema.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div hidden itemscope itemtype="https://pagelove.org/Schema">
+                <meta itemprop="type" content="https://pagelike.test${P}/Contact">
+                <div itemprop="property" itemscope itemtype="https://pagelove.org/Property">
+                  <meta itemprop="name" content="email">
+                  <meta itemprop="type" content="https://schema.host/Text">
+                  <meta itemprop="cardinality" content="0..1">
+                  <meta itemprop="group" content="contact-info">
+                </div>
+                <div itemprop="property" itemscope itemtype="https://pagelove.org/Property">
+                  <meta itemprop="name" content="phone">
+                  <meta itemprop="type" content="https://schema.host/Text">
+                  <meta itemprop="cardinality" content="0..1">
+                  <meta itemprop="group" content="contact-info">
+                </div>
+                <div itemprop="property" itemscope itemtype="https://pagelove.org/Property">
+                  <meta itemprop="name" content="address">
+                  <meta itemprop="type" content="https://schema.host/Text">
+                  <meta itemprop="cardinality" content="0..1">
+                  <meta itemprop="group" content="contact-info">
+                </div>
+                <div itemprop="constraint" itemscope itemtype="https://schema.host/GroupConstraint">
+                  <meta itemprop="group" content="contact-info">
+                  <meta itemprop="cardinality" content="1..n">
+                </div>
+              </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "none rejected"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/a.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div itemscope itemtype="https://pagelike.test${P}/Contact"></div>
+            </body></html>
+        expect:
+          status: 422
+          header_matches:
+            Content-Type: "^text/html"
+          body_contains: ["https://pagelove.org/SchemaViolation", group]
+      - name: "phone only accepted"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/b.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div itemscope itemtype="https://pagelike.test${P}/Contact">
+                <meta itemprop="phone" content="555">
+              </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "all three accepted"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/c.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div itemscope itemtype="https://pagelike.test${P}/Contact">
+                <meta itemprop="email" content="e@x">
+                <meta itemprop="phone" content="555">
+                <meta itemprop="address" content="1 Road">
+              </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+  - id: modeling.groups.at-most-one-payment
+    title: "At most one of credit-card / bank-account (0..1)"
+    area: modeling
+    feature: "group constraints"
+    evidence: documented
+    source: "docs reference/modeling-data/GroupConstraint §When to use (snapshot 2026-09-28)"
+    confidence: high
+    requires: []
+    live: true
+    notes: "spec: R-MOD-55."
+    site:
+      settings:
+        default_get: allow
+      rules:
+        - actor: "*"
+          resource: "${P}/*"
+          method: [GET, HEAD, PUT, POST, DELETE, MOVE]
+          action: Allow
+        - actor: "*"
+          resource: "${P}/*/*"
+          method: [GET, HEAD, PUT, POST, DELETE, MOVE]
+          action: Allow
+    steps:
+      - name: "register declarations through the public plane (takes effect for the next request)"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/schema.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div hidden itemscope itemtype="https://pagelove.org/Schema">
+                <meta itemprop="type" content="https://pagelike.test${P}/Payment">
+                <div itemprop="property" itemscope itemtype="https://pagelove.org/Property">
+                  <meta itemprop="name" content="credit-card">
+                  <meta itemprop="type" content="https://schema.host/Text">
+                  <meta itemprop="cardinality" content="0..1">
+                  <meta itemprop="group" content="method">
+                </div>
+                <div itemprop="property" itemscope itemtype="https://pagelove.org/Property">
+                  <meta itemprop="name" content="bank-account">
+                  <meta itemprop="type" content="https://schema.host/Text">
+                  <meta itemprop="cardinality" content="0..1">
+                  <meta itemprop="group" content="method">
+                </div>
+                <div itemprop="constraint" itemscope itemtype="https://schema.host/GroupConstraint">
+                  <meta itemprop="group" content="method">
+                  <meta itemprop="cardinality" content="0..1">
+                </div>
+              </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "none accepted"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/a.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div itemscope itemtype="https://pagelike.test${P}/Payment"></div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "both rejected"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/b.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div itemscope itemtype="https://pagelike.test${P}/Payment">
+                <meta itemprop="credit-card" content="4111">
+                <meta itemprop="bank-account" content="GB00">
+              </div>
+            </body></html>
+        expect:
+          status: 422
+          header_matches:
+            Content-Type: "^text/html"
+          body_contains: ["https://pagelove.org/SchemaViolation", group]
+  - id: modeling.groups.missing-group-skipped
+    title: "A constraint without a group value is silently skipped"
+    area: modeling
+    feature: "group constraints"
+    evidence: documented
+    source: "docs reference/modeling-data/GroupConstraint §Error cases (snapshot 2026-09-28)"
+    confidence: high
+    requires: []
+    live: true
+    notes: "spec: R-MOD-54."
+    site:
+      settings:
+        default_get: allow
+      rules:
+        - actor: "*"
+          resource: "${P}/*"
+          method: [GET, HEAD, PUT, POST, DELETE, MOVE]
+          action: Allow
+        - actor: "*"
+          resource: "${P}/*/*"
+          method: [GET, HEAD, PUT, POST, DELETE, MOVE]
+          action: Allow
+    steps:
+      - name: "register declarations through the public plane (takes effect for the next request)"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/schema.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div hidden itemscope itemtype="https://pagelove.org/Schema">
+                <meta itemprop="type" content="https://pagelike.test${P}/UserAuth">
+                <div itemprop="property" itemscope itemtype="https://pagelove.org/Property">
+                  <meta itemprop="name" content="password">
+                  <meta itemprop="type" content="https://schema.host/Text">
+                  <meta itemprop="cardinality" content="0..1">
+                  <meta itemprop="group" content="auth-method">
+                </div>
+                <div itemprop="constraint" itemscope itemtype="https://schema.host/GroupConstraint">
+                  <meta itemprop="cardinality" content="1..1">
+                </div>
+                <div itemprop="constraint" itemscope itemtype="https://schema.host/GroupConstraint">
+                  <meta itemprop="group" content="">
+                  <meta itemprop="cardinality" content="1..1">
+                </div>
+              </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "item with no auth method accepted"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/a.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div itemscope itemtype="https://pagelike.test${P}/UserAuth"></div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+  - id: modeling.groups.itemtype-not-checked
+    title: "Any item under itemprop=constraint with a group is enforced, whatever its itemtype"
+    area: modeling
+    feature: "group constraints"
+    evidence: documented
+    source: "docs reference/modeling-data/GroupConstraint §Error cases (snapshot 2026-09-28)"
+    confidence: high
+    requires: []
+    live: true
+    notes: "spec: R-MOD-54. Contradiction C4: the Schema page and a recipe use https://pagelove.org/GroupConstraint."
+    site:
+      settings:
+        default_get: allow
+      rules:
+        - actor: "*"
+          resource: "${P}/*"
+          method: [GET, HEAD, PUT, POST, DELETE, MOVE]
+          action: Allow
+        - actor: "*"
+          resource: "${P}/*/*"
+          method: [GET, HEAD, PUT, POST, DELETE, MOVE]
+          action: Allow
+    steps:
+      - name: "register declarations through the public plane (takes effect for the next request)"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/schema.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div hidden itemscope itemtype="https://pagelove.org/Schema">
+                <meta itemprop="type" content="https://pagelike.test${P}/UserAuth">
+                <div itemprop="property" itemscope itemtype="https://pagelove.org/Property">
+                  <meta itemprop="name" content="password">
+                  <meta itemprop="type" content="https://schema.host/Text">
+                  <meta itemprop="cardinality" content="0..1">
+                  <meta itemprop="group" content="auth-method">
+                </div>
+                <div itemprop="property" itemscope itemtype="https://pagelove.org/Property">
+                  <meta itemprop="name" content="oauth-token">
+                  <meta itemprop="type" content="https://schema.host/Text">
+                  <meta itemprop="cardinality" content="0..1">
+                  <meta itemprop="group" content="auth-method">
+                </div>
+                <div itemprop="constraint" itemscope itemtype="https://pagelove.org/GroupConstraint">
+                  <meta itemprop="group" content="auth-method">
+                  <meta itemprop="cardinality" content="1..1">
+                </div>
+              </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "both present rejected"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/a.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div itemscope itemtype="https://pagelike.test${P}/UserAuth">
+                <meta itemprop="password" content="p">
+                <meta itemprop="oauth-token" content="t">
+              </div>
+            </body></html>
+        expect:
+          status: 422
+          header_matches:
+            Content-Type: "^text/html"
+          body_contains: ["https://pagelove.org/SchemaViolation", group]
+  - id: modeling.groups.membership-additive-across-chain
+    title: "A child can add properties to a group declared by its parent"
+    area: modeling
+    feature: "group constraints"
+    evidence: documented
+    source: "docs reference/modeling-data/GroupConstraint §Inheritance behaviour (snapshot 2026-09-28)"
+    confidence: high
+    requires: []
+    live: true
+    notes: "spec: R-MOD-55, R-MOD-56."
+    site:
+      settings:
+        default_get: allow
+      rules:
+        - actor: "*"
+          resource: "${P}/*"
+          method: [GET, HEAD, PUT, POST, DELETE, MOVE]
+          action: Allow
+        - actor: "*"
+          resource: "${P}/*/*"
+          method: [GET, HEAD, PUT, POST, DELETE, MOVE]
+          action: Allow
+    steps:
+      - name: "register declarations through the public plane (takes effect for the next request)"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/schema.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div hidden itemscope itemtype="https://pagelove.org/Schema">
+                <meta itemprop="type" content="https://pagelike.test${P}/UserAuth">
+                <div itemprop="property" itemscope itemtype="https://pagelove.org/Property">
+                  <meta itemprop="name" content="password">
+                  <meta itemprop="type" content="https://schema.host/Text">
+                  <meta itemprop="cardinality" content="0..1">
+                  <meta itemprop="group" content="auth-method">
+                </div>
+                <div itemprop="constraint" itemscope itemtype="https://schema.host/GroupConstraint">
+                  <meta itemprop="group" content="auth-method">
+                  <meta itemprop="cardinality" content="1..1">
+                </div>
+              </div>
+              <div hidden itemscope itemtype="https://pagelove.org/Schema">
+                <meta itemprop="type" content="https://pagelike.test${P}/SsoAuth">
+                <meta itemprop="parent" content="https://pagelike.test${P}/UserAuth">
+                <div itemprop="property" itemscope itemtype="https://pagelove.org/Property">
+                  <meta itemprop="name" content="oauth-token">
+                  <meta itemprop="type" content="https://schema.host/Text">
+                  <meta itemprop="cardinality" content="0..1">
+                  <meta itemprop="group" content="auth-method">
+                </div>
+              </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "child with only oauth-token accepted"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/a.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div itemscope itemtype="https://pagelike.test${P}/SsoAuth">
+                <meta itemprop="oauth-token" content="t">
+              </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "child with both rejected"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/b.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div itemscope itemtype="https://pagelike.test${P}/SsoAuth">
+                <meta itemprop="password" content="p">
+                <meta itemprop="oauth-token" content="t">
+              </div>
+            </body></html>
+        expect:
+          status: 422
+          header_matches:
+            Content-Type: "^text/html"
+          body_contains: ["https://pagelove.org/SchemaViolation", group]
+  - id: modeling.groups.child-overrides-constraint
+    title: "A child constraint with the same group name overrides the parent's cardinality"
+    area: modeling
+    feature: "group constraints"
+    evidence: documented
+    source: "docs reference/modeling-data/GroupConstraint §Inheritance behaviour (snapshot 2026-09-28)"
+    confidence: high
+    requires: []
+    live: true
+    notes: "spec: R-MOD-56."
+    site:
+      settings:
+        default_get: allow
+      rules:
+        - actor: "*"
+          resource: "${P}/*"
+          method: [GET, HEAD, PUT, POST, DELETE, MOVE]
+          action: Allow
+        - actor: "*"
+          resource: "${P}/*/*"
+          method: [GET, HEAD, PUT, POST, DELETE, MOVE]
+          action: Allow
+    steps:
+      - name: "register declarations through the public plane (takes effect for the next request)"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/schema.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div hidden itemscope itemtype="https://pagelove.org/Schema">
+                <meta itemprop="type" content="https://pagelike.test${P}/UserAuth">
+                <meta itemprop="name" content="UserAuth">
+                <div itemprop="property" itemscope itemtype="https://pagelove.org/Property">
+                  <meta itemprop="name" content="password">
+                  <meta itemprop="type" content="https://schema.host/Text">
+                  <meta itemprop="cardinality" content="0..1">
+                  <meta itemprop="group" content="auth-method">
+                </div>
+                <div itemprop="property" itemscope itemtype="https://pagelove.org/Property">
+                  <meta itemprop="name" content="oauth-token">
+                  <meta itemprop="type" content="https://schema.host/Text">
+                  <meta itemprop="cardinality" content="0..1">
+                  <meta itemprop="group" content="auth-method">
+                </div>
+                <div itemprop="constraint" itemscope itemtype="https://schema.host/GroupConstraint">
+                  <meta itemprop="group" content="auth-method">
+                  <meta itemprop="cardinality" content="1..1">
+                </div>
+              </div>
+              <div hidden itemscope itemtype="https://pagelove.org/Schema">
+                <meta itemprop="type" content="https://pagelike.test${P}/MultiAuth">
+                <meta itemprop="parent" content="https://pagelike.test${P}/UserAuth">
+                <div itemprop="constraint" itemscope itemtype="https://schema.host/GroupConstraint">
+                  <meta itemprop="group" content="auth-method">
+                  <meta itemprop="cardinality" content="1..n">
+                </div>
+              </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "child with both methods accepted"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/a.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div itemscope itemtype="https://pagelike.test${P}/MultiAuth">
+                <meta itemprop="password" content="p">
+                <meta itemprop="oauth-token" content="t">
+              </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "parent with both methods still rejected"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/b.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div itemscope itemtype="https://pagelike.test${P}/UserAuth">
+                <meta itemprop="password" content="p">
+                <meta itemprop="oauth-token" content="t">
+              </div>
+            </body></html>
+        expect:
+          status: 422
+          header_matches:
+            Content-Type: "^text/html"
+          body_contains: ["https://pagelove.org/SchemaViolation", group]
+  - id: modeling.groups.recipe-property-list-form
+    title: "Recipe form: group members listed as property values on the constraint (pagelike accepts both forms)"
+    area: modeling
+    feature: "group constraints"
+    evidence: documented
+    source: "docs recipes/linking-related-data §Group constraints (snapshot 2026-09-28)"
+    confidence: low
+    requires: []
+    live: true
+    notes: "spec: R-MOD-55. Contradiction C4: the reference page assembles members only from Property.group. Under that reading the group has no members, so every write would fail 1..n. pagelike takes the union of both forms. Probe P-MOD-36."
+    site:
+      settings:
+        default_get: allow
+      rules:
+        - actor: "*"
+          resource: "${P}/*"
+          method: [GET, HEAD, PUT, POST, DELETE, MOVE]
+          action: Allow
+        - actor: "*"
+          resource: "${P}/*/*"
+          method: [GET, HEAD, PUT, POST, DELETE, MOVE]
+          action: Allow
+    steps:
+      - name: "register declarations through the public plane (takes effect for the next request)"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/schema.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div hidden itemscope itemtype="https://pagelove.org/Schema">
+                <meta itemprop="type" content="https://pagelike.test${P}/Contact">
+                <div itemprop="property" itemscope itemtype="https://pagelove.org/Property">
+                  <meta itemprop="name" content="email">
+                  <meta itemprop="type" content="https://schema.host/Text">
+                  <meta itemprop="cardinality" content="0..1">
+                </div>
+                <div itemprop="property" itemscope itemtype="https://pagelove.org/Property">
+                  <meta itemprop="name" content="phone">
+                  <meta itemprop="type" content="https://schema.host/Text">
+                  <meta itemprop="cardinality" content="0..1">
+                </div>
+                <div itemprop="constraint" itemscope itemtype="https://pagelove.org/GroupConstraint">
+                  <meta itemprop="group" content="contact">
+                  <meta itemprop="cardinality" content="1..n">
+                  <meta itemprop="property" content="email">
+                  <meta itemprop="property" content="phone">
+                </div>
+              </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "email only accepted"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/a.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div itemscope itemtype="https://pagelike.test${P}/Contact">
+                <meta itemprop="email" content="e@x">
+              </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "neither rejected"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/b.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div itemscope itemtype="https://pagelike.test${P}/Contact"></div>
+            </body></html>
+        expect:
+          status: 422
+          header_matches:
+            Content-Type: "^text/html"
+          body_contains: ["https://pagelove.org/SchemaViolation", group]
+  - id: modeling.groups.empty-value-is-present
+    title: "A member with an empty value counts as present"
+    area: modeling
+    feature: "group constraints"
+    evidence: inferred
+    source: "docs reference/modeling-data/GroupConstraint §cardinality (optional) (snapshot 2026-09-28) ('at least one [itemprop] element')"
+    confidence: medium
+    requires: []
+    live: true
+    notes: "spec: R-MOD-55."
+    site:
+      settings:
+        default_get: allow
+      rules:
+        - actor: "*"
+          resource: "${P}/*"
+          method: [GET, HEAD, PUT, POST, DELETE, MOVE]
+          action: Allow
+        - actor: "*"
+          resource: "${P}/*/*"
+          method: [GET, HEAD, PUT, POST, DELETE, MOVE]
+          action: Allow
+    steps:
+      - name: "register declarations through the public plane (takes effect for the next request)"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/schema.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div hidden itemscope itemtype="https://pagelove.org/Schema">
+                <meta itemprop="type" content="https://pagelike.test${P}/UserAuth">
+                <meta itemprop="name" content="UserAuth">
+                <div itemprop="property" itemscope itemtype="https://pagelove.org/Property">
+                  <meta itemprop="name" content="password">
+                  <meta itemprop="type" content="https://schema.host/Text">
+                  <meta itemprop="cardinality" content="0..1">
+                  <meta itemprop="group" content="auth-method">
+                </div>
+                <div itemprop="property" itemscope itemtype="https://pagelove.org/Property">
+                  <meta itemprop="name" content="oauth-token">
+                  <meta itemprop="type" content="https://schema.host/Text">
+                  <meta itemprop="cardinality" content="0..1">
+                  <meta itemprop="group" content="auth-method">
+                </div>
+                <div itemprop="constraint" itemscope itemtype="https://schema.host/GroupConstraint">
+                  <meta itemprop="group" content="auth-method">
+                  <meta itemprop="cardinality" content="1..1">
+                </div>
+              </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "empty password plus a token rejected"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/a.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div itemscope itemtype="https://pagelike.test${P}/UserAuth">
+                <meta itemprop="password" content="">
+                <meta itemprop="oauth-token" content="t">
+              </div>
+            </body></html>
+        expect:
+          status: 422
+          header_matches:
+            Content-Type: "^text/html"
+          body_contains: ["https://pagelove.org/SchemaViolation", group]

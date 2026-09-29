@@ -1,0 +1,38 @@
+{
+  "case": "rw.post.unknown-placement",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (placement=inside)",
+      "method": "POST",
+      "path": "/_pl/rw-post-unknown-placement-98eaf9/badplace.html",
+      "status": 206,
+      "headers": {
+        "content-length": "13",
+        "content-range": "selector ul",
+        "content-type": "text/html",
+        "etag": "\"82eaab6ae47007d473cdc60ff19ca57e02ca7444aaaee7eff7ef8b0f932fd479-82eaab6ae47007d473cdc60ff19ca57e02ca7444aaaee7eff7ef8b0f932fd479-2\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:56 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003cli\u003enope\u003c/li\u003e"
+    },
+    {
+      "step": "step 2 (appended)",
+      "method": "GET",
+      "path": "/_pl/rw-post-unknown-placement-98eaf9/badplace.html",
+      "status": 206,
+      "headers": {
+        "accept-ranges": "selector, bytes",
+        "content-length": "35",
+        "content-range": "selector ul",
+        "content-type": "text/html",
+        "etag": "\"19980d5d6f0f46df0836c9a23e65b5636de0526742f3bfa664eb275fabc771f2-19980d5d6f0f46df0836c9a23e65b5636de0526742f3bfa664eb275fabc771f2-2\"",
+        "vary": "Host, Range, Accept"
+      },
+      "body": "\u003cul\u003e\u003cli\u003ekeep\u003c/li\u003e\u003cli\u003enope\u003c/li\u003e\u003c/ul\u003e"
+    }
+  ],
+  "outcome": "pass",
+  "target": "local"
+}

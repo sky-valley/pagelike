@@ -1,0 +1,105 @@
+{
+  "case": "reacting.context.probe-0929.trigger-bindings",
+  "failures": [
+    "step 2 (r:secret on the trigger element (private document)) PUT ${P}/a/x.html: status 500, want [409] (body: \u003cdiv itemscope itemtype=\"https://pagelove.org/Error\"\u003e\n    \u003cmeta itemprop=\"type\" content=\"TriggerError\"\u003e\n    \u003cmeta itemprop=\"source\" content=\"/_pl/reacting-context-probe-0929-trigger-bind-433fff/r/triggers.html\"\u003e\n    \u003cmeta itemprop=\"line\" co…)",
+    "step 2 (r:secret on the trigger element (private document)) PUT ${P}/a/x.html: body = \"\u003cdiv itemscope itemtype=\\\"https://pagelove.org/Error\\\"\u003e\\n    \u003cmeta itemprop=\\\"type\\\" content=\\\"TriggerError\\\"\u003e\\n    \u003cmeta itemprop=\\\"source\\\" content=\\\"/_pl/reacting-context-probe-0929-trigger-bind-433fff/r/triggers.html\\\"\u003e\\n    \u003cmeta itemprop=\\\"line\\\" content=\\\"3\\\"\u003e\\n    \u003cmeta itemprop=\\\"column\\\" content=\\\"58\\\"\u003e\\n    \u003cmeta itemprop=\\\"phase\\\" content=\\\"action\\\"\u003e\\n    \u003cp itemprop=\\\"message\\\"\u003eundefined variable: secret\u003c/p\u003e\\n\u003c/div…\", want \"n=1\"",
+    "step 3 (r:pub on the trigger element (public document)) PUT ${P}/b/x.html: status 500, want [409] (body: \u003cdiv itemscope itemtype=\"https://pagelove.org/Error\"\u003e\n    \u003cmeta itemprop=\"type\" content=\"TriggerError\"\u003e\n    \u003cmeta itemprop=\"source\" content=\"/_pl/reacting-context-probe-0929-trigger-bind-433fff/r/triggers.html\"\u003e\n    \u003cmeta itemprop=\"line\" co…)",
+    "step 3 (r:pub on the trigger element (public document)) PUT ${P}/b/x.html: body = \"\u003cdiv itemscope itemtype=\\\"https://pagelove.org/Error\\\"\u003e\\n    \u003cmeta itemprop=\\\"type\\\" content=\\\"TriggerError\\\"\u003e\\n    \u003cmeta itemprop=\\\"source\\\" content=\\\"/_pl/reacting-context-probe-0929-trigger-bind-433fff/r/triggers.html\\\"\u003e\\n    \u003cmeta itemprop=\\\"line\\\" content=\\\"3\\\"\u003e\\n    \u003cmeta itemprop=\\\"column\\\" content=\\\"58\\\"\u003e\\n    \u003cmeta itemprop=\\\"phase\\\" content=\\\"action\\\"\u003e\\n    \u003cp itemprop=\\\"message\\\"\u003eundefined variable: pub\u003c/p\u003e\\n\u003c/div\u003e\", want \"n=1\"",
+    "step 4 (bare Sessel selector of the private document) PUT ${P}/c/x.html: status 500, want [409] (body: \u003cdiv itemscope itemtype=\"https://pagelove.org/Error\"\u003e\n    \u003cmeta itemprop=\"type\" content=\"TriggerError\"\u003e\n    \u003cmeta itemprop=\"source\" content=\"/_pl/reacting-context-probe-0929-trigger-bind-433fff/r/triggers.html\"\u003e\n    \u003cmeta itemprop=\"line\" co…)",
+    "step 4 (bare Sessel selector of the private document) PUT ${P}/c/x.html: body = \"\u003cdiv itemscope itemtype=\\\"https://pagelove.org/Error\\\"\u003e\\n    \u003cmeta itemprop=\\\"type\\\" content=\\\"TriggerError\\\"\u003e\\n    \u003cmeta itemprop=\\\"source\\\" content=\\\"/_pl/reacting-context-probe-0929-trigger-bind-433fff/r/triggers.html\\\"\u003e\\n    \u003cmeta itemprop=\\\"line\\\" content=\\\"3\\\"\u003e\\n    \u003cmeta itemprop=\\\"column\\\" content=\\\"58\\\"\u003e\\n    \u003cmeta itemprop=\\\"phase\\\" content=\\\"action\\\"\u003e\\n    \u003cp itemprop=\\\"message\\\"\u003eundefined variable: token\u003c/p\u003e\\n\u003c/div\u003e\", want \"v=s3cret-test-token\"",
+    "step 5 (r:outer on an ancestor of the trigger) PUT ${P}/e/x.html: status 500, want [409] (body: \u003cdiv itemscope itemtype=\"https://pagelove.org/Error\"\u003e\n    \u003cmeta itemprop=\"type\" content=\"TriggerError\"\u003e\n    \u003cmeta itemprop=\"source\" content=\"/_pl/reacting-context-probe-0929-trigger-bind-433fff/r/triggers.html\"\u003e\n    \u003cmeta itemprop=\"line\" co…)",
+    "step 5 (r:outer on an ancestor of the trigger) PUT ${P}/e/x.html: body = \"\u003cdiv itemscope itemtype=\\\"https://pagelove.org/Error\\\"\u003e\\n    \u003cmeta itemprop=\\\"type\\\" content=\\\"TriggerError\\\"\u003e\\n    \u003cmeta itemprop=\\\"source\\\" content=\\\"/_pl/reacting-context-probe-0929-trigger-bind-433fff/r/triggers.html\\\"\u003e\\n    \u003cmeta itemprop=\\\"line\\\" content=\\\"3\\\"\u003e\\n    \u003cmeta itemprop=\\\"column\\\" content=\\\"58\\\"\u003e\\n    \u003cmeta itemprop=\\\"phase\\\" content=\\\"action\\\"\u003e\\n    \u003cp itemprop=\\\"message\\\"\u003eundefined variable: outer\u003c/p\u003e\\n\u003c/div\u003e\", want \"n=1\"",
+    "step 6 (value of r:secret) PUT ${P}/f/x.html: status 500, want [409] (body: \u003cdiv itemscope itemtype=\"https://pagelove.org/Error\"\u003e\n    \u003cmeta itemprop=\"type\" content=\"TriggerError\"\u003e\n    \u003cmeta itemprop=\"source\" content=\"/_pl/reacting-context-probe-0929-trigger-bind-433fff/r/triggers.html\"\u003e\n    \u003cmeta itemprop=\"line\" co…)",
+    "step 6 (value of r:secret) PUT ${P}/f/x.html: body = \"\u003cdiv itemscope itemtype=\\\"https://pagelove.org/Error\\\"\u003e\\n    \u003cmeta itemprop=\\\"type\\\" content=\\\"TriggerError\\\"\u003e\\n    \u003cmeta itemprop=\\\"source\\\" content=\\\"/_pl/reacting-context-probe-0929-trigger-bind-433fff/r/triggers.html\\\"\u003e\\n    \u003cmeta itemprop=\\\"line\\\" content=\\\"3\\\"\u003e\\n    \u003cmeta itemprop=\\\"column\\\" content=\\\"58\\\"\u003e\\n    \u003cmeta itemprop=\\\"phase\\\" content=\\\"action\\\"\u003e\\n    \u003cp itemprop=\\\"message\\\"\u003eundefined variable: secret\u003c/p\u003e\\n\u003c/div…\", want \"v=s3cret-test-token\"",
+    "step 7 (a when that fails at run time) PUT ${P}/g/x.html: status 409, want [500] (body: when-false)"
+  ],
+  "observations": [
+    {
+      "step": "step 1 (install the diagnostic triggers)",
+      "method": "PUT",
+      "path": "/_pl/reacting-context-probe-0929-trigger-bind-433fff/r/triggers.html",
+      "status": 201,
+      "headers": {
+        "content-type": "text/html",
+        "etag": "\"ed40f7ebaf22de93cf9cb7047309825eb8c6b3865abe97d1e7019a4209713599\"",
+        "last-modified": "Tue, 29 Sep 2026 01:40:51 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml xmlns:p=\"https://pagelove.org/1.0\" xmlns:r=\"https://pagelove.org/Binding/CSS\"\u003e\u003cbody r:outer=\"[itemtype='https://pagelike.test/_pl/reacting-context-probe-0929-trigger-bind-433fff/Public'] [itemprop=token]\"\u003e\n\u003cdiv hidden r:secret=\"[itemtype='https://pagelike.test/_pl/reacting-context-probe-0929-trigger-bind-433fff/Secret'] [itemprop=token]\" itemscope itemtype=\"https://pagelove.org/Trigger\"\u003e\n  \u003cmeta itemprop=\"resource\" content=\"/_pl/reacting-context-probe-0929-trigger-bind-433fff/a/*\"\u003e\n  \u003cmeta itemprop=\"method\" content=\"PUT\"\u003e\n  \u003cdiv itemprop=\"action\" itemscope itemtype=\"https://pagelove.org/Sessel\"\u003e\n    \u003cscript itemprop=\"source\" type=\"text/sessel\"\u003e\n      @schema HTTPResponse url(\"https://pagelove.org/HTTPResponse\");\n      throw new HTTPResponse { status: 409, body: \"n=\" + secret.count().String() }\n    \u003c/script\u003e\n  \u003c/div\u003e\n\u003c/div\u003e\n\u003cdiv hidden r:pub=\"[itemtype='https://pagelike.test/_pl/reacting-context-probe-0929-trigger-bind-433fff/Public'] [itemprop=token]\" itemscope itemtype=\"https://pagelove.org/Trigger\"\u003e\n  \u003cmeta itemprop=\"resource\" content=\"/_pl/reacting-context-probe-0929-trigger-bind-433fff/b/*\"\u003e\n  \u003cmeta itemprop=\"method\" content=\"PUT\"\u003e\n  \u003cdiv itemprop=\"action\" itemscope itemtype=\"https://pagelove.org/Sessel\"\u003e\n    \u003cscript itemprop=\"source\" type=\"text/sessel\"\u003e\n      @schema HTTPResponse url(\"https://pagelove.org/HTTPResponse\");\n      throw new HTTPResponse { status: 409, body: \"n=\" + pub.count().String() }\n    \u003c/script\u003e\n  \u003c/div\u003e\n\u003c/div\u003e\n\u003cdiv hidden itemscope itemtype=\"https://pagelove.org/Trigger\"\u003e\n  \u003cmeta itemprop=\"resource\" content=\"/_pl/reacting-context-probe-0929-trigger-bind-433fff/c/*\"\u003e\n  \u003cmeta itemprop=\"method\" content=\"PUT\"\u003e\n  \u003cdiv itemprop=\"action\" itemscope itemtype=\"https://pagelove.org/Sessel\"\u003e\n    \u003cscript itemprop=\"source\" type=\"text/sessel\"\u003e\n      @schema HTTPResponse url(\"https://pagelove.org/HTTPResponse\");\n      throw new HTTPResponse { status: 409, body: \"v=\" + ${[itemtype='https://pagelike.test/_pl/reacting-context-probe-0929-trigger-bind-433fff/Secret'] [itemprop=token]}.first().value() }\n    \u003c/script\u003e\n  \u003c/div\u003e\n\u003c/div\u003e\n\u003cdiv hidden itemscope itemtype=\"https://pagelove.org/Trigger\"\u003e\n  \u003cmeta itemprop=\"resource\" content=\"/_pl/reacting-context-probe-0929-trigger-bind-433fff/e/*\"\u003e\n  \u003cmeta itemprop=\"method\" content=\"PUT\"\u003e\n  \u003cdiv itemprop=\"action\" itemscope itemtype=\"https://pagelove.org/Sessel\"\u003e\n    \u003cscript itemprop=\"source\" type=\"text/sessel\"\u003e\n      @schema HTTPResponse url(\"https://pagelove.org/HTTPResponse\");\n      throw new HTTPResponse { status: 409, body: \"n=\" + outer.count().String() }\n    \u003c/script\u003e\n  \u003c/div\u003e\n\u003c/div\u003e\n\u003cdiv hidden r:secret=\"[itemtype='https://pagelike.test/_pl/reacting-context-probe-0929-trigger-bind-433fff/Secret'] [itemprop=token]\" itemscope itemtype=\"https://pagelove.org/Trigger\"\u003e\n  \u003cmeta itemprop=\"resource\" content=\"/_pl/reacting-context-probe-0929-trigger-bind-433fff/f/*\"\u003e\n  \u003cmeta itemprop=\"method\" content=\"PUT\"\u003e\n  \u003cdiv itemprop=\"action\" itemscope itemtype=\"https://pagelove.org/Sessel\"\u003e\n    \u003cscript itemprop=\"source\" type=\"text/sessel\"\u003e\n      @schema HTTPResponse url(\"https://pagelove.org/HTTPResponse\");\n      throw new HTTPResponse { status: 409, body: \"v=\" + secret.first().value() }\n    \u003c/script\u003e\n  \u003c/div\u003e\n\u003c/div\u003e\n\u003cdiv hidden itemscope itemtype=\"https://pagelove.org/Trigger\"\u003e\n  \u003cmeta itemprop=\"resource\" content=\"/_pl/reacting-context-probe-0929-trigger-bind-433fff/g/*\"\u003e\n  \u003cmeta itemprop=\"method\" content=\"PUT\"\u003e\n  \u003cdiv itemprop=\"when\" itemscope itemtype=\"https://pagelove.org/Sessel\"\u003e\n    \u003cscript itemprop=\"source\" type=\"text/sessel\"\u003eno_such_name == 1\u003c/script\u003e\n  \u003c/div\u003e\n  \u003cdiv itemprop=\"action\" itemscope itemtype=\"https://pagelove.org/Sessel\"\u003e\n    \u003cscript itemprop=\"source\" type=\"text/sessel\"\u003e\n      @schema HTTPResponse url(\"https://pagelove.org/HTTPResponse\");\n      throw new HTTPResponse { status: 409, body: \"when-true\" }\n    \u003c/script\u003e\n  \u003c/div\u003e\n  \u003cdiv itemprop=\"otherwise\" itemscope itemtype=\"https://pagelove.org/Sessel\"\u003e\n    \u003cscript itemprop=\"source\" type=\"text/sessel\"\u003e\n      @schema HTTPResponse url(\"https://pagelove.org/HTTPResponse\");\n      throw new HTTPResponse { status: 409, body: \"when-false\" }\n    \u003c/script\u003e\n  \u003c/div\u003e\n\u003c/div\u003e\n\n                \u003cdiv style=\"\n                            position: fixed;\n                            bottom: 0;\n                            left: 0;\n                            right: 0;\n                            padding: 8px;\n                            background: #f0f0f0;\n                            text-align: center;\n                            font-size: 12px;\n                            color: #666;\n                            z-index: 9999;\n                            opacity: 0.8;\n                            border-top: 1px solid #ddd;\n                        \"\u003e\n                    Powered by\n                    \u003ca href=\"https://pagelove.com/\" style=\"color: #4a90d9; text-decoration: none\"\u003ePagelove\u003c/a\u003e\n                \u003c/div\u003e\n            \u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 2 (r:secret on the trigger element (private document))",
+      "method": "PUT",
+      "path": "/_pl/reacting-context-probe-0929-trigger-bind-433fff/a/x.html",
+      "status": 500,
+      "headers": {
+        "content-length": "401",
+        "content-type": "text/html",
+        "vary": "Host, Range"
+      },
+      "body": "\u003cdiv itemscope itemtype=\"https://pagelove.org/Error\"\u003e\n    \u003cmeta itemprop=\"type\" content=\"TriggerError\"\u003e\n    \u003cmeta itemprop=\"source\" content=\"/_pl/reacting-context-probe-0929-trigger-bind-433fff/r/triggers.html\"\u003e\n    \u003cmeta itemprop=\"line\" content=\"3\"\u003e\n    \u003cmeta itemprop=\"column\" content=\"58\"\u003e\n    \u003cmeta itemprop=\"phase\" content=\"action\"\u003e\n    \u003cp itemprop=\"message\"\u003eundefined variable: secret\u003c/p\u003e\n\u003c/div\u003e"
+    },
+    {
+      "step": "step 3 (r:pub on the trigger element (public document))",
+      "method": "PUT",
+      "path": "/_pl/reacting-context-probe-0929-trigger-bind-433fff/b/x.html",
+      "status": 500,
+      "headers": {
+        "content-length": "398",
+        "content-type": "text/html",
+        "vary": "Host, Range"
+      },
+      "body": "\u003cdiv itemscope itemtype=\"https://pagelove.org/Error\"\u003e\n    \u003cmeta itemprop=\"type\" content=\"TriggerError\"\u003e\n    \u003cmeta itemprop=\"source\" content=\"/_pl/reacting-context-probe-0929-trigger-bind-433fff/r/triggers.html\"\u003e\n    \u003cmeta itemprop=\"line\" content=\"3\"\u003e\n    \u003cmeta itemprop=\"column\" content=\"58\"\u003e\n    \u003cmeta itemprop=\"phase\" content=\"action\"\u003e\n    \u003cp itemprop=\"message\"\u003eundefined variable: pub\u003c/p\u003e\n\u003c/div\u003e"
+    },
+    {
+      "step": "step 4 (bare Sessel selector of the private document)",
+      "method": "PUT",
+      "path": "/_pl/reacting-context-probe-0929-trigger-bind-433fff/c/x.html",
+      "status": 500,
+      "headers": {
+        "content-length": "400",
+        "content-type": "text/html",
+        "vary": "Host, Range"
+      },
+      "body": "\u003cdiv itemscope itemtype=\"https://pagelove.org/Error\"\u003e\n    \u003cmeta itemprop=\"type\" content=\"TriggerError\"\u003e\n    \u003cmeta itemprop=\"source\" content=\"/_pl/reacting-context-probe-0929-trigger-bind-433fff/r/triggers.html\"\u003e\n    \u003cmeta itemprop=\"line\" content=\"3\"\u003e\n    \u003cmeta itemprop=\"column\" content=\"58\"\u003e\n    \u003cmeta itemprop=\"phase\" content=\"action\"\u003e\n    \u003cp itemprop=\"message\"\u003eundefined variable: token\u003c/p\u003e\n\u003c/div\u003e"
+    },
+    {
+      "step": "step 5 (r:outer on an ancestor of the trigger)",
+      "method": "PUT",
+      "path": "/_pl/reacting-context-probe-0929-trigger-bind-433fff/e/x.html",
+      "status": 500,
+      "headers": {
+        "content-length": "400",
+        "content-type": "text/html",
+        "vary": "Host, Range"
+      },
+      "body": "\u003cdiv itemscope itemtype=\"https://pagelove.org/Error\"\u003e\n    \u003cmeta itemprop=\"type\" content=\"TriggerError\"\u003e\n    \u003cmeta itemprop=\"source\" content=\"/_pl/reacting-context-probe-0929-trigger-bind-433fff/r/triggers.html\"\u003e\n    \u003cmeta itemprop=\"line\" content=\"3\"\u003e\n    \u003cmeta itemprop=\"column\" content=\"58\"\u003e\n    \u003cmeta itemprop=\"phase\" content=\"action\"\u003e\n    \u003cp itemprop=\"message\"\u003eundefined variable: outer\u003c/p\u003e\n\u003c/div\u003e"
+    },
+    {
+      "step": "step 6 (value of r:secret)",
+      "method": "PUT",
+      "path": "/_pl/reacting-context-probe-0929-trigger-bind-433fff/f/x.html",
+      "status": 500,
+      "headers": {
+        "content-length": "401",
+        "content-type": "text/html",
+        "vary": "Host, Range"
+      },
+      "body": "\u003cdiv itemscope itemtype=\"https://pagelove.org/Error\"\u003e\n    \u003cmeta itemprop=\"type\" content=\"TriggerError\"\u003e\n    \u003cmeta itemprop=\"source\" content=\"/_pl/reacting-context-probe-0929-trigger-bind-433fff/r/triggers.html\"\u003e\n    \u003cmeta itemprop=\"line\" content=\"3\"\u003e\n    \u003cmeta itemprop=\"column\" content=\"58\"\u003e\n    \u003cmeta itemprop=\"phase\" content=\"action\"\u003e\n    \u003cp itemprop=\"message\"\u003eundefined variable: secret\u003c/p\u003e\n\u003c/div\u003e"
+    },
+    {
+      "step": "step 7 (a when that fails at run time)",
+      "method": "PUT",
+      "path": "/_pl/reacting-context-probe-0929-trigger-bind-433fff/g/x.html",
+      "status": 409,
+      "headers": {
+        "content-length": "10",
+        "content-type": "text/html",
+        "vary": "Host, Range"
+      },
+      "body": "when-false"
+    }
+  ],
+  "outcome": "fail",
+  "target": "live"
+}

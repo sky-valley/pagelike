@@ -1,0 +1,70 @@
+{
+  "case": "modeling.references.unresolved-rejected",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (register declarations through the public plane (takes effect for the next request))",
+      "method": "PUT",
+      "path": "/_pl/modeling-references-unresolved-rejected-c73e7f/schema.html",
+      "status": 201,
+      "headers": {
+        "content-type": "text/html",
+        "etag": "\"1f1801f65d6e434fa6a0b7576f382dbee95de239042c9f71377d69be050b325d\"",
+        "last-modified": "Tue, 29 Sep 2026 00:48:12 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\n  \u003cdiv hidden itemscope itemtype=\"https://pagelove.org/Schema\"\u003e\n    \u003cmeta itemprop=\"type\" content=\"https://pagelike.test/_pl/modeling-references-unresolved-rejected-c73e7f/Org\"\u003e\n    \u003cdiv itemprop=\"property\" itemscope itemtype=\"https://pagelove.org/Property\"\u003e\n      \u003cmeta itemprop=\"name\" content=\"identifier\"\u003e\n      \u003cmeta itemprop=\"type\" content=\"https://schema.host/Text\"\u003e\n      \u003cmeta itemprop=\"cardinality\" content=\"1..1\"\u003e\n      \u003cmeta itemprop=\"unique\" content=\"true\"\u003e\n    \u003c/div\u003e\n  \u003cmeta itemprop=\"@id\" content=\"https://schema.host/tv6n5jhd\"\u003e\u003cmeta itemprop=\"path\" content=\"/Schemahttps://schema.host/tv6n5jhd.html\"\u003e\u003c/div\u003e\n  \u003cdiv hidden itemscope itemtype=\"https://pagelove.org/Schema\"\u003e\n    \u003cmeta itemprop=\"type\" content=\"https://pagelike.test/_pl/modeling-references-unresolved-rejected-c73e7f/Member\"\u003e\n    \u003cdiv itemprop=\"property\" itemscope itemtype=\"https://pagelove.org/Property\"\u003e\n      \u003cmeta itemprop=\"name\" content=\"org\"\u003e\n      \u003cmeta itemprop=\"type\" content=\"https://schema.host/Text\"\u003e\n      \u003cmeta itemprop=\"cardinality\" content=\"1..1\"\u003e\n      \u003cmeta itemprop=\"references\" content=\"https://pagelike.test/_pl/modeling-references-unresolved-rejected-c73e7f/Org#identifier\"\u003e\n    \u003c/div\u003e\n  \u003cmeta itemprop=\"@id\" content=\"https://schema.host/7mzl4ofo\"\u003e\u003cmeta itemprop=\"path\" content=\"/Schemahttps://schema.host/7mzl4ofo.html\"\u003e\u003c/div\u003e\n\n                \u003cdiv style=\"\n                            position: fixed;\n                            bottom: 0;\n                            left: 0;\n                            right: 0;\n                            padding: 8px;\n                            background: #f0f0f0;\n                            text-align: center;\n                            font-size: 12px;\n                            color: #666;\n                            z-index: 9999;\n                            opacity: 0.8;\n                            border-top: 1px solid #ddd;\n                        \"\u003e\n                    Powered by\n                    \u003ca href=\"https://pagelove.com/\" style=\"color: #4a90d9; text-decoration: none\"\u003ePagelove\u003c/a\u003e\n                \u003c/div\u003e\n            \u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 2 (member pointing at a missing org)",
+      "method": "PUT",
+      "path": "/_pl/modeling-references-unresolved-rejected-c73e7f/m.html",
+      "status": 422,
+      "headers": {
+        "content-length": "320",
+        "content-type": "text/html",
+        "vary": "Host, Range"
+      },
+      "body": "\u003cdiv itemscope itemtype=\"https://dombase.pagelove.team/ns/error/ConstraintViolation\"\u003e\u003cul itemprop=\"problems\"\u003e\u003cli itemprop=\"problem\"\u003e\u003cspan itemprop=\"message\"\u003eConstraint violation: 1 violation(s):\n  - [reference] [itemprop='org'] (references(org)): Referenced value does not exist for property 'org'\u003c/span\u003e\u003c/li\u003e\u003c/ul\u003e\u003c/div\u003e"
+    },
+    {
+      "step": "step 3 (m.html was not stored)",
+      "method": "GET",
+      "path": "/_pl/modeling-references-unresolved-rejected-c73e7f/m.html",
+      "status": 404,
+      "headers": {
+        "content-length": "209",
+        "content-type": "text/html; charset=utf-8"
+      },
+      "body": "\u003carticle itemscope itemtype=\"https://pagelove.org/Error/NotFound\"\u003e\u003cmeta itemprop=\"status\" content=\"404\"\u003e\u003cp itemprop=\"message\"\u003eNot found: /_pl/modeling-references-unresolved-rejected-c73e7f/m.html\u003c/p\u003e\u003c/article\u003e"
+    },
+    {
+      "step": "step 4 (create org acme)",
+      "method": "PUT",
+      "path": "/_pl/modeling-references-unresolved-rejected-c73e7f/org.html",
+      "status": 201,
+      "headers": {
+        "content-type": "text/html",
+        "etag": "\"70602a65c159fc216cf81b8bd82b0dcc119fd2040a657c8c3471dac8ac75c4b2\"",
+        "last-modified": "Tue, 29 Sep 2026 00:48:14 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\n  \u003cdiv itemscope itemtype=\"https://pagelike.test/_pl/modeling-references-unresolved-rejected-c73e7f/Org\"\u003e\n    \u003cmeta itemprop=\"identifier\" content=\"acme\"\u003e\n  \u003c/div\u003e\n\n                \u003cdiv style=\"\n                            position: fixed;\n                            bottom: 0;\n                            left: 0;\n                            right: 0;\n                            padding: 8px;\n                            background: #f0f0f0;\n                            text-align: center;\n                            font-size: 12px;\n                            color: #666;\n                            z-index: 9999;\n                            opacity: 0.8;\n                            border-top: 1px solid #ddd;\n                        \"\u003e\n                    Powered by\n                    \u003ca href=\"https://pagelove.com/\" style=\"color: #4a90d9; text-decoration: none\"\u003ePagelove\u003c/a\u003e\n                \u003c/div\u003e\n            \u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 5 (member now resolves)",
+      "method": "PUT",
+      "path": "/_pl/modeling-references-unresolved-rejected-c73e7f/m.html",
+      "status": 201,
+      "headers": {
+        "content-type": "text/html",
+        "etag": "\"cffc5347467438ed9c80a27b960babd31a0d71e34287aa70a2b3acb79ed52fd7\"",
+        "last-modified": "Tue, 29 Sep 2026 00:48:14 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\n  \u003cdiv itemscope itemtype=\"https://pagelike.test/_pl/modeling-references-unresolved-rejected-c73e7f/Member\"\u003e\n    \u003cmeta itemprop=\"org\" content=\"acme\"\u003e\n  \u003c/div\u003e\n\n                \u003cdiv style=\"\n                            position: fixed;\n                            bottom: 0;\n                            left: 0;\n                            right: 0;\n                            padding: 8px;\n                            background: #f0f0f0;\n                            text-align: center;\n                            font-size: 12px;\n                            color: #666;\n                            z-index: 9999;\n                            opacity: 0.8;\n                            border-top: 1px solid #ddd;\n                        \"\u003e\n                    Powered by\n                    \u003ca href=\"https://pagelove.com/\" style=\"color: #4a90d9; text-decoration: none\"\u003ePagelove\u003c/a\u003e\n                \u003c/div\u003e\n            \u003c/body\u003e\u003c/html\u003e\n"
+    }
+  ],
+  "outcome": "pass",
+  "target": "live"
+}

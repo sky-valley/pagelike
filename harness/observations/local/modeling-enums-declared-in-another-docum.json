@@ -1,0 +1,48 @@
+{
+  "case": "modeling.enums.declared-in-another-document",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (register declarations through the public plane (takes effect for the next request))",
+      "method": "PUT",
+      "path": "/_pl/modeling-enums-declared-in-another-docum-59700d/enums.html",
+      "status": 201,
+      "headers": {
+        "content-length": "323",
+        "content-type": "text/html",
+        "etag": "\"99f6c5164ec3c57a95ea64c1b2718a45668f1b1c28e214e7e0b71ccf16306f08\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:44 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\n  \u003cdiv hidden itemscope itemtype=\"https://schema.host/Enum\"\u003e\n    \u003cmeta itemprop=\"name\" content=\"https://pagelike.test/_pl/modeling-enums-declared-in-another-docum-59700d/Status\"\u003e\n    \u003cmeta itemprop=\"value\" content=\"active\"\u003e\n    \u003cmeta itemprop=\"value\" content=\"retired\"\u003e\n  \u003c/div\u003e\n\u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 2 (register declarations through the public plane (takes effect for the next request))",
+      "method": "PUT",
+      "path": "/_pl/modeling-enums-declared-in-another-docum-59700d/schema.html",
+      "status": 201,
+      "headers": {
+        "content-length": "544",
+        "content-type": "text/html",
+        "etag": "\"3d9769802f0913dfb9faccc1696f5add641a86b6fc0a969788476b6156cfffee\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:44 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\n  \u003cdiv hidden itemscope itemtype=\"https://pagelove.org/Schema\"\u003e\n    \u003cmeta itemprop=\"type\" content=\"https://pagelike.test/_pl/modeling-enums-declared-in-another-docum-59700d/Gadget\"\u003e\n    \u003cdiv itemprop=\"property\" itemscope itemtype=\"https://pagelove.org/Property\"\u003e\n      \u003cmeta itemprop=\"name\" content=\"status\"\u003e\n      \u003cmeta itemprop=\"type\" content=\"https://pagelike.test/_pl/modeling-enums-declared-in-another-docum-59700d/Status\"\u003e\n      \u003cmeta itemprop=\"cardinality\" content=\"1..1\"\u003e\n    \u003c/div\u003e\n  \u003c/div\u003e\n\u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 3 (unlisted value rejected)",
+      "method": "PUT",
+      "path": "/_pl/modeling-enums-declared-in-another-docum-59700d/g.html",
+      "status": 422,
+      "headers": {
+        "content-length": "1035",
+        "content-type": "text/html; charset=utf-8",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\n  \u003chead\u003e\n    \u003ctitle\u003e422 Unprocessable Entity - Schema Violation\u003c/title\u003e\n  \u003c/head\u003e\n  \u003cbody itemscope itemtype=\"https://pagelove.org/SchemaViolation\"\u003e\n    \u003ch1 itemprop=\"name\"\u003eUnprocessable Entity\u003c/h1\u003e\n    \u003cmeta itemprop=\"statusCode\" content=\"422\"\u003e\n    \u003cp itemprop=\"description\"\u003eSchema validation failed\u003c/p\u003e\n    \u003cul\u003e\n      \u003cli itemprop=\"violations\" itemscope itemtype=\"https://pagelove.org/Violation\"\u003e\n        \u003cspan itemprop=\"check\"\u003eenum\u003c/span\u003e\n        \u003cspan itemprop=\"itemtype\"\u003ehttps://pagelike.test/_pl/modeling-enums-declared-in-another-docum-59700d/Gadget\u003c/span\u003e\n        \u003cspan itemprop=\"property\"\u003estatus\u003c/span\u003e\n        \u003cspan itemprop=\"value\"\u003esideways\u003c/span\u003e\n        \u003cspan itemprop=\"message\"\u003e[https://pagelike.test/_pl/modeling-enums-declared-in-another-docum-59700d/Gadget].status: Value \u0026quot;sideways\u0026quot; is not a valid https://pagelike.test/_pl/modeling-enums-declared-in-another-docum-59700d/Status (expected one of: \u0026quot;active\u0026quot;, \u0026quot;retired\u0026quot;)\u003c/span\u003e\n      \u003c/li\u003e\n    \u003c/ul\u003e\n  \u003c/body\u003e\n\u003c/html\u003e\n"
+    }
+  ],
+  "outcome": "pass",
+  "target": "local"
+}

@@ -1,0 +1,49 @@
+{
+  "case": "reacting.tc.post-append-is-entry",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (install the recipe's four rules (entry pending, pending-\u003eprocessing, processing-\u003esuccess, exit success))",
+      "method": "PUT",
+      "path": "/_pl/reacting-tc-post-append-is-entry-bb614c/transitions/rules.html",
+      "status": 201,
+      "headers": {
+        "content-length": "1286",
+        "content-type": "text/html",
+        "etag": "\"3deaa62ca8c8546d5bf41cf0ff014bd54af9c1d347a46ebb62a81dbae38a4eac\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:49 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\n\u003cdiv itemscope itemtype=\"https://pagelove.org/TransitionConstraint\"\u003e\n  \u003cmeta itemprop=\"selector\" content=\"[itemtype='https://pagelike.test/_pl/reacting-tc-post-append-is-entry-bb614c/Order']\"\u003e\n  \u003cmeta itemprop=\"property\" content=\"status\"\u003e\n  \u003cmeta itemprop=\"to\" content=\"pending\"\u003e\n\u003c/div\u003e\n\u003cdiv itemscope itemtype=\"https://pagelove.org/TransitionConstraint\"\u003e\n  \u003cmeta itemprop=\"selector\" content=\"[itemtype='https://pagelike.test/_pl/reacting-tc-post-append-is-entry-bb614c/Order']\"\u003e\n  \u003cmeta itemprop=\"property\" content=\"status\"\u003e\n  \u003cmeta itemprop=\"from\" content=\"pending\"\u003e\n  \u003cmeta itemprop=\"to\" content=\"processing\"\u003e\n\u003c/div\u003e\n\u003cdiv itemscope itemtype=\"https://pagelove.org/TransitionConstraint\"\u003e\n  \u003cmeta itemprop=\"selector\" content=\"[itemtype='https://pagelike.test/_pl/reacting-tc-post-append-is-entry-bb614c/Order']\"\u003e\n  \u003cmeta itemprop=\"property\" content=\"status\"\u003e\n  \u003cmeta itemprop=\"from\" content=\"processing\"\u003e\n  \u003cmeta itemprop=\"to\" content=\"success\"\u003e\n\u003c/div\u003e\n\u003cdiv itemscope itemtype=\"https://pagelove.org/TransitionConstraint\"\u003e\n  \u003cmeta itemprop=\"selector\" content=\"[itemtype='https://pagelike.test/_pl/reacting-tc-post-append-is-entry-bb614c/Order']\"\u003e\n  \u003cmeta itemprop=\"property\" content=\"status\"\u003e\n  \u003cmeta itemprop=\"from\" content=\"success\"\u003e\n\u003c/div\u003e\n\u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 2 (appending an order at processing is rejected)",
+      "method": "POST",
+      "path": "/_pl/reacting-tc-post-append-is-entry-bb614c/orders/list.html",
+      "status": 422,
+      "headers": {
+        "content-length": "1160",
+        "content-type": "text/html; charset=utf-8",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\n  \u003chead\u003e\n    \u003ctitle\u003e422 Unprocessable Entity - Transition Constraint Violation\u003c/title\u003e\n  \u003c/head\u003e\n  \u003cbody itemscope itemtype=\"https://pagelove.org/ConstraintViolation\"\u003e\n    \u003ch1 itemprop=\"name\"\u003eUnprocessable Entity\u003c/h1\u003e\n    \u003cmeta itemprop=\"statusCode\" content=\"422\"\u003e\n    \u003cp itemprop=\"description\"\u003eTransition constraints violated\u003c/p\u003e\n    \u003cul\u003e\n      \u003cli itemprop=\"violations\" itemscope itemtype=\"https://pagelove.org/Violation\"\u003e\n        \u003cspan itemprop=\"constraintSelector\"\u003e[itemprop='status']\u003c/span\u003e\n        \u003cspan itemprop=\"failedConstraint\"\u003etransition(status)\u003c/span\u003e\n        \u003cspan itemprop=\"message\"\u003eTransition violation: 'https://pagelike.test/_pl/reacting-tc-post-append-is-entry-bb614c/Order' property 'status' may not change from '' to 'processing' (constraint declared in '/_pl/reacting-tc-post-append-is-entry-bb614c/transitions/rules.html')\u003c/span\u003e\n        \u003cspan itemprop=\"itemtype\"\u003ehttps://pagelike.test/_pl/reacting-tc-post-append-is-entry-bb614c/Order\u003c/span\u003e\n        \u003cspan itemprop=\"property\"\u003estatus\u003c/span\u003e\n        \u003cspan itemprop=\"from\"\u003e\u003c/span\u003e\n        \u003cspan itemprop=\"to\"\u003eprocessing\u003c/span\u003e\n      \u003c/li\u003e\n    \u003c/ul\u003e\n  \u003c/body\u003e\n\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 3 (appending an order at pending is accepted)",
+      "method": "POST",
+      "path": "/_pl/reacting-tc-post-append-is-entry-bb614c/orders/list.html",
+      "status": 206,
+      "headers": {
+        "content-length": "152",
+        "content-range": "selector #orders",
+        "content-type": "text/html",
+        "etag": "\"636ab44c5273286cd596b59d4d4623affb94aeb53eec3234dfff247dc632686a-636ab44c5273286cd596b59d4d4623affb94aeb53eec3234dfff247dc632686a-2\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:49 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003cli id=\"o2\" itemscope itemtype=\"https://pagelike.test/_pl/reacting-tc-post-append-is-entry-bb614c/Order\"\u003e\u003cmeta itemprop=\"status\" content=\"pending\"\u003e\u003c/li\u003e"
+    }
+  ],
+  "outcome": "pass",
+  "target": "local"
+}

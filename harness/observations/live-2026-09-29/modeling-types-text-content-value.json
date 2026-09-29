@@ -1,0 +1,46 @@
+{
+  "case": "modeling.types.text-content-value",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (register declarations through the public plane (takes effect for the next request))",
+      "method": "PUT",
+      "path": "/_pl/modeling-types-text-content-value-e92c0e/schema.html",
+      "status": 201,
+      "headers": {
+        "content-type": "text/html",
+        "etag": "\"ae5447e1011d76f65fba8ed9d3399525c95809c660fbff44e5e02a87c4cd707b\"",
+        "last-modified": "Tue, 29 Sep 2026 00:48:30 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\n  \u003cdiv hidden itemscope itemtype=\"https://pagelove.org/Schema\"\u003e\n    \u003cmeta itemprop=\"type\" content=\"https://pagelike.test/_pl/modeling-types-text-content-value-e92c0e/Value\"\u003e\n    \u003cdiv itemprop=\"property\" itemscope itemtype=\"https://pagelove.org/Property\"\u003e\n      \u003cmeta itemprop=\"name\" content=\"v\"\u003e\n      \u003cmeta itemprop=\"type\" content=\"https://schema.host/Integer\"\u003e\n      \u003cmeta itemprop=\"cardinality\" content=\"1..1\"\u003e\n    \u003c/div\u003e\n  \u003cmeta itemprop=\"@id\" content=\"https://schema.host/jnclkugw\"\u003e\u003cmeta itemprop=\"path\" content=\"/Schemahttps://schema.host/jnclkugw.html\"\u003e\u003c/div\u003e\n\n                \u003cdiv style=\"\n                            position: fixed;\n                            bottom: 0;\n                            left: 0;\n                            right: 0;\n                            padding: 8px;\n                            background: #f0f0f0;\n                            text-align: center;\n                            font-size: 12px;\n                            color: #666;\n                            z-index: 9999;\n                            opacity: 0.8;\n                            border-top: 1px solid #ddd;\n                        \"\u003e\n                    Powered by\n                    \u003ca href=\"https://pagelove.com/\" style=\"color: #4a90d9; text-decoration: none\"\u003ePagelove\u003c/a\u003e\n                \u003c/div\u003e\n            \u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 2 (span text 42 accepted)",
+      "method": "PUT",
+      "path": "/_pl/modeling-types-text-content-value-e92c0e/a.html",
+      "status": 201,
+      "headers": {
+        "content-type": "text/html",
+        "etag": "\"fbaf546b6c85336622bba10199b1e45d95bb969d3efb4bdbe6c0ea6fd4ea40d4\"",
+        "last-modified": "Tue, 29 Sep 2026 00:48:31 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\n  \u003cdiv itemscope itemtype=\"https://pagelike.test/_pl/modeling-types-text-content-value-e92c0e/Value\"\u003e\n    \u003cspan itemprop=\"v\"\u003e42\u003c/span\u003e\n  \u003c/div\u003e\n\n                \u003cdiv style=\"\n                            position: fixed;\n                            bottom: 0;\n                            left: 0;\n                            right: 0;\n                            padding: 8px;\n                            background: #f0f0f0;\n                            text-align: center;\n                            font-size: 12px;\n                            color: #666;\n                            z-index: 9999;\n                            opacity: 0.8;\n                            border-top: 1px solid #ddd;\n                        \"\u003e\n                    Powered by\n                    \u003ca href=\"https://pagelove.com/\" style=\"color: #4a90d9; text-decoration: none\"\u003ePagelove\u003c/a\u003e\n                \u003c/div\u003e\n            \u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 3 (span text abc rejected)",
+      "method": "PUT",
+      "path": "/_pl/modeling-types-text-content-value-e92c0e/b.html",
+      "status": 422,
+      "headers": {
+        "content-length": "270",
+        "content-type": "text/html",
+        "vary": "Host, Range"
+      },
+      "body": "\u003cdiv itemscope itemtype=\"https://pagelove.org/SchemaViolation\"\u003e\u003cul itemprop=\"problems\"\u003e\u003cli itemprop=\"problem\"\u003e\u003cspan itemprop=\"message\"\u003e[https://pagelike.test/_pl/modeling-types-text-content-value-e92c0e/Value].v: Value \"abc\" is not a valid integer\u003c/span\u003e\u003c/li\u003e\u003c/ul\u003e\u003c/div\u003e"
+    }
+  ],
+  "outcome": "pass",
+  "target": "live"
+}

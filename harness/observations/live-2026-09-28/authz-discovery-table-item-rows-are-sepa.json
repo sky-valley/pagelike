@@ -1,0 +1,47 @@
+{
+  "case": "authz.discovery.table-item-rows-are-separate-rules",
+  "failures": [
+    "step 2 (second row grants DELETE on items) DELETE ${P}/doc.html: status 401, want [204] (body: \u003c!DOCTYPE html\u003e\n\u003chtml\u003e\n\u003chead\u003e\n    \u003cmeta charset=\"UTF-8\"\u003e\n    \u003ctitle\u003e401 Unauthorized\u003c/title\u003e\n\u003c/head\u003e\n\u003cbody itemscope itemtype=\"https://pagelove.org/1.0/Error\"\u003e\n    \u003ch1\u003e401 Unauthorized\u003c/h1\u003e\n    \u003cp itemprop=\"message\"\u003eAuthentication required …)"
+  ],
+  "observations": [
+    {
+      "step": "step 1 (first row grants PUT on h1)",
+      "method": "PUT",
+      "path": "/_pl/authz-discovery-table-item-rows-are-sepa-ce4810/doc.html",
+      "status": 206,
+      "headers": {
+        "content-length": "10",
+        "content-range": "selector h1",
+        "content-type": "text/html",
+        "etag": "\"a03c1af83d45af961e059d2f5295724383a8c8bdabb3955d60377a1b27a5c181-a03c1af83d45af961e059d2f5295724383a8c8bdabb3955d60377a1b27a5c181-2\"",
+        "last-modified": "Mon, 28 Sep 2026 22:38:35 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003ch1\u003eU\u003c/h1\u003e"
+    },
+    {
+      "step": "step 2 (second row grants DELETE on items)",
+      "method": "DELETE",
+      "path": "/_pl/authz-discovery-table-item-rows-are-sepa-ce4810/doc.html",
+      "status": 401,
+      "headers": {
+        "content-length": "428",
+        "content-type": "text/html; charset=utf-8"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\n\u003chead\u003e\n    \u003cmeta charset=\"UTF-8\"\u003e\n    \u003ctitle\u003e401 Unauthorized\u003c/title\u003e\n\u003c/head\u003e\n\u003cbody itemscope itemtype=\"https://pagelove.org/1.0/Error\"\u003e\n    \u003ch1\u003e401 Unauthorized\u003c/h1\u003e\n    \u003cp itemprop=\"message\"\u003eAuthentication required to access this resource.\u003c/p\u003e\n    \u003cdl\u003e\n        \u003cdt\u003eResource\u003c/dt\u003e\n        \u003cdd itemprop=\"resource\"\u003e/_pl/authz-discovery-table-item-rows-are-sepa-ce4810/doc.html\u003c/dd\u003e\n    \u003c/dl\u003e\n\u003c/body\u003e\n\u003c/html\u003e"
+    },
+    {
+      "step": "step 3 (rows do not mix (no PUT on items))",
+      "method": "PUT",
+      "path": "/_pl/authz-discovery-table-item-rows-are-sepa-ce4810/doc.html",
+      "status": 401,
+      "headers": {
+        "content-length": "428",
+        "content-type": "text/html; charset=utf-8"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\n\u003chead\u003e\n    \u003cmeta charset=\"UTF-8\"\u003e\n    \u003ctitle\u003e401 Unauthorized\u003c/title\u003e\n\u003c/head\u003e\n\u003cbody itemscope itemtype=\"https://pagelove.org/1.0/Error\"\u003e\n    \u003ch1\u003e401 Unauthorized\u003c/h1\u003e\n    \u003cp itemprop=\"message\"\u003eAuthentication required to access this resource.\u003c/p\u003e\n    \u003cdl\u003e\n        \u003cdt\u003eResource\u003c/dt\u003e\n        \u003cdd itemprop=\"resource\"\u003e/_pl/authz-discovery-table-item-rows-are-sepa-ce4810/doc.html\u003c/dd\u003e\n    \u003c/dl\u003e\n\u003c/body\u003e\n\u003c/html\u003e"
+    }
+  ],
+  "outcome": "fail",
+  "target": "live"
+}

@@ -1,0 +1,48 @@
+{
+  "case": "modeling.references.malformed-rejects-writes",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (register declarations through the public plane (takes effect for the next request))",
+      "method": "PUT",
+      "path": "/_pl/modeling-references-malformed-rejects-wr-ed7ea0/schema.html",
+      "status": 201,
+      "headers": {
+        "content-length": "1099",
+        "content-type": "text/html",
+        "etag": "\"324b1c736807a893b2c9523023c618384bb4153d97757bb246fbdfe0d850a2ad\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:44 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\n  \u003cdiv hidden itemscope itemtype=\"https://pagelove.org/Schema\"\u003e\n    \u003cmeta itemprop=\"type\" content=\"https://pagelike.test/_pl/modeling-references-malformed-rejects-wr-ed7ea0/Org\"\u003e\n    \u003cdiv itemprop=\"property\" itemscope itemtype=\"https://pagelove.org/Property\"\u003e\n      \u003cmeta itemprop=\"name\" content=\"identifier\"\u003e\n      \u003cmeta itemprop=\"type\" content=\"https://schema.host/Text\"\u003e\n      \u003cmeta itemprop=\"cardinality\" content=\"1..1\"\u003e\n      \u003cmeta itemprop=\"unique\" content=\"true\"\u003e\n    \u003c/div\u003e\n  \u003c/div\u003e\n  \u003cdiv hidden itemscope itemtype=\"https://pagelove.org/Schema\"\u003e\n    \u003cmeta itemprop=\"type\" content=\"https://pagelike.test/_pl/modeling-references-malformed-rejects-wr-ed7ea0/Member\"\u003e\n    \u003cdiv itemprop=\"property\" itemscope itemtype=\"https://pagelove.org/Property\"\u003e\n      \u003cmeta itemprop=\"name\" content=\"org\"\u003e\n      \u003cmeta itemprop=\"type\" content=\"https://schema.host/Text\"\u003e\n      \u003cmeta itemprop=\"cardinality\" content=\"1..1\"\u003e\n      \u003cmeta itemprop=\"references\" content=\"https://pagelike.test/_pl/modeling-references-malformed-rejects-wr-ed7ea0/Org\"\u003e\n    \u003c/div\u003e\n  \u003c/div\u003e\n\u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 2 (org acme)",
+      "method": "PUT",
+      "path": "/_pl/modeling-references-malformed-rejects-wr-ed7ea0/org.html",
+      "status": 201,
+      "headers": {
+        "content-length": "208",
+        "content-type": "text/html",
+        "etag": "\"a83683f1b76af4fb5039bdf8684526a7b271b8155d034611dc3f0ad975aa240e\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:44 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\n  \u003cdiv itemscope itemtype=\"https://pagelike.test/_pl/modeling-references-malformed-rejects-wr-ed7ea0/Org\"\u003e\n    \u003cmeta itemprop=\"identifier\" content=\"acme\"\u003e\n  \u003c/div\u003e\n\u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 3 (any member write is rejected)",
+      "method": "PUT",
+      "path": "/_pl/modeling-references-malformed-rejects-wr-ed7ea0/m.html",
+      "status": 422,
+      "headers": {
+        "content-length": "944",
+        "content-type": "text/html; charset=utf-8",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\n  \u003chead\u003e\n    \u003ctitle\u003e422 Unprocessable Entity - Schema Violation\u003c/title\u003e\n  \u003c/head\u003e\n  \u003cbody itemscope itemtype=\"https://pagelove.org/SchemaViolation\"\u003e\n    \u003ch1 itemprop=\"name\"\u003eUnprocessable Entity\u003c/h1\u003e\n    \u003cmeta itemprop=\"statusCode\" content=\"422\"\u003e\n    \u003cp itemprop=\"description\"\u003eSchema validation failed\u003c/p\u003e\n    \u003cul\u003e\n      \u003cli itemprop=\"violations\" itemscope itemtype=\"https://pagelove.org/Violation\"\u003e\n        \u003cspan itemprop=\"check\"\u003eschema\u003c/span\u003e\n        \u003cspan itemprop=\"itemtype\"\u003ehttps://pagelike.test/_pl/modeling-references-malformed-rejects-wr-ed7ea0/Member\u003c/span\u003e\n        \u003cspan itemprop=\"property\"\u003eorg\u003c/span\u003e\n        \u003cspan itemprop=\"message\"\u003e[https://pagelike.test/_pl/modeling-references-malformed-rejects-wr-ed7ea0/Member].org: references \u0026quot;https://pagelike.test/_pl/modeling-references-malformed-rejects-wr-ed7ea0/Org\u0026quot; is not of the form {itemtype}#{itemprop}\u003c/span\u003e\n      \u003c/li\u003e\n    \u003c/ul\u003e\n  \u003c/body\u003e\n\u003c/html\u003e\n"
+    }
+  ],
+  "outcome": "pass",
+  "target": "local"
+}

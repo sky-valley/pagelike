@@ -1,0 +1,47 @@
+{
+  "case": "comp.stamp.write-through-delete",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1",
+      "method": "DELETE",
+      "path": "/_pl/comp-stamp-write-through-delete-86fe99/page.html",
+      "status": 204,
+      "headers": {
+        "etag": "\"c28f9916209b0aa4d5731406ebfc8a4213aea5f9737f276f408d2441edb61dc5\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:42 GMT",
+        "vary": "Host, Range"
+      }
+    },
+    {
+      "step": "step 2 (origin document survives without the record)",
+      "method": "GET",
+      "path": "/_pl/comp-stamp-write-through-delete-86fe99/data/rec.html",
+      "status": 200,
+      "headers": {
+        "accept-ranges": "bytes",
+        "content-length": "70",
+        "content-type": "text/html",
+        "etag": "\"c28f9916209b0aa4d5731406ebfc8a4213aea5f9737f276f408d2441edb61dc5\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:42 GMT"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\n\n\u003cp id=\"keep\"\u003ekeep me\u003c/p\u003e\n\u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 3 (page document unchanged)",
+      "method": "GET",
+      "path": "/_pl/comp-stamp-write-through-delete-86fe99/page.html",
+      "status": 200,
+      "headers": {
+        "accept-ranges": "bytes",
+        "content-length": "287",
+        "content-type": "text/html",
+        "etag": "\"c44b4539ff3aa6221aa49409be4a40dc228c2ba72e598ae46ca138efe65e1ca1\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:42 GMT"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml xmlns:e=\"https://pagelove.org/Binding/Sessel\" xmlns:p=\"https://pagelove.org/1.0\"\u003e\n\u003cbody e:rec=\"${[itemtype='https://example.test/_pl/comp-stamp-write-through-delete-86fe99/Rec']}.first()\"\u003e\u003cmain\u003e\u003cp:stamp rec\u003e\u003c/p:stamp\u003e\u003cp id=\"native\"\u003enative\u003c/p\u003e\u003c/main\u003e\u003c/body\u003e\n\u003c/html\u003e\n"
+    }
+  ],
+  "outcome": "pass",
+  "target": "local"
+}

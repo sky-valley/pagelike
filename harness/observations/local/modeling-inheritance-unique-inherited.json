@@ -1,0 +1,59 @@
+{
+  "case": "modeling.inheritance.unique-inherited",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (register declarations through the public plane (takes effect for the next request))",
+      "method": "PUT",
+      "path": "/_pl/modeling-inheritance-unique-inherited-099896/schema.html",
+      "status": 201,
+      "headers": {
+        "content-length": "1092",
+        "content-type": "text/html",
+        "etag": "\"070a78dbdae4d7d969fde554848b0d429c6d1cc7e0a3013523c7604e6f8808cb\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:44 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\n  \u003cdiv hidden itemscope itemtype=\"https://pagelove.org/Schema\"\u003e\n    \u003cmeta itemprop=\"type\" content=\"https://pagelike.test/_pl/modeling-inheritance-unique-inherited-099896/Entity\"\u003e\n    \u003cdiv itemprop=\"property\" itemscope itemtype=\"https://pagelove.org/Property\"\u003e\n      \u003cmeta itemprop=\"name\" content=\"identifier\"\u003e\n      \u003cmeta itemprop=\"type\" content=\"https://schema.host/Text\"\u003e\n      \u003cmeta itemprop=\"cardinality\" content=\"1..1\"\u003e\n      \u003cmeta itemprop=\"unique\" content=\"true\"\u003e\n    \u003c/div\u003e\n  \u003c/div\u003e\n  \u003cdiv hidden itemscope itemtype=\"https://pagelove.org/Schema\"\u003e\n    \u003cmeta itemprop=\"type\" content=\"https://pagelike.test/_pl/modeling-inheritance-unique-inherited-099896/Person\"\u003e\n    \u003cmeta itemprop=\"parent\" content=\"https://pagelike.test/_pl/modeling-inheritance-unique-inherited-099896/Entity\"\u003e\n    \u003cdiv itemprop=\"property\" itemscope itemtype=\"https://pagelove.org/Property\"\u003e\n      \u003cmeta itemprop=\"name\" content=\"email\"\u003e\n      \u003cmeta itemprop=\"type\" content=\"https://schema.host/Text\"\u003e\n      \u003cmeta itemprop=\"cardinality\" content=\"1..1\"\u003e\n    \u003c/div\u003e\n  \u003c/div\u003e\n\u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 2 (first Person with identifier ada)",
+      "method": "PUT",
+      "path": "/_pl/modeling-inheritance-unique-inherited-099896/p1.html",
+      "status": 201,
+      "headers": {
+        "content-length": "259",
+        "content-type": "text/html",
+        "etag": "\"05729b31177296e4e004f5c098554a47e4987ef0f056d047774fef3680616867\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:44 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\n  \u003cdiv itemscope itemtype=\"https://pagelike.test/_pl/modeling-inheritance-unique-inherited-099896/Person\"\u003e\n    \u003cmeta itemprop=\"identifier\" content=\"ada\"\u003e\n    \u003cmeta itemprop=\"email\" content=\"a@example.com\"\u003e\n  \u003c/div\u003e\n\u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 3 (second Person with identifier ada is rejected)",
+      "method": "PUT",
+      "path": "/_pl/modeling-inheritance-unique-inherited-099896/p2.html",
+      "status": 422,
+      "headers": {
+        "content-length": "349",
+        "content-type": "text/html",
+        "vary": "Host, Range"
+      },
+      "body": "\u003cdiv itemscope itemtype=\"https://dombase.pagelove.team/ns/error/ConstraintViolation\"\u003e\u003cul itemprop=\"problems\"\u003e\u003cli itemprop=\"problem\"\u003e\u003cspan itemprop=\"message\"\u003eConstraint violation: 1 violation(s):\n  - [uniqueness] [itemprop='identifier'] (unique(identifier)): Uniqueness violation: value already exists for property 'identifier'\u003c/span\u003e\u003c/li\u003e\u003c/ul\u003e\u003c/div\u003e"
+    },
+    {
+      "step": "step 4 (p2.html was not stored)",
+      "method": "GET",
+      "path": "/_pl/modeling-inheritance-unique-inherited-099896/p2.html",
+      "status": 404,
+      "headers": {
+        "content-length": "208",
+        "content-type": "text/html; charset=utf-8"
+      },
+      "body": "\u003carticle itemscope itemtype=\"https://pagelove.org/Error/NotFound\"\u003e\u003cmeta itemprop=\"status\" content=\"404\"\u003e\u003cp itemprop=\"message\"\u003eNot found: /_pl/modeling-inheritance-unique-inherited-099896/p2.html\u003c/p\u003e\u003c/article\u003e"
+    }
+  ],
+  "outcome": "pass",
+  "target": "local"
+}

@@ -1,0 +1,537 @@
+# Resource pattern matching (spec R-PERM-19..22, R-PERM-52).
+cases:
+  - id: authz.resource.star-crosses-segments
+    title: A trailing * matches paths any number of segments below (e.g. /data/* covers /data/posts/x.html)
+    area: permissions-identity
+    feature: resource glob (*)
+    evidence: documented
+    source: "docs learn/build-a-blog §Locking the data folder (/data/* refuses /data/posts/hello-world.html); reference/permissions/AuthorizationRule §Example (/* = everything)"
+    confidence: high
+    requires: []
+    live: true
+    site:
+      files:
+        - path: "${P}/data/posts/2026/a.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body><h1>A</h1></body></html>
+        - path: "${P}/rules.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div hidden itemscope itemtype="https://pagelove.org/AuthorizationRule">
+                <meta itemprop="actor" content="*"><meta itemprop="resource" content="${P}/data/*">
+                <meta itemprop="method" content="GET"><meta itemprop="action" content="deny">
+              </div>
+              <div hidden itemscope itemtype="https://pagelove.org/AuthorizationRule">
+                <meta itemprop="actor" content="*"><meta itemprop="resource" content="${P}/data/*">
+                <meta itemprop="method" content="PUT"><meta itemprop="action" content="allow">
+              </div>
+            </body></html>
+    steps:
+      - name: deep GET is refused by /data/*
+        as: anonymous
+        request: {method: GET, path: "${P}/data/posts/2026/a.html"}
+        expect: {status: 401}
+      - name: deep PUT creating a new document is granted by /data/*
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/data/x/y/z.html"
+          headers: {Content-Type: text/html}
+          body: '<!DOCTYPE html><html><body><p>new</p></body></html>'
+        expect: {status: [200, 201, 204]}
+      - name: a sibling tree is not covered
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/other/z.html"
+          headers: {Content-Type: text/html}
+          body: '<!DOCTYPE html><html><body><p>new</p></body></html>'
+        expect: {status: 401}
+
+  - id: authz.resource.trailing-star-matches-directory-slash
+    title: /admin/* matches a request for the directory /admin/ itself
+    area: permissions-identity
+    feature: resource glob (directory)
+    evidence: documented
+    source: "docs reference/permissions/AuthorizationRule §Example: blog admin interface ('for a request to /admin/ both match')"
+    confidence: high
+    requires: []
+    live: true
+    site:
+      files:
+        - path: "${P}/admin/index.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body><h1>Admin</h1></body></html>
+        - path: "${P}/rules.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div hidden itemscope itemtype="https://pagelove.org/AuthorizationRule">
+                <meta itemprop="actor" content="*"><meta itemprop="resource" content="${P}/admin/*">
+                <meta itemprop="method" content="GET"><meta itemprop="action" content="Deny">
+              </div>
+            </body></html>
+    steps:
+      - name: directory request refused
+        as: anonymous
+        request: {method: GET, path: "${P}/admin/"}
+        expect: {status: 401}
+      - name: explicit index refused
+        as: anonymous
+        request: {method: GET, path: "${P}/admin/index.html"}
+        expect: {status: 401}
+
+  - id: authz.resource.trailing-slash-star-not-bare-name
+    title: /x/* matches the bare name /x (the directory it names) but not /xy.html
+    area: permissions-identity
+    feature: resource glob (anchoring)
+    evidence: live-observed
+    source: "harness/observations/live-2026-09-28/authz-resource-trailing-slash-star-not-bare-name.json (PUT /x under a /x/* allow: 201; /xy.html: 401); docs reference/permissions/AuthorizationRule §resource"
+    confidence: high
+    requires: []
+    live: true
+    notes: >-
+      The id keeps its original name; the inferred anchoring is superseded: PageLove lets "<dir>/*"
+      govern the slash-less "<dir>" as well (docs/compat/decisions.md). It is also why a
+      slash-less path under a denied directory is refused (authz.resource.slashless-directory-unreadable-404).
+    site:
+      files:
+        - path: "${P}/rules.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div hidden itemscope itemtype="https://pagelove.org/AuthorizationRule">
+                <meta itemprop="actor" content="*"><meta itemprop="resource" content="${P}/x/*">
+                <meta itemprop="method" content="PUT"><meta itemprop="action" content="allow">
+              </div>
+            </body></html>
+    steps:
+      - name: bare name covered by the directory pattern
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/x"
+          headers: {Content-Type: text/plain}
+          body: 'x'
+        expect:
+          status: 201
+          body: 'x'
+          header_matches: {Content-Type: "^text/plain"}
+      - name: prefix-sharing sibling refused
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/xy.html"
+          headers: {Content-Type: text/html}
+          body: '<!DOCTYPE html><html><body></body></html>'
+        expect: {status: 401}
+      - name: child allowed
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/x/a.html"
+          headers: {Content-Type: text/html}
+          body: '<!DOCTYPE html><html><body></body></html>'
+        expect: {status: [200, 201, 204]}
+
+  - id: authz.resource.exact-path
+    title: A pattern without metacharacters matches only that exact path
+    area: permissions-identity
+    feature: resource glob (literal)
+    evidence: documented
+    source: "docs learn/your-first-app (resource /index.html)"
+    confidence: high
+    requires: []
+    live: true
+    site:
+      files:
+        - path: "${P}/doc.html"
+          body: '<!DOCTYPE html><html><body><h1>A</h1></body></html>'
+        - path: "${P}/doc.html.bak"
+          content_type: text/html
+          body: '<!DOCTYPE html><html><body><h1>A</h1></body></html>'
+        - path: "${P}/rules.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div hidden itemscope itemtype="https://pagelove.org/AuthorizationRule">
+                <meta itemprop="actor" content="*"><meta itemprop="resource" content="${P}/doc.html">
+                <meta itemprop="method" content="PUT"><meta itemprop="selector" content="h1">
+                <meta itemprop="action" content="allow">
+              </div>
+            </body></html>
+    steps:
+      - name: exact path allowed
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/doc.html"
+          headers: {Range: "selector=h1", Content-Type: text/html}
+          body: '<h1>B</h1>'
+        expect: {status: 206}
+      - name: longer path refused
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/doc.html.bak"
+          headers: {Range: "selector=h1", Content-Type: text/html}
+          body: '<h1>B</h1>'
+        expect: {status: 401}
+
+  - id: authz.resource.question-mark
+    title: "? matches exactly one character"
+    area: permissions-identity
+    feature: resource glob (?)
+    evidence: inferred
+    source: "docs reference/permissions/AuthorizationRule §A substituted value in a resource is a literal (names ?, [ and { as pattern characters); semantics assumed from common glob (globset) defaults"
+    confidence: medium
+    requires: []
+    live: true
+    site:
+      files:
+        - path: "${P}/rules.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div hidden itemscope itemtype="https://pagelove.org/AuthorizationRule">
+                <meta itemprop="actor" content="*"><meta itemprop="resource" content="${P}/f?.html">
+                <meta itemprop="method" content="PUT"><meta itemprop="action" content="allow">
+              </div>
+            </body></html>
+    steps:
+      - name: one character
+        as: anonymous
+        request: {method: PUT, path: "${P}/f1.html", headers: {Content-Type: text/html}, body: '<!DOCTYPE html><html><body></body></html>'}
+        expect: {status: [200, 201, 204]}
+      - name: two characters
+        as: anonymous
+        request: {method: PUT, path: "${P}/f10.html", headers: {Content-Type: text/html}, body: '<!DOCTYPE html><html><body></body></html>'}
+        expect: {status: 401}
+      - name: zero characters
+        as: anonymous
+        request: {method: PUT, path: "${P}/f.html", headers: {Content-Type: text/html}, body: '<!DOCTYPE html><html><body></body></html>'}
+        expect: {status: 401}
+
+  - id: authz.resource.char-class
+    title: "[ab] and [!a] character classes"
+    area: permissions-identity
+    feature: resource glob ([...])
+    evidence: inferred
+    source: "docs reference/permissions/AuthorizationRule §A substituted value in a resource is a literal (lists [ as a pattern character); class syntax assumed from common glob (globset) defaults"
+    confidence: medium
+    requires: []
+    live: true
+    site:
+      files:
+        - path: "${P}/rules.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div hidden itemscope itemtype="https://pagelove.org/AuthorizationRule">
+                <meta itemprop="actor" content="*"><meta itemprop="resource" content="${P}/c/[ab].html">
+                <meta itemprop="resource" content="${P}/n/[!a].html">
+                <meta itemprop="method" content="PUT"><meta itemprop="action" content="allow">
+              </div>
+            </body></html>
+    steps:
+      - name: member of class
+        as: anonymous
+        request: {method: PUT, path: "${P}/c/b.html", headers: {Content-Type: text/html}, body: '<!DOCTYPE html><html><body></body></html>'}
+        expect: {status: [200, 201, 204]}
+      - name: not a member of class
+        as: anonymous
+        request: {method: PUT, path: "${P}/c/c.html", headers: {Content-Type: text/html}, body: '<!DOCTYPE html><html><body></body></html>'}
+        expect: {status: 401}
+      - name: negated class excludes a
+        as: anonymous
+        request: {method: PUT, path: "${P}/n/a.html", headers: {Content-Type: text/html}, body: '<!DOCTYPE html><html><body></body></html>'}
+        expect: {status: 401}
+      - name: negated class admits z
+        as: anonymous
+        request: {method: PUT, path: "${P}/n/z.html", headers: {Content-Type: text/html}, body: '<!DOCTYPE html><html><body></body></html>'}
+        expect: {status: [200, 201, 204]}
+
+  - id: authz.resource.alternation
+    title: "{one,two} alternation"
+    area: permissions-identity
+    feature: resource glob ({...})
+    evidence: inferred
+    source: "docs reference/permissions/AuthorizationRule §A substituted value in a resource is a literal (lists { as a pattern character); alternation assumed from common glob (globset) defaults"
+    confidence: medium
+    requires: []
+    live: true
+    site:
+      files:
+        - path: "${P}/rules.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div hidden itemscope itemtype="https://pagelove.org/AuthorizationRule">
+                <meta itemprop="actor" content="*"><meta itemprop="resource" content="${P}/{one,two}.html">
+                <meta itemprop="method" content="PUT"><meta itemprop="action" content="allow">
+              </div>
+            </body></html>
+    steps:
+      - name: first alternative
+        as: anonymous
+        request: {method: PUT, path: "${P}/one.html", headers: {Content-Type: text/html}, body: '<!DOCTYPE html><html><body></body></html>'}
+        expect: {status: [200, 201, 204]}
+      - name: second alternative
+        as: anonymous
+        request: {method: PUT, path: "${P}/two.html", headers: {Content-Type: text/html}, body: '<!DOCTYPE html><html><body></body></html>'}
+        expect: {status: [200, 201, 204]}
+      - name: other name
+        as: anonymous
+        request: {method: PUT, path: "${P}/three.html", headers: {Content-Type: text/html}, body: '<!DOCTYPE html><html><body></body></html>'}
+        expect: {status: 401}
+
+  - id: authz.resource.multi-valued
+    title: Several resource values are OR-ed
+    area: permissions-identity
+    feature: resource glob (multi-valued)
+    evidence: demo-source
+    source: "pagelove-shop/site/rules.html@d887054:64-69; pagelove-polls/site/admin/auth.html@c9270e5:30"
+    confidence: high
+    requires: []
+    live: true
+    site:
+      files:
+        - path: "${P}/rules.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div hidden itemscope itemtype="https://pagelove.org/AuthorizationRule">
+                <meta itemprop="actor" content="*">
+                <meta itemprop="resource" content="${P}/products/*">
+                <meta itemprop="resource" content="${P}/images/*">
+                <meta itemprop="method" content="PUT"><meta itemprop="action" content="allow">
+              </div>
+            </body></html>
+    steps:
+      - name: first resource
+        as: anonymous
+        request: {method: PUT, path: "${P}/products/p.html", headers: {Content-Type: text/html}, body: '<!DOCTYPE html><html><body></body></html>'}
+        expect: {status: [200, 201, 204]}
+      - name: second resource
+        as: anonymous
+        request: {method: PUT, path: "${P}/images/i.txt", headers: {Content-Type: text/plain}, body: 'img'}
+        expect: {status: [200, 201, 204]}
+      - name: neither
+        as: anonymous
+        request: {method: PUT, path: "${P}/orders/o.html", headers: {Content-Type: text/html}, body: '<!DOCTYPE html><html><body></body></html>'}
+        expect: {status: 401}
+
+  - id: authz.resource.directory-index-normalization
+    title: A rule on dir/index.html covers selector writes addressed to dir/
+    area: permissions-identity
+    feature: resource path canonicalization
+    evidence: documented
+    source: "docs learn/your-first-app (rule resource /index.html, page used at /); beta-js/pagelove/primitives.mjs@c204746:423-425 (writes go to location.href); read-probes.json query-sessel (401 resource reported as /index.html for /)"
+    confidence: medium
+    requires: []
+    live: true
+    notes: Probe P-1.
+    site:
+      files:
+        - path: "${P}/app/index.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body><h1>App</h1></body></html>
+        - path: "${P}/rules.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div hidden itemscope itemtype="https://pagelove.org/AuthorizationRule">
+                <meta itemprop="actor" content="*"><meta itemprop="resource" content="${P}/app/index.html">
+                <meta itemprop="method" content="PUT"><meta itemprop="selector" content="h1">
+                <meta itemprop="action" content="allow">
+              </div>
+            </body></html>
+    steps:
+      - name: selector PUT to the directory URL
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/app/"
+          headers: {Range: "selector=h1", Content-Type: text/html}
+          body: '<h1>App v2</h1>'
+        expect: {status: 206}
+
+  - id: authz.resource.directory-form-rule
+    title: An Allow written for the directory URL (dir/) grants nothing on requests to dir/ (rules match dir/index.html)
+    area: permissions-identity
+    feature: resource path canonicalization
+    evidence: live-observed
+    source: "harness/observations/live-2026-09-28/authz-resource-directory-form-rule.json (401, resource ${P}/app/index.html); pagelove-ats/site/admin/auth.html@8f200fc:106-127 (rules duplicated for /admin/ and /admin/index.html)"
+    confidence: high
+    requires: []
+    live: true
+    notes: >-
+      The id keeps its original name. Probe P-1 settled: PageLove matches rules against the
+      canonical document path only, which is why the ATS app duplicates its rules. pagelike adopts
+      it for Allow rules; a Deny written for dir/ still refuses dir/index.html (fail closed; R-PERM-19
+      as reconciled, docs/compat/decisions.md).
+    site:
+      files:
+        - path: "${P}/app/index.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body><h1>App</h1></body></html>
+        - path: "${P}/rules.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div hidden itemscope itemtype="https://pagelove.org/AuthorizationRule">
+                <meta itemprop="actor" content="*"><meta itemprop="resource" content="${P}/app/">
+                <meta itemprop="method" content="PUT"><meta itemprop="selector" content="h1">
+                <meta itemprop="action" content="allow">
+              </div>
+            </body></html>
+    steps:
+      - name: selector PUT to the directory URL
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/app/"
+          headers: {Range: "selector=h1", Content-Type: text/html}
+          body: '<h1>App v2</h1>'
+        expect:
+          status: 401
+          body_contains: ['<dd itemprop="resource">${P}/app/index.html</dd>']
+
+  - id: authz.resource.query-string-ignored
+    title: The query string does not take part in resource matching
+    area: permissions-identity
+    feature: resource path (query)
+    evidence: inferred
+    source: "docs reference/permissions/AuthorizationRule §Matching model ('request path'); query is exposed separately to templates"
+    confidence: medium
+    requires: []
+    live: true
+    site:
+      files:
+        - path: "${P}/doc.html"
+          body: '<!DOCTYPE html><html><body><h1>A</h1></body></html>'
+        - path: "${P}/rules.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div hidden itemscope itemtype="https://pagelove.org/AuthorizationRule">
+                <meta itemprop="actor" content="*"><meta itemprop="resource" content="${P}/doc.html">
+                <meta itemprop="method" content="PUT"><meta itemprop="selector" content="h1">
+                <meta itemprop="action" content="allow">
+              </div>
+            </body></html>
+    steps:
+      - name: PUT with a query string
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/doc.html?cb=1"
+          headers: {Range: "selector=h1", Content-Type: text/html}
+          body: '<h1>B</h1>'
+        expect: {status: 206}
+
+  - id: authz.resource.case-sensitive
+    title: Resource patterns are case-sensitive
+    area: permissions-identity
+    feature: resource glob (case)
+    evidence: inferred
+    source: "paths are case-sensitive stored keys; no source says otherwise"
+    confidence: low
+    requires: []
+    live: true
+    site:
+      files:
+        - path: "${P}/doc.html"
+          body: '<!DOCTYPE html><html><body><h1>A</h1></body></html>'
+        - path: "${P}/rules.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div hidden itemscope itemtype="https://pagelove.org/AuthorizationRule">
+                <meta itemprop="actor" content="*"><meta itemprop="resource" content="${P}/DOC.html">
+                <meta itemprop="method" content="PUT"><meta itemprop="action" content="allow">
+              </div>
+            </body></html>
+    steps:
+      - name: differently-cased path refused
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/doc.html"
+          headers: {Range: "selector=h1", Content-Type: text/html}
+          body: '<h1>B</h1>'
+        expect: {status: 401}
+
+  - id: authz.resource.slashless-directory-unreadable-404
+    title: A slash-less directory under a denied directory pattern is refused (401), not redirected
+    area: permissions-identity
+    feature: directory redirect vs read permission
+    evidence: live-observed
+    source: "harness/observations/live-2026-09-28/authz-resource-slashless-directory-unreadable-404.json (401, resource ${P}/blog); docs reference/reading-and-writing/GET-method §Directory requests (claims 404)"
+    confidence: high
+    requires: []
+    live: true
+    notes: >-
+      The id keeps its original name. Probe P-22 settled for 401: "${P}/blog/*" governs "${P}/blog"
+      (authz.resource.trailing-slash-star-not-bare-name), so the request is a denial
+      (docs/compat/decisions.md).
+    site:
+      files:
+        - path: "${P}/blog/index.html"
+          body: '<!DOCTYPE html><html><body><h1>Blog</h1></body></html>'
+        - path: "${P}/rules.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div hidden itemscope itemtype="https://pagelove.org/AuthorizationRule">
+                <meta itemprop="actor" content="*"><meta itemprop="resource" content="${P}/blog/*">
+                <meta itemprop="method" content="GET"><meta itemprop="action" content="deny">
+              </div>
+            </body></html>
+    steps:
+      - name: slash-less path
+        as: anonymous
+        request: {method: GET, path: "${P}/blog"}
+        expect:
+          status: 401
+          headers_absent: [Location]
+          body_contains: ['<dd itemprop="resource">${P}/blog</dd>']
+      - name: slash form is a denial
+        as: anonymous
+        request: {method: GET, path: "${P}/blog/"}
+        expect: {status: 401}
+
+  - id: authz.resource.slashless-directory-readable-redirect
+    title: A slash-less directory whose index is readable redirects with 301
+    area: permissions-identity
+    feature: directory redirect vs read permission
+    evidence: documented
+    source: "docs reference/reading-and-writing/GET-method §Directory requests"
+    confidence: high
+    requires: []
+    live: true
+    site:
+      files:
+        - path: "${P}/blog/index.html"
+          body: '<!DOCTYPE html><html><body><h1>Blog</h1></body></html>'
+        - path: "${P}/rules.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div hidden itemscope itemtype="https://pagelove.org/AuthorizationRule">
+                <meta itemprop="actor" content="*"><meta itemprop="resource" content="${P}/blog/*">
+                <meta itemprop="method" content="GET"><meta itemprop="action" content="allow">
+              </div>
+            </body></html>
+    steps:
+      - name: redirect to the slash form, query preserved
+        as: anonymous
+        request: {method: GET, path: "${P}/blog?x=1"}
+        expect:
+          status: 301
+          header_matches: {Location: "/blog/\\?x=1$"}

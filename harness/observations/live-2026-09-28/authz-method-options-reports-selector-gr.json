@@ -1,0 +1,19 @@
+{
+  "case": "authz.method.options-reports-selector-grants",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (207 multipart with a part for the rule selector)",
+      "method": "OPTIONS",
+      "path": "/_pl/authz-method-options-reports-selector-gr-4351e7/index.html",
+      "status": 207,
+      "headers": {
+        "content-type": "multipart/mixed; boundary=boundaryVI6VMWh3HS1BNV3x9oxsPZQR6you3NeV",
+        "vary": "Authorization, Accept"
+      },
+      "body": "--boundaryVI6VMWh3HS1BNV3x9oxsPZQR6you3NeV\r\nAllow: GET, HEAD, OPTIONS\r\n\r\n--boundaryVI6VMWh3HS1BNV3x9oxsPZQR6you3NeV\r\nContent-Range: selector #todo-list li\r\nAllow: PUT, DELETE, OPTIONS\r\n\r\n--boundaryVI6VMWh3HS1BNV3x9oxsPZQR6you3NeV--\r\n"
+    }
+  ],
+  "outcome": "pass",
+  "target": "live"
+}

@@ -1,0 +1,90 @@
+{
+  "case": "modeling.references.restrict-upgrades-all-referrers",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (register declarations through the public plane (takes effect for the next request))",
+      "method": "PUT",
+      "path": "/_pl/modeling-references-restrict-upgrades-al-9e4f22/schema.html",
+      "status": 201,
+      "headers": {
+        "content-length": "1782",
+        "content-type": "text/html",
+        "etag": "\"8e0ea9a9088708f18eacdf1d848fe8ff4b5d48590511aecb15cedb5b09f65377\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:44 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\n  \u003cdiv hidden itemscope itemtype=\"https://pagelove.org/Schema\"\u003e\n    \u003cmeta itemprop=\"type\" content=\"https://pagelike.test/_pl/modeling-references-restrict-upgrades-al-9e4f22/Org\"\u003e\n    \u003cdiv itemprop=\"property\" itemscope itemtype=\"https://pagelove.org/Property\"\u003e\n      \u003cmeta itemprop=\"name\" content=\"identifier\"\u003e\n      \u003cmeta itemprop=\"type\" content=\"https://schema.host/Text\"\u003e\n      \u003cmeta itemprop=\"cardinality\" content=\"1..1\"\u003e\n      \u003cmeta itemprop=\"unique\" content=\"true\"\u003e\n    \u003c/div\u003e\n  \u003c/div\u003e\n  \u003cdiv hidden itemscope itemtype=\"https://pagelove.org/Schema\"\u003e\n    \u003cmeta itemprop=\"type\" content=\"https://pagelike.test/_pl/modeling-references-restrict-upgrades-al-9e4f22/Member\"\u003e\n    \u003cdiv itemprop=\"property\" itemscope itemtype=\"https://pagelove.org/Property\"\u003e\n      \u003cmeta itemprop=\"name\" content=\"org\"\u003e\n      \u003cmeta itemprop=\"type\" content=\"https://schema.host/Text\"\u003e\n      \u003cmeta itemprop=\"cardinality\" content=\"1..1\"\u003e\n      \u003cmeta itemprop=\"references\" content=\"https://pagelike.test/_pl/modeling-references-restrict-upgrades-al-9e4f22/Org#identifier\"\u003e\n      \u003cmeta itemprop=\"cascade\" content=\"true\"\u003e\n    \u003c/div\u003e\n  \u003c/div\u003e\n  \u003cdiv hidden itemscope itemtype=\"https://pagelove.org/Schema\"\u003e\n    \u003cmeta itemprop=\"type\" content=\"https://pagelike.test/_pl/modeling-references-restrict-upgrades-al-9e4f22/Badge\"\u003e\n    \u003cdiv itemprop=\"property\" itemscope itemtype=\"https://pagelove.org/Property\"\u003e\n      \u003cmeta itemprop=\"name\" content=\"org\"\u003e\n      \u003cmeta itemprop=\"type\" content=\"https://schema.host/Text\"\u003e\n      \u003cmeta itemprop=\"cardinality\" content=\"1..1\"\u003e\n      \u003cmeta itemprop=\"references\" content=\"https://pagelike.test/_pl/modeling-references-restrict-upgrades-al-9e4f22/Org#identifier\"\u003e\n      \u003cmeta itemprop=\"cascade\" content=\"restrict\"\u003e\n    \u003c/div\u003e\n  \u003c/div\u003e\n\u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 2 (org acme)",
+      "method": "PUT",
+      "path": "/_pl/modeling-references-restrict-upgrades-al-9e4f22/org.html",
+      "status": 201,
+      "headers": {
+        "content-length": "208",
+        "content-type": "text/html",
+        "etag": "\"ffb60b5abff36f6728a30c886dc0b06b8818116b618c42b8ae84ebdc8ce94738\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:44 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\n  \u003cdiv itemscope itemtype=\"https://pagelike.test/_pl/modeling-references-restrict-upgrades-al-9e4f22/Org\"\u003e\n    \u003cmeta itemprop=\"identifier\" content=\"acme\"\u003e\n  \u003c/div\u003e\n\u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 3 (member (cascade) of acme)",
+      "method": "PUT",
+      "path": "/_pl/modeling-references-restrict-upgrades-al-9e4f22/m.html",
+      "status": 201,
+      "headers": {
+        "content-length": "204",
+        "content-type": "text/html",
+        "etag": "\"dc992bd7e027767b83fe0752b75697a17183496c1390200913259669176ecc86\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:44 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\n  \u003cdiv itemscope itemtype=\"https://pagelike.test/_pl/modeling-references-restrict-upgrades-al-9e4f22/Member\"\u003e\n    \u003cmeta itemprop=\"org\" content=\"acme\"\u003e\n  \u003c/div\u003e\n\u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 4 (badge (restrict) of acme)",
+      "method": "PUT",
+      "path": "/_pl/modeling-references-restrict-upgrades-al-9e4f22/b.html",
+      "status": 201,
+      "headers": {
+        "content-length": "203",
+        "content-type": "text/html",
+        "etag": "\"b074ecd07a345df02e9c1fbee8bcd980faa53a4431213820dcc446c2dd9bcea9\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:44 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\n  \u003cdiv itemscope itemtype=\"https://pagelike.test/_pl/modeling-references-restrict-upgrades-al-9e4f22/Badge\"\u003e\n    \u003cmeta itemprop=\"org\" content=\"acme\"\u003e\n  \u003c/div\u003e\n\u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 5 (delete org)",
+      "method": "DELETE",
+      "path": "/_pl/modeling-references-restrict-upgrades-al-9e4f22/org.html",
+      "status": 409,
+      "headers": {
+        "content-length": "671",
+        "content-type": "text/html",
+        "vary": "Host, Range"
+      },
+      "body": "\u003cdiv itemscope itemtype=\"https://dombase.pagelove.team/ns/error/CascadeBlocked\"\u003e\u003cul itemprop=\"problems\"\u003e\u003cli itemprop=\"problem\"\u003e\u003cspan itemprop=\"message\"\u003eOperation refused by cascade constraint: Constraint violation: 2 violation(s):\n  - [cascade-restrict] [itemprop='identifier'] (restrict(https://pagelike.test/_pl/modeling-references-restrict-upgrades-al-9e4f22/Org#identifier)): Cannot delete: 1 document(s) reference this value via 'org'\n  - [cascade-restrict] [itemprop='identifier'] (restrict(https://pagelike.test/_pl/modeling-references-restrict-upgrades-al-9e4f22/Org#identifier)): Cannot delete: 1 document(s) reference this value via 'org'\u003c/span\u003e\u003c/li\u003e\u003c/ul\u003e\u003c/div\u003e"
+    },
+    {
+      "step": "step 6 (stored state of m.html (authoring plane, raw))",
+      "method": "GET",
+      "path": "/_pl/modeling-references-restrict-upgrades-al-9e4f22/m.html",
+      "status": 200,
+      "headers": {
+        "accept-ranges": "bytes",
+        "content-length": "204",
+        "content-type": "text/html",
+        "etag": "\"dc992bd7e027767b83fe0752b75697a17183496c1390200913259669176ecc86\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:44 GMT"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\n  \u003cdiv itemscope itemtype=\"https://pagelike.test/_pl/modeling-references-restrict-upgrades-al-9e4f22/Member\"\u003e\n    \u003cmeta itemprop=\"org\" content=\"acme\"\u003e\n  \u003c/div\u003e\n\u003c/body\u003e\u003c/html\u003e\n"
+    }
+  ],
+  "outcome": "pass",
+  "target": "local"
+}

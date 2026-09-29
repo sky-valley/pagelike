@@ -1,0 +1,61 @@
+{
+  "case": "reacting.context.polls-existing-document-guard",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (install the polls guard)",
+      "method": "PUT",
+      "path": "/_pl/reacting-context-polls-existing-document-c45c10/r/polls-guard.html",
+      "status": 201,
+      "headers": {
+        "content-type": "text/html",
+        "etag": "\"1b450dfe2f5e2da49fe7c1cfe87d7f8636f47dbf2511d95e1cdcbe44f45fccf9\"",
+        "last-modified": "Tue, 29 Sep 2026 00:49:17 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\n\u003cdiv class=\"constraint\" itemscope itemtype=\"https://pagelove.org/Trigger\"\u003e\n  \u003cmeta itemprop=\"resource\" content=\"/_pl/reacting-context-polls-existing-document-c45c10/polls/*\"\u003e\n  \u003cmeta itemprop=\"method\" content=\"PUT\"\u003e\n  \u003cdiv itemprop=\"when\" itemscope itemtype=\"https://pagelove.org/Sessel\"\u003e\n    \u003cscript itemprop=\"source\" type=\"text/sessel\"\u003e\n      @schema Context url(\"https://pagelove.org/Context\");\n      Context.request.headers[\"range\"] == null\n    \u003c/script\u003e\n  \u003c/div\u003e\n  \u003cdiv itemprop=\"action\" itemscope itemtype=\"https://pagelove.org/Sessel\"\u003e\n    \u003cscript itemprop=\"source\" type=\"text/sessel\"\u003e\n      @schema Context url(\"https://pagelove.org/Context\");\n      @schema HTTPResponse url(\"https://pagelove.org/HTTPResponse\");\n      let path = Context.request.path;\n      if ((${[itemtype=\"https://pagelike.test/_pl/reacting-context-polls-existing-document-c45c10/Poll\"]} from \"/_pl/reacting-context-polls-existing-document-c45c10/polls/*\").any(p =\u003e p.path() == path)) {\n        throw new HTTPResponse { status: 409, message: \"This poll already exists and cannot be replaced.\" }\n      }\n    \u003c/script\u003e\n  \u003c/div\u003e\n\u003c/div\u003e\n\n                \u003cdiv style=\"\n                            position: fixed;\n                            bottom: 0;\n                            left: 0;\n                            right: 0;\n                            padding: 8px;\n                            background: #f0f0f0;\n                            text-align: center;\n                            font-size: 12px;\n                            color: #666;\n                            z-index: 9999;\n                            opacity: 0.8;\n                            border-top: 1px solid #ddd;\n                        \"\u003e\n                    Powered by\n                    \u003ca href=\"https://pagelove.com/\" style=\"color: #4a90d9; text-decoration: none\"\u003ePagelove\u003c/a\u003e\n                \u003c/div\u003e\n            \u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 2 (creating a new poll is allowed)",
+      "method": "PUT",
+      "path": "/_pl/reacting-context-polls-existing-document-c45c10/polls/p1.html",
+      "status": 201,
+      "headers": {
+        "content-type": "text/html",
+        "etag": "\"5dabde54b9947694f3985421a489fda182b9548ba03988ff35345963b7417b39\"",
+        "last-modified": "Tue, 29 Sep 2026 00:49:18 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\u003cmain itemscope itemtype=\"https://pagelike.test/_pl/reacting-context-polls-existing-document-c45c10/Poll\"\u003e\u003ch1 id=\"q\" itemprop=\"name\"\u003eLunch?\u003c/h1\u003e\u003c/main\u003e\n                \u003cdiv style=\"\n                            position: fixed;\n                            bottom: 0;\n                            left: 0;\n                            right: 0;\n                            padding: 8px;\n                            background: #f0f0f0;\n                            text-align: center;\n                            font-size: 12px;\n                            color: #666;\n                            z-index: 9999;\n                            opacity: 0.8;\n                            border-top: 1px solid #ddd;\n                        \"\u003e\n                    Powered by\n                    \u003ca href=\"https://pagelove.com/\" style=\"color: #4a90d9; text-decoration: none\"\u003ePagelove\u003c/a\u003e\n                \u003c/div\u003e\n            \u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 3 (overwriting it is refused)",
+      "method": "PUT",
+      "path": "/_pl/reacting-context-polls-existing-document-c45c10/polls/p1.html",
+      "status": 409,
+      "headers": {
+        "content-length": "323",
+        "content-type": "text/html",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\n  \u003chead\u003e\n    \u003ctitle\u003e409 Conflict - Error\u003c/title\u003e\n  \u003c/head\u003e\n  \u003cbody itemscope itemtype=\"http://pagelove.org/Error\"\u003e\n    \u003ch1 itemprop=\"name\"\u003eConflict\u003c/h1\u003e\n    \u003cmeta itemprop=\"statusCode\" content=\"409\"\u003e\n    \u003cp itemprop=\"description\"\u003eThis poll already exists and cannot be replaced.\u003c/p\u003e\n  \u003c/body\u003e\n\u003c/html\u003e"
+    },
+    {
+      "step": "step 4 (an element-level write is not covered by this guard)",
+      "method": "PUT",
+      "path": "/_pl/reacting-context-polls-existing-document-c45c10/polls/p1.html",
+      "status": 206,
+      "headers": {
+        "content-length": "39",
+        "content-range": "selector #q",
+        "content-type": "text/html",
+        "etag": "\"9b9dd180f5d7ac77c299876248935989a16138275606d38dc502139fdc37521e-9b9dd180f5d7ac77c299876248935989a16138275606d38dc502139fdc37521e-2\"",
+        "last-modified": "Tue, 29 Sep 2026 00:49:18 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003ch1 id=\"q\" itemprop=\"name\"\u003eDinner?\u003c/h1\u003e"
+    }
+  ],
+  "outcome": "pass",
+  "target": "live"
+}

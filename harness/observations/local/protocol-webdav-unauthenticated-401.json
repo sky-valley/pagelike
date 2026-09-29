@@ -1,0 +1,50 @@
+{
+  "case": "protocol.webdav.unauthenticated-401",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (anonymous PROPFIND)",
+      "method": "PROPFIND",
+      "path": "/_pl/protocol-webdav-unauthenticated-401-39192f/",
+      "status": 401,
+      "headers": {
+        "content-length": "163",
+        "content-type": "text/html; charset=utf-8",
+        "dav": "1, 2",
+        "ms-author-via": "DAV",
+        "www-authenticate": "Basic realm=\"WebDAV\""
+      },
+      "body": "\u003carticle itemscope itemtype=\"https://pagelove.org/Error/Internal\"\u003e\u003cmeta itemprop=\"status\" content=\"401\"\u003e\u003cp itemprop=\"message\"\u003eAuthentication required\u003c/p\u003e\u003c/article\u003e"
+    },
+    {
+      "step": "step 2 (anonymous GET)",
+      "method": "GET",
+      "path": "/_pl/protocol-webdav-unauthenticated-401-39192f/doc.html",
+      "status": 401,
+      "headers": {
+        "content-length": "163",
+        "content-type": "text/html; charset=utf-8",
+        "dav": "1, 2",
+        "ms-author-via": "DAV",
+        "www-authenticate": "Basic realm=\"WebDAV\""
+      },
+      "body": "\u003carticle itemscope itemtype=\"https://pagelove.org/Error/Internal\"\u003e\u003cmeta itemprop=\"status\" content=\"401\"\u003e\u003cp itemprop=\"message\"\u003eAuthentication required\u003c/p\u003e\u003c/article\u003e"
+    },
+    {
+      "step": "step 3 (anonymous PUT)",
+      "method": "PUT",
+      "path": "/_pl/protocol-webdav-unauthenticated-401-39192f/anon.html",
+      "status": 401,
+      "headers": {
+        "content-length": "163",
+        "content-type": "text/html; charset=utf-8",
+        "dav": "1, 2",
+        "ms-author-via": "DAV",
+        "www-authenticate": "Basic realm=\"WebDAV\""
+      },
+      "body": "\u003carticle itemscope itemtype=\"https://pagelove.org/Error/Internal\"\u003e\u003cmeta itemprop=\"status\" content=\"401\"\u003e\u003cp itemprop=\"message\"\u003eAuthentication required\u003c/p\u003e\u003c/article\u003e"
+    }
+  ],
+  "outcome": "pass",
+  "target": "local"
+}

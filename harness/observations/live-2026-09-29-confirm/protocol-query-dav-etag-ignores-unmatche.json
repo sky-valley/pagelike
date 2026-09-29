@@ -1,0 +1,49 @@
+{
+  "case": "protocol.query-dav.etag-ignores-unmatched-change",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (first query)",
+      "method": "QUERY",
+      "path": "/_pl/protocol-query-dav-etag-ignores-unmatche-488bc2/doc.html",
+      "status": 200,
+      "headers": {
+        "accept-ranges": "bytes",
+        "content-length": "500",
+        "content-type": "multipart/mixed; boundary=boundary3Z6rE6vpSLgyY2Hls6uJKIdff4DXMtDu",
+        "etag": "\"c3717f235e9f8aab780043c4e83768c62b21897b549a7daf09cdb722a2817e2c\"",
+        "last-modified": "Tue, 29 Sep 2026 00:17:32 GMT"
+      },
+      "body": "--boundary3Z6rE6vpSLgyY2Hls6uJKIdff4DXMtDu\r\nContent-Type: text/html\r\nContent-Location: /_pl/protocol-query-dav-etag-ignores-unmatche-488bc2/doc.html\r\nContent-Range: selector html:nth-child(1) \u003e body:nth-child(1) \u003e h1:nth-child(1)\r\nETag: \"1c32123f6761b73d83893fff7af936d13ce7da8411f4a35df11aaed4a7d36db1-1c32123f6761b73d83893fff7af936d13ce7da8411f4a35df11aaed4a7d36db1-1\"\r\nLast-Modified: Tue, 29 Sep 2026 00:17:32 GMT\r\nContent-Length: 14\r\n\r\n\u003ch1\u003eBenji\u003c/h1\u003e\r\n--boundary3Z6rE6vpSLgyY2Hls6uJKIdff4DXMtDu--"
+    },
+    {
+      "step": "step 2 (change only the paragraph)",
+      "method": "PUT",
+      "path": "/_pl/protocol-query-dav-etag-ignores-unmatche-488bc2/doc.html",
+      "status": 200,
+      "headers": {
+        "accept-ranges": "bytes",
+        "content-length": "67",
+        "content-type": "text/html",
+        "etag": "\"9c2eeb231428f40134766861def1ae56972dcfc2e25c638f56787901e7dc375e\""
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\u003ch1\u003eBenji\u003c/h1\u003e\u003cp\u003etwo\u003c/p\u003e\u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 3 (modified, although h1 is unchanged)",
+      "method": "QUERY",
+      "path": "/_pl/protocol-query-dav-etag-ignores-unmatche-488bc2/doc.html",
+      "status": 200,
+      "headers": {
+        "accept-ranges": "bytes",
+        "content-length": "500",
+        "content-type": "multipart/mixed; boundary=boundaryIlkGv37f7vno0UY1koklrd4KChxg5bbY",
+        "etag": "\"860558760825be252d9596c720019ab3480b5040991e5fe6b1bac4860c875ac5\"",
+        "last-modified": "Tue, 29 Sep 2026 00:17:33 GMT"
+      },
+      "body": "--boundaryIlkGv37f7vno0UY1koklrd4KChxg5bbY\r\nContent-Type: text/html\r\nContent-Location: /_pl/protocol-query-dav-etag-ignores-unmatche-488bc2/doc.html\r\nContent-Range: selector html:nth-child(1) \u003e body:nth-child(1) \u003e h1:nth-child(1)\r\nETag: \"1c32123f6761b73d83893fff7af936d13ce7da8411f4a35df11aaed4a7d36db1-1c32123f6761b73d83893fff7af936d13ce7da8411f4a35df11aaed4a7d36db1-2\"\r\nLast-Modified: Tue, 29 Sep 2026 00:17:33 GMT\r\nContent-Length: 14\r\n\r\n\u003ch1\u003eBenji\u003c/h1\u003e\r\n--boundaryIlkGv37f7vno0UY1koklrd4KChxg5bbY--"
+    }
+  ],
+  "outcome": "pass",
+  "target": "live"
+}

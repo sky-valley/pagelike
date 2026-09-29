@@ -1,0 +1,63 @@
+{
+  "case": "modeling.shapes-closed.permit-only-shape",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (register declarations through the public plane (takes effect for the next request))",
+      "method": "PUT",
+      "path": "/_pl/modeling-shapes-closed-permit-only-shape-6f23cd/shapes.html",
+      "status": 201,
+      "headers": {
+        "content-length": "309",
+        "content-type": "text/html",
+        "etag": "\"020dbaaceab7550e5b9d4cdb9ea064175254daad229aa23b3f392273b64538b8\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:45 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\n  \u003cdiv hidden itemscope itemtype=\"https://pagelove.org/ShapeConstraint\"\u003e\n    \u003cmeta itemprop=\"resource\" content=\"/_pl/modeling-shapes-closed-permit-only-shape-6f23cd/list/*\"\u003e\n    \u003ccode itemprop=\"selector\"\u003e#items\u003c/code\u003e\n    \u003ccode itemprop=\"permit\"\u003eli\u003c/code\u003e\n  \u003c/div\u003e\n\u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 2 (seed)",
+      "method": "PUT",
+      "path": "/_pl/modeling-shapes-closed-permit-only-shape-6f23cd/list/l.html",
+      "status": 201,
+      "headers": {
+        "content-length": "67",
+        "content-type": "text/html",
+        "etag": "\"e25a942cce2bcc9be1b2f0e2545bc2ffafa45eb6782eb020b1dbc9bcb1b63ee1\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:45 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\n  \u003cul id=\"items\"\u003e\u003c/ul\u003e\n\u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 3 (plain li accepted)",
+      "method": "POST",
+      "path": "/_pl/modeling-shapes-closed-permit-only-shape-6f23cd/list/l.html",
+      "status": 206,
+      "headers": {
+        "content-length": "11",
+        "content-range": "selector #items",
+        "content-type": "text/html",
+        "etag": "\"8ba60cb18d40770722998d616e2fdfc6bb56cb5152fd9b80b053735d7e9dd055-8ba60cb18d40770722998d616e2fdfc6bb56cb5152fd9b80b053735d7e9dd055-2\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:45 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003cli\u003eok\u003c/li\u003e"
+    },
+    {
+      "step": "step 4 (li with bold text rejected)",
+      "method": "POST",
+      "path": "/_pl/modeling-shapes-closed-permit-only-shape-6f23cd/list/l.html",
+      "status": 422,
+      "headers": {
+        "content-length": "371",
+        "content-type": "text/html",
+        "vary": "Host, Range"
+      },
+      "body": "\u003cdiv itemscope itemtype=\"https://dombase.pagelove.team/ns/error/ShapeConstraint\"\u003e\u003cul itemprop=\"problems\"\u003e\u003cli itemprop=\"problem\"\u003e\u003cspan itemprop=\"message\"\u003eShape constraints violated\u003c/span\u003e\u003c/li\u003e\u003cli itemprop=\"problem\"\u003e\u003cspan itemprop=\"message\"\u003ehttps://pagelove.org/ShapeConstraint #items: Element \u0026lt;b\u0026gt; inside '#items' is not permitted by any permit\u003c/span\u003e\u003c/li\u003e\u003c/ul\u003e\u003c/div\u003e"
+    }
+  ],
+  "outcome": "pass",
+  "target": "local"
+}

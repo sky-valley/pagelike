@@ -1,0 +1,33 @@
+{
+  "case": "reacting.actions.sessel-throw-body-wins-over-message",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (install)",
+      "method": "PUT",
+      "path": "/_pl/reacting-actions-sessel-throw-body-wins-a69d8b/r/triggers.html",
+      "status": 201,
+      "headers": {
+        "content-length": "556",
+        "content-type": "text/html",
+        "etag": "\"dabadde7e478f0deb60cfae553ca6e616ecc6e3bd0b05d94933b01ca455a951c\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:48 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\n\u003cdiv hidden itemscope itemtype=\"https://pagelove.org/Trigger\"\u003e\n  \u003cmeta itemprop=\"resource\" content=\"/_pl/reacting-actions-sessel-throw-body-wins-a69d8b/d/*\"\u003e\n  \u003cmeta itemprop=\"method\" content=\"PUT\"\u003e\n  \u003cdiv itemprop=\"action\" itemscope itemtype=\"https://pagelove.org/Sessel\"\u003e\n    \u003cscript itemprop=\"source\" type=\"text/sessel\"\u003e\n      @schema HTTPResponse url(\"https://pagelove.org/HTTPResponse\");\n      throw new HTTPResponse { status: 409, message: \"from-message\", body: \"from-body\" }\n    \u003c/script\u003e\n  \u003c/div\u003e\n\u003c/div\u003e\n\u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 2 (body wins)",
+      "method": "PUT",
+      "path": "/_pl/reacting-actions-sessel-throw-body-wins-a69d8b/d/x.html",
+      "status": 409,
+      "headers": {
+        "content-length": "9",
+        "content-type": "text/html; charset=utf-8"
+      },
+      "body": "from-body"
+    }
+  ],
+  "outcome": "pass",
+  "target": "local"
+}

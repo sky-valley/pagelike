@@ -1,0 +1,57 @@
+{
+  "case": "modeling.enums.value-must-be-listed",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (register declarations through the public plane (takes effect for the next request))",
+      "method": "PUT",
+      "path": "/_pl/modeling-enums-value-must-be-listed-014325/schema.html",
+      "status": 201,
+      "headers": {
+        "content-type": "text/html",
+        "etag": "\"3c8b7d9c89ca7e9e145adcf10f27210caf297b0edc61cebf15dec0fcabe890e2\"",
+        "last-modified": "Tue, 29 Sep 2026 00:47:54 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\n  \u003cdiv hidden itemscope itemtype=\"https://schema.host/Enum\"\u003e\n    \u003cmeta itemprop=\"name\" content=\"https://pagelike.test/_pl/modeling-enums-value-must-be-listed-014325/Status\"\u003e\n    \u003cmeta itemprop=\"value\" content=\"active\"\u003e\n    \u003cmeta itemprop=\"value\" content=\"retired\"\u003e\n  \u003c/div\u003e\n  \u003cdiv hidden itemscope itemtype=\"https://pagelove.org/Schema\"\u003e\n    \u003cmeta itemprop=\"type\" content=\"https://pagelike.test/_pl/modeling-enums-value-must-be-listed-014325/Gadget\"\u003e\n    \u003cdiv itemprop=\"property\" itemscope itemtype=\"https://pagelove.org/Property\"\u003e\n      \u003cmeta itemprop=\"name\" content=\"status\"\u003e\n      \u003cmeta itemprop=\"type\" content=\"https://pagelike.test/_pl/modeling-enums-value-must-be-listed-014325/Status\"\u003e\n      \u003cmeta itemprop=\"cardinality\" content=\"1..1\"\u003e\n    \u003c/div\u003e\n  \u003cmeta itemprop=\"@id\" content=\"https://schema.host/ryp4n040\"\u003e\u003cmeta itemprop=\"path\" content=\"/Schemahttps://schema.host/ryp4n040.html\"\u003e\u003c/div\u003e\n\n                \u003cdiv style=\"\n                            position: fixed;\n                            bottom: 0;\n                            left: 0;\n                            right: 0;\n                            padding: 8px;\n                            background: #f0f0f0;\n                            text-align: center;\n                            font-size: 12px;\n                            color: #666;\n                            z-index: 9999;\n                            opacity: 0.8;\n                            border-top: 1px solid #ddd;\n                        \"\u003e\n                    Powered by\n                    \u003ca href=\"https://pagelove.com/\" style=\"color: #4a90d9; text-decoration: none\"\u003ePagelove\u003c/a\u003e\n                \u003c/div\u003e\n            \u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 2 (listed value accepted)",
+      "method": "PUT",
+      "path": "/_pl/modeling-enums-value-must-be-listed-014325/g1.html",
+      "status": 201,
+      "headers": {
+        "content-type": "text/html",
+        "etag": "\"1b424a0a3f23b5e2295ab68bacd66c8ee4f89ab07cf9974ac74410f58241ab54\"",
+        "last-modified": "Tue, 29 Sep 2026 00:47:55 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\n  \u003cdiv itemscope itemtype=\"https://pagelike.test/_pl/modeling-enums-value-must-be-listed-014325/Gadget\"\u003e\n    \u003cmeta itemprop=\"status\" content=\"active\"\u003e\n  \u003c/div\u003e\n\n                \u003cdiv style=\"\n                            position: fixed;\n                            bottom: 0;\n                            left: 0;\n                            right: 0;\n                            padding: 8px;\n                            background: #f0f0f0;\n                            text-align: center;\n                            font-size: 12px;\n                            color: #666;\n                            z-index: 9999;\n                            opacity: 0.8;\n                            border-top: 1px solid #ddd;\n                        \"\u003e\n                    Powered by\n                    \u003ca href=\"https://pagelove.com/\" style=\"color: #4a90d9; text-decoration: none\"\u003ePagelove\u003c/a\u003e\n                \u003c/div\u003e\n            \u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 3 (unlisted value rejected; message names the value and the permitted list)",
+      "method": "PUT",
+      "path": "/_pl/modeling-enums-value-must-be-listed-014325/g2.html",
+      "status": 422,
+      "headers": {
+        "content-length": "390",
+        "content-type": "text/html",
+        "vary": "Host, Range"
+      },
+      "body": "\u003cdiv itemscope itemtype=\"https://pagelove.org/SchemaViolation\"\u003e\u003cul itemprop=\"problems\"\u003e\u003cli itemprop=\"problem\"\u003e\u003cspan itemprop=\"message\"\u003e[https://pagelike.test/_pl/modeling-enums-value-must-be-listed-014325/Gadget].status: Value \"sideways\" is not a valid https://pagelike.test/_pl/modeling-enums-value-must-be-listed-014325/Status (expected one of: \"active\", \"retired\")\u003c/span\u003e\u003c/li\u003e\u003c/ul\u003e\u003c/div\u003e"
+    },
+    {
+      "step": "step 4 (g2.html was not stored)",
+      "method": "GET",
+      "path": "/_pl/modeling-enums-value-must-be-listed-014325/g2.html",
+      "status": 404,
+      "headers": {
+        "content-length": "206",
+        "content-type": "text/html; charset=utf-8"
+      },
+      "body": "\u003carticle itemscope itemtype=\"https://pagelove.org/Error/NotFound\"\u003e\u003cmeta itemprop=\"status\" content=\"404\"\u003e\u003cp itemprop=\"message\"\u003eNot found: /_pl/modeling-enums-value-must-be-listed-014325/g2.html\u003c/p\u003e\u003c/article\u003e"
+    }
+  ],
+  "outcome": "pass",
+  "target": "live"
+}

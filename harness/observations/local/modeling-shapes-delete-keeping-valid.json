@@ -1,0 +1,47 @@
+{
+  "case": "modeling.shapes.delete-keeping-valid",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (register declarations through the public plane (takes effect for the next request))",
+      "method": "PUT",
+      "path": "/_pl/modeling-shapes-delete-keeping-valid-88f6c0/shapes.html",
+      "status": 201,
+      "headers": {
+        "content-length": "365",
+        "content-type": "text/html",
+        "etag": "\"5e246a9241672d21b04eef7d8ea36a785efbfc0b8827fecab4873c48f652cf19\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:45 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\n  \u003cdiv hidden itemscope itemtype=\"https://pagelove.org/ShapeConstraint\"\u003e\n    \u003cmeta itemprop=\"resource\" content=\"/_pl/modeling-shapes-delete-keeping-valid-88f6c0/site/*\"\u003e\n    \u003ccode itemprop=\"selector\"\u003enav\u003c/code\u003e\n    \u003ccode itemprop=\"constraint\"\u003e:has(ul)\u003c/code\u003e\n    \u003ccode itemprop=\"constraint\"\u003e:has(ul li a)\u003c/code\u003e\n  \u003c/div\u003e\n\u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 2 (navigation with two links)",
+      "method": "PUT",
+      "path": "/_pl/modeling-shapes-delete-keeping-valid-88f6c0/site/n.html",
+      "status": 201,
+      "headers": {
+        "content-length": "174",
+        "content-type": "text/html",
+        "etag": "\"43c9c055cb7dbe7bddb9f8ac959f53f95002e96d58492fd4124048fad0ad7f02\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:45 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\n  \u003cnav\u003e\n    \u003cul\u003e\n      \u003cli id=\"l1\"\u003e\u003ca href=\"/\"\u003eHome\u003c/a\u003e\u003c/li\u003e\n      \u003cli id=\"l2\"\u003e\u003ca href=\"/about\"\u003eAbout\u003c/a\u003e\u003c/li\u003e\n    \u003c/ul\u003e\n  \u003c/nav\u003e\n\u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 3 (remove one link)",
+      "method": "DELETE",
+      "path": "/_pl/modeling-shapes-delete-keeping-valid-88f6c0/site/n.html",
+      "status": 204,
+      "headers": {
+        "etag": "\"460683aecf0b4d9ff2e2f9908145401db902bdd38699c23989f5b98b9e8279ac\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:45 GMT",
+        "vary": "Host, Range"
+      }
+    }
+  ],
+  "outcome": "pass",
+  "target": "local"
+}

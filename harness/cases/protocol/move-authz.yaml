@@ -1,0 +1,650 @@
+# MOVE authorization: default-deny, the three checks, MOVE-rule selector
+# normalization, whole-document authorization
+# (spec: docs/spec/protocol.md §9, R-PROTO-96..99). Anonymous denials are 401.
+cases:
+  - id: protocol.move-authz.default-deny-even-with-default-get
+    title: MOVE with no matching rule is refused even on a host that allows unmatched reads
+    area: protocol
+    feature: MOVE authorization
+    evidence: documented
+    source: "docs reference/reading-and-writing/MOVE-method §Authorization (snapshot 2026-09-28)"
+    confidence: high
+    requires: []
+    live: false
+    notes: R-PROTO-96. Local-only because it fixes the host default-GET mode; other cases cover the live path.
+    site:
+      settings: {default_get: allow}
+      files:
+        - path: "${P}/board.html"
+          body: &board |
+            <!DOCTYPE html>
+            <html><body>
+            <section class="lane" id="lane-todo"><article class="card" id="card-1">One</article><article class="card" id="card-2">Two</article><article class="card" id="card-3">Three</article></section>
+            <section class="lane" id="lane-done"><article class="card" id="card-4">Four</article></section>
+            <p id="note">Note</p>
+            </body></html>
+    steps:
+      - name: reads are open
+        as: anonymous
+        request: {method: GET, path: "${P}/board.html"}
+        expect: {status: 200}
+      - name: MOVE is not
+        as: anonymous
+        request:
+          method: MOVE
+          path: "${P}/board.html"
+          headers:
+            Range: "selector=#card-3"
+            Destination: "${P}/board.html"
+            Destination-Range: "selector=#lane-done; placement=append"
+        expect: {status: 401}
+
+  - id: protocol.move-authz.move-rule-alone-insufficient
+    title: A MOVE rule alone does not authorize an element move (check 2 fails)
+    area: protocol
+    feature: MOVE authorization three checks
+    evidence: documented
+    source: "docs reference/reading-and-writing/MOVE-method §The three checks (snapshot 2026-09-28)"
+    confidence: high
+    requires: []
+    live: true
+    notes: R-PROTO-96.
+    site:
+      files:
+        - path: "${P}/board.html"
+          body: *board
+      rules:
+        - {actor: "*", resource: "${P}/*", method: [GET, MOVE], action: Allow}
+    steps:
+      - name: denied
+        as: anonymous
+        request:
+          method: MOVE
+          path: "${P}/board.html"
+          headers:
+            Range: "selector=#card-3"
+            Destination: "${P}/board.html"
+            Destination-Range: "selector=#lane-done; placement=append"
+        expect: {status: 401}
+      - name: nothing moved
+        as: anonymous
+        request:
+          method: GET
+          path: "${P}/board.html"
+          headers: {Range: "selector=#lane-todo"}
+        expect: {status: 206, body_contains: ['id="card-3"']}
+
+  - id: protocol.move-authz.each-check-required
+    title: Each of the MOVE, DELETE and POST checks is required
+    area: protocol
+    feature: MOVE authorization three checks
+    evidence: documented
+    source: "docs reference/reading-and-writing/MOVE-method §The three checks, §Denials (snapshot 2026-09-28)"
+    confidence: high
+    requires: []
+    live: true
+    notes: >-
+      R-PROTO-96. Three sub-documents each miss exactly one check: no POST on
+      ${P}/no-post.html, no DELETE on ${P}/no-delete.html, no MOVE on ${P}/no-move.html.
+    site:
+      files:
+        - {path: "${P}/no-post.html", body: *board}
+        - {path: "${P}/no-delete.html", body: *board}
+        - {path: "${P}/no-move.html", body: *board}
+      rules:
+        - {actor: "*", resource: "${P}/*", method: [GET], action: Allow}
+        - {actor: "*", resource: "${P}/no-post.html", method: [MOVE], action: Allow}
+        - {actor: "*", resource: "${P}/no-post.html", method: [DELETE], selector: ".card", action: Allow}
+        - {actor: "*", resource: "${P}/no-delete.html", method: [MOVE], action: Allow}
+        - {actor: "*", resource: "${P}/no-delete.html", method: [POST], selector: ".lane", action: Allow}
+        - {actor: "*", resource: "${P}/no-move.html", method: [DELETE], selector: ".card", action: Allow}
+        - {actor: "*", resource: "${P}/no-move.html", method: [POST], selector: ".lane", action: Allow}
+    steps:
+      - name: missing POST (check 3)
+        as: anonymous
+        request:
+          method: MOVE
+          path: "${P}/no-post.html"
+          headers:
+            Range: "selector=#card-3"
+            Destination: "${P}/no-post.html"
+            Destination-Range: "selector=#lane-done; placement=append"
+        expect: {status: 401}
+      - name: missing DELETE (check 2)
+        as: anonymous
+        request:
+          method: MOVE
+          path: "${P}/no-delete.html"
+          headers:
+            Range: "selector=#card-3"
+            Destination: "${P}/no-delete.html"
+            Destination-Range: "selector=#lane-done; placement=append"
+        expect: {status: 401}
+      - name: missing MOVE (check 1)
+        as: anonymous
+        request:
+          method: MOVE
+          path: "${P}/no-move.html"
+          headers:
+            Range: "selector=#card-3"
+            Destination: "${P}/no-move.html"
+            Destination-Range: "selector=#lane-done; placement=append"
+        expect: {status: 401}
+
+  - id: protocol.move-authz.allow-move-rule-with-selector-discarded
+    title: An Allow MOVE rule that carries a selector is discarded and the MOVE is denied
+    area: protocol
+    feature: MOVE rule normalization
+    evidence: documented
+    source: "docs reference/reading-and-writing/MOVE-method §A MOVE rule must not carry a selector (snapshot 2026-09-28)"
+    confidence: high
+    requires: []
+    live: true
+    notes: R-PROTO-97.
+    site:
+      files:
+        - path: "${P}/board.html"
+          body: *board
+      rules:
+        - {actor: "*", resource: "${P}/*", method: [GET], action: Allow}
+        - {actor: "*", resource: "${P}/*", method: [MOVE], selector: ".card", action: Allow}
+        - {actor: "*", resource: "${P}/*", method: [DELETE], selector: ".card", action: Allow}
+        - {actor: "*", resource: "${P}/*", method: [POST], selector: ".lane", action: Allow}
+    steps:
+      - name: denied by default
+        as: anonymous
+        request:
+          method: MOVE
+          path: "${P}/board.html"
+          headers:
+            Range: "selector=#card-3"
+            Destination: "${P}/board.html"
+            Destination-Range: "selector=#lane-done; placement=append"
+        expect: {status: 401}
+
+  - id: protocol.move-authz.whitespace-selector-is-fine
+    title: A MOVE rule with an empty or whitespace-only selector cell is a normal document-level grant
+    area: protocol
+    feature: MOVE rule normalization
+    evidence: documented
+    source: "docs reference/reading-and-writing/MOVE-method §A MOVE rule must not carry a selector (snapshot 2026-09-28)"
+    confidence: high
+    requires: []
+    live: true
+    notes: R-PROTO-97.
+    site:
+      files:
+        - path: "${P}/board.html"
+          body: *board
+      rules:
+        - {actor: "*", resource: "${P}/*", method: [GET], action: Allow}
+        - {actor: "*", resource: "${P}/*", method: [MOVE], selector: "   ", action: Allow}
+        - {actor: "*", resource: "${P}/*", method: [DELETE], selector: ".card", action: Allow}
+        - {actor: "*", resource: "${P}/*", method: [POST], selector: ".lane", action: Allow}
+    steps:
+      - name: allowed
+        as: anonymous
+        request:
+          method: MOVE
+          path: "${P}/board.html"
+          headers:
+            Range: "selector=#card-3"
+            Destination: "${P}/board.html"
+            Destination-Range: "selector=#lane-done; placement=append"
+        expect: {status: 204}
+
+  - id: protocol.move-authz.deny-move-rule-with-selector-widened
+    title: A Deny MOVE rule with a selector is widened to the whole document
+    area: protocol
+    feature: MOVE rule normalization
+    evidence: documented
+    source: "docs reference/reading-and-writing/MOVE-method §A MOVE rule must not carry a selector (snapshot 2026-09-28)"
+    confidence: high
+    requires: []
+    live: true
+    notes: >-
+      R-PROTO-97. The moved card does not match .locked, yet the MOVE is refused because
+      the Deny applies to the whole resource (deny wins at equal actor specificity).
+    site:
+      files:
+        - path: "${P}/board.html"
+          body: *board
+      rules:
+        - {actor: "*", resource: "${P}/*", method: [GET, MOVE, DELETE, POST], action: Allow}
+        - {actor: "*", resource: "${P}/*", method: [MOVE], selector: ".locked", action: Deny}
+    steps:
+      - name: refused for an unrelated element
+        as: anonymous
+        request:
+          method: MOVE
+          path: "${P}/board.html"
+          headers:
+            Range: "selector=#card-3"
+            Destination: "${P}/board.html"
+            Destination-Range: "selector=#lane-done; placement=append"
+        expect: {status: 401}
+
+  - id: protocol.move-authz.deny-with-selector-widens-co-listed-methods
+    title: A Deny rule listing MOVE and DELETE with a selector refuses DELETE for the whole document too
+    area: protocol
+    feature: MOVE rule normalization
+    evidence: documented
+    source: "docs reference/reading-and-writing/MOVE-method §A MOVE rule must not carry a selector (snapshot 2026-09-28)"
+    confidence: high
+    requires: []
+    live: true
+    notes: R-PROTO-97. Cross-area (permissions) because the effect is observed on a DELETE.
+    site:
+      files:
+        - path: "${P}/board.html"
+          body: *board
+      rules:
+        - {actor: "*", resource: "${P}/*", method: [GET, DELETE], action: Allow}
+        - {actor: "*", resource: "${P}/*", method: [MOVE, DELETE], selector: ".card", action: Deny}
+    steps:
+      - name: deleting a non-card element is refused
+        as: anonymous
+        request:
+          method: DELETE
+          path: "${P}/board.html"
+          headers: {Range: "selector=#note"}
+        expect: {status: 401}
+      - name: the note is still there
+        as: anonymous
+        request:
+          method: GET
+          path: "${P}/board.html"
+          headers: {Range: "selector=#note"}
+        expect: {status: 206}
+
+  - id: protocol.move-authz.post-rule-on-container-covers-all-placements
+    title: One POST rule on the lane authorizes before/after its children (keyed on the anchor's parent)
+    area: protocol
+    feature: MOVE authorization three checks
+    evidence: documented
+    source: "docs reference/reading-and-writing/MOVE-method §The three checks, §Example: allowing editors to reorder cards (snapshot 2026-09-28)"
+    confidence: high
+    requires: []
+    live: true
+    notes: R-PROTO-96.
+    site:
+      files:
+        - path: "${P}/board.html"
+          body: *board
+      rules: &three_checks
+        - {actor: "*", resource: "${P}/*", method: [GET, MOVE], action: Allow}
+        - {actor: "*", resource: "${P}/*", method: [DELETE], selector: ".card", action: Allow}
+        - {actor: "*", resource: "${P}/*", method: [POST], selector: ".lane", action: Allow}
+    steps:
+      - name: before a card in another lane
+        as: anonymous
+        request:
+          method: MOVE
+          path: "${P}/board.html"
+          headers:
+            Range: "selector=#card-1"
+            Destination: "${P}/board.html"
+            Destination-Range: "selector=#card-4; placement=before"
+        expect: {status: 204}
+      - name: after a card in the same lane
+        as: anonymous
+        request:
+          method: MOVE
+          path: "${P}/board.html"
+          headers:
+            Range: "selector=#card-2"
+            Destination: "${P}/board.html"
+            Destination-Range: "selector=#card-3; placement=after"
+        expect: {status: 204}
+      - name: resulting order
+        as: anonymous
+        request:
+          method: GET
+          path: "${P}/board.html"
+          headers: {Range: "selector=#lane-done"}
+        expect:
+          status: 206
+          body_html: '<section class="lane" id="lane-done"><article class="card" id="card-1">One</article><article class="card" id="card-4">Four</article></section>'
+
+  - id: protocol.move-authz.append-keys-on-anchor
+    title: append/prepend are authorized against the anchor itself, so appending into a card is denied
+    area: protocol
+    feature: MOVE authorization three checks
+    evidence: documented
+    source: "docs reference/reading-and-writing/MOVE-method §The three checks (snapshot 2026-09-28)"
+    confidence: high
+    requires: []
+    live: true
+    notes: R-PROTO-96. The POST rule covers .lane only; the anchor #card-4 is a .card.
+    site:
+      files:
+        - path: "${P}/board.html"
+          body: *board
+      rules: *three_checks
+    steps:
+      - name: append into a card
+        as: anonymous
+        request:
+          method: MOVE
+          path: "${P}/board.html"
+          headers:
+            Range: "selector=#card-1"
+            Destination: "${P}/board.html"
+            Destination-Range: "selector=#card-4; placement=append"
+        expect: {status: 401}
+
+  - id: protocol.move-authz.narrow-delete-rule
+    title: A DELETE rule scoped to one lane's cards only permits moving cards out of that lane
+    area: protocol
+    feature: MOVE authorization three checks
+    evidence: documented
+    source: "docs reference/reading-and-writing/MOVE-method §Example: allowing editors to reorder cards (snapshot 2026-09-28)"
+    confidence: high
+    requires: []
+    live: true
+    notes: R-PROTO-96.
+    site:
+      files:
+        - path: "${P}/board.html"
+          body: *board
+      rules:
+        - {actor: "*", resource: "${P}/*", method: [GET, MOVE], action: Allow}
+        - {actor: "*", resource: "${P}/*", method: [DELETE], selector: "#lane-todo > .card", action: Allow}
+        - {actor: "*", resource: "${P}/*", method: [POST], selector: ".lane", action: Allow}
+    steps:
+      - name: out of done is refused
+        as: anonymous
+        request:
+          method: MOVE
+          path: "${P}/board.html"
+          headers:
+            Range: "selector=#card-4"
+            Destination: "${P}/board.html"
+            Destination-Range: "selector=#lane-todo; placement=append"
+        expect: {status: 401}
+      - name: out of todo is allowed
+        as: anonymous
+        request:
+          method: MOVE
+          path: "${P}/board.html"
+          headers:
+            Range: "selector=#card-1"
+            Destination: "${P}/board.html"
+            Destination-Range: "selector=#lane-done; placement=append"
+        expect: {status: 204}
+
+  - id: protocol.move-authz.narrow-post-rule
+    title: A POST rule scoped to the done lane only permits moving cards into that lane
+    area: protocol
+    feature: MOVE authorization three checks
+    evidence: documented
+    source: "docs reference/reading-and-writing/MOVE-method §Example: allowing editors to reorder cards (snapshot 2026-09-28)"
+    confidence: high
+    requires: []
+    live: true
+    notes: R-PROTO-96.
+    site:
+      files:
+        - path: "${P}/board.html"
+          body: *board
+      rules:
+        - {actor: "*", resource: "${P}/*", method: [GET, MOVE], action: Allow}
+        - {actor: "*", resource: "${P}/*", method: [DELETE], selector: ".card", action: Allow}
+        - {actor: "*", resource: "${P}/*", method: [POST], selector: "#lane-done", action: Allow}
+    steps:
+      - name: into todo is refused
+        as: anonymous
+        request:
+          method: MOVE
+          path: "${P}/board.html"
+          headers:
+            Range: "selector=#card-4"
+            Destination: "${P}/board.html"
+            Destination-Range: "selector=#lane-todo; placement=append"
+        expect: {status: 401}
+      - name: into done is allowed
+        as: anonymous
+        request:
+          method: MOVE
+          path: "${P}/board.html"
+          headers:
+            Range: "selector=#card-1"
+            Destination: "${P}/board.html"
+            Destination-Range: "selector=#lane-done; placement=append"
+        expect: {status: 204}
+
+  - id: protocol.move-authz.fail-closed-when-unreadable
+    title: A non-matching source is reported as a denial, not 416, when the actor cannot read the document
+    area: protocol
+    feature: MOVE authorization fail closed
+    evidence: inferred
+    source: "docs reference/reading-and-writing/MOVE-method §Denials (fails closed); PUT-method \"Absence and denial are distinct\" (snapshot 2026-09-28)"
+    confidence: low
+    requires: []
+    live: true
+    notes: >-
+      R-PROTO-99 evaluation order (P-15). Live PageLove answers 416 here
+      (harness/observations/live-2026-09-28/protocol-move-authz-fail-closed-when-unreadable.json):
+      a selector-existence oracle on a document the actor may not read. pagelike keeps failing
+      closed (docs/compat/decisions.md, keep-documented-security);
+      protocol.move-authz.fail-closed-when-unreadable.live measures the divergence.
+    site:
+      files:
+        - path: "${P}/board.html"
+          body: *board
+      rules:
+        - {actor: "*", resource: "${P}/*", method: [GET], action: Deny}
+        - {actor: "*", resource: "${P}/*", method: [MOVE, DELETE, POST], action: Allow}
+    steps:
+      - name: absent source, unreadable page
+        as: anonymous
+        request:
+          method: MOVE
+          path: "${P}/board.html"
+          headers:
+            Range: "selector=#card-99"
+            Destination: "${P}/board.html"
+            Destination-Range: "selector=#lane-done; placement=append"
+        expect: {status: 401}
+
+  - id: protocol.move-authz.fail-closed-when-unreadable.live
+    title: Live PageLove reports an absent MOVE source (416) to an actor who cannot read the document
+    area: protocol
+    feature: MOVE authorization fail closed
+    status: live-divergence
+    evidence: live-observed
+    source: "harness/observations/live-2026-09-28/protocol-move-authz-fail-closed-when-unreadable.json (host live-test-host, 2026-09-28)"
+    confidence: high
+    requires: []
+    live: true
+    notes: "Measures a deliberate divergence (docs/compat/decisions.md, keep-documented-security). Runs only against --target live."
+    site:
+      files:
+        - path: "${P}/board.html"
+          body: *board
+      rules:
+        - {actor: "*", resource: "${P}/*", method: [GET], action: Deny}
+        - {actor: "*", resource: "${P}/*", method: [MOVE, DELETE, POST], action: Allow}
+    steps:
+      - name: absent source, unreadable page
+        as: anonymous
+        request:
+          method: MOVE
+          path: "${P}/board.html"
+          headers:
+            Range: "selector=#card-99"
+            Destination: "${P}/board.html"
+            Destination-Range: "selector=#lane-done; placement=append"
+        expect:
+          status: 416
+          body_contains: ["selector-no-match"]
+
+  - id: protocol.move-authz.authenticated-denial-403
+    title: A denied MOVE by an authenticated actor is 403
+    area: protocol
+    feature: MOVE authorization
+    evidence: documented
+    source: "docs reference/reading-and-writing/MOVE-method §Denials (snapshot 2026-09-28)"
+    confidence: high
+    requires: [multi-actor]
+    live: false
+    notes: R-PROTO-96. alice has MOVE and DELETE but no POST.
+    actors:
+      alice: {sub: alice, email: alice@example.com, email_verified: true, roles: [editors]}
+    site:
+      files:
+        - path: "${P}/board.html"
+          body: *board
+      rules:
+        - {actor: "*", resource: "${P}/*", method: [GET], action: Allow}
+        - {actor: editors, resource: "${P}/*", method: [MOVE], action: Allow}
+        - {actor: editors, resource: "${P}/*", method: [DELETE], selector: ".card", action: Allow}
+    steps:
+      - name: 403
+        as: alice
+        request:
+          method: MOVE
+          path: "${P}/board.html"
+          headers:
+            Range: "selector=#card-3"
+            Destination: "${P}/board.html"
+            Destination-Range: "selector=#lane-done; placement=append"
+        expect: {status: 403}
+
+  - id: protocol.move-authz.editors-example
+    title: "Documented example: three rules let editors move cards between lanes"
+    area: protocol
+    feature: MOVE authorization three checks
+    evidence: documented
+    source: "docs reference/reading-and-writing/MOVE-method §Example: allowing editors to reorder cards (snapshot 2026-09-28)"
+    confidence: high
+    requires: [multi-actor]
+    live: false
+    notes: R-PROTO-96. Anonymous is refused with 401, an editor succeeds.
+    actors:
+      alice: {sub: alice, email: alice@example.com, email_verified: true, roles: [editors]}
+    site:
+      files:
+        - path: "${P}/board.html"
+          body: *board
+      rules:
+        - {actor: "*", resource: "${P}/*", method: [GET], action: Allow}
+        - {actor: editors, resource: "${P}/board.html", method: [MOVE], selector: "", action: Allow}
+        - {actor: editors, resource: "${P}/board.html", method: [DELETE], selector: ".card", action: Allow}
+        - {actor: editors, resource: "${P}/board.html", method: [POST], selector: ".lane", action: Allow}
+    steps:
+      - name: anonymous refused
+        as: anonymous
+        request:
+          method: MOVE
+          path: "${P}/board.html"
+          headers:
+            Range: "selector=#card-3"
+            Destination: "${P}/board.html"
+            Destination-Range: "selector=#lane-done; placement=append"
+        expect: {status: 401}
+      - name: editor allowed
+        as: alice
+        request:
+          method: MOVE
+          path: "${P}/board.html"
+          headers:
+            Range: "selector=#card-3"
+            Destination: "${P}/board.html"
+            Destination-Range: "selector=#lane-done; placement=append"
+        expect: {status: 204}
+
+  - id: protocol.move-authz.whole-document-needs-destination-grant
+    title: A whole-document MOVE also needs a MOVE grant on the Destination path
+    area: protocol
+    feature: MOVE whole-document authorization
+    evidence: documented
+    source: "docs reference/reading-and-writing/MOVE-method §Whole-document MOVE (snapshot 2026-09-28)"
+    confidence: high
+    requires: []
+    live: true
+    notes: R-PROTO-98.
+    site:
+      files:
+        - path: "${P}/src/a.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body><h1>Source</h1></body></html>
+      rules:
+        - {actor: "*", resource: "${P}/*", method: [GET], action: Allow}
+        - {actor: "*", resource: "${P}/src/*", method: [GET, MOVE], action: Allow}
+    steps:
+      - name: no grant at the destination
+        as: anonymous
+        request:
+          method: MOVE
+          path: "${P}/src/a.html"
+          headers: {Destination: "${P}/dst/a.html"}
+        expect: {status: 401}
+      - name: source still there
+        as: anonymous
+        request: {method: GET, path: "${P}/src/a.html"}
+        expect: {status: 200}
+
+  - id: protocol.move-authz.whole-document-deny-at-destination
+    title: A Deny rule matching the Destination refuses a whole-document MOVE even if the source is allowed
+    area: protocol
+    feature: MOVE whole-document authorization
+    evidence: documented
+    source: "docs reference/reading-and-writing/MOVE-method §Whole-document MOVE (snapshot 2026-09-28)"
+    confidence: high
+    requires: []
+    live: true
+    notes: R-PROTO-98.
+    site:
+      files:
+        - path: "${P}/a.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body><h1>Source</h1></body></html>
+      rules:
+        - {actor: "*", resource: "${P}/*", method: [GET, MOVE], action: Allow}
+        - {actor: "*", resource: "${P}/locked/*", method: [MOVE], action: Deny}
+    steps:
+      - name: into the locked area
+        as: anonymous
+        request:
+          method: MOVE
+          path: "${P}/a.html"
+          headers: {Destination: "${P}/locked/a.html"}
+        expect: {status: 401}
+      - name: nothing created there
+        as: anonymous
+        request: {method: GET, path: "${P}/locked/a.html"}
+        expect: {status: 404}
+
+  - id: protocol.move-authz.whole-document-needs-no-delete-post
+    title: A whole-document MOVE is authorized by MOVE rules alone
+    area: protocol
+    feature: MOVE whole-document authorization
+    evidence: documented
+    source: "docs reference/reading-and-writing/MOVE-method §Whole-document MOVE (\"checks 2 and 3 do not apply\") (snapshot 2026-09-28)"
+    confidence: high
+    requires: []
+    live: true
+    notes: R-PROTO-98.
+    site:
+      files:
+        - path: "${P}/a.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body><h1>Source</h1></body></html>
+      rules:
+        - {actor: "*", resource: "${P}/*", method: [GET, MOVE], action: Allow}
+    steps:
+      - name: allowed
+        as: anonymous
+        request:
+          method: MOVE
+          path: "${P}/a.html"
+          headers: {Destination: "${P}/moved/a.html"}
+        expect: {status: 204}
+      - name: destination exists
+        as: anonymous
+        request: {method: GET, path: "${P}/moved/a.html"}
+        expect: {status: 200, body_contains: ["Source"]}

@@ -1,0 +1,55 @@
+{
+  "case": "sse.mutation.multi-match-selector",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 2",
+      "events": [
+        {
+          "event": "pagelove-connection",
+          "data": "fdb24329-aead-469f-86a0-9623eee46fc1"
+        }
+      ]
+    },
+    {
+      "step": "step 3 (replace the first li)",
+      "method": "PUT",
+      "path": "/_pl/sse-mutation-multi-match-selector-084478/doc.html",
+      "status": 206,
+      "headers": {
+        "content-length": "14",
+        "content-range": "selector li",
+        "content-type": "text/html",
+        "etag": "\"aeb2e107870bbb733f65cbc4b6a5fbfcc7b76ab3829c21e699e382888676fce9-aeb2e107870bbb733f65cbc4b6a5fbfcc7b76ab3829c21e699e382888676fce9-2\"",
+        "last-modified": "Mon, 28 Sep 2026 22:34:44 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003cli\u003eFIRST\u003c/li\u003e"
+    },
+    {
+      "step": "step 4",
+      "events": [
+        {
+          "id": "v1~76125cce32c4.1790634884315-0",
+          "event": "mutation",
+          "data": "\u003carticle itemscope itemtype=\"https://pagelove.org/Mutation\"\u003e\n  \u003cspan itemprop=\"method\"\u003ePUT\u003c/span\u003e\n  \u003cspan itemprop=\"selector\"\u003eli\u003c/span\u003e\n  \u003cspan itemprop=\"etag\"\u003e6c13fa314389ebe0701fb1f0fecdcad7f5666a20e1ef63049c9b56d66d7e7037\u003c/span\u003e\n  \u003cspan itemprop=\"path\"\u003e/_pl/sse-mutation-multi-match-selector-084478/doc.html\u003c/span\u003e\n  \u003cspan itemprop=\"host\"\u003elive-test-host.onpagelove.com\u003c/span\u003e\n  \u003cdiv itemprop=\"body\"\u003e\u003cli\u003eFIRST\u003c/li\u003e\u003c/div\u003e\n\u003c/article\u003e"
+        }
+      ]
+    },
+    {
+      "step": "step 5 (document shows only the first match replaced)",
+      "method": "GET",
+      "path": "/_pl/sse-mutation-multi-match-selector-084478/doc.html",
+      "status": 200,
+      "headers": {
+        "content-type": "text/html",
+        "etag": "\"6c13fa314389ebe0701fb1f0fecdcad7f5666a20e1ef63049c9b56d66d7e7037\"",
+        "last-modified": "Mon, 28 Sep 2026 22:34:44 GMT",
+        "vary": "Host, Range, Accept"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\u003cul\u003e\u003cli\u003eFIRST\u003c/li\u003e\u003cli\u003esecond\u003c/li\u003e\u003c/ul\u003e\n                \u003cdiv style=\"\n                            position: fixed;\n                            bottom: 0;\n                            left: 0;\n                            right: 0;\n                            padding: 8px;\n                            background: #f0f0f0;\n                            text-align: center;\n                            font-size: 12px;\n                            color: #666;\n                            z-index: 9999;\n                            opacity: 0.8;\n                            border-top: 1px solid #ddd;\n                        \"\u003e\n                    Powered by\n                    \u003ca href=\"https://pagelove.com/\" style=\"color: #4a90d9; text-decoration: none\"\u003ePagelove\u003c/a\u003e\n                \u003c/div\u003e\n            \u003c/body\u003e\u003c/html\u003e\n"
+    }
+  ],
+  "outcome": "pass",
+  "target": "live"
+}

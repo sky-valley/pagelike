@@ -1,0 +1,44 @@
+{
+  "case": "protocol.webdav.tag-ignores-outside-changes",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (listing)",
+      "method": "PROPFIND",
+      "path": "/_pl/protocol-webdav-tag-ignores-outside-chan-83e9ee/dav/",
+      "status": 207,
+      "headers": {
+        "content-length": "987",
+        "content-type": "application/xml; charset=utf-8",
+        "etag": "\"sha256:05e25281eea170932a35a4b32973fcdf1c47717ec6c9a719e2fa02692b087c01\"",
+        "vary": "Depth"
+      },
+      "body": "\u003c?xml version=\"1.0\" encoding=\"utf-8\" ?\u003e\n\u003cD:multistatus xmlns:D=\"DAV:\"\u003e\n  \u003cD:response\u003e\n    \u003cD:href\u003e/_pl/protocol-webdav-tag-ignores-outside-chan-83e9ee/dav/\u003c/D:href\u003e\n    \u003cD:propstat\u003e\n      \u003cD:prop\u003e\n      \u003cD:resourcetype\u003e\u003cD:collection/\u003e\u003c/D:resourcetype\u003e\n      \u003cD:getetag\u003e\"sha256:05e25281eea170932a35a4b32973fcdf1c47717ec6c9a719e2fa02692b087c01\"\u003c/D:getetag\u003e\n      \u003c/D:prop\u003e\n      \u003cD:status\u003eHTTP/1.1 200 OK\u003c/D:status\u003e\n    \u003c/D:propstat\u003e\n  \u003c/D:response\u003e\n  \u003cD:response\u003e\n    \u003cD:href\u003e/_pl/protocol-webdav-tag-ignores-outside-chan-83e9ee/dav/a.html\u003c/D:href\u003e\n    \u003cD:propstat\u003e\n      \u003cD:prop\u003e\n      \u003cD:resourcetype/\u003e\n      \u003cD:getcontenttype\u003etext/html\u003c/D:getcontenttype\u003e\n      \u003cD:getcontentlength\u003e53\u003c/D:getcontentlength\u003e\n      \u003cD:getlastmodified\u003eMon, 28 Sep 2026 22:33:31 GMT\u003c/D:getlastmodified\u003e\n      \u003cD:getetag\u003e\"018b3777697859dce21939d17486caa4a5187d5383b48a2f93fae06aa8608d3b\"\u003c/D:getetag\u003e\n      \u003c/D:prop\u003e\n      \u003cD:status\u003eHTTP/1.1 200 OK\u003c/D:status\u003e\n    \u003c/D:propstat\u003e\n  \u003c/D:response\u003e\n\u003c/D:multistatus\u003e"
+    },
+    {
+      "step": "step 2 (change another collection)",
+      "method": "PUT",
+      "path": "/_pl/protocol-webdav-tag-ignores-outside-chan-83e9ee/elsewhere/x.html",
+      "status": 200,
+      "headers": {
+        "accept-ranges": "bytes",
+        "content-length": "61",
+        "content-type": "text/html",
+        "etag": "\"6023e6eb01f9ae44aecf77158decf38b8300da0a67672aeadc1b447410ba6960\""
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\u003ch1\u003eX changed\u003c/h1\u003e\u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 3 (still not modified)",
+      "method": "PROPFIND",
+      "path": "/_pl/protocol-webdav-tag-ignores-outside-chan-83e9ee/dav/",
+      "status": 304,
+      "headers": {
+        "etag": "\"sha256:05e25281eea170932a35a4b32973fcdf1c47717ec6c9a719e2fa02692b087c01\"",
+        "vary": "Depth"
+      }
+    }
+  ],
+  "outcome": "pass",
+  "target": "live"
+}

@@ -1,0 +1,39 @@
+{
+  "case": "protocol.query-sessel.entries-pagination",
+  "failures": [
+    "step 1 (first page) QUERY ${P}/five.html: status 400, want [206 200] (body: \u003c!DOCTYPE html\u003e\n\u003chtml\u003e\n  \u003chead\u003e\n    \u003ctitle\u003e400 Bad Request - Error\u003c/title\u003e\n  \u003c/head\u003e\n  \u003cbody itemscope itemtype=\"http://pagelove.org/Error\"\u003e\n    \u003ch1 itemprop=\"name\"\u003eBad Request\u003c/h1\u003e\n    \u003cmeta itemprop=\"statusCode\" content=\"400\"\u003e\n    \u003cp item…)",
+    "step 1 (first page) QUERY ${P}/five.html: header Content-Range = \"\", want \"entries 0-1/5\"",
+    "step 1 (first page) QUERY ${P}/five.html: body is not JSON: invalid character '\u003c' looking for beginning of value",
+    "step 2 (last page is clamped to the list length) QUERY ${P}/five.html: status 400, want [206 200] (body: \u003c!DOCTYPE html\u003e\n\u003chtml\u003e\n  \u003chead\u003e\n    \u003ctitle\u003e400 Bad Request - Error\u003c/title\u003e\n  \u003c/head\u003e\n  \u003cbody itemscope itemtype=\"http://pagelove.org/Error\"\u003e\n    \u003ch1 itemprop=\"name\"\u003eBad Request\u003c/h1\u003e\n    \u003cmeta itemprop=\"statusCode\" content=\"400\"\u003e\n    \u003cp item…)",
+    "step 2 (last page is clamped to the list length) QUERY ${P}/five.html: header Content-Range = \"\", want \"entries 3-4/5\"",
+    "step 2 (last page is clamped to the list length) QUERY ${P}/five.html: body is not JSON: invalid character '\u003c' looking for beginning of value"
+  ],
+  "observations": [
+    {
+      "step": "step 1 (first page)",
+      "method": "QUERY",
+      "path": "/_pl/protocol-query-sessel-entries-pagination-0b2930/five.html",
+      "status": 400,
+      "headers": {
+        "content-length": "349",
+        "content-type": "text/html",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\n  \u003chead\u003e\n    \u003ctitle\u003e400 Bad Request - Error\u003c/title\u003e\n  \u003c/head\u003e\n  \u003cbody itemscope itemtype=\"http://pagelove.org/Error\"\u003e\n    \u003ch1 itemprop=\"name\"\u003eBad Request\u003c/h1\u003e\n    \u003cmeta itemprop=\"statusCode\" content=\"400\"\u003e\n    \u003cp itemprop=\"description\"\u003eSessel evaluation error: unknown function: execute (at bytes 16..20)\u003c/p\u003e\n  \u003c/body\u003e\n\u003c/html\u003e"
+    },
+    {
+      "step": "step 2 (last page is clamped to the list length)",
+      "method": "QUERY",
+      "path": "/_pl/protocol-query-sessel-entries-pagination-0b2930/five.html",
+      "status": 400,
+      "headers": {
+        "content-length": "349",
+        "content-type": "text/html",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\n  \u003chead\u003e\n    \u003ctitle\u003e400 Bad Request - Error\u003c/title\u003e\n  \u003c/head\u003e\n  \u003cbody itemscope itemtype=\"http://pagelove.org/Error\"\u003e\n    \u003ch1 itemprop=\"name\"\u003eBad Request\u003c/h1\u003e\n    \u003cmeta itemprop=\"statusCode\" content=\"400\"\u003e\n    \u003cp itemprop=\"description\"\u003eSessel evaluation error: unknown function: execute (at bytes 16..20)\u003c/p\u003e\n  \u003c/body\u003e\n\u003c/html\u003e"
+    }
+  ],
+  "outcome": "fail",
+  "target": "live"
+}

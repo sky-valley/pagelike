@@ -1,0 +1,36 @@
+{
+  "case": "reacting.gates.otherwise-ignored-without-when",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (install a gate-less trigger whose otherwise would throw)",
+      "method": "PUT",
+      "path": "/_pl/reacting-gates-otherwise-ignored-without-7a36f2/r/triggers.html",
+      "status": 201,
+      "headers": {
+        "content-length": "686",
+        "content-type": "text/html",
+        "etag": "\"0597e80adf25b8b6ef4800d8dfcea11276059ab1701ee1891ade611d4f79af4d\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:48 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\n\u003cdiv hidden itemscope itemtype=\"https://pagelove.org/Trigger\"\u003e\n  \u003cmeta itemprop=\"resource\" content=\"/_pl/reacting-gates-otherwise-ignored-without-7a36f2/d/*\"\u003e\n  \u003cmeta itemprop=\"method\" content=\"PUT\"\u003e\n  \u003cdiv itemprop=\"action\" itemscope itemtype=\"https://pagelove.org/Sessel\"\u003e\n    \u003cscript itemprop=\"source\" type=\"text/sessel\"\u003e1\u003c/script\u003e\n  \u003c/div\u003e\n  \u003cdiv itemprop=\"otherwise\" itemscope itemtype=\"https://pagelove.org/Sessel\"\u003e\n    \u003cscript itemprop=\"source\" type=\"text/sessel\"\u003e\n      @schema HTTPResponse url(\"https://pagelove.org/HTTPResponse\");\n      throw new HTTPResponse { status: 409, message: \"otherwise-ran\" }\n    \u003c/script\u003e\n  \u003c/div\u003e\n\u003c/div\u003e\n\u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 2 (the write proceeds)",
+      "method": "PUT",
+      "path": "/_pl/reacting-gates-otherwise-ignored-without-7a36f2/d/x.html",
+      "status": 201,
+      "headers": {
+        "content-length": "8",
+        "content-type": "text/html",
+        "etag": "\"31d8e07ec305ac4e2515d1f0b1c8c603b3858044eb7d97807d6d0970838cb0be\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:48 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003cp\u003ex\u003c/p\u003e"
+    }
+  ],
+  "outcome": "pass",
+  "target": "local"
+}

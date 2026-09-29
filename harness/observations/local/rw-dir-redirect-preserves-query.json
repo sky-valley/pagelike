@@ -1,0 +1,19 @@
+{
+  "case": "rw.dir.redirect-preserves-query",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (GET with query, no slash)",
+      "method": "GET",
+      "path": "/_pl/rw-dir-redirect-preserves-query-3089cc/blog?x=1\u0026y=two",
+      "status": 301,
+      "headers": {
+        "cache-control": "private, max-age=3600",
+        "content-length": "0",
+        "location": "/_pl/rw-dir-redirect-preserves-query-3089cc/blog/?x=1\u0026y=two"
+      }
+    }
+  ],
+  "outcome": "pass",
+  "target": "local"
+}

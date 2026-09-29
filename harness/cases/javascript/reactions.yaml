@@ -1,0 +1,813 @@
+# JavaScript area: JavaScript in Trigger and Processor when/action/otherwise
+# (docs/spec/javascript.md R-JS-21, R-JS-22, R-JS-24, R-JS-53). Every trigger/processor is scoped by
+# resource to paths under ${P}, so live runs affect nothing else. Cross-area: reactions.
+# Spec: docs/spec/javascript.md. Generated; edit by hand freely.
+defaults:
+  area: "javascript"
+  evidence: "documented"
+  confidence: "medium"
+  requires: ["server-js"]
+  site:
+    settings:
+      default_get: "allow"
+    rules:
+      - actor: "*"
+        resource: "${P}/*"
+        method: ["GET", "HEAD", "PUT", "POST", "DELETE", "MOVE"]
+        action: "Allow"
+      - actor: "*"
+        resource: "${P}/*/*"
+        method: ["GET", "HEAD", "PUT", "POST", "DELETE", "MOVE"]
+        action: "Allow"
+      - actor: "*"
+        resource: "${P}/*/*/*"
+        method: ["GET", "HEAD", "PUT", "POST", "DELETE", "MOVE"]
+        action: "Allow"
+cases:
+  - id: "javascript.reactions.trigger-docs-when-and-action"
+    title: "Documented examples: a JavaScript when gate on ctx.request.method and an action that throws a 403 HTTPResponse"
+    feature: "triggers (JavaScript)"
+    source: "docs reference/reacting-to-changes/Trigger §when, §action (snapshot 2026-09-28)"
+    confidence: "high"
+    live: true
+    notes: "spec: R-JS-21, R-JS-53. The docs' '/admin/' prefix is placed under ${P}."
+    steps:
+      - name: "register the trigger/processor (public plane)"
+        as: "anonymous"
+        request:
+          method: "PUT"
+          path: "${P}/reactions.html"
+          headers:
+            Content-Type: "text/html"
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+            <div itemscope itemtype="https://pagelove.org/Trigger">
+            <meta itemprop="resource" content="${P}/guarded/*">
+            <meta itemprop="method" content="PUT">
+            <div itemprop="when" itemscope itemtype="https://pagelove.org/JavaScript/Module">
+            <script itemprop="source" type="module">
+            export default function(ctx) {
+              return ctx.request.method === "PUT";
+            }
+            </script>
+            </div>
+            <div itemprop="action" itemscope itemtype="https://pagelove.org/JavaScript/Module">
+            <script itemprop="source" type="module">
+            export default function(ctx) {
+              if (ctx.request.path.startsWith("${P}/guarded/admin/")) {
+                throw {
+                  schema_url: "https://pagelove.org/HTTPResponse",
+                  status: 403,
+                  message: "Admin area is restricted"
+                };
+              }
+              return true;
+            }
+            </script>
+            </div>
+            </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "admin path is refused"
+        as: "anonymous"
+        request:
+          method: "PUT"
+          path: "${P}/guarded/admin/x.html"
+          headers:
+            Content-Type: "text/html"
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+            <p>content</p>
+            </body></html>
+        expect:
+          status: 403
+          body_contains: ["Admin area is restricted"]
+      - name: "other paths pass (the action's return value is discarded)"
+        as: "anonymous"
+        request:
+          method: "PUT"
+          path: "${P}/guarded/ok.html"
+          headers:
+            Content-Type: "text/html"
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+            <p>content</p>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+  - id: "javascript.reactions.trigger-ctx-request-shape"
+    title: "A JavaScript trigger receives ctx.request with method, path, host, headers, query and body"
+    feature: "triggers (JavaScript)"
+    source: "docs reference/reacting-to-changes/Trigger §Context (JavaScript table) (snapshot 2026-09-28)"
+    confidence: "medium"
+    live: true
+    notes: "spec: R-JS-21. path excludes the query string (R-JS-21 table)."
+    steps:
+      - name: "register the trigger/processor (public plane)"
+        as: "anonymous"
+        request:
+          method: "PUT"
+          path: "${P}/reactions.html"
+          headers:
+            Content-Type: "text/html"
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+            <div itemscope itemtype="https://pagelove.org/Trigger">
+            <meta itemprop="resource" content="${P}/guarded/*">
+            <meta itemprop="method" content="PUT">
+            <div itemprop="action" itemscope itemtype="https://pagelove.org/JavaScript/Module">
+            <script itemprop="source" type="module">
+            export default function(ctx) {
+              const r = ctx.request;
+              throw { schema_url: 'https://pagelove.org/HTTPResponse', status: 418,
+                message: 'CTX:' + [r.method, r.path, typeof r.host, typeof r.headers, typeof r.query, r.query.k, typeof r.body].join('|') };
+            }
+            </script>
+            </div>
+            </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "PUT with a query string"
+        as: "anonymous"
+        request:
+          method: "PUT"
+          path: "${P}/guarded/x.html?k=v1"
+          headers:
+            Content-Type: "text/html"
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+            <p>content</p>
+            </body></html>
+        expect:
+          status: 418
+          body_contains: ["CTX:PUT|${P}/guarded/x.html|string|object|object|v1|string"]
+  - id: "javascript.reactions.trigger-header-lookup"
+    title: "Header lookup in ctx.request.headers (docs Authorization example, with a custom header, capitalized lookup)"
+    feature: "triggers (JavaScript)"
+    source: "docs reference/reacting-to-changes/Trigger §Chain termination (JavaScript example) (snapshot 2026-09-28)"
+    confidence: "medium"
+    live: true
+    notes: "spec: R-JS-24 (case-insensitive header view is inferred). A custom header replaces Authorization so the request is not treated as a login attempt."
+    steps:
+      - name: "register the trigger/processor (public plane)"
+        as: "anonymous"
+        request:
+          method: "PUT"
+          path: "${P}/reactions.html"
+          headers:
+            Content-Type: "text/html"
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+            <div itemscope itemtype="https://pagelove.org/Trigger">
+            <meta itemprop="resource" content="${P}/guarded/*">
+            <meta itemprop="method" content="PUT">
+            <div itemprop="action" itemscope itemtype="https://pagelove.org/JavaScript/Module">
+            <script itemprop="source" type="module">
+            export default function(ctx) {
+              if (ctx.request.headers["X-Case-Token"] == null) {
+                throw { schema_url: "https://pagelove.org/HTTPResponse", status: 403, message: "Forbidden" };
+              }
+            }
+            </script>
+            </div>
+            </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "no header: refused"
+        as: "anonymous"
+        request:
+          method: "PUT"
+          path: "${P}/guarded/a.html"
+          headers:
+            Content-Type: "text/html"
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+            <p>content</p>
+            </body></html>
+        expect:
+          status: 403
+          body_contains: ["Forbidden"]
+      - name: "header present (sent lower-case by HTTP/2 clients): allowed"
+        as: "anonymous"
+        request:
+          method: "PUT"
+          path: "${P}/guarded/b.html"
+          headers:
+            Content-Type: "text/html"
+            x-case-token: "t1"
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+            <p>content</p>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+  - id: "javascript.reactions.trigger-when-truthiness"
+    title: "A JavaScript when gate uses JavaScript truthiness: 0 runs otherwise, 'yes' runs action"
+    feature: "triggers (JavaScript)"
+    source: "docs reference/reacting-to-changes/Trigger §when, §otherwise (snapshot 2026-09-28)"
+    confidence: "high"
+    live: true
+    notes: "spec: R-JS-21."
+    steps:
+      - name: "register the trigger/processor (public plane)"
+        as: "anonymous"
+        request:
+          method: "PUT"
+          path: "${P}/reactions.html"
+          headers:
+            Content-Type: "text/html"
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+            <div itemscope itemtype="https://pagelove.org/Trigger">
+            <meta itemprop="resource" content="${P}/g1/*">
+            <meta itemprop="method" content="PUT">
+            <div itemprop="when" itemscope itemtype="https://pagelove.org/JavaScript/Module">
+            <script itemprop="source" type="module">
+            export default function() { return 0; }
+            </script>
+            </div>
+            <div itemprop="action" itemscope itemtype="https://pagelove.org/JavaScript/Module">
+            <script itemprop="source" type="module">
+            export default function() { throw { schema_url: 'https://pagelove.org/HTTPResponse', status: 418, message: 'action-ran' }; }
+            </script>
+            </div>
+            <div itemprop="otherwise" itemscope itemtype="https://pagelove.org/JavaScript/Module">
+            <script itemprop="source" type="module">
+            export default function() { throw { schema_url: 'https://pagelove.org/HTTPResponse', status: 409, message: 'otherwise-ran' }; }
+            </script>
+            </div>
+            </div>
+            <div itemscope itemtype="https://pagelove.org/Trigger">
+            <meta itemprop="resource" content="${P}/g2/*">
+            <meta itemprop="method" content="PUT">
+            <div itemprop="when" itemscope itemtype="https://pagelove.org/JavaScript/Module">
+            <script itemprop="source" type="module">
+            export default function() { return 'yes'; }
+            </script>
+            </div>
+            <div itemprop="action" itemscope itemtype="https://pagelove.org/JavaScript/Module">
+            <script itemprop="source" type="module">
+            export default function() { throw { schema_url: 'https://pagelove.org/HTTPResponse', status: 418, message: 'action-ran' }; }
+            </script>
+            </div>
+            </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "falsy gate: otherwise"
+        as: "anonymous"
+        request:
+          method: "PUT"
+          path: "${P}/g1/a.html"
+          headers:
+            Content-Type: "text/html"
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+            <p>content</p>
+            </body></html>
+        expect:
+          status: 409
+          body_contains: ["otherwise-ran"]
+      - name: "truthy non-boolean gate: action"
+        as: "anonymous"
+        request:
+          method: "PUT"
+          path: "${P}/g2/a.html"
+          headers:
+            Content-Type: "text/html"
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+            <p>content</p>
+            </body></html>
+        expect:
+          status: 418
+          body_contains: ["action-ran"]
+  - id: "javascript.reactions.trigger-return-value-discarded"
+    title: "A JavaScript action's return value is discarded (a returned HTTPResponse-shaped object does nothing)"
+    feature: "triggers (JavaScript)"
+    source: "docs reference/reacting-to-changes/Trigger §action ('A JavaScript action's return value is discarded') (snapshot 2026-09-28)"
+    confidence: "high"
+    live: true
+    notes: "spec: R-JS-21."
+    steps:
+      - name: "register the trigger/processor (public plane)"
+        as: "anonymous"
+        request:
+          method: "PUT"
+          path: "${P}/reactions.html"
+          headers:
+            Content-Type: "text/html"
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+            <div itemscope itemtype="https://pagelove.org/Trigger">
+            <meta itemprop="resource" content="${P}/guarded/*">
+            <meta itemprop="method" content="PUT">
+            <div itemprop="action" itemscope itemtype="https://pagelove.org/JavaScript/Module">
+            <script itemprop="source" type="module">
+            export default function() { return { schema_url: 'https://pagelove.org/HTTPResponse', status: 400, message: 'returned-not-thrown' }; }
+            </script>
+            </div>
+            </div>
+            <div itemscope itemtype="https://pagelove.org/Trigger">
+            <meta itemprop="resource" content="${P}/control/*">
+            <meta itemprop="method" content="PUT">
+            <div itemprop="action" itemscope itemtype="https://pagelove.org/JavaScript/Module">
+            <script itemprop="source" type="module">
+            export default function() { throw { schema_url: 'https://pagelove.org/HTTPResponse', status: 418, message: 'control-thrown' }; }
+            </script>
+            </div>
+            </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "control: a thrown response takes effect (triggers run)"
+        as: "anonymous"
+        request:
+          method: "PUT"
+          path: "${P}/control/a.html"
+          headers:
+            Content-Type: "text/html"
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+            <p>content</p>
+            </body></html>
+        expect:
+          status: 418
+          body_contains: ["control-thrown"]
+      - name: "the returned object is ignored and the write proceeds"
+        as: "anonymous"
+        request:
+          method: "PUT"
+          path: "${P}/guarded/a.html"
+          headers:
+            Content-Type: "text/html"
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+            <p>content</p>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+  - id: "javascript.reactions.trigger-no-pagelove-global"
+    title: "JavaScript actions have no Pagelove write API: referencing it is a runtime error that fails the request"
+    feature: "triggers (JavaScript)"
+    source: "docs reference/reacting-to-changes/Trigger §Writing from triggers ('This is a Sessel-only capability'), §Error handling (snapshot 2026-09-28)"
+    confidence: "medium"
+    live: true
+    notes: "spec: R-JS-21, R-JS-38 (500 is pagelike's number for 'an HTML Microdata error body')."
+    steps:
+      - name: "register the trigger/processor (public plane)"
+        as: "anonymous"
+        request:
+          method: "PUT"
+          path: "${P}/reactions.html"
+          headers:
+            Content-Type: "text/html"
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+            <div itemscope itemtype="https://pagelove.org/Trigger">
+            <meta itemprop="resource" content="${P}/guarded/*">
+            <meta itemprop="method" content="PUT">
+            <div itemprop="action" itemscope itemtype="https://pagelove.org/JavaScript/Module">
+            <script itemprop="source" type="module">
+            export default function() { Pagelove.PUT({}, '${P}/side.html'); return 1; }
+            </script>
+            </div>
+            </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "the request fails"
+        as: "anonymous"
+        request:
+          method: "PUT"
+          path: "${P}/guarded/a.html"
+          headers:
+            Content-Type: "text/html"
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+            <p>content</p>
+            </body></html>
+        expect:
+          status: 500
+          header_matches:
+            Content-Type: "^text/html"
+      - name: "nothing was stored"
+        as: "author"
+        plane: "dav"
+        request:
+          method: "GET"
+          path: "${P}/guarded/a.html"
+        expect:
+          status: 404
+      - name: "no side-effect write happened"
+        as: "author"
+        plane: "dav"
+        request:
+          method: "GET"
+          path: "${P}/side.html"
+        expect:
+          status: 404
+  - id: "javascript.reactions.trigger-plain-object-is-error"
+    title: "A thrown object without the HTTPResponse marker is an ordinary runtime error, not a chosen status"
+    feature: "triggers (JavaScript)"
+    source: "docs reference/reacting-to-changes/Trigger §Chain termination, §Error handling (snapshot 2026-09-28)"
+    confidence: "medium"
+    live: true
+    notes: "spec: R-JS-53."
+    steps:
+      - name: "register the trigger/processor (public plane)"
+        as: "anonymous"
+        request:
+          method: "PUT"
+          path: "${P}/reactions.html"
+          headers:
+            Content-Type: "text/html"
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+            <div itemscope itemtype="https://pagelove.org/Trigger">
+            <meta itemprop="resource" content="${P}/guarded/*">
+            <meta itemprop="method" content="PUT">
+            <div itemprop="action" itemscope itemtype="https://pagelove.org/JavaScript/Module">
+            <script itemprop="source" type="module">
+            export default function() { throw { status: 402, message: 'plain-object' }; }
+            </script>
+            </div>
+            </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "runtime error"
+        as: "anonymous"
+        request:
+          method: "PUT"
+          path: "${P}/guarded/a.html"
+          headers:
+            Content-Type: "text/html"
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+            <p>content</p>
+            </body></html>
+        expect:
+          status: 500
+  - id: "javascript.reactions.trigger-itemtype-marker"
+    title: "An HTTPResponse marked with itemtype terminates the chain with its status"
+    feature: "triggers (JavaScript)"
+    source: "docs reference/reacting-to-changes/Trigger §Chain termination ('schema_url (or itemtype)') (snapshot 2026-09-28)"
+    confidence: "high"
+    live: true
+    notes: "spec: R-JS-53."
+    steps:
+      - name: "register the trigger/processor (public plane)"
+        as: "anonymous"
+        request:
+          method: "PUT"
+          path: "${P}/reactions.html"
+          headers:
+            Content-Type: "text/html"
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+            <div itemscope itemtype="https://pagelove.org/Trigger">
+            <meta itemprop="resource" content="${P}/guarded/*">
+            <meta itemprop="method" content="PUT">
+            <div itemprop="action" itemscope itemtype="https://pagelove.org/JavaScript/Module">
+            <script itemprop="source" type="module">
+            export default function() { throw { itemtype: 'https://pagelove.org/HTTPResponse', status: 409, message: 'via-itemtype' }; }
+            </script>
+            </div>
+            </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "chosen status"
+        as: "anonymous"
+        request:
+          method: "PUT"
+          path: "${P}/guarded/a.html"
+          headers:
+            Content-Type: "text/html"
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+            <p>content</p>
+            </body></html>
+        expect:
+          status: 409
+          body_contains: ["via-itemtype"]
+  - id: "javascript.reactions.trigger-default-status-500"
+    title: "An HTTPResponse without status defaults to 500 and uses message as the body"
+    feature: "triggers (JavaScript)"
+    source: "docs reference/reacting-to-changes/Trigger §Chain termination ('status (defaults to 500)', 'message (fallback body when body is absent)') (snapshot 2026-09-28)"
+    confidence: "high"
+    live: true
+    notes: "spec: R-JS-53."
+    steps:
+      - name: "register the trigger/processor (public plane)"
+        as: "anonymous"
+        request:
+          method: "PUT"
+          path: "${P}/reactions.html"
+          headers:
+            Content-Type: "text/html"
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+            <div itemscope itemtype="https://pagelove.org/Trigger">
+            <meta itemprop="resource" content="${P}/guarded/*">
+            <meta itemprop="method" content="PUT">
+            <div itemprop="action" itemscope itemtype="https://pagelove.org/JavaScript/Module">
+            <script itemprop="source" type="module">
+            export default function() { throw { schema_url: 'https://pagelove.org/HTTPResponse', message: 'no-status-given' }; }
+            </script>
+            </div>
+            </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "default status"
+        as: "anonymous"
+        request:
+          method: "PUT"
+          path: "${P}/guarded/a.html"
+          headers:
+            Content-Type: "text/html"
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+            <p>content</p>
+            </body></html>
+        expect:
+          status: 500
+          body_contains: ["no-status-given"]
+  - id: "javascript.reactions.trigger-body-and-headers"
+    title: "An HTTPResponse's body wins over message and its headers object adds response headers"
+    feature: "triggers (JavaScript)"
+    source: "docs reference/reacting-to-changes/Trigger §Chain termination (supported properties) (snapshot 2026-09-28)"
+    confidence: "high"
+    live: true
+    notes: "spec: R-JS-53."
+    steps:
+      - name: "register the trigger/processor (public plane)"
+        as: "anonymous"
+        request:
+          method: "PUT"
+          path: "${P}/reactions.html"
+          headers:
+            Content-Type: "text/html"
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+            <div itemscope itemtype="https://pagelove.org/Trigger">
+            <meta itemprop="resource" content="${P}/guarded/*">
+            <meta itemprop="method" content="PUT">
+            <div itemprop="action" itemscope itemtype="https://pagelove.org/JavaScript/Module">
+            <script itemprop="source" type="module">
+            export default function() { throw { schema_url: 'https://pagelove.org/HTTPResponse', status: 409, body: 'body-wins', message: 'message-loses', headers: { 'X-From-Trigger': 'yes' } }; }
+            </script>
+            </div>
+            </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "custom body and header"
+        as: "anonymous"
+        request:
+          method: "PUT"
+          path: "${P}/guarded/a.html"
+          headers:
+            Content-Type: "text/html"
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+            <p>content</p>
+            </body></html>
+        expect:
+          status: 409
+          headers:
+            X-From-Trigger: "yes"
+          body_contains: ["body-wins"]
+          body_not_contains: ["message-loses"]
+  - id: "javascript.reactions.processor-docs-custom-404"
+    title: "Documented examples: a JavaScript processor gate reads ctx.response.status and an action replaces a 404"
+    feature: "processors (JavaScript)"
+    source: "docs reference/reacting-to-changes/Processor §when, §action (snapshot 2026-09-28)"
+    confidence: "high"
+    live: true
+    notes: "spec: R-JS-22, R-JS-53."
+    steps:
+      - name: "register the trigger/processor (public plane)"
+        as: "anonymous"
+        request:
+          method: "PUT"
+          path: "${P}/reactions.html"
+          headers:
+            Content-Type: "text/html"
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+            <div itemscope itemtype="https://pagelove.org/Processor">
+            <meta itemprop="resource" content="${P}/p/*">
+            <meta itemprop="method" content="GET">
+            <meta itemprop="status" content="404">
+            <div itemprop="when" itemscope itemtype="https://pagelove.org/JavaScript/Module">
+            <script itemprop="source" type="module">
+            export default function(ctx) {
+              return ctx.response.status === 404;
+            }
+            </script>
+            </div>
+            <div itemprop="action" itemscope itemtype="https://pagelove.org/JavaScript/Module">
+            <script itemprop="source" type="module">
+            export default function(ctx) {
+              throw {
+                schema_url: "https://pagelove.org/HTTPResponse",
+                status: 200,
+                body: "<p>Custom 404 page</p>"
+              };
+            }
+            </script>
+            </div>
+            </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "the 404 is replaced"
+        as: "anonymous"
+        request:
+          method: "GET"
+          path: "${P}/p/missing.html"
+        expect:
+          status: 200
+          body_contains: ["Custom 404 page"]
+  - id: "javascript.reactions.processor-rethrow-with-headers"
+    title: "The beta-js CORS processor pattern: rethrow ctx.response.body with added headers; the bytes survive"
+    feature: "processors (JavaScript)"
+    evidence: "client-source"
+    source: "beta-js/cors.html@c204746:48-70; docs reference/reacting-to-changes/Processor §Response-mutation asymmetry (snapshot 2026-09-28)"
+    confidence: "high"
+    live: true
+    notes: "spec: R-JS-22, R-JS-53, R-JS-101. The body contains && and => to show the string passes through unescaped."
+    steps:
+      - name: "register the trigger/processor (public plane)"
+        as: "anonymous"
+        request:
+          method: "PUT"
+          path: "${P}/reactions.html"
+          headers:
+            Content-Type: "text/html"
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+            <div itemscope itemtype="https://pagelove.org/Processor">
+            <meta itemprop="resource" content="${P}/js/*">
+            <meta itemprop="method" content="GET">
+            <meta itemprop="status" content="2xx">
+            <div itemprop="action" itemscope itemtype="https://pagelove.org/JavaScript/Module">
+            <script itemprop="source" type="module">
+            export default function (ctx) {
+              throw {
+                schema_url: "https://pagelove.org/HTTPResponse",
+                status: ctx.response.status,
+                body: ctx.response.body,
+                headers: {
+                  "Access-Control-Allow-Origin": "*",
+                  "Content-Type": "text/javascript"
+                }
+              };
+            }
+            </script>
+            </div>
+            </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "upload a module"
+        as: "anonymous"
+        request:
+          method: "PUT"
+          path: "${P}/js/lib.mjs"
+          headers:
+            Content-Type: "text/javascript"
+          body: |
+            export const answer = 42 && true; export const f = (x) => x;
+        expect:
+          status: [200, 201, 204]
+      - name: "GET carries the added headers"
+        as: "anonymous"
+        request:
+          method: "GET"
+          path: "${P}/js/lib.mjs"
+        expect:
+          status: 200
+          headers:
+            Access-Control-Allow-Origin: "*"
+          header_matches:
+            Content-Type: "^text/javascript"
+          body_contains: ["export const answer = 42 && true; export const f = (x) => x;"]
+  - id: "javascript.reactions.processor-response-assignment-ignored"
+    title: "Assigning to ctx.response in a JavaScript processor action has no effect"
+    feature: "processors (JavaScript)"
+    source: "docs reference/reacting-to-changes/Processor §Response-mutation asymmetry (snapshot 2026-09-28)"
+    confidence: "high"
+    live: true
+    notes: "spec: R-JS-22."
+    steps:
+      - name: "register the trigger/processor (public plane)"
+        as: "anonymous"
+        request:
+          method: "PUT"
+          path: "${P}/reactions.html"
+          headers:
+            Content-Type: "text/html"
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+            <div itemscope itemtype="https://pagelove.org/Processor">
+            <meta itemprop="resource" content="${P}/pm/*">
+            <meta itemprop="method" content="GET">
+            <meta itemprop="status" content="2xx">
+            <div itemprop="action" itemscope itemtype="https://pagelove.org/JavaScript/Module">
+            <script itemprop="source" type="module">
+            export default function (ctx) { ctx.response.status = 418; ctx.response.body = 'changed-by-js'; }
+            </script>
+            </div>
+            </div>
+            <div itemscope itemtype="https://pagelove.org/Processor">
+            <meta itemprop="resource" content="${P}/pc/*">
+            <meta itemprop="method" content="GET">
+            <meta itemprop="status" content="2xx">
+            <div itemprop="action" itemscope itemtype="https://pagelove.org/JavaScript/Module">
+            <script itemprop="source" type="module">
+            export default function (ctx) { throw { schema_url: 'https://pagelove.org/HTTPResponse', status: 200, body: 'control-' + 'replaced' }; }
+            </script>
+            </div>
+            </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "store a control page"
+        as: "anonymous"
+        request:
+          method: "PUT"
+          path: "${P}/pc/page.html"
+          headers:
+            Content-Type: "text/html"
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+            <p>control-original</p>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "control: a thrown response replaces it (processors run)"
+        as: "anonymous"
+        request:
+          method: "GET"
+          path: "${P}/pc/page.html"
+        expect:
+          status: 200
+          body_contains: ["control-replaced"]
+      - name: "store a page"
+        as: "anonymous"
+        request:
+          method: "PUT"
+          path: "${P}/pm/page.html"
+          headers:
+            Content-Type: "text/html"
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+            <p>original-body</p>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "unchanged"
+        as: "anonymous"
+        request:
+          method: "GET"
+          path: "${P}/pm/page.html"
+        expect:
+          status: 200
+          body_contains: ["original-body"]
+          body_not_contains: ["changed-by-js"]

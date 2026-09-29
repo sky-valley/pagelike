@@ -1,0 +1,261 @@
+# SSE: which writes reach which streams across composition, transient
+# elements, the authoring plane and server-side reactions.
+# Spec: docs/spec/sse.md R-SSE-19..23. The runner substitutes ${P} inside file
+# bodies as well as paths.
+cases:
+  - id: sse.scope.include-not-propagated
+    title: Changing an included resource notifies its own subscribers and subscribers of the including page (same event)
+    area: sse
+    feature: composed resources
+    evidence: live-observed
+    source: "harness/observations/live-2026-09-28/sse-scope-include-not-propagated.json (the partial's event, same id and path, reached the page's stream too); docs reference/reading-and-writing/Server-Sent-Events §Composed resources (snapshot 2026-09-28) says it does not"
+    confidence: high
+    requires: []
+    live: true
+    notes: >-
+      The id keeps its original name; R-SSE-20 is superseded (docs/compat/decisions.md).
+      Needs includes (composition), not yet implemented in pagelike.
+    site:
+      files:
+        - path: "${P}/partial.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body><header id="nav">Nav v1</header></body></html>
+        - path: "${P}/page.html"
+          body: |
+            <!DOCTYPE html>
+            <html xmlns:p="https://pagelove.org/1.0"><body>
+              <p:include resource="${P}/partial.html" selector="header#nav"></p:include>
+              <main><h1>Page</h1></main>
+            </body></html>
+      rules:
+        - {actor: "*", resource: "${P}/*", method: [GET, PUT], action: Allow}
+    steps:
+      - sse_open: {name: page, path: "${P}/page.html", as: anonymous}
+      - sse_open: {name: partial, path: "${P}/partial.html", as: anonymous}
+      - sse_expect: {name: page, event: pagelove-connection, within_ms: 3000}
+      - sse_expect: {name: partial, event: pagelove-connection, within_ms: 3000}
+      - name: edit the partial directly
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/partial.html"
+          headers: {Range: "selector=header#nav", Content-Type: "text/html"}
+          body: '<header id="nav">Nav v2</header>'
+        expect: {status: 206}
+      - sse_expect:
+          name: partial
+          event: mutation
+          within_ms: 3000
+          data_microdata: {method: PUT, path: "${P}/partial.html"}
+          data_contains: ["Nav v2"]
+      - sse_expect:
+          name: page
+          event: mutation
+          within_ms: 3000
+          data_microdata: {method: PUT, path: "${P}/partial.html"}
+          data_contains: ["Nav v2"]
+      - name: the composed page shows the new header
+        as: anonymous
+        request: {method: GET, path: "${P}/page.html"}
+        expect: {status: 200, body_contains: ["Nav v2"]}
+      - sse_close: {name: page}
+      - sse_close: {name: partial}
+
+  - id: sse.scope.write-through-event-on-origin
+    title: A write addressed to an included element lands on the origin and is announced on the written page's stream only
+    area: sse
+    feature: composed resources
+    evidence: live-observed
+    source: "harness/observations/live-2026-09-28/sse-scope-write-through-event-on-origin.json (the event, path page.html, reached the page's stream; none on the partial's); docs reference/composing-pages/Includes §Interaction with HTTP Document Mutation (snapshot 2026-09-28)"
+    confidence: high
+    requires: []
+    live: true
+    notes: >-
+      The id keeps its original name; R-SSE-11/19 superseded (docs/compat/decisions.md). The
+      selector reported is the request's (Q12). Needs includes (composition), not yet
+      implemented in pagelike.
+    site:
+      files:
+        - path: "${P}/partial.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body><header id="nav">Nav v1</header></body></html>
+        - path: "${P}/page.html"
+          body: |
+            <!DOCTYPE html>
+            <html xmlns:p="https://pagelove.org/1.0"><body>
+              <p:include resource="${P}/partial.html" selector="header#nav"></p:include>
+              <main><h1>Page</h1></main>
+            </body></html>
+      rules:
+        - {actor: "*", resource: "${P}/*", method: [GET, PUT], action: Allow}
+    steps:
+      - sse_open: {name: page, path: "${P}/page.html", as: anonymous}
+      - sse_open: {name: partial, path: "${P}/partial.html", as: anonymous}
+      - sse_expect: {name: page, event: pagelove-connection, within_ms: 3000}
+      - sse_expect: {name: partial, event: pagelove-connection, within_ms: 3000}
+      - name: write through the composed page
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/page.html"
+          headers: {Range: "selector=header#nav", Content-Type: "text/html"}
+          body: '<header id="nav">Nav via page</header>'
+        expect: {status: 206}
+      - sse_expect:
+          name: page
+          event: mutation
+          within_ms: 3000
+          data_microdata: {method: PUT, path: "${P}/page.html", selector: "header#nav"}
+          data_contains: ["Nav via page"]
+      - sse_expect_none: {name: partial, event: mutation, for_ms: 1500}
+      - name: the origin received the write
+        as: anonymous
+        request: {method: GET, path: "${P}/partial.html"}
+        expect: {status: 200, body_contains: ["Nav via page"]}
+      - sse_close: {name: page}
+      - sse_close: {name: partial}
+
+  - id: sse.scope.transient-write-no-event
+    title: A write to a transient element changes only the writer's session and emits no event
+    area: sse
+    feature: transient elements
+    evidence: inferred
+    source: "docs reference/composing-pages/Transient-Elements (changes do not affect other sessions or the canonical document) (snapshot 2026-09-28); docs/spec/sse.md R-SSE-21"
+    confidence: medium
+    requires: []
+    live: true
+    notes: "Probe Q10. Success status for transient writes is not documented, so several 2xx codes are accepted."
+    site:
+      files:
+        - path: "${P}/shop.html"
+          body: |
+            <!DOCTYPE html>
+            <html xmlns:p="https://pagelove.org/1.0"><body>
+              <ul id="cart" p:transient><li>Default item</li></ul>
+              <h1>Shop</h1>
+            </body></html>
+      rules:
+        - {actor: "*", resource: "${P}/*", method: [GET, PUT, POST], action: Allow}
+    steps:
+      - sse_open: {name: s1, path: "${P}/shop.html", as: anonymous}
+      - sse_expect: {name: s1, event: pagelove-connection, within_ms: 3000}
+      - name: another session adds to its cart
+        as: anonymous
+        request:
+          method: POST
+          path: "${P}/shop.html"
+          headers: {Range: "selector=#cart", Content-Type: "text/html"}
+          body: "<li>Private item</li>"
+        expect: {status: [200, 201, 204, 206]}
+      - sse_expect_none: {name: s1, event: mutation, for_ms: 2000}
+      - sse_close: {name: s1}
+
+  - id: sse.scope.webdav-write-emits
+    title: "An authoring-plane (WebDAV) PUT of a subscribed document is not announced to public subscribers"
+    area: sse
+    feature: WebDAV writes
+    evidence: live-observed
+    source: "harness/observations/live-2026-09-28/sse-scope-webdav-write-emits.json (no event within 5 s); docs reference/protocol/WebDAV §Live site; docs/spec/sse.md R-SSE-22"
+    confidence: medium
+    requires: [webdav]
+    live: true
+    notes: >-
+      The id keeps its original name. Probe Q9 settled: PageLove streams application-plane writes
+      only (R-SSE-22 superseded, docs/compat/decisions.md). The wait is 8 s to rule out a slow path.
+    site:
+      files:
+        - path: "${P}/doc.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body><h1>Before author edit</h1></body></html>
+      rules:
+        - {actor: "*", resource: "${P}/*", method: [GET], action: Allow}
+    steps:
+      - sse_open: {name: s1, path: "${P}/doc.html", as: anonymous}
+      - sse_expect: {name: s1, event: pagelove-connection, within_ms: 3000}
+      - name: author saves the file over WebDAV
+        as: author
+        plane: dav
+        request:
+          method: PUT
+          path: "${P}/doc.html"
+          headers: {Content-Type: "text/html"}
+          body: |
+            <!DOCTYPE html>
+            <html><body><h1>After author edit</h1></body></html>
+        expect: {status: [200, 201, 204]}
+      - sse_expect_none: {name: s1, event: mutation, for_ms: 8000}
+      - name: the public plane serves the author's edit
+        as: anonymous
+        request: {method: GET, path: "${P}/doc.html"}
+        expect: {status: 200, body_contains: ["After author edit"]}
+      - sse_close: {name: s1}
+
+  - id: sse.scope.trigger-side-effect-emits
+    title: "A trigger's Pagelove.PUT side-effect write is not announced on the side document's stream"
+    area: sse
+    feature: trigger side-effect writes
+    evidence: live-observed
+    source: "harness/observations/live-2026-09-29-confirm/sse-scope-trigger-side-effect-emits.json (after a 61 s wait the trigger wrote side.html; the side stream got no event); docs reference/reacting-to-changes/Trigger §Side-effect writes (snapshot 2026-09-28); docs/spec/sse.md R-SSE-23"
+    confidence: medium
+    requires: [sessel, slow]
+    live: true
+    notes: >-
+      The id keeps its original name. Probe Q11 settled against R-SSE-23 (docs/compat/decisions.md).
+      The trigger only matches PUT on doc.html, so the side write cannot re-trigger it. The first
+      two live runs were inconclusive (the trigger had not taken effect a few seconds after upload,
+      a harness artifact); the case waits 61 s after setup, as for transition constraints'
+      documented propagation, and is therefore slow.
+    site:
+      files:
+        - path: "${P}/doc.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body><h1>Original</h1></body></html>
+        - path: "${P}/side.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body><p>placeholder</p></body></html>
+        - path: "${P}/triggers.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+            <div itemscope itemtype="https://pagelove.org/Trigger">
+              <meta itemprop="resource" content="${P}/doc.html">
+              <meta itemprop="method" content="PUT">
+              <div itemprop="action" itemscope itemtype="https://pagelove.org/Sessel">
+                <script itemprop="source" type="text/sessel">
+                  @schema Pagelove url("https://pagelove.org/1.0");
+                  @schema Thing url("https://schema.org/Thing");
+                  let item = new Thing { name: "side-effect-doc" };
+                  Pagelove.PUT(item, "${P}/side.html")
+                </script>
+              </div>
+            </div>
+            </body></html>
+      rules:
+        - {actor: "*", resource: "${P}/*", method: [GET, PUT], action: Allow}
+    steps:
+      - sleep_ms: 61000
+      - sse_open: {name: main, path: "${P}/doc.html", as: anonymous}
+      - sse_open: {name: side, path: "${P}/side.html", as: anonymous}
+      - sse_expect: {name: main, event: pagelove-connection, within_ms: 3000}
+      - sse_expect: {name: side, event: pagelove-connection, within_ms: 3000}
+      - name: write that fires the trigger
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/doc.html"
+          headers: {Range: "selector=h1", Content-Type: "text/html"}
+          body: "<h1>Triggered</h1>"
+        expect: {status: 206}
+      - sse_expect: {name: main, event: mutation, within_ms: 3000, data_microdata: {method: PUT, path: "${P}/doc.html"}}
+      - sse_expect_none: {name: side, event: mutation, for_ms: 3000}
+      - name: the trigger wrote the side document
+        as: anonymous
+        request: {method: GET, path: "${P}/side.html"}
+        expect: {status: 200, body_contains: ["side-effect-doc"]}
+      - sse_close: {name: main}
+      - sse_close: {name: side}

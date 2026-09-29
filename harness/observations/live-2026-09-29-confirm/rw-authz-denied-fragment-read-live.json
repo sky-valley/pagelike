@@ -1,0 +1,49 @@
+{
+  "case": "rw.authz.denied-fragment-read.live",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (denied element served)",
+      "method": "GET",
+      "path": "/_pl/rw-authz-denied-fragment-read-live-cc6b90/mixed.html",
+      "status": 206,
+      "headers": {
+        "content-length": "34",
+        "content-range": "selector .secret",
+        "content-type": "text/html",
+        "etag": "\"325b25446da34616cdde971427468b9c7efad2cf11f85847c674b28658d15f16-325b25446da34616cdde971427468b9c7efad2cf11f85847c674b28658d15f16-1\"",
+        "vary": "Host, Range, Accept"
+      },
+      "body": "\u003cli class=\"secret\"\u003esecret two\u003c/li\u003e"
+    },
+    {
+      "step": "step 2 (all matches as multipart include it)",
+      "method": "GET",
+      "path": "/_pl/rw-authz-denied-fragment-read-live-cc6b90/mixed.html",
+      "status": 200,
+      "headers": {
+        "accept-ranges": "bytes",
+        "content-length": "1213",
+        "content-type": "multipart/mixed; boundary=boundaryK2RI9ZRpDhMJJBrIkckEY0NE4UdUwlvw",
+        "vary": "Host, Range, Accept, Paginate"
+      },
+      "body": "--boundaryK2RI9ZRpDhMJJBrIkckEY0NE4UdUwlvw\r\nContent-Disposition: attachment; filename=\"/_pl/rw-authz-denied-fragment-read-live-cc6b90/mixed.html\"\r\nContent-Type: text/html\r\nContent-Range: selector li\r\nETag: \"0637b631e08cb1330d979b6fb663bbd74be5748b668237e3d78f1700eeb020e4-0637b631e08cb1330d979b6fb663bbd74be5748b668237e3d78f1700eeb020e4-1\"\r\nContent-Length: 19\r\n\r\n\u003cli\u003epublic one\u003c/li\u003e\r\n--boundaryK2RI9ZRpDhMJJBrIkckEY0NE4UdUwlvw\r\nContent-Disposition: attachment; filename=\"/_pl/rw-authz-denied-fragment-read-live-cc6b90/mixed.html\"\r\nContent-Type: text/html\r\nContent-Range: selector li\r\nETag: \"325b25446da34616cdde971427468b9c7efad2cf11f85847c674b28658d15f16-325b25446da34616cdde971427468b9c7efad2cf11f85847c674b28658d15f16-1\"\r\nContent-Length: 34\r\n\r\n\u003cli class=\"secret\"\u003esecret two\u003c/li\u003e\r\n--boundaryK2RI9ZRpDhMJJBrIkckEY0NE4UdUwlvw\r\nContent-Disposition: attachment; filename=\"/_pl/rw-authz-denied-fragment-read-live-cc6b90/mixed.html\"\r\nContent-Type: text/html\r\nContent-Range: selector li\r\nETag: \"84db8e2088e5d995290c927a2ffa3e148babb80f756d1f7e90dcc6ca02dcfad6-84db8e2088e5d995290c927a2ffa3e148babb80f756d1f7e90dcc6ca02dcfad6-1\"\r\nContent-Length: 21\r\n\r\n\u003cli\u003epublic three\u003c/li\u003e\r\n--boundaryK2RI9ZRpDhMJJBrIkckEY0NE4UdUwlvw--"
+    },
+    {
+      "step": "step 3 (all matches as JSON-LD answered)",
+      "method": "GET",
+      "path": "/_pl/rw-authz-denied-fragment-read-live-cc6b90/mixed.html",
+      "status": 206,
+      "headers": {
+        "content-length": "2",
+        "content-range": "selector li",
+        "content-type": "application/ld+json; charset=utf-8",
+        "etag": "W/\"44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a\"",
+        "vary": "Host, Range, Accept, Paginate"
+      },
+      "body": "{}"
+    }
+  ],
+  "outcome": "pass",
+  "target": "live"
+}

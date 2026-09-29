@@ -1,0 +1,52 @@
+{
+  "case": "javascript.methods.context-scoped-to-host-subtree",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (PUT the page (public plane; registers inline declarations))",
+      "method": "PUT",
+      "path": "/_pl/javascript-methods-context-scoped-to-hos-1f52e0/m.html",
+      "status": 201,
+      "headers": {
+        "content-length": "1041",
+        "content-type": "text/html",
+        "etag": "\"21e4e5a9b777c9ca14e73dee4993005965770e852fa46e3032ed91fa06e19977\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:43 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml xmlns:t=\"https://pagelike.test/_pl/javascript-methods-context-scoped-to-hos-1f52e0/Ctx\" xmlns:p=\"https://pagelove.org/1.0\"\u003e\u003cbody\u003e\n\u003cmain\u003e\n\u003cdiv id=\"host\" t:set=\"hi\"\u003e\u003cspan id=\"inside\"\u003e\u003cp:stamp greeting\u003e\u003c/p:stamp\u003e\u003c/span\u003e\u003c/div\u003e\n\u003cdiv id=\"after\"\u003e\u003cp:stamp greeting\u003e\u003c/p:stamp\u003e\u003c/div\u003e\n\u003c/main\u003e\n\u003cdiv hidden itemscope itemtype=\"https://pagelove.org/Schema\"\u003e\n\u003cmeta itemprop=\"type\" content=\"https://pagelike.test/_pl/javascript-methods-context-scoped-to-hos-1f52e0/Ctx\"\u003e\n\u003cul\u003e\n\u003cli itemprop=\"property\" itemscope itemtype=\"https://pagelove.org/Method\"\u003e\n\u003cmeta itemprop=\"name\" content=\"set\"\u003e\n\u003cdiv itemprop=\"parameter\" itemscope itemtype=\"https://pagelove.org/Parameter\"\u003e\u003cmeta itemprop=\"name\" content=\"value\"\u003e\u003cmeta itemprop=\"type\" content=\"https://schema.host/Text\"\u003e\u003c/div\u003e\n\u003cdiv itemprop=\"implementation\" itemscope itemtype=\"https://pagelove.org/JavaScript/Module\"\u003e\n\u003cscript itemprop=\"source\" type=\"module\"\u003e\nexport default function (value) { Context.greeting = 'CTX-' + value; return null; }\n\u003c/script\u003e\n\u003c/div\u003e\n\u003c/li\u003e\n\u003c/ul\u003e\n\u003c/div\u003e\n\u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 2 (inside the host: the stamp sees the value; the dispatching attribute is removed)",
+      "method": "GET",
+      "path": "/_pl/javascript-methods-context-scoped-to-hos-1f52e0/m.html",
+      "status": 206,
+      "headers": {
+        "accept-ranges": "selector, bytes",
+        "content-length": "52",
+        "content-range": "selector #host",
+        "content-type": "text/html",
+        "etag": "\"22dd6ba65ca82001416c99388cf1115b8831f0d47bc81786dfe5ea01404fa995-22dd6ba65ca82001416c99388cf1115b8831f0d47bc81786dfe5ea01404fa995-1\"",
+        "vary": "Host, Range, Accept"
+      },
+      "body": "\u003cdiv id=\"host\"\u003e\u003cspan id=\"inside\"\u003eCTX-hi\u003c/span\u003e\u003c/div\u003e"
+    },
+    {
+      "step": "step 3 (a later sibling does not see it)",
+      "method": "GET",
+      "path": "/_pl/javascript-methods-context-scoped-to-hos-1f52e0/m.html",
+      "status": 206,
+      "headers": {
+        "accept-ranges": "selector, bytes",
+        "content-length": "22",
+        "content-range": "selector #after",
+        "content-type": "text/html",
+        "etag": "\"03aa9079a0f5ac6e47544d25a60b18321b13613ae91d3aa1aea4bae59ab4fd77-03aa9079a0f5ac6e47544d25a60b18321b13613ae91d3aa1aea4bae59ab4fd77-1\"",
+        "vary": "Host, Range, Accept"
+      },
+      "body": "\u003cdiv id=\"after\"\u003e\u003c/div\u003e"
+    }
+  ],
+  "outcome": "pass",
+  "target": "local"
+}

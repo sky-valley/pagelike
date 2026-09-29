@@ -1,0 +1,67 @@
+{
+  "case": "comp.tr.post-into-transient",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1",
+      "method": "GET",
+      "path": "/_pl/comp-tr-post-into-transient-b5d842/cart.html",
+      "status": 200,
+      "headers": {
+        "accept-ranges": "selector, bytes",
+        "cache-control": "private",
+        "content-length": "85",
+        "content-type": "text/html",
+        "etag": "W/\"1333e763a93481c59ee8dcd60afeaab9346e98f89c7d7d481a7688da2e8af8a4\"",
+        "vary": "Host, Range, Accept"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\n\u003cbody\u003e\u003cul id=\"cart\"\u003e\u003cli\u003eDefault item\u003c/li\u003e\u003c/ul\u003e\u003c/body\u003e\n\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 2",
+      "method": "POST",
+      "path": "/_pl/comp-tr-post-into-transient-b5d842/cart.html",
+      "status": 206,
+      "headers": {
+        "cache-control": "private",
+        "content-length": "20",
+        "content-range": "selector #cart",
+        "content-type": "text/html",
+        "etag": "\"9e75226c4414ef4ce56794c3e7cec355e4d485c9eda45c97a432aa72ead6aaca-9e75226c4414ef4ce56794c3e7cec355e4d485c9eda45c97a432aa72ead6aaca-1\"",
+        "vary": "Host, Range"
+      },
+      "body": "\u003cli\u003ePosted item\u003c/li\u003e"
+    },
+    {
+      "step": "step 3",
+      "method": "GET",
+      "path": "/_pl/comp-tr-post-into-transient-b5d842/cart.html",
+      "status": 200,
+      "headers": {
+        "accept-ranges": "selector, bytes",
+        "cache-control": "private",
+        "content-length": "105",
+        "content-type": "text/html",
+        "etag": "W/\"8f5b79156567de198edee383bf73646ddde673f86e2761286363e50c9bfb598f\"",
+        "vary": "Host, Range, Accept"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\n\u003cbody\u003e\u003cul id=\"cart\"\u003e\u003cli\u003eDefault item\u003c/li\u003e\u003cli\u003ePosted item\u003c/li\u003e\u003c/ul\u003e\u003c/body\u003e\n\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 4",
+      "method": "GET",
+      "path": "/_pl/comp-tr-post-into-transient-b5d842/cart.html",
+      "status": 200,
+      "headers": {
+        "accept-ranges": "bytes",
+        "content-length": "132",
+        "content-type": "text/html",
+        "etag": "\"d0acdedc1c5d90f5504476c7c07a2d3d85ebb3f2b11511c204b05a464b9d833d\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:42 GMT"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml xmlns:p=\"https://pagelove.org/1.0\"\u003e\n\u003cbody\u003e\u003cul id=\"cart\" p:transient\u003e\u003cli\u003eDefault item\u003c/li\u003e\u003c/ul\u003e\u003c/body\u003e\n\u003c/html\u003e\n"
+    }
+  ],
+  "outcome": "pass",
+  "target": "local"
+}

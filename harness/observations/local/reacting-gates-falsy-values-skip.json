@@ -1,0 +1,36 @@
+{
+  "case": "reacting.gates.falsy-values-skip",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (install four triggers whose gates are falsy)",
+      "method": "PUT",
+      "path": "/_pl/reacting-gates-falsy-values-skip-c8f4c8/r/triggers.html",
+      "status": 201,
+      "headers": {
+        "content-length": "2470",
+        "content-type": "text/html",
+        "etag": "\"9838b052d331ec7b27b0a794874f3b9651a53b355136aeb736a6c87d7fb607e3\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:48 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\n\u003cdiv hidden itemscope itemtype=\"https://pagelove.org/Trigger\"\u003e\n  \u003cmeta itemprop=\"resource\" content=\"/_pl/reacting-gates-falsy-values-skip-c8f4c8/d/*\"\u003e\n  \u003cmeta itemprop=\"method\" content=\"PUT\"\u003e\n  \u003cdiv itemprop=\"when\" itemscope itemtype=\"https://pagelove.org/Sessel\"\u003e\u003cscript itemprop=\"source\" type=\"text/sessel\"\u003efalse\u003c/script\u003e\u003c/div\u003e\n  \u003cdiv itemprop=\"action\" itemscope itemtype=\"https://pagelove.org/Sessel\"\u003e\u003cscript itemprop=\"source\" type=\"text/sessel\"\u003e\n    @schema HTTPResponse url(\"https://pagelove.org/HTTPResponse\");\n    throw new HTTPResponse { status: 409, message: \"false-fired\" }\n  \u003c/script\u003e\u003c/div\u003e\n\u003c/div\u003e\n\u003cdiv hidden itemscope itemtype=\"https://pagelove.org/Trigger\"\u003e\n  \u003cmeta itemprop=\"resource\" content=\"/_pl/reacting-gates-falsy-values-skip-c8f4c8/d/*\"\u003e\n  \u003cmeta itemprop=\"method\" content=\"PUT\"\u003e\n  \u003cdiv itemprop=\"when\" itemscope itemtype=\"https://pagelove.org/Sessel\"\u003e\u003cscript itemprop=\"source\" type=\"text/sessel\"\u003enull\u003c/script\u003e\u003c/div\u003e\n  \u003cdiv itemprop=\"action\" itemscope itemtype=\"https://pagelove.org/Sessel\"\u003e\u003cscript itemprop=\"source\" type=\"text/sessel\"\u003e\n    @schema HTTPResponse url(\"https://pagelove.org/HTTPResponse\");\n    throw new HTTPResponse { status: 409, message: \"null-fired\" }\n  \u003c/script\u003e\u003c/div\u003e\n\u003c/div\u003e\n\u003cdiv hidden itemscope itemtype=\"https://pagelove.org/Trigger\"\u003e\n  \u003cmeta itemprop=\"resource\" content=\"/_pl/reacting-gates-falsy-values-skip-c8f4c8/d/*\"\u003e\n  \u003cmeta itemprop=\"method\" content=\"PUT\"\u003e\n  \u003cdiv itemprop=\"when\" itemscope itemtype=\"https://pagelove.org/Sessel\"\u003e\u003cscript itemprop=\"source\" type=\"text/sessel\"\u003e0\u003c/script\u003e\u003c/div\u003e\n  \u003cdiv itemprop=\"action\" itemscope itemtype=\"https://pagelove.org/Sessel\"\u003e\u003cscript itemprop=\"source\" type=\"text/sessel\"\u003e\n    @schema HTTPResponse url(\"https://pagelove.org/HTTPResponse\");\n    throw new HTTPResponse { status: 409, message: \"zero-fired\" }\n  \u003c/script\u003e\u003c/div\u003e\n\u003c/div\u003e\n\u003cdiv hidden itemscope itemtype=\"https://pagelove.org/Trigger\"\u003e\n  \u003cmeta itemprop=\"resource\" content=\"/_pl/reacting-gates-falsy-values-skip-c8f4c8/d/*\"\u003e\n  \u003cmeta itemprop=\"method\" content=\"PUT\"\u003e\n  \u003cdiv itemprop=\"when\" itemscope itemtype=\"https://pagelove.org/Sessel\"\u003e\u003cscript itemprop=\"source\" type=\"text/sessel\"\u003e\"\"\u003c/script\u003e\u003c/div\u003e\n  \u003cdiv itemprop=\"action\" itemscope itemtype=\"https://pagelove.org/Sessel\"\u003e\u003cscript itemprop=\"source\" type=\"text/sessel\"\u003e\n    @schema HTTPResponse url(\"https://pagelove.org/HTTPResponse\");\n    throw new HTTPResponse { status: 409, message: \"empty-fired\" }\n  \u003c/script\u003e\u003c/div\u003e\n\u003c/div\u003e\n\u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 2 (the write proceeds)",
+      "method": "PUT",
+      "path": "/_pl/reacting-gates-falsy-values-skip-c8f4c8/d/x.html",
+      "status": 201,
+      "headers": {
+        "content-length": "8",
+        "content-type": "text/html",
+        "etag": "\"31d8e07ec305ac4e2515d1f0b1c8c603b3858044eb7d97807d6d0970838cb0be\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:48 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003cp\u003ex\u003c/p\u003e"
+    }
+  ],
+  "outcome": "pass",
+  "target": "local"
+}

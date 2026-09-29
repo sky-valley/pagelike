@@ -1,0 +1,42 @@
+{
+  "case": "sse.mutation.table-row-body",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 2",
+      "events": [
+        {
+          "event": "pagelove-connection",
+          "data": "5f5b8fd8-5e08-47e3-93a3-b8d8a4314a51"
+        }
+      ]
+    },
+    {
+      "step": "step 3 (vote by appending a row)",
+      "method": "POST",
+      "path": "/_pl/sse-mutation-table-row-body-e0a2a8/poll.html",
+      "status": 206,
+      "headers": {
+        "content-length": "78",
+        "content-range": "selector #responses",
+        "content-type": "text/html",
+        "etag": "\"6b8576e154808d6e89eda8ccf63a614c9ca8419ff563df148022dbfc2fa4af99-6b8576e154808d6e89eda8ccf63a614c9ca8419ff563df148022dbfc2fa4af99-2\"",
+        "last-modified": "Mon, 28 Sep 2026 22:35:03 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003ctr id=\"r-abc12345\"\u003e\u003cth scope=\"row\"\u003eAnn\u003c/th\u003e\u003ctd data-option=\"o1\"\u003eyes\u003c/td\u003e\u003c/tr\u003e"
+    },
+    {
+      "step": "step 4",
+      "events": [
+        {
+          "id": "v1~87da1120e8f9.1790634903420-0",
+          "event": "mutation",
+          "data": "\u003carticle itemscope itemtype=\"https://pagelove.org/Mutation\"\u003e\n  \u003cspan itemprop=\"method\"\u003ePOST\u003c/span\u003e\n  \u003cspan itemprop=\"selector\"\u003e#responses\u003c/span\u003e\n  \u003cspan itemprop=\"etag\"\u003ef07a3ee0c4dff5260ff06c53a619252c4e49bc946807dcbc21106dae2c3d1df4\u003c/span\u003e\n  \u003cspan itemprop=\"path\"\u003e/_pl/sse-mutation-table-row-body-e0a2a8/poll.html\u003c/span\u003e\n  \u003cspan itemprop=\"host\"\u003elive-test-host.onpagelove.com\u003c/span\u003e\n  \u003cdiv itemprop=\"body\"\u003e\u003ctr id=\"r-abc12345\"\u003e\u003cth scope=\"row\"\u003eAnn\u003c/th\u003e\u003ctd data-option=\"o1\"\u003eyes\u003c/td\u003e\u003c/tr\u003e\u003c/div\u003e\n  \u003cspan itemprop=\"placement\"\u003eappend\u003c/span\u003e\n\u003c/article\u003e"
+        }
+      ]
+    }
+  ],
+  "outcome": "pass",
+  "target": "live"
+}

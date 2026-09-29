@@ -1,0 +1,43 @@
+{
+  "case": "sse.flow.denied-element-not-streamed",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (sse open public)",
+      "method": "GET",
+      "path": "/_pl/sse-flow-denied-element-not-streamed-e500d7/doc.html",
+      "status": 200,
+      "headers": {
+        "cache-control": "no-cache",
+        "content-type": "text/event-stream",
+        "x-accel-buffering": "no"
+      }
+    },
+    {
+      "step": "step 2",
+      "events": [
+        {
+          "event": "pagelove-connection",
+          "data": "a9fc8c06-28f1-4b95-a116-1738b1ee4fb4"
+        }
+      ]
+    },
+    {
+      "step": "step 3 (alice updates the secret)",
+      "method": "PUT",
+      "path": "/_pl/sse-flow-denied-element-not-streamed-e500d7/doc.html",
+      "status": 206,
+      "headers": {
+        "content-length": "37",
+        "content-range": "selector .secret",
+        "content-type": "text/html",
+        "etag": "\"037af5ce107db1856a63a7efc260d57a720c3982d09988e648870d8c823c6bec-037af5ce107db1856a63a7efc260d57a720c3982d09988e648870d8c823c6bec-2\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:59 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003cp class=\"secret\"\u003enew secret 7781\u003c/p\u003e"
+    }
+  ],
+  "outcome": "pass",
+  "target": "local"
+}

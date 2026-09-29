@@ -1,0 +1,252 @@
+# Composing: p:template as a pipeline stage (Liquid language is area liquid).
+# Spec: docs/spec/composing.md §2 R-COMP-8, §9 (R-COMP-50..54), §20.
+cases:
+  - id: comp.tpl.request-object
+    title: A Liquid template renders request.method and request.path
+    area: composing
+    feature: templating
+    evidence: documented
+    source: "docs reference/reading-and-writing/Request-Document §Request object in a Liquid template (snapshot 2026-09-28)"
+    confidence: high
+    requires: [liquid]
+    live: true
+    site:
+      settings: {default_get: allow}
+      files:
+        - path: "${P}/sspi-reqobj-page.html"
+          body: |
+            <!DOCTYPE html>
+            <html xmlns:p="https://pagelove.org/1.0">
+            <body>
+              <section p:template="text/liquid">
+                <p>Method: {{ request.method }}</p>
+                <p>Path: {{ request.path }}</p>
+              </section>
+            </body>
+            </html>
+      rules:
+        - {actor: "*", resource: "${P}/*", method: [GET, HEAD], action: Allow}
+    steps:
+      - as: anonymous
+        request: {method: GET, path: "${P}/sspi-reqobj-page.html"}
+        expect:
+          status: 200
+          body_contains: ["<p>Method: GET</p>", "<p>Path: ${P}/sspi-reqobj-page.html</p>"]
+          body_not_contains: ["p:template", "{{"]
+
+  - id: comp.tpl.host-element-kept
+    title: The template host element keeps its tag and attributes; only its content is replaced
+    area: composing
+    feature: templating
+    evidence: demo-source
+    source: "pagelove-kanban/site/app.js@85109ab:139,653; docs reference/protocol/QUERY §Sessel mode result '<main class=\"calc\">5</main>'; live-observed blog.pagelove.com section.excerpts ([OBS])"
+    confidence: high
+    requires: [liquid]
+    live: true
+    notes: "R-COMP-51."
+    site:
+      settings: {default_get: allow}
+      files:
+        - path: "${P}/page.html"
+          body: |
+            <!DOCTYPE html>
+            <html xmlns:p="https://pagelove.org/1.0">
+            <body><section id="host" class="excerpts" data-x="1" p:template="text/liquid">{{ 2 | plus: 3 }}</section></body>
+            </html>
+      rules:
+        - {actor: "*", resource: "${P}/*", method: [GET, HEAD], action: Allow}
+    steps:
+      - as: anonymous
+        request:
+          method: GET
+          path: "${P}/page.html"
+          headers: {Range: "selector=section#host.excerpts[data-x='1']"}
+        expect:
+          status: 206
+          body_matches: '>\s*5\s*</section>'
+          body_not_contains: ["p:template", "plus"]
+
+  - id: comp.tpl.html-root-template
+    title: A template on <html> renders Liquid in <head> and <body> with shared variables
+    area: composing
+    feature: templating
+    evidence: demo-source
+    source: "pagelove-polls/site/templates/new-poll.html@c9270e5:2-9"
+    confidence: medium
+    requires: [liquid]
+    live: true
+    site:
+      settings: {default_get: allow}
+      files:
+        - path: "${P}/page.html"
+          body: |
+            <!DOCTYPE html>
+            <html lang="en" xmlns:p="https://pagelove.org/1.0" p:template="text/liquid">
+            <head><title>{% assign t = "Rooted" %}{{ t }} page</title></head>
+            <body><h1>{{ t }}</h1></body>
+            </html>
+      rules:
+        - {actor: "*", resource: "${P}/*", method: [GET, HEAD], action: Allow}
+    steps:
+      - as: anonymous
+        request: {method: GET, path: "${P}/page.html"}
+        expect:
+          status: 200
+          body_contains: ["<title>Rooted page</title>", "<h1>Rooted</h1>", '<html lang="en">']
+
+  - id: comp.tpl.liquid-in-table-rows
+    title: Liquid loops inside table rows render in place (no foster parenting of template text)
+    area: composing
+    feature: parsing
+    evidence: demo-source
+    source: "pagelove-polls/site/templates/new-poll.html@c9270e5:56-84 and stored result site/polls/kfd47o4zqd.html:57-72"
+    confidence: medium
+    requires: [liquid]
+    live: true
+    notes: "R-COMP-5/8. Contradiction C-2: an April 2026 agent skill says this breaks."
+    site:
+      settings: {default_get: allow}
+      files:
+        - path: "${P}/page.html"
+          body: |
+            <!DOCTYPE html>
+            <html xmlns:p="https://pagelove.org/1.0">
+            <body>
+            <table id="g" p:template="text/liquid">
+              <tr>
+                {% assign opts = "a,b,c" | split: "," %}
+                {% for o in opts %}
+                <td>{{ o }}</td>
+                {% endfor %}
+              </tr>
+            </table>
+            </body>
+            </html>
+      rules:
+        - {actor: "*", resource: "${P}/*", method: [GET, HEAD], action: Allow}
+    steps:
+      - as: anonymous
+        request:
+          method: GET
+          path: "${P}/page.html"
+          headers: {Range: "selector=table#g td:nth-child(3)"}
+        expect:
+          status: 206
+          body_contains: ["<td>c</td>"]
+
+  - id: comp.tpl.filter-error-inline
+    title: A failing output filter renders an inline Error element and the page still composes
+    area: composing
+    feature: templating errors
+    evidence: documented
+    source: "docs languages/liquid/filters §When a filter errors (snapshot 2026-09-28)"
+    confidence: medium
+    requires: [liquid]
+    live: true
+    notes: "R-COMP-53."
+    site:
+      settings: {default_get: allow}
+      files:
+        - path: "${P}/page.html"
+          body: |
+            <!DOCTYPE html>
+            <html xmlns:p="https://pagelove.org/1.0">
+            <body><div p:template="text/liquid"><p id="bad">{{ "not a date" | date: "%Y" }}</p><p id="ok">still here</p></div></body>
+            </html>
+      rules:
+        - {actor: "*", resource: "${P}/*", method: [GET, HEAD], action: Allow}
+    steps:
+      - as: anonymous
+        request: {method: GET, path: "${P}/page.html"}
+        expect:
+          status: 200
+          body_contains: ['<p id="ok">still here</p>', "https://pagelove.org/Error"]
+
+  - id: comp.tpl.output-is-composed
+    title: Directives produced by a template are composed after rendering
+    area: composing
+    feature: templating
+    evidence: inferred
+    source: "docs reference/composing-pages/Method-Elements §How the result becomes HTML ('Composition recurses'); languages/liquid/templating §Includes and templates together (snapshot 2026-09-28)"
+    confidence: low
+    requires: [liquid]
+    live: true
+    notes: "R-COMP-51. The include's selector is itself produced by Liquid."
+    site:
+      settings: {default_get: allow}
+      files:
+        - path: "${P}/frag.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body><aside id="frag">FRAGMENT-TEXT</aside></body></html>
+        - path: "${P}/page.html"
+          body: |
+            <!DOCTYPE html>
+            <html xmlns:p="https://pagelove.org/1.0">
+            <body><div id="host" p:template="text/liquid">{% assign sel = "#frag" %}<p:include resource="${P}/frag.html" selector="{{ sel }}"></p:include></div></body>
+            </html>
+      rules:
+        - {actor: "*", resource: "${P}/*", method: [GET, HEAD], action: Allow}
+    steps:
+      - as: anonymous
+        request: {method: GET, path: "${P}/page.html"}
+        expect:
+          status: 200
+          body_contains: ['<aside id="frag">FRAGMENT-TEXT</aside>']
+          body_not_contains: ["p:include"]
+
+  - id: comp.tpl.request-headers-private
+    title: A template that reads request.headers is served private
+    area: composing
+    feature: caching
+    evidence: demo-source
+    source: "pagelove-shop/site/partials.html@d887054:20; docs reference/composing-pages/JavaScript-Expression-Binding §Caching (request.headers is per-user) (snapshot 2026-09-28)"
+    confidence: high
+    requires: [liquid]
+    live: true
+    notes: "R-COMP-24/150."
+    site:
+      settings: {default_get: allow}
+      files:
+        - path: "${P}/page.html"
+          body: |
+            <!DOCTYPE html>
+            <html xmlns:p="https://pagelove.org/1.0">
+            <body><nav><span p:template="text/liquid">{% if request.headers.authorization %}ADMIN-LINKS{% else %}SHOPPER-VIEW{% endif %}</span></nav></body>
+            </html>
+      rules:
+        - {actor: "*", resource: "${P}/*", method: [GET, HEAD], action: Allow}
+    steps:
+      - as: anonymous
+        request: {method: GET, path: "${P}/page.html"}
+        expect:
+          status: 200
+          body_contains: ["SHOPPER-VIEW"]
+          body_not_contains: ["ADMIN-LINKS"]
+          header_contains: {Cache-Control: private}
+
+  - id: comp.tpl.undeclared-pagelove-prefix
+    title: "An undeclared pagelove: prefix is treated as the Pagelove 1.0 namespace"
+    area: composing
+    feature: namespace prefixes
+    evidence: documented
+    source: "docs reference/composing-pages/Expression-Binding, JavaScript-Expression-Binding and languages/liquid/templating examples use pagelove:template with no visible declaration (snapshot 2026-09-28)"
+    confidence: low
+    requires: [liquid]
+    live: true
+    notes: "R-COMP-12 compat decision; contradicts Resource-Binding 'must also be enabled by declaring' (C-1). Probe Q-1."
+    site:
+      settings: {default_get: allow}
+      files:
+        - path: "${P}/page.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body><div id="u" pagelove:template="text/liquid">[{{ 40 | plus: 2 }}]</div></body></html>
+      rules:
+        - {actor: "*", resource: "${P}/*", method: [GET, HEAD], action: Allow}
+    steps:
+      - as: anonymous
+        request: {method: GET, path: "${P}/page.html"}
+        expect:
+          status: 200
+          body_contains: ["[42]"]

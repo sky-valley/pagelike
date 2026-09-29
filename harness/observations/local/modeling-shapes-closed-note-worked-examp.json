@@ -1,0 +1,83 @@
+{
+  "case": "modeling.shapes-closed.note-worked-example",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (register declarations through the public plane (takes effect for the next request))",
+      "method": "PUT",
+      "path": "/_pl/modeling-shapes-closed-note-worked-examp-7948ed/shapes.html",
+      "status": 201,
+      "headers": {
+        "content-length": "439",
+        "content-type": "text/html",
+        "etag": "\"423ecb75ebf4f513df88e048a06ed1ef5421fa2e66ffd6ffc4a553d37ac95a35\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:44 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\n  \u003cdiv hidden itemscope itemtype=\"https://pagelove.org/ShapeConstraint\"\u003e\n    \u003cmeta itemprop=\"resource\" content=\"/_pl/modeling-shapes-closed-note-worked-examp-7948ed/notes/*\"\u003e\n    \u003ccode itemprop=\"selector\"\u003earticle[itemtype*=Note]\u003c/code\u003e\n    \u003ccode itemprop=\"permit\"\u003e[id]\u003c/code\u003e\n    \u003ccode itemprop=\"permit\"\u003e[itemprop=\"title\"]\u003c/code\u003e\n    \u003ccode itemprop=\"permit\"\u003e[itemprop=\"content\"]\u003c/code\u003e\n  \u003c/div\u003e\n\u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 2 (fully permitted note accepted)",
+      "method": "PUT",
+      "path": "/_pl/modeling-shapes-closed-note-worked-examp-7948ed/notes/n1.html",
+      "status": 201,
+      "headers": {
+        "content-length": "191",
+        "content-type": "text/html",
+        "etag": "\"67e8c66578f257ca2b109ce3829120950ea7517f5382eb1bb0bb414938914264\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:44 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\n  \u003carticle itemtype=\"https://schema.org/Note\" id=\"n1\"\u003e\n    \u003ch2 itemprop=\"title\"\u003eMy Note\u003c/h2\u003e\n    \u003cp itemprop=\"content\"\u003eSome text.\u003c/p\u003e\n  \u003c/article\u003e\n\u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 3 (note with an img rejected)",
+      "method": "PUT",
+      "path": "/_pl/modeling-shapes-closed-note-worked-examp-7948ed/notes/n2.html",
+      "status": 422,
+      "headers": {
+        "content-length": "407",
+        "content-type": "text/html",
+        "vary": "Host, Range"
+      },
+      "body": "\u003cdiv itemscope itemtype=\"https://dombase.pagelove.team/ns/error/ShapeConstraint\"\u003e\u003cul itemprop=\"problems\"\u003e\u003cli itemprop=\"problem\"\u003e\u003cspan itemprop=\"message\"\u003eShape constraints violated\u003c/span\u003e\u003c/li\u003e\u003cli itemprop=\"problem\"\u003e\u003cspan itemprop=\"message\"\u003ehttps://pagelove.org/ShapeConstraint article[itemtype*=Note]: Element \u0026lt;img\u0026gt; inside 'article[itemtype*=Note]' is not permitted by any permit\u003c/span\u003e\u003c/li\u003e\u003c/ul\u003e\u003c/div\u003e"
+    },
+    {
+      "step": "step 4 (note with onclick on the title rejected)",
+      "method": "PUT",
+      "path": "/_pl/modeling-shapes-closed-note-worked-examp-7948ed/notes/n3.html",
+      "status": 422,
+      "headers": {
+        "content-length": "436",
+        "content-type": "text/html",
+        "vary": "Host, Range"
+      },
+      "body": "\u003cdiv itemscope itemtype=\"https://dombase.pagelove.team/ns/error/ShapeConstraint\"\u003e\u003cul itemprop=\"problems\"\u003e\u003cli itemprop=\"problem\"\u003e\u003cspan itemprop=\"message\"\u003eShape constraints violated\u003c/span\u003e\u003c/li\u003e\u003cli itemprop=\"problem\"\u003e\u003cspan itemprop=\"message\"\u003ehttps://pagelove.org/ShapeConstraint article[itemtype*=Note]: Attribute \u0026lt;onclick\u0026gt; on \u0026lt;h2\u0026gt; inside 'article[itemtype*=Note]' is not permitted by any matching permit\u003c/span\u003e\u003c/li\u003e\u003c/ul\u003e\u003c/div\u003e"
+    },
+    {
+      "step": "step 5 (note with a class on the root rejected)",
+      "method": "PUT",
+      "path": "/_pl/modeling-shapes-closed-note-worked-examp-7948ed/notes/n4.html",
+      "status": 422,
+      "headers": {
+        "content-length": "459",
+        "content-type": "text/html",
+        "vary": "Host, Range"
+      },
+      "body": "\u003cdiv itemscope itemtype=\"https://dombase.pagelove.team/ns/error/ShapeConstraint\"\u003e\u003cul itemprop=\"problems\"\u003e\u003cli itemprop=\"problem\"\u003e\u003cspan itemprop=\"message\"\u003eShape constraints violated\u003c/span\u003e\u003c/li\u003e\u003cli itemprop=\"problem\"\u003e\u003cspan itemprop=\"message\"\u003ehttps://pagelove.org/ShapeConstraint article[itemtype*=Note]: Attribute \u0026lt;class\u0026gt; on \u0026lt;article\u0026gt; matched by 'article[itemtype*=Note]' is not permitted by the selector or any matching permit\u003c/span\u003e\u003c/li\u003e\u003c/ul\u003e\u003c/div\u003e"
+    },
+    {
+      "step": "step 6 (n2.html was not stored)",
+      "method": "GET",
+      "path": "/_pl/modeling-shapes-closed-note-worked-examp-7948ed/notes/n2.html",
+      "status": 404,
+      "headers": {
+        "content-length": "217",
+        "content-type": "text/html; charset=utf-8"
+      },
+      "body": "\u003carticle itemscope itemtype=\"https://pagelove.org/Error/NotFound\"\u003e\u003cmeta itemprop=\"status\" content=\"404\"\u003e\u003cp itemprop=\"message\"\u003eNot found: /_pl/modeling-shapes-closed-note-worked-examp-7948ed/notes/n2.html\u003c/p\u003e\u003c/article\u003e"
+    }
+  ],
+  "outcome": "pass",
+  "target": "local"
+}

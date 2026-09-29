@@ -1,0 +1,55 @@
+{
+  "case": "reacting.filters.omitted-filters-match-all",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (install a method-less trigger)",
+      "method": "PUT",
+      "path": "/_pl/reacting-filters-omitted-filters-match-a-008b57/r/triggers.html",
+      "status": 201,
+      "headers": {
+        "content-length": "495",
+        "content-type": "text/html",
+        "etag": "\"4e96af44b35119457d8ca904f93ceb7ac31e3a53305097d0626042e9d6c86957\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:48 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\n\u003cdiv hidden itemscope itemtype=\"https://pagelove.org/Trigger\"\u003e\n  \u003cmeta itemprop=\"resource\" content=\"/_pl/reacting-filters-omitted-filters-match-a-008b57/d/*\"\u003e\n  \u003cdiv itemprop=\"action\" itemscope itemtype=\"https://pagelove.org/Sessel\"\u003e\n    \u003cscript itemprop=\"source\" type=\"text/sessel\"\u003e\n      @schema HTTPResponse url(\"https://pagelove.org/HTTPResponse\");\n      throw new HTTPResponse { status: 409, message: \"any-method\" }\n    \u003c/script\u003e\n  \u003c/div\u003e\n\u003c/div\u003e\n\u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 2 (GET matches)",
+      "method": "GET",
+      "path": "/_pl/reacting-filters-omitted-filters-match-a-008b57/d/doc.html",
+      "status": 409,
+      "headers": {
+        "content-length": "10",
+        "content-type": "text/html; charset=utf-8"
+      },
+      "body": "any-method"
+    },
+    {
+      "step": "step 3 (PUT matches)",
+      "method": "PUT",
+      "path": "/_pl/reacting-filters-omitted-filters-match-a-008b57/d/doc.html",
+      "status": 409,
+      "headers": {
+        "content-length": "10",
+        "content-type": "text/html; charset=utf-8"
+      },
+      "body": "any-method"
+    },
+    {
+      "step": "step 4 (DELETE matches)",
+      "method": "DELETE",
+      "path": "/_pl/reacting-filters-omitted-filters-match-a-008b57/d/doc.html",
+      "status": 409,
+      "headers": {
+        "content-length": "10",
+        "content-type": "text/html; charset=utf-8"
+      },
+      "body": "any-method"
+    }
+  ],
+  "outcome": "pass",
+  "target": "local"
+}

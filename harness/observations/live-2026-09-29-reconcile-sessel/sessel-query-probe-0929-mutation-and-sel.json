@@ -1,0 +1,134 @@
+{
+  "case": "sessel.query.probe-0929.mutation-and-selector",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (insertBefore a child from children())",
+      "method": "QUERY",
+      "path": "/_pl/sessel-query-probe-0929-mutation-and-sel-f15deb/doc.html",
+      "status": 200,
+      "headers": {
+        "accept-ranges": "bytes",
+        "content-length": "32",
+        "content-type": "application/sessel+json",
+        "vary": "Host, Range"
+      },
+      "body": "\"\u003cli\u003ea\u003c/li\u003e\u003cli\u003eb\u003c/li\u003e\u003cli\u003ec\u003c/li\u003e\""
+    },
+    {
+      "step": "step 2 (insertBefore a sub-selected reference (caught))",
+      "method": "QUERY",
+      "path": "/_pl/sessel-query-probe-0929-mutation-and-sel-f15deb/doc.html",
+      "status": 200,
+      "headers": {
+        "accept-ranges": "bytes",
+        "content-length": "106",
+        "content-type": "application/sessel+json",
+        "vary": "Host, Range"
+      },
+      "body": "[\"TypeError\",\"type error: insertBefore() reference must be a mutable child element, not a stored element\"]"
+    },
+    {
+      "step": "step 3 (setter on a sub-selected element of a constructed tree)",
+      "method": "QUERY",
+      "path": "/_pl/sessel-query-probe-0929-mutation-and-sel-f15deb/doc.html",
+      "status": 400,
+      "headers": {
+        "content-length": "398",
+        "content-type": "text/html",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\n  \u003chead\u003e\n    \u003ctitle\u003e400 Bad Request - Error\u003c/title\u003e\n  \u003c/head\u003e\n  \u003cbody itemscope itemtype=\"http://pagelove.org/Error\"\u003e\n    \u003ch1 itemprop=\"name\"\u003eBad Request\u003c/h1\u003e\n    \u003cmeta itemprop=\"statusCode\" content=\"400\"\u003e\n    \u003cp itemprop=\"description\"\u003eSessel evaluation error: type error: text(value) setter requires a constructed element, got element (at bytes 65..68)\u003c/p\u003e\n  \u003c/body\u003e\n\u003c/html\u003e"
+    },
+    {
+      "step": "step 4 (remove on a sub-selected element (docs example))",
+      "method": "QUERY",
+      "path": "/_pl/sessel-query-probe-0929-mutation-and-sel-f15deb/doc.html",
+      "status": 200,
+      "headers": {
+        "accept-ranges": "bytes",
+        "content-length": "14",
+        "content-type": "application/sessel+json",
+        "vary": "Host, Range"
+      },
+      "body": "\"\u003cp\u003eHello\u003c/p\u003e\""
+    },
+    {
+      "step": "step 5 (replaceWith on a sub-selected element (docs example))",
+      "method": "QUERY",
+      "path": "/_pl/sessel-query-probe-0929-mutation-and-sel-f15deb/doc.html",
+      "status": 400,
+      "headers": {
+        "content-length": "395",
+        "content-type": "text/html",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\n  \u003chead\u003e\n    \u003ctitle\u003e400 Bad Request - Error\u003c/title\u003e\n  \u003c/head\u003e\n  \u003cbody itemscope itemtype=\"http://pagelove.org/Error\"\u003e\n    \u003ch1 itemprop=\"name\"\u003eBad Request\u003c/h1\u003e\n    \u003cmeta itemprop=\"statusCode\" content=\"400\"\u003e\n    \u003cp itemprop=\"description\"\u003eSessel evaluation error: type error: replaceWith() cannot be used on stored (immutable) elements (at bytes 91..96)\u003c/p\u003e\n  \u003c/body\u003e\n\u003c/html\u003e"
+    },
+    {
+      "step": "step 6 (setter on a child from children())",
+      "method": "QUERY",
+      "path": "/_pl/sessel-query-probe-0929-mutation-and-sel-f15deb/doc.html",
+      "status": 200,
+      "headers": {
+        "accept-ranges": "bytes",
+        "content-length": "10",
+        "content-type": "application/sessel+json",
+        "vary": "Host, Range"
+      },
+      "body": "\"\u003cp\u003ey\u003c/p\u003e\""
+    },
+    {
+      "step": "step 7 (remove and setter on a queried element)",
+      "method": "QUERY",
+      "path": "/_pl/sessel-query-probe-0929-mutation-and-sel-f15deb/doc.html",
+      "status": 200,
+      "headers": {
+        "accept-ranges": "bytes",
+        "content-length": "85",
+        "content-type": "application/sessel+json",
+        "vary": "Host, Range"
+      },
+      "body": "[null,\"type error: text(value) setter requires a constructed element, got element\",1]"
+    },
+    {
+      "step": "step 8 (Selector without @schema)",
+      "method": "QUERY",
+      "path": "/_pl/sessel-query-probe-0929-mutation-and-sel-f15deb/doc.html",
+      "status": 200,
+      "headers": {
+        "content-type": "text/html",
+        "vary": "Host, Range"
+      },
+      "body": "\u003cselector\u003eh1\u003c/selector\u003e"
+    },
+    {
+      "step": "step 9 (Selector with @schema, execute() and toString())",
+      "method": "QUERY",
+      "path": "/_pl/sessel-query-probe-0929-mutation-and-sel-f15deb/doc.html",
+      "status": 200,
+      "headers": {
+        "accept-ranges": "bytes",
+        "content-length": "8",
+        "content-type": "application/sessel+json",
+        "vary": "Host, Range"
+      },
+      "body": "[1,\"h1\"]"
+    },
+    {
+      "step": "step 10 (Selector with @schema, positional CSS, execute(path))",
+      "method": "QUERY",
+      "path": "/_pl/sessel-query-probe-0929-mutation-and-sel-f15deb/doc.html",
+      "status": 200,
+      "headers": {
+        "accept-ranges": "bytes",
+        "content-length": "15",
+        "content-type": "application/sessel+json",
+        "vary": "Host, Range"
+      },
+      "body": "[0,0,\"Welcome\"]"
+    }
+  ],
+  "outcome": "pass",
+  "target": "live"
+}

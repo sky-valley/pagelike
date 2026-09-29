@@ -1,0 +1,36 @@
+{
+  "case": "javascript.dom.inner-outer-adjacent-html",
+  "failures": [
+    "step 2 (GET \u003cmain\u003e: the method result is inserted as text) GET ${P}/probe.html: status 500, want [206] (body: \u003c!DOCTYPE html\u003e\n\u003chtml\u003e\n  \u003chead\u003e\n    \u003ctitle\u003e500 Internal Server Error - Error\u003c/title\u003e\n  \u003c/head\u003e\n  \u003cbody itemscope itemtype=\"http://pagelove.org/Error\"\u003e\n    \u003ch1 itemprop=\"name\"\u003eInternal Server Error\u003c/h1\u003e\n    \u003cmeta itemprop=\"statusCode\" conten…)",
+    "step 2 (GET \u003cmain\u003e: the method result is inserted as text) GET ${P}/probe.html: body does not contain \"R:[p]Old[/p]|[p]Loaded.[/p]|[ul id='l'][li]1[/li][/ul]|SECTION,HR,UL,BR|0,1,2|SyntaxError|ok|NoModificationAllowedError|S|0\" (body: \u003c!DOCTYPE html\u003e\n\u003chtml\u003e\n  \u003chead\u003e\n    \u003ctitle\u003e500 Internal Server Error - Error\u003c/title\u003e\n  \u003c/head\u003e\n  \u003cbody itemscope itemtype=\"http://pagelove.org/Error\"\u003e\n    \u003ch1 itemprop=\"name\"\u003eInternal Server Error\u003c/h1\u003e\n    \u003cmeta itemprop=\"statusCode\" content=\"500\"\u003e\n    \u003cp itemprop=\"description\"\u003eComposition failed: internal error: JS method \u0026#x27;probe\u0026#x27; failed: javascript/module binding threw: cannot read prop…)"
+  ],
+  "observations": [
+    {
+      "step": "step 1 (PUT the page (public plane; registers inline declarations))",
+      "method": "PUT",
+      "path": "/_pl/javascript-dom-inner-outer-adjacent-html-b07eec/probe.html",
+      "status": 201,
+      "headers": {
+        "content-type": "text/html",
+        "etag": "\"9384fc5453fa54abd8b3d676ab47bdfdf340ca896d345a3ec2c515672e5ed1b0\"",
+        "last-modified": "Tue, 29 Sep 2026 00:46:27 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml xmlns:t=\"https://pagelike.test/_pl/javascript-dom-inner-outer-adjacent-html-b07eec/Dinnerouteradjacenthtml\"\u003e\u003cbody\u003e\n\u003cmain\u003e\n\u003ct:probe\u003e\u003c/t:probe\u003e\n\u003c/main\u003e\n\u003cdiv hidden itemscope itemtype=\"https://pagelove.org/Schema\"\u003e\n\u003cmeta itemprop=\"type\" content=\"https://pagelike.test/_pl/javascript-dom-inner-outer-adjacent-html-b07eec/Dinnerouteradjacenthtml\"\u003e\n\u003cul\u003e\n\u003cli itemprop=\"property\" itemscope itemtype=\"https://pagelove.org/Method\"\u003e\n\u003cmeta itemprop=\"name\" content=\"probe\"\u003e\n\u003cdiv itemprop=\"implementation\" itemscope itemtype=\"https://pagelove.org/JavaScript/Module\"\u003e\n\u003cscript itemprop=\"source\" type=\"module\"\u003e\nconst S = (...a) =\u003e a.map(String).join('|');\nconst H = (x) =\u003e String(x).replace(/[\u003c\u003e\"]/g, (c) =\u003e ({ '\u003c': '[', '\u003e': ']', '\"': \"'\" })[c]);\nconst tryName = (f) =\u003e { try { f(); return 'ok'; } catch (e) { return e.name + ':' + e.code; } };\nexport default function () {\nconst d = new DOMParser().parseFromString('\u003csection id=\"s\"\u003e\u003cp\u003eOld\u003c/p\u003e\u003c/section\u003e\u003cul id=\"l\"\u003e\u003cli\u003e1\u003c/li\u003e\u003c/ul\u003e', 'text/html');\nconst s = d.querySelector('#s'), l = d.querySelector('#l');\nconst i1 = s.innerHTML; s.innerHTML = '\u003cp\u003eLoaded.\u003c/p\u003e'; const i2 = s.innerHTML;\nconst o1 = l.outerHTML;\nl.insertAdjacentHTML('beforeend', '\u003cli\u003e2\u003c/li\u003e'); l.insertAdjacentHTML('AfterBegin', '\u003cli\u003e0\u003c/li\u003e');\nl.insertAdjacentHTML('beforebegin', '\u003chr\u003e'); l.insertAdjacentHTML('afterend', '\u003cbr\u003e');\nconst seq = Array.from(d.body.children, (e) =\u003e e.tagName).join(',');\nconst items = Array.from(l.children, (e) =\u003e e.textContent).join(',');\nlet bad = 'no-throw'; try { l.insertAdjacentHTML('middle', '\u003cli\u003ex\u003c/li\u003e'); } catch (e) { bad = e.name; }\nconst det = d.createElement('div'); let nop = 'ok'; try { det.insertAdjacentHTML('beforebegin', '\u003ci\u003ex\u003c/i\u003e'); } catch (e) { nop = e.name; }\nlet orphan = 'no-throw'; try { det.outerHTML = '\u003cb\u003ex\u003c/b\u003e'; } catch (e) { orphan = e.name; }\nd.querySelector('hr').outerHTML = '\u003cspan id=\"sp\"\u003eS\u003c/span\u003e';\nreturn 'R:' + S(H(i1), H(i2), H(o1), seq, items, bad, nop, orphan, d.querySelector('#sp').textContent, d.querySelectorAll('hr').length);\n}\n\u003c/script\u003e\n\u003c/div\u003e\n\u003c/li\u003e\n\u003c/ul\u003e\n\u003cmeta itemprop=\"@id\" content=\"https://schema.host/zfx1h0y5\"\u003e\u003cmeta itemprop=\"path\" content=\"/Schemahttps://schema.host/zfx1h0y5.html\"\u003e\u003c/div\u003e\n\n                \u003cdiv style=\"\n                            position: fixed;\n                            bottom: 0;\n                            left: 0;\n                            right: 0;\n                            padding: 8px;\n                            background: #f0f0f0;\n                            text-align: center;\n                            font-size: 12px;\n                            color: #666;\n                            z-index: 9999;\n                            opacity: 0.8;\n                            border-top: 1px solid #ddd;\n                        \"\u003e\n                    Powered by\n                    \u003ca href=\"https://pagelove.com/\" style=\"color: #4a90d9; text-decoration: none\"\u003ePagelove\u003c/a\u003e\n                \u003c/div\u003e\n            \u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 2 (GET \u003cmain\u003e: the method result is inserted as text)",
+      "method": "GET",
+      "path": "/_pl/javascript-dom-inner-outer-adjacent-html-b07eec/probe.html",
+      "status": 500,
+      "headers": {
+        "content-length": "455",
+        "content-type": "text/html",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\n  \u003chead\u003e\n    \u003ctitle\u003e500 Internal Server Error - Error\u003c/title\u003e\n  \u003c/head\u003e\n  \u003cbody itemscope itemtype=\"http://pagelove.org/Error\"\u003e\n    \u003ch1 itemprop=\"name\"\u003eInternal Server Error\u003c/h1\u003e\n    \u003cmeta itemprop=\"statusCode\" content=\"500\"\u003e\n    \u003cp itemprop=\"description\"\u003eComposition failed: internal error: JS method \u0026#x27;probe\u0026#x27; failed: javascript/module binding threw: cannot read property \u0026#x27;children\u0026#x27; of null\u003c/p\u003e\n  \u003c/body\u003e\n\u003c/html\u003e"
+    }
+  ],
+  "outcome": "fail",
+  "target": "live"
+}

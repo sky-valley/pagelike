@@ -1,0 +1,457 @@
+# Composing: <p:stamp> and write-through of stamped elements.
+# Spec: docs/spec/composing.md §11 (R-COMP-70..76), §13 (R-COMP-90..95).
+cases:
+  - id: comp.stamp.expression-value
+    title: p:stamp emits the value an expression binding wrote to Context
+    area: composing
+    feature: stamp
+    evidence: documented
+    source: "docs reference/composing-pages/Stamp §Example (snapshot 2026-09-28)"
+    confidence: high
+    requires: [sessel]
+    live: true
+    notes: "The docs example also stores an inline AuthorizationRule for '/*'; the rules shorthand replaces it here."
+    site:
+      settings: {default_get: allow}
+      files:
+        - path: "${P}/stamp-demo.html"
+          body: |
+            <!DOCTYPE html>
+            <html xmlns:e="https://pagelove.org/Binding/Sessel" xmlns:p="https://pagelove.org/1.0">
+              <body e:greeting="'hello from a binding'">
+                <main>
+                  <p:stamp greeting></p:stamp>
+                </main>
+              </body>
+            </html>
+      rules:
+        - {actor: "*", resource: "${P}/*", method: [GET, HEAD], action: Allow}
+    steps:
+      - as: anonymous
+        request:
+          method: GET
+          path: "${P}/stamp-demo.html"
+          headers: {Range: "selector=main"}
+        expect:
+          status: 206
+          body_contains: ["hello from a binding"]
+          body_not_contains: ["p:stamp"]
+
+  - id: comp.stamp.absent-removed
+    title: A stamp whose names have no Context value is removed
+    area: composing
+    feature: stamp
+    evidence: documented
+    source: "docs reference/composing-pages/Stamp §How the result is emitted, §Error cases (snapshot 2026-09-28)"
+    confidence: high
+    requires: []
+    live: true
+    site:
+      settings: {default_get: allow}
+      files:
+        - path: "${P}/page.html"
+          body: |
+            <!DOCTYPE html>
+            <html xmlns:p="https://pagelove.org/1.0">
+            <body><main><p:stamp nothing missing>inner</p:stamp><p>after</p></main></body>
+            </html>
+      rules:
+        - {actor: "*", resource: "${P}/*", method: [GET, HEAD], action: Allow}
+    steps:
+      - as: anonymous
+        request:
+          method: GET
+          path: "${P}/page.html"
+          headers: {Range: "selector=main"}
+        expect:
+          status: 206
+          body_contains: ["<p>after</p>"]
+          body_not_contains: ["p:stamp", "inner"]
+
+  - id: comp.stamp.multiple-names-order
+    title: Several names are emitted in attribute order
+    area: composing
+    feature: stamp
+    evidence: documented
+    source: "docs reference/composing-pages/Stamp §Form, §How the result is emitted ('in attribute order') (snapshot 2026-09-28)"
+    confidence: medium
+    requires: [sessel]
+    live: true
+    site:
+      settings: {default_get: allow}
+      files:
+        - path: "${P}/page.html"
+          body: |
+            <!DOCTYPE html>
+            <html xmlns:e="https://pagelove.org/Binding/Sessel" xmlns:p="https://pagelove.org/1.0">
+            <body e:a="'AAA'" e:b="'BBB'"><main><p:stamp b a></p:stamp></main></body>
+            </html>
+      rules:
+        - {actor: "*", resource: "${P}/*", method: [GET, HEAD], action: Allow}
+    steps:
+      - as: anonymous
+        request:
+          method: GET
+          path: "${P}/page.html"
+          headers: {Range: "selector=main"}
+        expect:
+          status: 206
+          body_matches: 'BBB[\s\S]*AAA'
+
+  - id: comp.stamp.element-origin-kept
+    title: A stamped record is spliced with all its attributes, including id
+    area: composing
+    feature: stamp
+    evidence: live-observed
+    source: "[OBS] blog.pagelove.com_posts_the-shape-of-pagelove.html.html:57-58; docs learn/build-a-blog §One page for every post (snapshot 2026-09-28)"
+    confidence: high
+    requires: [sessel]
+    live: true
+    site:
+      settings: {default_get: allow}
+      files:
+        - path: "${P}/data/rec.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+            <article id="rec-1" class="rec" data-origin="yes" itemscope itemtype="https://example.test${P}/Rec"><h1 itemprop="title">Record One</h1></article>
+            </body></html>
+        - path: "${P}/page.html"
+          body: |
+            <!DOCTYPE html>
+            <html xmlns:e="https://pagelove.org/Binding/Sessel" xmlns:p="https://pagelove.org/1.0">
+            <body e:rec="${[itemtype='https://example.test${P}/Rec']}.first()"><main><p:stamp rec></p:stamp></main></body>
+            </html>
+      rules:
+        - {actor: "*", resource: "${P}/*", method: [GET, HEAD], action: Allow}
+    steps:
+      - as: anonymous
+        request:
+          method: GET
+          path: "${P}/page.html"
+          headers: {Range: "selector=main > article#rec-1.rec[data-origin=yes]"}
+        expect:
+          status: 206
+          body_contains: ["Record One"]
+
+  - id: comp.stamp.from-denied-source
+    title: A record from a folder the reader cannot GET is still stamped
+    area: composing
+    feature: stamp
+    evidence: demo-source
+    source: "pagelove-shop/site/orders/:id.html@d887054:10-17, site/rules.html:31-38; docs learn/build-a-blog §Locking the data folder (snapshot 2026-09-28)"
+    confidence: high
+    requires: [sessel]
+    live: true
+    site:
+      settings: {default_get: allow}
+      files:
+        - path: "${P}/data/rec.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body><article id="rec-1" itemscope itemtype="https://example.test${P}/Rec"><h1 itemprop="title">Private Record</h1></article></body></html>
+        - path: "${P}/page.html"
+          body: |
+            <!DOCTYPE html>
+            <html xmlns:e="https://pagelove.org/Binding/Sessel" xmlns:p="https://pagelove.org/1.0">
+            <body e:rec="${[itemtype='https://example.test${P}/Rec']}.first()"><main><p:stamp rec></p:stamp></main></body>
+            </html>
+      rules:
+        - {actor: "*", resource: "${P}/*", method: [GET, HEAD], action: Allow}
+        - {actor: "*", resource: "${P}/data/*", method: [GET, HEAD], action: Deny}
+    steps:
+      - name: direct read refused
+        as: anonymous
+        request: {method: GET, path: "${P}/data/rec.html"}
+        expect: {status: [401, 403]}
+      - name: stamped read allowed
+        as: anonymous
+        request: {method: GET, path: "${P}/page.html"}
+        expect: {status: 200, body_contains: ["Private Record"]}
+
+  - id: comp.stamp.unknown-pagelove-method-500
+    title: An unknown element on the Pagelove namespace fails with 500
+    area: composing
+    feature: stamp
+    evidence: documented
+    source: "docs reference/composing-pages/Stamp §Error cases ('unknown method … on Pagelove namespace') (snapshot 2026-09-28)"
+    confidence: high
+    requires: []
+    live: true
+    site:
+      settings: {default_get: allow}
+      files:
+        - path: "${P}/page.html"
+          body: |
+            <!DOCTYPE html>
+            <html xmlns:p="https://pagelove.org/1.0"><body><main><p:unknown></p:unknown></main></body></html>
+      rules:
+        - {actor: "*", resource: "${P}/*", method: [GET, HEAD], action: Allow}
+    steps:
+      - as: anonymous
+        request: {method: GET, path: "${P}/page.html"}
+        expect: {status: 500}
+
+  - id: comp.stamp.wrong-p-namespace-500
+    title: p bound to a URI other than https://pagelove.org/1.0 makes <p:stamp> an unresolvable method element
+    area: composing
+    feature: stamp
+    evidence: documented
+    source: "docs reference/composing-pages/Stamp §Error cases; Method-Elements §Error cases (snapshot 2026-09-28)"
+    confidence: medium
+    requires: [sessel]
+    live: true
+    site:
+      settings: {default_get: allow}
+      files:
+        - path: "${P}/page.html"
+          body: |
+            <!DOCTYPE html>
+            <html xmlns:e="https://pagelove.org/Binding/Sessel" xmlns:p="https://pagelove.org/1.0/">
+            <body e:x="'v'"><main><p:stamp x></p:stamp></main></body>
+            </html>
+      rules:
+        - {actor: "*", resource: "${P}/*", method: [GET, HEAD], action: Allow}
+    steps:
+      - as: anonymous
+        request: {method: GET, path: "${P}/page.html"}
+        expect: {status: 500}
+
+  - id: comp.stamp.write-through-put
+    title: A selector PUT to a stamped element lands on the origin document; the page needs the rule, the origin none
+    area: composing
+    feature: write-through
+    evidence: documented
+    source: "docs reference/composing-pages/Stamp §Interaction with HTTP Document Mutation (snapshot 2026-09-28)"
+    confidence: high
+    requires: [sessel]
+    live: true
+    notes: "R-COMP-91/92. No rule grants PUT on the origin folder; GET on it is even denied."
+    site:
+      settings: {default_get: allow}
+      files:
+        - path: "${P}/data/rec.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+            <article id="rec-1" itemscope itemtype="https://example.test${P}/Rec"><h1 itemprop="title">Record One</h1></article>
+            </body></html>
+        - path: "${P}/page.html"
+          body: |
+            <!DOCTYPE html>
+            <html xmlns:e="https://pagelove.org/Binding/Sessel" xmlns:p="https://pagelove.org/1.0">
+            <body e:rec="${[itemtype='https://example.test${P}/Rec']}.first()"><main><p:stamp rec></p:stamp></main></body>
+            </html>
+      rules:
+        - {actor: "*", resource: "${P}/*", method: [GET, HEAD], action: Allow}
+        - {actor: "*", resource: "${P}/data/*", method: [GET, HEAD], action: Deny}
+        - {actor: "*", resource: "${P}/page.html", method: [PUT], action: Allow}
+    steps:
+      - name: write through the page
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/page.html"
+          headers: {Range: "selector=#rec-1 h1", Content-Type: "text/html"}
+          body: '<h1 itemprop="title">Record Two</h1>'
+        expect: {status: [200, 204, 206]}
+      - name: the origin changed
+        as: author
+        plane: dav
+        request: {method: GET, path: "${P}/data/rec.html"}
+        expect: {status: 200, body_contains: ["Record Two"], body_not_contains: ["Record One"]}
+      - name: the page document did not
+        as: author
+        plane: dav
+        request: {method: GET, path: "${P}/page.html"}
+        expect: {status: 200, body_contains: ["<p:stamp rec>"], body_not_contains: ["Record Two"]}
+      - name: the composed page shows the new value
+        as: anonymous
+        request: {method: GET, path: "${P}/page.html"}
+        expect: {status: 200, body_contains: ["Record Two"]}
+
+  - id: comp.stamp.write-through-post
+    title: A selector POST into a stamped list appends to the origin document
+    area: composing
+    feature: write-through
+    evidence: documented
+    source: "docs learn/build-a-blog §Letting readers comment; reference/reading-and-writing/POST-method §Concurrency note (snapshot 2026-09-28)"
+    confidence: high
+    requires: [sessel]
+    live: true
+    site:
+      settings: {default_get: allow}
+      files:
+        - path: "${P}/data/rec.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+            <article id="rec-1" itemscope itemtype="https://example.test${P}/Rec"><h1 itemprop="title">Record</h1><ul id="notes-1" itemprop="notes"></ul></article>
+            </body></html>
+        - path: "${P}/page.html"
+          body: |
+            <!DOCTYPE html>
+            <html xmlns:e="https://pagelove.org/Binding/Sessel" xmlns:p="https://pagelove.org/1.0">
+            <body e:rec="${[itemtype='https://example.test${P}/Rec']}.first()"><main><p:stamp rec></p:stamp></main></body>
+            </html>
+      rules:
+        - {actor: "*", resource: "${P}/*", method: [GET, HEAD], action: Allow}
+        - {actor: "*", resource: "${P}/page.html", method: [POST], selector: "[itemprop='notes']", action: Allow}
+    steps:
+      - as: anonymous
+        request:
+          method: POST
+          path: "${P}/page.html"
+          headers: {Range: "selector=#notes-1", Content-Type: "text/html"}
+          body: '<li class="note">first note</li>'
+        expect: {status: [200, 206]}
+      - as: author
+        plane: dav
+        request: {method: GET, path: "${P}/data/rec.html"}
+        expect: {status: 200, body_contains: ['<li class="note">first note</li>']}
+      - as: author
+        plane: dav
+        request: {method: GET, path: "${P}/page.html"}
+        expect: {status: 200, body_not_contains: ["first note"]}
+
+  - id: comp.stamp.write-through-delete
+    title: DELETE of a stamped record deletes the origin element, not the page or the whole origin document
+    area: composing
+    feature: write-through
+    evidence: documented
+    source: "docs reference/composing-pages/Stamp §Interaction ('a DELETE addressed at a record stamped … deletes the origin record') (snapshot 2026-09-28)"
+    confidence: high
+    requires: [sessel]
+    live: true
+    site:
+      settings: {default_get: allow}
+      files:
+        - path: "${P}/data/rec.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+            <article id="rec-1" itemscope itemtype="https://example.test${P}/Rec"><h1 itemprop="title">Record</h1></article>
+            <p id="keep">keep me</p>
+            </body></html>
+        - path: "${P}/page.html"
+          body: |
+            <!DOCTYPE html>
+            <html xmlns:e="https://pagelove.org/Binding/Sessel" xmlns:p="https://pagelove.org/1.0">
+            <body e:rec="${[itemtype='https://example.test${P}/Rec']}.first()"><main><p:stamp rec></p:stamp><p id="native">native</p></main></body>
+            </html>
+      rules:
+        - {actor: "*", resource: "${P}/*", method: [GET, HEAD], action: Allow}
+        - {actor: "*", resource: "${P}/page.html", method: [DELETE], action: Allow}
+    steps:
+      - as: anonymous
+        request:
+          method: DELETE
+          path: "${P}/page.html"
+          headers: {Range: "selector=#rec-1"}
+        expect: {status: [200, 204]}
+      - name: origin document survives without the record
+        as: author
+        plane: dav
+        request: {method: GET, path: "${P}/data/rec.html"}
+        expect: {status: 200, body_contains: ["keep me"], body_not_contains: ['id="rec-1"']}
+      - name: page document unchanged
+        as: author
+        plane: dav
+        request: {method: GET, path: "${P}/page.html"}
+        expect: {status: 200, body_contains: ["<p:stamp rec>", "native"]}
+
+  - id: comp.stamp.write-auth-on-page-not-origin
+    title: A rule on the origin alone does not authorize a write through the page
+    area: composing
+    feature: write-through authorization
+    evidence: documented
+    source: "docs reference/composing-pages/Stamp §Interaction ('a rule on the composed page is both necessary and sufficient') (snapshot 2026-09-28)"
+    confidence: high
+    requires: [sessel]
+    live: true
+    site:
+      settings: {default_get: allow}
+      files:
+        - path: "${P}/data/rec.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body><article id="rec-1" itemscope itemtype="https://example.test${P}/Rec"><h1 itemprop="title">Record One</h1></article></body></html>
+        - path: "${P}/page.html"
+          body: |
+            <!DOCTYPE html>
+            <html xmlns:e="https://pagelove.org/Binding/Sessel" xmlns:p="https://pagelove.org/1.0">
+            <body e:rec="${[itemtype='https://example.test${P}/Rec']}.first()"><main><p:stamp rec></p:stamp></main></body>
+            </html>
+      rules:
+        - {actor: "*", resource: "${P}/*", method: [GET, HEAD], action: Allow}
+        - {actor: "*", resource: "${P}/data/*", method: [PUT], action: Allow}
+    steps:
+      - as: anonymous
+        request:
+          method: PUT
+          path: "${P}/page.html"
+          headers: {Range: "selector=#rec-1 h1", Content-Type: "text/html"}
+          body: '<h1 itemprop="title">Hijacked</h1>'
+        expect: {status: [401, 403]}
+      - as: author
+        plane: dav
+        request: {method: GET, path: "${P}/data/rec.html"}
+        expect: {status: 200, body_contains: ["Record One"], body_not_contains: ["Hijacked"]}
+
+  - id: comp.stamp.write-through-if-match-origin
+    title: Conditional write-through is checked against the origin's current state
+    area: composing
+    feature: write-through concurrency
+    evidence: documented
+    source: "docs reference/composing-pages/Stamp §Interaction ('Concurrency control (ETags) is performed against the origin resource') (snapshot 2026-09-28)"
+    confidence: medium
+    requires: [sessel]
+    live: true
+    notes: "R-COMP-93. The tag captured from the page's fragment read goes stale when the origin is edited elsewhere."
+    site:
+      settings: {default_get: allow}
+      files:
+        - path: "${P}/data/rec.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body><article id="rec-1" itemscope itemtype="https://example.test${P}/Rec"><h1 itemprop="title">Record One</h1></article></body></html>
+        - path: "${P}/page.html"
+          body: |
+            <!DOCTYPE html>
+            <html xmlns:e="https://pagelove.org/Binding/Sessel" xmlns:p="https://pagelove.org/1.0">
+            <body e:rec="${[itemtype='https://example.test${P}/Rec']}.first()"><main><p:stamp rec></p:stamp></main></body>
+            </html>
+      rules:
+        - {actor: "*", resource: "${P}/*", method: [GET, HEAD, PUT], action: Allow}
+    steps:
+      - name: read the stamped heading and keep its tag
+        as: anonymous
+        request:
+          method: GET
+          path: "${P}/page.html"
+          headers: {Range: "selector=#rec-1 h1"}
+        expect: {status: 206, headers_present: [ETag]}
+        capture: {etag1: header.ETag}
+      - name: someone edits the origin directly
+        as: author
+        plane: dav
+        request:
+          method: PUT
+          path: "${P}/data/rec.html"
+          headers: {Content-Type: "text/html"}
+          body: |
+            <!DOCTYPE html>
+            <html><body><article id="rec-1" itemscope itemtype="https://example.test${P}/Rec"><h1 itemprop="title">Changed Elsewhere</h1></article></body></html>
+        expect: {status: [200, 201, 204]}
+      - name: the stale conditional write is refused
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/page.html"
+          headers: {Range: "selector=#rec-1 h1", Content-Type: "text/html", If-Match: "${etag1}"}
+          body: '<h1 itemprop="title">Stale Write</h1>'
+        expect: {status: 412}
+      - as: author
+        plane: dav
+        request: {method: GET, path: "${P}/data/rec.html"}
+        expect: {status: 200, body_contains: ["Changed Elsewhere"], body_not_contains: ["Stale Write"]}

@@ -1,0 +1,131 @@
+{
+  "case": "apps.demos.exchange-claim-and-transitions",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (alice claims the ladder (Claim record))",
+      "method": "POST",
+      "path": "/_pl/apps-demos-exchange-claim-and-transition-eb0202/demo-03-resource-exchange/index.html",
+      "status": 206,
+      "headers": {
+        "content-length": "312",
+        "content-range": "selector #pl-claims",
+        "content-type": "text/html",
+        "etag": "\"0344e63a282a1c913e222170bcac0ce1625bfe484ba3e42e9e172b4c9e0e0938-0344e63a282a1c913e222170bcac0ce1625bfe484ba3e42e9e172b4c9e0e0938-2\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:41 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003cli class=\"claim\" id=\"claim-listing-ladder\" itemscope itemtype=\"https://pagelike.test/_pl/apps-demos-exchange-claim-and-transition-eb0202/vocab/Claim\"\u003e\u003cmeta itemprop=\"listingId\" content=\"listing-ladder\"\u003e\u003cmeta itemprop=\"claimant\" content=\"alice\"\u003e\u003cmeta itemprop=\"claimedAt\" content=\"2026-09-28T10:00:00.000Z\"\u003e\u003c/li\u003e"
+    },
+    {
+      "step": "step 2 (open → claimed)",
+      "method": "PUT",
+      "path": "/_pl/apps-demos-exchange-claim-and-transition-eb0202/demo-03-resource-exchange/index.html",
+      "status": 206,
+      "headers": {
+        "content-length": "106",
+        "content-range": "selector #status-listing-ladder",
+        "content-type": "text/html",
+        "etag": "\"b409291b0d0854bc7d1cd21a413df780027778ccd31bdf68f7776eccf0348c67-b409291b0d0854bc7d1cd21a413df780027778ccd31bdf68f7776eccf0348c67-3\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:41 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003cspan class=\"status-tag\" id=\"status-listing-ladder\" data-status=\"claimed\" itemprop=\"status\"\u003eclaimed\u003c/span\u003e"
+    },
+    {
+      "step": "step 3 (ben also sets claimed: same value, not a transition, so it passes (W-22))",
+      "method": "PUT",
+      "path": "/_pl/apps-demos-exchange-claim-and-transition-eb0202/demo-03-resource-exchange/index.html",
+      "status": 206,
+      "headers": {
+        "content-length": "106",
+        "content-range": "selector #status-listing-ladder",
+        "content-type": "text/html",
+        "etag": "\"b409291b0d0854bc7d1cd21a413df780027778ccd31bdf68f7776eccf0348c67-b409291b0d0854bc7d1cd21a413df780027778ccd31bdf68f7776eccf0348c67-4\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:41 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003cspan class=\"status-tag\" id=\"status-listing-ladder\" data-status=\"claimed\" itemprop=\"status\"\u003eclaimed\u003c/span\u003e"
+    },
+    {
+      "step": "step 4 (but ben's Claim record collides on listingId)",
+      "method": "POST",
+      "path": "/_pl/apps-demos-exchange-claim-and-transition-eb0202/demo-03-resource-exchange/index.html",
+      "status": 422,
+      "headers": {
+        "content-length": "495",
+        "content-type": "text/html",
+        "vary": "Host, Range"
+      },
+      "body": "\u003cdiv itemscope itemtype=\"https://dombase.pagelove.team/ns/error/ConstraintViolation\"\u003e\u003cul itemprop=\"problems\"\u003e\u003cli itemprop=\"problem\"\u003e\u003cspan itemprop=\"message\"\u003eConstraint violation: 1 violation(s):\n  - [uniqueness] [itemprop='listingId'] (unique(listingId)): Uniqueness violation: another item in '/_pl/apps-demos-exchange-claim-and-transition-eb0202/demo-03-resource-exchange/index.html' already claims this value for property 'listingId' (first claimed by item '0.2.2.5.0')\u003c/span\u003e\u003c/li\u003e\u003c/ul\u003e\u003c/div\u003e"
+    },
+    {
+      "step": "step 5 (claimed → completed)",
+      "method": "PUT",
+      "path": "/_pl/apps-demos-exchange-claim-and-transition-eb0202/demo-03-resource-exchange/index.html",
+      "status": 206,
+      "headers": {
+        "content-length": "110",
+        "content-range": "selector #status-listing-ladder",
+        "content-type": "text/html",
+        "etag": "\"cfb5855273ef2795a5d7fc0cc2b36499402a105b343c1b3b722714a6ebb12d31-cfb5855273ef2795a5d7fc0cc2b36499402a105b343c1b3b722714a6ebb12d31-5\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:41 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003cspan class=\"status-tag\" id=\"status-listing-ladder\" data-status=\"completed\" itemprop=\"status\"\u003ecompleted\u003c/span\u003e"
+    },
+    {
+      "step": "step 6 (completed → claimed is not declared)",
+      "method": "PUT",
+      "path": "/_pl/apps-demos-exchange-claim-and-transition-eb0202/demo-03-resource-exchange/index.html",
+      "status": 422,
+      "headers": {
+        "content-length": "1308",
+        "content-type": "text/html; charset=utf-8",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\n  \u003chead\u003e\n    \u003ctitle\u003e422 Unprocessable Entity - Transition Constraint Violation\u003c/title\u003e\n  \u003c/head\u003e\n  \u003cbody itemscope itemtype=\"https://pagelove.org/ConstraintViolation\"\u003e\n    \u003ch1 itemprop=\"name\"\u003eUnprocessable Entity\u003c/h1\u003e\n    \u003cmeta itemprop=\"statusCode\" content=\"422\"\u003e\n    \u003cp itemprop=\"description\"\u003eTransition constraints violated\u003c/p\u003e\n    \u003cul\u003e\n      \u003cli itemprop=\"violations\" itemscope itemtype=\"https://pagelove.org/Violation\"\u003e\n        \u003cspan itemprop=\"constraintSelector\"\u003e[itemprop='status']\u003c/span\u003e\n        \u003cspan itemprop=\"failedConstraint\"\u003etransition(status)\u003c/span\u003e\n        \u003cspan itemprop=\"message\"\u003eTransition violation: 'https://pagelike.test/_pl/apps-demos-exchange-claim-and-transition-eb0202/vocab/Listing' item 'listing-ladder' property 'status' may not change from 'completed' to 'claimed' (constraint declared in '/_pl/apps-demos-exchange-claim-and-transition-eb0202/demo-03-resource-exchange/schema/listing.html')\u003c/span\u003e\n        \u003cspan itemprop=\"itemtype\"\u003ehttps://pagelike.test/_pl/apps-demos-exchange-claim-and-transition-eb0202/vocab/Listing\u003c/span\u003e\n        \u003cspan itemprop=\"property\"\u003estatus\u003c/span\u003e\n        \u003cspan itemprop=\"key\"\u003elisting-ladder\u003c/span\u003e\n        \u003cspan itemprop=\"from\"\u003ecompleted\u003c/span\u003e\n        \u003cspan itemprop=\"to\"\u003eclaimed\u003c/span\u003e\n      \u003c/li\u003e\n    \u003c/ul\u003e\n  \u003c/body\u003e\n\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 7 (open → completed on the drill skips a step)",
+      "method": "PUT",
+      "path": "/_pl/apps-demos-exchange-claim-and-transition-eb0202/demo-03-resource-exchange/index.html",
+      "status": 422,
+      "headers": {
+        "content-length": "1300",
+        "content-type": "text/html; charset=utf-8",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\n  \u003chead\u003e\n    \u003ctitle\u003e422 Unprocessable Entity - Transition Constraint Violation\u003c/title\u003e\n  \u003c/head\u003e\n  \u003cbody itemscope itemtype=\"https://pagelove.org/ConstraintViolation\"\u003e\n    \u003ch1 itemprop=\"name\"\u003eUnprocessable Entity\u003c/h1\u003e\n    \u003cmeta itemprop=\"statusCode\" content=\"422\"\u003e\n    \u003cp itemprop=\"description\"\u003eTransition constraints violated\u003c/p\u003e\n    \u003cul\u003e\n      \u003cli itemprop=\"violations\" itemscope itemtype=\"https://pagelove.org/Violation\"\u003e\n        \u003cspan itemprop=\"constraintSelector\"\u003e[itemprop='status']\u003c/span\u003e\n        \u003cspan itemprop=\"failedConstraint\"\u003etransition(status)\u003c/span\u003e\n        \u003cspan itemprop=\"message\"\u003eTransition violation: 'https://pagelike.test/_pl/apps-demos-exchange-claim-and-transition-eb0202/vocab/Listing' item 'listing-drill' property 'status' may not change from 'open' to 'completed' (constraint declared in '/_pl/apps-demos-exchange-claim-and-transition-eb0202/demo-03-resource-exchange/schema/listing.html')\u003c/span\u003e\n        \u003cspan itemprop=\"itemtype\"\u003ehttps://pagelike.test/_pl/apps-demos-exchange-claim-and-transition-eb0202/vocab/Listing\u003c/span\u003e\n        \u003cspan itemprop=\"property\"\u003estatus\u003c/span\u003e\n        \u003cspan itemprop=\"key\"\u003elisting-drill\u003c/span\u003e\n        \u003cspan itemprop=\"from\"\u003eopen\u003c/span\u003e\n        \u003cspan itemprop=\"to\"\u003ecompleted\u003c/span\u003e\n      \u003c/li\u003e\n    \u003c/ul\u003e\n  \u003c/body\u003e\n\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 8 (a new listing enters at open (entry rule))",
+      "method": "POST",
+      "path": "/_pl/apps-demos-exchange-claim-and-transition-eb0202/demo-03-resource-exchange/index.html",
+      "status": 206,
+      "headers": {
+        "content-length": "667",
+        "content-range": "selector #pl-listings",
+        "content-type": "text/html",
+        "etag": "\"ecb0a4debd4df88c20eac611fedc9e7ae900d17bbbb96b4d214e4732fe26781e-ecb0a4debd4df88c20eac611fedc9e7ae900d17bbbb96b4d214e4732fe26781e-6\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:41 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003cli class=\"listing\" id=\"listing-tent\" data-author=\"elena\" data-type=\"have\" itemscope itemtype=\"https://pagelike.test/_pl/apps-demos-exchange-claim-and-transition-eb0202/vocab/Listing\"\u003e\u003cmeta itemprop=\"listingId\" content=\"listing-tent\"\u003e\u003cspan class=\"listing-type\" data-type=\"have\" itemprop=\"listingType\"\u003eHave\u003c/span\u003e\u003ch2 class=\"listing-title\" itemprop=\"title\"\u003eTent\u003c/h2\u003e\u003cp class=\"listing-desc\" itemprop=\"description\"\u003eTwo person.\u003c/p\u003e\u003cp class=\"listing-meta\"\u003eby \u003cstrong itemprop=\"author\"\u003eElena\u003c/strong\u003e · \u003cspan class=\"status-tag\" id=\"status-listing-tent\" data-status=\"open\" itemprop=\"status\"\u003eopen\u003c/span\u003e\u003c/p\u003e\u003cdiv class=\"listing-actions\" data-listing=\"listing-tent\"\u003e\u003c/div\u003e\u003c/li\u003e"
+    },
+    {
+      "step": "step 9 (a new listing cannot enter already claimed)",
+      "method": "POST",
+      "path": "/_pl/apps-demos-exchange-claim-and-transition-eb0202/demo-03-resource-exchange/index.html",
+      "status": 422,
+      "headers": {
+        "content-length": "1286",
+        "content-type": "text/html; charset=utf-8",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\n  \u003chead\u003e\n    \u003ctitle\u003e422 Unprocessable Entity - Transition Constraint Violation\u003c/title\u003e\n  \u003c/head\u003e\n  \u003cbody itemscope itemtype=\"https://pagelove.org/ConstraintViolation\"\u003e\n    \u003ch1 itemprop=\"name\"\u003eUnprocessable Entity\u003c/h1\u003e\n    \u003cmeta itemprop=\"statusCode\" content=\"422\"\u003e\n    \u003cp itemprop=\"description\"\u003eTransition constraints violated\u003c/p\u003e\n    \u003cul\u003e\n      \u003cli itemprop=\"violations\" itemscope itemtype=\"https://pagelove.org/Violation\"\u003e\n        \u003cspan itemprop=\"constraintSelector\"\u003e[itemprop='status']\u003c/span\u003e\n        \u003cspan itemprop=\"failedConstraint\"\u003etransition(status)\u003c/span\u003e\n        \u003cspan itemprop=\"message\"\u003eTransition violation: 'https://pagelike.test/_pl/apps-demos-exchange-claim-and-transition-eb0202/vocab/Listing' item 'listing-bike' property 'status' may not change from '' to 'claimed' (constraint declared in '/_pl/apps-demos-exchange-claim-and-transition-eb0202/demo-03-resource-exchange/schema/listing.html')\u003c/span\u003e\n        \u003cspan itemprop=\"itemtype\"\u003ehttps://pagelike.test/_pl/apps-demos-exchange-claim-and-transition-eb0202/vocab/Listing\u003c/span\u003e\n        \u003cspan itemprop=\"property\"\u003estatus\u003c/span\u003e\n        \u003cspan itemprop=\"key\"\u003elisting-bike\u003c/span\u003e\n        \u003cspan itemprop=\"from\"\u003e\u003c/span\u003e\n        \u003cspan itemprop=\"to\"\u003eclaimed\u003c/span\u003e\n      \u003c/li\u003e\n    \u003c/ul\u003e\n  \u003c/body\u003e\n\u003c/html\u003e\n"
+    }
+  ],
+  "outcome": "pass",
+  "target": "local"
+}

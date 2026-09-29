@@ -1,0 +1,122 @@
+{
+  "case": "apps.polls.trigger-guards",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (POST addressed as tbody#responses (the rule matches, the Range text does not))",
+      "method": "POST",
+      "path": "/_pl/apps-polls-trigger-guards-455225/polls/p1.html",
+      "status": 403,
+      "headers": {
+        "content-length": "45",
+        "content-type": "text/html; charset=utf-8"
+      },
+      "body": "Responses may only be appended to #responses."
+    },
+    {
+      "step": "step 2 (the same row through the exact Range the app sends)",
+      "method": "POST",
+      "path": "/_pl/apps-polls-trigger-guards-455225/polls/p1.html",
+      "status": 206,
+      "headers": {
+        "content-length": "181",
+        "content-range": "selector #responses",
+        "content-type": "text/html",
+        "etag": "\"9834a55a994b59b7578024b68dae76475cc74e0bc527f26022d6fc501af4bf65-9834a55a994b59b7578024b68dae76475cc74e0bc527f26022d6fc501af4bf65-2\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:41 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003ctr id=\"r-zz000001\" itemscope itemtype=\"https://pagelove.org/PollResponse\"\u003e\u003cth scope=\"row\" itemprop=\"name\"\u003eZed\u003c/th\u003e\u003ctd itemprop=\"vote\" data-option=\"o1\" data-vote=\"yes\"\u003eyes\u003c/td\u003e\u003c/tr\u003e"
+    },
+    {
+      "step": "step 3 (replacing the whole poll article through the document-level PUT grant)",
+      "method": "PUT",
+      "path": "/_pl/apps-polls-trigger-guards-455225/polls/p1.html",
+      "status": 403,
+      "headers": {
+        "content-length": "60",
+        "content-type": "text/html; charset=utf-8"
+      },
+      "body": "Only a response row (#r-…) may be replaced on a poll page."
+    },
+    {
+      "step": "step 4 (replacing a response row is allowed)",
+      "method": "PUT",
+      "path": "/_pl/apps-polls-trigger-guards-455225/polls/p1.html",
+      "status": 206,
+      "headers": {
+        "content-length": "248",
+        "content-range": "selector #r-test1",
+        "content-type": "text/html",
+        "etag": "\"0cb56431d95d27354ba3d5c986ed83d5510a7a6dcec93527e15e4c5bb4414f4f-0cb56431d95d27354ba3d5c986ed83d5510a7a6dcec93527e15e4c5bb4414f4f-3\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:41 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003ctr id=\"r-test1\" itemscope itemtype=\"https://pagelove.org/PollResponse\"\u003e\u003cth scope=\"row\" itemprop=\"name\"\u003eAda Lovelace\u003c/th\u003e\u003ctd itemprop=\"vote\" data-option=\"o1\" data-vote=\"yes\"\u003eyes\u003c/td\u003e\u003ctd itemprop=\"vote\" data-option=\"o2\" data-vote=\"yes\"\u003eyes\u003c/td\u003e\u003c/tr\u003e"
+    },
+    {
+      "step": "step 5 (overwriting an existing poll document)",
+      "method": "PUT",
+      "path": "/_pl/apps-polls-trigger-guards-455225/polls/p1.html",
+      "status": 409,
+      "headers": {
+        "content-length": "48",
+        "content-type": "text/html; charset=utf-8"
+      },
+      "body": "This poll already exists and cannot be replaced."
+    },
+    {
+      "step": "step 6 (creating a new poll document is allowed)",
+      "method": "PUT",
+      "path": "/_pl/apps-polls-trigger-guards-455225/polls/p2.html",
+      "status": 201,
+      "headers": {
+        "content-length": "199",
+        "content-type": "text/html",
+        "etag": "\"dee18a559721d7cbdd513e3b9fdff29f699b026abd0d1075231846747b717ff1\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:41 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\u003chtml\u003e\u003cbody\u003e\u003carticle id=\"poll\" itemscope itemtype=\"https://pagelove.org/Poll\"\u003e\u003ch1 itemprop=\"title\"\u003eSecond poll\u003c/h1\u003e\u003ctable\u003e\u003ctbody id=\"responses\"\u003e\u003c/tbody\u003e\u003c/table\u003e\u003c/article\u003e\u003c/body\u003e\u003c/html\u003e"
+    },
+    {
+      "step": "step 7 (once it exists it cannot be replaced either)",
+      "method": "PUT",
+      "path": "/_pl/apps-polls-trigger-guards-455225/polls/p2.html",
+      "status": 409,
+      "headers": {
+        "content-length": "48",
+        "content-type": "text/html; charset=utf-8"
+      },
+      "body": "This poll already exists and cannot be replaced."
+    },
+    {
+      "step": "step 8 (deleting a poll is not granted at all)",
+      "method": "DELETE",
+      "path": "/_pl/apps-polls-trigger-guards-455225/polls/p1.html",
+      "status": 401,
+      "headers": {
+        "content-length": "419",
+        "content-type": "text/html; charset=utf-8"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\n\u003chead\u003e\n    \u003cmeta charset=\"UTF-8\"\u003e\n    \u003ctitle\u003e401 Unauthorized\u003c/title\u003e\n\u003c/head\u003e\n\u003cbody itemscope itemtype=\"https://pagelove.org/1.0/Error\"\u003e\n    \u003ch1\u003e401 Unauthorized\u003c/h1\u003e\n    \u003cp itemprop=\"message\"\u003eAuthentication required to access this resource.\u003c/p\u003e\n    \u003cdl\u003e\n        \u003cdt\u003eResource\u003c/dt\u003e\n        \u003cdd itemprop=\"resource\"\u003e/_pl/apps-polls-trigger-guards-455225/polls/p1.html\u003c/dd\u003e\n    \u003c/dl\u003e\n\u003c/body\u003e\n\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 9 (the poll survived)",
+      "method": "GET",
+      "path": "/_pl/apps-polls-trigger-guards-455225/polls/p1.html",
+      "status": 200,
+      "headers": {
+        "accept-ranges": "selector, bytes",
+        "cache-control": "public, max-age=5",
+        "content-length": "1525",
+        "content-type": "text/html",
+        "etag": "W/\"59d59275f72eed45a72d63c144eb4e1716b4c0c691b76b9136e3b746aa731244\"",
+        "vary": "Host, Range, Accept"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml lang=\"en\"\u003e\n\u003chead\u003e\u003cmeta charset=\"utf-8\"\u003e\u003ctitle\u003eTeam lunch · Polls by Pagelove\u003c/title\u003e\u003c/head\u003e\n\u003cbody class=\"poll-page\"\u003e\n\u003carticle id=\"poll\" itemscope itemtype=\"https://pagelove.org/Poll\"\u003e\n  \u003ch1 itemprop=\"title\"\u003eTeam lunch at the new place\u003c/h1\u003e\n  \u003cp class=\"meta\"\u003eOrganised by \u003cstrong itemprop=\"organizer\"\u003eBenji\u003c/strong\u003e\u003c/p\u003e\n  \u003cmeta itemprop=\"listed\" content=\"true\"\u003e\n  \u003cmeta itemprop=\"optionCount\" content=\"2\"\u003e\n  \u003ctable id=\"grid\"\u003e\n    \u003cthead\u003e\u003ctr\u003e\u003cth class=\"corner\" scope=\"col\"\u003eParticipant\u003c/th\u003e\n      \u003cth scope=\"col\" id=\"o1\" data-option=\"o1\" itemprop=\"option\" itemscope itemtype=\"https://pagelove.org/PollOption\"\u003e\u003ctime itemprop=\"start\" datetime=\"2026-09-18T12:30\"\u003eFri 18 Sep 12:30\u003c/time\u003e\u003c/th\u003e\n      \u003cth scope=\"col\" id=\"o2\" data-option=\"o2\" itemprop=\"option\" itemscope itemtype=\"https://pagelove.org/PollOption\"\u003e\u003ctime itemprop=\"start\" datetime=\"2026-09-19\"\u003eSat 19 Sep\u003c/time\u003e\u003c/th\u003e\n    \u003c/tr\u003e\u003c/thead\u003e\n    \u003ctbody id=\"responses\"\u003e\u003ctr id=\"r-test1\" itemscope itemtype=\"https://pagelove.org/PollResponse\"\u003e\u003cth scope=\"row\" itemprop=\"name\"\u003eAda Lovelace\u003c/th\u003e\u003ctd itemprop=\"vote\" data-option=\"o1\" data-vote=\"yes\"\u003eyes\u003c/td\u003e\u003ctd itemprop=\"vote\" data-option=\"o2\" data-vote=\"yes\"\u003eyes\u003c/td\u003e\u003c/tr\u003e\u003ctr id=\"r-zz000001\" itemscope itemtype=\"https://pagelove.org/PollResponse\"\u003e\u003cth scope=\"row\" itemprop=\"name\"\u003eZed\u003c/th\u003e\u003ctd itemprop=\"vote\" data-option=\"o1\" data-vote=\"yes\"\u003eyes\u003c/td\u003e\u003c/tr\u003e\u003c/tbody\u003e\n    \u003ctbody id=\"entry\"\u003e\u003ctr class=\"entry\"\u003e\u003cth scope=\"row\"\u003e\u003cinput id=\"entry-name\" type=\"text\"\u003e\u003c/th\u003e\u003c/tr\u003e\u003c/tbody\u003e\n  \u003c/table\u003e\n\u003c/article\u003e\n\u003c/body\u003e\n\u003c/html\u003e\n"
+    }
+  ],
+  "outcome": "pass",
+  "target": "local"
+}

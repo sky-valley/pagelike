@@ -1,0 +1,37 @@
+{
+  "case": "javascript.methods.dnu-attribute-form",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (PUT the page (public plane; registers inline declarations))",
+      "method": "PUT",
+      "path": "/_pl/javascript-methods-dnu-attribute-form-5cdf51/m.html",
+      "status": 201,
+      "headers": {
+        "content-length": "969",
+        "content-type": "text/html",
+        "etag": "\"97f2aaa5f2a5f3993f71796c560249f999bcc76d3799339abad574e46d957453\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:43 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml xmlns:t=\"https://pagelike.test/_pl/javascript-methods-dnu-attribute-form-5cdf51/DnuAttr\"\u003e\u003cbody\u003e\n\u003cmain\u003e\n\u003cdiv t:greet=\"Ada\"\u003e\u003c/div\u003e\n\u003c/main\u003e\n\u003cdiv hidden itemscope itemtype=\"https://pagelove.org/Schema\"\u003e\n\u003cmeta itemprop=\"type\" content=\"https://pagelike.test/_pl/javascript-methods-dnu-attribute-form-5cdf51/DnuAttr\"\u003e\n\u003cul\u003e\n\u003cli itemprop=\"property\" itemscope itemtype=\"https://pagelove.org/Method\"\u003e\n\u003cmeta itemprop=\"name\" content=\"doesNotUnderstand\"\u003e\n\u003cmeta itemprop=\"returns\" content=\"https://pagelove.org/Element\"\u003e\n\u003cdiv itemprop=\"implementation\" itemscope itemtype=\"https://pagelove.org/JavaScript/Module\"\u003e\n\u003cscript itemprop=\"source\" type=\"module\"\u003e\nexport default function (messageName, parameters) { const p = new DOMParser().parseFromString('\u003cp\u003e\u003c/p\u003e', 'text/html').querySelector('p'); p.textContent = messageName + ': ' + parameters[0] + ':' + typeof parameters[0] + ':' + parameters.length; return p; }\n\u003c/script\u003e\n\u003c/div\u003e\n\u003c/li\u003e\n\u003c/ul\u003e\n\u003c/div\u003e\n\u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 2 (GET the composed page)",
+      "method": "GET",
+      "path": "/_pl/javascript-methods-dnu-attribute-form-5cdf51/m.html",
+      "status": 206,
+      "headers": {
+        "accept-ranges": "selector, bytes",
+        "content-length": "41",
+        "content-range": "selector main",
+        "content-type": "text/html",
+        "etag": "\"ae7a50d37d3aad06e8274ae8d8b8778aaa06af371f0438c4fc64c8eda65bdb80-ae7a50d37d3aad06e8274ae8d8b8778aaa06af371f0438c4fc64c8eda65bdb80-1\"",
+        "vary": "Host, Range, Accept"
+      },
+      "body": "\u003cmain\u003e\n\u003cp\u003egreet: Ada:string:1\u003c/p\u003e\n\u003c/main\u003e"
+    }
+  ],
+  "outcome": "pass",
+  "target": "local"
+}

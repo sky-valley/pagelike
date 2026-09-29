@@ -1,0 +1,36 @@
+{
+  "case": "modeling.discovery.schema-without-type-skipped",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (register declarations through the public plane (takes effect for the next request))",
+      "method": "PUT",
+      "path": "/_pl/modeling-discovery-schema-without-type-s-d02e45/schema.html",
+      "status": 201,
+      "headers": {
+        "content-length": "484",
+        "content-type": "text/html",
+        "etag": "\"f2457f9f13d210cee176ff36d4b82e1ef4f584ff5fb3b49efbc69fa90afef715\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:44 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\n  \u003cdiv hidden itemscope itemtype=\"https://pagelove.org/Schema\"\u003e\n    \u003cmeta itemprop=\"name\" content=\"https://pagelike.test/_pl/modeling-discovery-schema-without-type-s-d02e45/Tag\"\u003e\n    \u003cdiv itemprop=\"property\" itemscope itemtype=\"https://pagelove.org/Property\"\u003e\n      \u003cmeta itemprop=\"name\" content=\"label\"\u003e\n      \u003cmeta itemprop=\"type\" content=\"https://schema.host/Text\"\u003e\n      \u003cmeta itemprop=\"cardinality\" content=\"1..1\"\u003e\n    \u003c/div\u003e\n  \u003c/div\u003e\n\u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 2 (instance of the would-be type without label is accepted)",
+      "method": "PUT",
+      "path": "/_pl/modeling-discovery-schema-without-type-s-d02e45/t.html",
+      "status": 201,
+      "headers": {
+        "content-length": "157",
+        "content-type": "text/html",
+        "etag": "\"05bcad8f9902348db86e183485adfd21908ca2330a0137c3b5a877970e3b64d3\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:44 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\n  \u003cdiv itemscope itemtype=\"https://pagelike.test/_pl/modeling-discovery-schema-without-type-s-d02e45/Tag\"\u003e\u003c/div\u003e\n\u003c/body\u003e\u003c/html\u003e\n"
+    }
+  ],
+  "outcome": "pass",
+  "target": "local"
+}

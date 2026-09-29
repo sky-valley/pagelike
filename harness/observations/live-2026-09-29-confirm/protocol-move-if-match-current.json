@@ -1,0 +1,69 @@
+{
+  "case": "protocol.move.if-match-current",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (read document ETag)",
+      "method": "GET",
+      "path": "/_pl/protocol-move-if-match-current-98a68e/board.html",
+      "status": 200,
+      "headers": {
+        "content-type": "text/html",
+        "etag": "\"9d231c6ada5b18a73ec3d855ebebdfd54a6ece98a4794c5e70ca0a091da49ee8\"",
+        "last-modified": "Tue, 29 Sep 2026 00:17:22 GMT",
+        "vary": "Host, Range, Accept"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\n\u003csection class=\"lane\" id=\"lane-todo\"\u003e\u003carticle class=\"card\" id=\"card-1\"\u003eOne\u003c/article\u003e\u003carticle class=\"card\" id=\"card-2\"\u003eTwo\u003c/article\u003e\u003carticle class=\"card\" id=\"card-3\"\u003eThree\u003c/article\u003e\u003c/section\u003e\n\u003csection class=\"lane\" id=\"lane-done\"\u003e\u003carticle class=\"card\" id=\"card-4\"\u003eFour\u003c/article\u003e\u003c/section\u003e\n\n                \u003cdiv style=\"\n                            position: fixed;\n                            bottom: 0;\n                            left: 0;\n                            right: 0;\n                            padding: 8px;\n                            background: #f0f0f0;\n                            text-align: center;\n                            font-size: 12px;\n                            color: #666;\n                            z-index: 9999;\n                            opacity: 0.8;\n                            border-top: 1px solid #ddd;\n                        \"\u003e\n                    Powered by\n                    \u003ca href=\"https://pagelove.com/\" style=\"color: #4a90d9; text-decoration: none\"\u003ePagelove\u003c/a\u003e\n                \u003c/div\u003e\n            \u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 2 (read the source element's tag)",
+      "method": "HEAD",
+      "path": "/_pl/protocol-move-if-match-current-98a68e/board.html",
+      "status": 206,
+      "headers": {
+        "content-length": "49",
+        "content-range": "selector #card-3",
+        "content-type": "text/html",
+        "etag": "\"8fc199dfe88bd859db172be3b70f1dade97ee98fa1a150bcf0120692507a9343-8fc199dfe88bd859db172be3b70f1dade97ee98fa1a150bcf0120692507a9343-1\"",
+        "vary": "Host, Range, Accept"
+      }
+    },
+    {
+      "step": "step 3 (the document tag is stale for an element MOVE)",
+      "method": "MOVE",
+      "path": "/_pl/protocol-move-if-match-current-98a68e/board.html",
+      "status": 412,
+      "headers": {
+        "content-length": "172",
+        "content-type": "text/html",
+        "etag": "\"8fc199dfe88bd859db172be3b70f1dade97ee98fa1a150bcf0120692507a9343-8fc199dfe88bd859db172be3b70f1dade97ee98fa1a150bcf0120692507a9343-1\"",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\u003cdiv itemscope itemtype=\"http://pagelove.org/Error\"\u003e\u003cspan itemprop=\"message\"\u003ePrecondition Failed: ETag does not match\u003c/span\u003e\u003c/div\u003e\u003c/body\u003e\u003c/html\u003e"
+    },
+    {
+      "step": "step 4 (conditional move with the source element's tag)",
+      "method": "MOVE",
+      "path": "/_pl/protocol-move-if-match-current-98a68e/board.html",
+      "status": 204,
+      "headers": {
+        "etag": "\"31a8775f79a4ddc0484ae6d39f6c1c621f5edc2c658090254d4a7f140a3d4407\"",
+        "last-modified": "Tue, 29 Sep 2026 00:17:24 GMT",
+        "vary": "Host, Range"
+      }
+    },
+    {
+      "step": "step 5 (conditional move with If-Match star)",
+      "method": "MOVE",
+      "path": "/_pl/protocol-move-if-match-current-98a68e/board.html",
+      "status": 204,
+      "headers": {
+        "etag": "\"270ee5def6f7a32d8040f3ef6d212f397ad423d366273b9b0ba6247a6eecc9b5\"",
+        "last-modified": "Tue, 29 Sep 2026 00:17:24 GMT",
+        "vary": "Host, Range"
+      }
+    }
+  ],
+  "outcome": "pass",
+  "target": "live"
+}

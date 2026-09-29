@@ -1,0 +1,51 @@
+{
+  "case": "rw.post.first-match-only",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (append to ul)",
+      "method": "POST",
+      "path": "/_pl/rw-post-first-match-only-7fc97f/two-lists.html",
+      "status": 206,
+      "headers": {
+        "content-length": "14",
+        "content-range": "selector ul",
+        "content-type": "text/html",
+        "etag": "\"efa15fe0b1aec1d3c4c8fa103b513d1387f77633ecd6e808809d37307ecace61-efa15fe0b1aec1d3c4c8fa103b513d1387f77633ecd6e808809d37307ecace61-2\"",
+        "last-modified": "Mon, 28 Sep 2026 22:28:29 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003cli\u003eadded\u003c/li\u003e"
+    },
+    {
+      "step": "step 2 (first list got it)",
+      "method": "GET",
+      "path": "/_pl/rw-post-first-match-only-7fc97f/two-lists.html",
+      "status": 206,
+      "headers": {
+        "content-length": "41",
+        "content-range": "selector #a",
+        "content-type": "text/html",
+        "etag": "\"347488cac56a1cc7425f61fefacf297efe3f2629cd18c7402eff8c13db28fb37-347488cac56a1cc7425f61fefacf297efe3f2629cd18c7402eff8c13db28fb37-2\"",
+        "vary": "Host, Range, Accept"
+      },
+      "body": "\u003cul id=\"a\"\u003e\u003cli\u003ea1\u003c/li\u003e\u003cli\u003eadded\u003c/li\u003e\u003c/ul\u003e"
+    },
+    {
+      "step": "step 3 (second list untouched)",
+      "method": "GET",
+      "path": "/_pl/rw-post-first-match-only-7fc97f/two-lists.html",
+      "status": 206,
+      "headers": {
+        "content-length": "27",
+        "content-range": "selector #b",
+        "content-type": "text/html",
+        "etag": "\"edfe497aa7a811be5df6b35bf94573c196ddf0195303564febb19cdd0b695399-edfe497aa7a811be5df6b35bf94573c196ddf0195303564febb19cdd0b695399-2\"",
+        "vary": "Host, Range, Accept"
+      },
+      "body": "\u003cul id=\"b\"\u003e\u003cli\u003eb1\u003c/li\u003e\u003c/ul\u003e"
+    }
+  ],
+  "outcome": "pass",
+  "target": "live"
+}

@@ -1,0 +1,49 @@
+{
+  "case": "protocol.query-dav.etag-changes-with-fragment",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (first query)",
+      "method": "QUERY",
+      "path": "/_pl/protocol-query-dav-etag-changes-with-fra-489d4c/doc.html",
+      "status": 200,
+      "headers": {
+        "accept-ranges": "bytes",
+        "content-length": "500",
+        "content-type": "multipart/mixed; boundary=boundaryIjQuZrKkr0XW5dpmn7VAkunoDMUyK1Kw",
+        "etag": "\"c3717f235e9f8aab780043c4e83768c62b21897b549a7daf09cdb722a2817e2c\"",
+        "last-modified": "Mon, 28 Sep 2026 22:32:09 GMT"
+      },
+      "body": "--boundaryIjQuZrKkr0XW5dpmn7VAkunoDMUyK1Kw\r\nContent-Type: text/html\r\nContent-Location: /_pl/protocol-query-dav-etag-changes-with-fra-489d4c/doc.html\r\nContent-Range: selector html:nth-child(1) \u003e body:nth-child(1) \u003e h1:nth-child(1)\r\nETag: \"1c32123f6761b73d83893fff7af936d13ce7da8411f4a35df11aaed4a7d36db1-1c32123f6761b73d83893fff7af936d13ce7da8411f4a35df11aaed4a7d36db1-1\"\r\nLast-Modified: Mon, 28 Sep 2026 22:32:09 GMT\r\nContent-Length: 14\r\n\r\n\u003ch1\u003eBenji\u003c/h1\u003e\r\n--boundaryIjQuZrKkr0XW5dpmn7VAkunoDMUyK1Kw--"
+    },
+    {
+      "step": "step 2 (change the matched heading)",
+      "method": "PUT",
+      "path": "/_pl/protocol-query-dav-etag-changes-with-fra-489d4c/doc.html",
+      "status": 200,
+      "headers": {
+        "accept-ranges": "bytes",
+        "content-length": "57",
+        "content-type": "text/html",
+        "etag": "\"a76da1d73210f9397b0d77b4eed00d6d691646d61c3943eaaf0468b0b023af06\""
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\u003ch1\u003eJames\u003c/h1\u003e\u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 3 (conditional re-query is a full answer with a new ETag)",
+      "method": "QUERY",
+      "path": "/_pl/protocol-query-dav-etag-changes-with-fra-489d4c/doc.html",
+      "status": 200,
+      "headers": {
+        "accept-ranges": "bytes",
+        "content-length": "500",
+        "content-type": "multipart/mixed; boundary=boundaryhTzOQKqR4PK55cJ9Gz38aWI1LlqC5ua6",
+        "etag": "\"5fb9b902d1697a37be3df5e5116831d640c8289cabe9384986e7dc96f0eda3c9\"",
+        "last-modified": "Mon, 28 Sep 2026 22:32:09 GMT"
+      },
+      "body": "--boundaryhTzOQKqR4PK55cJ9Gz38aWI1LlqC5ua6\r\nContent-Type: text/html\r\nContent-Location: /_pl/protocol-query-dav-etag-changes-with-fra-489d4c/doc.html\r\nContent-Range: selector html:nth-child(1) \u003e body:nth-child(1) \u003e h1:nth-child(1)\r\nETag: \"a623d900d532317b02faa6f06b9bae146657ce88f123b41a66d8d93a759dc737-a623d900d532317b02faa6f06b9bae146657ce88f123b41a66d8d93a759dc737-2\"\r\nLast-Modified: Mon, 28 Sep 2026 22:32:09 GMT\r\nContent-Length: 14\r\n\r\n\u003ch1\u003eJames\u003c/h1\u003e\r\n--boundaryhTzOQKqR4PK55cJ9Gz38aWI1LlqC5ua6--"
+    }
+  ],
+  "outcome": "pass",
+  "target": "live"
+}

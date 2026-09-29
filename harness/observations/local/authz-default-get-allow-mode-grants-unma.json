@@ -1,0 +1,67 @@
+{
+  "case": "authz.default-get.allow-mode-grants-unmatched-reads",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (whole-document GET)",
+      "method": "GET",
+      "path": "/_pl/authz-default-get-allow-mode-grants-unma-331ab5/doc.html",
+      "status": 200,
+      "headers": {
+        "accept-ranges": "selector, bytes",
+        "content-length": "54",
+        "content-type": "text/html",
+        "etag": "\"ac95a884556770b0e4b51cac62d46e121f6dce9cb1696417b5c0c6583a36349e\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:46 GMT",
+        "vary": "Host, Range, Accept"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\u003chtml\u003e\u003cbody\u003e\u003ch1\u003eOpen\u003c/h1\u003e\u003c/body\u003e\u003c/html\u003e"
+    },
+    {
+      "step": "step 2 (HEAD)",
+      "method": "HEAD",
+      "path": "/_pl/authz-default-get-allow-mode-grants-unma-331ab5/doc.html",
+      "status": 200,
+      "headers": {
+        "accept-ranges": "selector, bytes",
+        "content-length": "54",
+        "content-type": "text/html",
+        "etag": "\"ac95a884556770b0e4b51cac62d46e121f6dce9cb1696417b5c0c6583a36349e\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:46 GMT",
+        "vary": "Host, Range, Accept"
+      }
+    },
+    {
+      "step": "step 3 (selector GET)",
+      "method": "GET",
+      "path": "/_pl/authz-default-get-allow-mode-grants-unma-331ab5/doc.html",
+      "status": 206,
+      "headers": {
+        "accept-ranges": "selector, bytes",
+        "content-length": "13",
+        "content-range": "selector h1",
+        "content-type": "text/html",
+        "etag": "\"2f0578b25081d86b177fd2414b48b595103f42b1518cc40b47c3c26917dc8668-2f0578b25081d86b177fd2414b48b595103f42b1518cc40b47c3c26917dc8668-1\"",
+        "vary": "Host, Range, Accept"
+      },
+      "body": "\u003ch1\u003eOpen\u003c/h1\u003e"
+    },
+    {
+      "step": "step 4 (css QUERY is a read too)",
+      "method": "QUERY",
+      "path": "/_pl/authz-default-get-allow-mode-grants-unma-331ab5/doc.html",
+      "status": 206,
+      "headers": {
+        "accept-ranges": "selector, bytes",
+        "content-length": "13",
+        "content-range": "selector h1",
+        "content-type": "text/html",
+        "etag": "\"2f0578b25081d86b177fd2414b48b595103f42b1518cc40b47c3c26917dc8668-2f0578b25081d86b177fd2414b48b595103f42b1518cc40b47c3c26917dc8668-1\"",
+        "vary": "Host, Range, Accept"
+      },
+      "body": "\u003ch1\u003eOpen\u003c/h1\u003e"
+    }
+  ],
+  "outcome": "pass",
+  "target": "local"
+}

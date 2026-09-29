@@ -1,0 +1,490 @@
+# Modeling: nested schema types and typed items inside other items.
+# Spec: docs/spec/modeling.md R-MOD-14, R-MOD-24.
+# Live 2026-09-29 (docs/compat/decisions-2026-09-29/modeling.md): PageLove validates only outermost items. An item
+# inside another item's markup is not validated against its schema, whether it is a property value or not, and a
+# property typed with a schema is not type-checked. The documented recursive validation is not what PageLove does.
+cases:
+  - id: modeling.nested.recursive-validation
+    title: "A nested item is not validated against its own schema (docs Person/Address; the id predates the live answer)"
+    area: modeling
+    feature: "nested types"
+    evidence: live-observed
+    source: "harness/observations/live-2026-09-29/modeling-nested-recursive-validation.json; harness/observations/live-2026-09-29-reconcile-modeling/modeling-probe-0929-nested-scope.json (documented as recursive: docs reference/modeling-data/Types §Nested schema types and Property §Type, snapshot 2026-09-28)"
+    confidence: high
+    requires: []
+    live: true
+    notes: "spec: R-MOD-14, R-MOD-24. Adopt-live 2026-09-29."
+    site:
+      settings:
+        default_get: allow
+      rules:
+        - actor: "*"
+          resource: "${P}/*"
+          method: [GET, HEAD, PUT, POST, DELETE, MOVE]
+          action: Allow
+        - actor: "*"
+          resource: "${P}/*/*"
+          method: [GET, HEAD, PUT, POST, DELETE, MOVE]
+          action: Allow
+    steps:
+      - name: "register declarations through the public plane (takes effect for the next request)"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/schema.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div hidden itemscope itemtype="https://pagelove.org/Schema">
+                <meta itemprop="type" content="https://pagelike.test${P}/Address">
+                <div itemprop="property" itemscope itemtype="https://pagelove.org/Property">
+                  <meta itemprop="name" content="street">
+                  <meta itemprop="type" content="https://schema.host/Text">
+                  <meta itemprop="cardinality" content="1..1">
+                </div>
+                <div itemprop="property" itemscope itemtype="https://pagelove.org/Property">
+                  <meta itemprop="name" content="city">
+                  <meta itemprop="type" content="https://schema.host/Text">
+                  <meta itemprop="cardinality" content="1..1">
+                </div>
+              </div>
+              <div hidden itemscope itemtype="https://pagelove.org/Schema">
+                <meta itemprop="type" content="https://pagelike.test${P}/Person">
+                <div itemprop="property" itemscope itemtype="https://pagelove.org/Property">
+                  <meta itemprop="name" content="name">
+                  <meta itemprop="type" content="https://schema.host/Text">
+                  <meta itemprop="cardinality" content="1..1">
+                </div>
+                <div itemprop="property" itemscope itemtype="https://pagelove.org/Property">
+                  <meta itemprop="name" content="address">
+                  <meta itemprop="type" content="https://pagelike.test${P}/Address">
+                  <meta itemprop="cardinality" content="0..1">
+                </div>
+              </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "complete nested address accepted"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/p1.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div itemscope itemtype="https://pagelike.test${P}/Person">
+                <span itemprop="name">Alice</span>
+                <div itemscope itemtype="https://pagelike.test${P}/Address" itemprop="address">
+                  <span itemprop="street">123 Main St</span>
+                  <span itemprop="city">Springfield</span>
+                </div>
+              </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "nested address missing city accepted"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/p2.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div itemscope itemtype="https://pagelike.test${P}/Person">
+                <span itemprop="name">Alice</span>
+                <div itemscope itemtype="https://pagelike.test${P}/Address" itemprop="address">
+                  <span itemprop="street">123 Main St</span>
+                </div>
+              </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "absent optional address accepted"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/p3.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div itemscope itemtype="https://pagelike.test${P}/Person">
+                <span itemprop="name">Alice</span>
+              </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+  - id: modeling.nested.wrong-itemtype-is-type-mismatch
+    title: "A nested item with the wrong itemtype is accepted (the id predates the live answer)"
+    area: modeling
+    feature: "nested types"
+    evidence: live-observed
+    source: "harness/observations/live-2026-09-29-reconcile-modeling/modeling-probe-0929-nested-scope.json (step: an address value typed as another schema is accepted). Documented as a type violation: docs reference/modeling-data/Types §Nested schema types, §Error cases (snapshot 2026-09-28)"
+    confidence: high
+    requires: []
+    live: true
+    notes: "spec: R-MOD-24. Follows the adopt-live decision for modeling.nested.recursive-validation."
+    site:
+      settings:
+        default_get: allow
+      rules:
+        - actor: "*"
+          resource: "${P}/*"
+          method: [GET, HEAD, PUT, POST, DELETE, MOVE]
+          action: Allow
+        - actor: "*"
+          resource: "${P}/*/*"
+          method: [GET, HEAD, PUT, POST, DELETE, MOVE]
+          action: Allow
+    steps:
+      - name: "register declarations through the public plane (takes effect for the next request)"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/schema.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div hidden itemscope itemtype="https://pagelove.org/Schema">
+                <meta itemprop="type" content="https://pagelike.test${P}/Address">
+                <div itemprop="property" itemscope itemtype="https://pagelove.org/Property">
+                  <meta itemprop="name" content="street">
+                  <meta itemprop="type" content="https://schema.host/Text">
+                  <meta itemprop="cardinality" content="1..1">
+                </div>
+                <div itemprop="property" itemscope itemtype="https://pagelove.org/Property">
+                  <meta itemprop="name" content="city">
+                  <meta itemprop="type" content="https://schema.host/Text">
+                  <meta itemprop="cardinality" content="1..1">
+                </div>
+              </div>
+              <div hidden itemscope itemtype="https://pagelove.org/Schema">
+                <meta itemprop="type" content="https://pagelike.test${P}/Person">
+                <div itemprop="property" itemscope itemtype="https://pagelove.org/Property">
+                  <meta itemprop="name" content="name">
+                  <meta itemprop="type" content="https://schema.host/Text">
+                  <meta itemprop="cardinality" content="1..1">
+                </div>
+                <div itemprop="property" itemscope itemtype="https://pagelove.org/Property">
+                  <meta itemprop="name" content="address">
+                  <meta itemprop="type" content="https://pagelike.test${P}/Address">
+                  <meta itemprop="cardinality" content="0..1">
+                </div>
+              </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "address item of an unrelated type accepted"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/p.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div itemscope itemtype="https://pagelike.test${P}/Person">
+                <span itemprop="name">Alice</span>
+                <div itemscope itemtype="https://pagelike.test${P}/Elsewhere" itemprop="address">
+                  <span itemprop="street">1 Road</span>
+                </div>
+              </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+  - id: modeling.nested.plain-value-is-type-mismatch
+    title: "A plain (non-item) value for a schema-typed property is accepted (the id predates the live answer)"
+    area: modeling
+    feature: "nested types"
+    evidence: live-observed
+    source: "harness/observations/live-2026-09-29-reconcile-modeling/modeling-probe-0929-nested-scope.json (step: an address value that is plain text is accepted). Documented as a type violation: docs reference/modeling-data/Types §Nested schema types (snapshot 2026-09-28)"
+    confidence: high
+    requires: []
+    live: true
+    notes: "spec: R-MOD-24. Follows the adopt-live decision for modeling.nested.recursive-validation."
+    site:
+      settings:
+        default_get: allow
+      rules:
+        - actor: "*"
+          resource: "${P}/*"
+          method: [GET, HEAD, PUT, POST, DELETE, MOVE]
+          action: Allow
+        - actor: "*"
+          resource: "${P}/*/*"
+          method: [GET, HEAD, PUT, POST, DELETE, MOVE]
+          action: Allow
+    steps:
+      - name: "register declarations through the public plane (takes effect for the next request)"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/schema.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div hidden itemscope itemtype="https://pagelove.org/Schema">
+                <meta itemprop="type" content="https://pagelike.test${P}/Address">
+                <div itemprop="property" itemscope itemtype="https://pagelove.org/Property">
+                  <meta itemprop="name" content="street">
+                  <meta itemprop="type" content="https://schema.host/Text">
+                  <meta itemprop="cardinality" content="1..1">
+                </div>
+                <div itemprop="property" itemscope itemtype="https://pagelove.org/Property">
+                  <meta itemprop="name" content="city">
+                  <meta itemprop="type" content="https://schema.host/Text">
+                  <meta itemprop="cardinality" content="1..1">
+                </div>
+              </div>
+              <div hidden itemscope itemtype="https://pagelove.org/Schema">
+                <meta itemprop="type" content="https://pagelike.test${P}/Person">
+                <div itemprop="property" itemscope itemtype="https://pagelove.org/Property">
+                  <meta itemprop="name" content="name">
+                  <meta itemprop="type" content="https://schema.host/Text">
+                  <meta itemprop="cardinality" content="1..1">
+                </div>
+                <div itemprop="property" itemscope itemtype="https://pagelove.org/Property">
+                  <meta itemprop="name" content="address">
+                  <meta itemprop="type" content="https://pagelike.test${P}/Address">
+                  <meta itemprop="cardinality" content="0..1">
+                </div>
+              </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "text address accepted"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/p.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div itemscope itemtype="https://pagelike.test${P}/Person">
+                <span itemprop="name">Alice</span>
+                <span itemprop="address">123 Main St</span>
+              </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+  - id: modeling.nested.typed-items-validated-independently
+    title: "Typed items inside another item are not validated, even when they are not property values (shop Order/OrderLine pattern; the id predates the live answer)"
+    area: modeling
+    feature: "nested types"
+    evidence: live-observed
+    source: "harness/observations/live-2026-09-29-reconcile-modeling/modeling-probe-0929-nested-scope.json (an Address item inside a Person's markup, or inside an item without a schema, missing city, is accepted). The shop comment (pagelove-shop/site/schemas.html@d887054:249-256) says each nested OrderLine is validated independently."
+    confidence: medium
+    requires: []
+    live: true
+    notes: "spec: R-MOD-14. The OrderLine <li> is not an itemprop. Follows the adopt-live decision for modeling.nested.recursive-validation."
+    site:
+      settings:
+        default_get: allow
+      rules:
+        - actor: "*"
+          resource: "${P}/*"
+          method: [GET, HEAD, PUT, POST, DELETE, MOVE]
+          action: Allow
+        - actor: "*"
+          resource: "${P}/*/*"
+          method: [GET, HEAD, PUT, POST, DELETE, MOVE]
+          action: Allow
+    steps:
+      - name: "register declarations through the public plane (takes effect for the next request)"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/schema.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div hidden itemscope itemtype="https://pagelove.org/Schema">
+                <meta itemprop="type" content="https://pagelike.test${P}/OrderLine">
+                <div itemprop="property" itemscope itemtype="https://pagelove.org/Property">
+                  <meta itemprop="name" content="sku">
+                  <meta itemprop="type" content="https://schema.host/Text">
+                  <meta itemprop="cardinality" content="1..1">
+                </div>
+                <div itemprop="property" itemscope itemtype="https://pagelove.org/Property">
+                  <meta itemprop="name" content="quantity">
+                  <meta itemprop="type" content="https://schema.host/Integer">
+                  <meta itemprop="cardinality" content="1..1">
+                </div>
+              </div>
+              <div hidden itemscope itemtype="https://pagelove.org/Schema">
+                <meta itemprop="type" content="https://pagelike.test${P}/Order">
+                <div itemprop="property" itemscope itemtype="https://pagelove.org/Property">
+                  <meta itemprop="name" content="orderId">
+                  <meta itemprop="type" content="https://schema.host/Text">
+                  <meta itemprop="cardinality" content="1..1">
+                </div>
+                <div itemprop="property" itemscope itemtype="https://pagelove.org/Property">
+                  <meta itemprop="name" content="lines">
+                  <meta itemprop="cardinality" content="1..1">
+                </div>
+              </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "order with a complete line accepted"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/o1.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div itemscope itemtype="https://pagelike.test${P}/Order">
+                <meta itemprop="orderId" content="o1">
+                <ul itemprop="lines">
+                  <li itemscope itemtype="https://pagelike.test${P}/OrderLine">
+                    <meta itemprop="sku" content="MUG">
+                    <meta itemprop="quantity" content="2">
+                  </li>
+                </ul>
+              </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "order whose line lacks quantity accepted"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/o2.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div itemscope itemtype="https://pagelike.test${P}/Order">
+                <meta itemprop="orderId" content="o2">
+                <ul itemprop="lines">
+                  <li itemscope itemtype="https://pagelike.test${P}/OrderLine">
+                    <meta itemprop="sku" content="MUG">
+                  </li>
+                </ul>
+              </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+  - id: modeling.nested.schema-validate-self-is-nested-item
+    title: "A nested item's schema-level @validate does not run (the id predates the live answer)"
+    area: modeling
+    feature: "nested types"
+    evidence: inferred
+    source: "harness/observations/live-2026-09-29-reconcile-modeling/modeling-probe-0929-nested-scope.json (nested items are not validated at all); documented otherwise in docs reference/modeling-data/Types §Nested schema types (snapshot 2026-09-28)"
+    confidence: medium
+    requires: [sessel]
+    live: true
+    notes: "spec: R-MOD-24, R-MOD-46. Follows the adopt-live decision for modeling.nested.recursive-validation; a nested @validate was not probed separately."
+    site:
+      settings:
+        default_get: allow
+      rules:
+        - actor: "*"
+          resource: "${P}/*"
+          method: [GET, HEAD, PUT, POST, DELETE, MOVE]
+          action: Allow
+        - actor: "*"
+          resource: "${P}/*/*"
+          method: [GET, HEAD, PUT, POST, DELETE, MOVE]
+          action: Allow
+    steps:
+      - name: "register declarations through the public plane (takes effect for the next request)"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/schema.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div hidden itemscope itemtype="https://pagelove.org/Schema">
+                <meta itemprop="type" content="https://pagelike.test${P}/Address">
+                <div itemprop="property" itemscope itemtype="https://pagelove.org/Property">
+                  <meta itemprop="name" content="street">
+                  <meta itemprop="type" content="https://schema.host/Text">
+                  <meta itemprop="cardinality" content="1..1">
+                </div>
+                <div itemprop="property" itemscope itemtype="https://pagelove.org/Property">
+                  <meta itemprop="name" content="city">
+                  <meta itemprop="type" content="https://schema.host/Text">
+                  <meta itemprop="cardinality" content="1..1">
+                </div>
+                <script type="text/sessel" itemprop="@validate">self.microdata()["city"].first() == "Springfield"</script>
+              </div>
+              <div hidden itemscope itemtype="https://pagelove.org/Schema">
+                <meta itemprop="type" content="https://pagelike.test${P}/Person">
+                <div itemprop="property" itemscope itemtype="https://pagelove.org/Property">
+                  <meta itemprop="name" content="name">
+                  <meta itemprop="type" content="https://schema.host/Text">
+                  <meta itemprop="cardinality" content="1..1">
+                </div>
+                <div itemprop="property" itemscope itemtype="https://pagelove.org/Property">
+                  <meta itemprop="name" content="address">
+                  <meta itemprop="type" content="https://pagelike.test${P}/Address">
+                  <meta itemprop="cardinality" content="0..1">
+                </div>
+              </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "nested address in Springfield accepted"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/p1.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div itemscope itemtype="https://pagelike.test${P}/Person">
+                <span itemprop="name">Alice</span>
+                <div itemscope itemtype="https://pagelike.test${P}/Address" itemprop="address">
+                  <meta itemprop="street" content="1 Main">
+                  <meta itemprop="city" content="Springfield">
+                </div>
+              </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "nested address elsewhere accepted"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/p2.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div itemscope itemtype="https://pagelike.test${P}/Person">
+                <span itemprop="name">Alice</span>
+                <div itemscope itemtype="https://pagelike.test${P}/Address" itemprop="address">
+                  <meta itemprop="street" content="1 Main">
+                  <meta itemprop="city" content="Shelbyville">
+                </div>
+              </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]

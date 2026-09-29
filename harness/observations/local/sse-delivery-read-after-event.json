@@ -1,0 +1,68 @@
+{
+  "case": "sse.delivery.read-after-event",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (sse open s1)",
+      "method": "GET",
+      "path": "/_pl/sse-delivery-read-after-event-170329/doc.html",
+      "status": 200,
+      "headers": {
+        "cache-control": "no-cache",
+        "content-type": "text/event-stream",
+        "x-accel-buffering": "no"
+      }
+    },
+    {
+      "step": "step 2",
+      "events": [
+        {
+          "event": "pagelove-connection",
+          "data": "11745bbf-21b1-467b-bc44-96f20b581879"
+        }
+      ]
+    },
+    {
+      "step": "step 3 (write)",
+      "method": "PUT",
+      "path": "/_pl/sse-delivery-read-after-event-170329/doc.html",
+      "status": 206,
+      "headers": {
+        "content-length": "18",
+        "content-range": "selector h1",
+        "content-type": "text/html",
+        "etag": "\"420c15cf60f67febfdc60de9ba0de9d59b53199dfe0f9bbb05dfcb10e3202601-420c15cf60f67febfdc60de9ba0de9d59b53199dfe0f9bbb05dfcb10e3202601-2\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:56 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003ch1\u003eCommitted\u003c/h1\u003e"
+    },
+    {
+      "step": "step 4",
+      "events": [
+        {
+          "id": "v1~da63691b17f3.1790649656932-1",
+          "event": "mutation",
+          "data": "\u003carticle itemscope itemtype=\"https://pagelove.org/Mutation\"\u003e\n  \u003cspan itemprop=\"method\"\u003ePUT\u003c/span\u003e\n  \u003cspan itemprop=\"selector\"\u003eh1\u003c/span\u003e\n  \u003cspan itemprop=\"etag\"\u003e2b4d497e9d52aec45521b053397c66ee3f7a30b2532a04c5da8fe2f5c04956c4\u003c/span\u003e\n  \u003cspan itemprop=\"path\"\u003e/_pl/sse-delivery-read-after-event-170329/doc.html\u003c/span\u003e\n  \u003cspan itemprop=\"host\"\u003et.localhost\u003c/span\u003e\n  \u003cdiv itemprop=\"body\"\u003e\u003ch1\u003eCommitted\u003c/h1\u003e\u003c/div\u003e\n\u003c/article\u003e"
+        }
+      ]
+    },
+    {
+      "step": "step 5 (read after the event)",
+      "method": "GET",
+      "path": "/_pl/sse-delivery-read-after-event-170329/doc.html",
+      "status": 206,
+      "headers": {
+        "accept-ranges": "selector, bytes",
+        "content-length": "18",
+        "content-range": "selector h1",
+        "content-type": "text/html",
+        "etag": "\"420c15cf60f67febfdc60de9ba0de9d59b53199dfe0f9bbb05dfcb10e3202601-420c15cf60f67febfdc60de9ba0de9d59b53199dfe0f9bbb05dfcb10e3202601-2\"",
+        "vary": "Host, Range, Accept"
+      },
+      "body": "\u003ch1\u003eCommitted\u003c/h1\u003e"
+    }
+  ],
+  "outcome": "pass",
+  "target": "local"
+}

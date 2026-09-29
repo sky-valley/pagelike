@@ -1,0 +1,72 @@
+{
+  "case": "modeling.references.cascade-deletes-required-referrer",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (register declarations through the public plane (takes effect for the next request))",
+      "method": "PUT",
+      "path": "/_pl/modeling-references-cascade-deletes-requ-a3ec13/schema.html",
+      "status": 201,
+      "headers": {
+        "content-length": "1157",
+        "content-type": "text/html",
+        "etag": "\"5b4b308ebb6862975b763983e1016a786744509df97012434b7412af6cbf2a08\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:44 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\n  \u003cdiv hidden itemscope itemtype=\"https://pagelove.org/Schema\"\u003e\n    \u003cmeta itemprop=\"type\" content=\"https://pagelike.test/_pl/modeling-references-cascade-deletes-requ-a3ec13/Org\"\u003e\n    \u003cdiv itemprop=\"property\" itemscope itemtype=\"https://pagelove.org/Property\"\u003e\n      \u003cmeta itemprop=\"name\" content=\"identifier\"\u003e\n      \u003cmeta itemprop=\"type\" content=\"https://schema.host/Text\"\u003e\n      \u003cmeta itemprop=\"cardinality\" content=\"1..1\"\u003e\n      \u003cmeta itemprop=\"unique\" content=\"true\"\u003e\n    \u003c/div\u003e\n  \u003c/div\u003e\n  \u003cdiv hidden itemscope itemtype=\"https://pagelove.org/Schema\"\u003e\n    \u003cmeta itemprop=\"type\" content=\"https://pagelike.test/_pl/modeling-references-cascade-deletes-requ-a3ec13/Member\"\u003e\n    \u003cdiv itemprop=\"property\" itemscope itemtype=\"https://pagelove.org/Property\"\u003e\n      \u003cmeta itemprop=\"name\" content=\"org\"\u003e\n      \u003cmeta itemprop=\"type\" content=\"https://schema.host/Text\"\u003e\n      \u003cmeta itemprop=\"cardinality\" content=\"1..1\"\u003e\n      \u003cmeta itemprop=\"references\" content=\"https://pagelike.test/_pl/modeling-references-cascade-deletes-requ-a3ec13/Org#identifier\"\u003e\n      \u003cmeta itemprop=\"cascade\" content=\"true\"\u003e\n    \u003c/div\u003e\n  \u003c/div\u003e\n\u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 2 (org acme)",
+      "method": "PUT",
+      "path": "/_pl/modeling-references-cascade-deletes-requ-a3ec13/org.html",
+      "status": 201,
+      "headers": {
+        "content-length": "208",
+        "content-type": "text/html",
+        "etag": "\"cac95a23ba35c402d0e68e90e84e766e20eeff4181f983406247dd9b54df158f\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:44 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\n  \u003cdiv itemscope itemtype=\"https://pagelike.test/_pl/modeling-references-cascade-deletes-requ-a3ec13/Org\"\u003e\n    \u003cmeta itemprop=\"identifier\" content=\"acme\"\u003e\n  \u003c/div\u003e\n\u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 3 (member of acme)",
+      "method": "PUT",
+      "path": "/_pl/modeling-references-cascade-deletes-requ-a3ec13/m.html",
+      "status": 201,
+      "headers": {
+        "content-length": "204",
+        "content-type": "text/html",
+        "etag": "\"502359ed1ec390dc37f9bea29f6d0b791d1ffd1e5f9ad744ce4003534f60a3c2\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:44 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\n  \u003cdiv itemscope itemtype=\"https://pagelike.test/_pl/modeling-references-cascade-deletes-requ-a3ec13/Member\"\u003e\n    \u003cmeta itemprop=\"org\" content=\"acme\"\u003e\n  \u003c/div\u003e\n\u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 4 (delete the org document)",
+      "method": "DELETE",
+      "path": "/_pl/modeling-references-cascade-deletes-requ-a3ec13/org.html",
+      "status": 204,
+      "headers": {
+        "etag": "\"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:44 GMT",
+        "vary": "Host, Range"
+      }
+    },
+    {
+      "step": "step 5 (the referencing document was deleted)",
+      "method": "GET",
+      "path": "/_pl/modeling-references-cascade-deletes-requ-a3ec13/m.html",
+      "status": 404,
+      "headers": {
+        "content-length": "210",
+        "content-type": "text/html; charset=utf-8"
+      },
+      "body": "\u003carticle itemscope itemtype=\"https://pagelove.org/Error/NotFound\"\u003e\u003cmeta itemprop=\"status\" content=\"404\"\u003e\u003cp itemprop=\"message\"\u003eNot found: /_pl/modeling-references-cascade-deletes-requ-a3ec13/m.html\u003c/p\u003e\u003c/article\u003e"
+    }
+  ],
+  "outcome": "pass",
+  "target": "local"
+}

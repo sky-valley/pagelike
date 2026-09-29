@@ -1,0 +1,37 @@
+{
+  "case": "rw.limit.at-cap-accepted",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (64-byte body)",
+      "method": "PUT",
+      "path": "/_pl/rw-limit-at-cap-accepted-ea7ee0/exact.txt",
+      "status": 201,
+      "headers": {
+        "content-length": "64",
+        "content-type": "text/plain",
+        "etag": "\"ffe054fe7ae0cb6dc65c3af9b61d5209f439851db43d0ba5997337df154668eb\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:55 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+    },
+    {
+      "step": "step 2 (stored)",
+      "method": "GET",
+      "path": "/_pl/rw-limit-at-cap-accepted-ea7ee0/exact.txt",
+      "status": 200,
+      "headers": {
+        "accept-ranges": "bytes",
+        "content-length": "64",
+        "content-type": "text/plain",
+        "etag": "\"ffe054fe7ae0cb6dc65c3af9b61d5209f439851db43d0ba5997337df154668eb\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:55 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+    }
+  ],
+  "outcome": "pass",
+  "target": "local"
+}

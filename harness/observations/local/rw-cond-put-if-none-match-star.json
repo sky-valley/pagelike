@@ -1,0 +1,50 @@
+{
+  "case": "rw.cond.put-if-none-match-star",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (create-only on a free path)",
+      "method": "PUT",
+      "path": "/_pl/rw-cond-put-if-none-match-star-21eb95/fresh.html",
+      "status": 201,
+      "headers": {
+        "content-length": "62",
+        "content-type": "text/html",
+        "etag": "\"55cf13d2229e7ac67b474b910c4042fd93eea6324c91d68609ae45a9c2bf639d\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:55 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\u003cp\u003efirst writer\u003c/p\u003e\u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 2 (create-only on a taken path)",
+      "method": "PUT",
+      "path": "/_pl/rw-cond-put-if-none-match-star-21eb95/fresh.html",
+      "status": 412,
+      "headers": {
+        "content-length": "176",
+        "content-type": "text/html",
+        "etag": "\"55cf13d2229e7ac67b474b910c4042fd93eea6324c91d68609ae45a9c2bf639d\"",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\u003cdiv itemscope itemtype=\"http://pagelove.org/Error\"\u003e\u003cspan itemprop=\"message\"\u003ePrecondition Failed: resource already exists\u003c/span\u003e\u003c/div\u003e\u003c/body\u003e\u003c/html\u003e"
+    },
+    {
+      "step": "step 3 (first writer kept)",
+      "method": "GET",
+      "path": "/_pl/rw-cond-put-if-none-match-star-21eb95/fresh.html",
+      "status": 200,
+      "headers": {
+        "accept-ranges": "selector, bytes",
+        "content-length": "62",
+        "content-type": "text/html",
+        "etag": "\"55cf13d2229e7ac67b474b910c4042fd93eea6324c91d68609ae45a9c2bf639d\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:55 GMT",
+        "vary": "Host, Range, Accept"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\u003cp\u003efirst writer\u003c/p\u003e\u003c/body\u003e\u003c/html\u003e\n"
+    }
+  ],
+  "outcome": "pass",
+  "target": "local"
+}

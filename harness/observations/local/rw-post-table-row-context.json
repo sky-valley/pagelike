@@ -1,0 +1,38 @@
+{
+  "case": "rw.post.table-row-context",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (vote)",
+      "method": "POST",
+      "path": "/_pl/rw-post-table-row-context-c4d294/poll.html",
+      "status": 206,
+      "headers": {
+        "content-length": "181",
+        "content-range": "selector #responses",
+        "content-type": "text/html",
+        "etag": "\"e4c8a6d9cabdcb3d49b56f96615acd667aa8a95fafbc1b557dfd72f0cf9f50f9-e4c8a6d9cabdcb3d49b56f96615acd667aa8a95fafbc1b557dfd72f0cf9f50f9-2\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:56 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003ctr id=\"r-abc12345\" itemscope itemtype=\"https://pagelove.org/PollResponse\"\u003e\u003cth scope=\"row\" itemprop=\"name\"\u003eAnn\u003c/th\u003e\u003ctd itemprop=\"vote\" data-option=\"o1\" data-vote=\"yes\"\u003eyes\u003c/td\u003e\u003c/tr\u003e"
+    },
+    {
+      "step": "step 2 (the row is inside the responses tbody)",
+      "method": "GET",
+      "path": "/_pl/rw-post-table-row-context-c4d294/poll.html",
+      "status": 206,
+      "headers": {
+        "accept-ranges": "selector, bytes",
+        "content-length": "61",
+        "content-range": "selector #responses \u003e tr#r-abc12345 \u003e td",
+        "content-type": "text/html",
+        "etag": "\"ad77220b9fe78a227aa69f1d2b30c409d02569afa21658578af6e4044f366a78-ad77220b9fe78a227aa69f1d2b30c409d02569afa21658578af6e4044f366a78-2\"",
+        "vary": "Host, Range, Accept"
+      },
+      "body": "\u003ctd itemprop=\"vote\" data-option=\"o1\" data-vote=\"yes\"\u003eyes\u003c/td\u003e"
+    }
+  ],
+  "outcome": "pass",
+  "target": "local"
+}

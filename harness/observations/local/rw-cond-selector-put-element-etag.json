@@ -1,0 +1,80 @@
+{
+  "case": "rw.cond.selector-put-element-etag",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (lazy tag fetch)",
+      "method": "HEAD",
+      "path": "/_pl/rw-cond-selector-put-element-etag-ff1998/notes.html",
+      "status": 206,
+      "headers": {
+        "accept-ranges": "selector, bytes",
+        "content-length": "46",
+        "content-range": "selector #note-42",
+        "content-type": "text/html",
+        "etag": "\"38a4304f9c1db32482405c40e3c441066d4a19d731f7d0a554d0e2c0d3ec454b-38a4304f9c1db32482405c40e3c441066d4a19d731f7d0a554d0e2c0d3ec454b-1\"",
+        "vary": "Host, Range, Accept"
+      }
+    },
+    {
+      "step": "step 2 (first edit)",
+      "method": "PUT",
+      "path": "/_pl/rw-cond-selector-put-element-etag-ff1998/notes.html",
+      "status": 206,
+      "headers": {
+        "content-length": "49",
+        "content-range": "selector #note-42",
+        "content-type": "text/html",
+        "etag": "\"8746e2aeddaa944f11bfdacd7a3da79845358471273986626ef51b8358f183b0-8746e2aeddaa944f11bfdacd7a3da79845358471273986626ef51b8358f183b0-2\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:55 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003carticle id=\"note-42\"\u003e\u003ch2\u003eEdit one\u003c/h2\u003e\u003c/article\u003e"
+    },
+    {
+      "step": "step 3 (second edit chained on the response tag)",
+      "method": "PUT",
+      "path": "/_pl/rw-cond-selector-put-element-etag-ff1998/notes.html",
+      "status": 206,
+      "headers": {
+        "content-length": "49",
+        "content-range": "selector #note-42",
+        "content-type": "text/html",
+        "etag": "\"af0d77bd976945a21e8dc3a0f7489ec217aa49b3f0058d0c96bfcb30f72e2c92-af0d77bd976945a21e8dc3a0f7489ec217aa49b3f0058d0c96bfcb30f72e2c92-3\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:55 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003carticle id=\"note-42\"\u003e\u003ch2\u003eEdit two\u003c/h2\u003e\u003c/article\u003e"
+    },
+    {
+      "step": "step 4 (stale tag)",
+      "method": "PUT",
+      "path": "/_pl/rw-cond-selector-put-element-etag-ff1998/notes.html",
+      "status": 412,
+      "headers": {
+        "content-length": "172",
+        "content-type": "text/html",
+        "etag": "\"af0d77bd976945a21e8dc3a0f7489ec217aa49b3f0058d0c96bfcb30f72e2c92-af0d77bd976945a21e8dc3a0f7489ec217aa49b3f0058d0c96bfcb30f72e2c92-3\"",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\u003cdiv itemscope itemtype=\"http://pagelove.org/Error\"\u003e\u003cspan itemprop=\"message\"\u003ePrecondition Failed: ETag does not match\u003c/span\u003e\u003c/div\u003e\u003c/body\u003e\u003c/html\u003e"
+    },
+    {
+      "step": "step 5 (edit two survived)",
+      "method": "GET",
+      "path": "/_pl/rw-cond-selector-put-element-etag-ff1998/notes.html",
+      "status": 206,
+      "headers": {
+        "accept-ranges": "selector, bytes",
+        "content-length": "49",
+        "content-range": "selector #note-42",
+        "content-type": "text/html",
+        "etag": "\"af0d77bd976945a21e8dc3a0f7489ec217aa49b3f0058d0c96bfcb30f72e2c92-af0d77bd976945a21e8dc3a0f7489ec217aa49b3f0058d0c96bfcb30f72e2c92-3\"",
+        "vary": "Host, Range, Accept"
+      },
+      "body": "\u003carticle id=\"note-42\"\u003e\u003ch2\u003eEdit two\u003c/h2\u003e\u003c/article\u003e"
+    }
+  ],
+  "outcome": "pass",
+  "target": "local"
+}

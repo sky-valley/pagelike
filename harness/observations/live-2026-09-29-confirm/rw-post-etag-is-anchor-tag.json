@@ -1,0 +1,49 @@
+{
+  "case": "rw.post.etag-is-anchor-tag",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (append)",
+      "method": "POST",
+      "path": "/_pl/rw-post-etag-is-anchor-tag-cc7041/anchor.html",
+      "status": 206,
+      "headers": {
+        "content-length": "12",
+        "content-range": "selector #anchor",
+        "content-type": "text/html",
+        "etag": "\"6de25f78336cb76acda5abdabd9849c8b091de4f14d8075637c260310542c97b-6de25f78336cb76acda5abdabd9849c8b091de4f14d8075637c260310542c97b-2\"",
+        "last-modified": "Tue, 29 Sep 2026 00:18:36 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003cli\u003etwo\u003c/li\u003e"
+    },
+    {
+      "step": "step 2 (the new child's tag equals the POST tag)",
+      "method": "HEAD",
+      "path": "/_pl/rw-post-etag-is-anchor-tag-cc7041/anchor.html",
+      "status": 206,
+      "headers": {
+        "content-length": "12",
+        "content-range": "selector #anchor \u003e li:last-child",
+        "content-type": "text/html",
+        "etag": "\"6de25f78336cb76acda5abdabd9849c8b091de4f14d8075637c260310542c97b-6de25f78336cb76acda5abdabd9849c8b091de4f14d8075637c260310542c97b-2\"",
+        "vary": "Host, Range, Accept"
+      }
+    },
+    {
+      "step": "step 3 (the anchor's tag is different)",
+      "method": "HEAD",
+      "path": "/_pl/rw-post-etag-is-anchor-tag-cc7041/anchor.html",
+      "status": 206,
+      "headers": {
+        "content-length": "45",
+        "content-range": "selector #anchor",
+        "content-type": "text/html",
+        "etag": "\"43a59daefa9db2b5b4943d173921bc73580ccdbcd66263d500b5c49e75b676ca-43a59daefa9db2b5b4943d173921bc73580ccdbcd66263d500b5c49e75b676ca-2\"",
+        "vary": "Host, Range, Accept"
+      }
+    }
+  ],
+  "outcome": "pass",
+  "target": "live"
+}

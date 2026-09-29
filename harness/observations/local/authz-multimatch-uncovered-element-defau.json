@@ -1,0 +1,43 @@
+{
+  "case": "authz.multimatch.uncovered-element-default-deny",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (all rows (one uncovered))",
+      "method": "GET",
+      "path": "/_pl/authz-multimatch-uncovered-element-defau-8bec62/rows.html",
+      "status": 401,
+      "headers": {
+        "content-length": "430",
+        "content-type": "text/html; charset=utf-8"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\n\u003chead\u003e\n    \u003cmeta charset=\"UTF-8\"\u003e\n    \u003ctitle\u003e401 Unauthorized\u003c/title\u003e\n\u003c/head\u003e\n\u003cbody itemscope itemtype=\"https://pagelove.org/1.0/Error\"\u003e\n    \u003ch1\u003e401 Unauthorized\u003c/h1\u003e\n    \u003cp itemprop=\"message\"\u003eAuthentication required to access this resource.\u003c/p\u003e\n    \u003cdl\u003e\n        \u003cdt\u003eResource\u003c/dt\u003e\n        \u003cdd itemprop=\"resource\"\u003e/_pl/authz-multimatch-uncovered-element-defau-8bec62/rows.html\u003c/dd\u003e\n    \u003c/dl\u003e\n\u003c/body\u003e\n\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 2 (only the public rows)",
+      "method": "GET",
+      "path": "/_pl/authz-multimatch-uncovered-element-defau-8bec62/rows.html",
+      "status": 200,
+      "headers": {
+        "accept-ranges": "selector, bytes",
+        "content-length": "876",
+        "content-type": "multipart/mixed; boundary=boundaryGHy24Eit3yQB3YwpMxixVtdGEtRmUMZo",
+        "vary": "Host, Range, Accept, Paginate"
+      },
+      "body": "--boundaryGHy24Eit3yQB3YwpMxixVtdGEtRmUMZo\r\nContent-Disposition: attachment; filename=\"/_pl/authz-multimatch-uncovered-element-defau-8bec62/rows.html\"\r\nContent-Type: text/html\r\nContent-Range: selector .pub\r\nETag: \"336fa16bddfd962048ab6938f9aeedcdf1f8a16a5d2b6f5591efe5f8da233af2-336fa16bddfd962048ab6938f9aeedcdf1f8a16a5d2b6f5591efe5f8da233af2-1\"\r\nContent-Length: 44\r\n\r\n\u003ctr class=\"row pub\"\u003e\u003ctd\u003ePublic one\u003c/td\u003e\u003c/tr\u003e\r\n--boundaryGHy24Eit3yQB3YwpMxixVtdGEtRmUMZo\r\nContent-Disposition: attachment; filename=\"/_pl/authz-multimatch-uncovered-element-defau-8bec62/rows.html\"\r\nContent-Type: text/html\r\nContent-Range: selector .pub\r\nETag: \"1d82ead9c36c5af3a3c4a2962a3c4b3ed3fd1b107575a9d1e71da750b84cd6cd-1d82ead9c36c5af3a3c4a2962a3c4b3ed3fd1b107575a9d1e71da750b84cd6cd-1\"\r\nContent-Length: 44\r\n\r\n\u003ctr class=\"row pub\"\u003e\u003ctd\u003ePublic two\u003c/td\u003e\u003c/tr\u003e\r\n--boundaryGHy24Eit3yQB3YwpMxixVtdGEtRmUMZo--"
+    },
+    {
+      "step": "step 3 (whole document is not covered by the selector rule)",
+      "method": "GET",
+      "path": "/_pl/authz-multimatch-uncovered-element-defau-8bec62/rows.html",
+      "status": 401,
+      "headers": {
+        "content-length": "430",
+        "content-type": "text/html; charset=utf-8"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\n\u003chead\u003e\n    \u003cmeta charset=\"UTF-8\"\u003e\n    \u003ctitle\u003e401 Unauthorized\u003c/title\u003e\n\u003c/head\u003e\n\u003cbody itemscope itemtype=\"https://pagelove.org/1.0/Error\"\u003e\n    \u003ch1\u003e401 Unauthorized\u003c/h1\u003e\n    \u003cp itemprop=\"message\"\u003eAuthentication required to access this resource.\u003c/p\u003e\n    \u003cdl\u003e\n        \u003cdt\u003eResource\u003c/dt\u003e\n        \u003cdd itemprop=\"resource\"\u003e/_pl/authz-multimatch-uncovered-element-defau-8bec62/rows.html\u003c/dd\u003e\n    \u003c/dl\u003e\n\u003c/body\u003e\n\u003c/html\u003e\n"
+    }
+  ],
+  "outcome": "pass",
+  "target": "local"
+}

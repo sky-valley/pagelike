@@ -1,0 +1,65 @@
+{
+  "case": "modeling.resolvers.recipe-date-format-read",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (register declarations through the public plane (takes effect for the next request))",
+      "method": "PUT",
+      "path": "/_pl/modeling-resolvers-recipe-date-format-re-ae1156/schema.html",
+      "status": 201,
+      "headers": {
+        "content-length": "763",
+        "content-type": "text/html",
+        "etag": "\"0ce202099be1ba2dfb16fa50b5c0571b7863113591e302ceef3ddf79cad93675\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:44 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\n  \u003cdiv hidden itemscope itemtype=\"https://pagelove.org/Schema\"\u003e\n    \u003cmeta itemprop=\"type\" content=\"https://pagelike.test/_pl/modeling-resolvers-recipe-date-format-re-ae1156/Entry\"\u003e\n    \u003cli itemprop=\"property\" itemscope itemtype=\"https://pagelove.org/Property\"\u003e\n      \u003cmeta itemprop=\"name\" content=\"createdAt\"\u003e\n      \u003cmeta itemprop=\"type\" content=\"https://schema.host/DateTime\"\u003e\n      \u003cmeta itemprop=\"cardinality\" content=\"1..1\"\u003e\n      \u003cscript type=\"text/sessel\" itemprop=\"@read\"\u003e\n        self.map((el) =\u003e {\n          let stamp = el.value().parseDateTime();\n          new time[itemprop=\"createdAt\"][datetime=el.value()] {\n            stamp.format(\"d MMMM yyyy\")\n          }\n        })\n      \u003c/script\u003e\n    \u003c/li\u003e\n  \u003c/div\u003e\n\u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 2 (store a raw timestamp)",
+      "method": "PUT",
+      "path": "/_pl/modeling-resolvers-recipe-date-format-re-ae1156/e.html",
+      "status": 201,
+      "headers": {
+        "content-length": "233",
+        "content-type": "text/html",
+        "etag": "\"b654e0320b7e4415d40f500e9526146c04f9ebe3576b40d190c0e79766df955f\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:44 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\n  \u003cdiv itemscope itemtype=\"https://pagelike.test/_pl/modeling-resolvers-recipe-date-format-re-ae1156/Entry\"\u003e\n    \u003ctime itemprop=\"createdAt\" datetime=\"2026-04-08T09:15:00Z\"\u003e\u003c/time\u003e\n  \u003c/div\u003e\n\u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 3 (public GET shows the formatted date)",
+      "method": "GET",
+      "path": "/_pl/modeling-resolvers-recipe-date-format-re-ae1156/e.html",
+      "status": 200,
+      "headers": {
+        "accept-ranges": "selector, bytes",
+        "cache-control": "public, max-age=5",
+        "content-length": "245",
+        "content-type": "text/html",
+        "etag": "W/\"a085ef6485f8d9a89d212e4383a97fe95a60d44c10f2208d354bdfaee488c51f\"",
+        "vary": "Host, Range, Accept"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\n  \u003cdiv itemscope itemtype=\"https://pagelike.test/_pl/modeling-resolvers-recipe-date-format-re-ae1156/Entry\"\u003e\n    \u003ctime itemprop=\"createdAt\" datetime=\"2026-04-08T09:15:00Z\"\u003e8 April 2026\u003c/time\u003e\n  \u003c/div\u003e\n\u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 4 (stored state of e.html (authoring plane, raw))",
+      "method": "GET",
+      "path": "/_pl/modeling-resolvers-recipe-date-format-re-ae1156/e.html",
+      "status": 200,
+      "headers": {
+        "accept-ranges": "bytes",
+        "content-length": "233",
+        "content-type": "text/html",
+        "etag": "\"b654e0320b7e4415d40f500e9526146c04f9ebe3576b40d190c0e79766df955f\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:44 GMT"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\n  \u003cdiv itemscope itemtype=\"https://pagelike.test/_pl/modeling-resolvers-recipe-date-format-re-ae1156/Entry\"\u003e\n    \u003ctime itemprop=\"createdAt\" datetime=\"2026-04-08T09:15:00Z\"\u003e\u003c/time\u003e\n  \u003c/div\u003e\n\u003c/body\u003e\u003c/html\u003e\n"
+    }
+  ],
+  "outcome": "pass",
+  "target": "local"
+}

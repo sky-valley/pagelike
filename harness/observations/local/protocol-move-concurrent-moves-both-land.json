@@ -1,0 +1,60 @@
+{
+  "case": "protocol.move.concurrent-moves-both-land",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1",
+      "method": "MOVE",
+      "path": "/_pl/protocol-move-concurrent-moves-both-land-d5ee07/board.html",
+      "status": 204,
+      "headers": {
+        "etag": "\"3db3d94b568948fc8aeab00b96ecd6b542c44218870cd4bf5309595ee3145a81\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:48 GMT",
+        "vary": "Host, Range"
+      }
+    },
+    {
+      "step": "step 2",
+      "method": "MOVE",
+      "path": "/_pl/protocol-move-concurrent-moves-both-land-d5ee07/board.html",
+      "status": 204,
+      "headers": {
+        "etag": "\"d8dcc09ccce0642ea9e4bfedc6662f641d36eee2538e847656628f21d34fc6cf\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:48 GMT",
+        "vary": "Host, Range"
+      }
+    },
+    {
+      "step": "step 2 (both cards are in the done lane)",
+      "method": "GET",
+      "path": "/_pl/protocol-move-concurrent-moves-both-land-d5ee07/board.html",
+      "status": 206,
+      "headers": {
+        "accept-ranges": "selector, bytes",
+        "content-length": "189",
+        "content-range": "selector #lane-done",
+        "content-type": "text/html",
+        "etag": "\"f4a53ce03a7d2e5acaced7c7f85c4bfdf22386ee96bfbad122a86fb1feb4f07d-f4a53ce03a7d2e5acaced7c7f85c4bfdf22386ee96bfbad122a86fb1feb4f07d-3\"",
+        "vary": "Host, Range, Accept"
+      },
+      "body": "\u003csection class=\"lane\" id=\"lane-done\"\u003e\u003carticle class=\"card\" id=\"card-4\"\u003eFour\u003c/article\u003e\u003carticle class=\"card\" id=\"card-1\"\u003eOne\u003c/article\u003e\u003carticle class=\"card\" id=\"card-2\"\u003eTwo\u003c/article\u003e\u003c/section\u003e"
+    },
+    {
+      "step": "step 3 (and neither is left in todo)",
+      "method": "GET",
+      "path": "/_pl/protocol-move-concurrent-moves-both-land-d5ee07/board.html",
+      "status": 206,
+      "headers": {
+        "accept-ranges": "selector, bytes",
+        "content-length": "96",
+        "content-range": "selector #lane-todo",
+        "content-type": "text/html",
+        "etag": "\"9cc231330b0a07de686a04d3f345f7368f7a615ed6148190ad473e24d63939cc-9cc231330b0a07de686a04d3f345f7368f7a615ed6148190ad473e24d63939cc-3\"",
+        "vary": "Host, Range, Accept"
+      },
+      "body": "\u003csection class=\"lane\" id=\"lane-todo\"\u003e\u003carticle class=\"card\" id=\"card-3\"\u003eThree\u003c/article\u003e\u003c/section\u003e"
+    }
+  ],
+  "outcome": "pass",
+  "target": "local"
+}

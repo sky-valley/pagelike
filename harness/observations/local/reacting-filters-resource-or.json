@@ -1,0 +1,58 @@
+{
+  "case": "reacting.filters.resource-or",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (install a trigger on two globs)",
+      "method": "PUT",
+      "path": "/_pl/reacting-filters-resource-or-f7ca05/r/triggers.html",
+      "status": 201,
+      "headers": {
+        "content-length": "612",
+        "content-type": "text/html",
+        "etag": "\"91209e9ffd160f4843db1a1e5bde350c8479dab00393173008a8ff7da022c831\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:48 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\n\u003cdiv hidden itemscope itemtype=\"https://pagelove.org/Trigger\"\u003e\n  \u003cmeta itemprop=\"resource\" content=\"/_pl/reacting-filters-resource-or-f7ca05/news/*\"\u003e\n  \u003cmeta itemprop=\"resource\" content=\"/_pl/reacting-filters-resource-or-f7ca05/blog/*\"\u003e\n  \u003cmeta itemprop=\"method\" content=\"PUT\"\u003e\n  \u003cdiv itemprop=\"action\" itemscope itemtype=\"https://pagelove.org/Sessel\"\u003e\n    \u003cscript itemprop=\"source\" type=\"text/sessel\"\u003e\n      @schema HTTPResponse url(\"https://pagelove.org/HTTPResponse\");\n      throw new HTTPResponse { status: 409, message: \"glob-hit\" }\n    \u003c/script\u003e\n  \u003c/div\u003e\n\u003c/div\u003e\n\u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 2 (first glob matches)",
+      "method": "PUT",
+      "path": "/_pl/reacting-filters-resource-or-f7ca05/news/a.html",
+      "status": 409,
+      "headers": {
+        "content-length": "8",
+        "content-type": "text/html; charset=utf-8"
+      },
+      "body": "glob-hit"
+    },
+    {
+      "step": "step 3 (second glob matches)",
+      "method": "PUT",
+      "path": "/_pl/reacting-filters-resource-or-f7ca05/blog/b.html",
+      "status": 409,
+      "headers": {
+        "content-length": "8",
+        "content-type": "text/html; charset=utf-8"
+      },
+      "body": "glob-hit"
+    },
+    {
+      "step": "step 4 (a path matching neither glob is unaffected)",
+      "method": "PUT",
+      "path": "/_pl/reacting-filters-resource-or-f7ca05/other/c.html",
+      "status": 201,
+      "headers": {
+        "content-length": "8",
+        "content-type": "text/html",
+        "etag": "\"a3c0b0ae713fab5cec62aa7e0156b6b2577bf806182da3ac09d690aefaa4f641\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:48 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003cp\u003ec\u003c/p\u003e"
+    }
+  ],
+  "outcome": "pass",
+  "target": "local"
+}

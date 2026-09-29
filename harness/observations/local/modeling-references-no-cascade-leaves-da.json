@@ -1,0 +1,75 @@
+{
+  "case": "modeling.references.no-cascade-leaves-dangling",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (register declarations through the public plane (takes effect for the next request))",
+      "method": "PUT",
+      "path": "/_pl/modeling-references-no-cascade-leaves-da-a64d3c/schema.html",
+      "status": 201,
+      "headers": {
+        "content-length": "1110",
+        "content-type": "text/html",
+        "etag": "\"fe54529585c5ca394ff55c97c38bf2813c1d9246506104f1454ca2cef2f384f6\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:44 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\n  \u003cdiv hidden itemscope itemtype=\"https://pagelove.org/Schema\"\u003e\n    \u003cmeta itemprop=\"type\" content=\"https://pagelike.test/_pl/modeling-references-no-cascade-leaves-da-a64d3c/Org\"\u003e\n    \u003cdiv itemprop=\"property\" itemscope itemtype=\"https://pagelove.org/Property\"\u003e\n      \u003cmeta itemprop=\"name\" content=\"identifier\"\u003e\n      \u003cmeta itemprop=\"type\" content=\"https://schema.host/Text\"\u003e\n      \u003cmeta itemprop=\"cardinality\" content=\"1..1\"\u003e\n      \u003cmeta itemprop=\"unique\" content=\"true\"\u003e\n    \u003c/div\u003e\n  \u003c/div\u003e\n  \u003cdiv hidden itemscope itemtype=\"https://pagelove.org/Schema\"\u003e\n    \u003cmeta itemprop=\"type\" content=\"https://pagelike.test/_pl/modeling-references-no-cascade-leaves-da-a64d3c/Member\"\u003e\n    \u003cdiv itemprop=\"property\" itemscope itemtype=\"https://pagelove.org/Property\"\u003e\n      \u003cmeta itemprop=\"name\" content=\"org\"\u003e\n      \u003cmeta itemprop=\"type\" content=\"https://schema.host/Text\"\u003e\n      \u003cmeta itemprop=\"cardinality\" content=\"1..1\"\u003e\n      \u003cmeta itemprop=\"references\" content=\"https://pagelike.test/_pl/modeling-references-no-cascade-leaves-da-a64d3c/Org#identifier\"\u003e\n    \u003c/div\u003e\n  \u003c/div\u003e\n\u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 2 (org acme)",
+      "method": "PUT",
+      "path": "/_pl/modeling-references-no-cascade-leaves-da-a64d3c/org.html",
+      "status": 201,
+      "headers": {
+        "content-length": "208",
+        "content-type": "text/html",
+        "etag": "\"7ed6e53a76042f1b556a90dc58c68e964e73f596e374509678d2c3f7bd4610a8\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:44 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\n  \u003cdiv itemscope itemtype=\"https://pagelike.test/_pl/modeling-references-no-cascade-leaves-da-a64d3c/Org\"\u003e\n    \u003cmeta itemprop=\"identifier\" content=\"acme\"\u003e\n  \u003c/div\u003e\n\u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 3 (member of acme)",
+      "method": "PUT",
+      "path": "/_pl/modeling-references-no-cascade-leaves-da-a64d3c/m.html",
+      "status": 201,
+      "headers": {
+        "content-length": "204",
+        "content-type": "text/html",
+        "etag": "\"b2574aaf1977223329697e872b474bb2e00c1cc8ecca3c1f1d49bd41f5504c7b\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:44 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\n  \u003cdiv itemscope itemtype=\"https://pagelike.test/_pl/modeling-references-no-cascade-leaves-da-a64d3c/Member\"\u003e\n    \u003cmeta itemprop=\"org\" content=\"acme\"\u003e\n  \u003c/div\u003e\n\u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 4 (delete org)",
+      "method": "DELETE",
+      "path": "/_pl/modeling-references-no-cascade-leaves-da-a64d3c/org.html",
+      "status": 204,
+      "headers": {
+        "etag": "\"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:44 GMT",
+        "vary": "Host, Range"
+      }
+    },
+    {
+      "step": "step 5 (stored state of m.html (authoring plane, raw))",
+      "method": "GET",
+      "path": "/_pl/modeling-references-no-cascade-leaves-da-a64d3c/m.html",
+      "status": 200,
+      "headers": {
+        "accept-ranges": "bytes",
+        "content-length": "204",
+        "content-type": "text/html",
+        "etag": "\"b2574aaf1977223329697e872b474bb2e00c1cc8ecca3c1f1d49bd41f5504c7b\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:44 GMT"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\n  \u003cdiv itemscope itemtype=\"https://pagelike.test/_pl/modeling-references-no-cascade-leaves-da-a64d3c/Member\"\u003e\n    \u003cmeta itemprop=\"org\" content=\"acme\"\u003e\n  \u003c/div\u003e\n\u003c/body\u003e\u003c/html\u003e\n"
+    }
+  ],
+  "outcome": "pass",
+  "target": "local"
+}

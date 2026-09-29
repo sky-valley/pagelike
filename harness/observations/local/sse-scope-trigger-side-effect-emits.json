@@ -1,0 +1,88 @@
+{
+  "case": "sse.scope.trigger-side-effect-emits",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 2 (sse open main)",
+      "method": "GET",
+      "path": "/_pl/sse-scope-trigger-side-effect-emits-199eeb/doc.html",
+      "status": 200,
+      "headers": {
+        "cache-control": "no-cache",
+        "content-type": "text/event-stream",
+        "x-accel-buffering": "no"
+      }
+    },
+    {
+      "step": "step 3 (sse open side)",
+      "method": "GET",
+      "path": "/_pl/sse-scope-trigger-side-effect-emits-199eeb/side.html",
+      "status": 200,
+      "headers": {
+        "cache-control": "no-cache",
+        "content-type": "text/event-stream",
+        "x-accel-buffering": "no"
+      }
+    },
+    {
+      "step": "step 4",
+      "events": [
+        {
+          "event": "pagelove-connection",
+          "data": "96192ea2-1cc7-4c10-acd7-3958c39a2c15"
+        }
+      ]
+    },
+    {
+      "step": "step 5",
+      "events": [
+        {
+          "event": "pagelove-connection",
+          "data": "1a4c82a6-feaf-4e5c-bcba-c59ca9f1e12f"
+        }
+      ]
+    },
+    {
+      "step": "step 6 (write that fires the trigger)",
+      "method": "PUT",
+      "path": "/_pl/sse-scope-trigger-side-effect-emits-199eeb/doc.html",
+      "status": 206,
+      "headers": {
+        "content-length": "18",
+        "content-range": "selector h1",
+        "content-type": "text/html",
+        "etag": "\"76146c8550e955ebd21a90537246c1205d68a9ae8d2006e1ecf9290e85319566-76146c8550e955ebd21a90537246c1205d68a9ae8d2006e1ecf9290e85319566-2\"",
+        "last-modified": "Tue, 29 Sep 2026 02:30:44 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003ch1\u003eTriggered\u003c/h1\u003e"
+    },
+    {
+      "step": "step 7",
+      "events": [
+        {
+          "id": "v1~5d1e1cdc5e3e.1790649044479-1",
+          "event": "mutation",
+          "data": "\u003carticle itemscope itemtype=\"https://pagelove.org/Mutation\"\u003e\n  \u003cspan itemprop=\"method\"\u003ePUT\u003c/span\u003e\n  \u003cspan itemprop=\"selector\"\u003eh1\u003c/span\u003e\n  \u003cspan itemprop=\"etag\"\u003e47c44621ad29ceffd609eb51f576a55df248790f6bfd50c29abeb92436fe4540\u003c/span\u003e\n  \u003cspan itemprop=\"path\"\u003e/_pl/sse-scope-trigger-side-effect-emits-199eeb/doc.html\u003c/span\u003e\n  \u003cspan itemprop=\"host\"\u003et.localhost\u003c/span\u003e\n  \u003cdiv itemprop=\"body\"\u003e\u003ch1\u003eTriggered\u003c/h1\u003e\u003c/div\u003e\n\u003c/article\u003e"
+        }
+      ]
+    },
+    {
+      "step": "step 9 (the trigger wrote the side document)",
+      "method": "GET",
+      "path": "/_pl/sse-scope-trigger-side-effect-emits-199eeb/side.html",
+      "status": 200,
+      "headers": {
+        "accept-ranges": "selector, bytes",
+        "content-length": "150",
+        "content-type": "text/html",
+        "etag": "\"1bf1534cb9049a56fa5053ea9870db34dcac0ce619a450b802d39cbe27fb5780\"",
+        "last-modified": "Tue, 29 Sep 2026 02:30:44 GMT",
+        "vary": "Host, Range, Accept"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\n\u003cdiv itemscope itemtype=\"https://schema.org/Thing\"\u003e\u003cmeta itemprop=\"name\" content=\"side-effect-doc\"\u003e\u003c/div\u003e\n\u003c/body\u003e\u003c/html\u003e\n"
+    }
+  ],
+  "outcome": "pass",
+  "target": "local"
+}

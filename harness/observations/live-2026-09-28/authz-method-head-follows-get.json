@@ -1,0 +1,30 @@
+{
+  "case": "authz.method.head-follows-get",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (HEAD of a GET-denied document)",
+      "method": "HEAD",
+      "path": "/_pl/authz-method-head-follows-get-3fde9a/denied.html",
+      "status": 401,
+      "headers": {
+        "content-length": "420",
+        "content-type": "text/html; charset=utf-8"
+      }
+    },
+    {
+      "step": "step 2 (HEAD of a GET-allowed document)",
+      "method": "HEAD",
+      "path": "/_pl/authz-method-head-follows-get-3fde9a/allowed.html",
+      "status": 200,
+      "headers": {
+        "content-type": "text/html",
+        "etag": "\"fe2ad5b18ce2c54204bcb4093049ca3f1ea436df0afbae2e1d4235a60267fe93\"",
+        "last-modified": "Mon, 28 Sep 2026 22:39:09 GMT",
+        "vary": "Host, Range, Accept"
+      }
+    }
+  ],
+  "outcome": "pass",
+  "target": "live"
+}

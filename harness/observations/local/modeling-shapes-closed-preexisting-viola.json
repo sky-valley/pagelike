@@ -1,0 +1,60 @@
+{
+  "case": "modeling.shapes-closed.preexisting-violation-blocks-writes",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (register declarations through the public plane (takes effect for the next request))",
+      "method": "PUT",
+      "path": "/_pl/modeling-shapes-closed-preexisting-viola-bbc6bc/constraints.html",
+      "status": 201,
+      "headers": {
+        "content-length": "690",
+        "content-type": "text/html",
+        "etag": "\"cd80dc68be2d0fa6f7581d22e483420e5cbe9b855dd81ee1e04d7c2135015683\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:45 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\n  \u003cdiv hidden itemscope itemtype=\"https://pagelove.org/ShapeConstraint\"\u003e\n    \u003cmeta itemprop=\"resource\" content=\"/_pl/modeling-shapes-closed-preexisting-viola-bbc6bc/posts/*\"\u003e\n    \u003ccode itemprop=\"selector\"\u003e[itemprop='comments'][id][class]\u003c/code\u003e\n    \u003ccode itemprop=\"permit\"\u003eli[class=\"comment\"][itemscope][itemtype=\"https://blog.example/Comment\"]\u003c/code\u003e\n    \u003ccode itemprop=\"permit\"\u003ep[class=\"comment-meta\"]\u003c/code\u003e\n    \u003ccode itemprop=\"permit\"\u003estrong[itemprop=\"author\"]\u003c/code\u003e\n    \u003ccode itemprop=\"permit\"\u003etime[itemprop=\"createdAt\"][datetime]\u003c/code\u003e\n    \u003ccode itemprop=\"permit\"\u003ediv[itemprop=\"body\"]\u003c/code\u003e\n    \u003ccode itemprop=\"permit\"\u003ep\u003c/code\u003e\n  \u003c/div\u003e\n\u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 2 (honest comment refused while the script comment remains)",
+      "method": "POST",
+      "path": "/_pl/modeling-shapes-closed-preexisting-viola-bbc6bc/posts/hello.html",
+      "status": 422,
+      "headers": {
+        "content-length": "650",
+        "content-type": "text/html",
+        "vary": "Host, Range"
+      },
+      "body": "\u003cdiv itemscope itemtype=\"https://dombase.pagelove.team/ns/error/ShapeConstraint\"\u003e\u003cul itemprop=\"problems\"\u003e\u003cli itemprop=\"problem\"\u003e\u003cspan itemprop=\"message\"\u003eShape constraints violated\u003c/span\u003e\u003c/li\u003e\u003cli itemprop=\"problem\"\u003e\u003cspan itemprop=\"message\"\u003ehttps://pagelove.org/ShapeConstraint [itemprop='comments'][id][class]: Element \u0026lt;li\u0026gt; inside '[itemprop='comments'][id][class]' is not permitted by any permit\u003c/span\u003e\u003c/li\u003e\u003cli itemprop=\"problem\"\u003e\u003cspan itemprop=\"message\"\u003ehttps://pagelove.org/ShapeConstraint [itemprop='comments'][id][class]: Element \u0026lt;script\u0026gt; inside '[itemprop='comments'][id][class]' is not permitted by any permit\u003c/span\u003e\u003c/li\u003e\u003c/ul\u003e\u003c/div\u003e"
+    },
+    {
+      "step": "step 3 (delete the script comment)",
+      "method": "DELETE",
+      "path": "/_pl/modeling-shapes-closed-preexisting-viola-bbc6bc/posts/hello.html",
+      "status": 204,
+      "headers": {
+        "etag": "\"dd8f3ccae1c45fcca3da70bd8e9dd7c5b7b4c47510bfd1e166e055c7b6f0e822\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:45 GMT",
+        "vary": "Host, Range"
+      }
+    },
+    {
+      "step": "step 4 (honest comment now accepted)",
+      "method": "POST",
+      "path": "/_pl/modeling-shapes-closed-preexisting-viola-bbc6bc/posts/hello.html",
+      "status": 206,
+      "headers": {
+        "content-length": "250",
+        "content-range": "selector #comments-hello",
+        "content-type": "text/html",
+        "etag": "\"9602c542d7f536c2b7b04cd5f022c3411c2b1790779a29bce736af8eae0763e8-9602c542d7f536c2b7b04cd5f022c3411c2b1790779a29bce736af8eae0763e8-3\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:45 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003cli class=\"comment\" itemscope itemtype=\"https://blog.example/Comment\"\u003e\u003cp class=\"comment-meta\"\u003e\u003cstrong itemprop=\"author\"\u003eAnn\u003c/strong\u003e \u003ctime itemprop=\"createdAt\" datetime=\"2026-09-28\"\u003ejust now\u003c/time\u003e\u003c/p\u003e\u003cdiv itemprop=\"body\"\u003e\u003cp\u003eNice post.\u003c/p\u003e\u003c/div\u003e\u003c/li\u003e"
+    }
+  ],
+  "outcome": "pass",
+  "target": "local"
+}

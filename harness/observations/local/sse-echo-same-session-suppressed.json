@@ -1,0 +1,73 @@
+{
+  "case": "sse.echo.same-session-suppressed",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (sse open alice_tab)",
+      "method": "GET",
+      "path": "/_pl/sse-echo-same-session-suppressed-dc6870/doc.html",
+      "status": 200,
+      "headers": {
+        "cache-control": "no-cache",
+        "content-type": "text/event-stream",
+        "x-accel-buffering": "no"
+      }
+    },
+    {
+      "step": "step 2 (sse open bob_tab)",
+      "method": "GET",
+      "path": "/_pl/sse-echo-same-session-suppressed-dc6870/doc.html",
+      "status": 200,
+      "headers": {
+        "cache-control": "no-cache",
+        "content-type": "text/event-stream",
+        "x-accel-buffering": "no"
+      }
+    },
+    {
+      "step": "step 3",
+      "events": [
+        {
+          "event": "pagelove-connection",
+          "data": "bb80af34-7b86-480b-8d1e-177ab227449a"
+        }
+      ]
+    },
+    {
+      "step": "step 4",
+      "events": [
+        {
+          "event": "pagelove-connection",
+          "data": "641d0ab3-7826-4552-b603-0451905660cd"
+        }
+      ]
+    },
+    {
+      "step": "step 5 (alice writes without a token)",
+      "method": "PUT",
+      "path": "/_pl/sse-echo-same-session-suppressed-dc6870/doc.html",
+      "status": 206,
+      "headers": {
+        "content-length": "17",
+        "content-range": "selector h1",
+        "content-type": "text/html",
+        "etag": "\"1b62381c2fad489e6eb89b26ca8d2a2d7ccfd060d1fe696902e37133b9ab7eff-1b62381c2fad489e6eb89b26ca8d2a2d7ccfd060d1fe696902e37133b9ab7eff-2\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:57 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003ch1\u003eBy alice\u003c/h1\u003e"
+    },
+    {
+      "step": "step 6",
+      "events": [
+        {
+          "id": "v1~3d2747b8659d.1790649657177-1",
+          "event": "mutation",
+          "data": "\u003carticle itemscope itemtype=\"https://pagelove.org/Mutation\"\u003e\n  \u003cspan itemprop=\"method\"\u003ePUT\u003c/span\u003e\n  \u003cspan itemprop=\"selector\"\u003eh1\u003c/span\u003e\n  \u003cspan itemprop=\"etag\"\u003eb7b5d6e879489c20717cba471cf22ea49d60b54d30b60fb0f4106ba90085f725\u003c/span\u003e\n  \u003cspan itemprop=\"path\"\u003e/_pl/sse-echo-same-session-suppressed-dc6870/doc.html\u003c/span\u003e\n  \u003cspan itemprop=\"host\"\u003et.localhost\u003c/span\u003e\n  \u003cdiv itemprop=\"body\"\u003e\u003ch1\u003eBy alice\u003c/h1\u003e\u003c/div\u003e\n\u003c/article\u003e"
+        }
+      ]
+    }
+  ],
+  "outcome": "pass",
+  "target": "local"
+}

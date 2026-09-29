@@ -1,0 +1,1217 @@
+# Modeling: property cardinality and which writes validate it (PUT, POST, DELETE and MOVE with selectors).
+# Spec: docs/spec/modeling.md §3-4 (R-MOD-13..R-MOD-18).
+cases:
+  - id: modeling.cardinality.minimal-tag-example
+    title: "Docs minimal Tag schema: label is required (1..1)"
+    area: modeling
+    feature: cardinality
+    evidence: documented
+    source: "docs reference/modeling-data/Schema §Examples > Minimal (snapshot 2026-09-28); docs reference/modeling-data/Property §Cardinality values (snapshot 2026-09-28)"
+    confidence: high
+    requires: []
+    live: true
+    notes: "spec: R-MOD-18."
+    site:
+      settings:
+        default_get: allow
+      rules:
+        - actor: "*"
+          resource: "${P}/*"
+          method: [GET, HEAD, PUT, POST, DELETE, MOVE]
+          action: Allow
+        - actor: "*"
+          resource: "${P}/*/*"
+          method: [GET, HEAD, PUT, POST, DELETE, MOVE]
+          action: Allow
+    steps:
+      - name: "register declarations through the public plane (takes effect for the next request)"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/schema.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div hidden itemscope itemtype="https://pagelove.org/Schema">
+                <meta itemprop="type" content="https://pagelike.test${P}/Tag">
+                <div itemprop="property" itemscope itemtype="https://pagelove.org/Property">
+                  <meta itemprop="name" content="label">
+                  <meta itemprop="type" content="https://schema.host/Text">
+                  <meta itemprop="cardinality" content="1..1">
+                  <meta itemprop="unique" content="true">
+                </div>
+              </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "Tag without label rejected"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/t1.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div itemscope itemtype="https://pagelike.test${P}/Tag"></div>
+            </body></html>
+        expect:
+          status: 422
+          header_matches:
+            Content-Type: "^text/html"
+          body_contains: ["https://pagelove.org/SchemaViolation", cardinality]
+      - name: "t1.html was not stored"
+        as: author
+        plane: dav
+        request:
+          method: GET
+          path: "${P}/t1.html"
+        expect:
+          status: 404
+      - name: "Tag with label accepted"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/t2.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div itemscope itemtype="https://pagelike.test${P}/Tag">
+                <meta itemprop="label" content="urgent">
+              </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+  - id: modeling.cardinality.exactly-one-rejects-two
+    title: "1..1 rejects two values"
+    area: modeling
+    feature: cardinality
+    evidence: documented
+    source: "docs reference/modeling-data/Property §Cardinality values (snapshot 2026-09-28)"
+    confidence: high
+    requires: []
+    live: true
+    notes: "spec: R-MOD-18."
+    site:
+      settings:
+        default_get: allow
+      rules:
+        - actor: "*"
+          resource: "${P}/*"
+          method: [GET, HEAD, PUT, POST, DELETE, MOVE]
+          action: Allow
+        - actor: "*"
+          resource: "${P}/*/*"
+          method: [GET, HEAD, PUT, POST, DELETE, MOVE]
+          action: Allow
+    steps:
+      - name: "register declarations through the public plane (takes effect for the next request)"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/schema.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div hidden itemscope itemtype="https://pagelove.org/Schema">
+                <meta itemprop="type" content="https://pagelike.test${P}/Note">
+                <div itemprop="property" itemscope itemtype="https://pagelove.org/Property">
+                  <meta itemprop="name" content="v">
+                  <meta itemprop="type" content="https://schema.host/Text">
+                  <meta itemprop="cardinality" content="1..1">
+                </div>
+              </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "two values rejected"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/n.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div itemscope itemtype="https://pagelike.test${P}/Note">
+                <meta itemprop="v" content="a">
+                <meta itemprop="v" content="b">
+              </div>
+            </body></html>
+        expect:
+          status: 422
+          header_matches:
+            Content-Type: "^text/html"
+          body_contains: ["https://pagelove.org/SchemaViolation", cardinality]
+      - name: "one value accepted"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/n.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div itemscope itemtype="https://pagelike.test${P}/Note">
+                <meta itemprop="v" content="a">
+              </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+  - id: modeling.cardinality.at-most-one
+    title: "0..1 allows zero or one value, not two"
+    area: modeling
+    feature: cardinality
+    evidence: documented
+    source: "docs reference/modeling-data/Property §Cardinality values (snapshot 2026-09-28)"
+    confidence: high
+    requires: []
+    live: true
+    notes: "spec: R-MOD-18."
+    site:
+      settings:
+        default_get: allow
+      rules:
+        - actor: "*"
+          resource: "${P}/*"
+          method: [GET, HEAD, PUT, POST, DELETE, MOVE]
+          action: Allow
+        - actor: "*"
+          resource: "${P}/*/*"
+          method: [GET, HEAD, PUT, POST, DELETE, MOVE]
+          action: Allow
+    steps:
+      - name: "register declarations through the public plane (takes effect for the next request)"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/schema.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div hidden itemscope itemtype="https://pagelove.org/Schema">
+                <meta itemprop="type" content="https://pagelike.test${P}/Note">
+                <div itemprop="property" itemscope itemtype="https://pagelove.org/Property">
+                  <meta itemprop="name" content="v">
+                  <meta itemprop="type" content="https://schema.host/Text">
+                  <meta itemprop="cardinality" content="0..1">
+                </div>
+              </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "zero values accepted"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/n0.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div itemscope itemtype="https://pagelike.test${P}/Note"></div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "one value accepted"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/n1.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div itemscope itemtype="https://pagelike.test${P}/Note">
+                <meta itemprop="v" content="a">
+              </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "two values rejected"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/n2.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div itemscope itemtype="https://pagelike.test${P}/Note">
+                <meta itemprop="v" content="a">
+                <meta itemprop="v" content="b">
+              </div>
+            </body></html>
+        expect:
+          status: 422
+          header_matches:
+            Content-Type: "^text/html"
+          body_contains: ["https://pagelove.org/SchemaViolation", cardinality]
+  - id: modeling.cardinality.at-least-one
+    title: "1..n requires at least one value"
+    area: modeling
+    feature: cardinality
+    evidence: documented
+    source: "docs reference/modeling-data/Property §Cardinality values (snapshot 2026-09-28)"
+    confidence: high
+    requires: []
+    live: true
+    notes: "spec: R-MOD-18."
+    site:
+      settings:
+        default_get: allow
+      rules:
+        - actor: "*"
+          resource: "${P}/*"
+          method: [GET, HEAD, PUT, POST, DELETE, MOVE]
+          action: Allow
+        - actor: "*"
+          resource: "${P}/*/*"
+          method: [GET, HEAD, PUT, POST, DELETE, MOVE]
+          action: Allow
+    steps:
+      - name: "register declarations through the public plane (takes effect for the next request)"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/schema.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div hidden itemscope itemtype="https://pagelove.org/Schema">
+                <meta itemprop="type" content="https://pagelike.test${P}/Note">
+                <div itemprop="property" itemscope itemtype="https://pagelove.org/Property">
+                  <meta itemprop="name" content="v">
+                  <meta itemprop="type" content="https://schema.host/Text">
+                  <meta itemprop="cardinality" content="1..n">
+                </div>
+              </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "zero values rejected"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/n0.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div itemscope itemtype="https://pagelike.test${P}/Note"></div>
+            </body></html>
+        expect:
+          status: 422
+          header_matches:
+            Content-Type: "^text/html"
+          body_contains: ["https://pagelove.org/SchemaViolation", cardinality]
+      - name: "one value accepted"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/n1.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div itemscope itemtype="https://pagelike.test${P}/Note">
+                <meta itemprop="v" content="a">
+              </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "three values accepted"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/n3.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div itemscope itemtype="https://pagelike.test${P}/Note">
+                <meta itemprop="v" content="a">
+                <meta itemprop="v" content="b">
+                <meta itemprop="v" content="c">
+              </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+  - id: modeling.cardinality.default-is-unbounded
+    title: "Omitted cardinality means 0..n"
+    area: modeling
+    feature: cardinality
+    evidence: documented
+    source: "docs reference/modeling-data/Property §Fields (snapshot 2026-09-28); docs reference/modeling-data/Property §Cardinality values (snapshot 2026-09-28)"
+    confidence: high
+    requires: []
+    live: true
+    notes: "spec: R-MOD-18. Contradiction C12: pagelove.mjs defaults cardinality to 0..1 client-side (beta-js/pagelove.mjs@c204746:281)."
+    site:
+      settings:
+        default_get: allow
+      rules:
+        - actor: "*"
+          resource: "${P}/*"
+          method: [GET, HEAD, PUT, POST, DELETE, MOVE]
+          action: Allow
+        - actor: "*"
+          resource: "${P}/*/*"
+          method: [GET, HEAD, PUT, POST, DELETE, MOVE]
+          action: Allow
+    steps:
+      - name: "register declarations through the public plane (takes effect for the next request)"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/schema.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div hidden itemscope itemtype="https://pagelove.org/Schema">
+                <meta itemprop="type" content="https://pagelike.test${P}/Note">
+                <div itemprop="property" itemscope itemtype="https://pagelove.org/Property">
+                  <meta itemprop="name" content="v">
+                  <meta itemprop="type" content="https://schema.host/Text">
+                </div>
+              </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "zero values accepted"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/n0.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div itemscope itemtype="https://pagelike.test${P}/Note"></div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "three values accepted"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/n3.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div itemscope itemtype="https://pagelike.test${P}/Note">
+                <meta itemprop="v" content="a">
+                <meta itemprop="v" content="b">
+                <meta itemprop="v" content="c">
+              </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+  - id: modeling.cardinality.nested-scope-excluded
+    title: "Values inside a nested itemscope do not count toward the outer item's cardinality"
+    area: modeling
+    feature: cardinality
+    evidence: documented
+    source: "docs reference/modeling-data/Property §Cardinality values (snapshot 2026-09-28) ('excluding anything inside nested [itemscope] boundaries')"
+    confidence: high
+    requires: []
+    live: true
+    notes: "spec: R-MOD-18."
+    site:
+      settings:
+        default_get: allow
+      rules:
+        - actor: "*"
+          resource: "${P}/*"
+          method: [GET, HEAD, PUT, POST, DELETE, MOVE]
+          action: Allow
+        - actor: "*"
+          resource: "${P}/*/*"
+          method: [GET, HEAD, PUT, POST, DELETE, MOVE]
+          action: Allow
+    steps:
+      - name: "register declarations through the public plane (takes effect for the next request)"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/schema.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div hidden itemscope itemtype="https://pagelove.org/Schema">
+                <meta itemprop="type" content="https://pagelike.test${P}/Tag">
+                <div itemprop="property" itemscope itemtype="https://pagelove.org/Property">
+                  <meta itemprop="name" content="label">
+                  <meta itemprop="type" content="https://schema.host/Text">
+                  <meta itemprop="cardinality" content="1..1">
+                  <meta itemprop="unique" content="true">
+                </div>
+              </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "label only inside a nested item: rejected"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/t.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div itemscope itemtype="https://pagelike.test${P}/Tag">
+                <div itemscope itemtype="https://pagelike.test${P}/Inner">
+                  <meta itemprop="label" content="hidden">
+                </div>
+              </div>
+            </body></html>
+        expect:
+          status: 422
+          header_matches:
+            Content-Type: "^text/html"
+          body_contains: ["https://pagelove.org/SchemaViolation", cardinality]
+      - name: "label at the outer level plus a nested item with its own label: accepted"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/t2.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div itemscope itemtype="https://pagelike.test${P}/Tag">
+                <meta itemprop="label" content="outer">
+                <div itemscope itemtype="https://pagelike.test${P}/Inner">
+                  <meta itemprop="label" content="inner">
+                </div>
+              </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+  - id: modeling.cardinality.empty-value-counts-as-present
+    title: "An empty content attribute is a present value (absent and empty differ)"
+    area: modeling
+    feature: cardinality
+    evidence: inferred
+    source: "docs reference/modeling-data/Types §Validation examples (snapshot 2026-09-28) (Text accepts \"\")"
+    confidence: medium
+    requires: []
+    live: true
+    notes: "spec: R-MOD-18, R-MOD-22."
+    site:
+      settings:
+        default_get: allow
+      rules:
+        - actor: "*"
+          resource: "${P}/*"
+          method: [GET, HEAD, PUT, POST, DELETE, MOVE]
+          action: Allow
+        - actor: "*"
+          resource: "${P}/*/*"
+          method: [GET, HEAD, PUT, POST, DELETE, MOVE]
+          action: Allow
+    steps:
+      - name: "register declarations through the public plane (takes effect for the next request)"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/schema.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div hidden itemscope itemtype="https://pagelove.org/Schema">
+                <meta itemprop="type" content="https://pagelike.test${P}/Note">
+                <div itemprop="property" itemscope itemtype="https://pagelove.org/Property">
+                  <meta itemprop="name" content="v">
+                  <meta itemprop="type" content="https://schema.host/Text">
+                  <meta itemprop="cardinality" content="1..1">
+                </div>
+              </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "content=\"\" satisfies 1..1 Text"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/n.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div itemscope itemtype="https://pagelike.test${P}/Note">
+                <meta itemprop="v" content="">
+              </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "no element at all does not"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/m.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div itemscope itemtype="https://pagelike.test${P}/Note"></div>
+            </body></html>
+        expect:
+          status: 422
+          header_matches:
+            Content-Type: "^text/html"
+          body_contains: ["https://pagelove.org/SchemaViolation", cardinality]
+  - id: modeling.cardinality.undeclared-properties-ignored
+    title: "itemprops with no Property declaration are not validated"
+    area: modeling
+    feature: cardinality
+    evidence: documented
+    source: "docs reference/modeling-data/Property §When to reach for it (snapshot 2026-09-28)"
+    confidence: high
+    requires: []
+    live: true
+    notes: "spec: R-MOD-17."
+    site:
+      settings:
+        default_get: allow
+      rules:
+        - actor: "*"
+          resource: "${P}/*"
+          method: [GET, HEAD, PUT, POST, DELETE, MOVE]
+          action: Allow
+        - actor: "*"
+          resource: "${P}/*/*"
+          method: [GET, HEAD, PUT, POST, DELETE, MOVE]
+          action: Allow
+    steps:
+      - name: "register declarations through the public plane (takes effect for the next request)"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/schema.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div hidden itemscope itemtype="https://pagelove.org/Schema">
+                <meta itemprop="type" content="https://pagelike.test${P}/Tag">
+                <div itemprop="property" itemscope itemtype="https://pagelove.org/Property">
+                  <meta itemprop="name" content="label">
+                  <meta itemprop="type" content="https://schema.host/Text">
+                  <meta itemprop="cardinality" content="1..1">
+                  <meta itemprop="unique" content="true">
+                </div>
+              </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "extra undeclared properties accepted"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/t.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div itemscope itemtype="https://pagelike.test${P}/Tag">
+                <meta itemprop="label" content="x">
+                <meta itemprop="colour" content="red">
+                <meta itemprop="colour" content="blue">
+              </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+  - id: modeling.cardinality.collected-with-type-violations
+    title: "Cardinality and type violations are reported together in one 422"
+    area: modeling
+    feature: cardinality
+    evidence: documented
+    source: "docs reference/modeling-data/Types §How type validation runs (snapshot 2026-09-28)"
+    confidence: high
+    requires: []
+    live: true
+    notes: "spec: R-MOD-26."
+    site:
+      settings:
+        default_get: allow
+      rules:
+        - actor: "*"
+          resource: "${P}/*"
+          method: [GET, HEAD, PUT, POST, DELETE, MOVE]
+          action: Allow
+        - actor: "*"
+          resource: "${P}/*/*"
+          method: [GET, HEAD, PUT, POST, DELETE, MOVE]
+          action: Allow
+    steps:
+      - name: "register declarations through the public plane (takes effect for the next request)"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/schema.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div hidden itemscope itemtype="https://pagelove.org/Schema">
+                <meta itemprop="type" content="https://pagelike.test${P}/Note">
+                <div itemprop="property" itemscope itemtype="https://pagelove.org/Property">
+                  <meta itemprop="name" content="v">
+                  <meta itemprop="type" content="https://schema.host/Text">
+                  <meta itemprop="cardinality" content="1..1">
+                </div>
+                <div itemprop="property" itemscope itemtype="https://pagelove.org/Property">
+                  <meta itemprop="name" content="count">
+                  <meta itemprop="type" content="https://schema.host/Integer">
+                  <meta itemprop="cardinality" content="0..1">
+                </div>
+              </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "missing v and non-integer count"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/n.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div itemscope itemtype="https://pagelike.test${P}/Note">
+                <meta itemprop="count" content="abc">
+              </div>
+            </body></html>
+        expect:
+          status: 422
+          header_matches:
+            Content-Type: "^text/html"
+          body_contains: ["https://pagelove.org/SchemaViolation", cardinality, type]
+  - id: modeling.cardinality.selector-delete-only-required-value
+    title: "A selector DELETE that removes the only value of a 1..1 property is rejected with 422"
+    area: modeling
+    feature: cardinality
+    evidence: documented
+    source: "docs reference/modeling-data/Property §What triggers a cascade (snapshot 2026-09-28); docs reference/reading-and-writing/DELETE-method §Error cases (snapshot 2026-09-28)"
+    confidence: high
+    requires: []
+    live: true
+    notes: "spec: R-MOD-14, R-MOD-40. Body vocabulary live 2026-09-29: selector writes answer a dombase Cardinality problems item (harness/observations/live-2026-09-29-reconcile-modeling/modeling-probe-0929-write-envelopes.json)."
+    site:
+      settings:
+        default_get: allow
+      rules:
+        - actor: "*"
+          resource: "${P}/*"
+          method: [GET, HEAD, PUT, POST, DELETE, MOVE]
+          action: Allow
+        - actor: "*"
+          resource: "${P}/*/*"
+          method: [GET, HEAD, PUT, POST, DELETE, MOVE]
+          action: Allow
+    steps:
+      - name: "register declarations through the public plane (takes effect for the next request)"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/schema.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div hidden itemscope itemtype="https://pagelove.org/Schema">
+                <meta itemprop="type" content="https://pagelike.test${P}/Tag">
+                <div itemprop="property" itemscope itemtype="https://pagelove.org/Property">
+                  <meta itemprop="name" content="label">
+                  <meta itemprop="type" content="https://schema.host/Text">
+                  <meta itemprop="cardinality" content="1..1">
+                  <meta itemprop="unique" content="true">
+                </div>
+              </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "seed a valid tag"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/t.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div itemscope itemtype="https://pagelike.test${P}/Tag" id="t1">
+                <meta itemprop="label" content="keep">
+              </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "delete the label element"
+        as: anonymous
+        request:
+          method: DELETE
+          path: "${P}/t.html"
+          headers:
+            Range: "selector=#t1 > meta[itemprop=\"label\"]"
+        expect:
+          status: 422
+          header_matches:
+            Content-Type: "^text/html"
+          body_contains: ["https://dombase.pagelove.team/ns/error/Cardinality", "violated", "(cardinality)"]
+      - name: "stored state of t.html (authoring plane, raw)"
+        as: author
+        plane: dav
+        request:
+          method: GET
+          path: "${P}/t.html"
+        expect:
+          status: 200
+          body_contains: ["content=\"keep\""]
+  - id: modeling.cardinality.selector-delete-optional-value
+    title: "Removing an optional value with a selector DELETE is accepted"
+    area: modeling
+    feature: cardinality
+    evidence: documented
+    source: "docs reference/modeling-data/Property §What triggers a cascade (snapshot 2026-09-28) (0..1 removal is schema-valid)"
+    confidence: high
+    requires: []
+    live: true
+    notes: "spec: R-MOD-14."
+    site:
+      settings:
+        default_get: allow
+      rules:
+        - actor: "*"
+          resource: "${P}/*"
+          method: [GET, HEAD, PUT, POST, DELETE, MOVE]
+          action: Allow
+        - actor: "*"
+          resource: "${P}/*/*"
+          method: [GET, HEAD, PUT, POST, DELETE, MOVE]
+          action: Allow
+    steps:
+      - name: "register declarations through the public plane (takes effect for the next request)"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/schema.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div hidden itemscope itemtype="https://pagelove.org/Schema">
+                <meta itemprop="type" content="https://pagelike.test${P}/Note">
+                <div itemprop="property" itemscope itemtype="https://pagelove.org/Property">
+                  <meta itemprop="name" content="v">
+                  <meta itemprop="type" content="https://schema.host/Text">
+                  <meta itemprop="cardinality" content="0..1">
+                </div>
+              </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: seed
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/n.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div itemscope itemtype="https://pagelike.test${P}/Note" id="n1">
+                <meta itemprop="v" content="gone">
+              </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "delete the optional value"
+        as: anonymous
+        request:
+          method: DELETE
+          path: "${P}/n.html"
+          headers:
+            Range: "selector=#n1 > meta[itemprop=\"v\"]"
+        expect:
+          status: 204
+      - name: "stored state of n.html (authoring plane, raw)"
+        as: author
+        plane: dav
+        request:
+          method: GET
+          path: "${P}/n.html"
+        expect:
+          status: 200
+          body_not_contains: ["content=\"gone\""]
+  - id: modeling.cardinality.selector-post-exceeds-max
+    title: "A selector POST that adds a second value to a 0..1 property is rejected"
+    area: modeling
+    feature: cardinality
+    evidence: inferred
+    source: "docs reference/reading-and-writing/POST-method §Error cases (snapshot 2026-09-28) ('Schema validation fails: 422')"
+    confidence: high
+    requires: []
+    live: true
+    notes: "spec: R-MOD-14. Body vocabulary live 2026-09-29: selector writes answer a dombase Cardinality problems item (harness/observations/live-2026-09-29-reconcile-modeling/modeling-probe-0929-write-envelopes.json)."
+    site:
+      settings:
+        default_get: allow
+      rules:
+        - actor: "*"
+          resource: "${P}/*"
+          method: [GET, HEAD, PUT, POST, DELETE, MOVE]
+          action: Allow
+        - actor: "*"
+          resource: "${P}/*/*"
+          method: [GET, HEAD, PUT, POST, DELETE, MOVE]
+          action: Allow
+    steps:
+      - name: "register declarations through the public plane (takes effect for the next request)"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/schema.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div hidden itemscope itemtype="https://pagelove.org/Schema">
+                <meta itemprop="type" content="https://pagelike.test${P}/Note">
+                <div itemprop="property" itemscope itemtype="https://pagelove.org/Property">
+                  <meta itemprop="name" content="v">
+                  <meta itemprop="type" content="https://schema.host/Text">
+                  <meta itemprop="cardinality" content="0..1">
+                </div>
+              </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: seed
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/n.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div itemscope itemtype="https://pagelike.test${P}/Note" id="n1">
+                <meta itemprop="v" content="first">
+              </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "append a second value"
+        as: anonymous
+        request:
+          method: POST
+          path: "${P}/n.html"
+          headers:
+            Range: "selector=#n1"
+            Content-Type: text/html
+          body: "<meta itemprop=\"v\" content=\"second\">"
+        expect:
+          status: 422
+          header_matches:
+            Content-Type: "^text/html"
+          body_contains: ["https://dombase.pagelove.team/ns/error/Cardinality", "violated", "(cardinality)"]
+      - name: "stored state of n.html (authoring plane, raw)"
+        as: author
+        plane: dav
+        request:
+          method: GET
+          path: "${P}/n.html"
+        expect:
+          status: 200
+          body_contains: ["content=\"first\""]
+          body_not_contains: ["content=\"second\""]
+  - id: modeling.cardinality.selector-put-replacement-validated
+    title: "A selector PUT replacing an instance validates the replacement"
+    area: modeling
+    feature: cardinality
+    evidence: inferred
+    source: "docs reference/reading-and-writing/PUT-method §Error cases (snapshot 2026-09-28)"
+    confidence: high
+    requires: []
+    live: true
+    notes: "spec: R-MOD-14. Body vocabulary live 2026-09-29: selector writes answer a dombase Cardinality problems item (harness/observations/live-2026-09-29-reconcile-modeling/modeling-probe-0929-write-envelopes.json)."
+    site:
+      settings:
+        default_get: allow
+      rules:
+        - actor: "*"
+          resource: "${P}/*"
+          method: [GET, HEAD, PUT, POST, DELETE, MOVE]
+          action: Allow
+        - actor: "*"
+          resource: "${P}/*/*"
+          method: [GET, HEAD, PUT, POST, DELETE, MOVE]
+          action: Allow
+    steps:
+      - name: "register declarations through the public plane (takes effect for the next request)"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/schema.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div hidden itemscope itemtype="https://pagelove.org/Schema">
+                <meta itemprop="type" content="https://pagelike.test${P}/Tag">
+                <div itemprop="property" itemscope itemtype="https://pagelove.org/Property">
+                  <meta itemprop="name" content="label">
+                  <meta itemprop="type" content="https://schema.host/Text">
+                  <meta itemprop="cardinality" content="1..1">
+                  <meta itemprop="unique" content="true">
+                </div>
+              </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: seed
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/t.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div itemscope itemtype="https://pagelike.test${P}/Tag" id="t1">
+                <meta itemprop="label" content="a">
+              </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "replace with an instance lacking label"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/t.html"
+          headers:
+            Range: "selector=#t1"
+            Content-Type: text/html
+          body: "<div itemscope itemtype=\"https://pagelike.test${P}/Tag\" id=\"t1\"></div>"
+        expect:
+          status: 422
+          header_matches:
+            Content-Type: "^text/html"
+          body_contains: ["https://dombase.pagelove.team/ns/error/Cardinality", "violated", "(cardinality)"]
+      - name: "replace with a valid instance"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/t.html"
+          headers:
+            Range: "selector=#t1"
+            Content-Type: text/html
+          body: |
+            <div itemscope itemtype="https://pagelike.test${P}/Tag" id="t1">
+              <meta itemprop="label" content="b">
+            </div>
+        expect:
+          status: [200, 204, 206]
+  - id: modeling.cardinality.move-checks-source-and-destination
+    title: "MOVE is rejected when it leaves the source item without a required value"
+    area: modeling
+    feature: cardinality
+    evidence: documented
+    source: "docs reference/reading-and-writing/MOVE-method §When to reach for it (snapshot 2026-09-28); docs reference/reading-and-writing/MOVE-method §Error cases (snapshot 2026-09-28)"
+    confidence: high
+    requires: []
+    live: true
+    notes: "spec: R-MOD-13, R-MOD-14. Body vocabulary live 2026-09-29: selector writes answer a dombase Cardinality problems item (harness/observations/live-2026-09-29-reconcile-modeling/modeling-probe-0929-write-envelopes.json)."
+    site:
+      settings:
+        default_get: allow
+      rules:
+        - actor: "*"
+          resource: "${P}/*"
+          method: [GET, HEAD, PUT, POST, DELETE, MOVE]
+          action: Allow
+        - actor: "*"
+          resource: "${P}/*/*"
+          method: [GET, HEAD, PUT, POST, DELETE, MOVE]
+          action: Allow
+    steps:
+      - name: "register declarations through the public plane (takes effect for the next request)"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/schema.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div hidden itemscope itemtype="https://pagelove.org/Schema">
+                <meta itemprop="type" content="https://pagelike.test${P}/Note">
+                <div itemprop="property" itemscope itemtype="https://pagelove.org/Property">
+                  <meta itemprop="name" content="v">
+                  <meta itemprop="type" content="https://schema.host/Text">
+                  <meta itemprop="cardinality" content="1..1">
+                </div>
+              </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "seed two notes"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/m.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div itemscope itemtype="https://pagelike.test${P}/Note" id="a">
+                <meta itemprop="v" content="a">
+              </div>
+              <div itemscope itemtype="https://pagelike.test${P}/Note" id="b">
+                <meta itemprop="v" content="b">
+              </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "move a's value into b"
+        as: anonymous
+        request:
+          method: MOVE
+          path: "${P}/m.html"
+          headers:
+            Range: "selector=#a > meta[itemprop=\"v\"]"
+            Destination: "${P}/m.html"
+            Destination-Range: "selector=#b; placement=append"
+        expect:
+          status: 422
+          header_matches:
+            Content-Type: "^text/html"
+          body_contains: ["https://dombase.pagelove.team/ns/error/Cardinality", "violated", "(cardinality)"]
+      - name: "stored state of m.html (authoring plane, raw)"
+        as: author
+        plane: dav
+        request:
+          method: GET
+          path: "${P}/m.html"
+        expect:
+          status: 200
+          body_contains: ["content=\"a\"", "content=\"b\""]
+  - id: modeling.cardinality.move-reorder-within-item
+    title: "A MOVE that keeps every item valid succeeds"
+    area: modeling
+    feature: cardinality
+    evidence: documented
+    source: "docs reference/reading-and-writing/MOVE-method §When to reach for it (snapshot 2026-09-28)"
+    confidence: high
+    requires: []
+    live: true
+    notes: "spec: R-MOD-13."
+    site:
+      settings:
+        default_get: allow
+      rules:
+        - actor: "*"
+          resource: "${P}/*"
+          method: [GET, HEAD, PUT, POST, DELETE, MOVE]
+          action: Allow
+        - actor: "*"
+          resource: "${P}/*/*"
+          method: [GET, HEAD, PUT, POST, DELETE, MOVE]
+          action: Allow
+    steps:
+      - name: "register declarations through the public plane (takes effect for the next request)"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/schema.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div hidden itemscope itemtype="https://pagelove.org/Schema">
+                <meta itemprop="type" content="https://pagelike.test${P}/Note">
+                <div itemprop="property" itemscope itemtype="https://pagelove.org/Property">
+                  <meta itemprop="name" content="v">
+                  <meta itemprop="type" content="https://schema.host/Text">
+                  <meta itemprop="cardinality" content="1..n">
+                </div>
+              </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: seed
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/m.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div itemscope itemtype="https://pagelike.test${P}/Note" id="a">
+                <meta id="v1" itemprop="v" content="1">
+                <meta id="v2" itemprop="v" content="2">
+              </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "move v2 before v1"
+        as: anonymous
+        request:
+          method: MOVE
+          path: "${P}/m.html"
+          headers:
+            Range: "selector=#v2"
+            Destination: "${P}/m.html"
+            Destination-Range: "selector=#v1; placement=before"
+        expect:
+          status: 204

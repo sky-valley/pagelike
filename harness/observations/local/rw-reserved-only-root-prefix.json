@@ -1,0 +1,37 @@
+{
+  "case": "rw.reserved.only-root-prefix",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (PUT below the case prefix)",
+      "method": "PUT",
+      "path": "/_pl/rw-reserved-only-root-prefix-c27957/.pagelove/ordinary.html",
+      "status": 201,
+      "headers": {
+        "content-length": "58",
+        "content-type": "text/html",
+        "etag": "\"bb79f92b3af4a4e4a4a08b80eaf2936f7176495c78d924a7045622819d43efac\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:55 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\u003cp\u003eordinary\u003c/p\u003e\u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 2 (readable)",
+      "method": "GET",
+      "path": "/_pl/rw-reserved-only-root-prefix-c27957/.pagelove/ordinary.html",
+      "status": 200,
+      "headers": {
+        "accept-ranges": "selector, bytes",
+        "content-length": "58",
+        "content-type": "text/html",
+        "etag": "\"bb79f92b3af4a4e4a4a08b80eaf2936f7176495c78d924a7045622819d43efac\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:55 GMT",
+        "vary": "Host, Range, Accept"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\u003cp\u003eordinary\u003c/p\u003e\u003c/body\u003e\u003c/html\u003e\n"
+    }
+  ],
+  "outcome": "pass",
+  "target": "local"
+}

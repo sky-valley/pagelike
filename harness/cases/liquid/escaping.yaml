@@ -1,0 +1,206 @@
+# Output escaping and template-injection safety.
+# Spec: docs/spec/liquid.md §9 (R-LIQ-90..94); contradiction C-4.
+defaults:
+  area: liquid
+  requires: [liquid]
+cases:
+  - id: liquid.escape.escape-filter
+    title: "escape HTML-escapes < > & and quotes: the docs example, written as HTML, renders &lt;a href=&#39;x&#39;&gt;"
+    feature: escaping
+    evidence: live-observed
+    source: "docs languages/liquid/filters/string §escape ({{ \"<a href='x'>\" | escape }} → &lt;a href=&#39;x&#39;&gt;); harness/observations/live-2026-09-29/liquid-escape-escape-filter.json and harness/observations/live-2026-09-29-reconcile-composing-liquid/run1-probes/liquid-escape-probe-0929-source-text.json (live 2026-09-29)"
+    confidence: high
+    live: true
+    notes: >-
+      R-LIQ-112, R-LIQ-13 as reconciled (docs/compat/decisions-2026-09-29/composing-liquid.md). The docs
+      example's markup is written as character references, as HTML requires: inside Liquid markup they
+      are decoded before Liquid runs (live PageLove; pagelike adopts it), so escape sees <a href='x'>.
+      Written raw, the markup is an element (LO-15), which leaves the output unterminated: a 500, on
+      PageLove and pagelike alike (liquid.escape.escape-filter-inline-500). The body is compared as
+      HTML because PageLove re-serializes the rendered output (&#39; is served as ').
+    site:
+      settings: {default_get: allow}
+      files:
+        - path: "${P}/esc.html"
+          body: |
+            <!DOCTYPE html>
+            <html xmlns:p="https://pagelove.org/1.0"><body>
+              <p id="o" p:template="text/liquid">{{ "&lt;a href='x'&gt;" | escape }}|{{ "a & b" | escape }}</p>
+            </body></html>
+      rules: [{actor: "*", resource: "${P}/*", method: [GET, HEAD], action: Allow}]
+    steps:
+      - name: read
+        as: anonymous
+        request: {method: GET, path: "${P}/esc.html", headers: {Range: "selector=#o"}}
+        expect:
+          status: 206
+          body_html: "<p id=\"o\">&lt;a href=&#39;x&#39;&gt;|a &amp; b</p>"
+          body_contains: [">&lt;a href=", "&gt;|a &amp; b</p>"]
+
+  - id: liquid.escape.escape-filter-inline-500
+    title: A template whose Liquid string literal holds raw markup fails the page (500, unterminated output)
+    feature: escaping
+    evidence: live-observed
+    source: "harness/observations/live-2026-09-29/liquid-escape-escape-filter.json (live 2026-09-29)"
+    confidence: high
+    live: true
+    notes: >-
+      The docs example written inline: the HTML tokenizer makes <a href='x'> an element, so the
+      output does not close within its run of text (LO-15). This was kept as a divergence by the
+      composing-liquid reconciliation and adopted with LO-15
+      (docs/compat/decisions-2026-09-29/serialization.md). The id was liquid.escape.escape-filter.live.
+    site:
+      settings: {default_get: allow}
+      files:
+        - path: "${P}/esc.html"
+          body: |
+            <!DOCTYPE html>
+            <html xmlns:p="https://pagelove.org/1.0"><body>
+              <p id="o" p:template="text/liquid">{{ "<a href='x'>" | escape }}|{{ "a & b" | escape }}</p>
+            </body></html>
+      rules: [{actor: "*", resource: "${P}/*", method: [GET, HEAD], action: Allow}]
+    steps:
+      - name: the docs example written inline fails the page
+        as: anonymous
+        request: {method: GET, path: "${P}/esc.html", headers: {Range: "selector=#o"}}
+        expect:
+          status: 500
+          body_contains: ["unterminated `{{` interpolation marker"]
+
+  - id: liquid.escape.escape-idempotent
+    title: "escape is not idempotent: a second escape escapes again (its result is only safe from autoescape)"
+    feature: escaping
+    evidence: live-observed
+    source: "harness/observations/live-2026-09-29-serialize/liquid-escape-escape-idempotent.json (host live-test-host, 2026-09-29: &amp;lt;); docs languages/liquid/filters/string §escape reads 'not escaped again', which live shows applies to autoescape only"
+    confidence: medium
+    live: true
+    notes: R-LIQ-91, P-LIQ-1. Standard Shopify Liquid would give &amp;lt;.
+    site:
+      settings: {default_get: allow}
+      files:
+        - path: "${P}/esc2.html"
+          body: |
+            <!DOCTYPE html>
+            <html xmlns:p="https://pagelove.org/1.0"><body>
+              <p id="o" p:template="text/liquid">{{ "<" | escape | escape }}</p>
+            </body></html>
+      rules: [{actor: "*", resource: "${P}/*", method: [GET, HEAD], action: Allow}]
+    steps:
+      - name: read
+        as: anonymous
+        request: {method: GET, path: "${P}/esc2.html", headers: {Range: "selector=#o"}}
+        expect:
+          status: 206
+          body_contains: ['<p id="o">&amp;lt;</p>']
+
+  - id: liquid.escape.no-autoescape
+    title: "Disputed (lost live): output is not auto-escaped; an unescaped query value is inserted as markup"
+    feature: escaping
+    evidence: inferred
+    source: "pagelove-polls/site/templates/new-poll.html@c9270e5 and site/index.html:92-94 (every untrusted value escaped explicitly); docs learn/build-a-blog §The feed (escape only in XML); docs/decisions/0002-liquid.md (corpus assumes no autoescape)"
+    confidence: low
+    live: true
+    status: disputed
+    notes: "R-LIQ-90, spec C-4, P-LIQ-1. Lost to liquid.escape.autoescape on live PageLove (harness/observations/live-2026-09-29-serialize/liquid-escape-no-autoescape.json, 2026-09-29)."
+    site:
+      settings: {default_get: allow}
+      files:
+        - path: "${P}/raw-out.html"
+          body: |
+            <!DOCTYPE html>
+            <html xmlns:p="https://pagelove.org/1.0"><body>
+              <p id="o" p:template="text/liquid">{{ request.query.q }}</p>
+            </body></html>
+      rules: [{actor: "*", resource: "${P}/*", method: [GET, HEAD], action: Allow}]
+    steps:
+      - name: read
+        as: anonymous
+        request: {method: GET, path: "${P}/raw-out.html?q=%3Cb%3Ex%3C%2Fb%3E"}
+        expect:
+          status: 200
+          body_contains: ['<p id="o"><b>x</b></p>']
+
+  - id: liquid.escape.autoescape
+    title: "{{ }} output is HTML-escaped unless marked safe (autoescape)"
+    feature: escaping
+    evidence: live-observed
+    source: "harness/observations/live-2026-09-29-serialize/liquid-escape-autoescape.json (host live-test-host, 2026-09-29); docs languages/liquid/filters/string §escape ('marked safe, so it is not escaped again')"
+    confidence: high
+    live: true
+    notes: "Spec C-4, resolved live: autoescape. liquid.escape.no-autoescape is now the disputed (losing) claim."
+    site:
+      settings: {default_get: allow}
+      files:
+        - path: "${P}/auto-out.html"
+          body: |
+            <!DOCTYPE html>
+            <html xmlns:p="https://pagelove.org/1.0"><body>
+              <p id="o" p:template="text/liquid">{{ request.query.q }}</p>
+            </body></html>
+      rules: [{actor: "*", resource: "${P}/*", method: [GET, HEAD], action: Allow}]
+    steps:
+      - name: read
+        as: anonymous
+        request: {method: GET, path: "${P}/auto-out.html?q=%3Cb%3Ex%3C%2Fb%3E"}
+        expect:
+          status: 200
+          body_contains: ["&lt;b&gt;x&lt;/b&gt;"]
+          body_not_contains: ["<b>x</b>"]
+
+  - id: liquid.escape.query-value-not-evaluated
+    title: Liquid delimiters inside a request value are output as text, never evaluated
+    feature: template injection
+    evidence: inferred
+    source: "Liquid evaluation semantics; docs reference/permissions/AuthorizationRule §Templated values (Liquid removed from rules because request values could inject templates)"
+    confidence: high
+    live: true
+    notes: R-LIQ-92.
+    site:
+      settings: {default_get: allow}
+      files:
+        - path: "${P}/inject.html"
+          body: |
+            <!DOCTYPE html>
+            <html xmlns:p="https://pagelove.org/1.0"><body>
+              <p id="o" p:template="text/liquid">{{ request.query.q | escape }}</p>
+            </body></html>
+      rules: [{actor: "*", resource: "${P}/*", method: [GET, HEAD], action: Allow}]
+    steps:
+      - name: read
+        as: anonymous
+        request: {method: GET, path: "${P}/inject.html?q=%7B%7B%206%20%7C%20times%3A%207%20%7D%7D"}
+        expect:
+          status: 200
+          body_contains: ['<p id="o">{{ 6 | times: 7 }}</p>']
+          body_not_contains: [">42<"]
+
+  - id: liquid.escape.bound-data-not-evaluated
+    title: Liquid delimiters inside bound data are output as text, never evaluated
+    feature: template injection
+    evidence: inferred
+    source: "Liquid evaluation semantics; docs reference/composing-pages/Resource-Binding §Security (bindings surface site content)"
+    confidence: high
+    live: true
+    notes: R-LIQ-92.
+    site:
+      settings: {default_get: allow}
+      files:
+        - path: "${P}/evil.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body><div itemscope itemtype="https://example.test${P}/Person"><span itemprop="name">{{ 6 | times: 7 }}{% assign z = 1 %}</span></div></body></html>
+        - path: "${P}/show.html"
+          body: |
+            <!DOCTYPE html>
+            <html xmlns:p="https://pagelove.org/1.0" xmlns:r="https://pagelove.org/Binding/CSS"><body>
+              <p id="o" r:ps="[itemtype='https://example.test${P}/Person']" p:template="text/liquid">{% for p in ps %}[{{ p.name }}]{% endfor %}</p>
+            </body></html>
+      rules: [{actor: "*", resource: "${P}/*", method: [GET, HEAD], action: Allow}]
+    steps:
+      - name: read
+        as: anonymous
+        request: {method: GET, path: "${P}/show.html", headers: {Range: "selector=#o"}}
+        expect:
+          status: 206
+          body_contains: ["[{{ 6 | times: 7 }}{% assign z = 1 %}]"]
+          body_not_contains: ["[42]"]

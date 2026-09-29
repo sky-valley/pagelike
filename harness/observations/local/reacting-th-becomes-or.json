@@ -1,0 +1,63 @@
+{
+  "case": "reacting.th.becomes-or",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (install a handler for processing or shipped)",
+      "method": "PUT",
+      "path": "/_pl/reacting-th-becomes-or-f6af5e/r/handlers.html",
+      "status": 201,
+      "headers": {
+        "content-length": "535",
+        "content-type": "text/html",
+        "etag": "\"6157b857bb5d800261db8e55bc920cf60f97025ea75508b51e53f677363d97c9\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:49 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\n\u003cdiv itemscope itemtype=\"https://pagelove.org/TransitionHandler\"\u003e\n  \u003cmeta itemprop=\"selector\" content=\"[itemtype='https://pagelike.test/_pl/reacting-th-becomes-or-f6af5e/Order']\"\u003e\n  \u003cmeta itemprop=\"property\" content=\"status\"\u003e\n  \u003cmeta itemprop=\"becomes\" content=\"processing\"\u003e\n  \u003cmeta itemprop=\"becomes\" content=\"shipped\"\u003e\n  \u003cdiv itemprop=\"action\" itemscope itemtype=\"https://pagelove.org/HttpRequest\"\u003e\n    \u003cmeta itemprop=\"url\" content=\"http://127.0.0.1:53619/c-bff2d2d7/any\"\u003e\n  \u003c/div\u003e\n\u003c/div\u003e\n\u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 2 (seed order-1 at pending)",
+      "method": "PUT",
+      "path": "/_pl/reacting-th-becomes-or-f6af5e/orders/order-1.html",
+      "status": 201,
+      "headers": {
+        "content-length": "226",
+        "content-type": "text/html",
+        "etag": "\"3eb36894e0b4aad66f1146466ad962ab55ea2f3303eacbaf3002cac9fb3825eb\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:49 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\u003cdiv id=\"order1\" itemscope itemtype=\"https://pagelike.test/_pl/reacting-th-becomes-or-f6af5e/Order\"\u003e\u003cmeta itemprop=\"status\" content=\"pending\"\u003e\u003cspan itemprop=\"total\"\u003e42.00\u003c/span\u003e\u003c/div\u003e\u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 3 (pending -\u003e shipped)",
+      "method": "PUT",
+      "path": "/_pl/reacting-th-becomes-or-f6af5e/orders/order-1.html",
+      "status": 206,
+      "headers": {
+        "content-length": "148",
+        "content-range": "selector #order1",
+        "content-type": "text/html",
+        "etag": "\"b05cb6689b670cd4e53d6c6f9cb16afbf51ca068bd5597bf3ed2ffe7353a83b9-b05cb6689b670cd4e53d6c6f9cb16afbf51ca068bd5597bf3ed2ffe7353a83b9-2\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:49 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003cdiv id=\"order1\" itemscope itemtype=\"https://pagelike.test/_pl/reacting-th-becomes-or-f6af5e/Order\"\u003e\u003cmeta itemprop=\"status\" content=\"shipped\"\u003e\u003c/div\u003e"
+    },
+    {
+      "step": "step 4",
+      "method": "POST",
+      "path": "${SINK}/any",
+      "headers": {
+        "accept-encoding": "gzip",
+        "content-length": "531",
+        "content-type": "text/html",
+        "user-agent": "Go-http-client/1.1"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\n  \u003chead\u003e\u003ctitle\u003eTransition\u003c/title\u003e\u003c/head\u003e\n  \u003cbody itemscope itemtype=\"https://pagelove.org/Transition\"\u003e\n    \u003cmeta itemprop=\"path\" content=\"/_pl/reacting-th-becomes-or-f6af5e/orders/order-1.html\"\u003e\n    \u003cmeta itemprop=\"selector\" content=\"[itemtype=\u0026quot;https://pagelike.test/_pl/reacting-th-becomes-or-f6af5e/Order\u0026quot;]\"\u003e\n    \u003cdiv id=\"order1\" itemscope itemtype=\"https://pagelike.test/_pl/reacting-th-becomes-or-f6af5e/Order\" itemprop=\"body\"\u003e\u003cmeta itemprop=\"status\" content=\"shipped\"\u003e\u003c/div\u003e\n  \u003c/body\u003e\n\u003c/html\u003e\n"
+    }
+  ],
+  "outcome": "pass",
+  "target": "local"
+}

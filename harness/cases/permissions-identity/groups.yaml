@@ -1,0 +1,518 @@
+# Groups (spec R-PERM-58..62).
+cases:
+  - id: authz.group.document-grants-members
+    title: A Group document grants its verified-email members the group name as an actor (recipe)
+    area: permissions-identity
+    feature: Group document
+    evidence: documented
+    source: "docs recipes/group-based-permissions §Store a group document, §Name the group in a rule; reference/permissions/Group"
+    confidence: high
+    requires: [multi-actor]
+    live: false
+    site:
+      files:
+        - path: "${P}/blog/post.html"
+          body: '<!DOCTYPE html><html><body><h1>Post</h1><ul id="comments"></ul></body></html>'
+        - path: "${P}/groups.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div itemscope itemtype="https://pagelove.org/Group">
+                <meta itemprop="name" content="editors">
+                <meta itemprop="member" content="alice@example.com">
+                <meta itemprop="member" content="bob@example.com">
+              </div>
+            </body></html>
+        - path: "${P}/rules.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div itemscope itemtype="https://pagelove.org/AuthorizationRule">
+                <meta itemprop="actor" content="editors">
+                <meta itemprop="resource" content="${P}/blog/*">
+                <meta itemprop="method" content="POST">
+                <meta itemprop="method" content="PUT">
+                <meta itemprop="method" content="DELETE">
+                <meta itemprop="action" content="Allow">
+              </div>
+            </body></html>
+    actors:
+      alice: {sub: sub-alice, email: alice@example.com, email_verified: true, roles: []}
+      bob: {sub: sub-bob, email: bob@example.com, email_verified: true, roles: []}
+      carol: {sub: sub-carol, email: carol@example.com, email_verified: true, roles: []}
+    steps:
+      - name: member alice PUT
+        as: alice
+        request: {method: PUT, path: "${P}/blog/post.html", headers: {Range: "selector=h1", Content-Type: text/html}, body: '<h1>A</h1>'}
+        expect: {status: 206}
+      - name: member bob POST
+        as: bob
+        request: {method: POST, path: "${P}/blog/post.html", headers: {Range: "selector=#comments", Content-Type: text/html}, body: '<li>hi</li>'}
+        expect: {status: 206}
+      - name: non-member carol refused
+        as: carol
+        request: {method: PUT, path: "${P}/blog/post.html", headers: {Range: "selector=h1", Content-Type: text/html}, body: '<h1>C</h1>'}
+        expect: {status: 403}
+
+  - id: authz.group.unverified-email-not-member
+    title: An unverified email never makes a principal a group member
+    area: permissions-identity
+    feature: Group verified-email gate
+    evidence: documented
+    source: "docs reference/permissions/Group §Verified email only"
+    confidence: high
+    requires: [multi-actor]
+    live: false
+    site:
+      files:
+        - path: "${P}/doc.html"
+          body: '<!DOCTYPE html><html><body><h1>T</h1></body></html>'
+        - path: "${P}/groups.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body><div itemscope itemtype="https://pagelove.org/Group">
+              <meta itemprop="name" content="editors"><meta itemprop="member" content="alice@example.com">
+            </div></body></html>
+        - path: "${P}/rules.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body><div itemscope itemtype="https://pagelove.org/AuthorizationRule">
+              <meta itemprop="actor" content="editors"><meta itemprop="resource" content="${P}/doc.html">
+              <meta itemprop="method" content="PUT"><meta itemprop="action" content="Allow">
+            </div></body></html>
+    actors:
+      mallory: {sub: sub-mallory, email: alice@example.com, email_verified: false, roles: []}
+    steps:
+      - name: unverified claimant refused
+        as: mallory
+        request: {method: PUT, path: "${P}/doc.html", headers: {Range: "selector=h1", Content-Type: text/html}, body: '<h1>M</h1>'}
+        expect: {status: 403}
+
+  - id: authz.group.membership-change-next-request
+    title: Editing the Group document changes membership on the next request, without touching rules
+    area: permissions-identity
+    feature: Group membership changes
+    evidence: documented
+    source: "docs recipes/group-based-permissions §Change membership without touching rules"
+    confidence: high
+    requires: [multi-actor]
+    live: false
+    notes: The group document is rewritten through the public plane (a rule lets anyone PUT it) so the change binds immediately on PageLove too.
+    site:
+      files:
+        - path: "${P}/doc.html"
+          body: '<!DOCTYPE html><html><body><h1>T</h1></body></html>'
+        - path: "${P}/groups.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body><div itemscope itemtype="https://pagelove.org/Group">
+              <meta itemprop="name" content="editors">
+              <meta itemprop="member" content="alice@example.com">
+              <meta itemprop="member" content="bob@example.com">
+            </div></body></html>
+        - path: "${P}/rules.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div itemscope itemtype="https://pagelove.org/AuthorizationRule">
+                <meta itemprop="actor" content="editors"><meta itemprop="resource" content="${P}/doc.html">
+                <meta itemprop="method" content="PUT"><meta itemprop="action" content="Allow">
+              </div>
+              <div itemscope itemtype="https://pagelove.org/AuthorizationRule">
+                <meta itemprop="actor" content="*"><meta itemprop="resource" content="${P}/groups.html">
+                <meta itemprop="method" content="PUT"><meta itemprop="action" content="Allow">
+              </div>
+            </body></html>
+    actors:
+      bob: {sub: sub-bob, email: bob@example.com, email_verified: true, roles: []}
+      dave: {sub: sub-dave, email: dave@example.com, email_verified: true, roles: []}
+    steps:
+      - name: bob is a member
+        as: bob
+        request: {method: PUT, path: "${P}/doc.html", headers: {Range: "selector=h1", Content-Type: text/html}, body: '<h1>B</h1>'}
+        expect: {status: 206}
+      - name: dave is not yet a member
+        as: dave
+        request: {method: PUT, path: "${P}/doc.html", headers: {Range: "selector=h1", Content-Type: text/html}, body: '<h1>D</h1>'}
+        expect: {status: 403}
+      - name: replace membership (remove bob, add dave)
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/groups.html"
+          headers: {Content-Type: text/html}
+          body: |
+            <!DOCTYPE html>
+            <html><body><div itemscope itemtype="https://pagelove.org/Group">
+              <meta itemprop="name" content="editors">
+              <meta itemprop="member" content="alice@example.com">
+              <meta itemprop="member" content="dave@example.com">
+            </div></body></html>
+        expect: {status: [200, 201, 204]}
+      - name: bob lost access
+        as: bob
+        request: {method: PUT, path: "${P}/doc.html", headers: {Range: "selector=h1", Content-Type: text/html}, body: '<h1>B2</h1>'}
+        expect: {status: 403}
+      - name: dave gained access
+        as: dave
+        request: {method: PUT, path: "${P}/doc.html", headers: {Range: "selector=h1", Content-Type: text/html}, body: '<h1>D2</h1>'}
+        expect: {status: 206}
+
+  - id: authz.group.stored-anywhere
+    title: A Group item works from any document on the host (nested path, inside unrelated markup)
+    area: permissions-identity
+    feature: Group document location
+    evidence: documented
+    source: "docs reference/permissions/Group §The Group document ('stored anywhere on the host')"
+    confidence: high
+    requires: [multi-actor]
+    live: false
+    site:
+      files:
+        - path: "${P}/doc.html"
+          body: '<!DOCTYPE html><html><body><h1>T</h1></body></html>'
+        - path: "${P}/deep/nested/team.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body><main><section>
+              <h2>Team</h2>
+              <div itemscope itemtype="https://pagelove.org/Group">
+                <span itemprop="name">reviewers</span>
+                <meta itemprop="member" content="carol@example.com">
+              </div>
+            </section></main></body></html>
+        - path: "${P}/rules.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body><div itemscope itemtype="https://pagelove.org/AuthorizationRule">
+              <meta itemprop="actor" content="reviewers"><meta itemprop="resource" content="${P}/doc.html">
+              <meta itemprop="method" content="PUT"><meta itemprop="action" content="Allow">
+            </div></body></html>
+    actors:
+      carol: {sub: sub-carol, email: carol@example.com, email_verified: true, roles: []}
+    steps:
+      - name: member allowed
+        as: carol
+        request: {method: PUT, path: "${P}/doc.html", headers: {Range: "selector=h1", Content-Type: text/html}, body: '<h1>C</h1>'}
+        expect: {status: 206}
+
+  - id: authz.group.multiple-documents-same-name-union
+    title: Two Group items with the same name contribute the union of their members
+    area: permissions-identity
+    feature: Group document duplicates
+    evidence: inferred
+    source: "docs reference/permissions/Group ('However it arises, it resolves to the group name'); no source covers duplicates"
+    confidence: medium
+    requires: [multi-actor]
+    live: false
+    site:
+      files:
+        - path: "${P}/doc.html"
+          body: '<!DOCTYPE html><html><body><h1>T</h1></body></html>'
+        - path: "${P}/groups-a.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body><div itemscope itemtype="https://pagelove.org/Group">
+              <meta itemprop="name" content="editors"><meta itemprop="member" content="alice@example.com">
+            </div></body></html>
+        - path: "${P}/groups-b.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body><div itemscope itemtype="https://pagelove.org/Group">
+              <meta itemprop="name" content="editors"><meta itemprop="member" content="bob@example.com">
+            </div></body></html>
+        - path: "${P}/rules.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body><div itemscope itemtype="https://pagelove.org/AuthorizationRule">
+              <meta itemprop="actor" content="editors"><meta itemprop="resource" content="${P}/doc.html">
+              <meta itemprop="method" content="PUT"><meta itemprop="action" content="Allow">
+            </div></body></html>
+    actors:
+      alice: {sub: sub-alice, email: alice@example.com, email_verified: true, roles: []}
+      bob: {sub: sub-bob, email: bob@example.com, email_verified: true, roles: []}
+    steps:
+      - name: member of the first item
+        as: alice
+        request: {method: PUT, path: "${P}/doc.html", headers: {Range: "selector=h1", Content-Type: text/html}, body: '<h1>A</h1>'}
+        expect: {status: 206}
+      - name: member of the second item
+        as: bob
+        request: {method: PUT, path: "${P}/doc.html", headers: {Range: "selector=h1", Content-Type: text/html}, body: '<h1>B</h1>'}
+        expect: {status: 206}
+
+  - id: authz.group.blank-name-ignored
+    title: A Group with a blank name grants nothing, even to a rule with an empty-looking actor
+    area: permissions-identity
+    feature: Group document name
+    evidence: documented
+    source: "docs reference/permissions/Group §Fields ('A group with a blank name is ignored')"
+    confidence: medium
+    requires: [multi-actor]
+    live: false
+    site:
+      files:
+        - path: "${P}/doc.html"
+          body: '<!DOCTYPE html><html><body><h1>T</h1></body></html>'
+        - path: "${P}/groups.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body><div itemscope itemtype="https://pagelove.org/Group">
+              <meta itemprop="name" content="  "><meta itemprop="member" content="alice@example.com">
+            </div></body></html>
+        - path: "${P}/rules.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body><div itemscope itemtype="https://pagelove.org/AuthorizationRule">
+              <meta itemprop="actor" content="  "><meta itemprop="resource" content="${P}/doc.html">
+              <meta itemprop="method" content="PUT"><meta itemprop="action" content="Allow">
+            </div></body></html>
+    actors:
+      alice: {sub: sub-alice, email: alice@example.com, email_verified: true, roles: []}
+    steps:
+      - name: alice refused
+        as: alice
+        request: {method: PUT, path: "${P}/doc.html", headers: {Range: "selector=h1", Content-Type: text/html}, body: '<h1>A</h1>'}
+        expect: {status: 403}
+
+  - id: authz.group.oidc-roles-claim
+    title: The OIDC roles claim supplies group membership without any Group document
+    area: permissions-identity
+    feature: OIDC roles
+    evidence: documented
+    source: "docs reference/permissions/Group §Other sources of membership; reference/permissions/AuthorizationRule §Groups and membership"
+    confidence: high
+    requires: [multi-actor]
+    live: false
+    site:
+      files:
+        - path: "${P}/doc.html"
+          body: '<!DOCTYPE html><html><body><h1>T</h1></body></html>'
+        - path: "${P}/rules.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div itemscope itemtype="https://pagelove.org/AuthorizationRule">
+                <meta itemprop="actor" content="*"><meta itemprop="resource" content="${P}/doc.html">
+                <meta itemprop="method" content="GET"><meta itemprop="action" content="Deny">
+              </div>
+              <div itemscope itemtype="https://pagelove.org/AuthorizationRule">
+                <meta itemprop="actor" content="admins"><meta itemprop="resource" content="${P}/doc.html">
+                <meta itemprop="method" content="GET"><meta itemprop="action" content="Allow">
+              </div>
+            </body></html>
+    actors:
+      ops: {sub: sub-ops, email: ops@example.com, email_verified: false, roles: [admins, staff]}
+      bob: {sub: sub-bob, email: bob@example.com, email_verified: true, roles: [staff]}
+    steps:
+      - name: role holder reads (roles need no verified email)
+        as: ops
+        request: {method: GET, path: "${P}/doc.html"}
+        expect: {status: 200}
+      - name: other role refused
+        as: bob
+        request: {method: GET, path: "${P}/doc.html"}
+        expect: {status: 403}
+
+  - id: authz.group.subtype-includes-override
+    title: A Group subtype overriding includes() decides membership (all verified emails at a domain)
+    area: permissions-identity
+    feature: Group subtype includes()
+    evidence: documented
+    source: "docs reference/permissions/Group §Custom membership: subtype Group and override includes()"
+    confidence: medium
+    requires: [multi-actor, sessel]
+    live: false
+    notes: The docs store the schema under /system/schemas/; this case keeps it under the prefix. If PageLove only loads schemas from /system/schemas/, the live variant needs root.
+    site:
+      files:
+        - path: "${P}/doc.html"
+          body: '<!DOCTYPE html><html><body><h1>T</h1></body></html>'
+        - path: "${P}/system/schemas/team-group.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+            <div itemscope itemtype="https://pagelove.org/Schema">
+              <meta itemprop="type" content="https://example.com/TeamGroup">
+              <meta itemprop="name" content="TeamGroup">
+              <meta itemprop="parent" content="https://pagelove.org/Group">
+              <div itemprop="property" itemscope itemtype="https://pagelove.org/Property">
+                <meta itemprop="name" content="domain">
+                <meta itemprop="type" content="https://schema.host/Text">
+                <meta itemprop="cardinality" content="1..1">
+              </div>
+              <div itemprop="property" itemscope itemtype="https://pagelove.org/Method">
+                <meta itemprop="name" content="includes">
+                <meta itemprop="returns" content="https://schema.host/Boolean">
+                <div itemprop="parameter" itemscope itemtype="https://pagelove.org/Parameter">
+                  <meta itemprop="name" content="email">
+                  <meta itemprop="type" content="https://schema.host/Text">
+                </div>
+                <div itemprop="implementation" itemscope itemtype="https://pagelove.org/Sessel">
+                  <script itemprop="source" type="text/sessel">email.endsWith(self.domain)</script>
+                </div>
+              </div>
+            </div>
+            </body></html>
+        - path: "${P}/groups.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div itemscope itemtype="https://example.com/TeamGroup">
+                <span itemprop="name">example-staff</span>
+                <meta itemprop="domain" content="@example.com">
+              </div>
+            </body></html>
+        - path: "${P}/rules.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body><div itemscope itemtype="https://pagelove.org/AuthorizationRule">
+              <meta itemprop="actor" content="example-staff"><meta itemprop="resource" content="${P}/doc.html">
+              <meta itemprop="method" content="PUT"><meta itemprop="action" content="Allow">
+            </div></body></html>
+    actors:
+      alice: {sub: sub-alice, email: alice@example.com, email_verified: true, roles: []}
+      mallory: {sub: sub-mallory, email: alice@example.com, email_verified: false, roles: []}
+      zed: {sub: sub-zed, email: zed@other.org, email_verified: true, roles: []}
+    steps:
+      - name: verified email at the domain
+        as: alice
+        request: {method: PUT, path: "${P}/doc.html", headers: {Range: "selector=h1", Content-Type: text/html}, body: '<h1>A</h1>'}
+        expect: {status: 206}
+      - name: unverified email at the domain
+        as: mallory
+        request: {method: PUT, path: "${P}/doc.html", headers: {Range: "selector=h1", Content-Type: text/html}, body: '<h1>M</h1>'}
+        expect: {status: 403}
+      - name: other domain
+        as: zed
+        request: {method: PUT, path: "${P}/doc.html", headers: {Range: "selector=h1", Content-Type: text/html}, body: '<h1>Z</h1>'}
+        expect: {status: 403}
+
+  - id: authz.group.subtype-without-override-inherits-member-match
+    title: A Group subtype that does not override includes() uses exact member matching
+    area: permissions-identity
+    feature: Group subtype includes()
+    evidence: documented
+    source: "docs reference/permissions/Group §Custom membership ('A subtype that does not override includes() inherits the base exact-email behaviour')"
+    confidence: medium
+    requires: [multi-actor]
+    live: false
+    site:
+      files:
+        - path: "${P}/doc.html"
+          body: '<!DOCTYPE html><html><body><h1>T</h1></body></html>'
+        - path: "${P}/system/schemas/plain-group.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+            <div itemscope itemtype="https://pagelove.org/Schema">
+              <meta itemprop="type" content="https://example.com/PlainGroup">
+              <meta itemprop="name" content="PlainGroup">
+              <meta itemprop="parent" content="https://pagelove.org/Group">
+            </div>
+            </body></html>
+        - path: "${P}/groups.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div itemscope itemtype="https://example.com/PlainGroup">
+                <meta itemprop="name" content="plain">
+                <meta itemprop="member" content="alice@example.com">
+              </div>
+            </body></html>
+        - path: "${P}/rules.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body><div itemscope itemtype="https://pagelove.org/AuthorizationRule">
+              <meta itemprop="actor" content="plain"><meta itemprop="resource" content="${P}/doc.html">
+              <meta itemprop="method" content="PUT"><meta itemprop="action" content="Allow">
+            </div></body></html>
+    actors:
+      alice: {sub: sub-alice, email: alice@example.com, email_verified: true, roles: []}
+      bob: {sub: sub-bob, email: bob@example.com, email_verified: true, roles: []}
+    steps:
+      - name: listed member
+        as: alice
+        request: {method: PUT, path: "${P}/doc.html", headers: {Range: "selector=h1", Content-Type: text/html}, body: '<h1>A</h1>'}
+        expect: {status: 206}
+      - name: not listed
+        as: bob
+        request: {method: PUT, path: "${P}/doc.html", headers: {Range: "selector=h1", Content-Type: text/html}, body: '<h1>B</h1>'}
+        expect: {status: 403}
+
+  - id: authz.group.groupmembership-legacy-ignored
+    title: Legacy GroupMembership rows do not grant group membership
+    area: permissions-identity
+    feature: legacy GroupMembership
+    evidence: inferred
+    source: "current docs (reference/permissions/Group) define only https://pagelove.org/Group; older vocabulary in pagelove-cursor SKILL.md@b97c3ef:78 and pagelove-ats/site/admin/auth.html@8f200fc:66-96"
+    confidence: low
+    requires: [multi-actor]
+    live: false
+    notes: Compatibility decision C7 (fail closed). The opposite claim is kept as authz.group.groupmembership-legacy-honored (disputed). Probe P-19.
+    site:
+      files:
+        - path: "${P}/doc.html"
+          body: '<!DOCTYPE html><html><body><h1>T</h1></body></html>'
+        - path: "${P}/groups.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body><table><tbody>
+              <tr itemscope itemtype="https://pagelove.org/GroupMembership">
+                <td itemprop="actor">alice@example.com</td>
+                <td><ul><li itemprop="group">admins</li></ul></td>
+              </tr>
+            </tbody></table></body></html>
+        - path: "${P}/rules.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body><div itemscope itemtype="https://pagelove.org/AuthorizationRule">
+              <meta itemprop="actor" content="admins"><meta itemprop="resource" content="${P}/doc.html">
+              <meta itemprop="method" content="PUT"><meta itemprop="action" content="Allow">
+            </div></body></html>
+    actors:
+      alice: {sub: sub-alice, email: alice@example.com, email_verified: true, roles: []}
+    steps:
+      - name: alice not granted via GroupMembership
+        as: alice
+        request: {method: PUT, path: "${P}/doc.html", headers: {Range: "selector=h1", Content-Type: text/html}, body: '<h1>A</h1>'}
+        expect: {status: 403}
+
+  - id: authz.group.groupmembership-legacy-honored
+    title: (disputed) Legacy GroupMembership rows grant group membership
+    area: permissions-identity
+    feature: legacy GroupMembership
+    status: disputed
+    evidence: demo-source
+    source: "pagelove-cursor/plugins/pagelove/skills/pagelove-dev/SKILL.md@b97c3ef:32,78 (GroupMembership schema); pagelove-ats/site/admin/auth.html@8f200fc:66-96 (parallel entries 'in case the platform picks up this schema')"
+    confidence: low
+    requires: [multi-actor]
+    live: false
+    notes: Losing claim under decision C7; kept so a live probe can settle it.
+    site:
+      files:
+        - path: "${P}/doc.html"
+          body: '<!DOCTYPE html><html><body><h1>T</h1></body></html>'
+        - path: "${P}/groups.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body><table><tbody>
+              <tr itemscope itemtype="https://pagelove.org/GroupMembership">
+                <td itemprop="actor">alice@example.com</td>
+                <td><ul><li itemprop="group">admins</li></ul></td>
+              </tr>
+            </tbody></table></body></html>
+        - path: "${P}/rules.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body><div itemscope itemtype="https://pagelove.org/AuthorizationRule">
+              <meta itemprop="actor" content="admins"><meta itemprop="resource" content="${P}/doc.html">
+              <meta itemprop="method" content="PUT"><meta itemprop="action" content="Allow">
+            </div></body></html>
+    actors:
+      alice: {sub: sub-alice, email: alice@example.com, email_verified: true, roles: []}
+    steps:
+      - name: alice granted via GroupMembership
+        as: alice
+        request: {method: PUT, path: "${P}/doc.html", headers: {Range: "selector=h1", Content-Type: text/html}, body: '<h1>A</h1>'}
+        expect: {status: 206}

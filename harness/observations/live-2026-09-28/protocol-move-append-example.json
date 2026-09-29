@@ -1,0 +1,47 @@
+{
+  "case": "protocol.move.append-example",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (move)",
+      "method": "MOVE",
+      "path": "/_pl/protocol-move-append-example-3fb6fb/move-append-test.html",
+      "status": 204,
+      "headers": {
+        "etag": "\"31a8775f79a4ddc0484ae6d39f6c1c621f5edc2c658090254d4a7f140a3d4407\"",
+        "last-modified": "Mon, 28 Sep 2026 22:30:24 GMT",
+        "vary": "Host, Range"
+      }
+    },
+    {
+      "step": "step 2 (card 3 is the last child of the done lane)",
+      "method": "GET",
+      "path": "/_pl/protocol-move-append-example-3fb6fb/move-append-test.html",
+      "status": 206,
+      "headers": {
+        "content-length": "144",
+        "content-range": "selector #lane-done",
+        "content-type": "text/html",
+        "etag": "\"998dcfc3d5be978710dd91195d925e4beeb0744e3882adf20e11259386c94bfe-998dcfc3d5be978710dd91195d925e4beeb0744e3882adf20e11259386c94bfe-2\"",
+        "vary": "Host, Range, Accept"
+      },
+      "body": "\u003csection class=\"lane\" id=\"lane-done\"\u003e\u003carticle class=\"card\" id=\"card-4\"\u003eFour\u003c/article\u003e\u003carticle class=\"card\" id=\"card-3\"\u003eThree\u003c/article\u003e\u003c/section\u003e"
+    },
+    {
+      "step": "step 3 (and no longer in the todo lane)",
+      "method": "GET",
+      "path": "/_pl/protocol-move-append-example-3fb6fb/move-append-test.html",
+      "status": 206,
+      "headers": {
+        "content-length": "141",
+        "content-range": "selector #lane-todo",
+        "content-type": "text/html",
+        "etag": "\"91e367d778ac25698dce9fda4c6b77e42c0e03a86baf38d3de755df70f7f6bdd-91e367d778ac25698dce9fda4c6b77e42c0e03a86baf38d3de755df70f7f6bdd-2\"",
+        "vary": "Host, Range, Accept"
+      },
+      "body": "\u003csection class=\"lane\" id=\"lane-todo\"\u003e\u003carticle class=\"card\" id=\"card-1\"\u003eOne\u003c/article\u003e\u003carticle class=\"card\" id=\"card-2\"\u003eTwo\u003c/article\u003e\u003c/section\u003e"
+    }
+  ],
+  "outcome": "pass",
+  "target": "live"
+}

@@ -1,0 +1,61 @@
+{
+  "case": "modeling.cardinality.selector-delete-optional-value",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (register declarations through the public plane (takes effect for the next request))",
+      "method": "PUT",
+      "path": "/_pl/modeling-cardinality-selector-delete-opt-4a7db1/schema.html",
+      "status": 201,
+      "headers": {
+        "content-length": "481",
+        "content-type": "text/html",
+        "etag": "\"7135a3d3cd95173ed0d7d36b7afda2fab6b645961c2efdaeb9e69784fa5476b6\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:44 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\n  \u003cdiv hidden itemscope itemtype=\"https://pagelove.org/Schema\"\u003e\n    \u003cmeta itemprop=\"type\" content=\"https://pagelike.test/_pl/modeling-cardinality-selector-delete-opt-4a7db1/Note\"\u003e\n    \u003cdiv itemprop=\"property\" itemscope itemtype=\"https://pagelove.org/Property\"\u003e\n      \u003cmeta itemprop=\"name\" content=\"v\"\u003e\n      \u003cmeta itemprop=\"type\" content=\"https://schema.host/Text\"\u003e\n      \u003cmeta itemprop=\"cardinality\" content=\"0..1\"\u003e\n    \u003c/div\u003e\n  \u003c/div\u003e\n\u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 2 (seed)",
+      "method": "PUT",
+      "path": "/_pl/modeling-cardinality-selector-delete-opt-4a7db1/n.html",
+      "status": 201,
+      "headers": {
+        "content-length": "208",
+        "content-type": "text/html",
+        "etag": "\"035bfecd69190f5cc65b5f482b1f6941fcfd5934acb54ce2d4aeecaa08d3e1ae\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:44 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\n  \u003cdiv itemscope itemtype=\"https://pagelike.test/_pl/modeling-cardinality-selector-delete-opt-4a7db1/Note\" id=\"n1\"\u003e\n    \u003cmeta itemprop=\"v\" content=\"gone\"\u003e\n  \u003c/div\u003e\n\u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 3 (delete the optional value)",
+      "method": "DELETE",
+      "path": "/_pl/modeling-cardinality-selector-delete-opt-4a7db1/n.html",
+      "status": 204,
+      "headers": {
+        "etag": "\"4a210714df185bf86c2e5832775d44508fc4638d551c694741222b18e0139262\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:44 GMT",
+        "vary": "Host, Range"
+      }
+    },
+    {
+      "step": "step 4 (stored state of n.html (authoring plane, raw))",
+      "method": "GET",
+      "path": "/_pl/modeling-cardinality-selector-delete-opt-4a7db1/n.html",
+      "status": 200,
+      "headers": {
+        "accept-ranges": "bytes",
+        "content-length": "174",
+        "content-type": "text/html",
+        "etag": "\"4a210714df185bf86c2e5832775d44508fc4638d551c694741222b18e0139262\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:44 GMT"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\n  \u003cdiv itemscope itemtype=\"https://pagelike.test/_pl/modeling-cardinality-selector-delete-opt-4a7db1/Note\" id=\"n1\"\u003e\n    \n  \u003c/div\u003e\n\u003c/body\u003e\u003c/html\u003e\n"
+    }
+  ],
+  "outcome": "pass",
+  "target": "local"
+}

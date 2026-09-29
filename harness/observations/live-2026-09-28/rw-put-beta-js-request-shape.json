@@ -1,0 +1,37 @@
+{
+  "case": "rw.put.beta-js-request-shape",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (PUT the second item via an id-anchored nth-child selector)",
+      "method": "PUT",
+      "path": "/_pl/rw-put-beta-js-request-shape-90bc45/list.html",
+      "status": 206,
+      "headers": {
+        "content-length": "48",
+        "content-range": "selector #todo-list \u003e li:nth-child(2)",
+        "content-type": "text/html",
+        "etag": "\"3f8a43738f55c5b87e7aecd4bc44f03be1dbabc00e7ee59a8934a1af9269aad1-3f8a43738f55c5b87e7aecd4bc44f03be1dbabc00e7ee59a8934a1af9269aad1-2\"",
+        "last-modified": "Mon, 28 Sep 2026 22:28:41 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003cli\u003e\u003cinput type=\"checkbox\" checked\u003eBuy Eggs\u003c/li\u003e"
+    },
+    {
+      "step": "step 2 (the checked attribute persisted on the second item only)",
+      "method": "GET",
+      "path": "/_pl/rw-put-beta-js-request-shape-90bc45/list.html",
+      "status": 206,
+      "headers": {
+        "content-length": "112",
+        "content-range": "selector #todo-list",
+        "content-type": "text/html",
+        "etag": "\"278fa5fc3d7c18672a1d55e5bea25f4b5ffbe6633ab07e25958286479fbee0f5-278fa5fc3d7c18672a1d55e5bea25f4b5ffbe6633ab07e25958286479fbee0f5-2\"",
+        "vary": "Host, Range, Accept"
+      },
+      "body": "\u003cul id=\"todo-list\"\u003e\u003cli\u003e\u003cinput type=\"checkbox\"\u003eGet Milk\u003c/li\u003e\u003cli\u003e\u003cinput type=\"checkbox\" checked\u003eBuy Eggs\u003c/li\u003e\u003c/ul\u003e"
+    }
+  ],
+  "outcome": "pass",
+  "target": "live"
+}

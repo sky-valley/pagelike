@@ -1,0 +1,332 @@
+# Composing: resource creation (direct PUT and templated POST with <base href>).
+# Spec: docs/spec/composing.md §17 (R-COMP-140..144).
+# The runner does not follow redirects.
+defaults:
+  area: composing
+  site:
+    settings: {default_get: allow}
+    files:
+      - path: "${P}/templates/new-entry.html"
+        body: |
+          <!DOCTYPE html>
+          <html lang="en" xmlns:p="https://pagelove.org/1.0" p:template="text/liquid">
+          <head>
+          <meta charset="utf-8">
+          <title>{{ request.body.title }}</title>
+          <base href="${P}/entries/{{ request.body.slug }}.html">
+          </head>
+          <body>
+          <article id="entry" itemscope itemtype="{{ 'https://example.test${P}/Entry' }}">
+          <h1 itemprop="title">{{ request.body.title }}</h1>
+          <p itemprop="content">{{ request.body.content }}</p>
+          </article>
+          </body>
+          </html>
+    rules:
+      - {actor: "*", resource: "${P}/*", method: [GET, HEAD], action: Allow}
+      - {actor: "*", resource: "${P}/templates/new-entry.html", method: [POST], action: Allow}
+      - {actor: "*", resource: "${P}/entries/*", method: [PUT], action: Allow}
+cases:
+  - id: comp.rc.post-template-301
+    title: POST to a template stores the rendered document at its <base href> and redirects there
+    feature: templated creation
+    evidence: documented
+    source: "docs reference/composing-pages/Resource-Creation §Templated creation via POST (snapshot 2026-09-28)"
+    confidence: high
+    requires: [liquid]
+    live: true
+    steps:
+      - as: anonymous
+        request:
+          method: POST
+          path: "${P}/templates/new-entry.html"
+          headers: {Content-Type: "application/x-www-form-urlencoded"}
+          body: "slug=hello-world&title=Hello+World&content=First+post"
+        expect:
+          status: 301
+          header_matches: {Location: '^(https?://[^/]+)?${P}/entries/hello-world\.html$'}
+      - name: the new resource exists
+        as: anonymous
+        request: {method: GET, path: "${P}/entries/hello-world.html"}
+        expect:
+          status: 200
+          body_contains: ['<h1 itemprop="title">Hello World</h1>', '<p itemprop="content">First post</p>']
+
+  - id: comp.rc.stored-output
+    title: The stored document is the rendered output with the template directive consumed
+    feature: templated creation
+    evidence: demo-source
+    source: "pagelove-polls/site/polls/kfd47o4zqd.html@c9270e5:1-11 (stored result of templates/new-poll.html)"
+    confidence: medium
+    requires: [liquid]
+    live: true
+    notes: "R-COMP-143."
+    steps:
+      - as: anonymous
+        request:
+          method: POST
+          path: "${P}/templates/new-entry.html"
+          headers: {Content-Type: "application/x-www-form-urlencoded"}
+          body: "slug=stored&title=Stored+Title&content=Body+text"
+        expect: {status: 301}
+      - as: author
+        plane: dav
+        request: {method: GET, path: "${P}/entries/stored.html"}
+        expect:
+          status: 200
+          body_contains: ["Stored Title", "Body text", 'itemtype="https://example.test${P}/Entry"']
+          body_not_contains: ["{{", "p:template", "request.body"]
+
+  - id: comp.rc.base-removed
+    title: The stored document has no <base> element and keeps its xmlns declarations
+    feature: templated creation
+    evidence: demo-source
+    source: "pagelove-polls/site/polls/kfd47o4zqd.html@c9270e5:2,9-11 (blank line where <base> was; xmlns:p kept)"
+    confidence: low
+    requires: [liquid]
+    live: true
+    notes: "R-COMP-143 / probe Q-20."
+    steps:
+      - as: anonymous
+        request:
+          method: POST
+          path: "${P}/templates/new-entry.html"
+          headers: {Content-Type: "application/x-www-form-urlencoded"}
+          body: "slug=nobase&title=T&content=C"
+        expect: {status: 301}
+      - as: author
+        plane: dav
+        request: {method: GET, path: "${P}/entries/nobase.html"}
+        expect:
+          status: 200
+          body_contains: ["xmlns:p"]
+          body_not_contains: ["<base"]
+
+  - id: comp.rc.missing-base-422
+    title: A template whose output has no <base href> fails with 422
+    feature: templated creation errors
+    evidence: documented
+    source: "docs reference/composing-pages/Resource-Creation §Error cases (snapshot 2026-09-28)"
+    confidence: high
+    requires: [liquid]
+    live: true
+    site:
+      settings: {default_get: allow}
+      files:
+        - path: "${P}/templates/nobase.html"
+          body: |
+            <!DOCTYPE html>
+            <html xmlns:p="https://pagelove.org/1.0" p:template="text/liquid">
+            <head><title>{{ request.body.title }}</title></head>
+            <body><p>{{ request.body.title }}</p></body>
+            </html>
+      rules:
+        - {actor: "*", resource: "${P}/*", method: [GET, HEAD, POST, PUT], action: Allow}
+    steps:
+      - as: anonymous
+        request:
+          method: POST
+          path: "${P}/templates/nobase.html"
+          headers: {Content-Type: "application/x-www-form-urlencoded"}
+          body: "title=x"
+        expect: {status: 422}
+
+  - id: comp.rc.empty-base-href-422
+    title: An empty href or a <base> without href fails with 422
+    feature: templated creation errors
+    evidence: documented
+    source: "docs reference/composing-pages/Resource-Creation §Error cases ('an empty href, or no href attribute at all') (snapshot 2026-09-28)"
+    confidence: high
+    requires: [liquid]
+    live: true
+    site:
+      settings: {default_get: allow}
+      files:
+        - path: "${P}/templates/empty-href.html"
+          body: |
+            <!DOCTYPE html>
+            <html xmlns:p="https://pagelove.org/1.0" p:template="text/liquid">
+            <head><base href="{{ request.body.missing }}"></head>
+            <body><p>x</p></body>
+            </html>
+        - path: "${P}/templates/no-href.html"
+          body: |
+            <!DOCTYPE html>
+            <html xmlns:p="https://pagelove.org/1.0" p:template="text/liquid">
+            <head><base target="_blank"></head>
+            <body><p>x</p></body>
+            </html>
+      rules:
+        - {actor: "*", resource: "${P}/*", method: [GET, HEAD, POST, PUT], action: Allow}
+    steps:
+      - as: anonymous
+        request:
+          method: POST
+          path: "${P}/templates/empty-href.html"
+          headers: {Content-Type: "application/x-www-form-urlencoded"}
+          body: "title=x"
+        expect: {status: 422}
+      - as: anonymous
+        request:
+          method: POST
+          path: "${P}/templates/no-href.html"
+          headers: {Content-Type: "application/x-www-form-urlencoded"}
+          body: "title=x"
+        expect: {status: 422}
+
+  - id: comp.rc.post-not-authorized
+    title: Without POST permission on the template, nothing is created
+    feature: templated creation authorization
+    evidence: documented
+    source: "docs reference/composing-pages/Resource-Creation §2. Template authorization, §Error cases (snapshot 2026-09-28)"
+    confidence: high
+    requires: [liquid]
+    live: true
+    site:
+      settings: {default_get: allow}
+      files:
+        - path: "${P}/templates/new-entry.html"
+          body: |
+            <!DOCTYPE html>
+            <html lang="en" xmlns:p="https://pagelove.org/1.0" p:template="text/liquid">
+            <head><base href="${P}/entries/{{ request.body.slug }}.html"></head>
+            <body><h1>{{ request.body.title }}</h1></body>
+            </html>
+      rules:
+        - {actor: "*", resource: "${P}/*", method: [GET, HEAD], action: Allow}
+        - {actor: "*", resource: "${P}/entries/*", method: [PUT], action: Allow}
+    steps:
+      - as: anonymous
+        request:
+          method: POST
+          path: "${P}/templates/new-entry.html"
+          headers: {Content-Type: "application/x-www-form-urlencoded"}
+          body: "slug=denied&title=Denied"
+        expect: {status: [401, 403]}
+      - as: author
+        plane: dav
+        request: {method: GET, path: "${P}/entries/denied.html"}
+        expect: {status: 404}
+
+  - id: comp.rc.put-at-base-not-authorized
+    title: Without PUT permission at the <base href>, nothing is written
+    feature: templated creation authorization
+    evidence: documented
+    source: "docs reference/composing-pages/Resource-Creation §5. Final location authorization, §Error cases (snapshot 2026-09-28)"
+    confidence: high
+    requires: [liquid]
+    live: true
+    site:
+      settings: {default_get: allow}
+      files:
+        - path: "${P}/templates/new-entry.html"
+          body: |
+            <!DOCTYPE html>
+            <html lang="en" xmlns:p="https://pagelove.org/1.0" p:template="text/liquid">
+            <head><base href="${P}/entries/{{ request.body.slug }}.html"></head>
+            <body><h1>{{ request.body.title }}</h1></body>
+            </html>
+      rules:
+        - {actor: "*", resource: "${P}/*", method: [GET, HEAD], action: Allow}
+        - {actor: "*", resource: "${P}/templates/new-entry.html", method: [POST], action: Allow}
+    steps:
+      - as: anonymous
+        request:
+          method: POST
+          path: "${P}/templates/new-entry.html"
+          headers: {Content-Type: "application/x-www-form-urlencoded"}
+          body: "slug=nowrite&title=No"
+        expect: {status: [401, 403]}
+      - as: author
+        plane: dav
+        request: {method: GET, path: "${P}/entries/nowrite.html"}
+        expect: {status: 404}
+
+  - id: comp.rc.overwrites-existing
+    title: Templated creation replaces a document already stored at the target
+    feature: templated creation
+    evidence: demo-source
+    source: "pagelove-polls/site/admin/auth.html@c9270e5:130-150 (a trigger is needed to refuse overwriting an existing poll)"
+    confidence: medium
+    requires: [liquid]
+    live: true
+    site:
+      settings: {default_get: allow}
+      files:
+        - path: "${P}/templates/new-entry.html"
+          body: |
+            <!DOCTYPE html>
+            <html lang="en" xmlns:p="https://pagelove.org/1.0" p:template="text/liquid">
+            <head><base href="${P}/entries/{{ request.body.slug }}.html"></head>
+            <body><h1>{{ request.body.title }}</h1></body>
+            </html>
+        - path: "${P}/entries/taken.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body><h1>OLD-CONTENT</h1></body></html>
+      rules:
+        - {actor: "*", resource: "${P}/*", method: [GET, HEAD], action: Allow}
+        - {actor: "*", resource: "${P}/templates/new-entry.html", method: [POST], action: Allow}
+        - {actor: "*", resource: "${P}/entries/*", method: [PUT], action: Allow}
+    steps:
+      - as: anonymous
+        request:
+          method: POST
+          path: "${P}/templates/new-entry.html"
+          headers: {Content-Type: "application/x-www-form-urlencoded"}
+          body: "slug=taken&title=NEW-CONTENT"
+        expect: {status: 301}
+      - as: author
+        plane: dav
+        request: {method: GET, path: "${P}/entries/taken.html"}
+        expect: {status: 200, body_contains: ["NEW-CONTENT"], body_not_contains: ["OLD-CONTENT"]}
+
+  - id: comp.rc.direct-put
+    title: Direct creation is a plain whole-document PUT to the final name
+    feature: direct creation
+    evidence: documented
+    source: "docs reference/composing-pages/Resource-Creation §Direct creation (PUT) (snapshot 2026-09-28)"
+    confidence: high
+    requires: []
+    live: true
+    site:
+      settings: {default_get: allow}
+      rules:
+        - {actor: "*", resource: "${P}/*", method: [GET, HEAD, PUT], action: Allow}
+    steps:
+      - as: anonymous
+        request:
+          method: PUT
+          path: "${P}/new-blog-post.html"
+          headers: {Content-Type: "text/html"}
+          body: |
+            <!DOCTYPE html>
+            <html><body><h1>Direct</h1></body></html>
+        expect: {status: 201}
+      - as: anonymous
+        request: {method: GET, path: "${P}/new-blog-post.html"}
+        expect: {status: 200, body_contains: ["<h1>Direct</h1>"]}
+
+  - id: comp.rc.request-body-fields
+    title: Url-encoded form fields are decoded into request.body
+    feature: templated creation
+    evidence: documented
+    source: "docs reference/composing-pages/Resource-Creation §Examples (slug=hello-world&title=Hello+World); pagelove-polls/site/templates/new-poll.html@c9270e5:7-21"
+    confidence: medium
+    requires: [liquid]
+    live: true
+    notes: "R-COMP-142. Percent-encoded UTF-8 and '+' both decode."
+    steps:
+      - as: anonymous
+        request:
+          method: POST
+          path: "${P}/templates/new-entry.html"
+          headers: {Content-Type: "application/x-www-form-urlencoded"}
+          body: "slug=cafe&title=Caf%C3%A9+Day&content=a%26b"
+        expect: {status: 301}
+      - as: author
+        plane: dav
+        request: {method: GET, path: "${P}/entries/cafe.html"}
+        expect:
+          status: 200
+          body_contains: ["Café Day"]

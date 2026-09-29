@@ -1,0 +1,75 @@
+{
+  "case": "modeling.references.optional-referenced-value-delete-cascades",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (register declarations through the public plane (takes effect for the next request))",
+      "method": "PUT",
+      "path": "/_pl/modeling-references-optional-referenced-c3e776/schema.html",
+      "status": 201,
+      "headers": {
+        "content-length": "1154",
+        "content-type": "text/html",
+        "etag": "\"501a27728d8fde4affa20effb373114de24fcdb8dbbbeedfe1d74c93b19815a7\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:44 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\n  \u003cdiv hidden itemscope itemtype=\"https://pagelove.org/Schema\"\u003e\n    \u003cmeta itemprop=\"type\" content=\"https://pagelike.test/_pl/modeling-references-optional-referenced-c3e776/Org\"\u003e\n    \u003cdiv itemprop=\"property\" itemscope itemtype=\"https://pagelove.org/Property\"\u003e\n      \u003cmeta itemprop=\"name\" content=\"identifier\"\u003e\n      \u003cmeta itemprop=\"type\" content=\"https://schema.host/Text\"\u003e\n      \u003cmeta itemprop=\"cardinality\" content=\"0..1\"\u003e\n      \u003cmeta itemprop=\"unique\" content=\"true\"\u003e\n    \u003c/div\u003e\n  \u003c/div\u003e\n  \u003cdiv hidden itemscope itemtype=\"https://pagelove.org/Schema\"\u003e\n    \u003cmeta itemprop=\"type\" content=\"https://pagelike.test/_pl/modeling-references-optional-referenced-c3e776/Member\"\u003e\n    \u003cdiv itemprop=\"property\" itemscope itemtype=\"https://pagelove.org/Property\"\u003e\n      \u003cmeta itemprop=\"name\" content=\"org\"\u003e\n      \u003cmeta itemprop=\"type\" content=\"https://schema.host/Text\"\u003e\n      \u003cmeta itemprop=\"cardinality\" content=\"0..1\"\u003e\n      \u003cmeta itemprop=\"references\" content=\"https://pagelike.test/_pl/modeling-references-optional-referenced-c3e776/Org#identifier\"\u003e\n      \u003cmeta itemprop=\"cascade\" content=\"true\"\u003e\n    \u003c/div\u003e\n  \u003c/div\u003e\n\u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 2 (org acme)",
+      "method": "PUT",
+      "path": "/_pl/modeling-references-optional-referenced-c3e776/org.html",
+      "status": 201,
+      "headers": {
+        "content-length": "214",
+        "content-type": "text/html",
+        "etag": "\"59f1a4799b2247488d1e85dccb1bb48584e16eaa058862e489a8af110ef5ebd0\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:44 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\n  \u003cdiv itemscope itemtype=\"https://pagelike.test/_pl/modeling-references-optional-referenced-c3e776/Org\" id=\"o\"\u003e\n    \u003cmeta itemprop=\"identifier\" content=\"acme\"\u003e\n  \u003c/div\u003e\n\u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 3 (member of acme)",
+      "method": "PUT",
+      "path": "/_pl/modeling-references-optional-referenced-c3e776/m.html",
+      "status": 201,
+      "headers": {
+        "content-length": "220",
+        "content-type": "text/html",
+        "etag": "\"15618ee12b04c72f1144456e103a5e17b7fbf6cfb37cf04fff475a61c6574cc6\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:44 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\n  \u003cdiv itemscope itemtype=\"https://pagelike.test/_pl/modeling-references-optional-referenced-c3e776/Member\"\u003e\n    \u003cmeta itemprop=\"org\" content=\"acme\"\u003e\n    \u003cp\u003estays\u003c/p\u003e\n  \u003c/div\u003e\n\u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 4 (delete the org identifier element)",
+      "method": "DELETE",
+      "path": "/_pl/modeling-references-optional-referenced-c3e776/org.html",
+      "status": 204,
+      "headers": {
+        "etag": "\"775f4f84c1f0e1d7d5617c34ee95811d911e073e190fde88031310ed6345d6ed\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:44 GMT",
+        "vary": "Host, Range"
+      }
+    },
+    {
+      "step": "step 5 (stored state of m.html (authoring plane, raw))",
+      "method": "GET",
+      "path": "/_pl/modeling-references-optional-referenced-c3e776/m.html",
+      "status": 200,
+      "headers": {
+        "accept-ranges": "bytes",
+        "content-length": "184",
+        "content-type": "text/html",
+        "etag": "\"6ccd3e188bf8ba4978166611ee5f8fe4f73359b210d9915ad4eda27366a18c65\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:44 GMT"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\n  \u003cdiv itemscope itemtype=\"https://pagelike.test/_pl/modeling-references-optional-referenced-c3e776/Member\"\u003e\n    \n    \u003cp\u003estays\u003c/p\u003e\n  \u003c/div\u003e\n\u003c/body\u003e\u003c/html\u003e\n"
+    }
+  ],
+  "outcome": "pass",
+  "target": "local"
+}

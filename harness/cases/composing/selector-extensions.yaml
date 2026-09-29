@@ -1,0 +1,442 @@
+# Composing: PageLove selector extensions, exercised through Range selector
+# reads (206 = a match, 416 = no match; the first match in document order is
+# returned). Spec: docs/spec/composing.md §22 (R-COMP-170..178).
+# Selector functions read the whole site, so their operands carry ${P}.
+defaults:
+  area: composing
+  site:
+    settings: {default_get: allow}
+    files:
+      - path: "${P}/sx.html"
+        body: |
+          <!DOCTYPE html>
+          <html>
+          <head><title>sx</title></head>
+          <body>
+          <h1 id="h1a">Hello World</h1>
+          <h2 id="h2a">hello world</h2>
+          <p id="p1">Title</p>
+          <p id="p2">Title Bar</p>
+          <p id="p3">
+             Spaced
+          	  out   text
+          </p>
+          <div id="hc" itemscope itemtype="https://example.test/HostConfig">
+            <meta id="m-host" itemprop="hostname" content="localhost">
+            <meta id="m-alias" itemprop="alias" content="127.0.0.1">
+          </div>
+          <a id="a1" itemprop="url" href="/about">About Us</a>
+          <data id="d1" itemprop="score" value="42">Forty-two</data>
+          <time id="t1" itemprop="when">2026-01-02</time>
+          <time id="t2" itemprop="when2" datetime="2026-03-04">March</time>
+          <img id="i1" itemprop="pic" alt="no source">
+          <span id="n1" class="num"> 9.99 </span>
+          <span id="n2" class="num">15</span>
+          <span id="n3" class="num">abc</span>
+          <span id="n4" class="num"></span>
+          <meta id="m-price" itemprop="price" content="120">
+          <ul id="u1"><li>A</li><li>B</li></ul>
+          <ul id="u2"><li>A</li><div>X</div></ul>
+          <ul id="u3"><li>A <span>s</span></li></ul>
+          <ul id="u4"></ul>
+          <p id="cafe">café</p>
+          <p id="cafe-upper">CAFÉ</p>
+          <p id="nfd">cafe&#x301;</p>
+          <ol id="fn">
+            <li data-k="${P}">one</li>
+            <li data-k="${P}">two</li>
+            <li data-k="${P}">three</li>
+          </ol>
+          <p id="title-src" data-tk="${P}">Target</p>
+          <p id="tgt-text" data-name="Target">text-of target</p>
+          <meta id="val-src" data-vk="${P}" itemprop="nm" content="Zed">
+          <p id="tgt-value" data-name="Zed">value-of target</p>
+          <a id="attr-src" data-ak="${P}" href="/home">home</a>
+          <p id="tgt-attr" data-link="/home">attr-of target</p>
+          <p id="tgt-empty" data-empty="">zero-match target</p>
+          </body>
+          </html>
+    rules:
+      - {actor: "*", resource: "${P}/*", method: [GET, HEAD], action: Allow}
+cases:
+  - id: comp.sx.contains
+    title: ":contains() matches a substring of the text content, case-sensitively unless ', i'"
+    feature: selector extensions
+    evidence: documented
+    source: "docs reference/composing-pages/Selector-Extensions §:contains() (snapshot 2026-09-28)"
+    confidence: high
+    requires: []
+    live: true
+    steps:
+      - as: anonymous
+        request: {method: GET, path: "${P}/sx.html", headers: {Range: "selector=h1:contains('Hello')"}}
+        expect: {status: 206, body_contains: ['id="h1a"']}
+      - as: anonymous
+        request: {method: GET, path: "${P}/sx.html", headers: {Range: "selector=h1:contains('hello')"}}
+        expect: {status: 416}
+      - name: case-insensitive flag, first match is the h1
+        as: anonymous
+        request: {method: GET, path: "${P}/sx.html", headers: {Range: "selector=:is(h1, h2):contains('hello', i)"}}
+        expect: {status: 206, body_contains: ['id="h1a"']}
+      - as: anonymous
+        request: {method: GET, path: "${P}/sx.html", headers: {Range: "selector=h2:contains('HELLO', i)"}}
+        expect: {status: 206, body_contains: ['id="h2a"']}
+
+  - id: comp.sx.equals
+    title: ":equals() requires the whole normalized text to match"
+    feature: selector extensions
+    evidence: documented
+    source: "docs reference/composing-pages/Selector-Extensions §:equals() (snapshot 2026-09-28)"
+    confidence: high
+    requires: []
+    live: true
+    steps:
+      - as: anonymous
+        request: {method: GET, path: "${P}/sx.html", headers: {Range: "selector=p:equals('Title')"}}
+        expect: {status: 206, body_contains: ['id="p1"'], body_not_contains: ["Title Bar"]}
+      - as: anonymous
+        request: {method: GET, path: "${P}/sx.html", headers: {Range: "selector=p:equals('Title Bar')"}}
+        expect: {status: 206, body_contains: ['id="p2"']}
+      - as: anonymous
+        request: {method: GET, path: "${P}/sx.html", headers: {Range: "selector=#p2:equals('Title')"}}
+        expect: {status: 416}
+
+  - id: comp.sx.value-matching
+    title: ":value-equals()/:value-contains() use the microdata value (content, raw href, value)"
+    feature: selector extensions
+    evidence: documented
+    source: "docs reference/composing-pages/Selector-Extensions §Text content vs microdata values, §:value-equals() (snapshot 2026-09-28)"
+    confidence: high
+    requires: []
+    live: true
+    notes: "R-COMP-171. The href is compared as written ('/about'), not as an absolute URL."
+    steps:
+      - as: anonymous
+        request: {method: GET, path: "${P}/sx.html", headers: {Range: "selector=[itemprop=hostname]:value-equals('localhost')"}}
+        expect: {status: 206, body_contains: ['id="m-host"']}
+      - as: anonymous
+        request: {method: GET, path: "${P}/sx.html", headers: {Range: "selector=[itemprop=url]:value-equals('/about')"}}
+        expect: {status: 206, body_contains: ['id="a1"']}
+      - as: anonymous
+        request: {method: GET, path: "${P}/sx.html", headers: {Range: "selector=[itemprop=score]:value-equals('42')"}}
+        expect: {status: 206, body_contains: ['id="d1"']}
+      - name: text content of <data> differs from its value
+        as: anonymous
+        request: {method: GET, path: "${P}/sx.html", headers: {Range: "selector=#d1:value-equals('Forty-two')"}}
+        expect: {status: 416}
+      - as: anonymous
+        request: {method: GET, path: "${P}/sx.html", headers: {Range: "selector=#d1:equals('Forty-two')"}}
+        expect: {status: 206}
+      - name: meta has no text content
+        as: anonymous
+        request: {method: GET, path: "${P}/sx.html", headers: {Range: "selector=#m-host:contains('local')"}}
+        expect: {status: 416}
+      - as: anonymous
+        request: {method: GET, path: "${P}/sx.html", headers: {Range: "selector=[itemprop=hostname]:value-contains('HOST', i)"}}
+        expect: {status: 206, body_contains: ['id="m-host"']}
+
+  - id: comp.sx.time-and-missing-attr
+    title: <time> falls back to its text; a listed element without its attribute has an empty value
+    feature: selector extensions
+    evidence: documented
+    source: "docs reference/composing-pages/Selector-Extensions §Text content vs microdata values (snapshot 2026-09-28)"
+    confidence: medium
+    requires: []
+    live: true
+    notes: "The empty-value step assumes :value-equals('') matches an empty value."
+    steps:
+      - as: anonymous
+        request: {method: GET, path: "${P}/sx.html", headers: {Range: "selector=time:value-equals('2026-01-02')"}}
+        expect: {status: 206, body_contains: ['id="t1"']}
+      - as: anonymous
+        request: {method: GET, path: "${P}/sx.html", headers: {Range: "selector=time:value-equals('2026-03-04')"}}
+        expect: {status: 206, body_contains: ['id="t2"']}
+      - as: anonymous
+        request: {method: GET, path: "${P}/sx.html", headers: {Range: "selector=#t2:value-equals('March')"}}
+        expect: {status: 416}
+      - name: img without src does not use alt
+        as: anonymous
+        request: {method: GET, path: "${P}/sx.html", headers: {Range: "selector=#i1:value-contains('source')"}}
+        expect: {status: 416}
+      - as: anonymous
+        request: {method: GET, path: "${P}/sx.html", headers: {Range: "selector=#i1:value-equals('')"}}
+        expect: {status: 206}
+
+  - id: comp.sx.numeric
+    title: Numeric pseudo-classes trim, parse decimals and never match non-numeric or empty text
+    feature: selector extensions
+    evidence: documented
+    source: "docs reference/composing-pages/Selector-Extensions §Numeric comparison, §Numeric parsing rules (snapshot 2026-09-28)"
+    confidence: high
+    requires: []
+    live: true
+    steps:
+      - name: " 9.99 is less than 10 (trimmed, decimal)"
+        as: anonymous
+        request: {method: GET, path: "${P}/sx.html", headers: {Range: "selector=.num:less-than('10')"}}
+        expect: {status: 206, body_contains: ['id="n1"']}
+      - as: anonymous
+        request: {method: GET, path: "${P}/sx.html", headers: {Range: "selector=.num:greater-than('10')"}}
+        expect: {status: 206, body_contains: ['id="n2"']}
+      - name: non-numeric text never matches
+        as: anonymous
+        request: {method: GET, path: "${P}/sx.html", headers: {Range: "selector=#n3:less-than('1000')"}}
+        expect: {status: 416}
+      - name: empty text never matches
+        as: anonymous
+        request: {method: GET, path: "${P}/sx.html", headers: {Range: "selector=#n4:greater-than('-1')"}}
+        expect: {status: 416}
+      - as: anonymous
+        request: {method: GET, path: "${P}/sx.html", headers: {Range: "selector=[itemprop=price]:value-greater-than('100')"}}
+        expect: {status: 206, body_contains: ['id="m-price"']}
+      - as: anonymous
+        request: {method: GET, path: "${P}/sx.html", headers: {Range: "selector=[itemprop=price]:value-less-than('100')"}}
+        expect: {status: 416}
+      - name: comparison is strict
+        as: anonymous
+        request: {method: GET, path: "${P}/sx.html", headers: {Range: "selector=#n2:less-than('15')"}}
+        expect: {status: 416}
+
+  - id: comp.sx.only
+    title: ":only() requires every descendant to match one of its (relative) selectors"
+    feature: selector extensions
+    evidence: documented
+    source: "docs reference/composing-pages/Selector-Extensions §:only() (snapshot 2026-09-28)"
+    confidence: high
+    requires: []
+    live: true
+    steps:
+      - as: anonymous
+        request: {method: GET, path: "${P}/sx.html", headers: {Range: "selector=ul:only(> li)"}}
+        expect: {status: 206, body_contains: ['id="u1"']}
+      - as: anonymous
+        request: {method: GET, path: "${P}/sx.html", headers: {Range: "selector=#u2:only(> li)"}}
+        expect: {status: 416}
+      - as: anonymous
+        request: {method: GET, path: "${P}/sx.html", headers: {Range: "selector=#u3:only(> li, > li span)"}}
+        expect: {status: 206}
+      - as: anonymous
+        request: {method: GET, path: "${P}/sx.html", headers: {Range: "selector=#u3:only(> li)"}}
+        expect: {status: 416}
+      - name: no descendants matches vacuously
+        as: anonymous
+        request: {method: GET, path: "${P}/sx.html", headers: {Range: "selector=#u4:only(> li)"}}
+        expect: {status: 206}
+
+  - id: comp.sx.has-or
+    title: Comma-separated arguments in :has() are OR-ed and combine with :value-equals()
+    feature: selector extensions
+    evidence: documented
+    source: "docs reference/composing-pages/Selector-Extensions §Value matching (HostConfig example) (snapshot 2026-09-28)"
+    confidence: high
+    requires: []
+    live: true
+    steps:
+      - as: anonymous
+        request: {method: GET, path: "${P}/sx.html", headers: {Range: "selector=[itemtype*=HostConfig]:has([itemprop=hostname]:value-equals('nope'), [itemprop=alias]:value-equals('127.0.0.1'))"}}
+        expect: {status: 206, body_contains: ['id="hc"']}
+      - as: anonymous
+        request: {method: GET, path: "${P}/sx.html", headers: {Range: "selector=[itemtype*=HostConfig]:has([itemprop=hostname]:value-equals('nope'), [itemprop=alias]:value-equals('nope'))"}}
+        expect: {status: 416}
+
+  - id: comp.sx.normalization
+    title: Text is NFC-normalized, trimmed and whitespace-collapsed before matching
+    feature: selector extensions
+    evidence: documented
+    source: "docs reference/composing-pages/Selector-Extensions §Text normalization (snapshot 2026-09-28)"
+    confidence: high
+    requires: []
+    live: true
+    notes: "#nfd holds 'e' + U+0301 (written as a character reference); the header sends precomposed U+00E9."
+    steps:
+      - as: anonymous
+        request: {method: GET, path: "${P}/sx.html", headers: {Range: "selector=#p3:equals('Spaced out text')"}}
+        expect: {status: 206}
+      - as: anonymous
+        request: {method: GET, path: "${P}/sx.html", headers: {Range: "selector=#nfd:equals('café')"}}
+        expect: {status: 206}
+
+  - id: comp.sx.case-flag-ascii-only
+    title: The ', i' flag folds ASCII letters only
+    feature: selector extensions
+    evidence: documented
+    source: "docs reference/composing-pages/Selector-Extensions §Case sensitivity ('é does not match É') (snapshot 2026-09-28)"
+    confidence: high
+    requires: []
+    live: true
+    steps:
+      - as: anonymous
+        request: {method: GET, path: "${P}/sx.html", headers: {Range: "selector=#h2a:equals('HELLO WORLD', i)"}}
+        expect: {status: 206}
+      - as: anonymous
+        request: {method: GET, path: "${P}/sx.html", headers: {Range: "selector=#cafe-upper:equals('café', i)"}}
+        expect: {status: 416}
+      - as: anonymous
+        request: {method: GET, path: "${P}/sx.html", headers: {Range: "selector=#cafe-upper:equals('CAFÉ')"}}
+        expect: {status: 206}
+      - as: anonymous
+        request: {method: GET, path: "${P}/sx.html", headers: {Range: "selector=#cafe-upper:equals('cafÉ', i)"}}
+        expect: {status: 206}
+
+  - id: comp.sx.quoting-and-escapes
+    title: Arguments accept double quotes, raw UTF-8 and CSS escapes
+    feature: selector extensions
+    evidence: documented
+    source: "docs reference/composing-pages/Selector-Extensions §Quoting, §Non-ASCII text in selectors (snapshot 2026-09-28)"
+    confidence: high
+    requires: []
+    live: true
+    steps:
+      - as: anonymous
+        request: {method: GET, path: "${P}/sx.html", headers: {Range: 'selector=p:contains("Title Bar")'}}
+        expect: {status: 206, body_contains: ['id="p2"']}
+      - as: anonymous
+        request: {method: GET, path: "${P}/sx.html", headers: {Range: "selector=p:contains('café')"}}
+        expect: {status: 206, body_contains: ['id="cafe"']}
+      - name: CSS escape with a terminating space
+        as: anonymous
+        request: {method: GET, path: "${P}/sx.html", headers: {Range: 'selector=p:contains(''caf\E9 '')'}}
+        expect: {status: 206, body_contains: ['id="cafe"']}
+
+  - id: comp.sx.count-function
+    title: count() is replaced by the number of matching elements on the site
+    feature: selector functions
+    evidence: documented
+    source: "docs reference/composing-pages/Selector-Extensions §count() (snapshot 2026-09-28)"
+    confidence: high
+    requires: []
+    live: true
+    steps:
+      - as: anonymous
+        request: {method: GET, path: "${P}/sx.html", headers: {Range: "selector=#fn li:nth-child(count([data-k='${P}']))"}}
+        expect: {status: 206, body_contains: [">three</li>"]}
+
+  - id: comp.sx.text-value-attr-of
+    title: text-of(), value-of() and attr-of() are replaced by the quoted value of their single match
+    feature: selector functions
+    evidence: documented
+    source: "docs reference/composing-pages/Selector-Extensions §text-of(), §value-of(), §attr-of() (snapshot 2026-09-28)"
+    confidence: high
+    requires: []
+    live: true
+    steps:
+      - as: anonymous
+        request: {method: GET, path: "${P}/sx.html", headers: {Range: "selector=[data-name=text-of([data-tk='${P}'])]"}}
+        expect: {status: 206, body_contains: ['id="tgt-text"']}
+      - as: anonymous
+        request: {method: GET, path: "${P}/sx.html", headers: {Range: "selector=[data-name=value-of([data-vk='${P}'])]"}}
+        expect: {status: 206, body_contains: ['id="tgt-value"']}
+      - as: anonymous
+        request: {method: GET, path: "${P}/sx.html", headers: {Range: "selector=[data-link=attr-of('href', [data-ak='${P}'])]"}}
+        expect: {status: 206, body_contains: ['id="tgt-attr"']}
+
+  - id: comp.sx.function-zero-match-empty
+    title: A single-value selector function with zero matches yields an empty string
+    feature: selector functions
+    evidence: documented
+    source: "docs reference/composing-pages/Selector-Extensions §text-of() ('Zero matches produce an empty string') (snapshot 2026-09-28)"
+    confidence: high
+    requires: []
+    live: true
+    steps:
+      - as: anonymous
+        request: {method: GET, path: "${P}/sx.html", headers: {Range: "selector=[data-empty=text-of([data-none='${P}'])]"}}
+        expect: {status: 206, body_contains: ['id="tgt-empty"']}
+
+  - id: comp.sx.function-multi-match-error
+    title: A single-value selector function with several matches is an error
+    feature: selector functions
+    evidence: documented
+    source: "docs reference/composing-pages/Selector-Extensions §text-of() ('More than one match produces an error') (snapshot 2026-09-28)"
+    confidence: medium
+    requires: []
+    live: true
+    notes: "Status is not documented; pagelike treats it as an invalid Range selector (422)."
+    steps:
+      - as: anonymous
+        request: {method: GET, path: "${P}/sx.html", headers: {Range: "selector=[data-name=text-of([data-k='${P}'])]"}}
+        expect: {status: [400, 416, 422, 500]}
+
+  - id: comp.sx.isa-with-schema
+    title: ":isa() matches the type and its schema-declared descendants"
+    feature: selector extensions
+    evidence: documented
+    source: "docs reference/composing-pages/Selector-Extensions §:isa() (snapshot 2026-09-28)"
+    confidence: high
+    requires: []
+    live: true
+    notes: "R-COMP-177. The schemas are stored with a public PUT so they register immediately (area modeling R-MOD-4)."
+    site:
+      settings: {default_get: allow}
+      files:
+        - path: "${P}/isa.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+            <div id="child-el" itemscope itemtype="https://example.test${P}/Child"><span itemprop="n">c</span></div>
+            <div id="base-el" itemscope itemtype="https://example.test${P}/Base"><span itemprop="n">b</span></div>
+            <div id="other-el" itemscope itemtype="https://example.test${P}/Other"><span itemprop="n">o</span></div>
+            </body></html>
+      rules:
+        - {actor: "*", resource: "${P}/*", method: [GET, HEAD, PUT], action: Allow}
+    steps:
+      - name: register the schemas
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/schemas.html"
+          headers: {Content-Type: "text/html"}
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+            <div hidden itemscope itemtype="https://pagelove.org/Schema">
+              <meta itemprop="type" content="https://example.test${P}/Base">
+            </div>
+            <div hidden itemscope itemtype="https://pagelove.org/Schema">
+              <meta itemprop="type" content="https://example.test${P}/Child">
+              <meta itemprop="parent" content="https://example.test${P}/Base">
+            </div>
+            <div hidden itemscope itemtype="https://pagelove.org/Schema">
+              <meta itemprop="type" content="https://example.test${P}/Other">
+            </div>
+            </body></html>
+        expect: {status: [200, 201, 204]}
+      - name: descendant type matches (first in document order)
+        as: anonymous
+        request: {method: GET, path: "${P}/isa.html", headers: {Range: "selector=div:isa('https://example.test${P}/Base')"}}
+        expect: {status: 206, body_contains: ['id="child-el"']}
+      - name: reflexive
+        as: anonymous
+        request: {method: GET, path: "${P}/isa.html", headers: {Range: "selector=#base-el:isa('https://example.test${P}/Base')"}}
+        expect: {status: 206}
+      - name: unrelated type does not match
+        as: anonymous
+        request: {method: GET, path: "${P}/isa.html", headers: {Range: "selector=#other-el:isa('https://example.test${P}/Base')"}}
+        expect: {status: 416}
+      - name: a parent is not a descendant of its child
+        as: anonymous
+        request: {method: GET, path: "${P}/isa.html", headers: {Range: "selector=#base-el:isa('https://example.test${P}/Child')"}}
+        expect: {status: 416}
+
+  - id: comp.sx.isa-no-schema
+    title: Without any schema hierarchy :isa() matches nothing, not even the exact type
+    feature: selector extensions
+    evidence: documented
+    source: "docs reference/composing-pages/Selector-Extensions §:isa() ('matches nothing. Reflexive matching requires the inheritance map') (snapshot 2026-09-28)"
+    confidence: medium
+    requires: []
+    live: false
+    notes: "Local only: a shared live host may already hold schemas. Probe Q-17."
+    site:
+      settings: {default_get: allow}
+      files:
+        - path: "${P}/isa.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body><div id="t" itemscope itemtype="https://example.test${P}/Thing"><span itemprop="n">t</span></div></body></html>
+      rules:
+        - {actor: "*", resource: "${P}/*", method: [GET, HEAD], action: Allow}
+    steps:
+      - as: anonymous
+        request: {method: GET, path: "${P}/isa.html", headers: {Range: "selector=#t:isa('https://example.test${P}/Thing')"}}
+        expect: {status: 416}

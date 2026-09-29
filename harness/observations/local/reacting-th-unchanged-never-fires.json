@@ -1,0 +1,78 @@
+{
+  "case": "reacting.th.unchanged-never-fires",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (install a handler (Order.status becomes processing -\u003e POST ${SINK}/payments))",
+      "method": "PUT",
+      "path": "/_pl/reacting-th-unchanged-never-fires-9cc1a1/r/handlers.html",
+      "status": 201,
+      "headers": {
+        "content-length": "549",
+        "content-type": "text/html",
+        "etag": "\"f78a8365b338fcf42ef6fe80e461b0877c7e261a196ed297675babd00ce28d29\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:49 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\n\u003cdiv itemscope itemtype=\"https://pagelove.org/TransitionHandler\"\u003e\n  \u003cmeta itemprop=\"selector\" content=\"[itemtype='https://pagelike.test/_pl/reacting-th-unchanged-never-fires-9cc1a1/Order']\"\u003e\n  \u003cmeta itemprop=\"property\" content=\"status\"\u003e\n  \u003cmeta itemprop=\"becomes\" content=\"processing\"\u003e\n  \u003cdiv itemprop=\"action\" itemscope itemtype=\"https://pagelove.org/HttpRequest\"\u003e\n    \u003cmeta itemprop=\"url\" content=\"http://127.0.0.1:53613/c-b4cb9b3e/payments\"\u003e\n    \u003cmeta itemprop=\"method\" content=\"POST\"\u003e\n  \u003c/div\u003e\n\u003c/div\u003e\n\u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 2 (seed order-1 at pending)",
+      "method": "PUT",
+      "path": "/_pl/reacting-th-unchanged-never-fires-9cc1a1/orders/order-1.html",
+      "status": 201,
+      "headers": {
+        "content-length": "237",
+        "content-type": "text/html",
+        "etag": "\"eef58690564e7e0ea1ff2cb52da7e0c82edd74ecc173db91f3aa055972eba9bc\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:49 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\u003cdiv id=\"order1\" itemscope itemtype=\"https://pagelike.test/_pl/reacting-th-unchanged-never-fires-9cc1a1/Order\"\u003e\u003cmeta itemprop=\"status\" content=\"pending\"\u003e\u003cspan itemprop=\"total\"\u003e42.00\u003c/span\u003e\u003c/div\u003e\u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 3 (move order-1 to processing)",
+      "method": "PUT",
+      "path": "/_pl/reacting-th-unchanged-never-fires-9cc1a1/orders/order-1.html",
+      "status": 206,
+      "headers": {
+        "content-length": "197",
+        "content-range": "selector #order1",
+        "content-type": "text/html",
+        "etag": "\"9c34c4f80ee68d7e8c842ee978c2cc007b155fa8c27809614b8ec273557f5d86-9c34c4f80ee68d7e8c842ee978c2cc007b155fa8c27809614b8ec273557f5d86-2\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:49 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003cdiv id=\"order1\" itemscope itemtype=\"https://pagelike.test/_pl/reacting-th-unchanged-never-fires-9cc1a1/Order\"\u003e\u003cmeta itemprop=\"status\" content=\"processing\"\u003e\u003cspan itemprop=\"total\"\u003e42.00\u003c/span\u003e\u003c/div\u003e"
+    },
+    {
+      "step": "step 4",
+      "method": "POST",
+      "path": "${SINK}/payments",
+      "headers": {
+        "accept-encoding": "gzip",
+        "content-length": "602",
+        "content-type": "text/html",
+        "user-agent": "Go-http-client/1.1"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\n  \u003chead\u003e\u003ctitle\u003eTransition\u003c/title\u003e\u003c/head\u003e\n  \u003cbody itemscope itemtype=\"https://pagelove.org/Transition\"\u003e\n    \u003cmeta itemprop=\"path\" content=\"/_pl/reacting-th-unchanged-never-fires-9cc1a1/orders/order-1.html\"\u003e\n    \u003cmeta itemprop=\"selector\" content=\"[itemtype=\u0026quot;https://pagelike.test/_pl/reacting-th-unchanged-never-fires-9cc1a1/Order\u0026quot;]\"\u003e\n    \u003cdiv id=\"order1\" itemscope itemtype=\"https://pagelike.test/_pl/reacting-th-unchanged-never-fires-9cc1a1/Order\" itemprop=\"body\"\u003e\u003cmeta itemprop=\"status\" content=\"processing\"\u003e\u003cspan itemprop=\"total\"\u003e42.00\u003c/span\u003e\u003c/div\u003e\n  \u003c/body\u003e\n\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 5 (write processing again (and change the total))",
+      "method": "PUT",
+      "path": "/_pl/reacting-th-unchanged-never-fires-9cc1a1/orders/order-1.html",
+      "status": 206,
+      "headers": {
+        "content-length": "197",
+        "content-range": "selector #order1",
+        "content-type": "text/html",
+        "etag": "\"091857351113e0f42c741957bc55a7b6158c5dd57d88c389f2be724c61f26923-091857351113e0f42c741957bc55a7b6158c5dd57d88c389f2be724c61f26923-3\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:49 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003cdiv id=\"order1\" itemscope itemtype=\"https://pagelike.test/_pl/reacting-th-unchanged-never-fires-9cc1a1/Order\"\u003e\u003cmeta itemprop=\"status\" content=\"processing\"\u003e\u003cspan itemprop=\"total\"\u003e43.00\u003c/span\u003e\u003c/div\u003e"
+    }
+  ],
+  "outcome": "pass",
+  "target": "local"
+}

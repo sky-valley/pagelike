@@ -1,0 +1,33 @@
+{
+  "case": "reacting.lifecycle.authz-denial-before-triggers",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (install a trigger that throws 409 on PUT under ${P}/d/)",
+      "method": "PUT",
+      "path": "/_pl/reacting-lifecycle-authz-denial-before-t-efa70c/r/triggers.html",
+      "status": 201,
+      "headers": {
+        "content-length": "537",
+        "content-type": "text/html",
+        "etag": "\"93795e82b3341dd24f23040e04aa4bb247013d81d2a6d48e5b6e77c204d23055\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:48 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\n\u003cdiv hidden itemscope itemtype=\"https://pagelove.org/Trigger\"\u003e\n  \u003cmeta itemprop=\"resource\" content=\"/_pl/reacting-lifecycle-authz-denial-before-t-efa70c/d/*\"\u003e\n  \u003cmeta itemprop=\"method\" content=\"PUT\"\u003e\n  \u003cdiv itemprop=\"action\" itemscope itemtype=\"https://pagelove.org/Sessel\"\u003e\n    \u003cscript itemprop=\"source\" type=\"text/sessel\"\u003e\n      @schema HTTPResponse url(\"https://pagelove.org/HTTPResponse\");\n      throw new HTTPResponse { status: 409, message: \"trigger-ran\" }\n    \u003c/script\u003e\n  \u003c/div\u003e\n\u003c/div\u003e\n\u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 2 (the denied PUT gets the authorization refusal, not the trigger's 409)",
+      "method": "PUT",
+      "path": "/_pl/reacting-lifecycle-authz-denial-before-t-efa70c/d/x.html",
+      "status": 401,
+      "headers": {
+        "content-length": "429",
+        "content-type": "text/html; charset=utf-8"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\n\u003chead\u003e\n    \u003cmeta charset=\"UTF-8\"\u003e\n    \u003ctitle\u003e401 Unauthorized\u003c/title\u003e\n\u003c/head\u003e\n\u003cbody itemscope itemtype=\"https://pagelove.org/1.0/Error\"\u003e\n    \u003ch1\u003e401 Unauthorized\u003c/h1\u003e\n    \u003cp itemprop=\"message\"\u003eAuthentication required to access this resource.\u003c/p\u003e\n    \u003cdl\u003e\n        \u003cdt\u003eResource\u003c/dt\u003e\n        \u003cdd itemprop=\"resource\"\u003e/_pl/reacting-lifecycle-authz-denial-before-t-efa70c/d/x.html\u003c/dd\u003e\n    \u003c/dl\u003e\n\u003c/body\u003e\n\u003c/html\u003e\n"
+    }
+  ],
+  "outcome": "pass",
+  "target": "local"
+}

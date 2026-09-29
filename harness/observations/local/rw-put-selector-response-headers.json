@@ -1,0 +1,37 @@
+{
+  "case": "rw.put.selector-response-headers",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (replace by id)",
+      "method": "PUT",
+      "path": "/_pl/rw-put-selector-response-headers-339f37/hdr.html",
+      "status": 206,
+      "headers": {
+        "content-length": "17",
+        "content-range": "selector #t",
+        "content-type": "text/html",
+        "etag": "\"b6f17c348b321f11ba54b444423263ae4820e91ef96c0033ba0fcbf69de89816-b6f17c348b321f11ba54b444423263ae4820e91ef96c0033ba0fcbf69de89816-2\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:56 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003ch1 id=\"t\"\u003eB\u003c/h1\u003e"
+    },
+    {
+      "step": "step 2 (HEAD of the element reports the same ETag)",
+      "method": "HEAD",
+      "path": "/_pl/rw-put-selector-response-headers-339f37/hdr.html",
+      "status": 206,
+      "headers": {
+        "accept-ranges": "selector, bytes",
+        "content-length": "17",
+        "content-range": "selector #t",
+        "content-type": "text/html",
+        "etag": "\"b6f17c348b321f11ba54b444423263ae4820e91ef96c0033ba0fcbf69de89816-b6f17c348b321f11ba54b444423263ae4820e91ef96c0033ba0fcbf69de89816-2\"",
+        "vary": "Host, Range, Accept"
+      }
+    }
+  ],
+  "outcome": "pass",
+  "target": "local"
+}

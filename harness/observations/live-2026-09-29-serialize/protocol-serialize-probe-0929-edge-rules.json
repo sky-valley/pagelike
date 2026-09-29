@@ -1,0 +1,148 @@
+{
+  "case": "protocol.serialize.probe-0929.edge-rules",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (put selfclose)",
+      "method": "PUT",
+      "path": "/_pl/protocol-serialize-probe-0929-edge-rules-8f6f8b/selfclose.html",
+      "status": 201,
+      "headers": {
+        "content-length": "63",
+        "content-type": "text/html",
+        "etag": "\"a59069a0598ac18f9ea0ef97dda96758e3eb93413ac0295de2076ebbb32789fa\""
+      },
+      "body": "\u003cdiv\u003e\u003c/div\u003ex\u003cp:include src=\"a.html\"\u003e\u003c/p:include\u003ey\u003cspan\u003e\u003c/span\u003ez"
+    },
+    {
+      "step": "step 2 (select div on selfclose)",
+      "method": "GET",
+      "path": "/_pl/protocol-serialize-probe-0929-edge-rules-8f6f8b/selfclose.html",
+      "status": 206,
+      "headers": {
+        "content-length": "11",
+        "content-range": "selector div",
+        "content-type": "text/html",
+        "etag": "\"93636fa047400919d3a6fa2c57a114596546d97c9681645ed857fb014fb8fb18-93636fa047400919d3a6fa2c57a114596546d97c9681645ed857fb014fb8fb18-1\"",
+        "vary": "Host, Range, Accept"
+      },
+      "body": "\u003cdiv\u003e\u003c/div\u003e"
+    },
+    {
+      "step": "step 3 (select span on selfclose)",
+      "method": "GET",
+      "path": "/_pl/protocol-serialize-probe-0929-edge-rules-8f6f8b/selfclose.html",
+      "status": 206,
+      "headers": {
+        "content-length": "13",
+        "content-range": "selector span",
+        "content-type": "text/html",
+        "etag": "\"b26695b490c72c5712725ed85e3d66e950776005c17245bfbb6191e57c7f2ced-b26695b490c72c5712725ed85e3d66e950776005c17245bfbb6191e57c7f2ced-1\"",
+        "vary": "Host, Range, Accept"
+      },
+      "body": "\u003cspan\u003e\u003c/span\u003e"
+    },
+    {
+      "step": "step 4 (put stray-end)",
+      "method": "PUT",
+      "path": "/_pl/protocol-serialize-probe-0929-edge-rules-8f6f8b/stray-end.html",
+      "status": 201,
+      "headers": {
+        "content-length": "20",
+        "content-type": "text/html",
+        "etag": "\"f8b55d4d1cd02816b9219956fea2f29c755a820c8bf9002407f7ed9d2a31791a\""
+      },
+      "body": "\u003cp\u003ea\u003c/p\u003e\u003cdiv\u003eb\u003c/div\u003e"
+    },
+    {
+      "step": "step 5 (put attr-escapes)",
+      "method": "PUT",
+      "path": "/_pl/protocol-serialize-probe-0929-edge-rules-8f6f8b/attr-escapes.html",
+      "status": 201,
+      "headers": {
+        "content-length": "101",
+        "content-type": "text/html",
+        "etag": "\"de636ae6b5ef7ccf46e175022347c306bc8fcc13b5e46fdfd759c538aed87e43\""
+      },
+      "body": "\u003cp title=\"a b\u003cc\u003ed\u0026amp;e\" data-u=\"\u0026amp;amp;x\" data-c=\"\u0026amp;copy\"\u003et \u0026amp;copy \u0026amp;notit; a \u0026lt; b\u003c/p\u003e"
+    },
+    {
+      "step": "step 6 (put noscript)",
+      "method": "PUT",
+      "path": "/_pl/protocol-serialize-probe-0929-edge-rules-8f6f8b/noscript.html",
+      "status": 201,
+      "headers": {
+        "content-length": "127",
+        "content-type": "text/html",
+        "etag": "\"f424aecd126a71ea7241813ffcdcb1f10a05153c587f5a3f357466aefb5b48c5\""
+      },
+      "body": "\u003cnoscript\u003e\u003cp\u003en\u003c/p\u003e\u003c/noscript\u003e\u003ctextarea\u003e\u0026lt;b\u0026gt;x\u0026lt;/b\u0026gt; \u0026amp;\u003c/textarea\u003e\u003ctitle\u003ea \u0026amp; \u0026lt;b\u0026gt;\u003c/title\u003e\u003cxmp\u003e\u003ci\u003er\u003c/i\u003e\u003c/xmp\u003e"
+    },
+    {
+      "step": "step 7 (select noscript \u003e p on noscript)",
+      "method": "GET",
+      "path": "/_pl/protocol-serialize-probe-0929-edge-rules-8f6f8b/noscript.html",
+      "status": 206,
+      "headers": {
+        "content-length": "8",
+        "content-range": "selector noscript \u003e p",
+        "content-type": "text/html",
+        "etag": "\"8d22e855ca1da275b9c43308483f49c5499ec4b4581f01cee5a3f0cf65be19bd-8d22e855ca1da275b9c43308483f49c5499ec4b4581f01cee5a3f0cf65be19bd-1\"",
+        "vary": "Host, Range, Accept"
+      },
+      "body": "\u003cp\u003en\u003c/p\u003e"
+    },
+    {
+      "step": "step 8 (put doctype-ids)",
+      "method": "PUT",
+      "path": "/_pl/protocol-serialize-probe-0929-edge-rules-8f6f8b/doctype-ids.html",
+      "status": 201,
+      "headers": {
+        "content-length": "23",
+        "content-type": "text/html",
+        "etag": "\"734f445b0a10724bd10f5be4f985aedfa4585acfc2d3f6ce90cb7d5f1fe62b84\""
+      },
+      "body": "\u003c!DOCTYPE html\u003e\u003cp\u003ex\u003c/p\u003e"
+    },
+    {
+      "step": "step 9 (put cdata-bogus)",
+      "method": "PUT",
+      "path": "/_pl/protocol-serialize-probe-0929-edge-rules-8f6f8b/cdata-bogus.html",
+      "status": 201,
+      "headers": {
+        "content-length": "66",
+        "content-type": "text/html",
+        "etag": "\"bd299b51911e170faef6878e92ea17639626d0db022b40a5dfea31620ddacfd3\""
+      },
+      "body": "\u003csvg\u003e\u003c!--[CDATA[a\u003cb]]--\u003e\u003c/svg\u003e\u003c!--foo--\u003e\u003c!-- -- x ----\u003e\u0026lt;/ x\u0026gt;"
+    },
+    {
+      "step": "step 10 (put two-roots)",
+      "method": "PUT",
+      "path": "/_pl/protocol-serialize-probe-0929-edge-rules-8f6f8b/two-roots.html",
+      "status": 201,
+      "headers": {
+        "content-length": "16",
+        "content-type": "text/html",
+        "etag": "\"80a875b83be0f1180c6a47552a3141cf0550127351fcf30cbfa3f3ba4b4cdffa\""
+      },
+      "body": "\u003cp\u003ea\u003c/p\u003e\u003cp\u003eb\u003c/p\u003e"
+    },
+    {
+      "step": "step 11 (select :root on two-roots)",
+      "method": "GET",
+      "path": "/_pl/protocol-serialize-probe-0929-edge-rules-8f6f8b/two-roots.html",
+      "status": 206,
+      "headers": {
+        "content-length": "8",
+        "content-range": "selector :root",
+        "content-type": "text/html",
+        "etag": "\"df5ddd75e1e0e3fee2eb4c4d7a160f2673560df8afb145ba651b43f100c0dc57-df5ddd75e1e0e3fee2eb4c4d7a160f2673560df8afb145ba651b43f100c0dc57-1\"",
+        "vary": "Host, Range, Accept"
+      },
+      "body": "\u003cp\u003ea\u003c/p\u003e"
+    }
+  ],
+  "outcome": "pass",
+  "target": "live"
+}

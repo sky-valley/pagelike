@@ -1,0 +1,38 @@
+{
+  "case": "javascript.client.create-instance-markup-accepted",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (POST the created article into the board)",
+      "method": "POST",
+      "path": "/_pl/javascript-client-create-instance-markup-fe2cae/board.html",
+      "status": 206,
+      "headers": {
+        "content-length": "268",
+        "content-range": "selector #board",
+        "content-type": "text/html",
+        "etag": "\"a61d8756b420dfe11d8b611e47aab01cfea6c352b5d3f60b07f65db9ed9189bc-a61d8756b420dfe11d8b611e47aab01cfea6c352b5d3f60b07f65db9ed9189bc-2\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:42 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003carticle itemscope itemtype=\"https://pagelike.test/_pl/javascript-client-create-instance-markup-fe2cae/Card\" id=\"item-mg3x1a2b9f\" itemprop=\"card\"\u003e\u003cmeta itemprop=\"title\" content=\"Untitled\"\u003e\u003ctime itemprop=\"createdAt\" datetime=\"2026-09-28T10:00:00.000Z\"\u003e\u003c/time\u003e\u003c/article\u003e"
+    },
+    {
+      "step": "step 2 (the article is addressable by its generated id)",
+      "method": "GET",
+      "path": "/_pl/javascript-client-create-instance-markup-fe2cae/board.html",
+      "status": 206,
+      "headers": {
+        "accept-ranges": "selector, bytes",
+        "content-length": "268",
+        "content-range": "selector #item-mg3x1a2b9f",
+        "content-type": "text/html",
+        "etag": "\"a61d8756b420dfe11d8b611e47aab01cfea6c352b5d3f60b07f65db9ed9189bc-a61d8756b420dfe11d8b611e47aab01cfea6c352b5d3f60b07f65db9ed9189bc-2\"",
+        "vary": "Host, Range, Accept"
+      },
+      "body": "\u003carticle itemscope itemtype=\"https://pagelike.test/_pl/javascript-client-create-instance-markup-fe2cae/Card\" id=\"item-mg3x1a2b9f\" itemprop=\"card\"\u003e\u003cmeta itemprop=\"title\" content=\"Untitled\"\u003e\u003ctime itemprop=\"createdAt\" datetime=\"2026-09-28T10:00:00.000Z\"\u003e\u003c/time\u003e\u003c/article\u003e"
+    }
+  ],
+  "outcome": "pass",
+  "target": "local"
+}

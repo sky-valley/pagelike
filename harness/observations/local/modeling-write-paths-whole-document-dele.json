@@ -1,0 +1,58 @@
+{
+  "case": "modeling.write-paths.whole-document-delete-not-validated",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (register declarations through the public plane (takes effect for the next request))",
+      "method": "PUT",
+      "path": "/_pl/modeling-write-paths-whole-document-dele-da937a/schema.html",
+      "status": 201,
+      "headers": {
+        "content-length": "484",
+        "content-type": "text/html",
+        "etag": "\"9915ac705641c2c0b593759f8a6bbcbc201ff71c632b1673a4a7606b31ccb374\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:45 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\n  \u003cdiv hidden itemscope itemtype=\"https://pagelove.org/Schema\"\u003e\n    \u003cmeta itemprop=\"type\" content=\"https://pagelike.test/_pl/modeling-write-paths-whole-document-dele-da937a/Tag\"\u003e\n    \u003cdiv itemprop=\"property\" itemscope itemtype=\"https://pagelove.org/Property\"\u003e\n      \u003cmeta itemprop=\"name\" content=\"label\"\u003e\n      \u003cmeta itemprop=\"type\" content=\"https://schema.host/Text\"\u003e\n      \u003cmeta itemprop=\"cardinality\" content=\"1..1\"\u003e\n    \u003c/div\u003e\n  \u003c/div\u003e\n\u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 2 (valid tag)",
+      "method": "PUT",
+      "path": "/_pl/modeling-write-paths-whole-document-dele-da937a/t.html",
+      "status": 201,
+      "headers": {
+        "content-length": "200",
+        "content-type": "text/html",
+        "etag": "\"70fb3f0f316ef8b55e9588a5f699463ef08c4e68cce1dc3b59f347dd084c8ec8\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:45 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\n  \u003cdiv itemscope itemtype=\"https://pagelike.test/_pl/modeling-write-paths-whole-document-dele-da937a/Tag\"\u003e\n    \u003cmeta itemprop=\"label\" content=\"a\"\u003e\n  \u003c/div\u003e\n\u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 3 (delete it)",
+      "method": "DELETE",
+      "path": "/_pl/modeling-write-paths-whole-document-dele-da937a/t.html",
+      "status": 204,
+      "headers": {
+        "etag": "\"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:45 GMT",
+        "vary": "Host, Range"
+      }
+    },
+    {
+      "step": "step 4 (document is gone)",
+      "method": "GET",
+      "path": "/_pl/modeling-write-paths-whole-document-dele-da937a/t.html",
+      "status": 404,
+      "headers": {
+        "content-length": "210",
+        "content-type": "text/html; charset=utf-8"
+      },
+      "body": "\u003carticle itemscope itemtype=\"https://pagelove.org/Error/NotFound\"\u003e\u003cmeta itemprop=\"status\" content=\"404\"\u003e\u003cp itemprop=\"message\"\u003eNot found: /_pl/modeling-write-paths-whole-document-dele-da937a/t.html\u003c/p\u003e\u003c/article\u003e"
+    }
+  ],
+  "outcome": "pass",
+  "target": "local"
+}

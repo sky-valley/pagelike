@@ -1,0 +1,63 @@
+{
+  "case": "modeling.shapes-closed.post-uncovered-attribute",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (register declarations through the public plane (takes effect for the next request))",
+      "method": "PUT",
+      "path": "/_pl/modeling-shapes-closed-post-uncovered-at-2a5365/shapes.html",
+      "status": 201,
+      "headers": {
+        "content-length": "487",
+        "content-type": "text/html",
+        "etag": "\"6dd6faafaeb7f8207fa54e7c750acd38671b59fe07c8fdc72287c0ec727c5824\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:45 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\n  \u003cdiv hidden itemscope itemtype=\"https://pagelove.org/ShapeConstraint\"\u003e\n    \u003cmeta itemprop=\"resource\" content=\"/_pl/modeling-shapes-closed-post-uncovered-at-2a5365/ev/*\"\u003e\n    \u003ccode itemprop=\"selector\"\u003e#pl-rsvps\u003c/code\u003e\n    \u003ccode itemprop=\"permit\"\u003eul[id=\"pl-rsvps\"][aria-label][hidden]\u003c/code\u003e\n    \u003ccode itemprop=\"permit\"\u003eli[id^=\"rsvp-\"][itemscope][itemtype]\u003c/code\u003e\n    \u003ccode itemprop=\"permit\"\u003emeta[itemprop=\"attendee\"][content]\u003c/code\u003e\n  \u003c/div\u003e\n\u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 2 (seed)",
+      "method": "PUT",
+      "path": "/_pl/modeling-shapes-closed-post-uncovered-at-2a5365/ev/e.html",
+      "status": 201,
+      "headers": {
+        "content-length": "96",
+        "content-type": "text/html",
+        "etag": "\"97c81c8ba45910b9d5666b025494d9e9d709664e8f37492efccd6ffdd4a85579\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:45 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\n  \u003cul id=\"pl-rsvps\" aria-label=\"RSVPs\" hidden\u003e\u003c/ul\u003e\n\u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 3 (li with onclick refused)",
+      "method": "POST",
+      "path": "/_pl/modeling-shapes-closed-post-uncovered-at-2a5365/ev/e.html",
+      "status": 422,
+      "headers": {
+        "content-length": "408",
+        "content-type": "text/html",
+        "vary": "Host, Range"
+      },
+      "body": "\u003cdiv itemscope itemtype=\"https://dombase.pagelove.team/ns/error/ShapeConstraint\"\u003e\u003cul itemprop=\"problems\"\u003e\u003cli itemprop=\"problem\"\u003e\u003cspan itemprop=\"message\"\u003eShape constraints violated\u003c/span\u003e\u003c/li\u003e\u003cli itemprop=\"problem\"\u003e\u003cspan itemprop=\"message\"\u003ehttps://pagelove.org/ShapeConstraint #pl-rsvps: Attribute \u0026lt;onclick\u0026gt; on \u0026lt;li\u0026gt; inside '#pl-rsvps' is not permitted by any matching permit\u003c/span\u003e\u003c/li\u003e\u003c/ul\u003e\u003c/div\u003e"
+    },
+    {
+      "step": "step 4 (permitted li accepted)",
+      "method": "POST",
+      "path": "/_pl/modeling-shapes-closed-post-uncovered-at-2a5365/ev/e.html",
+      "status": 206,
+      "headers": {
+        "content-length": "159",
+        "content-range": "selector #pl-rsvps",
+        "content-type": "text/html",
+        "etag": "\"d44ae775fed86697bfd6cd497ae4d3243101aefb0fc42b7fa56e0e74b166df0e-d44ae775fed86697bfd6cd497ae4d3243101aefb0fc42b7fa56e0e74b166df0e-2\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:45 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003cli id=\"rsvp-y\" itemscope itemtype=\"https://pagelike.test/_pl/modeling-shapes-closed-post-uncovered-at-2a5365/RSVP\"\u003e\u003cmeta itemprop=\"attendee\" content=\"y\"\u003e\u003c/li\u003e"
+    }
+  ],
+  "outcome": "pass",
+  "target": "local"
+}

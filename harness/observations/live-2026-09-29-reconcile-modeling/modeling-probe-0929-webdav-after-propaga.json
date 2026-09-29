@@ -1,0 +1,85 @@
+{
+  "case": "modeling.probe-0929.webdav-after-propagation",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (register Tag and a Widget shape)",
+      "method": "PUT",
+      "path": "/_pl/modeling-probe-0929-webdav-after-propaga-d9ef08/schema.html",
+      "status": 201,
+      "headers": {
+        "content-type": "text/html",
+        "etag": "\"090ec6992acba51df8b46990198742e018f78950c1742c33e6c34dad061f0fd5\"",
+        "last-modified": "Tue, 29 Sep 2026 01:38:04 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\n  \u003cdiv hidden itemscope itemtype=\"https://pagelove.org/Schema\"\u003e\n    \u003cmeta itemprop=\"type\" content=\"https://pagelike.test/_pl/modeling-probe-0929-webdav-after-propaga-d9ef08/Tag\"\u003e\n    \u003cdiv itemprop=\"property\" itemscope itemtype=\"https://pagelove.org/Property\"\u003e\n      \u003cmeta itemprop=\"name\" content=\"label\"\u003e\n      \u003cmeta itemprop=\"type\" content=\"https://schema.host/Text\"\u003e\n      \u003cmeta itemprop=\"cardinality\" content=\"1..1\"\u003e\n    \u003c/div\u003e\n  \u003cmeta itemprop=\"@id\" content=\"https://schema.host/s3mnsc0k\"\u003e\u003cmeta itemprop=\"path\" content=\"/Schemahttps://schema.host/s3mnsc0k.html\"\u003e\u003c/div\u003e\n  \u003cdiv hidden itemscope itemtype=\"https://pagelove.org/ShapeConstraint\"\u003e\n    \u003cmeta itemprop=\"resource\" content=\"/_pl/modeling-probe-0929-webdav-after-propaga-d9ef08/*\"\u003e\n    \u003ccode itemprop=\"selector\"\u003e[itemtype*=Widget]\u003c/code\u003e\n    \u003ccode itemprop=\"constraint\"\u003e:has([itemprop=\"name\"])\u003c/code\u003e\n  \u003c/div\u003e\n\n                \u003cdiv style=\"\n                            position: fixed;\n                            bottom: 0;\n                            left: 0;\n                            right: 0;\n                            padding: 8px;\n                            background: #f0f0f0;\n                            text-align: center;\n                            font-size: 12px;\n                            color: #666;\n                            z-index: 9999;\n                            opacity: 0.8;\n                            border-top: 1px solid #ddd;\n                        \"\u003e\n                    Powered by\n                    \u003ca href=\"https://pagelove.com/\" style=\"color: #4a90d9; text-decoration: none\"\u003ePagelove\u003c/a\u003e\n                \u003c/div\u003e\n            \u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 3 (the public plane still refuses a Tag without a label)",
+      "method": "PUT",
+      "path": "/_pl/modeling-probe-0929-webdav-after-propaga-d9ef08/t0.html",
+      "status": 422,
+      "headers": {
+        "content-length": "305",
+        "content-type": "text/html",
+        "vary": "Host, Range"
+      },
+      "body": "\u003cdiv itemscope itemtype=\"https://pagelove.org/SchemaViolation\"\u003e\u003cul itemprop=\"problems\"\u003e\u003cli itemprop=\"problem\"\u003e\u003cspan itemprop=\"message\"\u003e[https://pagelike.test/_pl/modeling-probe-0929-webdav-after-propaga-d9ef08/Tag].label: cardinality 1..1 violated: expected exactly 1 value, found 0\u003c/span\u003e\u003c/li\u003e\u003c/ul\u003e\u003c/div\u003e"
+    },
+    {
+      "step": "step 4 (WebDAV PUT of a Tag without a label)",
+      "method": "PUT",
+      "path": "/_pl/modeling-probe-0929-webdav-after-propaga-d9ef08/t.html",
+      "status": 201,
+      "headers": {
+        "content-length": "157",
+        "content-type": "text/html",
+        "etag": "\"dbf99ce827df3973cddeb1064aff74d0a7a1d055f3e873c50b94e947ba794920\""
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\n  \u003cdiv itemscope itemtype=\"https://pagelike.test/_pl/modeling-probe-0929-webdav-after-propaga-d9ef08/Tag\"\u003e\u003c/div\u003e\n\u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 5 (t.html was stored)",
+      "method": "GET",
+      "path": "/_pl/modeling-probe-0929-webdav-after-propaga-d9ef08/t.html",
+      "status": 200,
+      "headers": {
+        "accept-ranges": "bytes",
+        "content-length": "157",
+        "content-type": "text/html",
+        "etag": "\"dbf99ce827df3973cddeb1064aff74d0a7a1d055f3e873c50b94e947ba794920\"",
+        "last-modified": "Tue, 29 Sep 2026 01:39:10 GMT"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\n  \u003cdiv itemscope itemtype=\"https://pagelike.test/_pl/modeling-probe-0929-webdav-after-propaga-d9ef08/Tag\"\u003e\u003c/div\u003e\n\u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 6 (WebDAV PUT of a widget without a name)",
+      "method": "PUT",
+      "path": "/_pl/modeling-probe-0929-webdav-after-propaga-d9ef08/w.html",
+      "status": 201,
+      "headers": {
+        "content-length": "140",
+        "content-type": "text/html",
+        "etag": "\"883f4840bdfea735a520a273c3dc3299c3ae173ea14cb202be2e15a973f5cbeb\""
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\n  \u003cdiv itemscope itemtype=\"https://example.org/Widget\"\u003e\u003cspan itemprop=\"colour\"\u003ered\u003c/span\u003e\u003c/div\u003e\n\u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 7 (w.html was stored)",
+      "method": "GET",
+      "path": "/_pl/modeling-probe-0929-webdav-after-propaga-d9ef08/w.html",
+      "status": 200,
+      "headers": {
+        "accept-ranges": "bytes",
+        "content-length": "140",
+        "content-type": "text/html",
+        "etag": "\"883f4840bdfea735a520a273c3dc3299c3ae173ea14cb202be2e15a973f5cbeb\"",
+        "last-modified": "Tue, 29 Sep 2026 01:39:11 GMT"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\n  \u003cdiv itemscope itemtype=\"https://example.org/Widget\"\u003e\u003cspan itemprop=\"colour\"\u003ered\u003c/span\u003e\u003c/div\u003e\n\u003c/body\u003e\u003c/html\u003e\n"
+    }
+  ],
+  "outcome": "pass",
+  "target": "live"
+}

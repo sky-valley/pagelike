@@ -1,0 +1,34 @@
+# Runtime data and secrets — never commit
+/data/
+/.secrets
+*.db
+*.db-wal
+*.db-shm
+.env*
+!.env.example
+
+# Third-party research material (snapshots are re-fetchable; see tools/research)
+/research/docs/
+/research/upstream/
+/research/live-raw/
+
+# Build outputs
+/bin/
+/dist/
+node_modules/
+/test-results/
+/playwright-report/
+*.test
+coverage.out
+.DS_Store
+
+# Agent worktrees and local test artifacts
+/.claude/
+/e2e/test-results/
+/e2e/.cache/
+/e2e/node_modules
+
+# Local builds and research spikes (not published)
+/pagelike
+/pagelike.exe
+/research/spikes/

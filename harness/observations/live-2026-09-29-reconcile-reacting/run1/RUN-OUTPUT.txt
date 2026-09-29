@@ -1,0 +1,58 @@
+FAIL reacting.context.resource-binding-on-trigger [harness/cases/reacting/context.yaml]
+     - step 3 (right token) PUT ${P}/d/x.html: status 401, want [200 201 204] (body: token required)
+FAIL reacting.actions.probe-0929.thrown-redirect [harness/cases/reacting/probe-0929.yaml]
+     - step 2 (POST, 303 to an existing page) POST ${P}/d/form.html: status 422, want [303] (body: <!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>422 Unprocessable Entity</title>
+</head>
+<body itemscope itemtype="https://pagelove.org/1.0/Error">
+    <h1>422 Unprocessable Entity</h1>
+    <p itemprop="message">Template…)
+     - step 2 (POST, 303 to an existing page) POST ${P}/d/form.html: header Location = "", want "/_pl/reacting-actions-probe-0929-thrown-redir-b105fc/other.html"
+     - step 3 (POST, 302 to an existing page) POST ${P}/e/form.html: status 422, want [302] (body: <!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>422 Unprocessable Entity</title>
+</head>
+<body itemscope itemtype="https://pagelove.org/1.0/Error">
+    <h1>422 Unprocessable Entity</h1>
+    <p itemprop="message">Template…)
+     - step 3 (POST, 302 to an existing page) POST ${P}/e/form.html: header Location = "", want "/_pl/reacting-actions-probe-0929-thrown-redir-b105fc/other.html"
+     - step 5 (POST, 303 to an absolute external URL) POST ${P}/h/form.html: status 403, want [303] (body: <html>
+<head><title>403 Forbidden</title></head>
+<body>
+<center><h1>403 Forbidden</h1></center>
+<hr><center>cloudflare</center>
+</body>
+</html>
+)
+     - step 5 (POST, 303 to an absolute external URL) POST ${P}/h/form.html: header Location = "", want "https://example.com/pagelike-probe"
+     - step 6 (POST, 201 with a Location header) POST ${P}/k/form.html: header Location = "", want "/_pl/reacting-actions-probe-0929-thrown-redir-b105fc/other.html"
+FAIL reacting.filters.probe-0929.selector-scope [harness/cases/reacting/probe-0929.yaml]
+     - step 2 (selector PUT of) PUT ${P}/d/noart.html: status 409, want [200 204 206] (body: <!DOCTYPE html>
+<html>
+  <head>
+    <title>409 Conflict - Error</title>
+  </head>
+  <body itemscope itemtype="http://pagelove.org/Error">
+    <h1 itemprop="name">Conflict</h1>
+    <meta itemprop="statusCode" content="409">
+    <p itemprop="…)
+     - step 5 (selector PUT of a missing element in a document without an article) PUT ${P}/d/noart.html: status 409, want [416] (body: <!DOCTYPE html>
+<html>
+  <head>
+    <title>409 Conflict - Error</title>
+  </head>
+  <body itemscope itemtype="http://pagelove.org/Error">
+    <h1 itemprop="name">Conflict</h1>
+    <meta itemprop="statusCode" content="409">
+    <p itemprop="…)
+FAIL reacting.discovery.probe-0929.handler-shape [harness/cases/reacting/probe-0929.yaml]
+     - step 2 (trigger with two when values and one action) PUT ${P}/r/b.html: status 422, want [200 201 204] (body: <div itemscope itemtype="https://pagelove.org/SchemaViolation"><ul itemprop="problems"><li itemprop="problem"><span itemprop="message">[https://pagelove.org/Handler].when: cardinality 0..1 violated: expected at most 1 value, found 2</span><…)
+     - step 9 (transition handler with two actions) PUT ${P}/r/i.html: status 422, want [200 201 204] (body: <div itemscope itemtype="https://pagelove.org/SchemaViolation"><ul itemprop="problems"><li itemprop="problem"><span itemprop="message">[https://pagelove.org/Handler].action: cardinality 1..1 violated: expected exactly 1 value, found 2</span…)
+     - step 10 (transition handler without an action) PUT ${P}/r/j.html: status 422, want [200 201 204] (body: <div itemscope itemtype="https://pagelove.org/SchemaViolation"><ul itemprop="problems"><li itemprop="problem"><span itemprop="message">[https://pagelove.org/Handler].action: cardinality 1..1 violated: expected exactly 1 value, found 0</span…)
+
+5 passed, 4 failed, 0 skipped

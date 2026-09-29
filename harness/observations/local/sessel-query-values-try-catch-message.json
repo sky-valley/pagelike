@@ -1,0 +1,41 @@
+{
+  "case": "sessel.query.values.try-catch-message",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (message)",
+      "method": "QUERY",
+      "path": "/_pl/sessel-query-values-try-catch-message-9449e5/doc.html",
+      "status": 200,
+      "headers": {
+        "content-length": "49",
+        "content-type": "application/sessel+json"
+      },
+      "body": "\"Error: type error: cannot use 'a' in arithmetic\""
+    },
+    {
+      "step": "step 2 (type of division by zero)",
+      "method": "QUERY",
+      "path": "/_pl/sessel-query-values-try-catch-message-9449e5/doc.html",
+      "status": 200,
+      "headers": {
+        "content-length": "14",
+        "content-type": "application/sessel+json"
+      },
+      "body": "\"RuntimeError\""
+    },
+    {
+      "step": "step 3 (null propagation is not an error)",
+      "method": "QUERY",
+      "path": "/_pl/sessel-query-values-try-catch-message-9449e5/doc.html",
+      "status": 200,
+      "headers": {
+        "content-length": "4",
+        "content-type": "application/sessel+json"
+      },
+      "body": "null"
+    }
+  ],
+  "outcome": "pass",
+  "target": "local"
+}

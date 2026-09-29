@@ -1,0 +1,34 @@
+{
+  "case": "protocol.options.flat-document-level",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (Allow contains GET and OPTIONS)",
+      "method": "OPTIONS",
+      "path": "/_pl/protocol-options-flat-document-level-a25b55/doc.html",
+      "status": 200,
+      "headers": {
+        "accept-query": "text/css-selector, text/sessel",
+        "accept-ranges": "selector",
+        "allow": "GET, HEAD, OPTIONS",
+        "content-length": "0",
+        "vary": "Authorization, Accept"
+      }
+    },
+    {
+      "step": "step 2 (Allow contains no write methods and no literal star)",
+      "method": "OPTIONS",
+      "path": "/_pl/protocol-options-flat-document-level-a25b55/doc.html",
+      "status": 200,
+      "headers": {
+        "accept-query": "text/css-selector, text/sessel",
+        "accept-ranges": "selector",
+        "allow": "GET, HEAD, OPTIONS",
+        "content-length": "0",
+        "vary": "Authorization, Accept"
+      }
+    }
+  ],
+  "outcome": "pass",
+  "target": "local"
+}

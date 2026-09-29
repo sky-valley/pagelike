@@ -1,0 +1,75 @@
+{
+  "case": "modeling.references.cascade-removes-optional-reference",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (register declarations through the public plane (takes effect for the next request))",
+      "method": "PUT",
+      "path": "/_pl/modeling-references-cascade-removes-opti-d02d9d/schema.html",
+      "status": 201,
+      "headers": {
+        "content-length": "1157",
+        "content-type": "text/html",
+        "etag": "\"1cc19c6c63bc6c19b9ed73ddfcc0b9057ba4e74fce325e8589ebc16404539720\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:44 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\n  \u003cdiv hidden itemscope itemtype=\"https://pagelove.org/Schema\"\u003e\n    \u003cmeta itemprop=\"type\" content=\"https://pagelike.test/_pl/modeling-references-cascade-removes-opti-d02d9d/Org\"\u003e\n    \u003cdiv itemprop=\"property\" itemscope itemtype=\"https://pagelove.org/Property\"\u003e\n      \u003cmeta itemprop=\"name\" content=\"identifier\"\u003e\n      \u003cmeta itemprop=\"type\" content=\"https://schema.host/Text\"\u003e\n      \u003cmeta itemprop=\"cardinality\" content=\"1..1\"\u003e\n      \u003cmeta itemprop=\"unique\" content=\"true\"\u003e\n    \u003c/div\u003e\n  \u003c/div\u003e\n  \u003cdiv hidden itemscope itemtype=\"https://pagelove.org/Schema\"\u003e\n    \u003cmeta itemprop=\"type\" content=\"https://pagelike.test/_pl/modeling-references-cascade-removes-opti-d02d9d/Member\"\u003e\n    \u003cdiv itemprop=\"property\" itemscope itemtype=\"https://pagelove.org/Property\"\u003e\n      \u003cmeta itemprop=\"name\" content=\"org\"\u003e\n      \u003cmeta itemprop=\"type\" content=\"https://schema.host/Text\"\u003e\n      \u003cmeta itemprop=\"cardinality\" content=\"0..1\"\u003e\n      \u003cmeta itemprop=\"references\" content=\"https://pagelike.test/_pl/modeling-references-cascade-removes-opti-d02d9d/Org#identifier\"\u003e\n      \u003cmeta itemprop=\"cascade\" content=\"true\"\u003e\n    \u003c/div\u003e\n  \u003c/div\u003e\n\u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 2 (org acme)",
+      "method": "PUT",
+      "path": "/_pl/modeling-references-cascade-removes-opti-d02d9d/org.html",
+      "status": 201,
+      "headers": {
+        "content-length": "208",
+        "content-type": "text/html",
+        "etag": "\"a37d9f5136cc0b8ea045fa5f990d8d56575f18a74ad9747e2bf6cbac747d3c2d\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:44 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\n  \u003cdiv itemscope itemtype=\"https://pagelike.test/_pl/modeling-references-cascade-removes-opti-d02d9d/Org\"\u003e\n    \u003cmeta itemprop=\"identifier\" content=\"acme\"\u003e\n  \u003c/div\u003e\n\u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 3 (member of acme)",
+      "method": "PUT",
+      "path": "/_pl/modeling-references-cascade-removes-opti-d02d9d/m.html",
+      "status": 201,
+      "headers": {
+        "content-length": "223",
+        "content-type": "text/html",
+        "etag": "\"ba25c4b87502ffa872bd4fbbc672f2d152cf446780e9d644abcccf0526b847b8\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:44 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\n  \u003cdiv itemscope itemtype=\"https://pagelike.test/_pl/modeling-references-cascade-removes-opti-d02d9d/Member\"\u003e\n    \u003cmeta itemprop=\"org\" content=\"acme\"\u003e\n    \u003cp\u003ekeep me\u003c/p\u003e\n  \u003c/div\u003e\n\u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 4 (delete the org document)",
+      "method": "DELETE",
+      "path": "/_pl/modeling-references-cascade-removes-opti-d02d9d/org.html",
+      "status": 204,
+      "headers": {
+        "etag": "\"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:44 GMT",
+        "vary": "Host, Range"
+      }
+    },
+    {
+      "step": "step 5 (stored state of m.html (authoring plane, raw))",
+      "method": "GET",
+      "path": "/_pl/modeling-references-cascade-removes-opti-d02d9d/m.html",
+      "status": 200,
+      "headers": {
+        "accept-ranges": "bytes",
+        "content-length": "187",
+        "content-type": "text/html",
+        "etag": "\"1be27c7e63689ab73500bb9b1ba1d900371c37d03d385d929ef11dfb84cf06bc\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:44 GMT"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\n  \u003cdiv itemscope itemtype=\"https://pagelike.test/_pl/modeling-references-cascade-removes-opti-d02d9d/Member\"\u003e\n    \n    \u003cp\u003ekeep me\u003c/p\u003e\n  \u003c/div\u003e\n\u003c/body\u003e\u003c/html\u003e\n"
+    }
+  ],
+  "outcome": "pass",
+  "target": "local"
+}

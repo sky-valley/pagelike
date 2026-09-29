@@ -1,0 +1,103 @@
+{
+  "case": "sse.mutation.post-placements",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (sse open s1)",
+      "method": "GET",
+      "path": "/_pl/sse-mutation-post-placements-cf802c/doc.html",
+      "status": 200,
+      "headers": {
+        "cache-control": "no-cache",
+        "content-type": "text/event-stream",
+        "x-accel-buffering": "no"
+      }
+    },
+    {
+      "step": "step 2",
+      "events": [
+        {
+          "event": "pagelove-connection",
+          "data": "2d66c485-c887-4938-9b29-61ed4d49f3d0"
+        }
+      ]
+    },
+    {
+      "step": "step 3 (prepend into the list)",
+      "method": "POST",
+      "path": "/_pl/sse-mutation-post-placements-cf802c/doc.html",
+      "status": 206,
+      "headers": {
+        "content-length": "23",
+        "content-range": "selector ul",
+        "content-type": "text/html",
+        "etag": "\"6c52a91f6d52de5dea7a821e32a0de2da09fec4a808e194dc4be2f8088e2c7d6-6c52a91f6d52de5dea7a821e32a0de2da09fec4a808e194dc4be2f8088e2c7d6-2\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:59 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003cli\u003eNew first item\u003c/li\u003e"
+    },
+    {
+      "step": "step 4",
+      "events": [
+        {
+          "id": "v1~803846891fec.1790649659997-1",
+          "event": "mutation",
+          "data": "\u003carticle itemscope itemtype=\"https://pagelove.org/Mutation\"\u003e\n  \u003cspan itemprop=\"method\"\u003ePOST\u003c/span\u003e\n  \u003cspan itemprop=\"selector\"\u003eul\u003c/span\u003e\n  \u003cspan itemprop=\"etag\"\u003e2f13cb8b1475ffef765d103158a33e2f4fc4a17b5c152ef1d78f7c8c12056b10\u003c/span\u003e\n  \u003cspan itemprop=\"path\"\u003e/_pl/sse-mutation-post-placements-cf802c/doc.html\u003c/span\u003e\n  \u003cspan itemprop=\"host\"\u003et.localhost\u003c/span\u003e\n  \u003cdiv itemprop=\"body\"\u003e\u003cli\u003eNew first item\u003c/li\u003e\u003c/div\u003e\n  \u003cspan itemprop=\"placement\"\u003eprepend\u003c/span\u003e\n\u003c/article\u003e"
+        }
+      ]
+    },
+    {
+      "step": "step 5 (insert before beta)",
+      "method": "POST",
+      "path": "/_pl/sse-mutation-post-placements-cf802c/doc.html",
+      "status": 206,
+      "headers": {
+        "content-length": "29",
+        "content-range": "selector li#beta",
+        "content-type": "text/html",
+        "etag": "\"3b39a9562ed48ba49f17fafd1f25e84ecaf2504fb35f2ef977c055122425bd59-3b39a9562ed48ba49f17fafd1f25e84ecaf2504fb35f2ef977c055122425bd59-3\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:59 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003cli\u003eInserted before beta\u003c/li\u003e"
+    },
+    {
+      "step": "step 6",
+      "events": [
+        {
+          "id": "v1~803846891fec.1790649659998-2",
+          "event": "mutation",
+          "data": "\u003carticle itemscope itemtype=\"https://pagelove.org/Mutation\"\u003e\n  \u003cspan itemprop=\"method\"\u003ePOST\u003c/span\u003e\n  \u003cspan itemprop=\"selector\"\u003eli#beta\u003c/span\u003e\n  \u003cspan itemprop=\"etag\"\u003eb27e2a02c88ad1fc5974775d9e3f8a230392c10ba08b02ce67ec4d3c3af63b35\u003c/span\u003e\n  \u003cspan itemprop=\"path\"\u003e/_pl/sse-mutation-post-placements-cf802c/doc.html\u003c/span\u003e\n  \u003cspan itemprop=\"host\"\u003et.localhost\u003c/span\u003e\n  \u003cdiv itemprop=\"body\"\u003e\u003cli\u003eInserted before beta\u003c/li\u003e\u003c/div\u003e\n  \u003cspan itemprop=\"placement\"\u003ebefore\u003c/span\u003e\n\u003c/article\u003e"
+        }
+      ]
+    },
+    {
+      "step": "step 7 (insert after alpha)",
+      "method": "POST",
+      "path": "/_pl/sse-mutation-post-placements-cf802c/doc.html",
+      "status": 206,
+      "headers": {
+        "content-length": "29",
+        "content-range": "selector li#alpha",
+        "content-type": "text/html",
+        "etag": "\"3ade0e96457aa002ca9b1ad299e557fc9204d9b40edfedcbe500a5f2837fbb63-3ade0e96457aa002ca9b1ad299e557fc9204d9b40edfedcbe500a5f2837fbb63-4\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:59 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003cli\u003eInserted after alpha\u003c/li\u003e"
+    },
+    {
+      "step": "step 8",
+      "events": [
+        {
+          "id": "v1~803846891fec.1790649659999-3",
+          "event": "mutation",
+          "data": "\u003carticle itemscope itemtype=\"https://pagelove.org/Mutation\"\u003e\n  \u003cspan itemprop=\"method\"\u003ePOST\u003c/span\u003e\n  \u003cspan itemprop=\"selector\"\u003eli#alpha\u003c/span\u003e\n  \u003cspan itemprop=\"etag\"\u003e5eae8f4c6e93e03d10649dce4cdbf77a28d770e099a6070b1466a84a86380695\u003c/span\u003e\n  \u003cspan itemprop=\"path\"\u003e/_pl/sse-mutation-post-placements-cf802c/doc.html\u003c/span\u003e\n  \u003cspan itemprop=\"host\"\u003et.localhost\u003c/span\u003e\n  \u003cdiv itemprop=\"body\"\u003e\u003cli\u003eInserted after alpha\u003c/li\u003e\u003c/div\u003e\n  \u003cspan itemprop=\"placement\"\u003eafter\u003c/span\u003e\n\u003c/article\u003e"
+        }
+      ]
+    }
+  ],
+  "outcome": "pass",
+  "target": "local"
+}

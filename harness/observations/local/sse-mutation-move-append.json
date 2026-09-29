@@ -1,0 +1,49 @@
+{
+  "case": "sse.mutation.move-append",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (sse open s1)",
+      "method": "GET",
+      "path": "/_pl/sse-mutation-move-append-1216d1/board.html",
+      "status": 200,
+      "headers": {
+        "cache-control": "no-cache",
+        "content-type": "text/event-stream",
+        "x-accel-buffering": "no"
+      }
+    },
+    {
+      "step": "step 2",
+      "events": [
+        {
+          "event": "pagelove-connection",
+          "data": "14e543da-3fdc-4c3d-9132-8ae39f40d471"
+        }
+      ]
+    },
+    {
+      "step": "step 3 (move card 3 to the end of the done lane)",
+      "method": "MOVE",
+      "path": "/_pl/sse-mutation-move-append-1216d1/board.html",
+      "status": 204,
+      "headers": {
+        "etag": "\"8805cc7f663108c535cf05d2a87f5c4d8d576d2d9888cc3727b39c71d829f2cc\"",
+        "last-modified": "Tue, 29 Sep 2026 02:41:00 GMT",
+        "vary": "Host, Range"
+      }
+    },
+    {
+      "step": "step 4",
+      "events": [
+        {
+          "id": "v1~617eab818712.1790649660026-1",
+          "event": "mutation",
+          "data": "\u003carticle itemscope itemtype=\"https://pagelove.org/Mutation\"\u003e\n  \u003cspan itemprop=\"method\"\u003eMOVE\u003c/span\u003e\n  \u003cspan itemprop=\"selector\"\u003e#card-3\u003c/span\u003e\n  \u003cspan itemprop=\"etag\"\u003e8805cc7f663108c535cf05d2a87f5c4d8d576d2d9888cc3727b39c71d829f2cc\u003c/span\u003e\n  \u003cspan itemprop=\"path\"\u003e/_pl/sse-mutation-move-append-1216d1/board.html\u003c/span\u003e\n  \u003cspan itemprop=\"host\"\u003et.localhost\u003c/span\u003e\n  \u003cdiv itemprop=\"body\"\u003e\u003cdiv class=\"card\" id=\"card-3\"\u003eCard 3\u003c/div\u003e\u003c/div\u003e\n  \u003cspan itemprop=\"placement\"\u003eappend\u003c/span\u003e\n  \u003cspan itemprop=\"destination\"\u003e#lane-done\u003c/span\u003e\n\u003c/article\u003e"
+        }
+      ]
+    }
+  ],
+  "outcome": "pass",
+  "target": "local"
+}

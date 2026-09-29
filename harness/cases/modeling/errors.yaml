@@ -1,0 +1,382 @@
+# Modeling: error documents (SchemaViolation, ConstraintViolation, BindingFailure).
+# Spec: docs/spec/modeling.md §16 (R-MOD-70..R-MOD-75). Only the parts the evidence pins down are asserted.
+cases:
+  - id: modeling.errors.schema-violation-envelope
+    title: "Schema failures return 422 text/html carrying the SchemaViolation itemtype and the check name"
+    area: modeling
+    feature: "error documents"
+    evidence: documented
+    source: "docs reference/modeling-data/Schema §Error cases (snapshot 2026-09-28); docs reference/modeling-data/Property §Error cases (snapshot 2026-09-28)"
+    confidence: medium
+    requires: []
+    live: true
+    notes: "spec: R-MOD-70."
+    site:
+      settings:
+        default_get: allow
+      rules:
+        - actor: "*"
+          resource: "${P}/*"
+          method: [GET, HEAD, PUT, POST, DELETE, MOVE]
+          action: Allow
+        - actor: "*"
+          resource: "${P}/*/*"
+          method: [GET, HEAD, PUT, POST, DELETE, MOVE]
+          action: Allow
+    steps:
+      - name: "register declarations through the public plane (takes effect for the next request)"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/schema.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div hidden itemscope itemtype="https://pagelove.org/Schema">
+                <meta itemprop="type" content="https://pagelike.test${P}/Account">
+                <div itemprop="property" itemscope itemtype="https://pagelove.org/Property">
+                  <meta itemprop="name" content="n">
+                  <meta itemprop="type" content="https://schema.host/Integer">
+                  <meta itemprop="cardinality" content="1..1">
+                </div>
+              </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "type failure"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/a.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div itemscope itemtype="https://pagelike.test${P}/Account">
+                <meta itemprop="n" content="x">
+              </div>
+            </body></html>
+        expect:
+          status: 422
+          header_matches:
+            Content-Type: "^text/html"
+          body_contains: [itemscope, "https://pagelove.org/SchemaViolation", type]
+  - id: modeling.errors.shape-violation-document
+    title: "Shape failures return PageLove's ShapeConstraint problems item (not the documented ConstraintViolation page)"
+    area: modeling
+    feature: "error documents"
+    evidence: live-observed
+    source: "harness/observations/live-2026-09-29/modeling-shapes-required-properties-user.json (same shape and write); the documented page is docs reference/modeling-data/ShapeConstraint §Examples (snapshot 2026-09-28)"
+    confidence: high
+    requires: []
+    live: true
+    notes: "spec: R-MOD-71. Follows the adopt-live decision for modeling.shapes.required-properties-user (docs/compat/decisions-2026-09-29/modeling.md)."
+    site:
+      settings:
+        default_get: allow
+      rules:
+        - actor: "*"
+          resource: "${P}/*"
+          method: [GET, HEAD, PUT, POST, DELETE, MOVE]
+          action: Allow
+        - actor: "*"
+          resource: "${P}/*/*"
+          method: [GET, HEAD, PUT, POST, DELETE, MOVE]
+          action: Allow
+    steps:
+      - name: "register declarations through the public plane (takes effect for the next request)"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/shapes.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div hidden itemscope itemtype="https://pagelove.org/ShapeConstraint">
+                <meta itemprop="resource" content="${P}/people/*">
+                <code itemprop="selector">[itemtype*=User]</code>
+                <code itemprop="constraint">:has([itemprop="email"])</code>
+              </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "user missing email"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/people/u.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div itemscope itemtype="https://example.org/User">
+                <span itemprop="username">bob</span>
+              </div>
+            </body></html>
+        expect:
+          status: 422
+          header_matches:
+            Content-Type: "^text/html"
+          body: "<div itemscope itemtype=\"https://dombase.pagelove.team/ns/error/ShapeConstraint\"><ul itemprop=\"problems\"><li itemprop=\"problem\"><span itemprop=\"message\">Shape constraints violated</span></li><li itemprop=\"problem\"><span itemprop=\"message\">https://pagelove.org/ShapeConstraint [itemtype*=User]: Element matching '[itemtype*=User]' does not satisfy constraint ':has([itemprop=\"email\"])'</span></li></ul></div>"
+  - id: modeling.errors.binding-failure-threw
+    title: "A JS validator that throws produces the standard rejection with a BindingFailure (variant threw)"
+    area: modeling
+    feature: "error documents"
+    evidence: documented
+    source: "docs languages/javascript/server/javascript-in-schemas §Errors (snapshot 2026-09-28)"
+    confidence: medium
+    requires: [server-js]
+    live: true
+    notes: "spec: R-MOD-73."
+    site:
+      settings:
+        default_get: allow
+      rules:
+        - actor: "*"
+          resource: "${P}/*"
+          method: [GET, HEAD, PUT, POST, DELETE, MOVE]
+          action: Allow
+        - actor: "*"
+          resource: "${P}/*/*"
+          method: [GET, HEAD, PUT, POST, DELETE, MOVE]
+          action: Allow
+    steps:
+      - name: "register declarations through the public plane (takes effect for the next request)"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/schema.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div hidden itemscope itemtype="https://pagelove.org/Schema">
+                <meta itemprop="type" content="https://pagelike.test${P}/Account">
+                <div itemprop="property" itemscope itemtype="https://pagelove.org/Property">
+                  <meta itemprop="name" content="n">
+                  <meta itemprop="type" content="https://schema.host/Text">
+                  <meta itemprop="cardinality" content="1..1">
+                  <div itemprop="@validate" itemscope itemtype="https://pagelove.org/JavaScript/Module">
+                    <script itemprop="source" type="module">export default function (v) { return v.missing.deep; }</script>
+                  </div>
+                </div>
+              </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "validator throws TypeError"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/a.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div itemscope itemtype="https://pagelike.test${P}/Account">
+                <meta itemprop="n" content="x">
+              </div>
+            </body></html>
+        expect:
+          status: 422
+          body_contains: ["https://pagelove.org/SchemaViolation", "https://pagelove.org/BindingFailure", threw]
+  - id: modeling.errors.binding-failure-shape
+    title: "A module without a default function export fails with variant shape"
+    area: modeling
+    feature: "error documents"
+    evidence: documented
+    source: "docs languages/javascript/server/javascript-in-schemas §The export default contract (snapshot 2026-09-28)"
+    confidence: medium
+    requires: [server-js]
+    live: true
+    notes: "spec: R-MOD-73."
+    site:
+      settings:
+        default_get: allow
+      rules:
+        - actor: "*"
+          resource: "${P}/*"
+          method: [GET, HEAD, PUT, POST, DELETE, MOVE]
+          action: Allow
+        - actor: "*"
+          resource: "${P}/*/*"
+          method: [GET, HEAD, PUT, POST, DELETE, MOVE]
+          action: Allow
+    steps:
+      - name: "register declarations through the public plane (takes effect for the next request)"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/schema.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div hidden itemscope itemtype="https://pagelove.org/Schema">
+                <meta itemprop="type" content="https://pagelike.test${P}/Account">
+                <div itemprop="property" itemscope itemtype="https://pagelove.org/Property">
+                  <meta itemprop="name" content="n">
+                  <meta itemprop="type" content="https://schema.host/Text">
+                  <meta itemprop="cardinality" content="1..1">
+                  <div itemprop="@validate" itemscope itemtype="https://pagelove.org/JavaScript/Module">
+                    <script itemprop="source" type="module">export const x = 1;</script>
+                  </div>
+                </div>
+              </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "write rejected"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/a.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div itemscope itemtype="https://pagelike.test${P}/Account">
+                <meta itemprop="n" content="x">
+              </div>
+            </body></html>
+        expect:
+          status: 422
+          body_contains: ["https://pagelove.org/BindingFailure", shape]
+  - id: modeling.errors.binding-failure-import-not-allowed
+    title: "Imports other than schema imports fail with variant import-not-allowed"
+    area: modeling
+    feature: "error documents"
+    evidence: documented
+    source: "docs languages/javascript/server/javascript-in-schemas §Errors (snapshot 2026-09-28)"
+    confidence: medium
+    requires: [server-js]
+    live: true
+    notes: "spec: R-MOD-73."
+    site:
+      settings:
+        default_get: allow
+      rules:
+        - actor: "*"
+          resource: "${P}/*"
+          method: [GET, HEAD, PUT, POST, DELETE, MOVE]
+          action: Allow
+        - actor: "*"
+          resource: "${P}/*/*"
+          method: [GET, HEAD, PUT, POST, DELETE, MOVE]
+          action: Allow
+    steps:
+      - name: "register declarations through the public plane (takes effect for the next request)"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/schema.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div hidden itemscope itemtype="https://pagelove.org/Schema">
+                <meta itemprop="type" content="https://pagelike.test${P}/Account">
+                <div itemprop="property" itemscope itemtype="https://pagelove.org/Property">
+                  <meta itemprop="name" content="n">
+                  <meta itemprop="type" content="https://schema.host/Text">
+                  <meta itemprop="cardinality" content="1..1">
+                  <div itemprop="@validate" itemscope itemtype="https://pagelove.org/JavaScript/Module">
+                    <script itemprop="source" type="module">import x from "./helper.js"; export default () => true;</script>
+                  </div>
+                </div>
+              </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "write rejected"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/a.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div itemscope itemtype="https://pagelike.test${P}/Account">
+                <meta itemprop="n" content="x">
+              </div>
+            </body></html>
+        expect:
+          status: 422
+          body_contains: ["https://pagelove.org/BindingFailure", import-not-allowed]
+  - id: modeling.errors.binding-failure-unknown-language
+    title: "A binding item with an unregistered language itemtype fails with variant unknown-language"
+    area: modeling
+    feature: "error documents"
+    evidence: documented
+    source: "docs languages/javascript/server/javascript-in-schemas §Errors (snapshot 2026-09-28)"
+    confidence: low
+    requires: []
+    live: true
+    notes: "spec: R-MOD-7, R-MOD-73."
+    site:
+      settings:
+        default_get: allow
+      rules:
+        - actor: "*"
+          resource: "${P}/*"
+          method: [GET, HEAD, PUT, POST, DELETE, MOVE]
+          action: Allow
+        - actor: "*"
+          resource: "${P}/*/*"
+          method: [GET, HEAD, PUT, POST, DELETE, MOVE]
+          action: Allow
+    steps:
+      - name: "register declarations through the public plane (takes effect for the next request)"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/schema.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div hidden itemscope itemtype="https://pagelove.org/Schema">
+                <meta itemprop="type" content="https://pagelike.test${P}/Account">
+                <div itemprop="property" itemscope itemtype="https://pagelove.org/Property">
+                  <meta itemprop="name" content="n">
+                  <meta itemprop="type" content="https://schema.host/Text">
+                  <meta itemprop="cardinality" content="1..1">
+                  <div itemprop="@validate" itemscope itemtype="https://pagelove.org/Python">
+                    <script itemprop="source" type="text/python">True</script>
+                  </div>
+                </div>
+              </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "write rejected"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/a.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div itemscope itemtype="https://pagelike.test${P}/Account">
+                <meta itemprop="n" content="x">
+              </div>
+            </body></html>
+        expect:
+          status: [422, 500]
+          body_contains: [unknown-language]

@@ -1,0 +1,37 @@
+{
+  "case": "javascript.jbind.scope-descendants-not-siblings",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (PUT the page (public plane; registers inline declarations))",
+      "method": "PUT",
+      "path": "/_pl/javascript-jbind-scope-descendants-not-s-1d48ac/j.html",
+      "status": 201,
+      "headers": {
+        "content-length": "304",
+        "content-type": "text/html",
+        "etag": "\"dc6b65f91f4eb288ea87a96e2a5dac2775cb61ac21b382fd0d1fd93b491db0ad\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:43 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml xmlns:j=\"https://pagelove.org/Binding/JavaScript\" xmlns:p=\"https://pagelove.org/1.0\"\u003e\u003cbody\u003e\n\u003cmain\u003e\n\u003csection j:outer=\"'OUTER' + '-VAL'\"\u003e\u003cdiv\u003e\u003cp:stamp outer\u003e\u003c/p:stamp\u003e\u003c/div\u003e\u003c/section\u003e\n\u003csection\u003e\u003cdiv j:sib=\"'SIB' + '-VAL'\"\u003e\u003c/div\u003e\u003cp:stamp sib\u003e\u003c/p:stamp\u003e\u003c/section\u003e\n\u003c/main\u003e\n\u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 2 (GET the composed page)",
+      "method": "GET",
+      "path": "/_pl/javascript-jbind-scope-descendants-not-s-1d48ac/j.html",
+      "status": 206,
+      "headers": {
+        "accept-ranges": "selector, bytes",
+        "content-length": "85",
+        "content-range": "selector main",
+        "content-type": "text/html",
+        "etag": "\"47140aa5793f6157aace462b6daea8d15a406e269b378666574bff2997c41772-47140aa5793f6157aace462b6daea8d15a406e269b378666574bff2997c41772-1\"",
+        "vary": "Host, Range, Accept"
+      },
+      "body": "\u003cmain\u003e\n\u003csection\u003e\u003cdiv\u003eOUTER-VAL\u003c/div\u003e\u003c/section\u003e\n\u003csection\u003e\u003cdiv\u003e\u003c/div\u003e\u003c/section\u003e\n\u003c/main\u003e"
+    }
+  ],
+  "outcome": "pass",
+  "target": "local"
+}

@@ -1,0 +1,197 @@
+# Request-body size cap (413) and the reserved /.pagelove/ namespace.
+# Spec: docs/spec/reading-writing.md §1 R-RW-6, §16 (R-RW-120..122).
+# The 413 cases need runner support for site.settings.max_request_body_bytes
+# (per-site cap; PageLove documents a per-site tunable cap, default 1 GiB).
+cases:
+  - id: rw.limit.over-cap-413
+    title: A write whose Content-Length exceeds the cap is 413 with an Error item and writes nothing
+    area: reading-writing
+    feature: Request body size cap
+    evidence: documented
+    source: "docs reference/reading-and-writing/PUT-method §Request body size limit (snapshot 2026-09-28)"
+    confidence: high
+    requires: []
+    live: false
+    notes: "Needs a small per-site cap (64 bytes); not configurable on live PageLove (default 1 GiB). Connection: close is also documented but not asserted (HTTP/2 has no such header)."
+    site:
+      settings: {default_get: allow, max_request_body_bytes: 64}
+      rules:
+        - {actor: "*", resource: "${P}/*", method: [GET, HEAD, PUT], action: Allow}
+    steps:
+      - name: 65-byte body
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/big.txt"
+          headers: {Content-Type: "text/plain"}
+          body: "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+        expect:
+          status: 413
+          header_matches: {Content-Type: "^text/html"}
+          microdata:
+            - type: "https://pagelove.org/Error"
+              properties:
+                status: "413"
+      - name: nothing was written
+        as: anonymous
+        request: {method: GET, path: "${P}/big.txt"}
+        expect: {status: 404}
+
+  - id: rw.limit.at-cap-accepted
+    title: A body exactly at the cap is accepted
+    area: reading-writing
+    feature: Request body size cap
+    evidence: inferred
+    source: "docs PUT-method §Request body size limit ('exceeds the cap' -> equal is allowed)"
+    confidence: medium
+    requires: []
+    live: false
+    site:
+      settings: {default_get: allow, max_request_body_bytes: 64}
+      rules:
+        - {actor: "*", resource: "${P}/*", method: [GET, HEAD, PUT], action: Allow}
+    steps:
+      - name: 64-byte body
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/exact.txt"
+          headers: {Content-Type: "text/plain"}
+          body: "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+        expect: {status: [200, 201, 204]}
+      - name: stored
+        as: anonymous
+        request: {method: GET, path: "${P}/exact.txt"}
+        expect:
+          status: 200
+          body: "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+
+  - id: rw.limit.cap-before-authorization
+    title: The size cap is enforced before authorization (413, not 401)
+    area: reading-writing
+    feature: Request body size cap
+    evidence: documented
+    source: "docs PUT-method §Request body size limit ('answered 413 Content Too Large immediately, without the body being read')"
+    confidence: medium
+    requires: []
+    live: false
+    site:
+      settings: {default_get: allow, max_request_body_bytes: 64}
+      rules:
+        - {actor: "*", resource: "${P}/*", method: [GET, HEAD], action: Allow}
+    steps:
+      - name: anonymous PUT without a PUT rule, over the cap
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/denied-big.txt"
+          headers: {Content-Type: "text/plain"}
+          body: "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+        expect: {status: 413}
+
+  - id: rw.limit.selector-post-over-cap
+    title: The cap applies to every write, including selector POSTs
+    area: reading-writing
+    feature: Request body size cap
+    evidence: documented
+    source: "docs PUT-method §Request body size limit ('Every write request's body is subject to an operator-configured size cap')"
+    confidence: high
+    requires: []
+    live: false
+    site:
+      settings: {default_get: allow, max_request_body_bytes: 64}
+      files:
+        - path: "${P}/list.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body><ul id="l"></ul></body></html>
+      rules:
+        - {actor: "*", resource: "${P}/*", method: [GET, HEAD, POST], action: Allow}
+    steps:
+      - name: 65-byte append
+        as: anonymous
+        request:
+          method: POST
+          path: "${P}/list.html"
+          headers: {Range: "selector=#l", Content-Type: "text/html"}
+          body: "<li>cccccccccccccccccccccccccccccccccccccccccccccccccccccccc</li>"
+        expect: {status: 413}
+      - name: list still empty
+        as: anonymous
+        request:
+          method: GET
+          path: "${P}/list.html"
+          headers: {Range: "selector=#l"}
+        expect:
+          status: 206
+          body_html: '<ul id="l"></ul>'
+
+  - id: rw.reserved.writes-forbidden
+    title: Writes under /.pagelove/ are refused with 403 even when a rule allows them
+    area: reading-writing
+    feature: Reserved namespace
+    evidence: documented
+    source: "docs reference/reading-and-writing/PUT-method §Error cases and 'Reserved namespace' note (snapshot 2026-09-28)"
+    confidence: high
+    requires: []
+    root: true
+    live: false
+    notes: "Root case: must not run against a real host (a failure would write into the platform namespace). 403 (not 401) for anonymous is the documented status."
+    site:
+      settings: {default_get: allow}
+      rules:
+        - {actor: "*", resource: "/.pagelove/*", method: [GET, HEAD, PUT, POST, DELETE], action: Allow}
+    steps:
+      - name: PUT
+        as: anonymous
+        request:
+          method: PUT
+          path: "/.pagelove/pagelike-reserved-probe.html"
+          headers: {Content-Type: "text/html"}
+          body: |
+            <!DOCTYPE html>
+            <html><body><p>should never be stored</p></body></html>
+        expect: {status: 403}
+      - name: POST
+        as: anonymous
+        request:
+          method: POST
+          path: "/.pagelove/pagelike-reserved-probe.html"
+          headers: {Range: "selector=body", Content-Type: "text/html"}
+          body: "<p>x</p>"
+        expect: {status: 403}
+      - name: DELETE
+        as: anonymous
+        request: {method: DELETE, path: "/.pagelove/pagelike-reserved-probe.html"}
+        expect: {status: 403}
+
+  - id: rw.reserved.only-root-prefix
+    title: A .pagelove segment below the root is an ordinary path
+    area: reading-writing
+    feature: Reserved namespace
+    evidence: inferred
+    source: "docs PUT-method 'Reserved namespace' ('The /.pagelove/ path prefix is reserved')"
+    confidence: medium
+    requires: []
+    live: true
+    site:
+      settings: {default_get: allow}
+      rules:
+        - {actor: "*", resource: "${P}/*", method: [GET, HEAD, PUT], action: Allow}
+    steps:
+      - name: PUT below the case prefix
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/.pagelove/ordinary.html"
+          headers: {Content-Type: "text/html"}
+          body: |
+            <!DOCTYPE html>
+            <html><body><p>ordinary</p></body></html>
+        expect: {status: [200, 201]}
+      - name: readable
+        as: anonymous
+        request: {method: GET, path: "${P}/.pagelove/ordinary.html"}
+        expect:
+          status: 200
+          body_contains: ["ordinary"]

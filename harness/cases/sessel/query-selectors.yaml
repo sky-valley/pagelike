@@ -1,0 +1,443 @@
+# Sessel selector literals, from clauses, provenance and elements through QUERY.
+# Spec: docs/spec/sessel.md §11-§12 (R-SESSEL-200..247).
+# Live 2026-09-29 (docs/compat/decisions-2026-09-29/sessel.md): a QUERY program sees only its target
+# document. Bare selectors search it, `from self` is the only source that reaches it (paths, globs,
+# elements and `document` match nothing), and elements carry no provenance (path()/document() null).
+# The store-wide forms are exercised in-process by expressions.yaml and through bindings/triggers.
+# Selector literals ${…} are passed through by the runner (only ${P}, ${HOST} and captured names are
+# substituted). Paths are compared inside the program because body_json is not ${P}-expanded.
+defaults:
+  area: sessel
+  evidence: documented
+  confidence: medium
+  requires: [sessel]
+  site:
+    files:
+      - path: "${P}/doc.html"
+        body: |
+          <!DOCTYPE html>
+          <html lang="en"><body><div id="main"><h1>Welcome</h1><p>One</p></div><ul id="list"><li>3</li><li>12</li><li>7</li></ul><section><li>a</li><li>b</li></section><span itemprop="status">active</span><span itemprop="status">archived</span><div id="widget" itemscope itemtype="https://example.com/Product"><span itemprop="name">Widget</span><data itemprop="price" value="29.99">$29.99</data></div><template id="row"><tr><td itemprop="cell">9.5</td></tr></template><a itemprop="url" href="/x">link</a><time itemprop="t" datetime="2026-01-02">Jan</time><meta itemprop="m" content="c"></body></html>
+      - path: "${P}/products/shoes.html"
+        body: |
+          <!DOCTYPE html>
+          <html><body><h1>Nike</h1><data itemprop="price" value="100">100</data></body></html>
+      - path: "${P}/products/hats.html"
+        body: |
+          <!DOCTYPE html>
+          <html><body><h1>Cap</h1><data itemprop="price" value="25">25</data></body></html>
+      - path: "${P}/orders/a/1.html"
+        body: |
+          <!DOCTYPE html>
+          <html><body><span itemprop="status">urgent</span></body></html>
+      - path: "${P}/orders/b/2.html"
+        body: |
+          <!DOCTYPE html>
+          <html><body><span itemprop="status">urgent</span><span itemprop="status">normal</span></body></html>
+    rules:
+      - {actor: "*", resource: "${P}/*", method: [GET, QUERY], action: Allow}
+cases:
+  - id: sessel.query.sel.from-self-list
+    title: A selector literal returns a List of queried elements; in a QUERY they carry no source path
+    feature: selector literals
+    evidence: live-observed
+    source: "harness/observations/live-2026-09-29/sessel-query-sel-from-self-list.json; harness/observations/live-2026-09-29-reconcile-sessel/sessel-query-probe-0929-from-and-path.json (steps 1, 4)"
+    confidence: high
+    live: true
+    notes: R-SESSEL-200, R-SESSEL-224. Live answers path() null for every element of a QUERY (adopt-live; the docs' "/team/benji.html" provenance holds in bindings and triggers).
+    steps:
+      - name: count and provenance
+        as: anonymous
+        request:
+          method: QUERY
+          path: "${P}/doc.html"
+          headers: {Content-Type: "text/sessel"}
+          body: 'let l = ${ul#list li} from self; [l.count(), l.map(e => e.text()), l.first().path()]'
+        expect:
+          status: 200
+          header_matches: {Content-Type: '^application/sessel\+json'}
+          body_json: [3, ["3", "12", "7"], null]
+
+  - id: sessel.query.sel.first-element-html
+    title: A single queried element result is served as text/html outer HTML
+    feature: selector literals
+    source: "docs reference/protocol/QUERY §Sessel mode; languages/sessel/learn/collections §Accessing elements (snapshot 2026-09-28)"
+    live: true
+    notes: R-SESSEL-370 / R-PROTO-72 (200 vs 206 is C-7).
+    steps:
+      - name: first h1
+        as: anonymous
+        request:
+          method: QUERY
+          path: "${P}/doc.html"
+          headers: {Content-Type: "text/sessel"}
+          body: '(${h1} from self).first()'
+        expect:
+          status: [200, 206]
+          header_matches: {Content-Type: '^text/html'}
+          body_html: "<h1>Welcome</h1>"
+
+  - id: sessel.query.sel.self-and-document
+    title: self is the root element of the target document; in a QUERY, from document matches nothing
+    feature: context variables
+    evidence: live-observed
+    source: "docs languages/sessel/learn/querying §self and prior (snapshot 2026-09-28); harness/observations/live-2026-09-29-reconcile-sessel/sessel-query-probe-0929-from-and-path.json (steps 8, 11)"
+    live: true
+    notes: R-SESSEL-208. The third value was 1 (documented); live answers 0 because only `from self` reaches a QUERY's document.
+    steps:
+      - name: root attributes and sub-select
+        as: anonymous
+        request:
+          method: QUERY
+          path: "${P}/doc.html"
+          headers: {Content-Type: "text/sessel"}
+          body: '[self.attr("lang"), self.${ h1 }.first().text(), (${h1} from document).count()]'
+        expect:
+          status: 200
+          body_json: [en, Welcome, 0]
+
+  - id: sessel.query.sel.from-path
+    title: In a QUERY, from "<path>" reaches no other document
+    feature: from clause
+    evidence: live-observed
+    source: "harness/observations/live-2026-09-29/sessel-query-sel-from-path.json; harness/observations/live-2026-09-29-reconcile-sessel/sessel-query-probe-0929-from-and-path.json (step 3)"
+    confidence: high
+    live: true
+    notes: >-
+      R-SESSEL-205. Documented: the other document's h1 ("Nike", "Cap"). Live: nothing, for literal, relative,
+      extensionless and glob paths and for documents written on either plane (adopt-live: QUERY is authorized on
+      its target only, so it reads nothing else).
+    steps:
+      - name: literal path
+        as: anonymous
+        request:
+          method: QUERY
+          path: "${P}/doc.html"
+          headers: {Content-Type: "text/sessel"}
+          body: '(${h1} from "${P}/products/shoes.html").first().text()'
+        expect:
+          status: 200
+          body_json: null
+      - name: path from a variable
+        as: anonymous
+        request:
+          method: QUERY
+          path: "${P}/doc.html"
+          headers: {Content-Type: "text/sessel"}
+          body: 'let p = "${P}/products/hats.html"; (${h1} from p).first().text()'
+        expect:
+          status: 200
+          body_json: null
+      - name: missing document gives an empty list
+        as: anonymous
+        request:
+          method: QUERY
+          path: "${P}/doc.html"
+          headers: {Content-Type: "text/sessel"}
+          body: '(${h1} from "${P}/nope.html").count()'
+        expect:
+          status: 200
+          body_json: 0
+
+  - id: sessel.query.sel.glob-aggregate
+    title: In a QUERY, a glob from clause aggregates nothing
+    feature: from clause
+    evidence: live-observed
+    source: "harness/observations/live-2026-09-29-reconcile-sessel/sessel-query-probe-0929-from-and-path.json (steps 3, 12)"
+    confidence: high
+    live: true
+    notes: R-SESSEL-144, R-SESSEL-206. Documented 125 across documents; a QUERY sees only its target (live 2026-09-29). Glob aggregation works in bindings (comp.eb.count-sum).
+    steps:
+      - name: sum of prices
+        as: anonymous
+        request:
+          method: QUERY
+          path: "${P}/doc.html"
+          headers: {Content-Type: "text/sessel"}
+          body: '(${[itemprop="price"]} from "${P}/products/*").sum()'
+        expect:
+          status: 200
+          body_json: 0
+
+  - id: sessel.query.sel.glob-order
+    title: In a QUERY, a glob from clause visits no document
+    feature: from clause
+    evidence: live-observed
+    source: "harness/observations/live-2026-09-29-reconcile-sessel/sessel-query-probe-0929-from-and-path.json (steps 3, 11)"
+    confidence: high
+    live: true
+    notes: R-SESSEL-204 (SP-13 stays open for stored programs). The in-process order test is sessel.expr.* in expressions.yaml.
+    steps:
+      - name: h1 texts in path order
+        as: anonymous
+        request:
+          method: QUERY
+          path: "${P}/doc.html"
+          headers: {Content-Type: "text/sessel"}
+          body: '(${h1} from "${P}/products/*").map(e => e.text())'
+        expect:
+          status: 200
+          body_json: []
+
+  - id: sessel.query.sel.multi-source-and-block
+    title: Multi-source and block-level from in a QUERY reach only self
+    feature: from clause
+    evidence: live-observed
+    source: "harness/observations/live-2026-09-29-reconcile-sessel/sessel-query-probe-0929-from-and-path.json (steps 8, 11)"
+    confidence: high
+    live: true
+    notes: R-SESSEL-68, R-SESSEL-207. The documented unions (3, 2, Nike, [Welcome, Nike]) hold for stored programs; a QUERY sees only its target (live 2026-09-29).
+    steps:
+      - name: inline multi-source
+        as: anonymous
+        request:
+          method: QUERY
+          path: "${P}/doc.html"
+          headers: {Content-Type: "text/sessel"}
+          body: '(${[itemprop="status"]} from "${P}/orders/a/*", "${P}/orders/b/*").count()'
+        expect:
+          status: 200
+          body_json: 0
+      - name: block-level multi-source
+        as: anonymous
+        request:
+          method: QUERY
+          path: "${P}/doc.html"
+          headers: {Content-Type: "text/sessel"}
+          body: |
+            from "${P}/orders/a/*", "${P}/orders/b/*" {
+              ${[itemprop="status"]}.filter(el => el.text() == "urgent").count()
+            }
+        expect:
+          status: 200
+          body_json: 0
+      - name: explicit from overrides the block scope
+        as: anonymous
+        request:
+          method: QUERY
+          path: "${P}/doc.html"
+          headers: {Content-Type: "text/sessel"}
+          body: 'from "${P}/products/shoes.html" { [${h1}.first().text(), (${h1} from self).first().text()] }'
+        expect:
+          status: 200
+          body_json: [null, Welcome]
+      - name: self plus a path
+        as: anonymous
+        request:
+          method: QUERY
+          path: "${P}/doc.html"
+          headers: {Content-Type: "text/sessel"}
+          body: '(${h1} from self, "${P}/products/shoes.html").map(e => e.text())'
+        expect:
+          status: 200
+          body_json: [Welcome]
+
+  - id: sessel.query.sel.site-wide-default
+    title: In a QUERY, a selector without from searches only the target document
+    feature: from clause
+    evidence: live-observed
+    source: "harness/observations/live-2026-09-29-reconcile-sessel/sessel-query-probe-0929-from-and-path.json (steps 4, 11)"
+    confidence: high
+    live: true
+    notes: >-
+      R-SESSEL-204; protocol C-10. Documented: the whole site ("By default, a selector queries across the entire site"),
+      which still holds in bindings (comp.eb.count-sum). A QUERY is confined to its target (live 2026-09-29).
+    steps:
+      - name: bare selector sees only the target
+        as: anonymous
+        request:
+          method: QUERY
+          path: "${P}/doc.html"
+          headers: {Content-Type: "text/sessel"}
+          body: '[${h1}.map(e => e.text()), ${h1}.filter(e => e.path().startsWith("${P}/")).count()]'
+        expect:
+          status: 200
+          body_json: [[Welcome], 0]
+
+  - id: sessel.query.sel.embedded-expressions
+    title: Unquoted selector values are Sessel expressions; quoted ones are CSS literals
+    feature: expression embedding
+    source: "docs languages/sessel/learn/querying §Expressions inside selectors (snapshot 2026-09-28)"
+    confidence: high
+    live: true
+    notes: R-SESSEL-202.
+    steps:
+      - name: variable in :equals()
+        as: anonymous
+        request:
+          method: QUERY
+          path: "${P}/doc.html"
+          headers: {Content-Type: "text/sessel"}
+          body: 'let status = "archived"; (${[itemprop="status"]:equals(status)} from self).count()'
+        expect:
+          status: 200
+          body_json: 1
+      - name: quoted literal
+        as: anonymous
+        request:
+          method: QUERY
+          path: "${P}/doc.html"
+          headers: {Content-Type: "text/sessel"}
+          body: '(${[itemprop="status"]:equals("active")} from self).first().text()'
+        expect:
+          status: 200
+          body_json: active
+      - name: extended pseudo-classes
+        as: anonymous
+        request:
+          method: QUERY
+          path: "${P}/doc.html"
+          headers: {Content-Type: "text/sessel"}
+          body: '[(${h1:contains("Wel")} from self).count(), (${ul#list li:greater-than(5)} from self).count(), (${[itemprop="price"]:value-equals("29.99")} from self).count()]'
+        expect:
+          status: 200
+          body_json: [1, 2, 1]
+
+  - id: sessel.query.sel.sub-select-provenance
+    title: Sub-select runs in memory; in a QUERY an element from-source matches nothing and results carry no path
+    feature: sub-select
+    evidence: live-observed
+    source: "harness/observations/live-2026-09-29/sessel-query-sel-sub-select-provenance.json; harness/observations/live-2026-09-29-reconcile-sessel/sessel-query-probe-0929-from-and-path.json (step 6)"
+    live: true
+    notes: R-SESSEL-205, R-SESSEL-211, R-SESSEL-212. Documented [[a, b], 2, <path>]; live [[a, b], 0, null] (adopt-live).
+    steps:
+      - name: sub-select
+        as: anonymous
+        request:
+          method: QUERY
+          path: "${P}/doc.html"
+          headers: {Content-Type: "text/sessel"}
+          body: 'let s = (${section} from self); [s.${ li }.map(e => e.text()), s.map(x => ${li} from x).flatten().count(), s.first().${ li }.first().path()]'
+        expect:
+          status: 200
+          body_json: [[a, b], 0, null]
+
+  - id: sessel.query.sel.element-getters
+    title: selector(), document(), value() and text() on queried elements
+    feature: element getters
+    evidence: live-observed
+    source: "harness/observations/live-2026-09-29/sessel-query-sel-element-getters.json; harness/observations/live-2026-09-29-reconcile-sessel/sessel-query-probe-0929-from-and-path.json (step 5); harness/observations/live-2026-09-29-reconcile-sessel/sessel-query-probe-0929-values.json (steps 20, 21)"
+    live: true
+    notes: >-
+      R-SESSEL-221..225. Live: document() of an element from another path is unreachable in a QUERY (null), and
+      text() of an element without text is "" (not null); a stored element's text is whitespace-collapsed and trimmed.
+    steps:
+      - name: selector and document
+        as: anonymous
+        request:
+          method: QUERY
+          path: "${P}/doc.html"
+          headers: {Content-Type: "text/sessel"}
+          body: '[(${h1} from self).first().selector(), (${h1} from "${P}/products/shoes.html").first().document().${ [itemprop="price"] }.first().value()]'
+        expect:
+          status: 200
+          body_json: ["#main > h1:nth-child(1)", null]
+      - name: microdata values
+        as: anonymous
+        request:
+          method: QUERY
+          path: "${P}/doc.html"
+          headers: {Content-Type: "text/sessel"}
+          body: '[(${[itemprop="url"]} from self).first().value(), (${[itemprop="t"]} from self).first().value(), (${[itemprop="m"]} from self).first().value(), (${[itemprop="m"]} from self).first().text(), (${[itemprop="price"]} from self).first().text()]'
+        expect:
+          status: 200
+          body_json: ["/x", "2026-01-02", "c", "", "$29.99"]
+
+  - id: sessel.query.sel.microdata
+    title: .microdata() extracts an item with @type; in a QUERY there is no @id
+    feature: element getters
+    evidence: live-observed
+    source: "docs languages/sessel/reference/element §.microdata() (snapshot 2026-09-28); harness/observations/live-2026-09-29-reconcile-sessel/sessel-query-probe-0929-from-and-path.json (step 9)"
+    live: true
+    notes: R-SESSEL-233 (key order and list shapes not asserted). @id needs provenance, which a QUERY's elements lack (live 2026-09-29).
+    steps:
+      - name: item map
+        as: anonymous
+        request:
+          method: QUERY
+          path: "${P}/doc.html"
+          headers: {Content-Type: "text/sessel"}
+          body: 'let m = (${#widget} from self).first().microdata(); [m["@type"], m.name, m.price, m["@id"]]'
+        expect:
+          status: 200
+          body_json: [Product, Widget, "29.99", null]
+
+  - id: sessel.query.sel.template-content
+    title: Selectors do not enter <template>; .content() makes its content queryable
+    feature: element getters
+    source: "docs languages/sessel/reference/element §.content() (snapshot 2026-09-28)"
+    live: true
+    notes: R-SESSEL-201 (inert boundary), R-SESSEL-229.
+    steps:
+      - name: inert and content
+        as: anonymous
+        request:
+          method: QUERY
+          path: "${P}/doc.html"
+          headers: {Content-Type: "text/sessel"}
+          body: '[(${[itemprop="cell"]} from self).count(), (${template#row} from self).first().content().${ [itemprop="cell"] }.first().value()]'
+        expect:
+          status: 200
+          body_json: [0, "9.5"]
+
+  - id: sessel.query.sel.selector-type
+    title: The Selector type (imported with @schema) is inert until execute(); without @schema the name builds an element
+    feature: Selector type
+    evidence: live-observed
+    source: "harness/observations/live-2026-09-29/sessel-query-sel-selector-type.json; harness/observations/live-2026-09-29-reconcile-sessel/sessel-query-probe-0929-mutation-and-sel.json (steps 8-10)"
+    live: true
+    notes: >-
+      R-SESSEL-210. Live: `new Selector {…}` without `@schema Selector url("https://pagelove.org/Selector")` is a
+      <selector> element (so .execute() is "unknown function: execute"); with the import, execute() is `from self`
+      and execute(path) reaches nothing in a QUERY.
+    steps:
+      - name: execute on a path and on self
+        as: anonymous
+        request:
+          method: QUERY
+          path: "${P}/doc.html"
+          headers: {Content-Type: "text/sessel"}
+          body: '@schema Selector url("https://pagelove.org/Selector"); let sel = new Selector { "h1" }; [sel.execute("${P}/products/hats.html").count(), sel.execute().first().text(), sel.toString()]'
+        expect:
+          status: 200
+          body_json: [0, Welcome, h1]
+      - name: without @schema, Selector is a tag name
+        as: anonymous
+        request:
+          method: QUERY
+          path: "${P}/doc.html"
+          headers: {Content-Type: "text/sessel"}
+          body: 'new Selector { "h1" }'
+        expect:
+          status: [200, 206]
+          header_matches: {Content-Type: '^text/html'}
+          body_html: '<selector>h1</selector>'
+      - name: so execute() is unknown
+        as: anonymous
+        request:
+          method: QUERY
+          path: "${P}/doc.html"
+          headers: {Content-Type: "text/sessel"}
+          body: 'let sel = new Selector { "h1" }; sel.execute().count()'
+        expect:
+          status: 400
+          body_contains: [execute]
+
+  - id: sessel.query.sel.prior-in-query
+    title: In a QUERY there is no write in progress, so from prior finds nothing
+    feature: context variables
+    evidence: inferred
+    source: "docs languages/sessel/learn/querying §self and prior (snapshot 2026-09-28)"
+    confidence: low
+    live: true
+    notes: R-SESSEL-205, R-SESSEL-208 (SP-26).
+    steps:
+      - name: from prior
+        as: anonymous
+        request:
+          method: QUERY
+          path: "${P}/doc.html"
+          headers: {Content-Type: "text/sessel"}
+          body: '(${h1} from prior).count()'
+        expect:
+          status: 200
+          body_json: 0

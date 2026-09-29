@@ -1,0 +1,38 @@
+{
+  "case": "rw.post.before",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (insert before beta)",
+      "method": "POST",
+      "path": "/_pl/rw-post-before-ed3e63/post-before-test.html",
+      "status": 206,
+      "headers": {
+        "content-length": "29",
+        "content-range": "selector li#beta",
+        "content-type": "text/html",
+        "etag": "\"3b39a9562ed48ba49f17fafd1f25e84ecaf2504fb35f2ef977c055122425bd59-3b39a9562ed48ba49f17fafd1f25e84ecaf2504fb35f2ef977c055122425bd59-2\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:56 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003cli\u003eInserted before beta\u003c/li\u003e"
+    },
+    {
+      "step": "step 2 (order)",
+      "method": "GET",
+      "path": "/_pl/rw-post-before-ed3e63/post-before-test.html",
+      "status": 206,
+      "headers": {
+        "accept-ranges": "selector, bytes",
+        "content-length": "86",
+        "content-range": "selector ul",
+        "content-type": "text/html",
+        "etag": "\"a105113cd65a089efc7b6cdf5b2a818c4b2f803e158244a12347834e0c58f1b6-a105113cd65a089efc7b6cdf5b2a818c4b2f803e158244a12347834e0c58f1b6-2\"",
+        "vary": "Host, Range, Accept"
+      },
+      "body": "\u003cul\u003e\u003cli id=\"alpha\"\u003eAlpha\u003c/li\u003e\u003cli\u003eInserted before beta\u003c/li\u003e\u003cli id=\"beta\"\u003eBeta\u003c/li\u003e\u003c/ul\u003e"
+    }
+  ],
+  "outcome": "pass",
+  "target": "local"
+}

@@ -1,0 +1,47 @@
+{
+  "case": "sessel.query.sel.embedded-expressions",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (variable in :equals())",
+      "method": "QUERY",
+      "path": "/_pl/sessel-query-sel-embedded-expressions-1a1f55/doc.html",
+      "status": 200,
+      "headers": {
+        "accept-ranges": "bytes",
+        "content-length": "1",
+        "content-type": "application/sessel+json",
+        "vary": "Host, Range"
+      },
+      "body": "1"
+    },
+    {
+      "step": "step 2 (quoted literal)",
+      "method": "QUERY",
+      "path": "/_pl/sessel-query-sel-embedded-expressions-1a1f55/doc.html",
+      "status": 200,
+      "headers": {
+        "accept-ranges": "bytes",
+        "content-length": "8",
+        "content-type": "application/sessel+json",
+        "vary": "Host, Range"
+      },
+      "body": "\"active\""
+    },
+    {
+      "step": "step 3 (extended pseudo-classes)",
+      "method": "QUERY",
+      "path": "/_pl/sessel-query-sel-embedded-expressions-1a1f55/doc.html",
+      "status": 200,
+      "headers": {
+        "accept-ranges": "bytes",
+        "content-length": "7",
+        "content-type": "application/sessel+json",
+        "vary": "Host, Range"
+      },
+      "body": "[1,2,1]"
+    }
+  ],
+  "outcome": "pass",
+  "target": "live"
+}

@@ -1,0 +1,90 @@
+{
+  "case": "modeling.references.restrict-blocks-delete",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (register declarations through the public plane (takes effect for the next request))",
+      "method": "PUT",
+      "path": "/_pl/modeling-references-restrict-blocks-dele-e08062/schema.html",
+      "status": 201,
+      "headers": {
+        "content-length": "1161",
+        "content-type": "text/html",
+        "etag": "\"0b3f156cd097d1fd81c218542e9cf30764aeb2e6d748ecd9f5be7b0c6c2379a7\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:44 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\n  \u003cdiv hidden itemscope itemtype=\"https://pagelove.org/Schema\"\u003e\n    \u003cmeta itemprop=\"type\" content=\"https://pagelike.test/_pl/modeling-references-restrict-blocks-dele-e08062/Org\"\u003e\n    \u003cdiv itemprop=\"property\" itemscope itemtype=\"https://pagelove.org/Property\"\u003e\n      \u003cmeta itemprop=\"name\" content=\"identifier\"\u003e\n      \u003cmeta itemprop=\"type\" content=\"https://schema.host/Text\"\u003e\n      \u003cmeta itemprop=\"cardinality\" content=\"1..1\"\u003e\n      \u003cmeta itemprop=\"unique\" content=\"true\"\u003e\n    \u003c/div\u003e\n  \u003c/div\u003e\n  \u003cdiv hidden itemscope itemtype=\"https://pagelove.org/Schema\"\u003e\n    \u003cmeta itemprop=\"type\" content=\"https://pagelike.test/_pl/modeling-references-restrict-blocks-dele-e08062/Member\"\u003e\n    \u003cdiv itemprop=\"property\" itemscope itemtype=\"https://pagelove.org/Property\"\u003e\n      \u003cmeta itemprop=\"name\" content=\"org\"\u003e\n      \u003cmeta itemprop=\"type\" content=\"https://schema.host/Text\"\u003e\n      \u003cmeta itemprop=\"cardinality\" content=\"1..1\"\u003e\n      \u003cmeta itemprop=\"references\" content=\"https://pagelike.test/_pl/modeling-references-restrict-blocks-dele-e08062/Org#identifier\"\u003e\n      \u003cmeta itemprop=\"cascade\" content=\"restrict\"\u003e\n    \u003c/div\u003e\n  \u003c/div\u003e\n\u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 2 (org acme)",
+      "method": "PUT",
+      "path": "/_pl/modeling-references-restrict-blocks-dele-e08062/org.html",
+      "status": 201,
+      "headers": {
+        "content-length": "208",
+        "content-type": "text/html",
+        "etag": "\"ae4e0d2d89de7e559242bf7b2c5a126ede0f9ec2b077eb311f8d5323f0885bb0\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:44 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\n  \u003cdiv itemscope itemtype=\"https://pagelike.test/_pl/modeling-references-restrict-blocks-dele-e08062/Org\"\u003e\n    \u003cmeta itemprop=\"identifier\" content=\"acme\"\u003e\n  \u003c/div\u003e\n\u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 3 (member of acme)",
+      "method": "PUT",
+      "path": "/_pl/modeling-references-restrict-blocks-dele-e08062/m.html",
+      "status": 201,
+      "headers": {
+        "content-length": "204",
+        "content-type": "text/html",
+        "etag": "\"e6df900a73bb4422c37db874eacff3988c35acfdf575fc820089a6e7c79df9da\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:44 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\n  \u003cdiv itemscope itemtype=\"https://pagelike.test/_pl/modeling-references-restrict-blocks-dele-e08062/Member\"\u003e\n    \u003cmeta itemprop=\"org\" content=\"acme\"\u003e\n  \u003c/div\u003e\n\u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 4 (delete the org document)",
+      "method": "DELETE",
+      "path": "/_pl/modeling-references-restrict-blocks-dele-e08062/org.html",
+      "status": 409,
+      "headers": {
+        "content-length": "462",
+        "content-type": "text/html",
+        "vary": "Host, Range"
+      },
+      "body": "\u003cdiv itemscope itemtype=\"https://dombase.pagelove.team/ns/error/CascadeBlocked\"\u003e\u003cul itemprop=\"problems\"\u003e\u003cli itemprop=\"problem\"\u003e\u003cspan itemprop=\"message\"\u003eOperation refused by cascade constraint: Constraint violation: 1 violation(s):\n  - [cascade-restrict] [itemprop='identifier'] (restrict(https://pagelike.test/_pl/modeling-references-restrict-blocks-dele-e08062/Org#identifier)): Cannot delete: 1 document(s) reference this value via 'org'\u003c/span\u003e\u003c/li\u003e\u003c/ul\u003e\u003c/div\u003e"
+    },
+    {
+      "step": "step 5 (stored state of org.html (authoring plane, raw))",
+      "method": "GET",
+      "path": "/_pl/modeling-references-restrict-blocks-dele-e08062/org.html",
+      "status": 200,
+      "headers": {
+        "accept-ranges": "bytes",
+        "content-length": "208",
+        "content-type": "text/html",
+        "etag": "\"ae4e0d2d89de7e559242bf7b2c5a126ede0f9ec2b077eb311f8d5323f0885bb0\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:44 GMT"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\n  \u003cdiv itemscope itemtype=\"https://pagelike.test/_pl/modeling-references-restrict-blocks-dele-e08062/Org\"\u003e\n    \u003cmeta itemprop=\"identifier\" content=\"acme\"\u003e\n  \u003c/div\u003e\n\u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 6 (stored state of m.html (authoring plane, raw))",
+      "method": "GET",
+      "path": "/_pl/modeling-references-restrict-blocks-dele-e08062/m.html",
+      "status": 200,
+      "headers": {
+        "accept-ranges": "bytes",
+        "content-length": "204",
+        "content-type": "text/html",
+        "etag": "\"e6df900a73bb4422c37db874eacff3988c35acfdf575fc820089a6e7c79df9da\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:44 GMT"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\n  \u003cdiv itemscope itemtype=\"https://pagelike.test/_pl/modeling-references-restrict-blocks-dele-e08062/Member\"\u003e\n    \u003cmeta itemprop=\"org\" content=\"acme\"\u003e\n  \u003c/div\u003e\n\u003c/body\u003e\u003c/html\u003e\n"
+    }
+  ],
+  "outcome": "pass",
+  "target": "local"
+}

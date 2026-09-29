@@ -1,0 +1,33 @@
+{
+  "case": "protocol.webdav.put-create-and-replace",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (create)",
+      "method": "PUT",
+      "path": "/_pl/protocol-webdav-put-create-and-replace-2f94da/new.html",
+      "status": 201,
+      "headers": {
+        "content-length": "55",
+        "content-type": "text/html",
+        "etag": "\"0ff529cf382fafd60e63d0d3d853c046b1fc455e318f18d9f4e2d46e816325fa\""
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\u003ch1\u003eNew\u003c/h1\u003e\u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 2 (replace)",
+      "method": "PUT",
+      "path": "/_pl/protocol-webdav-put-create-and-replace-2f94da/new.html",
+      "status": 200,
+      "headers": {
+        "accept-ranges": "bytes",
+        "content-length": "57",
+        "content-type": "text/html",
+        "etag": "\"2b1556bd42c288738ad84bcf85df8267cb3a0553667c1f03d2c60c31ac5c3cbd\""
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\u003ch1\u003eNewer\u003c/h1\u003e\u003c/body\u003e\u003c/html\u003e\n"
+    }
+  ],
+  "outcome": "pass",
+  "target": "live"
+}

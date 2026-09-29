@@ -1,0 +1,53 @@
+{
+  "case": "comp.tr.cross-session-isolation",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1",
+      "method": "PUT",
+      "path": "/_pl/comp-tr-cross-session-isolation-e25241/cart.html",
+      "status": 206,
+      "headers": {
+        "cache-control": "private",
+        "content-length": "38",
+        "content-range": "selector #cart",
+        "content-type": "text/html",
+        "etag": "\"7ee2a545e2a497c21675a8cb30ea006e30d0f91a23d534275e6f5e6c1488776a-7ee2a545e2a497c21675a8cb30ea006e30d0f91a23d534275e6f5e6c1488776a-1\"",
+        "vary": "Host, Range"
+      },
+      "body": "\u003cul id=\"cart\"\u003e\u003cli\u003eAlice item\u003c/li\u003e\u003c/ul\u003e"
+    },
+    {
+      "step": "step 2",
+      "method": "GET",
+      "path": "/_pl/comp-tr-cross-session-isolation-e25241/cart.html",
+      "status": 200,
+      "headers": {
+        "accept-ranges": "selector, bytes",
+        "cache-control": "private",
+        "content-length": "85",
+        "content-type": "text/html",
+        "etag": "W/\"1333e763a93481c59ee8dcd60afeaab9346e98f89c7d7d481a7688da2e8af8a4\"",
+        "vary": "Host, Range, Accept"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\n\u003cbody\u003e\u003cul id=\"cart\"\u003e\u003cli\u003eDefault item\u003c/li\u003e\u003c/ul\u003e\u003c/body\u003e\n\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 3",
+      "method": "GET",
+      "path": "/_pl/comp-tr-cross-session-isolation-e25241/cart.html",
+      "status": 200,
+      "headers": {
+        "accept-ranges": "selector, bytes",
+        "cache-control": "private",
+        "content-length": "83",
+        "content-type": "text/html",
+        "etag": "W/\"013e93ee9602bed6f245f08dbd45944b6bb2d29469bba9319aef914b676b361f\"",
+        "vary": "Host, Range, Accept"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\n\u003cbody\u003e\u003cul id=\"cart\"\u003e\u003cli\u003eAlice item\u003c/li\u003e\u003c/ul\u003e\u003c/body\u003e\n\u003c/html\u003e\n"
+    }
+  ],
+  "outcome": "pass",
+  "target": "local"
+}

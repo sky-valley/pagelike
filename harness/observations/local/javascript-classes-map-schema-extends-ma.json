@@ -1,0 +1,50 @@
+{
+  "case": "javascript.classes.map-schema-extends-map",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (register declarations through the public plane (takes effect for the next request))",
+      "method": "PUT",
+      "path": "/_pl/javascript-classes-map-schema-extends-ma-0d2227/schema.html",
+      "status": 201,
+      "headers": {
+        "content-length": "1347",
+        "content-type": "text/html",
+        "etag": "\"ec4c1c9cf37b8d4053c0fd3936d45b63731b7f19e36ee2f9dd62395986101af4\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:42 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\n\u003cdiv hidden itemscope itemtype=\"https://pagelove.org/Schema\"\u003e\n\u003cmeta itemprop=\"type\" content=\"https://pagelike.test/_pl/javascript-classes-map-schema-extends-ma-0d2227/Cfg\"\u003e\n\u003cmeta itemprop=\"parent\" content=\"https://pagelove.org/Map\"\u003e\n\u003cdiv itemprop=\"property\" itemscope itemtype=\"https://pagelove.org/Property\"\u003e\n\u003cmeta itemprop=\"name\" content=\"a\"\u003e\n\u003cmeta itemprop=\"type\" content=\"https://schema.host/Text\"\u003e\n\u003cmeta itemprop=\"cardinality\" content=\"0..1\"\u003e\n\u003c/div\u003e\n\u003c/div\u003e\n\u003cdiv hidden itemscope itemtype=\"https://pagelove.org/Schema\"\u003e\n\u003cmeta itemprop=\"type\" content=\"https://pagelike.test/_pl/javascript-classes-map-schema-extends-ma-0d2227/Holder\"\u003e\n\u003cdiv itemprop=\"property\" itemscope itemtype=\"https://pagelove.org/Property\"\u003e\n\u003cmeta itemprop=\"name\" content=\"probe\"\u003e\n\u003cmeta itemprop=\"type\" content=\"https://schema.host/Text\"\u003e\n\u003cmeta itemprop=\"cardinality\" content=\"0..1\"\u003e\n\u003cdiv itemprop=\"default\" itemscope itemtype=\"https://pagelove.org/JavaScript/Module\"\u003e\n\u003cscript itemprop=\"source\" type=\"module\"\u003e\nimport Cfg from \"https://pagelike.test/_pl/javascript-classes-map-schema-extends-ma-0d2227/Cfg\" with { type: \"https://pagelove.org/Schema\" };\nexport default () =\u003e {\n  const c = new Cfg({ a: '1' });\n  return [c instanceof Map, typeof c.keys, typeof c.entries, typeof c.merge].join('|');\n};\n\u003c/script\u003e\n\u003c/div\u003e\n\u003c/div\u003e\n\u003c/div\u003e\n\u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 2 (PUT an instance (a.html))",
+      "method": "PUT",
+      "path": "/_pl/javascript-classes-map-schema-extends-ma-0d2227/a.html",
+      "status": 201,
+      "headers": {
+        "content-length": "260",
+        "content-type": "text/html",
+        "etag": "\"022513e38d8dfcb4b37e953f408162f9aa7fdc701ac3d8d0bec82defe4f5afe9\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:42 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\n\u003cdiv itemscope itemtype=\"https://pagelike.test/_pl/javascript-classes-map-schema-extends-ma-0d2227/Holder\"\u003e\n\u003cmeta itemprop=\"other\" content=\"o\"\u003e\n\u003cmeta itemprop=\"probe\" content=\"true|function|function|function\"\u003e\u003c/div\u003e\n\u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 3 (stored state (authoring plane, raw))",
+      "method": "GET",
+      "path": "/_pl/javascript-classes-map-schema-extends-ma-0d2227/a.html",
+      "status": 200,
+      "headers": {
+        "accept-ranges": "bytes",
+        "content-length": "260",
+        "content-type": "text/html",
+        "etag": "\"022513e38d8dfcb4b37e953f408162f9aa7fdc701ac3d8d0bec82defe4f5afe9\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:42 GMT"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\n\u003cdiv itemscope itemtype=\"https://pagelike.test/_pl/javascript-classes-map-schema-extends-ma-0d2227/Holder\"\u003e\n\u003cmeta itemprop=\"other\" content=\"o\"\u003e\n\u003cmeta itemprop=\"probe\" content=\"true|function|function|function\"\u003e\u003c/div\u003e\n\u003c/body\u003e\u003c/html\u003e\n"
+    }
+  ],
+  "outcome": "pass",
+  "target": "local"
+}

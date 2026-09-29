@@ -1,0 +1,47 @@
+{
+  "case": "reacting.order.lexicographic-document-order",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (install the later-sorting document first)",
+      "method": "PUT",
+      "path": "/_pl/reacting-order-lexicographic-document-or-8a0c46/r/b.html",
+      "status": 201,
+      "headers": {
+        "content-length": "532",
+        "content-type": "text/html",
+        "etag": "\"32c039e3ce9a0395b94b219bfbf2295a4cf1cb78134a5c4deceaf98a4146f133\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:48 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\n\u003cdiv hidden itemscope itemtype=\"https://pagelove.org/Trigger\"\u003e\n  \u003cmeta itemprop=\"resource\" content=\"/_pl/reacting-order-lexicographic-document-or-8a0c46/d/*\"\u003e\n  \u003cmeta itemprop=\"method\" content=\"PUT\"\u003e\n  \u003cdiv itemprop=\"action\" itemscope itemtype=\"https://pagelove.org/Sessel\"\u003e\n    \u003cscript itemprop=\"source\" type=\"text/sessel\"\u003e\n      @schema HTTPResponse url(\"https://pagelove.org/HTTPResponse\");\n      throw new HTTPResponse { status: 423, message: \"from-b\" }\n    \u003c/script\u003e\n  \u003c/div\u003e\n\u003c/div\u003e\n\u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 2 (install the earlier-sorting document second)",
+      "method": "PUT",
+      "path": "/_pl/reacting-order-lexicographic-document-or-8a0c46/r/a.html",
+      "status": 201,
+      "headers": {
+        "content-length": "532",
+        "content-type": "text/html",
+        "etag": "\"2aa2addeefce3b50fc9a7a2df15475931143e1e3bd35a8904e10a83cfbef6b7a\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:48 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\n\u003cdiv hidden itemscope itemtype=\"https://pagelove.org/Trigger\"\u003e\n  \u003cmeta itemprop=\"resource\" content=\"/_pl/reacting-order-lexicographic-document-or-8a0c46/d/*\"\u003e\n  \u003cmeta itemprop=\"method\" content=\"PUT\"\u003e\n  \u003cdiv itemprop=\"action\" itemscope itemtype=\"https://pagelove.org/Sessel\"\u003e\n    \u003cscript itemprop=\"source\" type=\"text/sessel\"\u003e\n      @schema HTTPResponse url(\"https://pagelove.org/HTTPResponse\");\n      throw new HTTPResponse { status: 409, message: \"from-a\" }\n    \u003c/script\u003e\n  \u003c/div\u003e\n\u003c/div\u003e\n\u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 3 (the trigger in a.html runs first and ends the chain)",
+      "method": "PUT",
+      "path": "/_pl/reacting-order-lexicographic-document-or-8a0c46/d/x.html",
+      "status": 409,
+      "headers": {
+        "content-length": "6",
+        "content-type": "text/html; charset=utf-8"
+      },
+      "body": "from-a"
+    }
+  ],
+  "outcome": "pass",
+  "target": "local"
+}

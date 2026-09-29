@@ -1,0 +1,59 @@
+{
+  "case": "rw.up.selector-on-blob-422",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (selector GET on a blob)",
+      "method": "GET",
+      "path": "/_pl/rw-up-selector-on-blob-422-ae96ce/data.json",
+      "status": 422,
+      "headers": {
+        "content-length": "443",
+        "content-type": "text/html",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\n  \u003chead\u003e\n    \u003ctitle\u003e422 Unprocessable Entity - Error\u003c/title\u003e\n  \u003c/head\u003e\n  \u003cbody itemscope itemtype=\"http://pagelove.org/Error\"\u003e\n    \u003ch1 itemprop=\"name\"\u003eUnprocessable Entity\u003c/h1\u003e\n    \u003cmeta itemprop=\"statusCode\" content=\"422\"\u003e\n    \u003cp itemprop=\"description\"\u003eInvalid path: Selector operations require HTML documents, but /_pl/rw-up-selector-on-blob-422-ae96ce/data.json has content type application/json\u003c/p\u003e\n  \u003c/body\u003e\n\u003c/html\u003e"
+    },
+    {
+      "step": "step 2 (selector PUT on a blob)",
+      "method": "PUT",
+      "path": "/_pl/rw-up-selector-on-blob-422-ae96ce/data.json",
+      "status": 422,
+      "headers": {
+        "content-length": "302",
+        "content-type": "text/html",
+        "vary": "Host, Range"
+      },
+      "body": "\u003cdiv itemscope itemtype=\"https://dombase.pagelove.team/ns/error/InvalidPath\"\u003e\u003cul itemprop=\"problems\"\u003e\u003cli itemprop=\"problem\"\u003e\u003cspan itemprop=\"message\"\u003eSelector operations require HTML documents, but /_pl/rw-up-selector-on-blob-422-ae96ce/data.json has content type application/json\u003c/span\u003e\u003c/li\u003e\u003c/ul\u003e\u003c/div\u003e"
+    },
+    {
+      "step": "step 3 (selector DELETE on a blob)",
+      "method": "DELETE",
+      "path": "/_pl/rw-up-selector-on-blob-422-ae96ce/data.json",
+      "status": 422,
+      "headers": {
+        "content-length": "302",
+        "content-type": "text/html",
+        "vary": "Host, Range"
+      },
+      "body": "\u003cdiv itemscope itemtype=\"https://dombase.pagelove.team/ns/error/InvalidPath\"\u003e\u003cul itemprop=\"problems\"\u003e\u003cli itemprop=\"problem\"\u003e\u003cspan itemprop=\"message\"\u003eSelector operations require HTML documents, but /_pl/rw-up-selector-on-blob-422-ae96ce/data.json has content type application/json\u003c/span\u003e\u003c/li\u003e\u003c/ul\u003e\u003c/div\u003e"
+    },
+    {
+      "step": "step 4 (blob unchanged)",
+      "method": "GET",
+      "path": "/_pl/rw-up-selector-on-blob-422-ae96ce/data.json",
+      "status": 200,
+      "headers": {
+        "accept-ranges": "bytes",
+        "content-length": "17",
+        "content-type": "application/json",
+        "etag": "\"0b6f26a587a8ad36561b31db2247ecf273be01fabd2a52599960596dd629cb91\"",
+        "last-modified": "Mon, 28 Sep 2026 22:29:28 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "{\"h1\":\"not html\"}"
+    }
+  ],
+  "outcome": "pass",
+  "target": "live"
+}

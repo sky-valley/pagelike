@@ -1,0 +1,40 @@
+{
+  "case": "protocol.options.selector-scoped-flat",
+  "failures": [
+    "step 3 (document-level Allow does not include the selector-only grants) OPTIONS ${P}/doc.html: header Allow = \"PUT, POST, HEAD, GET, OPTIONS\", want match \"^(?:(?:GET|HEAD|OPTIONS)(?:, ?|$))+$\""
+  ],
+  "observations": [
+    {
+      "step": "step 1 (selector-scoped Allow contains PUT and POST)",
+      "method": "OPTIONS",
+      "path": "/_pl/protocol-options-selector-scoped-flat-63d715/doc.html",
+      "status": 200,
+      "headers": {
+        "allow": "PUT, HEAD, POST, GET, OPTIONS",
+        "vary": "Authorization, Accept"
+      }
+    },
+    {
+      "step": "step 2 (selector-scoped Allow still carries the document-level GET and OPTIONS)",
+      "method": "OPTIONS",
+      "path": "/_pl/protocol-options-selector-scoped-flat-63d715/doc.html",
+      "status": 200,
+      "headers": {
+        "allow": "POST, PUT, HEAD, GET, OPTIONS",
+        "vary": "Authorization, Accept"
+      }
+    },
+    {
+      "step": "step 3 (document-level Allow does not include the selector-only grants)",
+      "method": "OPTIONS",
+      "path": "/_pl/protocol-options-selector-scoped-flat-63d715/doc.html",
+      "status": 200,
+      "headers": {
+        "allow": "PUT, POST, HEAD, GET, OPTIONS",
+        "vary": "Authorization, Accept"
+      }
+    }
+  ],
+  "outcome": "fail",
+  "target": "live"
+}

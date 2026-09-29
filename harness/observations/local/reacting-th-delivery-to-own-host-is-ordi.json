@@ -1,0 +1,66 @@
+{
+  "case": "reacting.th.delivery-to-own-host-is-ordinary-write",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (install a handler that PUTs to this host)",
+      "method": "PUT",
+      "path": "/_pl/reacting-th-delivery-to-own-host-is-ordi-aeb1b0/r/handlers.html",
+      "status": 201,
+      "headers": {
+        "content-length": "599",
+        "content-type": "text/html",
+        "etag": "\"66eede9aed2a153639130f79929ed1028aa6dcc855c959c1add4d1cc95e37970\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:55 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\n\u003cdiv itemscope itemtype=\"https://pagelove.org/TransitionHandler\"\u003e\n  \u003cmeta itemprop=\"selector\" content=\"[itemtype='https://pagelike.test/_pl/reacting-th-delivery-to-own-host-is-ordi-aeb1b0/Order']\"\u003e\n  \u003cmeta itemprop=\"property\" content=\"status\"\u003e\n  \u003cmeta itemprop=\"becomes\" content=\"processing\"\u003e\n  \u003cdiv itemprop=\"action\" itemscope itemtype=\"https://pagelove.org/HttpRequest\"\u003e\n    \u003cmeta itemprop=\"url\" content=\"http://t.localhost/_pl/reacting-th-delivery-to-own-host-is-ordi-aeb1b0/inbox/copy.html\"\u003e\n    \u003cmeta itemprop=\"method\" content=\"PUT\"\u003e\n  \u003c/div\u003e\n\u003c/div\u003e\n\u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 2 (seed order-1 at pending)",
+      "method": "PUT",
+      "path": "/_pl/reacting-th-delivery-to-own-host-is-ordi-aeb1b0/orders/order-1.html",
+      "status": 201,
+      "headers": {
+        "content-length": "244",
+        "content-type": "text/html",
+        "etag": "\"9a022bdcea036fec9bb06d92915a107936d976e8e73c4851aaa634d65e6d10f5\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:55 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\u003cdiv id=\"order1\" itemscope itemtype=\"https://pagelike.test/_pl/reacting-th-delivery-to-own-host-is-ordi-aeb1b0/Order\"\u003e\u003cmeta itemprop=\"status\" content=\"pending\"\u003e\u003cspan itemprop=\"total\"\u003e42.00\u003c/span\u003e\u003c/div\u003e\u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 3 (move order-1 to processing)",
+      "method": "PUT",
+      "path": "/_pl/reacting-th-delivery-to-own-host-is-ordi-aeb1b0/orders/order-1.html",
+      "status": 206,
+      "headers": {
+        "content-length": "204",
+        "content-range": "selector #order1",
+        "content-type": "text/html",
+        "etag": "\"97bd36c8d6db6942b1f4b8d13d09b2edd3d8dfd65f7b9f85e509cd6ba19ecddb-97bd36c8d6db6942b1f4b8d13d09b2edd3d8dfd65f7b9f85e509cd6ba19ecddb-2\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:55 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003cdiv id=\"order1\" itemscope itemtype=\"https://pagelike.test/_pl/reacting-th-delivery-to-own-host-is-ordi-aeb1b0/Order\"\u003e\u003cmeta itemprop=\"status\" content=\"processing\"\u003e\u003cspan itemprop=\"total\"\u003e42.00\u003c/span\u003e\u003c/div\u003e"
+    },
+    {
+      "step": "step 5 (the Transition document was written to the host)",
+      "method": "GET",
+      "path": "/_pl/reacting-th-delivery-to-own-host-is-ordi-aeb1b0/inbox/copy.html",
+      "status": 200,
+      "headers": {
+        "accept-ranges": "selector, bytes",
+        "content-length": "619",
+        "content-type": "text/html",
+        "etag": "\"dec7006232b652fdf558ed8d58f9fc3f841d6416d3c7128a367c4016049bd20c\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:55 GMT",
+        "vary": "Host, Range, Accept"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\n  \u003chead\u003e\u003ctitle\u003eTransition\u003c/title\u003e\u003c/head\u003e\n  \u003cbody itemscope itemtype=\"https://pagelove.org/Transition\"\u003e\n    \u003cmeta itemprop=\"path\" content=\"/_pl/reacting-th-delivery-to-own-host-is-ordi-aeb1b0/inbox/copy.html\"\u003e\n    \u003cmeta itemprop=\"selector\" content=\"[itemtype=\u0026quot;https://pagelike.test/_pl/reacting-th-delivery-to-own-host-is-ordi-aeb1b0/Order\u0026quot;]\"\u003e\n    \u003cdiv id=\"order1\" itemscope itemtype=\"https://pagelike.test/_pl/reacting-th-delivery-to-own-host-is-ordi-aeb1b0/Order\" itemprop=\"body\"\u003e\u003cmeta itemprop=\"status\" content=\"processing\"\u003e\u003cspan itemprop=\"total\"\u003e42.00\u003c/span\u003e\u003c/div\u003e\n  \u003c/body\u003e\n\u003c/html\u003e\n"
+    }
+  ],
+  "outcome": "pass",
+  "target": "local"
+}

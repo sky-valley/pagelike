@@ -1,0 +1,64 @@
+{
+  "case": "modeling.types.text-accepts-anything",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (register declarations through the public plane (takes effect for the next request))",
+      "method": "PUT",
+      "path": "/_pl/modeling-types-text-accepts-anything-e200fd/schema.html",
+      "status": 201,
+      "headers": {
+        "content-length": "478",
+        "content-type": "text/html",
+        "etag": "\"2390d38d0a89a42b89ebd88b1299dd6609700f4c4151dd7e39157981e995c010\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:45 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\n  \u003cdiv hidden itemscope itemtype=\"https://pagelove.org/Schema\"\u003e\n    \u003cmeta itemprop=\"type\" content=\"https://pagelike.test/_pl/modeling-types-text-accepts-anything-e200fd/Value\"\u003e\n    \u003cdiv itemprop=\"property\" itemscope itemtype=\"https://pagelove.org/Property\"\u003e\n      \u003cmeta itemprop=\"name\" content=\"v\"\u003e\n      \u003cmeta itemprop=\"type\" content=\"https://schema.host/Text\"\u003e\n      \u003cmeta itemprop=\"cardinality\" content=\"1..1\"\u003e\n    \u003c/div\u003e\n  \u003c/div\u003e\n\u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 2 (valid: \"\")",
+      "method": "PUT",
+      "path": "/_pl/modeling-types-text-accepts-anything-e200fd/ok-0.html",
+      "status": 201,
+      "headers": {
+        "content-length": "190",
+        "content-type": "text/html",
+        "etag": "\"e09a3a5d7e66066d4c20abe9d0570b7ebd4d347b31bcbe973a8a62d11a9092ec\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:45 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\n  \u003cdiv itemscope itemtype=\"https://pagelike.test/_pl/modeling-types-text-accepts-anything-e200fd/Value\"\u003e\n    \u003cmeta itemprop=\"v\" content\u003e\n  \u003c/div\u003e\n\u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 3 (valid: \"hello\")",
+      "method": "PUT",
+      "path": "/_pl/modeling-types-text-accepts-anything-e200fd/ok-1.html",
+      "status": 201,
+      "headers": {
+        "content-length": "198",
+        "content-type": "text/html",
+        "etag": "\"d7ea40a579e5cda430125f8882d3a8d5bc6c3ed4240ae54d121e45d20239317d\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:45 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\n  \u003cdiv itemscope itemtype=\"https://pagelike.test/_pl/modeling-types-text-accepts-anything-e200fd/Value\"\u003e\n    \u003cmeta itemprop=\"v\" content=\"hello\"\u003e\n  \u003c/div\u003e\n\u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 4 (valid: \"\u003cb\u003ebold\u003c/b\u003e\")",
+      "method": "PUT",
+      "path": "/_pl/modeling-types-text-accepts-anything-e200fd/ok-2.html",
+      "status": 201,
+      "headers": {
+        "content-length": "216",
+        "content-type": "text/html",
+        "etag": "\"f55b329351d46a696ddaf66e4a9c21bfd044f362e52266ad840492a5692868f3\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:45 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\n  \u003cdiv itemscope itemtype=\"https://pagelike.test/_pl/modeling-types-text-accepts-anything-e200fd/Value\"\u003e\n    \u003cmeta itemprop=\"v\" content=\"\u0026lt;b\u0026gt;bold\u0026lt;/b\u0026gt;\"\u003e\n  \u003c/div\u003e\n\u003c/body\u003e\u003c/html\u003e\n"
+    }
+  ],
+  "outcome": "pass",
+  "target": "local"
+}

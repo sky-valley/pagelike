@@ -1,0 +1,52 @@
+# SSE: keepalive comments.
+# Spec: docs/spec/sse.md R-SSE-35. Uses the sse_expect_comment extension.
+cases:
+  - id: sse.keepalive.ping
+    title: "An idle stream receives a ': ping' comment within about 20 seconds"
+    area: sse
+    feature: keepalive
+    evidence: documented
+    source: "docs reference/reading-and-writing/Server-Sent-Events §Keepalives (snapshot 2026-09-28)"
+    confidence: high
+    requires: [slow]
+    live: true
+    notes: "R-SSE-35. 25 s allows for scheduling slack."
+    site:
+      files:
+        - path: "${P}/doc.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body><h1>Idle</h1></body></html>
+      rules:
+        - {actor: "*", resource: "${P}/*", method: [GET], action: Allow}
+    steps:
+      - sse_open: {name: s1, path: "${P}/doc.html", as: anonymous}
+      - sse_expect: {name: s1, event: pagelove-connection, within_ms: 3000}
+      - sse_expect_comment: {name: s1, text: ping, within_ms: 25000}
+      - sse_close: {name: s1}
+
+  - id: sse.keepalive.ping-repeats
+    title: Keepalive comments repeat roughly every 20 seconds and dispatch no events
+    area: sse
+    feature: keepalive
+    evidence: documented
+    source: "docs reference/reading-and-writing/Server-Sent-Events §Keepalives (snapshot 2026-09-28)"
+    confidence: medium
+    requires: [slow]
+    live: true
+    notes: "Probe Q19 (fixed ticker vs idle timer). Only the repetition is asserted."
+    site:
+      files:
+        - path: "${P}/doc.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body><h1>Idle</h1></body></html>
+      rules:
+        - {actor: "*", resource: "${P}/*", method: [GET], action: Allow}
+    steps:
+      - sse_open: {name: s1, path: "${P}/doc.html", as: anonymous}
+      - sse_expect: {name: s1, event: pagelove-connection, within_ms: 3000}
+      - sse_expect_comment: {name: s1, text: ping, within_ms: 25000}
+      - sse_expect_comment: {name: s1, text: ping, within_ms: 25000}
+      - sse_expect_none: {name: s1, event: mutation, for_ms: 100}
+      - sse_close: {name: s1}

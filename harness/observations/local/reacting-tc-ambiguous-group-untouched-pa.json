@@ -1,0 +1,36 @@
+{
+  "case": "reacting.tc.ambiguous-group-untouched-passes",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (install entry pending and step pending -\u003e processing)",
+      "method": "PUT",
+      "path": "/_pl/reacting-tc-ambiguous-group-untouched-pa-006c67/transitions/rules.html",
+      "status": 201,
+      "headers": {
+        "content-length": "680",
+        "content-type": "text/html",
+        "etag": "\"e1740b5ea202b7e5f5e502941a9baf30b0f754a60e1f952172fa683be460e88b\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:55 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\n\u003cdiv itemscope itemtype=\"https://pagelove.org/TransitionConstraint\"\u003e\n  \u003cmeta itemprop=\"selector\" content=\"[itemtype='https://pagelike.test/_pl/reacting-tc-ambiguous-group-untouched-pa-006c67/Order']\"\u003e\n  \u003cmeta itemprop=\"property\" content=\"status\"\u003e\n  \u003cmeta itemprop=\"to\" content=\"pending\"\u003e\n\u003c/div\u003e\n\u003cdiv itemscope itemtype=\"https://pagelove.org/TransitionConstraint\"\u003e\n  \u003cmeta itemprop=\"selector\" content=\"[itemtype='https://pagelike.test/_pl/reacting-tc-ambiguous-group-untouched-pa-006c67/Order']\"\u003e\n  \u003cmeta itemprop=\"property\" content=\"status\"\u003e\n  \u003cmeta itemprop=\"from\" content=\"pending\"\u003e\n  \u003cmeta itemprop=\"to\" content=\"processing\"\u003e\n\u003c/div\u003e\n\u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 2 (only totals change)",
+      "method": "PUT",
+      "path": "/_pl/reacting-tc-ambiguous-group-untouched-pa-006c67/orders/pair.html",
+      "status": 200,
+      "headers": {
+        "content-length": "418",
+        "content-type": "text/html",
+        "etag": "\"b8d68e9fb91443da0fcaba7c444c46879d5e06cfe0f638ba9b82da068d9c9351\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:55 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\n\u003cdiv itemscope itemtype=\"https://pagelike.test/_pl/reacting-tc-ambiguous-group-untouched-pa-006c67/Order\"\u003e\u003cmeta itemprop=\"status\" content=\"pending\"\u003e\u003cspan itemprop=\"total\"\u003e10\u003c/span\u003e\u003c/div\u003e\n\u003cdiv itemscope itemtype=\"https://pagelike.test/_pl/reacting-tc-ambiguous-group-untouched-pa-006c67/Order\"\u003e\u003cmeta itemprop=\"status\" content=\"pending\"\u003e\u003cspan itemprop=\"total\"\u003e20\u003c/span\u003e\u003c/div\u003e\n\u003c/body\u003e\u003c/html\u003e\n"
+    }
+  ],
+  "outcome": "pass",
+  "target": "local"
+}

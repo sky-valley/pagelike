@@ -1,0 +1,52 @@
+{
+  "case": "apps.first-app.directory-url-writes",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (selector PUT addressed to the directory URL)",
+      "method": "PUT",
+      "path": "/_pl/apps-first-app-directory-url-writes-7b6153/list/",
+      "status": 206,
+      "headers": {
+        "content-length": "48",
+        "content-range": "selector #todo-list \u003e li:nth-child(1)",
+        "content-type": "text/html",
+        "etag": "\"e64f67b811d04059f2ed1db1c6089500d7d0a3455c0df60c48187d4310944277-e64f67b811d04059f2ed1db1c6089500d7d0a3455c0df60c48187d4310944277-2\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:41 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003cli\u003e\u003cinput type=\"checkbox\" checked\u003eGet Milk\u003c/li\u003e"
+    },
+    {
+      "step": "step 2 (selector POST addressed to the directory URL)",
+      "method": "POST",
+      "path": "/_pl/apps-first-app-directory-url-writes-7b6153/list/",
+      "status": 206,
+      "headers": {
+        "content-length": "14",
+        "content-range": "selector #todo-list",
+        "content-type": "text/html",
+        "etag": "\"a63392f2e8e83c2e7245c67548a22ed41f3de9b21e2755e69b253309219f8ad3-a63392f2e8e83c2e7245c67548a22ed41f3de9b21e2755e69b253309219f8ad3-3\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:41 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003cli\u003eBread\u003c/li\u003e"
+    },
+    {
+      "step": "step 3 (both writes landed in index.html)",
+      "method": "GET",
+      "path": "/_pl/apps-first-app-directory-url-writes-7b6153/list/index.html",
+      "status": 200,
+      "headers": {
+        "accept-ranges": "bytes",
+        "content-length": "875",
+        "content-type": "text/html",
+        "etag": "\"4e247ea9684c887e7719824437fa9abdf424bc306d2ea4746ef87c01bc0be764\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:41 GMT"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\n  \u003cul id=\"todo-list\"\u003e\u003cli\u003e\u003cinput type=\"checkbox\" checked\u003eGet Milk\u003c/li\u003e\u003cli\u003eBread\u003c/li\u003e\u003c/ul\u003e\n  \u003cdiv hidden itemscope itemtype=\"https://pagelove.org/AuthorizationRule\"\u003e\n    \u003cmeta itemprop=\"actor\" content=\"*\"\u003e\n    \u003cmeta itemprop=\"resource\" content=\"/_pl/apps-first-app-directory-url-writes-7b6153/list/index.html\"\u003e\n    \u003cmeta itemprop=\"method\" content=\"PUT\"\u003e\n    \u003cmeta itemprop=\"selector\" content=\"#todo-list li\"\u003e\n    \u003cmeta itemprop=\"action\" content=\"allow\"\u003e\n  \u003c/div\u003e\n  \u003cdiv hidden itemscope itemtype=\"https://pagelove.org/AuthorizationRule\"\u003e\n    \u003cmeta itemprop=\"actor\" content=\"*\"\u003e\n    \u003cmeta itemprop=\"resource\" content=\"/_pl/apps-first-app-directory-url-writes-7b6153/list/index.html\"\u003e\n    \u003cmeta itemprop=\"method\" content=\"POST\"\u003e\n    \u003cmeta itemprop=\"selector\" content=\"#todo-list\"\u003e\n    \u003cmeta itemprop=\"action\" content=\"allow\"\u003e\n  \u003c/div\u003e\n\u003c/body\u003e\u003c/html\u003e\n"
+    }
+  ],
+  "outcome": "pass",
+  "target": "local"
+}

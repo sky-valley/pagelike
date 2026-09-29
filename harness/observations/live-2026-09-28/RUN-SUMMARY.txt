@@ -1,0 +1,879 @@
+load: harness/cases/liquid/bindings.yaml: yaml: line 369: mapping values are not allowed in this context
+PASS rw.authz.absent-target-on-readable-page-416
+PASS rw.authz.present-target-not-granted-401
+PASS rw.authz.present-target-denied-401
+PASS rw.authz.unreadable-page-refuses-identically
+PASS rw.authz.write-only-slot
+FAIL rw.authz.denied-fragment-read [harness/cases/reading-writing/authz.yaml]
+     - step 1 (denied element read directly) GET ${P}/mixed.html: status 206, want [401] (body: <li class="secret">secret two</li>)
+     - step 1 (denied element read directly) GET ${P}/mixed.html: body contains "secret two"
+     - step 3 (all matches as multipart) GET ${P}/mixed.html: status 200, want [401] (body: --boundarysTiVfG0RcWyqfOo640SUU4ulpButf9bV
+Content-Disposition: attachment; filename="/_pl/rw-authz-denied-fragment-read-e43f51/mixed.html"
+Content-Type: text/html
+Content-Range: selector li
+ETag: "0637b631e08cb1330d979b6fb663bbd74be574…)
+     - step 3 (all matches as multipart) GET ${P}/mixed.html: body contains "secret two"
+     - step 4 (all matches as JSON-LD) GET ${P}/mixed.html: status 206, want [401] (body: {})
+PASS rw.authz.unreadable-area-missing-document
+PASS rw.authz.no-method-grant
+FAIL rw.authz.401-error-document [harness/cases/reading-writing/authz.yaml]
+     - step 1 (unauthorized whole PUT) PUT ${P}/authz-deny-test.html: microdata: no item matches map[properties:map[resource:${P}/authz-deny-test.html] type:https://pagelove.org/1.0/Error] (items: [https://pagelove.org/1.0/Error])
+SKIP rw.authz.authenticated-denial-403 (target lacks multi-actor)
+PASS rw.cond.get-if-none-match-304
+PASS rw.cond.get-if-none-match-star
+PASS rw.cond.get-weak-if-none-match
+PASS rw.cond.fragment-304
+PASS rw.cond.put-if-match-current
+PASS rw.cond.put-if-match-stale-412
+PASS rw.cond.put-if-match-list
+PASS rw.cond.put-if-match-star
+PASS rw.cond.put-if-none-match-star
+PASS rw.cond.put-if-none-match-etag
+PASS rw.cond.delete-if-match
+FAIL rw.cond.post-if-match-document-tag [harness/cases/reading-writing/conditional.yaml]
+     - step 2 (conditional append with the current document tag) POST ${P}/cpost.html: status 412, want [206] (body: <!DOCTYPE html>
+<html><body><div itemscope itemtype="http://pagelove.org/Error"><span itemprop="message">Precondition Failed: ETag does not match</span></div></body></html>)
+     - step 4 (only the first landed) GET ${P}/cpost.html: body does not contain "first conditional" (body: <ul id="l"><li>base</li></ul>)
+PASS rw.cond.selector-put-element-etag
+PASS rw.cond.preconditions-after-404-and-416
+FAIL rw.cond.get-if-match-stale [harness/cases/reading-writing/conditional.yaml]
+     - step 1 (stale If-Match on a fragment GET) GET ${P}/gim.html: status 206, want [412] (body: <p id="x">x</p>)
+PASS rw.delete.selector-remove
+FAIL rw.delete.content-range [harness/cases/reading-writing/delete.yaml]
+     - step 1 (delete by id) DELETE ${P}/cr.html: header Content-Range = "", want match "^selector[ =]#gone$"
+PASS rw.delete.whole-document
+FAIL rw.delete.missing-document-404 [harness/cases/reading-writing/delete.yaml]
+     - step 1 (whole delete of a missing path) DELETE ${P}/missing.html: status 204, want [404] (body: )
+PASS rw.delete.no-match-416
+PASS rw.delete.first-match-only
+PASS rw.delete.removes-descendants
+PASS rw.delete.retry-after-delete-416
+PASS rw.delete.blob
+PASS rw.dir.trailing-slash-serves-index
+PASS rw.dir.slashless-redirect
+PASS rw.dir.redirect-preserves-query
+PASS rw.dir.head-redirect
+PASS rw.dir.no-index-404
+PASS rw.dir.dotted-segment-never-redirected
+FAIL rw.dir.unreadable-index-404 [harness/cases/reading-writing/directory.yaml]
+     - step 1 (slash-less, unreadable index) GET ${P}/private: status 401, want [404] (body: <!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>401 Unauthorized</title>
+</head>
+<body itemscope itemtype="https://pagelove.org/1.0/Error">
+    <h1>401 Unauthorized</h1>
+    <p itemprop="message">Authentication required …)
+PASS rw.dir.selector-on-directory
+PASS rw.get.selector-first-match
+PASS rw.get.content-range-space
+FAIL rw.get.content-range-equals [harness/cases/reading-writing/get.yaml]
+     - step 1 (read heading and inspect Content-Range) GET ${P}/cr.html: header Content-Range = "selector h1", want "selector=h1"
+PASS rw.get.whole-document
+PASS rw.get.missing-document-404
+PASS rw.get.selector-no-match-416
+PASS rw.get.416-error-document
+PASS rw.get.multi-match-first
+PASS rw.get.selector-list-document-order
+PASS rw.get.head-elements-addressable
+PASS rw.get.head-selector-etag
+PASS rw.get.head-whole
+PASS rw.get.query-string-ignored
+PASS rw.get.unknown-range-unit-ignored
+PASS rw.get.utf8-selector
+PASS rw.get.vary
+PASS rw.get.fragment-bare-table-section
+PASS rw.get.composed-before-select
+PASS rw.get.malformed-selector
+SKIP rw.limit.over-cap-413 (case not marked live)
+SKIP rw.limit.at-cap-accepted (case not marked live)
+SKIP rw.limit.cap-before-authorization (case not marked live)
+SKIP rw.limit.selector-post-over-cap (case not marked live)
+SKIP rw.reserved.writes-forbidden (case not marked live)
+PASS rw.reserved.only-root-prefix
+PASS rw.md.value-sources
+PASS rw.md.missing-attribute-empty
+FAIL rw.md.itemref [harness/cases/reading-writing/microdata-values.yaml]
+     - step 1 (JSON-LD includes the referenced property) GET ${P}/itemref.html: body does not contain "email" (body: {
+  "@context": "http://schema.org/",
+  "@type": "Person",
+  "name": "Ref Person"
+})
+     - step 1 (JSON-LD includes the referenced property) GET ${P}/itemref.html: body does not contain "ref@example.com" (body: {
+  "@context": "http://schema.org/",
+  "@type": "Person",
+  "name": "Ref Person"
+})
+FAIL rw.md.multiple-itemprop-tokens [harness/cases/reading-writing/microdata-values.yaml]
+     - step 1 (both names present) GET ${P}/tokens.html: json = {
+  "@context": "http://schema.org/",
+  "@type": "Person",
+  "name alternateName": "Zed"
+}, want {"@context":"http://schema.org/","@type":"Person","alternateName":"Zed","name":"Zed"}
+PASS rw.md.repeated-property-array
+PASS rw.md.itemid
+PASS rw.cn.jsonld-single-item
+PASS rw.cn.jsonld-graph-hoisted-context
+PASS rw.cn.jsonld-graph-mixed-vocabularies
+PASS rw.cn.jsonld-non-url-type
+PASS rw.cn.jsonld-nested-item-not-top-level
+PASS rw.cn.default-html
+PASS rw.cn.representations-have-distinct-etags
+PASS rw.cn.blob-ignores-accept
+PASS rw.cn.xml-ignores-jsonld
+PASS rw.cn.jsonld-selector-all-matches
+PASS rw.cn.multipart-selector-all-matches
+PASS rw.cn.jsonld-from-composed-page
+PASS rw.post.append
+PASS rw.post.append-verify
+PASS rw.post.getting-started-example
+PASS rw.post.prepend
+PASS rw.post.before
+PASS rw.post.after
+PASS rw.post.append-explicit
+PASS rw.post.placement-case-insensitive
+FAIL rw.post.unknown-placement [harness/cases/reading-writing/post.yaml]
+     - step 1 (placement=inside) POST ${P}/badplace.html: status 206, want [400 422] (body: <li>nope</li>)
+     - step 2 (unchanged) GET ${P}/badplace.html: body contains "nope"
+FAIL rw.post.parentless-anchor-400 [harness/cases/reading-writing/post.yaml]
+     - step 1 (before html) POST ${P}/root.html: status 422, want [400] (body: <div itemscope itemtype="https://pagelove.org/Error"><ul itemprop="problems"><li itemprop="problem"><span itemprop="message">placement=Before relative to the document root is not possible: the root has no siblings</span></li></ul></div>)
+     - step 2 (after html) POST ${P}/root.html: status 422, want [400] (body: <div itemscope itemtype="https://pagelove.org/Error"><ul itemprop="problems"><li itemprop="problem"><span itemprop="message">placement=After relative to the document root is not possible: the root has no siblings</span></li></ul></div>)
+PASS rw.post.absent-anchor-append-416
+FAIL rw.post.absent-anchor-before-refused [harness/cases/reading-writing/post.yaml]
+     - step 1 (before a missing anchor) POST ${P}/absent2.html: status 416, want [401 403] (body: <!DOCTYPE html>
+<html><body><div itemscope itemtype="http://pagelove.org/Error"><span itemprop="statusCode">416</span><span itemprop="message"><div itemscope itemtype="https://dombase.pagelove.team/ns/error/selector-no-match"><ul itemprop="…)
+     - step 2 (after a missing anchor) POST ${P}/absent2.html: status 416, want [401 403] (body: <!DOCTYPE html>
+<html><body><div itemscope itemtype="http://pagelove.org/Error"><span itemprop="statusCode">416</span><span itemprop="message"><div itemscope itemtype="https://dombase.pagelove.team/ns/error/selector-no-match"><ul itemprop="…)
+PASS rw.post.missing-document-404
+PASS rw.post.table-row-context
+PASS rw.post.concurrent-appends-accumulate
+PASS rw.post.first-match-only
+FAIL rw.post.etag-is-anchor-tag [harness/cases/reading-writing/post.yaml]
+     - step 2 (the anchor's current tag equals the POST tag) HEAD ${P}/anchor.html: ETag "43a59daefa9db2b5b4943d173921bc73580ccdbcd66263d500b5c49e75b676ca-43a59daefa9db2b5b4943d173921bc73580ccdbcd66263d500b5c49e75b676ca-2", want equal to "6de25f78336cb76acda5abdabd9849c8b091de4f14d8075637c260310542c97b-6de25f78336cb76acda5abdabd9849c8b091de4f14d8075637c260310542c97b-2"
+PASS rw.put.selector-replace
+PASS rw.put.selector-persists
+PASS rw.put.selector-response-headers
+PASS rw.put.beta-js-request-shape
+PASS rw.put.first-match-only
+PASS rw.put.selector-no-match-416
+PASS rw.put.selector-missing-document-404
+PASS rw.put.whole-create-201
+PASS rw.put.whole-replace
+PASS rw.put.nested-path-create
+PASS rw.put.table-row-context
+PASS rw.put.percent-encoded-path
+PASS rw.put.visible-on-authoring-plane
+PASS rw.put.replacement-need-not-match
+PASS rw.reqdoc.liquid-method-and-path
+PASS rw.reqdoc.query-parameters
+FAIL rw.reqdoc.auth-read-is-private [harness/cases/reading-writing/request-document.yaml]
+     - step 1 (render anonymously) GET ${P}/me.html: header Cache-Control = "public, max-age=5", want match "(?i)(^|[ ,])private([ ,]|$)"
+PASS rw.up.json-roundtrip
+PASS rw.up.byte-fidelity
+PASS rw.up.html-extension-forces-text-html
+PASS rw.up.explicit-header-wins-over-extension
+PASS rw.up.wrong-header-stored-verbatim
+PASS rw.up.extension-inference
+PASS rw.up.octet-stream-fallback
+PASS rw.up.html-by-content-type-without-extension
+PASS rw.up.selector-on-blob-422
+PASS rw.up.static-asset-cache-control
+PASS rw.up.content-hash-etag
+PASS rw.up.blob-304
+FAIL rw.up.xml-selector [harness/cases/reading-writing/uploads.yaml]
+     - step 1 (select the entry) GET ${P}/feed.xml: status 422, want [206] (body: <!DOCTYPE html>
+<html>
+  <head>
+    <title>422 Unprocessable Entity - Error</title>
+  </head>
+  <body itemscope itemtype="http://pagelove.org/Error">
+    <h1 itemprop="name">Unprocessable Entity</h1>
+    <meta itemprop="statusCode" content=…)
+     - step 1 (select the entry) GET ${P}/feed.xml: body does not contain "<entry>" (body: <!DOCTYPE html>
+<html>
+  <head>
+    <title>422 Unprocessable Entity - Error</title>
+  </head>
+  <body itemscope itemtype="http://pagelove.org/Error">
+    <h1 itemprop="name">Unprocessable Entity</h1>
+    <meta itemprop="statusCode" content="422">
+    <p itemprop="description">Invalid path: Selector operations require HTML documents, but /_pl/rw-up-xml-selector-a6e5a7/feed.xml has content type appl…)
+     - step 1 (select the entry) GET ${P}/feed.xml: body does not contain "urn:1" (body: <!DOCTYPE html>
+<html>
+  <head>
+    <title>422 Unprocessable Entity - Error</title>
+  </head>
+  <body itemscope itemtype="http://pagelove.org/Error">
+    <h1 itemprop="name">Unprocessable Entity</h1>
+    <meta itemprop="statusCode" content="422">
+    <p itemprop="description">Invalid path: Selector operations require HTML documents, but /_pl/rw-up-xml-selector-a6e5a7/feed.xml has content type appl…)
+PASS rw.up.byte-range
+
+111 passed, 16 failed, 6 skipped
+SKIP protocol.accept-ranges.html-full-document (case not marked live)
+SKIP protocol.accept-ranges.html-fragment (case not marked live)
+PASS protocol.accept-ranges.sessel-unit-ignored
+PASS protocol.accept-ranges.unknown-unit-ignored
+SKIP protocol.move-authz.default-deny-even-with-default-get (case not marked live)
+PASS protocol.move-authz.move-rule-alone-insufficient
+PASS protocol.move-authz.each-check-required
+PASS protocol.move-authz.allow-move-rule-with-selector-discarded
+PASS protocol.move-authz.whitespace-selector-is-fine
+PASS protocol.move-authz.deny-move-rule-with-selector-widened
+PASS protocol.move-authz.deny-with-selector-widens-co-listed-methods
+PASS protocol.move-authz.post-rule-on-container-covers-all-placements
+PASS protocol.move-authz.append-keys-on-anchor
+PASS protocol.move-authz.narrow-delete-rule
+PASS protocol.move-authz.narrow-post-rule
+FAIL protocol.move-authz.fail-closed-when-unreadable [harness/cases/protocol/move-authz.yaml]
+     - step 1 (absent source, unreadable page) MOVE ${P}/board.html: status 416, want [401] (body: <!DOCTYPE html>
+<html><body><div itemscope itemtype="http://pagelove.org/Error"><span itemprop="statusCode">416</span><span itemprop="message"><div itemscope itemtype="https://dombase.pagelove.team/ns/error/selector-no-match"><ul itemprop="…)
+SKIP protocol.move-authz.authenticated-denial-403 (target lacks multi-actor)
+SKIP protocol.move-authz.editors-example (target lacks multi-actor)
+PASS protocol.move-authz.whole-document-needs-destination-grant
+PASS protocol.move-authz.whole-document-deny-at-destination
+PASS protocol.move-authz.whole-document-needs-no-delete-post
+PASS protocol.move.append-example
+PASS protocol.move.before-example
+PASS protocol.move.prepend-and-after
+PASS protocol.move.placement-case-insensitive
+PASS protocol.move.incomplete-requests-422
+PASS protocol.move.unknown-placement-422
+PASS protocol.move.cross-document-501
+PASS protocol.move.source-absent-416
+PASS protocol.move.destination-absent-404
+FAIL protocol.move.invalid-selectors-422 [harness/cases/protocol/move.yaml]
+     - step 1 (invalid source selector) MOVE ${P}/board.html: status 416, want [422] (body: <!DOCTYPE html>
+<html><body><div itemscope itemtype="http://pagelove.org/Error"><span itemprop="statusCode">416</span><span itemprop="message"><div itemscope itemtype="https://dombase.pagelove.team/ns/error/selector-no-match"><ul itemprop="…)
+PASS protocol.move.into-own-descendant-422
+PASS protocol.move.first-source-match
+PASS protocol.move.first-anchor-match
+PASS protocol.move.whole-document
+FAIL protocol.move.whole-document-missing-source [harness/cases/protocol/move.yaml]
+     - step 1 (nothing to move) MOVE ${P}/missing.html: status 500, want [404] (body: <div itemscope itemtype="https://dombase.pagelove.team/ns/error/Internal"><ul itemprop="problems"><li itemprop="problem"><span itemprop="message">Document not found: /_pl/protocol-move-whole-document-missing-sou-571128/missing.html</span></…)
+PASS protocol.move.element-move-missing-document
+PASS protocol.move.if-match-stale-412
+FAIL protocol.move.if-match-current [harness/cases/protocol/move.yaml]
+     - step 2 (conditional move with the current ETag) MOVE ${P}/board.html: status 412, want [204] (body: <!DOCTYPE html>
+<html><body><div itemscope itemtype="http://pagelove.org/Error"><span itemprop="message">Precondition Failed: ETag does not match</span></div></body></html>)
+PASS protocol.move.if-match-element-etag
+FAIL protocol.move.destination-absolute-url [harness/cases/protocol/move.yaml]
+     - step 2 (absolute URL with a query string) MOVE ${P}/board.html?view=board: status 501, want [204] (body: <div itemscope itemtype="https://dombase.pagelove.team/ns/error/MoveCrossResource"><ul itemprop="problems"><li itemprop="problem"><span itemprop="message">Cross-resource MOVE is not supported</span></li></ul></div>)
+PASS protocol.move.concurrent-moves-both-land
+PASS protocol.move.mutation-event
+PASS protocol.move.blob-with-ranges-422
+PASS protocol.move.never-405
+SKIP protocol.move.reserved-namespace-403 (case not marked live)
+PASS protocol.options.flat-document-level
+PASS protocol.options.no-existence-check
+PASS protocol.options.selector-no-match
+FAIL protocol.options.selector-scoped-flat [harness/cases/protocol/options.yaml]
+     - step 3 (document-level Allow does not include the selector-only grants) OPTIONS ${P}/doc.html: header Allow = "PUT, POST, HEAD, GET, OPTIONS", want match "^(?:(?:GET|HEAD|OPTIONS)(?:, ?|$))+$"
+PASS protocol.options.wildcard-document-expansion
+PASS protocol.options.wildcard-selector-expansion
+FAIL protocol.options.wildcard-star-example [harness/cases/protocol/options.yaml]
+     - step 1 (literal star as in the example) OPTIONS ${P}/options-test.html: header Allow = "MOVE, PATCH, GET, POST, PUT, DELETE, HEAD, OPTIONS", want "*, OPTIONS"
+     - step 1 (literal star as in the example) OPTIONS ${P}/options-test.html: header Accept-Ranges = "", want "selector"
+PASS protocol.options.multipart-207
+PASS protocol.options.multipart-content-range-space-form
+FAIL protocol.options.multipart-content-range-equals-form [harness/cases/protocol/options.yaml]
+     - step 1 (equals form) OPTIONS ${P}/doc.html: body does not contain "Content-Range: selector=ul" (body: --boundaryy7ezuLm7A3BFHAYelhNVUatWcGHHJ5bK
+Allow: GET, HEAD, OPTIONS
+
+--boundaryy7ezuLm7A3BFHAYelhNVUatWcGHHJ5bK
+Content-Range: selector ul
+Allow: POST, OPTIONS
+
+--boundaryy7ezuLm7A3BFHAYelhNVUatWcGHHJ5bK--
+)
+PASS protocol.options.multipart-204-document-rules-only
+PASS protocol.options.multipart-204-no-rules
+SKIP protocol.options.default-get-host-no-rules (case not marked live)
+SKIP protocol.options.deny-host-no-rules (case not marked live)
+PASS protocol.options.multipart-with-range-no-selector-rules
+PASS protocol.options.prefer-return-representation-ignored
+SKIP protocol.options.accept-ranges (case not marked live)
+SKIP protocol.options.accept-query (case not marked live)
+PASS protocol.options.does-not-modify
+SKIP protocol.options.default-get-never-grants-move (case not marked live)
+PASS protocol.options.move-allow-rule-with-selector-discarded
+FAIL protocol.options.selector-deny-removes-method [harness/cases/protocol/options.yaml]
+     - step 1 (PUT not allowed at the locked selector) OPTIONS ${P}/doc.html: header Allow = "HEAD, GET, PUT, OPTIONS", want match "^(?:(?:GET|HEAD|DELETE|POST|OPTIONS)(?:, ?|$))+$"
+     - step 2 (multipart lists the locked selector as its own part) OPTIONS ${P}/doc.html: status 204, want [207] (body: )
+     - step 2 (multipart lists the locked selector as its own part) OPTIONS ${P}/doc.html: body does not contain "h1.locked" (body: )
+SKIP protocol.options.actor-specific-selector-rules (target lacks multi-actor)
+PASS protocol.query-dav.single-document-multipart
+PASS protocol.query-dav.part-headers
+PASS protocol.query-dav.multiple-matches
+PASS protocol.query-dav.prefix-scope
+SKIP protocol.query-dav.host-scope (case not marked live)
+PASS protocol.query-dav.no-match
+PASS protocol.query-dav.conditional-304
+PASS protocol.query-dav.etag-changes-with-fragment
+PASS protocol.query-dav.etag-depends-on-selector-text
+FAIL protocol.query-dav.etag-ignores-unmatched-change [harness/cases/protocol/query-dav.yaml]
+     - step 3 (still not modified) QUERY ${P}/doc.html: status 200, want [304] (body: --boundarybAaczQDuvtoQ9ernHBrk0ydaM4gPy4U4
+Content-Type: text/html
+Content-Location: /_pl/protocol-query-dav-etag-ignores-unmatche-f3ca41/doc.html
+Content-Range: selector html:nth-child(1) > body:nth-child(1) > h1:nth-child(1)
+ETag: "1c…)
+PASS protocol.query-dav.raw-markup
+PASS protocol.query-dav.415-missing-content-type
+PASS protocol.query-dav.415-sessel-not-served
+PASS protocol.query-dav.422-empty-or-invalid
+PASS protocol.query-dav.406-accept
+PASS protocol.query-dav.404-missing-target
+PASS protocol.query-edge.single-fragment
+PASS protocol.query-edge.same-etag-as-get-fragment
+FAIL protocol.query-edge.documented-multipart [harness/cases/protocol/query-edge.yaml]
+     - step 1 (multipart without Accept) QUERY ${P}/doc.html: status 206, want [200 201] (body: <h1>First</h1>)
+     - step 1 (multipart without Accept) QUERY ${P}/doc.html: header Content-Type = "text/html", want match "^multipart/mixed"
+PASS protocol.query-edge.multipart-when-accepted
+PASS protocol.query-edge.composed-page
+PASS protocol.query-edge.authorized-like-get
+SKIP protocol.query-edge.default-get-mode (case not marked live)
+PASS protocol.query-edge.directory-index
+PASS protocol.query-edge.missing-document
+FAIL protocol.query-edge.415-unsupported-type [harness/cases/protocol/query-edge.yaml]
+     - step 1 (text/plain) QUERY ${P}/doc.html: status 401, want [415] (body: <!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>401 Unauthorized</title>
+</head>
+<body itemscope itemtype="https://pagelove.org/1.0/Error">
+    <h1>401 Unauthorized</h1>
+    <p itemprop="message">Authentication required …)
+     - step 1 (text/plain) QUERY ${P}/doc.html: header Accept-Query missing
+FAIL protocol.query-edge.422-invalid-selector [harness/cases/protocol/query-edge.yaml]
+     - step 1 (invalid selector) QUERY ${P}/doc.html: status 416, want [422] (body: <!DOCTYPE html>
+<html>
+  <head>
+    <title>416 Range Not Satisfiable - Error</title>
+  </head>
+  <body itemscope itemtype="http://pagelove.org/Error">
+    <h1 itemprop="name">Range Not Satisfiable</h1>
+    <meta itemprop="statusCode" conten…)
+PASS protocol.query-edge.no-match
+FAIL protocol.query-sessel.number-result [harness/cases/protocol/query-sessel.yaml]
+     - step 1 (count of list items) QUERY ${P}/list.html: status 400, want [200] (body: <!DOCTYPE html>
+<html>
+  <head>
+    <title>400 Bad Request - Error</title>
+  </head>
+  <body itemscope itemtype="http://pagelove.org/Error">
+    <h1 itemprop="name">Bad Request</h1>
+    <meta itemprop="statusCode" content="400">
+    <p item…)
+     - step 1 (count of list items) QUERY ${P}/list.html: header Content-Type = "text/html", want match "^application/sessel\\+json"
+     - step 1 (count of list items) QUERY ${P}/list.html: body is not JSON: invalid character '<' looking for beginning of value
+FAIL protocol.query-sessel.element-result [harness/cases/protocol/query-sessel.yaml]
+     - step 1 (first h1) QUERY ${P}/list.html: status 400, want [200 206] (body: <!DOCTYPE html>
+<html>
+  <head>
+    <title>400 Bad Request - Error</title>
+  </head>
+  <body itemscope itemtype="http://pagelove.org/Error">
+    <h1 itemprop="name">Bad Request</h1>
+    <meta itemprop="statusCode" content="400">
+    <p item…)
+     - step 1 (first h1) QUERY ${P}/list.html: body html = "<!DOCTYPE html>\n<html>\n  <head>\n    <title>400 Bad Request - Error</title>\n  </head>\n  <body itemscope itemtype=\"http://pagelove.org/Error\">\n    <h1 itemprop=\"name\">Bad Request</h1>\n    <meta itemprop=\"statusCode\" content=\"400\">\n    <p itemprop=\"description\">Sessel evaluation error: unknown function: execute (at bytes 16..20)</p>\n  </body>\n</html>", want "<h1>A</h1>"
+FAIL protocol.query-sessel.element-list-tagged [harness/cases/protocol/query-sessel.yaml]
+     - step 1 (list of two elements) QUERY ${P}/list.html: status 400, want [200] (body: <!DOCTYPE html>
+<html>
+  <head>
+    <title>400 Bad Request - Error</title>
+  </head>
+  <body itemscope itemtype="http://pagelove.org/Error">
+    <h1 itemprop="name">Bad Request</h1>
+    <meta itemprop="statusCode" content="400">
+    <p item…)
+     - step 1 (list of two elements) QUERY ${P}/list.html: header Content-Type = "text/html", want match "^application/sessel\\+json"
+     - step 1 (list of two elements) QUERY ${P}/list.html: body is not JSON: invalid character '<' looking for beginning of value
+PASS protocol.query-sessel.constructed-element-no-source
+PASS protocol.query-sessel.scalar-results
+FAIL protocol.query-sessel.directory-self-unbound [harness/cases/protocol/query-sessel.yaml]
+     - step 1 (self on a directory) QUERY ${P}/sub/: status 404, want [416] (body: <!DOCTYPE html>
+<html>
+  <head>
+    <title>404 Not Found - Error</title>
+  </head>
+  <body itemscope itemtype="http://pagelove.org/Error">
+    <h1 itemprop="name">Not Found</h1>
+    <meta itemprop="statusCode" content="404">
+    <p itemprop…)
+     - step 2 (an expression without self evaluates) QUERY ${P}/sub/: status 404, want [200] (body: <!DOCTYPE html>
+<html>
+  <head>
+    <title>404 Not Found - Error</title>
+  </head>
+  <body itemscope itemtype="http://pagelove.org/Error">
+    <h1 itemprop="name">Not Found</h1>
+    <meta itemprop="statusCode" content="404">
+    <p itemprop…)
+     - step 2 (an expression without self evaluates) QUERY ${P}/sub/: body is not JSON: invalid character '<' looking for beginning of value
+FAIL protocol.query-sessel.entries-pagination [harness/cases/protocol/query-sessel.yaml]
+     - step 1 (first page) QUERY ${P}/five.html: status 400, want [206 200] (body: <!DOCTYPE html>
+<html>
+  <head>
+    <title>400 Bad Request - Error</title>
+  </head>
+  <body itemscope itemtype="http://pagelove.org/Error">
+    <h1 itemprop="name">Bad Request</h1>
+    <meta itemprop="statusCode" content="400">
+    <p item…)
+     - step 1 (first page) QUERY ${P}/five.html: header Content-Range = "", want "entries 0-1/5"
+     - step 1 (first page) QUERY ${P}/five.html: body is not JSON: invalid character '<' looking for beginning of value
+     - step 2 (last page is clamped to the list length) QUERY ${P}/five.html: status 400, want [206 200] (body: <!DOCTYPE html>
+<html>
+  <head>
+    <title>400 Bad Request - Error</title>
+  </head>
+  <body itemscope itemtype="http://pagelove.org/Error">
+    <h1 itemprop="name">Bad Request</h1>
+    <meta itemprop="statusCode" content="400">
+    <p item…)
+     - step 2 (last page is clamped to the list length) QUERY ${P}/five.html: header Content-Range = "", want "entries 3-4/5"
+     - step 2 (last page is clamped to the list length) QUERY ${P}/five.html: body is not JSON: invalid character '<' looking for beginning of value
+FAIL protocol.query-sessel.entries-format [harness/cases/protocol/query-sessel.yaml]
+     - step 1 (any page) QUERY ${P}/five.html: header Content-Range = "", want match "^entries \\d+-\\d+/5$"
+FAIL protocol.query-sessel.entries-non-list-416 [harness/cases/protocol/query-sessel.yaml]
+     - step 1 (number result with an entries range) QUERY ${P}/five.html: status 400, want [416] (body: <!DOCTYPE html>
+<html>
+  <head>
+    <title>400 Bad Request - Error</title>
+  </head>
+  <body itemscope itemtype="http://pagelove.org/Error">
+    <h1 itemprop="name">Bad Request</h1>
+    <meta itemprop="statusCode" content="400">
+    <p item…)
+FAIL protocol.query-sessel.400-body-errors [harness/cases/protocol/query-sessel.yaml]
+     - step 1 (empty body) QUERY ${P}/doc.html: status 422, want [400] (body: <!DOCTYPE html>
+<html>
+  <head>
+    <title>422 Unprocessable Entity - Error</title>
+  </head>
+  <body itemscope itemtype="http://pagelove.org/Error">
+    <h1 itemprop="name">Unprocessable Entity</h1>
+    <meta itemprop="statusCode" content=…)
+FAIL protocol.query-sessel.500-runtime-error [harness/cases/protocol/query-sessel.yaml]
+     - step 1 (explicit throw) QUERY ${P}/doc.html: status 400, want [500] (body: <!DOCTYPE html>
+<html>
+  <head>
+    <title>400 Bad Request - Error</title>
+  </head>
+  <body itemscope itemtype="http://pagelove.org/Error">
+    <h1 itemprop="name">Bad Request</h1>
+    <meta itemprop="statusCode" content="400">
+    <p item…)
+PASS protocol.query-sessel.404-missing-document
+FAIL protocol.query-sessel.415-unsupported-type [harness/cases/protocol/query-sessel.yaml]
+     - step 1 (application/json body) QUERY ${P}/doc.html: status 400, want [415] (body: <!DOCTYPE html>
+<html>
+  <head>
+    <title>400 Bad Request - Error</title>
+  </head>
+  <body itemscope itemtype="http://pagelove.org/Error">
+    <h1 itemprop="name">Bad Request</h1>
+    <meta itemprop="statusCode" content="400">
+    <p item…)
+     - step 1 (application/json body) QUERY ${P}/doc.html: header Accept-Query missing
+PASS protocol.query-sessel.400-wrong-type-documented
+PASS protocol.query-sessel.not-granted-by-get
+SKIP protocol.query-sessel.default-get-host-401 (case not marked live)
+PASS protocol.webdav.propfind-collection
+PASS protocol.webdav.propfind-304
+PASS protocol.webdav.propfind-default-depth-is-1
+PASS protocol.webdav.depth-tags-differ
+PASS protocol.webdav.tag-changes-on-child-add-edit-remove
+PASS protocol.webdav.tag-ignores-outside-changes
+PASS protocol.webdav.file-propfind-304
+PASS protocol.webdav.file-header-tag-differs-from-content-tag
+PASS protocol.webdav.put-if-match-content-tag
+PASS protocol.webdav.put-if-match-properties-tag-rejected
+PASS protocol.webdav.put-create-and-replace
+PASS protocol.webdav.put-if-none-match-star
+FAIL protocol.webdav.get-is-byte-exact [harness/cases/protocol/webdav.yaml]
+     - step 2 (read back) GET ${P}/raw.html: body = "<html><body class=\"x\"><h1 id=\"a\">Hi</h1><p>{{ 1 | plus: 1 }}<!-- keep --></p></body></html>", want "<HTML><Body class=x ><h1   id='a'>Hi</h1><p>{{ 1 | plus: 1 }}<!-- keep --></Body></HTML>"
+PASS protocol.webdav.put-creates-parents
+FAIL protocol.webdav.mkcol [harness/cases/protocol/webdav.yaml]
+     - step 1 (create) MKCOL ${P}/newdir/: status 409, want [201] (body: <article itemscope itemtype="https://pagelove.org/Error"><meta itemprop="status" content="409"><meta itemprop="kind" content="Conflict"><div itemprop="type" itemscope itemtype="https://dombase.pagelove.team/ns/error/Conflict"></div><div ite…)
+     - step 2 (already exists) MKCOL ${P}/newdir/: body does not contain "https://dombase.pagelove.team/ns/error/DirectoryAlreadyExists" (body: <article itemscope itemtype="https://pagelove.org/Error"><meta itemprop="status" content="409"><meta itemprop="kind" content="Conflict"><div itemprop="type" itemscope itemtype="https://dombase.pagelove.team/ns/error/Conflict"></div><div itemprop="detail"><div itemscope itemtype="https://dombase.pagelove.team/ns/error/ParentDirectoryMissing"><ul itemprop="problems"><li itemprop="problem"><span item…)
+     - step 3 (it is a collection) PROPFIND ${P}/newdir/: status 404, want [207] (body: <article itemscope itemtype="https://pagelove.org/Error/NotFound"><meta itemprop="status" content="404"><p itemprop="message">Collection not found: /_pl/protocol-webdav-mkcol-114004/newdir/</p></article>)
+     - step 3 (it is a collection) PROPFIND ${P}/newdir/: body does not contain "collection" (body: <article itemscope itemtype="https://pagelove.org/Error/NotFound"><meta itemprop="status" content="404"><p itemprop="message">Collection not found: /_pl/protocol-webdav-mkcol-114004/newdir/</p></article>)
+FAIL protocol.webdav.missing-is-404 [harness/cases/protocol/webdav.yaml]
+     - step 1 (delete missing) DELETE ${P}/gone.html: status 204, want [404] (body: )
+PASS protocol.webdav.bypasses-authorization-rules
+FAIL protocol.webdav.unauthenticated-401 [harness/cases/protocol/webdav.yaml]
+     - step 1 (anonymous PROPFIND) PROPFIND ${P}/: status 207, want [401] (body: <?xml version="1.0" encoding="utf-8" ?>
+<D:multistatus xmlns:D="DAV:">
+  <D:response>
+    <D:href>/_pl/protocol-webdav-unauthenticated-401-a0fa66/</D:href>
+    <D:propstat>
+      <D:prop>
+      <D:resourcetype><D:collection/></D:resourcetyp…)
+     - step 2 (anonymous GET) GET ${P}/doc.html: status 200, want [401] (body: <!DOCTYPE html>
+<html><body><h1>A</h1></body></html>
+)
+
+89 passed, 27 failed, 15 skipped
+PASS sse.delivery.fanout
+PASS sse.delivery.other-path-not-delivered
+PASS sse.delivery.commit-order
+PASS sse.delivery.read-after-event
+PASS sse.delivery.failed-writes-emit-nothing
+SKIP sse.echo.same-session-suppressed (target lacks multi-actor)
+SKIP sse.echo.all-tabs-of-session-suppressed (target lacks multi-actor)
+SKIP sse.echo.token-narrows-to-one-tab (target lacks multi-actor)
+SKIP sse.echo.token-on-post-and-delete (target lacks multi-actor)
+SKIP sse.echo.token-on-move (target lacks multi-actor)
+SKIP sse.echo.legacy-header-not-read (target lacks multi-actor)
+SKIP sse.echo.unknown-token-suppresses-nothing (target lacks multi-actor)
+FAIL sse.echo.cross-session-token-not-honoured [harness/cases/sse/echo.yaml]
+     - step 7: no matching "mutation" event on s1 within 3s (1 events seen)
+PASS sse.echo.anonymous-writer-not-suppressed
+SKIP sse.flow.slow-consumer-disconnected-then-replayed (slow case (enable with --slow))
+SKIP sse.flow.session-invalidated-reset (target lacks multi-actor)
+SKIP sse.flow.session-expired-reset (target lacks multi-actor)
+SKIP sse.flow.denied-element-not-streamed (target lacks multi-actor)
+SKIP sse.keepalive.ping (slow case (enable with --slow))
+SKIP sse.keepalive.ping-repeats (slow case (enable with --slow))
+PASS sse.mutation.doc-live-roundtrip
+PASS sse.mutation.put-properties
+FAIL sse.mutation.id-format [harness/cases/sse/mutation.yaml]
+     - step 4: no matching "mutation" event on s1 within 3s (2 events seen)
+FAIL sse.mutation.put-etag-matches-response [harness/cases/sse/mutation.yaml]
+     - step 4: no matching "mutation" event on s1 within 3s (2 events seen)
+PASS sse.mutation.selector-verbatim
+PASS sse.mutation.multi-match-selector
+PASS sse.mutation.post-default-placement
+PASS sse.mutation.post-placements
+PASS sse.mutation.delete
+PASS sse.mutation.move-append
+PASS sse.mutation.move-before
+PASS sse.mutation.table-row-body
+PASS sse.mutation.multiline-body
+PASS sse.mutation.whole-document-put
+PASS sse.mutation.whole-document-delete
+PASS sse.replay.last-event-id
+PASS sse.replay.current-id-replays-nothing
+FAIL sse.replay.ancient-id-resets [harness/cases/sse/replay.yaml]
+     - step 3: no matching "reset" event on s1 within 3s (1 events seen)
+FAIL sse.replay.stream-continues-after-reset [harness/cases/sse/replay.yaml]
+     - step 2: no matching "reset" event on s1 within 3s (1 events seen)
+FAIL sse.replay.malformed-id-resets [harness/cases/sse/replay.yaml]
+     - step 3: no matching "reset" event on s1 within 3s (1 events seen)
+SKIP sse.replay.within-retention (slow case (enable with --slow))
+SKIP sse.replay.expired-after-retention (slow case (enable with --slow))
+FAIL sse.scope.include-not-propagated [harness/cases/sse/scope.yaml]
+     - step 7: unexpected mutation event on page: <article itemscope itemtype="https://pagelove.org/Mutation">
+  <span itemprop="method">PUT</span>
+  <span itemprop="selector">header#nav</span>
+  <span itemprop="etag">53ace1b63c784d8224b0f5b6f4c34433628c3ba08109e0bbbe3d4625b2ba1087</span>
+  <span itemprop="path">/_pl/sse-scope-include-not-propagate…
+FAIL sse.scope.write-through-event-on-origin [harness/cases/sse/scope.yaml]
+     - step 6: no matching "mutation" event on partial within 3s (1 events seen)
+     - step 7: unexpected mutation event on page: <article itemscope itemtype="https://pagelove.org/Mutation">
+  <span itemprop="method">PUT</span>
+  <span itemprop="selector">header#nav</span>
+  <span itemprop="etag">30142120a24a70c041720b13e505a647fb5390458f00cc53799c33941da7583a</span>
+  <span itemprop="path">/_pl/sse-scope-write-through-event-o…
+PASS sse.scope.transient-write-no-event
+FAIL sse.scope.webdav-write-emits [harness/cases/sse/scope.yaml]
+     - step 4: no matching "mutation" event on s1 within 5s (1 events seen)
+FAIL sse.scope.trigger-side-effect-emits [harness/cases/sse/scope.yaml]
+     - step 7: no matching "mutation" event on side within 3s (1 events seen)
+PASS sse.subscribe.response-head
+PASS sse.subscribe.first-event-is-connection
+PASS sse.subscribe.connection-event-precedes-mutation
+PASS sse.subscribe.connection-event-has-no-id
+PASS sse.subscribe.tokens-distinct-per-stream
+PASS sse.subscribe.default-get-does-not-grant
+PASS sse.subscribe.default-get-deny-no-rule
+PASS sse.subscribe.explicit-deny-rule
+SKIP sse.subscribe.authenticated-denied-403 (target lacks multi-actor)
+SKIP sse.subscribe.group-rule-grants (target lacks multi-actor)
+FAIL sse.subscribe.missing-document-404 [harness/cases/sse/subscribe.yaml]
+     - step 1 (subscribe to a path that has no document) GET ${P}/missing.html: status 200, want [404] (body: : connected
+
+event: pagelove-connection
+data: 061c847e-c5e9-424f-b0d0-ab8f709a4307
+
+: ping
+
+: ping
+
+)
+PASS sse.subscribe.wildcard-accept-is-not-a-subscribe
+PASS sse.subscribe.query-string-ignored
+PASS sse.subscribe.conn-query-ignored
+PASS sse.subscribe.directory-index
+
+34 passed, 11 failed, 17 skipped
+PASS authz.absent.write-absent-target-readable-416
+PASS authz.absent.write-absent-target-unreadable-refused
+PASS authz.absent.write-existing-target-denied-not-416
+FAIL authz.absent.post-before-absent-anchor-refuses [harness/cases/permissions-identity/absence-denial.yaml]
+     - step 1 (before an absent anchor) POST ${P}/doc.html: status 416, want [401] (body: <!DOCTYPE html>
+<html>
+  <head>
+    <title>416 Range Not Satisfiable - Error</title>
+  </head>
+  <body itemscope itemtype="http://pagelove.org/Error">
+    <h1 itemprop="name">Range Not Satisfiable</h1>
+    <meta itemprop="statusCode" conten…)
+PASS authz.absent.write-allowed-read-denied
+PASS authz.absent.get-nonexistent-doc-denied-401
+PASS authz.absent.get-nonexistent-doc-allowed-404
+PASS authz.absent.get-selector-nomatch-readable-416
+PASS authz.absent.get-selector-nomatch-unreadable-401
+SKIP authz.actor.user-name-is-sub (target lacks multi-actor)
+SKIP authz.actor.verified-email (target lacks multi-actor)
+SKIP authz.actor.email-exact-case (target lacks multi-actor)
+SKIP authz.actor.users-builtin (target lacks multi-actor)
+PASS authz.actor.users-anonymous-live
+SKIP authz.actor.authenticated-alias (target lacks multi-actor)
+SKIP authz.actor.star-matches-everyone (target lacks multi-actor)
+SKIP authz.actor.multiple-values-or (target lacks multi-actor)
+SKIP authz.actor.role-claim-as-group (target lacks multi-actor)
+SKIP authz.actor.role-prefix-form (target lacks multi-actor)
+SKIP authz.actor.username-token-deprecated (target lacks multi-actor)
+SKIP authz.actor.username-token-tier-above-users (target lacks multi-actor)
+SKIP authz.actor.username-token-vs-user-deny (target lacks multi-actor)
+SKIP authz.actor.401-vs-403 (target lacks multi-actor)
+PASS authz.conflict.deny-wins-at-equal-tier-wildcard
+PASS authz.conflict.order-independent
+PASS authz.conflict.users-allow-star-deny-anonymous
+SKIP authz.conflict.users-allow-star-deny-signed-in (target lacks multi-actor)
+SKIP authz.conflict.user-beats-wildcard-deny (target lacks multi-actor)
+SKIP authz.conflict.group-beats-wildcard (target lacks multi-actor)
+SKIP authz.conflict.equal-tier-group-deny-wins (target lacks multi-actor)
+SKIP authz.conflict.user-beats-group-deny (target lacks multi-actor)
+SKIP authz.conflict.email-same-tier-as-group (target lacks multi-actor)
+SKIP authz.conflict.user-name-beats-email (target lacks multi-actor)
+SKIP authz.conflict.role-same-tier-as-group (target lacks multi-actor)
+SKIP authz.conflict.selector-level-user-over-wildcard (target lacks multi-actor)
+SKIP authz.conflict.cross-granularity-tier (target lacks multi-actor)
+SKIP authz.conflict.users-group-tier (target lacks multi-actor)
+SKIP authz.default-get.allow-mode-grants-unmatched-reads (case not marked live)
+SKIP authz.default-get.deny-mode-refuses-unmatched-reads (case not marked live)
+SKIP authz.default-get.path-restriction-example (case not marked live)
+SKIP authz.default-get.nonexistent-doc-allow-mode-404 (case not marked live)
+PASS authz.default-get.never-covers-writes
+PASS authz.default-get.rules-override-allow-mode
+SKIP authz.default-get.selector-uncovered-element-deny-mode (case not marked live)
+SKIP authz.default-get.selector-uncovered-element-allow-mode (case not marked live)
+SKIP authz.default-get.options-reflects-default (case not marked live)
+PASS authz.default-get.sse-never-default-granted
+SKIP authz.default-get.sse-contrast-allow-mode (case not marked live)
+PASS authz.default-get.sse-granted-by-rule
+SKIP authz.default-get.sse-users-only (target lacks multi-actor)
+PASS authz.discovery.rule-in-same-document
+PASS authz.discovery.rule-in-other-document
+PASS authz.discovery.table-form-nested-lists
+FAIL authz.discovery.action-case-insensitive [harness/cases/permissions-identity/discovery.yaml]
+     - step 2 (lowercase deny beats capitalised Allow at the same tier) DELETE ${P}/doc.html: status 204, want [401] (body: )
+PASS authz.discovery.empty-selector-cell-means-document
+FAIL authz.discovery.whitespace-trimmed [harness/cases/permissions-identity/discovery.yaml]
+     - step 1 (PUT allowed despite padded cells) PUT ${P}/doc.html: status 401, want [206] (body: <!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>401 Unauthorized</title>
+</head>
+<body itemscope itemtype="https://pagelove.org/1.0/Error">
+    <h1>401 Unauthorized</h1>
+    <p itemprop="message">Authentication required …)
+FAIL authz.discovery.rule-in-xml-document [harness/cases/permissions-identity/discovery.yaml]
+     - step 1 (PUT h1 allowed by the XML-hosted rule) PUT ${P}/target.html: status 401, want [206] (body: <!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>401 Unauthorized</title>
+</head>
+<body itemscope itemtype="https://pagelove.org/1.0/Error">
+    <h1>401 Unauthorized</h1>
+    <p itemprop="message">Authentication required …)
+PASS authz.discovery.itemtype-must-match
+PASS authz.discovery.malformed-rule-ignored
+PASS authz.discovery.comma-separated-methods-not-split
+PASS authz.discovery.rule-change-effective-next-request
+FAIL authz.discovery.table-item-rows-are-separate-rules [harness/cases/permissions-identity/discovery.yaml]
+     - step 2 (second row grants DELETE on items) DELETE ${P}/doc.html: status 401, want [204] (body: <!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>401 Unauthorized</title>
+</head>
+<body itemscope itemtype="https://pagelove.org/1.0/Error">
+    <h1>401 Unauthorized</h1>
+    <p itemprop="message">Authentication required …)
+FAIL authz.error.401-document-shape [harness/cases/permissions-identity/errors.yaml]
+     - step 1 (anonymous PUT with no rule) PUT ${P}/deny.html: microdata properties = [], want "map[message:Authentication required to access this resource. resource:${P}/deny.html]"
+PASS authz.error.401-no-www-authenticate
+PASS authz.error.401-resource-is-canonical-path
+SKIP authz.error.401-login-link-when-oidc (case not marked live)
+SKIP authz.error.403-for-authenticated (target lacks multi-actor)
+PASS authz.error.head-denied-no-body
+PASS authz.error.sse-denied-is-plain-error
+SKIP authz.group.document-grants-members (target lacks multi-actor)
+SKIP authz.group.unverified-email-not-member (target lacks multi-actor)
+SKIP authz.group.membership-change-next-request (target lacks multi-actor)
+SKIP authz.group.stored-anywhere (target lacks multi-actor)
+SKIP authz.group.multiple-documents-same-name-union (target lacks multi-actor)
+SKIP authz.group.blank-name-ignored (target lacks multi-actor)
+SKIP authz.group.oidc-roles-claim (target lacks multi-actor)
+SKIP authz.group.subtype-includes-override (target lacks multi-actor)
+SKIP authz.group.subtype-without-override-inherits-member-match (target lacks multi-actor)
+SKIP authz.group.groupmembership-legacy-ignored (target lacks multi-actor)
+SKIP authz.group.groupmembership-legacy-honored (target lacks multi-actor)
+PASS authz.identity.anonymous-session-cookie
+SKIP authz.identity.login-path-redirects (case not marked live)
+FAIL authz.identity.login-path-without-provider [harness/cases/permissions-identity/identity.yaml]
+     - setup: root cases are not run live
+FAIL authz.identity.api-key-not-end-user-identity [harness/cases/permissions-identity/identity.yaml]
+     - step 1 (author key on the public plane) GET ${P}/members.html: status 200, want [401 403] (body: <!DOCTYPE html><html><body><h1>Members only</h1></body></html>)
+     - step 1 (author key on the public plane) GET ${P}/members.html: body contains "Members only"
+PASS authz.identity.basic-authorization-header-not-identity
+PASS authz.identity.webdav-bypasses-rules
+PASS authz.identity.composition-reads-despite-rules
+SKIP authz.identity.request-auth-in-liquid (target lacks multi-actor)
+SKIP authz.identity.request-auth-roles-alias (target lacks multi-actor)
+SKIP authz.identity.request-document-auth-include (target lacks multi-actor)
+PASS authz.method.default-deny-put
+PASS authz.method.method-restriction
+PASS authz.method.wildcard-grants-all
+PASS authz.method.wildcard-deny-beats-get-allow
+PASS authz.method.head-follows-get
+PASS authz.method.options-not-gated
+PASS authz.method.options-reports-selector-grants
+PASS authz.method.query-css-like-get
+PASS authz.method.query-sessel-not-default-granted
+PASS authz.move.no-rule-denied
+PASS authz.move.three-checks-allow
+PASS authz.move.missing-delete-rule
+PASS authz.move.missing-post-rule
+PASS authz.move.missing-move-rule
+PASS authz.move.allow-with-selector-discarded
+PASS authz.move.allow-with-selector-discarded-in-full
+PASS authz.move.deny-with-selector-widened
+PASS authz.move.deny-with-selector-widens-other-methods
+PASS authz.move.delete-rule-narrowed
+PASS authz.move.whole-document-needs-both-paths
+PASS authz.move.whole-document-deny-at-destination
+FAIL authz.move.source-absent-readable-416 [harness/cases/permissions-identity/move.yaml]
+     - step 1 (missing source) MOVE ${P}/board.html: status 401, want [416] (body: <!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>401 Unauthorized</title>
+</head>
+<body itemscope itemtype="https://pagelove.org/1.0/Error">
+    <h1>401 Unauthorized</h1>
+    <p itemprop="message">Authentication required …)
+     - step 2 (missing destination) MOVE ${P}/board.html: status 401, want [404] (body: <!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>401 Unauthorized</title>
+</head>
+<body itemscope itemtype="https://pagelove.org/1.0/Error">
+    <h1>401 Unauthorized</h1>
+    <p itemprop="message">Authentication required …)
+PASS authz.move.source-absent-unreadable-denied
+SKIP authz.move.denied-authenticated-403 (target lacks multi-actor)
+FAIL authz.multimatch.all-matches-read-denied-if-any-denied [harness/cases/permissions-identity/multi-match.yaml]
+     - step 1 (multipart all-matches read refused) GET ${P}/list.html: status 200, want [401] (body: --boundaryYfn6iO1rDv21ilCN2DqEFkpyILSE27vj
+Content-Disposition: attachment; filename="/_pl/authz-multimatch-all-matches-read-denied-24df95/list.html"
+Content-Type: text/html
+Content-Range: selector .item
+ETag: "d9df3211015e75f9dfbb3dfa7…)
+     - step 1 (multipart all-matches read refused) GET ${P}/list.html: body contains "Bravo"
+     - step 1 (multipart all-matches read refused) GET ${P}/list.html: body contains "Alpha"
+     - step 2 (JSON-LD all-matches read refused) GET ${P}/list.html: status 206, want [401] (body: {
+  "@context": "http://schema.org/",
+  "@graph": [
+    {
+      "@type": "Thing",
+      "name": "Alpha"
+    },
+    {
+      "@type": "Thing",
+      "name": "Bravo"
+    },
+    {
+      "@type": "Thing",
+      "name": "Charlie"
+    }
+  ]
+})
+     - step 2 (JSON-LD all-matches read refused) GET ${P}/list.html: body contains "Bravo"
+FAIL authz.multimatch.single-read-first-match-denied [harness/cases/permissions-identity/multi-match.yaml]
+     - step 1 (first match denied) GET ${P}/list.html: status 206, want [401] (body: <li class="item secret">Bravo</li>)
+     - step 1 (first match denied) GET ${P}/list.html: body contains "Bravo"
+SKIP authz.multimatch.uncovered-element-default-deny (case not marked live)
+PASS authz.resource.star-crosses-segments
+PASS authz.resource.trailing-star-matches-directory-slash
+FAIL authz.resource.trailing-slash-star-not-bare-name [harness/cases/permissions-identity/resource-glob.yaml]
+     - step 1 (bare name refused) PUT ${P}/x: status 201, want [401] (body: x)
+PASS authz.resource.exact-path
+PASS authz.resource.question-mark
+PASS authz.resource.char-class
+PASS authz.resource.alternation
+PASS authz.resource.multi-valued
+PASS authz.resource.directory-index-normalization
+FAIL authz.resource.directory-form-rule [harness/cases/permissions-identity/resource-glob.yaml]
+     - step 1 (selector PUT to the directory URL) PUT ${P}/app/: status 401, want [206] (body: <!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>401 Unauthorized</title>
+</head>
+<body itemscope itemtype="https://pagelove.org/1.0/Error">
+    <h1>401 Unauthorized</h1>
+    <p itemprop="message">Authentication required …)
+PASS authz.resource.query-string-ignored
+PASS authz.resource.case-sensitive
+FAIL authz.resource.slashless-directory-unreadable-404 [harness/cases/permissions-identity/resource-glob.yaml]
+     - step 1 (slash-less path) GET ${P}/blog: status 401, want [404] (body: <!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>401 Unauthorized</title>
+</head>
+<body itemscope itemtype="https://pagelove.org/1.0/Error">
+    <h1>401 Unauthorized</h1>
+    <p itemprop="message">Authentication required …)
+PASS authz.resource.slashless-directory-readable-redirect
+PASS authz.selector.target-must-match-rule-selector
+PASS authz.selector.rule-selector-evaluated-in-document-context
+PASS authz.selector.post-append-keys-anchor
+PASS authz.selector.post-before-after-keys-parent
+PASS authz.selector.post-before-after-rule-on-item-denied
+PASS authz.selector.write-first-match-only
+PASS authz.selector.resource-level-rule-covers-selector-writes
+PASS authz.selector.selector-rule-does-not-cover-whole-document
+FAIL authz.selector.selector-deny-overrides-resource-allow-same-tier [harness/cases/permissions-identity/selector-scope.yaml]
+     - step 1 (locked element refused) PUT ${P}/doc.html: status 206, want [401] (body: <p id="l" class="locked">x</p>)
+PASS authz.selector.resource-deny-overrides-selector-allow-same-tier
+PASS authz.selector.delete-keys-removed-element
+PASS authz.selector.transient-element-rule
+PASS authz.selector.include-write-authorized-on-composed-page
+PASS authz.template.request-method-in-selector
+PASS authz.template.header-lookup-in-selector
+PASS authz.template.query-lookup-in-resource
+PASS authz.template.missing-lookup-empty-string
+PASS authz.template.object-lookup-empty
+PASS authz.template.anonymous-auth-lookup-empty
+PASS authz.template.liquid-braces-literal-allow-stops-granting
+PASS authz.template.liquid-braces-literal-deny-stops-denying
+PASS authz.template.header-value-is-literal-in-resource
+PASS authz.template.substituted-slash-spans-segments
+SKIP authz.template.username-in-resource (target lacks multi-actor)
+SKIP authz.template.username-literal-glob (target lacks multi-actor)
+SKIP authz.template.roles-list-lookup-empty (target lacks multi-actor)
+SKIP authz.template.auth-email-in-selector (target lacks multi-actor)
+SKIP authz.template.claims-bare-spelling (target lacks multi-actor)
+
+87 passed, 15 failed, 57 skipped

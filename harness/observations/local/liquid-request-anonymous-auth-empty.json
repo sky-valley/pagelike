@@ -1,0 +1,40 @@
+{
+  "case": "liquid.request.anonymous-auth-empty",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (whoami is four separators)",
+      "method": "GET",
+      "path": "/_pl/liquid-request-anonymous-auth-empty-d87726/board.html",
+      "status": 206,
+      "headers": {
+        "accept-ranges": "selector, bytes",
+        "cache-control": "private",
+        "content-length": "41",
+        "content-range": "selector #whoami-server",
+        "content-type": "text/html",
+        "etag": "\"0ad868d5cddad649ce49004f76e0f31f410090ce204bcbf123211d6ebc0c365a-0ad868d5cddad649ce49004f76e0f31f410090ce204bcbf123211d6ebc0c365a-1\"",
+        "vary": "Host, Range, Accept"
+      },
+      "body": "\u003cdiv id=\"whoami-server\" hidden\u003e||||\u003c/div\u003e"
+    },
+    {
+      "step": "step 2 (auth-aware UI shows the login link)",
+      "method": "GET",
+      "path": "/_pl/liquid-request-anonymous-auth-empty-d87726/board.html",
+      "status": 206,
+      "headers": {
+        "accept-ranges": "selector, bytes",
+        "cache-control": "private",
+        "content-length": "52",
+        "content-range": "selector #ui",
+        "content-type": "text/html",
+        "etag": "\"6b22b87a0eddce6934353d93f5ce3db3dd2639ea5078a6728c904f18c1647afa-6b22b87a0eddce6934353d93f5ce3db3dd2639ea5078a6728c904f18c1647afa-1\"",
+        "vary": "Host, Range, Accept"
+      },
+      "body": "\u003cdiv id=\"ui\"\u003e\u003ca href=\"/auth/login\"\u003eLogin\u003c/a\u003e|0\u003c/div\u003e"
+    }
+  ],
+  "outcome": "pass",
+  "target": "local"
+}

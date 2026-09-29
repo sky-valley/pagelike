@@ -1,0 +1,64 @@
+{
+  "case": "reacting.tc.key-pairing-allows-legal-step",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (register the Order schema with orderNumber as @key)",
+      "method": "PUT",
+      "path": "/_pl/reacting-tc-key-pairing-allows-legal-ste-19c486/schema.html",
+      "status": 201,
+      "headers": {
+        "content-length": "562",
+        "content-type": "text/html",
+        "etag": "\"b267a099511e8bdbdc4d63a615b4c4ba89b878ca5f61d456ed6efffab84074da\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:55 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\n\u003cdiv hidden itemscope itemtype=\"https://pagelove.org/Schema\"\u003e\n  \u003cmeta itemprop=\"type\" content=\"https://pagelike.test/_pl/reacting-tc-key-pairing-allows-legal-ste-19c486/Order\"\u003e\n  \u003cdiv itemprop=\"property\" itemscope itemtype=\"https://pagelove.org/Property\"\u003e\n    \u003cmeta itemprop=\"name\" content=\"orderNumber\"\u003e\n    \u003cmeta itemprop=\"type\" content=\"https://schema.host/Text\"\u003e\n    \u003cmeta itemprop=\"cardinality\" content=\"1..1\"\u003e\n    \u003cmeta itemprop=\"unique\" content=\"true\"\u003e\n    \u003cmeta itemprop=\"@key\" content=\"true\"\u003e\n  \u003c/div\u003e\n\u003c/div\u003e\n\u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 2 (install entry pending and step pending -\u003e processing)",
+      "method": "PUT",
+      "path": "/_pl/reacting-tc-key-pairing-allows-legal-ste-19c486/transitions/rules.html",
+      "status": 201,
+      "headers": {
+        "content-length": "680",
+        "content-type": "text/html",
+        "etag": "\"4e58ac13774c938b13254479834fd60cb3be15ab3bf9cc26586d15319badb0ce\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:55 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\n\u003cdiv itemscope itemtype=\"https://pagelove.org/TransitionConstraint\"\u003e\n  \u003cmeta itemprop=\"selector\" content=\"[itemtype='https://pagelike.test/_pl/reacting-tc-key-pairing-allows-legal-ste-19c486/Order']\"\u003e\n  \u003cmeta itemprop=\"property\" content=\"status\"\u003e\n  \u003cmeta itemprop=\"to\" content=\"pending\"\u003e\n\u003c/div\u003e\n\u003cdiv itemscope itemtype=\"https://pagelove.org/TransitionConstraint\"\u003e\n  \u003cmeta itemprop=\"selector\" content=\"[itemtype='https://pagelike.test/_pl/reacting-tc-key-pairing-allows-legal-ste-19c486/Order']\"\u003e\n  \u003cmeta itemprop=\"property\" content=\"status\"\u003e\n  \u003cmeta itemprop=\"from\" content=\"pending\"\u003e\n  \u003cmeta itemprop=\"to\" content=\"processing\"\u003e\n\u003c/div\u003e\n\u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 3 (seed SKU-A and SKU-B at pending in one document)",
+      "method": "PUT",
+      "path": "/_pl/reacting-tc-key-pairing-allows-legal-ste-19c486/orders/batch.html",
+      "status": 201,
+      "headers": {
+        "content-length": "444",
+        "content-type": "text/html",
+        "etag": "\"8a31de6d6613e5c20d4d4c1083c1179152aac608fae763f7dc3235e0e278643c\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:55 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\n\u003cdiv itemscope itemtype=\"https://pagelike.test/_pl/reacting-tc-key-pairing-allows-legal-ste-19c486/Order\"\u003e\u003cmeta itemprop=\"orderNumber\" content=\"SKU-A\"\u003e\u003cmeta itemprop=\"status\" content=\"pending\"\u003e\u003c/div\u003e\n\u003cdiv itemscope itemtype=\"https://pagelike.test/_pl/reacting-tc-key-pairing-allows-legal-ste-19c486/Order\"\u003e\u003cmeta itemprop=\"orderNumber\" content=\"SKU-B\"\u003e\u003cmeta itemprop=\"status\" content=\"pending\"\u003e\u003c/div\u003e\n\u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 4 (reorder and move SKU-A to processing)",
+      "method": "PUT",
+      "path": "/_pl/reacting-tc-key-pairing-allows-legal-ste-19c486/orders/batch.html",
+      "status": 200,
+      "headers": {
+        "content-length": "447",
+        "content-type": "text/html",
+        "etag": "\"58a67eca31b42771f0f3b382dd01abe1ec3e49dff3db8f6bcc7ad801339b4faa\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:55 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\n\u003cdiv itemscope itemtype=\"https://pagelike.test/_pl/reacting-tc-key-pairing-allows-legal-ste-19c486/Order\"\u003e\u003cmeta itemprop=\"orderNumber\" content=\"SKU-B\"\u003e\u003cmeta itemprop=\"status\" content=\"pending\"\u003e\u003c/div\u003e\n\u003cdiv itemscope itemtype=\"https://pagelike.test/_pl/reacting-tc-key-pairing-allows-legal-ste-19c486/Order\"\u003e\u003cmeta itemprop=\"orderNumber\" content=\"SKU-A\"\u003e\u003cmeta itemprop=\"status\" content=\"processing\"\u003e\u003c/div\u003e\n\u003c/body\u003e\u003c/html\u003e\n"
+    }
+  ],
+  "outcome": "pass",
+  "target": "local"
+}

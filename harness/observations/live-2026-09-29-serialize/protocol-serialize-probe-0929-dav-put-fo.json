@@ -1,0 +1,152 @@
+{
+  "case": "protocol.serialize.probe-0929.dav-put-forms",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (fragment-only)",
+      "method": "PUT",
+      "path": "/_pl/protocol-serialize-probe-0929-dav-put-fo-875b8b/fragment-only.html",
+      "status": 201,
+      "headers": {
+        "content-length": "13",
+        "content-type": "text/html",
+        "etag": "\"adff3d616634e0da6421338c38d43c41bcd2d2c12f3a317b5803b72ee839d5d8\""
+      },
+      "body": "  \n\u003cp\u003ehi\u003c/p\u003e\n"
+    },
+    {
+      "step": "step 2 (doctype-lower-no-html)",
+      "method": "PUT",
+      "path": "/_pl/protocol-serialize-probe-0929-dav-put-fo-875b8b/doctype-lower-no-html.html",
+      "status": 201,
+      "headers": {
+        "content-length": "39",
+        "content-type": "text/html",
+        "etag": "\"c7c5a5eeaa3e2ce1df659b7fb2660ebb2e2b645232e79743ee187d2433002276\""
+      },
+      "body": "\u003c!DOCTYPE html\u003e\u003ctitle\u003et\u003c/title\u003e\u003cp\u003ea\u003c/p\u003e"
+    },
+    {
+      "step": "step 3 (full-doc-whitespace)",
+      "method": "PUT",
+      "path": "/_pl/protocol-serialize-probe-0929-dav-put-fo-875b8b/full-doc-whitespace.html",
+      "status": 201,
+      "headers": {
+        "content-length": "103",
+        "content-type": "text/html",
+        "etag": "\"60a63b14a7d33b4cba3120fbe9526402bdf2fba565908e772dfb69e410e5d110\""
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml lang=\"en\"\u003e\n\u003chead\u003e\n\u003cmeta charset=\"utf-8\"\u003e\n\u003c/head\u003e\n\u003cbody\u003e\n\u003cp\u003ex\u003c/p\u003e\n\u003c/body\u003e\n\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 4 (explicit-empty-head)",
+      "method": "PUT",
+      "path": "/_pl/protocol-serialize-probe-0929-dav-put-fo-875b8b/explicit-empty-head.html",
+      "status": 201,
+      "headers": {
+        "content-length": "47",
+        "content-type": "text/html",
+        "etag": "\"e1e9ce8a6ce66ca7fc54a079a1ca0850c22d22830c288de7a4ae8e38d680284c\""
+      },
+      "body": "\u003chtml\u003e\u003chead\u003e\u003c/head\u003e\u003cbody\u003e\u003cp\u003ex\u003c/p\u003e\u003c/body\u003e\u003c/html\u003e"
+    },
+    {
+      "step": "step 5 (attributes)",
+      "method": "PUT",
+      "path": "/_pl/protocol-serialize-probe-0929-dav-put-fo-875b8b/attributes.html",
+      "status": 201,
+      "headers": {
+        "content-length": "181",
+        "content-type": "text/html",
+        "etag": "\"dc718ccd07922cd8e9aa7808f3772cee17441460147d4e795be90500484cbc07\""
+      },
+      "body": "\u003cdiv\u003e\u003cinput disabled\u003e\u003cinput disabled\u003e\u003cinput value=\"a\u0026quot;b\" title=\"\u003c\u0026amp;\u003e\" data-q=\"it's\"\u003e\u003cspan class=\"c\" id=\"d\" data-x=\"1\" onclick=\"f()\"\u003es\u003c/span\u003e\u003ca href=\"?a=1\u0026amp;b=2\"\u003el\u003c/a\u003e\u003c/div\u003e"
+    },
+    {
+      "step": "step 6 (text-escaping)",
+      "method": "PUT",
+      "path": "/_pl/protocol-serialize-probe-0929-dav-put-fo-875b8b/text-escaping.html",
+      "status": 201,
+      "headers": {
+        "content-length": "92",
+        "content-type": "text/html",
+        "etag": "\"b0c4953b7a2f190a3ca5b4c547c6a3556800a17836ef4abafc1a4279035399b2\""
+      },
+      "body": "\u003cp\u003ea \u0026amp; b \u0026lt; c \u0026gt; d e \" ' © é\u003c/p\u003e\u003cp\u003e{% if a \u0026gt; b and c \u0026lt; d %}x{% endif %}\u003c/p\u003e"
+    },
+    {
+      "step": "step 7 (tables)",
+      "method": "PUT",
+      "path": "/_pl/protocol-serialize-probe-0929-dav-put-fo-875b8b/tables.html",
+      "status": 201,
+      "headers": {
+        "content-length": "103",
+        "content-type": "text/html",
+        "etag": "\"806d79db983a51351103761b6f3017039bfe662337f25592c6a2841d06afc6ed\""
+      },
+      "body": "\u003ctable\u003e\u003ctr\u003e\u003ctd\u003ex\u003c/td\u003e\u003c/tr\u003e\u003c/table\u003e\u003ctable\u003e{% for r in rows %}\u003ctr\u003e\u003ctd\u003e{{r}}\u003c/td\u003e\u003c/tr\u003e{% endfor %}\u003c/table\u003e"
+    },
+    {
+      "step": "step 8 (leading-newlines)",
+      "method": "PUT",
+      "path": "/_pl/protocol-serialize-probe-0929-dav-put-fo-875b8b/leading-newlines.html",
+      "status": 201,
+      "headers": {
+        "content-length": "58",
+        "content-type": "text/html",
+        "etag": "\"54c0973e34aee6708d13aa49f1a1b908a1a1cf76a53c93de9985f251fedec6df\""
+      },
+      "body": "\u003cpre\u003e\n\nx\u003c/pre\u003e\u003ctextarea\u003e\nq\u003c/textarea\u003e\u003clisting\u003e\nl\u003c/listing\u003e"
+    },
+    {
+      "step": "step 9 (void-and-foreign)",
+      "method": "PUT",
+      "path": "/_pl/protocol-serialize-probe-0929-dav-put-fo-875b8b/void-and-foreign.html",
+      "status": 201,
+      "headers": {
+        "content-length": "135",
+        "content-type": "text/html",
+        "etag": "\"489745d56c2a25efcbb837454e9a81f23962a9531bb844d2246ac547c581be75\""
+      },
+      "body": "\u003cbr\u003e\u003cimg src=\"a\"\u003e\u003chr\u003e\u003csvg viewbox=\"0 0 1 1\"\u003e\u003ccircle r=\"1\"\u003e\u003c/circle\u003e\u003cforeignobject\u003e\u003cp\u003ef\u003c/p\u003e\u003c/foreignobject\u003e\u003c/svg\u003e\u003cmath\u003e\u003cmi\u003ex\u003c/mi\u003e\u003c/math\u003e"
+    },
+    {
+      "step": "step 10 (raw-text)",
+      "method": "PUT",
+      "path": "/_pl/protocol-serialize-probe-0929-dav-put-fo-875b8b/raw-text.html",
+      "status": 201,
+      "headers": {
+        "content-length": "150",
+        "content-type": "text/html",
+        "etag": "\"601c0163a42481f7c9d8b9ac1c86f13b051526b13380573f5cca17020e9599bb\""
+      },
+      "body": "\u003cscript\u003eif (a\u003cb \u0026\u0026 c\u003ed) { x = \"\u003c/p\u003e\" }\u003c/script\u003e\u003cstyle\u003ea\u003eb{c:d}\u003c/style\u003e\u003ctemplate\u003e\u003cp\u003et\u003c/p\u003e\u003c/template\u003e\u003cnoscript\u003e\u003cp\u003en\u003c/p\u003e\u003c/noscript\u003e\u003c!--c--\u003e\u0026lt;?pi x?\u0026gt;"
+    },
+    {
+      "step": "step 11 (pagelove-attributes)",
+      "method": "PUT",
+      "path": "/_pl/protocol-serialize-probe-0929-dav-put-fo-875b8b/pagelove-attributes.html",
+      "status": 201,
+      "headers": {
+        "content-length": "343",
+        "content-type": "text/html",
+        "etag": "\"9fa4978f4811a87530feb852ad79f0cf55a835fe4bfb5b1f0c27bf2e579a62c9\""
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml xmlns:p=\"https://pagelove.org/1.0\" xmlns:r=\"https://pagelove.org/Binding/CSS\"\u003e\u003cbody\u003e\u003cul r:items=\"[itemtype='https://ex/T']\" p:template=\"text/liquid\"\u003e{% for i in items %}\u003cli\u003e{{ i.n }}\u003c/li\u003e{% endfor %}\u003c/ul\u003e\u003cdiv itemscope itemtype=\"https://ex/T\"\u003e\u003cspan itemprop=\"n\"\u003ev\u003c/span\u003e\u003cmeta itemprop=\"m\" content=\"1\"\u003e\u003c/div\u003e\u003c/body\u003e\u003c/html\u003e"
+    },
+    {
+      "step": "step 12 (after-body-content)",
+      "method": "PUT",
+      "path": "/_pl/protocol-serialize-probe-0929-dav-put-fo-875b8b/after-body-content.html",
+      "status": 201,
+      "headers": {
+        "content-length": "49",
+        "content-type": "text/html",
+        "etag": "\"d72acd2a4b5279bc066df2e0e07b6735d501c26593432b8392aaf30f583217ea\""
+      },
+      "body": "\u003chtml\u003e\u003cbody\u003e\u003cp\u003ea\u003c/p\u003e\u003c/body\u003e\u003c/html\u003e\n\u003c!-- tail --\u003e\n"
+    }
+  ],
+  "outcome": "pass",
+  "target": "live"
+}

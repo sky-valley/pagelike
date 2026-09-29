@@ -1,0 +1,308 @@
+# Composing: namespace declarations, prefixes, stripping and parsing.
+# Spec: docs/spec/composing.md §2-§3 (R-COMP-5..14).
+# The runner substitutes ${P} in file bodies, paths, headers and expectations.
+cases:
+  - id: comp.ns.strip-xmlns-and-directives
+    title: Composed HTML drops Pagelove xmlns declarations, directive attributes and directive elements but keeps comments
+    area: composing
+    feature: output stripping
+    evidence: documented
+    source: "docs reference/composing-pages/Includes §Basic include; languages/liquid/templating §Worked example (snapshot 2026-09-28); live-observed blog.pagelove.com pages ([OBS])"
+    confidence: high
+    requires: []
+    live: true
+    notes: "R-COMP-14. HTML comments survive composition (live blog pages keep them)."
+    site:
+      settings: {default_get: allow}
+      files:
+        - path: "${P}/partials/nav.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body><header id="nav">Navigation</header></body></html>
+        - path: "${P}/page.html"
+          body: |
+            <!DOCTYPE html>
+            <html xmlns:p="https://pagelove.org/1.0" xmlns:e="https://pagelove.org/Binding/Sessel" xmlns:r="https://pagelove.org/Binding/CSS">
+            <body e:greeting="'hi-from-binding'" r:none="[data-none='${P}']">
+              <!-- kept comment -->
+              <p:include selector="#nav" resource="${P}/partials/*"></p:include>
+              <main><p>Page content here.</p><p:stamp greeting></p:stamp></main>
+            </body>
+            </html>
+      rules:
+        - {actor: "*", resource: "${P}/*", method: [GET, HEAD], action: Allow}
+    steps:
+      - name: read the composed page
+        as: anonymous
+        request: {method: GET, path: "${P}/page.html"}
+        expect:
+          status: 200
+          header_matches: {Content-Type: "^text/html"}
+          body_contains:
+            - '<header id="nav">Navigation</header>'
+            - "Page content here."
+            - "hi-from-binding"
+            - "<!-- kept comment -->"
+          body_not_contains:
+            - "xmlns:p"
+            - "xmlns:e"
+            - "xmlns:r"
+            - "p:include"
+            - "p:stamp"
+            - "e:greeting"
+            - "r:none"
+
+  - id: comp.ns.strip-foreign-xmlns
+    title: A non-Pagelove xmlns declaration is also stripped from composed HTML
+    area: composing
+    feature: output stripping
+    evidence: documented
+    source: "docs reference/composing-pages/Includes §Basic include ('every xmlns:* declaration') vs XML-Documents §Differences ('Pagelove xmlns: declarations') (snapshot 2026-09-28)"
+    confidence: medium
+    requires: []
+    live: true
+    notes: "Contradiction C-4; decision: every xmlns:* is stripped in HTML. The bare xmlns attribute is kept."
+    site:
+      settings: {default_get: allow}
+      files:
+        - path: "${P}/page.html"
+          body: |
+            <!DOCTYPE html>
+            <html xmlns:og="http://ogp.me/ns#" xmlns:p="https://pagelove.org/1.0">
+            <body><main id="m">content</main></body>
+            </html>
+      rules:
+        - {actor: "*", resource: "${P}/*", method: [GET, HEAD], action: Allow}
+    steps:
+      - as: anonymous
+        request: {method: GET, path: "${P}/page.html"}
+        expect:
+          status: 200
+          body_contains: ['<main id="m">content</main>']
+          body_not_contains: ["xmlns:og", "xmlns:p"]
+
+  - id: comp.ns.prefix-is-arbitrary
+    title: Any prefix bound to a Pagelove namespace URI works
+    area: composing
+    feature: namespace prefixes
+    evidence: documented
+    source: "docs reference/composing-pages/Resource-Binding §Namespace declaration; Expression-Binding §Namespace declaration; Includes §Namespace declaration (snapshot 2026-09-28)"
+    confidence: high
+    requires: []
+    live: true
+    notes: "R-COMP-11. Recognition is by URI, never by prefix name."
+    site:
+      settings: {default_get: allow}
+      files:
+        - path: "${P}/page.html"
+          body: |
+            <!DOCTYPE html>
+            <html xmlns:pl="https://pagelove.org/1.0" xmlns:calc="https://pagelove.org/Binding/Sessel">
+            <body calc:word="'arbitrary-prefix-ok'">
+              <main><pl:stamp word></pl:stamp></main>
+            </body>
+            </html>
+      rules:
+        - {actor: "*", resource: "${P}/*", method: [GET, HEAD], action: Allow}
+    steps:
+      - as: anonymous
+        request: {method: GET, path: "${P}/page.html"}
+        expect:
+          status: 200
+          body_contains: ["arbitrary-prefix-ok"]
+          body_not_contains: ["pl:stamp", "calc:word", "xmlns:calc"]
+
+  - id: comp.ns.unbound-attr-left-as-is
+    title: An attribute with an unbound prefix is not dispatched and stays in the output verbatim
+    area: composing
+    feature: unbound prefixes
+    evidence: documented
+    source: "docs reference/composing-pages/Method-Elements §Error cases (unbound prefix, attribute form) (snapshot 2026-09-28)"
+    confidence: high
+    requires: []
+    live: true
+    notes: "R-COMP-13 row 1."
+    site:
+      settings: {default_get: allow}
+      files:
+        - path: "${P}/page.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body><div id="x" t:foo="bar">text</div></body></html>
+      rules:
+        - {actor: "*", resource: "${P}/*", method: [GET, HEAD], action: Allow}
+    steps:
+      - as: anonymous
+        request: {method: GET, path: "${P}/page.html"}
+        expect:
+          status: 200
+          body_contains: ['t:foo="bar"', ">text</div>"]
+
+  - id: comp.ns.unbound-element-500
+    title: An element with an unbound prefix is an ordinary element (200, kept in place), not a 500
+    area: composing
+    feature: unbound prefixes
+    evidence: live-observed
+    source: "harness/observations/live-2026-09-29-serialize/comp-ns-unbound-element-500.json (host live-test-host, 2026-09-29); docs reference/composing-pages/Method-Elements §Error cases claims a 500"
+    confidence: high
+    requires: []
+    live: true
+    notes: "R-COMP-13 row 1, superseded live (adopt-live, docs/compat/decisions-2026-09-29/serialization.md). The id keeps its old name so the observation still maps to it."
+    site:
+      settings: {default_get: allow}
+      files:
+        - path: "${P}/page.html"
+          body: |
+            <!DOCTYPE html>
+            <html xmlsns:t="urn:Test"><body><main><t:foo></t:foo></main></body></html>
+      rules:
+        - {actor: "*", resource: "${P}/*", method: [GET, HEAD], action: Allow}
+    steps:
+      - as: anonymous
+        request: {method: GET, path: "${P}/page.html"}
+        expect:
+          status: 200
+          body_contains: ["<main><t:foo></t:foo></main>"]
+
+  - id: comp.ns.bound-unknown-uri-attr-stripped
+    title: An attribute whose prefix is bound to an unregistered URI is stripped silently
+    area: composing
+    feature: unbound prefixes
+    evidence: documented
+    source: "docs reference/composing-pages/Method-Elements §Error cases (schema not loaded, attribute form: 'silently stripped') (snapshot 2026-09-28)"
+    confidence: medium
+    requires: []
+    live: true
+    notes: "R-COMP-13 row 2. Contradiction C-3: an older agent skill says such attributes are not stripped. Probe Q-4."
+    site:
+      settings: {default_get: allow}
+      files:
+        - path: "${P}/page.html"
+          body: |
+            <!DOCTYPE html>
+            <html xmlns:t="urn:x-pagelike-unregistered${P}"><body><div id="host" t:foo="bar">keep</div></body></html>
+      rules:
+        - {actor: "*", resource: "${P}/*", method: [GET, HEAD], action: Allow}
+    steps:
+      - as: anonymous
+        request: {method: GET, path: "${P}/page.html"}
+        expect:
+          status: 200
+          body_contains: ['id="host"', ">keep</div>"]
+          body_not_contains: ["t:foo"]
+
+  - id: comp.ns.wrong-sessel-uri-ignored
+    title: A binding namespace URI that is not exact creates no binding
+    area: composing
+    feature: namespace URIs
+    evidence: documented
+    source: "docs reference/composing-pages/Expression-Binding §Error cases ('Attributes are ignored — no bindings are created') (snapshot 2026-09-28)"
+    confidence: high
+    requires: []
+    live: true
+    notes: "R-COMP-10/38. The stamp finds no Context value and is removed; only <main> is inspected so an unstripped attribute cannot confuse the check."
+    site:
+      settings: {default_get: allow}
+      files:
+        - path: "${P}/page.html"
+          body: |
+            <!DOCTYPE html>
+            <html xmlns:e="https://pagelove.org/Binding/Sessel/" xmlns:p="https://pagelove.org/1.0">
+            <body e:x="'SHOULD-NOT-APPEAR'">
+              <main><p:stamp x></p:stamp><span>after</span></main>
+            </body>
+            </html>
+      rules:
+        - {actor: "*", resource: "${P}/*", method: [GET, HEAD], action: Allow}
+    steps:
+      - as: anonymous
+        request:
+          method: GET
+          path: "${P}/page.html"
+          headers: {Range: "selector=main"}
+        expect:
+          status: 206
+          body_contains: ["<span>after</span>"]
+          body_not_contains: ["SHOULD-NOT-APPEAR", "p:stamp"]
+
+  - id: comp.ns.self-closing-prefixed-element
+    title: A self-closing p:include does not swallow its following siblings
+    area: composing
+    feature: parsing
+    evidence: documented
+    source: "docs reference/composing-pages/Includes §Basic include resolves a fragment from another document (snapshot 2026-09-28)"
+    confidence: medium
+    requires: []
+    live: true
+    notes: "R-COMP-6. HTML5 ignores '/>' on non-void elements and would nest <main> inside <p:include>; the documented output keeps <main> after the included header."
+    site:
+      settings: {default_get: allow}
+      files:
+        - path: "${P}/inc-partials/nav.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body><header id="nav">Navigation</header></body></html>
+        - path: "${P}/page.html"
+          body: |
+            <!DOCTYPE html>
+            <html xmlns:p="https://pagelove.org/1.0">
+            <body>
+              <p:include selector="#nav" resource="${P}/inc-partials/*" />
+              <main><p>Page content here.</p></main>
+            </body>
+            </html>
+      rules:
+        - {actor: "*", resource: "${P}/*", method: [GET, HEAD], action: Allow}
+    steps:
+      - name: whole page
+        as: anonymous
+        request: {method: GET, path: "${P}/page.html"}
+        expect:
+          status: 200
+          body_contains: ['<header id="nav">Navigation</header>', "<main><p>Page content here.</p></main>"]
+      - name: main is still a child of body
+        as: anonymous
+        request:
+          method: GET
+          path: "${P}/page.html"
+          headers: {Range: "selector=body > main"}
+        expect:
+          status: 206
+          body_contains: ["Page content here."]
+
+  - id: comp.ns.no-foster-parenting-include-in-table
+    title: An include written inside a table resolves in place, not foster-parented
+    area: composing
+    feature: parsing
+    evidence: live-observed
+    source: "[OBS] ats.pagelove.com_roles_founding-software-engineer.html:75-76; pagelove-ats/site/roles/:role_name/index.html@8f200fc:75"
+    confidence: medium
+    requires: []
+    live: true
+    notes: "R-COMP-5. The live ATS page serves the included <tbody> inside <table id=all-roles-data>."
+    site:
+      settings: {default_get: allow}
+      files:
+        - path: "${P}/rows.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body><table><tbody id="rows"><tr><td>R1</td></tr></tbody></table></body></html>
+        - path: "${P}/page.html"
+          body: |
+            <!DOCTYPE html>
+            <html xmlns:p="https://pagelove.org/1.0">
+            <body>
+            <table id="t" hidden><p:include resource="${P}/rows.html" selector="#rows"></p:include></table>
+            </body>
+            </html>
+      rules:
+        - {actor: "*", resource: "${P}/*", method: [GET, HEAD], action: Allow}
+    steps:
+      - as: anonymous
+        request:
+          method: GET
+          path: "${P}/page.html"
+          headers: {Range: "selector=table#t > tbody#rows td"}
+        expect:
+          status: 206
+          body_contains: ["R1"]

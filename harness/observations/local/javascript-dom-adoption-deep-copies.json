@@ -1,0 +1,37 @@
+{
+  "case": "javascript.dom.adoption-deep-copies",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (PUT the page (public plane; registers inline declarations))",
+      "method": "PUT",
+      "path": "/_pl/javascript-dom-adoption-deep-copies-d98ee2/probe.html",
+      "status": 201,
+      "headers": {
+        "content-length": "1270",
+        "content-type": "text/html",
+        "etag": "\"05e41b86b0d1889fd68049d1f6b482c51553f17d4b6dfed43e30def291e839c5\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:42 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml xmlns:t=\"https://pagelike.test/_pl/javascript-dom-adoption-deep-copies-d98ee2/Dadoptiondeepcopies\"\u003e\u003cbody\u003e\n\u003cmain\u003e\n\u003ct:probe\u003e\u003c/t:probe\u003e\n\u003c/main\u003e\n\u003cdiv hidden itemscope itemtype=\"https://pagelove.org/Schema\"\u003e\n\u003cmeta itemprop=\"type\" content=\"https://pagelike.test/_pl/javascript-dom-adoption-deep-copies-d98ee2/Dadoptiondeepcopies\"\u003e\n\u003cul\u003e\n\u003cli itemprop=\"property\" itemscope itemtype=\"https://pagelove.org/Method\"\u003e\n\u003cmeta itemprop=\"name\" content=\"probe\"\u003e\n\u003cdiv itemprop=\"implementation\" itemscope itemtype=\"https://pagelove.org/JavaScript/Module\"\u003e\n\u003cscript itemprop=\"source\" type=\"module\"\u003e\nconst S = (...a) =\u003e a.map(String).join('|');\nconst H = (x) =\u003e String(x).replace(/[\u003c\u003e\"]/g, (c) =\u003e ({ '\u003c': '[', '\u003e': ']', '\"': \"'\" })[c]);\nconst tryName = (f) =\u003e { try { f(); return 'ok'; } catch (e) { return e.name + ':' + e.code; } };\nexport default function () {\nconst d1 = new DOMParser().parseFromString('\u003cdiv id=\"t\"\u003e\u003c/div\u003e', 'text/html');\nconst d2 = new DOMParser().parseFromString('\u003cspan id=\"s\"\u003ek\u003c/span\u003e', 'text/html');\nconst s = d2.querySelector('#s');\nd1.querySelector('#t').appendChild(s);\nreturn 'R:' + S(d1.querySelectorAll('span').length, d2.querySelectorAll('span').length, d1.querySelector('span') === s);\n}\n\u003c/script\u003e\n\u003c/div\u003e\n\u003c/li\u003e\n\u003c/ul\u003e\n\u003c/div\u003e\n\u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 2 (GET \u003cmain\u003e: the method result is inserted as text)",
+      "method": "GET",
+      "path": "/_pl/javascript-dom-adoption-deep-copies-d98ee2/probe.html",
+      "status": 206,
+      "headers": {
+        "accept-ranges": "selector, bytes",
+        "content-length": "26",
+        "content-range": "selector main",
+        "content-type": "text/html",
+        "etag": "\"c68f5462f889d00cb14c28f6235fbc1815b5ee0946f25946e89299bb56db44dd-c68f5462f889d00cb14c28f6235fbc1815b5ee0946f25946e89299bb56db44dd-1\"",
+        "vary": "Host, Range, Accept"
+      },
+      "body": "\u003cmain\u003e\nR:1|1|false\n\u003c/main\u003e"
+    }
+  ],
+  "outcome": "pass",
+  "target": "local"
+}

@@ -1,0 +1,50 @@
+{
+  "case": "modeling.nested.typed-items-validated-independently",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (register declarations through the public plane (takes effect for the next request))",
+      "method": "PUT",
+      "path": "/_pl/modeling-nested-typed-items-validated-in-511f96/schema.html",
+      "status": 201,
+      "headers": {
+        "content-length": "1378",
+        "content-type": "text/html",
+        "etag": "\"ebdf5aa6e69f5ea070e4ee7e765777bf70399a2475853b77670d80d078158396\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:44 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\n  \u003cdiv hidden itemscope itemtype=\"https://pagelove.org/Schema\"\u003e\n    \u003cmeta itemprop=\"type\" content=\"https://pagelike.test/_pl/modeling-nested-typed-items-validated-in-511f96/OrderLine\"\u003e\n    \u003cdiv itemprop=\"property\" itemscope itemtype=\"https://pagelove.org/Property\"\u003e\n      \u003cmeta itemprop=\"name\" content=\"sku\"\u003e\n      \u003cmeta itemprop=\"type\" content=\"https://schema.host/Text\"\u003e\n      \u003cmeta itemprop=\"cardinality\" content=\"1..1\"\u003e\n    \u003c/div\u003e\n    \u003cdiv itemprop=\"property\" itemscope itemtype=\"https://pagelove.org/Property\"\u003e\n      \u003cmeta itemprop=\"name\" content=\"quantity\"\u003e\n      \u003cmeta itemprop=\"type\" content=\"https://schema.host/Integer\"\u003e\n      \u003cmeta itemprop=\"cardinality\" content=\"1..1\"\u003e\n    \u003c/div\u003e\n  \u003c/div\u003e\n  \u003cdiv hidden itemscope itemtype=\"https://pagelove.org/Schema\"\u003e\n    \u003cmeta itemprop=\"type\" content=\"https://pagelike.test/_pl/modeling-nested-typed-items-validated-in-511f96/Order\"\u003e\n    \u003cdiv itemprop=\"property\" itemscope itemtype=\"https://pagelove.org/Property\"\u003e\n      \u003cmeta itemprop=\"name\" content=\"orderId\"\u003e\n      \u003cmeta itemprop=\"type\" content=\"https://schema.host/Text\"\u003e\n      \u003cmeta itemprop=\"cardinality\" content=\"1..1\"\u003e\n    \u003c/div\u003e\n    \u003cdiv itemprop=\"property\" itemscope itemtype=\"https://pagelove.org/Property\"\u003e\n      \u003cmeta itemprop=\"name\" content=\"lines\"\u003e\n      \u003cmeta itemprop=\"cardinality\" content=\"1..1\"\u003e\n    \u003c/div\u003e\n  \u003c/div\u003e\n\u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 2 (order with a complete line accepted)",
+      "method": "PUT",
+      "path": "/_pl/modeling-nested-typed-items-validated-in-511f96/o1.html",
+      "status": 201,
+      "headers": {
+        "content-length": "460",
+        "content-type": "text/html",
+        "etag": "\"5b5fa3a261215ffe992d6a8bde8d6fe8f50232ce8c5396984af31b7c574f2ab8\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:44 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\n  \u003cdiv itemscope itemtype=\"https://pagelike.test/_pl/modeling-nested-typed-items-validated-in-511f96/Order\"\u003e\n    \u003cmeta itemprop=\"orderId\" content=\"o1\"\u003e\n    \u003cul itemprop=\"lines\"\u003e\n      \u003cli itemscope itemtype=\"https://pagelike.test/_pl/modeling-nested-typed-items-validated-in-511f96/OrderLine\"\u003e\n        \u003cmeta itemprop=\"sku\" content=\"MUG\"\u003e\n        \u003cmeta itemprop=\"quantity\" content=\"2\"\u003e\n      \u003c/li\u003e\n    \u003c/ul\u003e\n  \u003c/div\u003e\n\u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 3 (order whose line lacks quantity accepted)",
+      "method": "PUT",
+      "path": "/_pl/modeling-nested-typed-items-validated-in-511f96/o2.html",
+      "status": 201,
+      "headers": {
+        "content-length": "413",
+        "content-type": "text/html",
+        "etag": "\"982e16b6b66b73d8b395ebfca014dc7780e1c4fa6f8e38e1c3610e2f3ec15224\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:44 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\n  \u003cdiv itemscope itemtype=\"https://pagelike.test/_pl/modeling-nested-typed-items-validated-in-511f96/Order\"\u003e\n    \u003cmeta itemprop=\"orderId\" content=\"o2\"\u003e\n    \u003cul itemprop=\"lines\"\u003e\n      \u003cli itemscope itemtype=\"https://pagelike.test/_pl/modeling-nested-typed-items-validated-in-511f96/OrderLine\"\u003e\n        \u003cmeta itemprop=\"sku\" content=\"MUG\"\u003e\n      \u003c/li\u003e\n    \u003c/ul\u003e\n  \u003c/div\u003e\n\u003c/body\u003e\u003c/html\u003e\n"
+    }
+  ],
+  "outcome": "pass",
+  "target": "local"
+}

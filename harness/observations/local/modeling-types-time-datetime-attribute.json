@@ -1,0 +1,62 @@
+{
+  "case": "modeling.types.time-datetime-attribute",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (register declarations through the public plane (takes effect for the next request))",
+      "method": "PUT",
+      "path": "/_pl/modeling-types-time-datetime-attribute-52ba2d/schema.html",
+      "status": 201,
+      "headers": {
+        "content-length": "492",
+        "content-type": "text/html",
+        "etag": "\"cca5cbdde8a8a4f6d38790f058dedf3624f93e45165196e5d274e66fa47f8082\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:45 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\n  \u003cdiv hidden itemscope itemtype=\"https://pagelove.org/Schema\"\u003e\n    \u003cmeta itemprop=\"type\" content=\"https://pagelike.test/_pl/modeling-types-time-datetime-attribute-52ba2d/Value\"\u003e\n    \u003cdiv itemprop=\"property\" itemscope itemtype=\"https://pagelove.org/Property\"\u003e\n      \u003cmeta itemprop=\"name\" content=\"createdAt\"\u003e\n      \u003cmeta itemprop=\"type\" content=\"https://schema.host/DateTime\"\u003e\n      \u003cmeta itemprop=\"cardinality\" content=\"1..1\"\u003e\n    \u003c/div\u003e\n  \u003c/div\u003e\n\u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 2 (time with datetime and human text accepted)",
+      "method": "PUT",
+      "path": "/_pl/modeling-types-time-datetime-attribute-52ba2d/a.html",
+      "status": 201,
+      "headers": {
+        "content-length": "237",
+        "content-type": "text/html",
+        "etag": "\"abb96b3eea2268c19411c273de6b3a58fee6f3cb76623690dd1282eb7a4d6274\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:45 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\n  \u003cdiv itemscope itemtype=\"https://pagelike.test/_pl/modeling-types-time-datetime-attribute-52ba2d/Value\"\u003e\n    \u003ctime itemprop=\"createdAt\" datetime=\"2026-08-18T10:00:00Z\"\u003eAug 18\u003c/time\u003e\n  \u003c/div\u003e\n\u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 3 (time with datetime and empty text accepted)",
+      "method": "PUT",
+      "path": "/_pl/modeling-types-time-datetime-attribute-52ba2d/b.html",
+      "status": 201,
+      "headers": {
+        "content-length": "231",
+        "content-type": "text/html",
+        "etag": "\"b066ba9569446cc5b86b574678406d6e8f90a0bdf04faf3e02076c474b960563\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:45 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\n  \u003cdiv itemscope itemtype=\"https://pagelike.test/_pl/modeling-types-time-datetime-attribute-52ba2d/Value\"\u003e\n    \u003ctime itemprop=\"createdAt\" datetime=\"2026-08-18T11:00:00Z\"\u003e\u003c/time\u003e\n  \u003c/div\u003e\n\u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 4 (time without datetime falls back to text)",
+      "method": "PUT",
+      "path": "/_pl/modeling-types-time-datetime-attribute-52ba2d/c.html",
+      "status": 422,
+      "headers": {
+        "content-length": "920",
+        "content-type": "text/html; charset=utf-8",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\n  \u003chead\u003e\n    \u003ctitle\u003e422 Unprocessable Entity - Schema Violation\u003c/title\u003e\n  \u003c/head\u003e\n  \u003cbody itemscope itemtype=\"https://pagelove.org/SchemaViolation\"\u003e\n    \u003ch1 itemprop=\"name\"\u003eUnprocessable Entity\u003c/h1\u003e\n    \u003cmeta itemprop=\"statusCode\" content=\"422\"\u003e\n    \u003cp itemprop=\"description\"\u003eSchema validation failed\u003c/p\u003e\n    \u003cul\u003e\n      \u003cli itemprop=\"violations\" itemscope itemtype=\"https://pagelove.org/Violation\"\u003e\n        \u003cspan itemprop=\"check\"\u003etype\u003c/span\u003e\n        \u003cspan itemprop=\"itemtype\"\u003ehttps://pagelike.test/_pl/modeling-types-time-datetime-attribute-52ba2d/Value\u003c/span\u003e\n        \u003cspan itemprop=\"property\"\u003ecreatedAt\u003c/span\u003e\n        \u003cspan itemprop=\"value\"\u003eAug 18\u003c/span\u003e\n        \u003cspan itemprop=\"message\"\u003e[https://pagelike.test/_pl/modeling-types-time-datetime-attribute-52ba2d/Value].createdAt: Value \u0026quot;Aug 18\u0026quot; is not a valid https://schema.host/DateTime\u003c/span\u003e\n      \u003c/li\u003e\n    \u003c/ul\u003e\n  \u003c/body\u003e\n\u003c/html\u003e\n"
+    }
+  ],
+  "outcome": "pass",
+  "target": "local"
+}

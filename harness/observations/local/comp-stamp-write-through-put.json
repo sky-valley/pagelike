@@ -1,0 +1,66 @@
+{
+  "case": "comp.stamp.write-through-put",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (write through the page)",
+      "method": "PUT",
+      "path": "/_pl/comp-stamp-write-through-put-15db99/page.html",
+      "status": 206,
+      "headers": {
+        "content-length": "36",
+        "content-range": "selector #rec-1 h1",
+        "content-type": "text/html",
+        "etag": "\"c90903840e8d123117e7a4589f5069098f3b299716571981728f7734d008fa85-c90903840e8d123117e7a4589f5069098f3b299716571981728f7734d008fa85-2\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:42 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003ch1 itemprop=\"title\"\u003eRecord Two\u003c/h1\u003e"
+    },
+    {
+      "step": "step 2 (the origin changed)",
+      "method": "GET",
+      "path": "/_pl/comp-stamp-write-through-put-15db99/data/rec.html",
+      "status": 200,
+      "headers": {
+        "accept-ranges": "bytes",
+        "content-length": "197",
+        "content-type": "text/html",
+        "etag": "\"b0b8772518cccbc2b8454957bff3395fe681a97b059b1ce72ecf030096ef3786\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:42 GMT"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\n\u003carticle id=\"rec-1\" itemscope itemtype=\"https://example.test/_pl/comp-stamp-write-through-put-15db99/Rec\"\u003e\u003ch1 itemprop=\"title\"\u003eRecord Two\u003c/h1\u003e\u003c/article\u003e\n\u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 3 (the page document did not)",
+      "method": "GET",
+      "path": "/_pl/comp-stamp-write-through-put-15db99/page.html",
+      "status": 200,
+      "headers": {
+        "accept-ranges": "bytes",
+        "content-length": "259",
+        "content-type": "text/html",
+        "etag": "\"6140db72f11b42d8a3b133d2f0a56d407757faadd952519467d4d451abba7913\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:42 GMT"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml xmlns:e=\"https://pagelove.org/Binding/Sessel\" xmlns:p=\"https://pagelove.org/1.0\"\u003e\n\u003cbody e:rec=\"${[itemtype='https://example.test/_pl/comp-stamp-write-through-put-15db99/Rec']}.first()\"\u003e\u003cmain\u003e\u003cp:stamp rec\u003e\u003c/p:stamp\u003e\u003c/main\u003e\u003c/body\u003e\n\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 4 (the composed page shows the new value)",
+      "method": "GET",
+      "path": "/_pl/comp-stamp-write-through-put-15db99/page.html",
+      "status": 200,
+      "headers": {
+        "accept-ranges": "selector, bytes",
+        "cache-control": "public, max-age=5",
+        "content-length": "210",
+        "content-type": "text/html",
+        "etag": "W/\"470409406804c3b7d7e4559284c67bdaed0fba37c8afdebaf9956098334be4ed\"",
+        "vary": "Host, Range, Accept"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\n\u003cbody\u003e\u003cmain\u003e\u003carticle id=\"rec-1\" itemscope itemtype=\"https://example.test/_pl/comp-stamp-write-through-put-15db99/Rec\"\u003e\u003ch1 itemprop=\"title\"\u003eRecord Two\u003c/h1\u003e\u003c/article\u003e\u003c/main\u003e\u003c/body\u003e\n\u003c/html\u003e\n"
+    }
+  ],
+  "outcome": "pass",
+  "target": "local"
+}

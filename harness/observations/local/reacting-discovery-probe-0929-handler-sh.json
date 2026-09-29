@@ -1,0 +1,236 @@
+{
+  "case": "reacting.discovery.probe-0929.handler-shape",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (trigger with an action and two otherwise values is accepted)",
+      "method": "PUT",
+      "path": "/_pl/reacting-discovery-probe-0929-handler-sh-a24021/r/a.html",
+      "status": 201,
+      "headers": {
+        "content-length": "802",
+        "content-type": "text/html",
+        "etag": "\"205c74e8858107b0151a8378ea667fe9dbe05b0df7b9b90c5e7e8c7ccfff7022\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:48 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\n\u003cdiv hidden itemscope itemtype=\"https://pagelove.org/Trigger\"\u003e\n  \u003cmeta itemprop=\"resource\" content=\"/_pl/reacting-discovery-probe-0929-handler-sh-a24021/d/*\"\u003e\n  \u003cmeta itemprop=\"method\" content=\"PUT\"\u003e\n  \u003cdiv itemprop=\"when\" itemscope itemtype=\"https://pagelove.org/Sessel\"\u003e\u003cscript itemprop=\"source\" type=\"text/sessel\"\u003etrue\u003c/script\u003e\u003c/div\u003e\n  \u003cdiv itemprop=\"action\" itemscope itemtype=\"https://pagelove.org/Sessel\"\u003e\u003cscript itemprop=\"source\" type=\"text/sessel\"\u003e1\u003c/script\u003e\u003c/div\u003e\n  \u003cdiv itemprop=\"otherwise\" itemscope itemtype=\"https://pagelove.org/Sessel\"\u003e\u003cscript itemprop=\"source\" type=\"text/sessel\"\u003e2\u003c/script\u003e\u003c/div\u003e\n  \u003cdiv itemprop=\"otherwise\" itemscope itemtype=\"https://pagelove.org/Sessel\"\u003e\u003cscript itemprop=\"source\" type=\"text/sessel\"\u003e3\u003c/script\u003e\u003c/div\u003e\n\u003c/div\u003e\n\u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 2 (trigger with two when values is refused)",
+      "method": "PUT",
+      "path": "/_pl/reacting-discovery-probe-0929-handler-sh-a24021/r/b.html",
+      "status": 422,
+      "headers": {
+        "content-length": "723",
+        "content-type": "text/html; charset=utf-8",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\n  \u003chead\u003e\n    \u003ctitle\u003e422 Unprocessable Entity - Schema Violation\u003c/title\u003e\n  \u003c/head\u003e\n  \u003cbody itemscope itemtype=\"https://pagelove.org/SchemaViolation\"\u003e\n    \u003ch1 itemprop=\"name\"\u003eUnprocessable Entity\u003c/h1\u003e\n    \u003cmeta itemprop=\"statusCode\" content=\"422\"\u003e\n    \u003cp itemprop=\"description\"\u003eSchema validation failed\u003c/p\u003e\n    \u003cul\u003e\n      \u003cli itemprop=\"violations\" itemscope itemtype=\"https://pagelove.org/Violation\"\u003e\u003cspan itemprop=\"check\"\u003ecardinality\u003c/span\u003e\u003cspan itemprop=\"itemtype\"\u003ehttps://pagelove.org/Handler\u003c/span\u003e\u003cspan itemprop=\"property\"\u003ewhen\u003c/span\u003e\u003cspan itemprop=\"message\"\u003e[https://pagelove.org/Handler].when: cardinality 0..1 violated: expected at most 1 value, found 2\u003c/span\u003e\u003c/li\u003e\n    \u003c/ul\u003e\n  \u003c/body\u003e\n\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 3 (trigger with method HEAD is refused)",
+      "method": "PUT",
+      "path": "/_pl/reacting-discovery-probe-0929-handler-sh-a24021/r/c.html",
+      "status": 422,
+      "headers": {
+        "content-length": "805",
+        "content-type": "text/html; charset=utf-8",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\n  \u003chead\u003e\n    \u003ctitle\u003e422 Unprocessable Entity - Schema Violation\u003c/title\u003e\n  \u003c/head\u003e\n  \u003cbody itemscope itemtype=\"https://pagelove.org/SchemaViolation\"\u003e\n    \u003ch1 itemprop=\"name\"\u003eUnprocessable Entity\u003c/h1\u003e\n    \u003cmeta itemprop=\"statusCode\" content=\"422\"\u003e\n    \u003cp itemprop=\"description\"\u003eSchema validation failed\u003c/p\u003e\n    \u003cul\u003e\n      \u003cli itemprop=\"violations\" itemscope itemtype=\"https://pagelove.org/Violation\"\u003e\u003cspan itemprop=\"check\"\u003eenum\u003c/span\u003e\u003cspan itemprop=\"itemtype\"\u003ehttps://pagelove.org/RequestHandler\u003c/span\u003e\u003cspan itemprop=\"property\"\u003emethod\u003c/span\u003e\u003cspan itemprop=\"message\"\u003e[https://pagelove.org/RequestHandler].method: Value \"HEAD\" is not a valid https://pagelove.org/HTTPMethod (expected one of: \"GET\", \"PUT\", \"POST\", \"DELETE\", \"PATCH\", \"MOVE\", \"*\")\u003c/span\u003e\u003c/li\u003e\n    \u003c/ul\u003e\n  \u003c/body\u003e\n\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 4 (trigger with method Put (mixed case) is refused)",
+      "method": "PUT",
+      "path": "/_pl/reacting-discovery-probe-0929-handler-sh-a24021/r/d.html",
+      "status": 422,
+      "headers": {
+        "content-length": "804",
+        "content-type": "text/html; charset=utf-8",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\n  \u003chead\u003e\n    \u003ctitle\u003e422 Unprocessable Entity - Schema Violation\u003c/title\u003e\n  \u003c/head\u003e\n  \u003cbody itemscope itemtype=\"https://pagelove.org/SchemaViolation\"\u003e\n    \u003ch1 itemprop=\"name\"\u003eUnprocessable Entity\u003c/h1\u003e\n    \u003cmeta itemprop=\"statusCode\" content=\"422\"\u003e\n    \u003cp itemprop=\"description\"\u003eSchema validation failed\u003c/p\u003e\n    \u003cul\u003e\n      \u003cli itemprop=\"violations\" itemscope itemtype=\"https://pagelove.org/Violation\"\u003e\u003cspan itemprop=\"check\"\u003eenum\u003c/span\u003e\u003cspan itemprop=\"itemtype\"\u003ehttps://pagelove.org/RequestHandler\u003c/span\u003e\u003cspan itemprop=\"property\"\u003emethod\u003c/span\u003e\u003cspan itemprop=\"message\"\u003e[https://pagelove.org/RequestHandler].method: Value \"Put\" is not a valid https://pagelove.org/HTTPMethod (expected one of: \"GET\", \"PUT\", \"POST\", \"DELETE\", \"PATCH\", \"MOVE\", \"*\")\u003c/span\u003e\u003c/li\u003e\n    \u003c/ul\u003e\n  \u003c/body\u003e\n\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 5 (trigger with neither action nor a valid method lists every problem)",
+      "method": "PUT",
+      "path": "/_pl/reacting-discovery-probe-0929-handler-sh-a24021/r/e.html",
+      "status": 422,
+      "headers": {
+        "content-length": "1609",
+        "content-type": "text/html; charset=utf-8",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\n  \u003chead\u003e\n    \u003ctitle\u003e422 Unprocessable Entity - Schema Violation\u003c/title\u003e\n  \u003c/head\u003e\n  \u003cbody itemscope itemtype=\"https://pagelove.org/SchemaViolation\"\u003e\n    \u003ch1 itemprop=\"name\"\u003eUnprocessable Entity\u003c/h1\u003e\n    \u003cmeta itemprop=\"statusCode\" content=\"422\"\u003e\n    \u003cp itemprop=\"description\"\u003eSchema validation failed\u003c/p\u003e\n    \u003cul\u003e\n      \u003cli itemprop=\"violations\" itemscope itemtype=\"https://pagelove.org/Violation\"\u003e\u003cspan itemprop=\"check\"\u003ecardinality\u003c/span\u003e\u003cspan itemprop=\"itemtype\"\u003ehttps://pagelove.org/Handler\u003c/span\u003e\u003cspan itemprop=\"property\"\u003eaction\u003c/span\u003e\u003cspan itemprop=\"message\"\u003e[https://pagelove.org/Handler].action: cardinality 1..1 violated: expected exactly 1 value, found 0\u003c/span\u003e\u003c/li\u003e\n      \u003cli itemprop=\"violations\" itemscope itemtype=\"https://pagelove.org/Violation\"\u003e\u003cspan itemprop=\"check\"\u003eenum\u003c/span\u003e\u003cspan itemprop=\"itemtype\"\u003ehttps://pagelove.org/RequestHandler\u003c/span\u003e\u003cspan itemprop=\"property\"\u003emethod\u003c/span\u003e\u003cspan itemprop=\"message\"\u003e[https://pagelove.org/RequestHandler].method: Value \"put\" is not a valid https://pagelove.org/HTTPMethod (expected one of: \"GET\", \"PUT\", \"POST\", \"DELETE\", \"PATCH\", \"MOVE\", \"*\")\u003c/span\u003e\u003c/li\u003e\n      \u003cli itemprop=\"violations\" itemscope itemtype=\"https://pagelove.org/Violation\"\u003e\u003cspan itemprop=\"check\"\u003eenum\u003c/span\u003e\u003cspan itemprop=\"itemtype\"\u003ehttps://pagelove.org/RequestHandler\u003c/span\u003e\u003cspan itemprop=\"property\"\u003emethod\u003c/span\u003e\u003cspan itemprop=\"message\"\u003e[https://pagelove.org/RequestHandler].method: Value \"options\" is not a valid https://pagelove.org/HTTPMethod (expected one of: \"GET\", \"PUT\", \"POST\", \"DELETE\", \"PATCH\", \"MOVE\", \"*\")\u003c/span\u003e\u003c/li\u003e\n    \u003c/ul\u003e\n  \u003c/body\u003e\n\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 6 (processor with a when and no action is refused)",
+      "method": "PUT",
+      "path": "/_pl/reacting-discovery-probe-0929-handler-sh-a24021/r/f.html",
+      "status": 422,
+      "headers": {
+        "content-length": "727",
+        "content-type": "text/html; charset=utf-8",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\n  \u003chead\u003e\n    \u003ctitle\u003e422 Unprocessable Entity - Schema Violation\u003c/title\u003e\n  \u003c/head\u003e\n  \u003cbody itemscope itemtype=\"https://pagelove.org/SchemaViolation\"\u003e\n    \u003ch1 itemprop=\"name\"\u003eUnprocessable Entity\u003c/h1\u003e\n    \u003cmeta itemprop=\"statusCode\" content=\"422\"\u003e\n    \u003cp itemprop=\"description\"\u003eSchema validation failed\u003c/p\u003e\n    \u003cul\u003e\n      \u003cli itemprop=\"violations\" itemscope itemtype=\"https://pagelove.org/Violation\"\u003e\u003cspan itemprop=\"check\"\u003ecardinality\u003c/span\u003e\u003cspan itemprop=\"itemtype\"\u003ehttps://pagelove.org/Handler\u003c/span\u003e\u003cspan itemprop=\"property\"\u003eaction\u003c/span\u003e\u003cspan itemprop=\"message\"\u003e[https://pagelove.org/Handler].action: cardinality 1..1 violated: expected exactly 1 value, found 0\u003c/span\u003e\u003c/li\u003e\n    \u003c/ul\u003e\n  \u003c/body\u003e\n\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 7 (processor with two actions is refused)",
+      "method": "PUT",
+      "path": "/_pl/reacting-discovery-probe-0929-handler-sh-a24021/r/g.html",
+      "status": 422,
+      "headers": {
+        "content-length": "727",
+        "content-type": "text/html; charset=utf-8",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\n  \u003chead\u003e\n    \u003ctitle\u003e422 Unprocessable Entity - Schema Violation\u003c/title\u003e\n  \u003c/head\u003e\n  \u003cbody itemscope itemtype=\"https://pagelove.org/SchemaViolation\"\u003e\n    \u003ch1 itemprop=\"name\"\u003eUnprocessable Entity\u003c/h1\u003e\n    \u003cmeta itemprop=\"statusCode\" content=\"422\"\u003e\n    \u003cp itemprop=\"description\"\u003eSchema validation failed\u003c/p\u003e\n    \u003cul\u003e\n      \u003cli itemprop=\"violations\" itemscope itemtype=\"https://pagelove.org/Violation\"\u003e\u003cspan itemprop=\"check\"\u003ecardinality\u003c/span\u003e\u003cspan itemprop=\"itemtype\"\u003ehttps://pagelove.org/Handler\u003c/span\u003e\u003cspan itemprop=\"property\"\u003eaction\u003c/span\u003e\u003cspan itemprop=\"message\"\u003e[https://pagelove.org/Handler].action: cardinality 1..1 violated: expected exactly 1 value, found 2\u003c/span\u003e\u003c/li\u003e\n    \u003c/ul\u003e\n  \u003c/body\u003e\n\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 8 (processor with method get (lower case) is refused)",
+      "method": "PUT",
+      "path": "/_pl/reacting-discovery-probe-0929-handler-sh-a24021/r/h.html",
+      "status": 422,
+      "headers": {
+        "content-length": "804",
+        "content-type": "text/html; charset=utf-8",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\n  \u003chead\u003e\n    \u003ctitle\u003e422 Unprocessable Entity - Schema Violation\u003c/title\u003e\n  \u003c/head\u003e\n  \u003cbody itemscope itemtype=\"https://pagelove.org/SchemaViolation\"\u003e\n    \u003ch1 itemprop=\"name\"\u003eUnprocessable Entity\u003c/h1\u003e\n    \u003cmeta itemprop=\"statusCode\" content=\"422\"\u003e\n    \u003cp itemprop=\"description\"\u003eSchema validation failed\u003c/p\u003e\n    \u003cul\u003e\n      \u003cli itemprop=\"violations\" itemscope itemtype=\"https://pagelove.org/Violation\"\u003e\u003cspan itemprop=\"check\"\u003eenum\u003c/span\u003e\u003cspan itemprop=\"itemtype\"\u003ehttps://pagelove.org/RequestHandler\u003c/span\u003e\u003cspan itemprop=\"property\"\u003emethod\u003c/span\u003e\u003cspan itemprop=\"message\"\u003e[https://pagelove.org/RequestHandler].method: Value \"get\" is not a valid https://pagelove.org/HTTPMethod (expected one of: \"GET\", \"PUT\", \"POST\", \"DELETE\", \"PATCH\", \"MOVE\", \"*\")\u003c/span\u003e\u003c/li\u003e\n    \u003c/ul\u003e\n  \u003c/body\u003e\n\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 9 (transition handler with two actions is refused)",
+      "method": "PUT",
+      "path": "/_pl/reacting-discovery-probe-0929-handler-sh-a24021/r/i.html",
+      "status": 422,
+      "headers": {
+        "content-length": "727",
+        "content-type": "text/html; charset=utf-8",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\n  \u003chead\u003e\n    \u003ctitle\u003e422 Unprocessable Entity - Schema Violation\u003c/title\u003e\n  \u003c/head\u003e\n  \u003cbody itemscope itemtype=\"https://pagelove.org/SchemaViolation\"\u003e\n    \u003ch1 itemprop=\"name\"\u003eUnprocessable Entity\u003c/h1\u003e\n    \u003cmeta itemprop=\"statusCode\" content=\"422\"\u003e\n    \u003cp itemprop=\"description\"\u003eSchema validation failed\u003c/p\u003e\n    \u003cul\u003e\n      \u003cli itemprop=\"violations\" itemscope itemtype=\"https://pagelove.org/Violation\"\u003e\u003cspan itemprop=\"check\"\u003ecardinality\u003c/span\u003e\u003cspan itemprop=\"itemtype\"\u003ehttps://pagelove.org/Handler\u003c/span\u003e\u003cspan itemprop=\"property\"\u003eaction\u003c/span\u003e\u003cspan itemprop=\"message\"\u003e[https://pagelove.org/Handler].action: cardinality 1..1 violated: expected exactly 1 value, found 2\u003c/span\u003e\u003c/li\u003e\n    \u003c/ul\u003e\n  \u003c/body\u003e\n\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 10 (transition handler without an action is refused)",
+      "method": "PUT",
+      "path": "/_pl/reacting-discovery-probe-0929-handler-sh-a24021/r/j.html",
+      "status": 422,
+      "headers": {
+        "content-length": "727",
+        "content-type": "text/html; charset=utf-8",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\n  \u003chead\u003e\n    \u003ctitle\u003e422 Unprocessable Entity - Schema Violation\u003c/title\u003e\n  \u003c/head\u003e\n  \u003cbody itemscope itemtype=\"https://pagelove.org/SchemaViolation\"\u003e\n    \u003ch1 itemprop=\"name\"\u003eUnprocessable Entity\u003c/h1\u003e\n    \u003cmeta itemprop=\"statusCode\" content=\"422\"\u003e\n    \u003cp itemprop=\"description\"\u003eSchema validation failed\u003c/p\u003e\n    \u003cul\u003e\n      \u003cli itemprop=\"violations\" itemscope itemtype=\"https://pagelove.org/Violation\"\u003e\u003cspan itemprop=\"check\"\u003ecardinality\u003c/span\u003e\u003cspan itemprop=\"itemtype\"\u003ehttps://pagelove.org/Handler\u003c/span\u003e\u003cspan itemprop=\"property\"\u003eaction\u003c/span\u003e\u003cspan itemprop=\"message\"\u003e[https://pagelove.org/Handler].action: cardinality 1..1 violated: expected exactly 1 value, found 0\u003c/span\u003e\u003c/li\u003e\n    \u003c/ul\u003e\n  \u003c/body\u003e\n\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 11 (a host document for a selector write)",
+      "method": "PUT",
+      "path": "/_pl/reacting-discovery-probe-0929-handler-sh-a24021/r/k.html",
+      "status": 201,
+      "headers": {
+        "content-length": "61",
+        "content-type": "text/html",
+        "etag": "\"6837810e506475433f6a866d1e8a6728038f3d57b29c403bed429951e885916c\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:48 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\u003chtml\u003e\u003cbody\u003e\u003cdiv id=\"box\"\u003e\u003c/div\u003e\u003c/body\u003e\u003c/html\u003e"
+    },
+    {
+      "step": "step 12 (a selector POST that inserts an action-less trigger is refused)",
+      "method": "POST",
+      "path": "/_pl/reacting-discovery-probe-0929-handler-sh-a24021/r/k.html",
+      "status": 422,
+      "headers": {
+        "content-length": "727",
+        "content-type": "text/html; charset=utf-8",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\n  \u003chead\u003e\n    \u003ctitle\u003e422 Unprocessable Entity - Schema Violation\u003c/title\u003e\n  \u003c/head\u003e\n  \u003cbody itemscope itemtype=\"https://pagelove.org/SchemaViolation\"\u003e\n    \u003ch1 itemprop=\"name\"\u003eUnprocessable Entity\u003c/h1\u003e\n    \u003cmeta itemprop=\"statusCode\" content=\"422\"\u003e\n    \u003cp itemprop=\"description\"\u003eSchema validation failed\u003c/p\u003e\n    \u003cul\u003e\n      \u003cli itemprop=\"violations\" itemscope itemtype=\"https://pagelove.org/Violation\"\u003e\u003cspan itemprop=\"check\"\u003ecardinality\u003c/span\u003e\u003cspan itemprop=\"itemtype\"\u003ehttps://pagelove.org/Handler\u003c/span\u003e\u003cspan itemprop=\"property\"\u003eaction\u003c/span\u003e\u003cspan itemprop=\"message\"\u003e[https://pagelove.org/Handler].action: cardinality 1..1 violated: expected exactly 1 value, found 0\u003c/span\u003e\u003c/li\u003e\n    \u003c/ul\u003e\n  \u003c/body\u003e\n\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 13 (the refused selector POST changed nothing)",
+      "method": "GET",
+      "path": "/_pl/reacting-discovery-probe-0929-handler-sh-a24021/r/k.html",
+      "status": 200,
+      "headers": {
+        "accept-ranges": "selector, bytes",
+        "content-length": "61",
+        "content-type": "text/html",
+        "etag": "\"6837810e506475433f6a866d1e8a6728038f3d57b29c403bed429951e885916c\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:48 GMT",
+        "vary": "Host, Range, Accept"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\u003chtml\u003e\u003cbody\u003e\u003cdiv id=\"box\"\u003e\u003c/div\u003e\u003c/body\u003e\u003c/html\u003e"
+    },
+    {
+      "step": "step 14 (a valid trigger with addressable method and action elements)",
+      "method": "PUT",
+      "path": "/_pl/reacting-discovery-probe-0929-handler-sh-a24021/r/l.html",
+      "status": 201,
+      "headers": {
+        "content-length": "430",
+        "content-type": "text/html",
+        "etag": "\"8d3287f3ab51fbaed2126e9d91ac5459c5af87a0cd5d0c69cda8e9196958a92c\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:48 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\n\u003cdiv hidden itemscope itemtype=\"https://pagelove.org/Trigger\"\u003e\n  \u003cmeta itemprop=\"resource\" content=\"/_pl/reacting-discovery-probe-0929-handler-sh-a24021/nowhere/*\"\u003e\n  \u003cmeta id=\"m\" itemprop=\"method\" content=\"PUT\"\u003e\n  \u003cdiv id=\"act\" itemprop=\"action\" itemscope itemtype=\"https://pagelove.org/Sessel\"\u003e\u003cscript itemprop=\"source\" type=\"text/sessel\"\u003e1\u003c/script\u003e\u003c/div\u003e\n\u003c/div\u003e\n\u003cp id=\"note\"\u003eold\u003c/p\u003e\n\u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 15 (a selector PUT that makes the enclosing trigger's method invalid (PageLove answers in the dombase Cardinality envelope))",
+      "method": "PUT",
+      "path": "/_pl/reacting-discovery-probe-0929-handler-sh-a24021/r/l.html",
+      "status": 422,
+      "headers": {
+        "content-length": "804",
+        "content-type": "text/html; charset=utf-8",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\n  \u003chead\u003e\n    \u003ctitle\u003e422 Unprocessable Entity - Schema Violation\u003c/title\u003e\n  \u003c/head\u003e\n  \u003cbody itemscope itemtype=\"https://pagelove.org/SchemaViolation\"\u003e\n    \u003ch1 itemprop=\"name\"\u003eUnprocessable Entity\u003c/h1\u003e\n    \u003cmeta itemprop=\"statusCode\" content=\"422\"\u003e\n    \u003cp itemprop=\"description\"\u003eSchema validation failed\u003c/p\u003e\n    \u003cul\u003e\n      \u003cli itemprop=\"violations\" itemscope itemtype=\"https://pagelove.org/Violation\"\u003e\u003cspan itemprop=\"check\"\u003eenum\u003c/span\u003e\u003cspan itemprop=\"itemtype\"\u003ehttps://pagelove.org/RequestHandler\u003c/span\u003e\u003cspan itemprop=\"property\"\u003emethod\u003c/span\u003e\u003cspan itemprop=\"message\"\u003e[https://pagelove.org/RequestHandler].method: Value \"put\" is not a valid https://pagelove.org/HTTPMethod (expected one of: \"GET\", \"PUT\", \"POST\", \"DELETE\", \"PATCH\", \"MOVE\", \"*\")\u003c/span\u003e\u003c/li\u003e\n    \u003c/ul\u003e\n  \u003c/body\u003e\n\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 16 (a selector DELETE of the enclosing trigger's only action (the same envelope))",
+      "method": "DELETE",
+      "path": "/_pl/reacting-discovery-probe-0929-handler-sh-a24021/r/l.html",
+      "status": 422,
+      "headers": {
+        "content-length": "727",
+        "content-type": "text/html; charset=utf-8",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\n  \u003chead\u003e\n    \u003ctitle\u003e422 Unprocessable Entity - Schema Violation\u003c/title\u003e\n  \u003c/head\u003e\n  \u003cbody itemscope itemtype=\"https://pagelove.org/SchemaViolation\"\u003e\n    \u003ch1 itemprop=\"name\"\u003eUnprocessable Entity\u003c/h1\u003e\n    \u003cmeta itemprop=\"statusCode\" content=\"422\"\u003e\n    \u003cp itemprop=\"description\"\u003eSchema validation failed\u003c/p\u003e\n    \u003cul\u003e\n      \u003cli itemprop=\"violations\" itemscope itemtype=\"https://pagelove.org/Violation\"\u003e\u003cspan itemprop=\"check\"\u003ecardinality\u003c/span\u003e\u003cspan itemprop=\"itemtype\"\u003ehttps://pagelove.org/Handler\u003c/span\u003e\u003cspan itemprop=\"property\"\u003eaction\u003c/span\u003e\u003cspan itemprop=\"message\"\u003e[https://pagelove.org/Handler].action: cardinality 1..1 violated: expected exactly 1 value, found 0\u003c/span\u003e\u003c/li\u003e\n    \u003c/ul\u003e\n  \u003c/body\u003e\n\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 17 (a selector PUT elsewhere in a document whose stored trigger is invalid)",
+      "method": "PUT",
+      "path": "/_pl/reacting-discovery-probe-0929-handler-sh-a24021/w/stored.html",
+      "status": 206,
+      "headers": {
+        "content-length": "20",
+        "content-range": "selector #note",
+        "content-type": "text/html",
+        "etag": "\"1421b41a164315df88e0c9c2216ca7e62578da4316fdf41da53455b601f85a94-1421b41a164315df88e0c9c2216ca7e62578da4316fdf41da53455b601f85a94-2\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:48 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003cp id=\"note\"\u003enew\u003c/p\u003e"
+    },
+    {
+      "step": "step 18 (a whole-document PUT that keeps the invalid trigger)",
+      "method": "PUT",
+      "path": "/_pl/reacting-discovery-probe-0929-handler-sh-a24021/w/stored.html",
+      "status": 422,
+      "headers": {
+        "content-length": "727",
+        "content-type": "text/html; charset=utf-8",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\n  \u003chead\u003e\n    \u003ctitle\u003e422 Unprocessable Entity - Schema Violation\u003c/title\u003e\n  \u003c/head\u003e\n  \u003cbody itemscope itemtype=\"https://pagelove.org/SchemaViolation\"\u003e\n    \u003ch1 itemprop=\"name\"\u003eUnprocessable Entity\u003c/h1\u003e\n    \u003cmeta itemprop=\"statusCode\" content=\"422\"\u003e\n    \u003cp itemprop=\"description\"\u003eSchema validation failed\u003c/p\u003e\n    \u003cul\u003e\n      \u003cli itemprop=\"violations\" itemscope itemtype=\"https://pagelove.org/Violation\"\u003e\u003cspan itemprop=\"check\"\u003ecardinality\u003c/span\u003e\u003cspan itemprop=\"itemtype\"\u003ehttps://pagelove.org/Handler\u003c/span\u003e\u003cspan itemprop=\"property\"\u003eaction\u003c/span\u003e\u003cspan itemprop=\"message\"\u003e[https://pagelove.org/Handler].action: cardinality 1..1 violated: expected exactly 1 value, found 0\u003c/span\u003e\u003c/li\u003e\n    \u003c/ul\u003e\n  \u003c/body\u003e\n\u003c/html\u003e\n"
+    }
+  ],
+  "outcome": "pass",
+  "target": "local"
+}

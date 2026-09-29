@@ -1,0 +1,386 @@
+# Composing: <p:include>.
+# Spec: docs/spec/composing.md §12 (R-COMP-80..87), §13 write-through, §19.
+cases:
+  - id: comp.inc.basic
+    title: An include replaces itself with a fragment of another document
+    area: composing
+    feature: includes
+    evidence: documented
+    source: "docs reference/composing-pages/Includes §Basic include resolves a fragment from another document (snapshot 2026-09-28)"
+    confidence: high
+    requires: []
+    live: true
+    site:
+      settings: {default_get: allow}
+      files:
+        - path: "${P}/sspi-inc-partials/nav.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body><header id="nav">Navigation</header></body></html>
+        - path: "${P}/sspi-inc-basic.html"
+          body: |
+            <!DOCTYPE html>
+            <html xmlns:p="https://pagelove.org/1.0">
+            <body>
+              <p:include selector="#nav" resource="${P}/sspi-inc-partials/*"></p:include>
+              <main><p>Page content here.</p></main>
+            </body>
+            </html>
+      rules:
+        - {actor: "*", resource: "${P}/*", method: [GET, HEAD], action: Allow}
+    steps:
+      - as: anonymous
+        request: {method: GET, path: "${P}/sspi-inc-basic.html"}
+        expect:
+          status: 200
+          body_contains: ['<header id="nav">Navigation</header>', "<main><p>Page content here.</p></main>"]
+          body_not_contains: ["p:include", "xmlns:p"]
+
+  - id: comp.inc.global-selector
+    title: Without resource, the include selector searches the whole site
+    area: composing
+    feature: includes
+    evidence: documented
+    source: "docs reference/composing-pages/Includes §Global selector include, §Resolution model (snapshot 2026-09-28)"
+    confidence: high
+    requires: []
+    live: true
+    site:
+      settings: {default_get: allow}
+      files:
+        - path: "${P}/elsewhere/deep/partial.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body><nav data-inc="${P}">GlobalNav</nav></body></html>
+        - path: "${P}/page.html"
+          body: |
+            <!DOCTYPE html>
+            <html xmlns:p="https://pagelove.org/1.0">
+            <body><p:include selector="[data-inc='${P}']"></p:include><main>m</main></body>
+            </html>
+      rules:
+        - {actor: "*", resource: "${P}/*", method: [GET, HEAD], action: Allow}
+    steps:
+      - as: anonymous
+        request: {method: GET, path: "${P}/page.html"}
+        expect:
+          status: 200
+          body_contains: ["GlobalNav"]
+          body_not_contains: ["p:include"]
+
+  - id: comp.inc.zero-matches-404
+    title: An include that matches nothing fails the page with 404
+    area: composing
+    feature: include cardinality
+    evidence: documented
+    source: "docs reference/composing-pages/Includes §Cardinality rules (snapshot 2026-09-28)"
+    confidence: high
+    requires: []
+    live: true
+    site:
+      settings: {default_get: allow}
+      files:
+        - path: "${P}/partial.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body><header id="nav">Nav</header></body></html>
+        - path: "${P}/page.html"
+          body: |
+            <!DOCTYPE html>
+            <html xmlns:p="https://pagelove.org/1.0">
+            <body><p:include selector="#missing" resource="${P}/partial.html"></p:include><main>m</main></body>
+            </html>
+      rules:
+        - {actor: "*", resource: "${P}/*", method: [GET, HEAD], action: Allow}
+    steps:
+      - name: whole page
+        as: anonymous
+        request: {method: GET, path: "${P}/page.html"}
+        expect: {status: 404}
+      - name: a fragment read fails too
+        as: anonymous
+        request:
+          method: GET
+          path: "${P}/page.html"
+          headers: {Range: "selector=main"}
+        expect: {status: 404}
+
+  - id: comp.inc.multiple-matches-500
+    title: An include that matches several elements fails the page with 500
+    area: composing
+    feature: include cardinality
+    evidence: documented
+    source: "docs reference/composing-pages/Includes §Cardinality rules ('site integrity failure') (snapshot 2026-09-28)"
+    confidence: high
+    requires: []
+    live: true
+    site:
+      settings: {default_get: allow}
+      files:
+        - path: "${P}/partial.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body><p class="dup">1</p><p class="dup">2</p></body></html>
+        - path: "${P}/page.html"
+          body: |
+            <!DOCTYPE html>
+            <html xmlns:p="https://pagelove.org/1.0">
+            <body><p:include selector=".dup" resource="${P}/partial.html"></p:include></body>
+            </html>
+      rules:
+        - {actor: "*", resource: "${P}/*", method: [GET, HEAD], action: Allow}
+    steps:
+      - as: anonymous
+        request: {method: GET, path: "${P}/page.html"}
+        expect: {status: 500}
+
+  - id: comp.inc.resource-glob-constrains
+    title: The resource glob limits which documents are searched
+    area: composing
+    feature: includes
+    evidence: documented
+    source: "docs reference/composing-pages/Includes §resource, §Constrained include (snapshot 2026-09-28)"
+    confidence: high
+    requires: []
+    live: true
+    notes: "Without the constraint the selector would match twice (500)."
+    site:
+      settings: {default_get: allow}
+      files:
+        - path: "${P}/a/nav.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body><header id="nav">A-nav</header></body></html>
+        - path: "${P}/b/nav.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body><header id="nav">B-nav</header></body></html>
+        - path: "${P}/page.html"
+          body: |
+            <!DOCTYPE html>
+            <html xmlns:p="https://pagelove.org/1.0">
+            <body><p:include resource="${P}/b/*" selector="#nav"></p:include></body>
+            </html>
+      rules:
+        - {actor: "*", resource: "${P}/*", method: [GET, HEAD], action: Allow}
+    steps:
+      - as: anonymous
+        request: {method: GET, path: "${P}/page.html"}
+        expect:
+          status: 200
+          body_contains: ["B-nav"]
+          body_not_contains: ["A-nav"]
+
+  - id: comp.inc.private-source
+    title: An include reads from a document the reader may not GET
+    area: composing
+    feature: includes
+    evidence: demo-source
+    source: "pagelove-ats/site/roles.html@8f200fc:8-15"
+    confidence: high
+    requires: []
+    live: true
+    site:
+      settings: {default_get: allow}
+      files:
+        - path: "${P}/admin/index.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body><table><tbody id="roles-body"><tr id="R-001"><td itemprop="title">Role A</td></tr></tbody></table></body></html>
+        - path: "${P}/roles.html"
+          body: |
+            <!DOCTYPE html>
+            <html lang="en" xmlns:p="https://pagelove.org/1.0">
+            <body>
+            <table>
+              <p:include resource="${P}/admin/index.html" selector="#roles-body"></p:include>
+            </table>
+            </body>
+            </html>
+      rules:
+        - {actor: "*", resource: "${P}/*", method: [GET, HEAD], action: Allow}
+        - {actor: "*", resource: "${P}/admin/*", method: [GET, HEAD], action: Deny}
+    steps:
+      - as: anonymous
+        request: {method: GET, path: "${P}/admin/index.html"}
+        expect: {status: [401, 403]}
+      - as: anonymous
+        request: {method: GET, path: "${P}/roles.html"}
+        expect: {status: 200, body_contains: ["Role A"]}
+
+  - id: comp.inc.range-read-included-element
+    title: A selector read on the including page returns the included element
+    area: composing
+    feature: includes
+    evidence: demo-source
+    source: "pagelove-ats/site/index.html@8f200fc:413-416"
+    confidence: high
+    requires: []
+    live: true
+    site:
+      settings: {default_get: allow}
+      files:
+        - path: "${P}/admin/index.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body><table><tbody id="roles-body"><tr id="R-001"><td itemprop="title">Role A</td></tr></tbody></table></body></html>
+        - path: "${P}/roles.html"
+          body: |
+            <!DOCTYPE html>
+            <html lang="en" xmlns:p="https://pagelove.org/1.0">
+            <body><table><p:include resource="${P}/admin/index.html" selector="#roles-body"></p:include></table></body>
+            </html>
+      rules:
+        - {actor: "*", resource: "${P}/*", method: [GET, HEAD], action: Allow}
+    steps:
+      - as: anonymous
+        request:
+          method: GET
+          path: "${P}/roles.html?t=1727540000000"
+          headers: {Range: "selector=#roles-body", Cache-Control: "no-cache"}
+        expect:
+          status: 206
+          body_contains: ['id="roles-body"', "Role A"]
+
+  - id: comp.inc.nested-template-in-fragment
+    title: Directives inside an included fragment run during composition of the including page
+    area: composing
+    feature: includes
+    evidence: demo-source
+    source: "pagelove-shop/site/partials.html@d887054:9-22, site/index.html:11"
+    confidence: medium
+    requires: [liquid]
+    live: true
+    notes: "R-COMP-84/150. The fragment's template reads request.headers, so the including page becomes private."
+    site:
+      settings: {default_get: allow}
+      files:
+        - path: "${P}/partials.html"
+          body: |
+            <!DOCTYPE html>
+            <html lang="en" xmlns:p="https://pagelove.org/1.0">
+            <body>
+              <header id="chrome"><nav><span p:template="text/liquid">{% if request.headers.authorization %}ADMIN-LINKS{% else %}SHOPPER-VIEW{% endif %}</span></nav></header>
+            </body>
+            </html>
+        - path: "${P}/index.html"
+          body: |
+            <!DOCTYPE html>
+            <html lang="en" xmlns:p="https://pagelove.org/1.0">
+            <body><p:include selector="#chrome" resource="${P}/partials.html"></p:include><main>shop</main></body>
+            </html>
+      rules:
+        - {actor: "*", resource: "${P}/*", method: [GET, HEAD], action: Allow}
+    steps:
+      - as: anonymous
+        request: {method: GET, path: "${P}/index.html"}
+        expect:
+          status: 200
+          body_contains: ['<header id="chrome">', "SHOPPER-VIEW"]
+          body_not_contains: ["ADMIN-LINKS", "p:template", "{%"]
+          header_contains: {Cache-Control: private}
+
+  - id: comp.inc.write-through-put
+    title: A selector PUT to an included element changes the origin, authorized by the including page
+    area: composing
+    feature: write-through
+    evidence: documented
+    source: "docs reference/composing-pages/Includes §Interaction with HTTP Document Mutation (snapshot 2026-09-28)"
+    confidence: high
+    requires: []
+    live: true
+    site:
+      settings: {default_get: allow}
+      files:
+        - path: "${P}/partial.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body><header id="nav">Nav v1</header></body></html>
+        - path: "${P}/page.html"
+          body: |
+            <!DOCTYPE html>
+            <html xmlns:p="https://pagelove.org/1.0">
+            <body><p:include resource="${P}/partial.html" selector="header#nav"></p:include><main>Page</main></body>
+            </html>
+      rules:
+        - {actor: "*", resource: "${P}/*", method: [GET, HEAD], action: Allow}
+        - {actor: "*", resource: "${P}/page.html", method: [PUT], action: Allow}
+    steps:
+      - as: anonymous
+        request:
+          method: PUT
+          path: "${P}/page.html"
+          headers: {Range: "selector=header#nav", Content-Type: "text/html"}
+          body: '<header id="nav">Nav v2</header>'
+        expect: {status: [200, 204, 206]}
+      - as: author
+        plane: dav
+        request: {method: GET, path: "${P}/partial.html"}
+        expect: {status: 200, body_contains: ["Nav v2"]}
+      - as: author
+        plane: dav
+        request: {method: GET, path: "${P}/page.html"}
+        expect: {status: 200, body_contains: ["<p:include"], body_not_contains: ["Nav v2"]}
+
+  - id: comp.inc.request-document-private
+    title: Including a fragment of the Request Document works and makes the page private
+    area: composing
+    feature: Request Document
+    evidence: documented
+    source: "docs reference/reading-and-writing/Request-Document intro and §Caching (snapshot 2026-09-28)"
+    confidence: medium
+    requires: []
+    live: true
+    notes: "R-COMP-120/121. Assumes no stored document on the host carries a Request item."
+    site:
+      settings: {default_get: allow}
+      files:
+        - path: "${P}/page.html"
+          body: |
+            <!DOCTYPE html>
+            <html xmlns:p="https://pagelove.org/1.0">
+            <body><div id="m"><p:include selector="[itemtype='https://pagelove.org/Request'] > meta[itemprop='method']"></p:include></div></body>
+            </html>
+      rules:
+        - {actor: "*", resource: "${P}/*", method: [GET, HEAD], action: Allow}
+    steps:
+      - as: anonymous
+        request: {method: GET, path: "${P}/page.html"}
+        expect:
+          status: 200
+          body_contains: ['content="GET"']
+          header_contains: {Cache-Control: private}
+
+  - id: comp.inc.failed-include-blocks-write
+    title: A page whose include fails cannot be written through
+    area: composing
+    feature: write-through
+    evidence: documented
+    source: "docs reference/composing-pages/Includes §Interaction ('If an include fails to resolve uniquely, no write is attempted') (snapshot 2026-09-28)"
+    confidence: medium
+    requires: []
+    live: true
+    notes: "R-COMP-94. The target here is a native element; the composition error still blocks the write."
+    site:
+      settings: {default_get: allow}
+      files:
+        - path: "${P}/page.html"
+          body: |
+            <!DOCTYPE html>
+            <html xmlns:p="https://pagelove.org/1.0">
+            <body><p:include selector="#missing" resource="${P}/page.html"></p:include><ul id="list"></ul></body>
+            </html>
+      rules:
+        - {actor: "*", resource: "${P}/*", method: [GET, HEAD, POST], action: Allow}
+    steps:
+      - as: anonymous
+        request:
+          method: POST
+          path: "${P}/page.html"
+          headers: {Range: "selector=#list", Content-Type: "text/html"}
+          body: "<li>should-not-land</li>"
+        expect: {status: [404, 500]}
+      - as: author
+        plane: dav
+        request: {method: GET, path: "${P}/page.html"}
+        expect: {status: 200, body_not_contains: ["should-not-land"]}

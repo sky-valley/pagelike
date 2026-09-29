@@ -1,0 +1,43 @@
+{
+  "case": "sse.scope.transient-write-no-event",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (sse open s1)",
+      "method": "GET",
+      "path": "/_pl/sse-scope-transient-write-no-event-7d2ab4/shop.html",
+      "status": 200,
+      "headers": {
+        "cache-control": "no-cache",
+        "content-type": "text/event-stream",
+        "x-accel-buffering": "no"
+      }
+    },
+    {
+      "step": "step 2",
+      "events": [
+        {
+          "event": "pagelove-connection",
+          "data": "5a3dd388-c867-4025-af38-2b0e7c2498f7"
+        }
+      ]
+    },
+    {
+      "step": "step 3 (another session adds to its cart)",
+      "method": "POST",
+      "path": "/_pl/sse-scope-transient-write-no-event-7d2ab4/shop.html",
+      "status": 206,
+      "headers": {
+        "cache-control": "private",
+        "content-length": "21",
+        "content-range": "selector #cart",
+        "content-type": "text/html",
+        "etag": "\"bfa0ff59733d53d7431242f239eb536b2ba8b3f57262c12a092e7006fdceaad8-bfa0ff59733d53d7431242f239eb536b2ba8b3f57262c12a092e7006fdceaad8-1\"",
+        "vary": "Host, Range"
+      },
+      "body": "\u003cli\u003ePrivate item\u003c/li\u003e"
+    }
+  ],
+  "outcome": "pass",
+  "target": "local"
+}

@@ -1,0 +1,23 @@
+{
+  "case": "liquid.declare.outside-host-untouched",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (read)",
+      "method": "GET",
+      "path": "/_pl/liquid-declare-outside-host-untouched-122704/outside.html",
+      "status": 200,
+      "headers": {
+        "accept-ranges": "selector, bytes",
+        "cache-control": "public, max-age=5",
+        "content-length": "135",
+        "content-type": "text/html",
+        "etag": "W/\"242a51ea454c6a25e869ae3bced48d00b1d6ece1d218677b15a4c5207fa53893\"",
+        "vary": "Host, Range, Accept"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\n  \u003cp id=\"lit\"\u003eHi {{first_name}}, {% if x %}literal{% endif %}\u003c/p\u003e\n  \u003cp id=\"tpl\"\u003einside\u003c/p\u003e\n\u003c/body\u003e\u003c/html\u003e\n"
+    }
+  ],
+  "outcome": "pass",
+  "target": "local"
+}

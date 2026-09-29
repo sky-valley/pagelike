@@ -1,0 +1,7 @@
+# Wildcard TLS in front of pagelike. Requires a DNS provider module for the
+# wildcard certificate (or list explicit site hosts instead).
+*.example.org {
+	reverse_proxy 127.0.0.1:8787 {
+		flush_interval -1   # stream SSE without buffering
+	}
+}

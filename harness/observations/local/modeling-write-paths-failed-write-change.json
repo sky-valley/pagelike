@@ -1,0 +1,78 @@
+{
+  "case": "modeling.write-paths.failed-write-changes-nothing",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (register declarations through the public plane (takes effect for the next request))",
+      "method": "PUT",
+      "path": "/_pl/modeling-write-paths-failed-write-change-494ec1/schema.html",
+      "status": 201,
+      "headers": {
+        "content-length": "484",
+        "content-type": "text/html",
+        "etag": "\"f2f851f06f9f19e33be6c84d828bafaad06335b010b83969a306af2d5242e57d\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:45 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\n  \u003cdiv hidden itemscope itemtype=\"https://pagelove.org/Schema\"\u003e\n    \u003cmeta itemprop=\"type\" content=\"https://pagelike.test/_pl/modeling-write-paths-failed-write-change-494ec1/Tag\"\u003e\n    \u003cdiv itemprop=\"property\" itemscope itemtype=\"https://pagelove.org/Property\"\u003e\n      \u003cmeta itemprop=\"name\" content=\"label\"\u003e\n      \u003cmeta itemprop=\"type\" content=\"https://schema.host/Text\"\u003e\n      \u003cmeta itemprop=\"cardinality\" content=\"1..1\"\u003e\n    \u003c/div\u003e\n  \u003c/div\u003e\n\u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 2 (valid tag)",
+      "method": "PUT",
+      "path": "/_pl/modeling-write-paths-failed-write-change-494ec1/t.html",
+      "status": 201,
+      "headers": {
+        "content-length": "208",
+        "content-type": "text/html",
+        "etag": "\"35901dea2e457000ac6b22644ffcf2274f9b5169c417eece8ae908e31b0eecea\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:45 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\n  \u003cdiv itemscope itemtype=\"https://pagelike.test/_pl/modeling-write-paths-failed-write-change-494ec1/Tag\" id=\"t1\"\u003e\n    \u003cmeta itemprop=\"label\" content=\"a\"\u003e\n  \u003c/div\u003e\n\u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 3 (read and capture the ETag)",
+      "method": "GET",
+      "path": "/_pl/modeling-write-paths-failed-write-change-494ec1/t.html",
+      "status": 200,
+      "headers": {
+        "accept-ranges": "selector, bytes",
+        "content-length": "208",
+        "content-type": "text/html",
+        "etag": "\"35901dea2e457000ac6b22644ffcf2274f9b5169c417eece8ae908e31b0eecea\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:45 GMT",
+        "vary": "Host, Range, Accept"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\n  \u003cdiv itemscope itemtype=\"https://pagelike.test/_pl/modeling-write-paths-failed-write-change-494ec1/Tag\" id=\"t1\"\u003e\n    \u003cmeta itemprop=\"label\" content=\"a\"\u003e\n  \u003c/div\u003e\n\u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 4 (invalid selector delete refused)",
+      "method": "DELETE",
+      "path": "/_pl/modeling-write-paths-failed-write-change-494ec1/t.html",
+      "status": 422,
+      "headers": {
+        "content-length": "332",
+        "content-type": "text/html",
+        "vary": "Host, Range"
+      },
+      "body": "\u003cdiv itemscope itemtype=\"https://dombase.pagelove.team/ns/error/Cardinality\"\u003e\u003cul itemprop=\"problems\"\u003e\u003cli itemprop=\"problem\"\u003e\u003cspan itemprop=\"message\"\u003ehttps://pagelike.test/_pl/modeling-write-paths-failed-write-change-494ec1/Tag /label: cardinality 1..1 violated: expected exactly 1 value, found 0 (cardinality)\u003c/span\u003e\u003c/li\u003e\u003c/ul\u003e\u003c/div\u003e"
+    },
+    {
+      "step": "step 5 (document unchanged)",
+      "method": "GET",
+      "path": "/_pl/modeling-write-paths-failed-write-change-494ec1/t.html",
+      "status": 200,
+      "headers": {
+        "accept-ranges": "selector, bytes",
+        "content-length": "208",
+        "content-type": "text/html",
+        "etag": "\"35901dea2e457000ac6b22644ffcf2274f9b5169c417eece8ae908e31b0eecea\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:45 GMT",
+        "vary": "Host, Range, Accept"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\n  \u003cdiv itemscope itemtype=\"https://pagelike.test/_pl/modeling-write-paths-failed-write-change-494ec1/Tag\" id=\"t1\"\u003e\n    \u003cmeta itemprop=\"label\" content=\"a\"\u003e\n  \u003c/div\u003e\n\u003c/body\u003e\u003c/html\u003e\n"
+    }
+  ],
+  "outcome": "pass",
+  "target": "local"
+}

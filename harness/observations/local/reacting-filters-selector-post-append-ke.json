@@ -1,0 +1,33 @@
+{
+  "case": "reacting.filters.selector-post-append-key-element-is-list",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (install a POST trigger filtered on the Note type)",
+      "method": "PUT",
+      "path": "/_pl/reacting-filters-selector-post-append-ke-170701/r/triggers.html",
+      "status": 201,
+      "headers": {
+        "content-length": "666",
+        "content-type": "text/html",
+        "etag": "\"0b7a5d24fe3a308d0414963214859edffc040e96261b482043bd05cc533262dc\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:48 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\n\u003cdiv hidden itemscope itemtype=\"https://pagelove.org/Trigger\"\u003e\n  \u003cmeta itemprop=\"resource\" content=\"/_pl/reacting-filters-selector-post-append-ke-170701/d/*\"\u003e\n  \u003cmeta itemprop=\"method\" content=\"POST\"\u003e\n  \u003cmeta itemprop=\"selector\" content=\"[itemtype='https://pagelike.test/_pl/reacting-filters-selector-post-append-ke-170701/Note']\"\u003e\n  \u003cdiv itemprop=\"action\" itemscope itemtype=\"https://pagelove.org/Sessel\"\u003e\n    \u003cscript itemprop=\"source\" type=\"text/sessel\"\u003e\n      @schema HTTPResponse url(\"https://pagelove.org/HTTPResponse\");\n      throw new HTTPResponse { status: 409, message: \"note-hit\" }\n    \u003c/script\u003e\n  \u003c/div\u003e\n\u003c/div\u003e\n\u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 2 (appending a Note into the plain list fires)",
+      "method": "POST",
+      "path": "/_pl/reacting-filters-selector-post-append-ke-170701/d/notes.html",
+      "status": 409,
+      "headers": {
+        "content-length": "8",
+        "content-type": "text/html; charset=utf-8"
+      },
+      "body": "note-hit"
+    }
+  ],
+  "outcome": "pass",
+  "target": "local"
+}

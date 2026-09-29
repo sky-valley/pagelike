@@ -1,0 +1,34 @@
+{
+  "case": "liquid.compose.write-into-rendered-output",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (write to a generated element)",
+      "method": "PUT",
+      "path": "/_pl/liquid-compose-write-into-rendered-outpu-877ee4/w.html",
+      "status": 416,
+      "headers": {
+        "content-length": "355",
+        "content-type": "text/html",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\n  \u003chead\u003e\n    \u003ctitle\u003e416 Range Not Satisfiable - Error\u003c/title\u003e\n  \u003c/head\u003e\n  \u003cbody itemscope itemtype=\"http://pagelove.org/Error\"\u003e\n    \u003ch1 itemprop=\"name\"\u003eRange Not Satisfiable\u003c/h1\u003e\n    \u003cmeta itemprop=\"statusCode\" content=\"416\"\u003e\n    \u003cp itemprop=\"description\"\u003eHTML parsing error: No elements matched selector: #i1\u003c/p\u003e\n  \u003c/body\u003e\n\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 2 (template source untouched)",
+      "method": "GET",
+      "path": "/_pl/liquid-compose-write-into-rendered-outpu-877ee4/w.html",
+      "status": 200,
+      "headers": {
+        "accept-ranges": "bytes",
+        "content-length": "186",
+        "content-type": "text/html",
+        "etag": "\"1bd650e7aefc7caaa8c47b1539f36f2d852bf381ae01b475f250ae1f356b6e3b\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:43 GMT"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml xmlns:p=\"https://pagelove.org/1.0\"\u003e\u003cbody\u003e\n  \u003cul id=\"l\" p:template=\"text/liquid\"\u003e{% for i in (1..2) %}\u003cli id=\"i{{ i }}\"\u003e{{ i }}\u003c/li\u003e{% endfor %}\u003c/ul\u003e\n\u003c/body\u003e\u003c/html\u003e\n"
+    }
+  ],
+  "outcome": "pass",
+  "target": "local"
+}

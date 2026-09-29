@@ -1,0 +1,37 @@
+{
+  "case": "javascript.dom.readonly-factories-allowed",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (PUT the page (public plane; registers inline declarations))",
+      "method": "PUT",
+      "path": "/_pl/javascript-dom-readonly-factories-allowe-031ff1/fac.html",
+      "status": 201,
+      "headers": {
+        "content-length": "1018",
+        "content-type": "text/html",
+        "etag": "\"3187ecb5d93ebbd54244a4a27e4bfae17780e34df2bfc8a85ce5e049183f7ee2\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:43 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml xmlns:t=\"https://pagelike.test/_pl/javascript-dom-readonly-factories-allowe-031ff1/Fac\"\u003e\u003cbody\u003e\n\u003cmain\u003e\n\u003cul id=\"list\"\u003e\u003ct:item title=\"Buy milk\"\u003e\u003c/t:item\u003e\u003c/ul\u003e\n\u003c/main\u003e\n\u003cdiv hidden itemscope itemtype=\"https://pagelove.org/Schema\"\u003e\n\u003cmeta itemprop=\"type\" content=\"https://pagelike.test/_pl/javascript-dom-readonly-factories-allowe-031ff1/Fac\"\u003e\n\u003cul\u003e\n\u003cli itemprop=\"property\" itemscope itemtype=\"https://pagelove.org/Method\"\u003e\n\u003cmeta itemprop=\"name\" content=\"item\"\u003e\n\u003cmeta itemprop=\"returns\" content=\"https://pagelove.org/Element\"\u003e\n\u003cdiv itemprop=\"parameter\" itemscope itemtype=\"https://pagelove.org/Parameter\"\u003e\u003cmeta itemprop=\"name\" content=\"title\"\u003e\u003cmeta itemprop=\"type\" content=\"https://schema.host/Text\"\u003e\u003c/div\u003e\n\u003cdiv itemprop=\"implementation\" itemscope itemtype=\"https://pagelove.org/JavaScript/Module\"\u003e\n\u003cscript itemprop=\"source\" type=\"module\"\u003e\nexport default (title) =\u003e {\n  const li = document.createElement(\"li\");\n  li.textContent = title;\n  return li;\n};\n\u003c/script\u003e\n\u003c/div\u003e\n\u003c/li\u003e\n\u003c/ul\u003e\n\u003c/div\u003e\n\u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 2 (GET the composed page)",
+      "method": "GET",
+      "path": "/_pl/javascript-dom-readonly-factories-allowe-031ff1/fac.html",
+      "status": 206,
+      "headers": {
+        "accept-ranges": "selector, bytes",
+        "content-length": "51",
+        "content-range": "selector main",
+        "content-type": "text/html",
+        "etag": "\"4bca1d5368e111a71f9e1665006024e23cda7fba882d3a52d3bdac19b3cc9781-4bca1d5368e111a71f9e1665006024e23cda7fba882d3a52d3bdac19b3cc9781-1\"",
+        "vary": "Host, Range, Accept"
+      },
+      "body": "\u003cmain\u003e\n\u003cul id=\"list\"\u003e\u003cli\u003eBuy milk\u003c/li\u003e\u003c/ul\u003e\n\u003c/main\u003e"
+    }
+  ],
+  "outcome": "pass",
+  "target": "local"
+}

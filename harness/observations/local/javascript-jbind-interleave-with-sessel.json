@@ -1,0 +1,37 @@
+{
+  "case": "javascript.jbind.interleave-with-sessel",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (PUT the page (public plane; registers inline declarations))",
+      "method": "PUT",
+      "path": "/_pl/javascript-jbind-interleave-with-sessel-f42291/j.html",
+      "status": 201,
+      "headers": {
+        "content-length": "252",
+        "content-type": "text/html",
+        "etag": "\"a888e905d684ca3915053096b5a5e504d384c2f1bf6e336fcd986e4b9612ed71\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:43 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml xmlns:j=\"https://pagelove.org/Binding/JavaScript\" xmlns:p=\"https://pagelove.org/1.0\" xmlns:e=\"https://pagelove.org/Binding/Sessel\"\u003e\u003cbody\u003e\n\u003cmain\u003e\n\u003cdiv e:a=\"2\" j:b=\"'B=' + (a * 3)\"\u003e\u003cp:stamp b\u003e\u003c/p:stamp\u003e\u003c/div\u003e\n\u003c/main\u003e\n\u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 2 (GET the composed page)",
+      "method": "GET",
+      "path": "/_pl/javascript-jbind-interleave-with-sessel-f42291/j.html",
+      "status": 206,
+      "headers": {
+        "accept-ranges": "selector, bytes",
+        "content-length": "29",
+        "content-range": "selector main",
+        "content-type": "text/html",
+        "etag": "\"f941817b3368c33a26a2491cc698c94b35b1ed4561e6f7168d01ece2c5a71993-f941817b3368c33a26a2491cc698c94b35b1ed4561e6f7168d01ece2c5a71993-1\"",
+        "vary": "Host, Range, Accept"
+      },
+      "body": "\u003cmain\u003e\n\u003cdiv\u003eB=6\u003c/div\u003e\n\u003c/main\u003e"
+    }
+  ],
+  "outcome": "pass",
+  "target": "local"
+}

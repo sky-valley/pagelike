@@ -1,0 +1,33 @@
+{
+  "case": "reacting.discovery.same-request-snapshot",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (create a document that contains a PUT guard for itself)",
+      "method": "PUT",
+      "path": "/_pl/reacting-discovery-same-request-snapshot-7c3669/d/self.html",
+      "status": 201,
+      "headers": {
+        "content-length": "554",
+        "content-type": "text/html",
+        "etag": "\"3dda6d5911a5ff43524ac2ad460cd03c6f3d0f8368c60a3b7a79b9408288ce51\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:48 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\n\u003cp\u003ev1\u003c/p\u003e\n\u003cdiv hidden itemscope itemtype=\"https://pagelove.org/Trigger\"\u003e\n  \u003cmeta itemprop=\"resource\" content=\"/_pl/reacting-discovery-same-request-snapshot-7c3669/d/self.html\"\u003e\n  \u003cmeta itemprop=\"method\" content=\"PUT\"\u003e\n  \u003cdiv itemprop=\"action\" itemscope itemtype=\"https://pagelove.org/Sessel\"\u003e\n    \u003cscript itemprop=\"source\" type=\"text/sessel\"\u003e\n      @schema HTTPResponse url(\"https://pagelove.org/HTTPResponse\");\n      throw new HTTPResponse { status: 409, message: \"self-guard\" }\n    \u003c/script\u003e\n  \u003c/div\u003e\n\u003c/div\u003e\n\u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 2 (the next PUT is refused)",
+      "method": "PUT",
+      "path": "/_pl/reacting-discovery-same-request-snapshot-7c3669/d/self.html",
+      "status": 409,
+      "headers": {
+        "content-length": "10",
+        "content-type": "text/html; charset=utf-8"
+      },
+      "body": "self-guard"
+    }
+  ],
+  "outcome": "pass",
+  "target": "local"
+}

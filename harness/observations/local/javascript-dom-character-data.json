@@ -1,0 +1,37 @@
+{
+  "case": "javascript.dom.character-data",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (PUT the page (public plane; registers inline declarations))",
+      "method": "PUT",
+      "path": "/_pl/javascript-dom-character-data-a5ef42/probe.html",
+      "status": 201,
+      "headers": {
+        "content-length": "1230",
+        "content-type": "text/html",
+        "etag": "\"6e95d55b25124a5d099c8ec0496fd4f2696851be3d51be9b7daebde31dc75ffc\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:43 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml xmlns:t=\"https://pagelike.test/_pl/javascript-dom-character-data-a5ef42/Dcharacterdata\"\u003e\u003cbody\u003e\n\u003cmain\u003e\n\u003ct:probe\u003e\u003c/t:probe\u003e\n\u003c/main\u003e\n\u003cdiv hidden itemscope itemtype=\"https://pagelove.org/Schema\"\u003e\n\u003cmeta itemprop=\"type\" content=\"https://pagelike.test/_pl/javascript-dom-character-data-a5ef42/Dcharacterdata\"\u003e\n\u003cul\u003e\n\u003cli itemprop=\"property\" itemscope itemtype=\"https://pagelove.org/Method\"\u003e\n\u003cmeta itemprop=\"name\" content=\"probe\"\u003e\n\u003cdiv itemprop=\"implementation\" itemscope itemtype=\"https://pagelove.org/JavaScript/Module\"\u003e\n\u003cscript itemprop=\"source\" type=\"module\"\u003e\nconst S = (...a) =\u003e a.map(String).join('|');\nconst H = (x) =\u003e String(x).replace(/[\u003c\u003e\"]/g, (c) =\u003e ({ '\u003c': '[', '\u003e': ']', '\"': \"'\" })[c]);\nconst tryName = (f) =\u003e { try { f(); return 'ok'; } catch (e) { return e.name + ':' + e.code; } };\nexport default function () {\nconst d = new DOMParser().parseFromString('\u003cp\u003et\u003c/p\u003e', 'text/html');\nconst c = d.createComment('draft'); const t = d.createTextNode('héllo');\nconst r = [c.data, c.length, t.length, c.textContent];\nc.data = 'final'; r.push(c.data, c.length);\nconst p = d.querySelector('p'); p.appendChild(c); r.push(p.textContent);\nreturn 'R:' + S(...r);\n}\n\u003c/script\u003e\n\u003c/div\u003e\n\u003c/li\u003e\n\u003c/ul\u003e\n\u003c/div\u003e\n\u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 2 (GET \u003cmain\u003e: the method result is inserted as text)",
+      "method": "GET",
+      "path": "/_pl/javascript-dom-character-data-a5ef42/probe.html",
+      "status": 206,
+      "headers": {
+        "accept-ranges": "selector, bytes",
+        "content-length": "42",
+        "content-range": "selector main",
+        "content-type": "text/html",
+        "etag": "\"f974dad02177795383e45886971469bb7a2881c87cf2d15bc9e76e4ea8ee7e50-f974dad02177795383e45886971469bb7a2881c87cf2d15bc9e76e4ea8ee7e50-1\"",
+        "vary": "Host, Range, Accept"
+      },
+      "body": "\u003cmain\u003e\nR:draft|5|5|draft|final|5|t\n\u003c/main\u003e"
+    }
+  ],
+  "outcome": "pass",
+  "target": "local"
+}

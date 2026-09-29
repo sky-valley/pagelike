@@ -1,0 +1,38 @@
+{
+  "case": "rw.put.first-match-only",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (PUT to li)",
+      "method": "PUT",
+      "path": "/_pl/rw-put-first-match-only-857cca/multi.html",
+      "status": 206,
+      "headers": {
+        "content-length": "12",
+        "content-range": "selector li",
+        "content-type": "text/html",
+        "etag": "\"2a6265e924ec12c5e0f7b8417db540ce00c6db104591052d8e9c03eda5863d8b-2a6265e924ec12c5e0f7b8417db540ce00c6db104591052d8e9c03eda5863d8b-2\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:56 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003cli\u003eONE\u003c/li\u003e"
+    },
+    {
+      "step": "step 2 (only the first li changed)",
+      "method": "GET",
+      "path": "/_pl/rw-put-first-match-only-857cca/multi.html",
+      "status": 206,
+      "headers": {
+        "accept-ranges": "selector, bytes",
+        "content-length": "47",
+        "content-range": "selector ul",
+        "content-type": "text/html",
+        "etag": "\"3cf8370a263438660004c2b4e7eb1b4de38b90a93d55f2ce4ca12078692660e4-3cf8370a263438660004c2b4e7eb1b4de38b90a93d55f2ce4ca12078692660e4-2\"",
+        "vary": "Host, Range, Accept"
+      },
+      "body": "\u003cul\u003e\u003cli\u003eONE\u003c/li\u003e\u003cli\u003etwo\u003c/li\u003e\u003cli\u003ethree\u003c/li\u003e\u003c/ul\u003e"
+    }
+  ],
+  "outcome": "pass",
+  "target": "local"
+}

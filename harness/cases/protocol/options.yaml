@@ -1,0 +1,830 @@
+# OPTIONS capability discovery (spec: docs/spec/protocol.md §2, R-PROTO-10..25)
+#
+# Allow-header assertions are order-insensitive regexes (C-3). Where both the
+# presence of some methods and the absence of others matter, the same request
+# is sent twice with different regexes.
+#   presence of GET and OPTIONS : '^(?:.*\bGET\b.*\bOPTIONS\b.*|.*\bOPTIONS\b.*\bGET\b.*)$'
+#   only read-only tokens       : '^(?:(?:GET|HEAD|OPTIONS)(?:, ?|$))+$'
+cases:
+  - id: protocol.options.flat-document-level
+    title: Flat OPTIONS answers 200 with the document-level Allow set, Vary and no body
+    area: protocol
+    feature: OPTIONS flat document-level response
+    evidence: documented
+    source: "docs reference/protocol/OPTIONS-method §Standard response, §When there are no selector-scoped rules (snapshot 2026-09-28); read-probes.json case capabilities"
+    confidence: high
+    requires: []
+    live: true
+    notes: >-
+      R-PROTO-11/12/14. Live docs.pagelove.com answered 200, Allow HEAD, GET, OPTIONS,
+      Vary Authorization, Accept, empty body.
+    site:
+      files:
+        - path: "${P}/doc.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body><h1>Title</h1><ul><li>a</li><li>b</li></ul></body></html>
+      rules:
+        - {actor: "*", resource: "${P}/*", method: [GET], action: Allow}
+    steps:
+      - name: Allow contains GET and OPTIONS
+        as: anonymous
+        request: {method: OPTIONS, path: "${P}/doc.html"}
+        expect:
+          status: 200
+          headers: {Vary: "Authorization, Accept"}
+          header_matches: {Allow: '^(?:.*\bGET\b.*\bOPTIONS\b.*|.*\bOPTIONS\b.*\bGET\b.*)$'}
+          body: ""
+      - name: Allow contains no write methods and no literal star
+        as: anonymous
+        request: {method: OPTIONS, path: "${P}/doc.html"}
+        expect:
+          status: 200
+          header_matches: {Allow: '^(?:(?:GET|HEAD|OPTIONS)(?:, ?|$))+$'}
+
+  - id: protocol.options.no-existence-check
+    title: OPTIONS on a path with no document answers from rules, never 404
+    area: protocol
+    feature: OPTIONS never checks existence
+    evidence: documented
+    source: "docs reference/protocol/OPTIONS-method §OPTIONS never checks whether the target exists (snapshot 2026-09-28)"
+    confidence: high
+    requires: []
+    live: true
+    notes: R-PROTO-10.
+    site:
+      rules:
+        - {actor: "*", resource: "${P}/*", method: [GET], action: Allow}
+    steps:
+      - name: missing document still gets a normal answer
+        as: anonymous
+        request: {method: OPTIONS, path: "${P}/does-not-exist.html"}
+        expect:
+          status: 200
+          header_matches: {Allow: '^(?:.*\bGET\b.*\bOPTIONS\b.*|.*\bOPTIONS\b.*\bGET\b.*)$'}
+      - name: missing document with a selector range is not a range error either
+        as: anonymous
+        request:
+          method: OPTIONS
+          path: "${P}/does-not-exist.html"
+          headers: {Range: "selector=h1"}
+        expect:
+          status: 200
+          header_matches: {Allow: '\bOPTIONS\b'}
+
+  - id: protocol.options.selector-no-match
+    title: Selector-scoped OPTIONS with a selector that matches nothing is not a 416
+    area: protocol
+    feature: OPTIONS never evaluates the selector
+    evidence: documented
+    source: "docs reference/protocol/OPTIONS-method §OPTIONS never checks whether the target exists (snapshot 2026-09-28)"
+    confidence: high
+    requires: []
+    live: true
+    notes: R-PROTO-10, R-PROTO-15.
+    site:
+      files:
+        - path: "${P}/doc.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body><h1>Title</h1></body></html>
+      rules:
+        - {actor: "*", resource: "${P}/*", method: [GET], action: Allow}
+    steps:
+      - name: non-matching selector still answered from rules
+        as: anonymous
+        request:
+          method: OPTIONS
+          path: "${P}/doc.html"
+          headers: {Range: "selector=#nothing-has-this-id"}
+        expect:
+          status: 200
+          header_matches: {Allow: '^(?:.*\bGET\b.*\bOPTIONS\b.*|.*\bOPTIONS\b.*\bGET\b.*)$'}
+
+  - id: protocol.options.selector-scoped-flat
+    title: Selector-scoped OPTIONS adds the methods granted by rules for that selector
+    area: protocol
+    feature: OPTIONS selector-scoped response
+    evidence: live-observed
+    source: "harness/observations/live-2026-09-28/protocol-options-selector-scoped-flat.json (the flat document answer lists PUT and POST too); docs reference/protocol/OPTIONS-method §Selector-scoped OPTIONS, §Multipart OPTIONS example (snapshot 2026-09-28)"
+    confidence: high
+    requires: []
+    live: true
+    notes: >-
+      R-PROTO-12/15. The documented example pairs document-level GET with selector-level
+      POST and PUT on h1. Matching a Range selector to a rule by selector string is
+      inferred (P-5). The live run showed the flat document answer is the union of the
+      document-level and selector-scoped grants (R-PROTO-12 superseded, docs/compat/decisions.md).
+    site:
+      files:
+        - path: "${P}/doc.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body><h1>Title</h1><p>Body</p></body></html>
+      rules:
+        - {actor: "*", resource: "${P}/*", method: [GET], action: Allow}
+        - {actor: "*", resource: "${P}/*", method: [PUT, POST], selector: "h1", action: Allow}
+    steps:
+      - name: selector-scoped Allow contains PUT and POST
+        as: anonymous
+        request:
+          method: OPTIONS
+          path: "${P}/doc.html"
+          headers: {Range: "selector=h1"}
+        expect:
+          status: 200
+          header_matches: {Allow: '^(?:.*\bPUT\b.*\bPOST\b.*|.*\bPOST\b.*\bPUT\b.*)$'}
+      - name: selector-scoped Allow still carries the document-level GET and OPTIONS
+        as: anonymous
+        request:
+          method: OPTIONS
+          path: "${P}/doc.html"
+          headers: {Range: "selector=h1"}
+        expect:
+          status: 200
+          header_matches: {Allow: '^(?:.*\bGET\b.*\bOPTIONS\b.*|.*\bOPTIONS\b.*\bGET\b.*)$'}
+      - name: document-level Allow also lists what selector-scoped rules grant
+        as: anonymous
+        request: {method: OPTIONS, path: "${P}/doc.html"}
+        expect:
+          status: 200
+          headers: {Allow: "GET, HEAD, PUT, POST, OPTIONS", Vary: "Authorization, Accept"}
+
+  - id: protocol.options.wildcard-document-expansion
+    title: A document-level wildcard method grant is reported as the seven concrete methods plus OPTIONS
+    area: protocol
+    feature: OPTIONS wildcard expansion
+    evidence: documented
+    source: "docs reference/protocol/OPTIONS-method §When to reach for it; reference/permissions/AuthorizationRule §method (snapshot 2026-09-28)"
+    confidence: high
+    requires: []
+    live: true
+    notes: >-
+      R-PROTO-12/13. Exactly GET, HEAD, PUT, DELETE, POST, MOVE, PATCH, OPTIONS in any
+      order; never a literal star (C-1). Whether PageLove also lists QUERY is P-1.
+    site:
+      files:
+        - path: "${P}/doc.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body><h1>Title</h1></body></html>
+      rules:
+        - {actor: "*", resource: "${P}/*", method: ["*"], action: Allow}
+    steps:
+      - name: eight concrete tokens, no star
+        as: anonymous
+        request: {method: OPTIONS, path: "${P}/doc.html"}
+        expect:
+          status: 200
+          header_matches: {Allow: '^(?:(?:GET|HEAD|PUT|DELETE|POST|MOVE|PATCH|OPTIONS)(?:, ?|$)){8}$'}
+
+  - id: protocol.options.wildcard-selector-expansion
+    title: A selector-scoped wildcard grant is reported without MOVE and PATCH
+    area: protocol
+    feature: OPTIONS wildcard expansion
+    evidence: documented
+    source: "docs reference/protocol/OPTIONS-method §When to reach for it; reference/permissions/AuthorizationRule §method (snapshot 2026-09-28)"
+    confidence: medium
+    requires: []
+    live: true
+    notes: >-
+      R-PROTO-12/15. Selector-level set is GET, HEAD, PUT, DELETE, POST plus OPTIONS.
+      Selector-string matching of Range to rule is inferred (P-5).
+    site:
+      files:
+        - path: "${P}/doc.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body><h1>Title</h1></body></html>
+      rules:
+        - {actor: "*", resource: "${P}/*", method: ["*"], selector: "h1", action: Allow}
+    steps:
+      - name: six concrete tokens, no MOVE, no PATCH, no star
+        as: anonymous
+        request:
+          method: OPTIONS
+          path: "${P}/doc.html"
+          headers: {Range: "selector=h1"}
+        expect:
+          status: 200
+          header_matches: {Allow: '^(?:(?:GET|HEAD|PUT|DELETE|POST|OPTIONS)(?:, ?|$)){6}$'}
+
+  - id: protocol.options.wildcard-star-example
+    title: "Documented example: selector-scoped OPTIONS answers Allow: *, OPTIONS"
+    area: protocol
+    feature: OPTIONS wildcard expansion
+    evidence: documented
+    source: "docs reference/protocol/OPTIONS-method §Selector-scoped OPTIONS example (snapshot 2026-09-28)"
+    confidence: low
+    status: disputed
+    requires: []
+    live: true
+    notes: >-
+      Losing claim of C-1. The same page (and AuthorizationRule §method) says Allow never
+      contains a literal star; pagelike expands (see protocol.options.wildcard-*-expansion).
+      Kept so a live run records which claim PageLove honours.
+    site:
+      files:
+        - path: "${P}/options-test.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body><h1>Title</h1></body></html>
+      rules:
+        - {actor: "*", resource: "${P}/*", method: ["*"], action: Allow}
+    steps:
+      - name: literal star as in the example
+        as: anonymous
+        request:
+          method: OPTIONS
+          path: "${P}/options-test.html"
+          headers: {Range: "selector=h1"}
+        expect:
+          status: 200
+          headers: {Allow: "*, OPTIONS", Accept-Ranges: "selector"}
+
+  - id: protocol.options.multipart-207
+    title: Multipart OPTIONS returns 207 with a document part and one part per selector-scoped rule
+    area: protocol
+    feature: OPTIONS multipart 207
+    evidence: documented
+    source: "docs reference/protocol/OPTIONS-method §Multipart OPTIONS (snapshot 2026-09-28); beta-js/pagelove/primitives.mjs@c204746:113-221"
+    confidence: high
+    requires: []
+    live: true
+    notes: >-
+      R-PROTO-16/17, R-PROTO-4. Boundary must be the last, unquoted parameter (client-source).
+      Content-Range spelling is asserted only up to the unit (C-2).
+    site:
+      files:
+        - path: "${P}/doc.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body><h1>Title</h1><ul><li>a</li></ul></body></html>
+      rules:
+        - {actor: "*", resource: "${P}/*", method: [GET], action: Allow}
+        - {actor: "*", resource: "${P}/*", method: [POST], selector: "ul", action: Allow}
+    steps:
+      - name: 207 multipart with Allow and Content-Range lines
+        as: anonymous
+        request:
+          method: OPTIONS
+          path: "${P}/doc.html"
+          headers: {Accept: "multipart/mixed"}
+        expect:
+          status: 207
+          header_matches: {Content-Type: '^multipart/mixed; *boundary=[^";]+$'}
+          headers: {Vary: "Authorization, Accept"}
+          body_contains: ["Allow: ", "Content-Range: selector", "ul", "POST"]
+
+  - id: protocol.options.multipart-content-range-space-form
+    title: Multipart OPTIONS parts spell Content-Range as "selector <css>"
+    area: protocol
+    feature: OPTIONS multipart 207
+    evidence: client-source
+    source: "beta-js/pagelove/primitives.mjs@c204746:193-202; pagelove-primitives/test-sw.js@e73986d:33-40 (live server emits the unit SP value form)"
+    confidence: medium
+    requires: []
+    live: true
+    notes: R-PROTO-3/17, winning claim of C-2.
+    site:
+      files:
+        - path: "${P}/doc.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body><ul><li>a</li></ul></body></html>
+      rules:
+        - {actor: "*", resource: "${P}/*", method: [GET], action: Allow}
+        - {actor: "*", resource: "${P}/*", method: [POST], selector: "ul", action: Allow}
+    steps:
+      - name: space form
+        as: anonymous
+        request:
+          method: OPTIONS
+          path: "${P}/doc.html"
+          headers: {Accept: "multipart/mixed"}
+        expect:
+          status: 207
+          body_contains: ["Content-Range: selector ul"]
+          body_not_contains: ["Content-Range: selector=ul"]
+
+  - id: protocol.options.multipart-content-range-equals-form
+    title: "Documented example: multipart OPTIONS parts spell Content-Range as selector=<css>"
+    area: protocol
+    feature: OPTIONS multipart 207
+    evidence: documented
+    source: "docs reference/protocol/OPTIONS-method §Multipart OPTIONS example (snapshot 2026-09-28)"
+    confidence: low
+    status: disputed
+    requires: []
+    live: true
+    notes: Losing claim of C-2 (see protocol.options.multipart-content-range-space-form).
+    site:
+      files:
+        - path: "${P}/doc.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body><ul><li>a</li></ul></body></html>
+      rules:
+        - {actor: "*", resource: "${P}/*", method: [GET], action: Allow}
+        - {actor: "*", resource: "${P}/*", method: [POST], selector: "ul", action: Allow}
+    steps:
+      - name: equals form
+        as: anonymous
+        request:
+          method: OPTIONS
+          path: "${P}/doc.html"
+          headers: {Accept: "multipart/mixed"}
+        expect:
+          status: 207
+          body_contains: ["Content-Range: selector=ul"]
+
+  - id: protocol.options.multipart-204-document-rules-only
+    title: Multipart OPTIONS falls back to a bodyless 204 when only document-level rules exist
+    area: protocol
+    feature: OPTIONS multipart 204 fallback
+    evidence: documented
+    source: "docs reference/protocol/OPTIONS-method §When there are no selector-scoped rules (snapshot 2026-09-28)"
+    confidence: high
+    requires: []
+    live: true
+    notes: R-PROTO-18.
+    site:
+      files:
+        - path: "${P}/doc.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body><h1>Title</h1></body></html>
+      rules:
+        - {actor: "*", resource: "${P}/*", method: [GET, PUT], action: Allow}
+    steps:
+      - name: 204 with flat Allow, no body, no Content-Type
+        as: anonymous
+        request:
+          method: OPTIONS
+          path: "${P}/doc.html"
+          headers: {Accept: "multipart/mixed"}
+        expect:
+          status: 204
+          headers: {Vary: "Authorization, Accept"}
+          header_matches: {Allow: '^(?:.*\bPUT\b.*\bOPTIONS\b.*|.*\bOPTIONS\b.*\bPUT\b.*)$'}
+          headers_absent: [Content-Type]
+          body: ""
+
+  - id: protocol.options.multipart-204-no-rules
+    title: Multipart OPTIONS on a path with no matching rules is a 204 whose Allow includes OPTIONS
+    area: protocol
+    feature: OPTIONS multipart 204 fallback
+    evidence: documented
+    source: "docs reference/protocol/OPTIONS-method §When there are no selector-scoped rules (snapshot 2026-09-28)"
+    confidence: high
+    requires: []
+    live: true
+    notes: R-PROTO-18/22. Outcome is independent of the host default-GET mode.
+    site:
+      files:
+        - path: "${P}/doc.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body><h1>Title</h1></body></html>
+    steps:
+      - name: 204 and OPTIONS listed
+        as: anonymous
+        request:
+          method: OPTIONS
+          path: "${P}/doc.html"
+          headers: {Accept: "multipart/mixed"}
+        expect:
+          status: 204
+          header_matches: {Allow: '\bOPTIONS\b'}
+          body: ""
+
+  - id: protocol.options.default-get-host-no-rules
+    title: On a default-GET allow host with no rules OPTIONS reports exactly GET, HEAD, OPTIONS
+    area: protocol
+    feature: OPTIONS and default-GET mode
+    evidence: live-observed
+    source: "read-probes.json cases capabilities and element-capabilities (docs.pagelove.com, 2026-09-28)"
+    confidence: medium
+    requires: []
+    live: false
+    notes: >-
+      R-PROTO-12/13/14/18. Live observed "HEAD, GET, OPTIONS" (200) and "GET, HEAD, OPTIONS"
+      (204). Local-only because the live host's default-GET mode is not controlled by cases.
+    site:
+      settings: {default_get: allow}
+      files:
+        - path: "${P}/doc.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body><h1>Title</h1></body></html>
+    steps:
+      - name: flat 200
+        as: anonymous
+        request: {method: OPTIONS, path: "${P}/doc.html"}
+        expect:
+          status: 200
+          header_matches: {Allow: '^(?:(?:GET|HEAD|OPTIONS)(?:, ?|$)){3}$'}
+          headers: {Vary: "Authorization, Accept"}
+      - name: multipart with selector range falls back to 204 (live-observed shape)
+        as: anonymous
+        request:
+          method: OPTIONS
+          path: "${P}/doc.html"
+          headers: {Range: "selector=h1", Accept: "multipart/mixed"}
+        expect:
+          status: 204
+          header_matches: {Allow: '^(?:(?:GET|HEAD|OPTIONS)(?:, ?|$)){3}$'}
+          headers: {Vary: "Authorization, Accept"}
+          body: ""
+
+  - id: protocol.options.deny-host-no-rules
+    title: On a default-deny host with no rules OPTIONS is still answered, with only OPTIONS allowed
+    area: protocol
+    feature: OPTIONS and default-GET mode
+    evidence: inferred
+    source: "docs reference/protocol/OPTIONS-method §OPTIONS never checks whether the target exists; reference/permissions/AuthorizationRule §Conflict resolution (snapshot 2026-09-28)"
+    confidence: low
+    requires: []
+    live: false
+    notes: >-
+      R-PROTO-22. Whether PageLove answers 401 instead is P-6; apps (polls, ATS) grant
+      OPTIONS explicitly, which hints it might be needed.
+    site:
+      settings: {default_get: deny}
+      files:
+        - path: "${P}/doc.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body><h1>Title</h1></body></html>
+    steps:
+      - name: Allow is just OPTIONS
+        as: anonymous
+        request: {method: OPTIONS, path: "${P}/doc.html"}
+        expect:
+          status: 200
+          headers: {Allow: "OPTIONS"}
+
+  - id: protocol.options.multipart-with-range-no-selector-rules
+    title: Multipart OPTIONS with a selector Range and only document-level rules is a 204
+    area: protocol
+    feature: OPTIONS multipart 204 fallback
+    evidence: live-observed
+    source: "read-probes.json case element-capabilities (docs.pagelove.com, 2026-09-28)"
+    confidence: high
+    requires: []
+    live: true
+    notes: R-PROTO-19.
+    site:
+      files:
+        - path: "${P}/doc.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body><h1>Title</h1></body></html>
+      rules:
+        - {actor: "*", resource: "${P}/*", method: [GET], action: Allow}
+    steps:
+      - name: 204 flat
+        as: anonymous
+        request:
+          method: OPTIONS
+          path: "${P}/doc.html"
+          headers: {Range: "selector=h1", Accept: "multipart/mixed"}
+        expect:
+          status: 204
+          headers: {Vary: "Authorization, Accept"}
+          header_matches: {Allow: '^(?:.*\bGET\b.*\bOPTIONS\b.*|.*\bOPTIONS\b.*\bGET\b.*)$'}
+          body: ""
+
+  - id: protocol.options.prefer-return-representation-ignored
+    title: "Prefer: return=representation (sent by every official client) does not change the OPTIONS answer"
+    area: protocol
+    feature: OPTIONS client compatibility
+    evidence: client-source
+    source: "beta-js/pagelove/primitives.mjs@c204746:180-189; pagelove-primitives/index.mjs@e73986d:119-126"
+    confidence: medium
+    requires: []
+    live: true
+    notes: >-
+      R-PROTO-20/21. If PageLove answers 207 here instead of 204 (P-3) the decision must be
+      revisited; beta-js crashes on the 204 (C-17).
+    site:
+      files:
+        - path: "${P}/doc.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body><h1>Title</h1><ul><li>a</li></ul></body></html>
+        - path: "${P}/plain.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body><h1>Plain</h1></body></html>
+      rules:
+        - {actor: "*", resource: "${P}/*", method: [GET], action: Allow}
+        - {actor: "*", resource: "${P}/doc.html", method: [POST], selector: "ul", action: Allow}
+    steps:
+      - name: with selector-scoped rules the answer is still 207
+        as: anonymous
+        request:
+          method: OPTIONS
+          path: "${P}/doc.html"
+          headers: {Accept: "multipart/mixed", Prefer: "return=representation"}
+        expect:
+          status: 207
+          header_matches: {Content-Type: '^multipart/mixed; *boundary=[^";]+$'}
+      - name: without selector-scoped rules the answer is still 204
+        as: anonymous
+        request:
+          method: OPTIONS
+          path: "${P}/plain.html"
+          headers: {Accept: "multipart/mixed", Prefer: "return=representation"}
+        expect:
+          status: 204
+          body: ""
+
+  - id: protocol.options.accept-ranges
+    title: OPTIONS on an HTML resource advertises Accept-Ranges selector
+    area: protocol
+    feature: Accept-Ranges on OPTIONS
+    evidence: documented
+    source: "docs reference/protocol/OPTIONS-method §Standard response; reference/protocol/Accept-Ranges §Standard response (snapshot 2026-09-28)"
+    confidence: high
+    requires: []
+    live: false
+    notes: >-
+      R-PROTO-14/18/31. Local-only: PageLove's CDN rewrites or strips Accept-Ranges
+      (documented known issue; live OPTIONS carried none, C-5).
+    site:
+      files:
+        - path: "${P}/doc.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body><h1>Title</h1></body></html>
+      rules:
+        - {actor: "*", resource: "${P}/*", method: [GET], action: Allow}
+    steps:
+      - name: flat
+        as: anonymous
+        request: {method: OPTIONS, path: "${P}/doc.html"}
+        expect:
+          status: 200
+          headers: {Accept-Ranges: "selector"}
+      - name: multipart fallback carries the same header
+        as: anonymous
+        request:
+          method: OPTIONS
+          path: "${P}/doc.html"
+          headers: {Accept: "multipart/mixed"}
+        expect:
+          status: 204
+          headers: {Accept-Ranges: "selector"}
+
+  - id: protocol.options.accept-query
+    title: OPTIONS on the public plane advertises the accepted QUERY media types
+    area: protocol
+    feature: Accept-Query
+    evidence: documented
+    source: "docs reference/protocol/QUERY intro (snapshot 2026-09-28)"
+    confidence: medium
+    requires: []
+    live: false
+    notes: >-
+      R-PROTO-42. Live OPTIONS on docs.pagelove.com carried no Accept-Query (C-4); kept
+      local-only.
+    site:
+      files:
+        - path: "${P}/doc.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body><h1>Title</h1></body></html>
+      rules:
+        - {actor: "*", resource: "${P}/*", method: [GET], action: Allow}
+    steps:
+      - name: Accept-Query lists both modes
+        as: anonymous
+        request: {method: OPTIONS, path: "${P}/doc.html"}
+        expect:
+          status: 200
+          header_matches: {Accept-Query: '^(?:.*text/css-selector.*text/sessel.*|.*text/sessel.*text/css-selector.*)$'}
+
+  - id: protocol.options.does-not-modify
+    title: OPTIONS does not modify the document
+    area: protocol
+    feature: OPTIONS flat document-level response
+    evidence: documented
+    source: "docs reference/protocol/OPTIONS-method §When to reach for it (snapshot 2026-09-28)"
+    confidence: high
+    requires: []
+    live: true
+    notes: R-PROTO-10.
+    site:
+      files:
+        - path: "${P}/doc.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body><h1>Title</h1></body></html>
+      rules:
+        - {actor: "*", resource: "${P}/*", method: [GET], action: Allow}
+        - {actor: "*", resource: "${P}/*", method: [PUT], selector: "h1", action: Allow}
+    steps:
+      - name: read the document ETag
+        as: anonymous
+        request: {method: GET, path: "${P}/doc.html"}
+        expect: {status: 200, headers_present: [ETag]}
+        capture: {e1: header.ETag}
+      - name: flat, selector and multipart OPTIONS
+        as: anonymous
+        request:
+          method: OPTIONS
+          path: "${P}/doc.html"
+          headers: {Accept: "multipart/mixed", Range: "selector=h1"}
+        expect: {status: [204, 207]}
+      - name: ETag unchanged
+        as: anonymous
+        request: {method: GET, path: "${P}/doc.html"}
+        expect: {status: 200, etag_equals: "${e1}"}
+
+  - id: protocol.options.default-get-never-grants-move
+    title: The default-GET mode contributes GET and HEAD only, never MOVE or writes
+    area: protocol
+    feature: OPTIONS and default-GET mode
+    evidence: documented
+    source: "docs reference/reading-and-writing/MOVE-method §Authorization; reference/permissions/AuthorizationRule §Conflict resolution (snapshot 2026-09-28)"
+    confidence: high
+    requires: []
+    live: false
+    notes: R-PROTO-12. Local-only (host default-GET mode).
+    site:
+      settings: {default_get: allow}
+      files:
+        - path: "${P}/doc.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body><h1>Title</h1></body></html>
+    steps:
+      - name: only read tokens
+        as: anonymous
+        request: {method: OPTIONS, path: "${P}/doc.html"}
+        expect:
+          status: 200
+          header_matches: {Allow: '^(?:(?:GET|HEAD|OPTIONS)(?:, ?|$))+$'}
+
+  - id: protocol.options.move-allow-rule-with-selector-discarded
+    title: An Allow rule for MOVE that carries a selector grants nothing and is not reported
+    area: protocol
+    feature: OPTIONS and MOVE rule normalization
+    evidence: documented
+    source: "docs reference/reading-and-writing/MOVE-method §A MOVE rule must not carry a selector (snapshot 2026-09-28)"
+    confidence: medium
+    requires: []
+    live: true
+    notes: >-
+      R-PROTO-12/16/97. The discarded rule also cannot create a selector part, so the
+      multipart request falls back to 204.
+    site:
+      files:
+        - path: "${P}/board.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body><section class="lane"><article class="card" id="c1">One</article></section></body></html>
+      rules:
+        - {actor: "*", resource: "${P}/*", method: [GET], action: Allow}
+        - {actor: "*", resource: "${P}/board.html", method: [MOVE], selector: ".card", action: Allow}
+    steps:
+      - name: MOVE absent from the document-level set
+        as: anonymous
+        request: {method: OPTIONS, path: "${P}/board.html"}
+        expect:
+          status: 200
+          header_matches: {Allow: '^(?:(?:GET|HEAD|OPTIONS)(?:, ?|$))+$'}
+      - name: no selector-scoped rule survives, so multipart is a 204
+        as: anonymous
+        request:
+          method: OPTIONS
+          path: "${P}/board.html"
+          headers: {Accept: "multipart/mixed"}
+        expect: {status: 204, body: ""}
+
+  - id: protocol.options.selector-deny-removes-method
+    title: A selector-scoped Deny at the same actor tier removes the method from that selector's Allow
+    area: protocol
+    feature: OPTIONS selector-scoped response
+    evidence: inferred
+    source: "docs reference/permissions/AuthorizationRule §Conflict resolution; reference/protocol/OPTIONS-method §Selector-scoped OPTIONS (snapshot 2026-09-28)"
+    confidence: medium
+    requires: []
+    live: true
+    notes: >-
+      R-PROTO-12. Deny wins at equal specificity (both rules use actor *). Live PageLove
+      advertises PUT at the locked selector and answers the multipart form 204, consistent with
+      its not enforcing selector-scoped denies against resource-level allows
+      (harness/observations/live-2026-09-28/protocol-options-selector-deny-removes-method.json).
+      pagelike enforces the deny and advertises what it enforces (docs/compat/decisions.md,
+      keep-documented-security); protocol.options.selector-deny-removes-method.live measures it.
+    site:
+      files:
+        - path: "${P}/doc.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body><h1 class="locked">Title</h1><p>Body</p></body></html>
+      rules:
+        - {actor: "*", resource: "${P}/*", method: [GET, PUT], action: Allow}
+        - {actor: "*", resource: "${P}/*", method: [PUT], selector: "h1.locked", action: Deny}
+    steps:
+      - name: PUT not allowed at the locked selector
+        as: anonymous
+        request:
+          method: OPTIONS
+          path: "${P}/doc.html"
+          headers: {Range: "selector=h1.locked"}
+        expect:
+          status: 200
+          header_matches: {Allow: '^(?:(?:GET|HEAD|DELETE|POST|OPTIONS)(?:, ?|$))+$'}
+      - name: multipart lists the locked selector as its own part
+        as: anonymous
+        request:
+          method: OPTIONS
+          path: "${P}/doc.html"
+          headers: {Accept: "multipart/mixed"}
+        expect:
+          status: 207
+          body_contains: ["h1.locked"]
+
+  - id: protocol.options.selector-deny-removes-method.live
+    title: Live PageLove advertises a method at a selector a same-tier Deny names
+    area: protocol
+    feature: OPTIONS selector-scoped response
+    status: live-divergence
+    evidence: live-observed
+    source: "harness/observations/live-2026-09-28/protocol-options-selector-deny-removes-method.json (host live-test-host, 2026-09-28)"
+    confidence: high
+    requires: []
+    live: true
+    notes: "Measures a deliberate divergence (docs/compat/decisions.md, keep-documented-security). Runs only against --target live."
+    site:
+      files:
+        - path: "${P}/doc.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body><h1 class="locked">Title</h1><p>Body</p></body></html>
+      rules:
+        - {actor: "*", resource: "${P}/*", method: [GET, PUT], action: Allow}
+        - {actor: "*", resource: "${P}/*", method: [PUT], selector: "h1.locked", action: Deny}
+    steps:
+      - name: PUT advertised at the locked selector
+        as: anonymous
+        request:
+          method: OPTIONS
+          path: "${P}/doc.html"
+          headers: {Range: "selector=h1.locked"}
+        expect:
+          status: 200
+          header_matches: {Allow: '\bPUT\b'}
+      - name: deny selectors make no multipart part
+        as: anonymous
+        request:
+          method: OPTIONS
+          path: "${P}/doc.html"
+          headers: {Accept: "multipart/mixed"}
+        expect:
+          status: 204
+          header_matches: {Allow: '\bPUT\b'}
+
+  - id: protocol.options.actor-specific-selector-rules
+    title: Selector-scoped rules for another actor do not produce parts or methods for this actor
+    area: protocol
+    feature: OPTIONS multipart 207
+    evidence: inferred
+    source: "docs reference/protocol/OPTIONS-method §Multipart OPTIONS (snapshot 2026-09-28)"
+    confidence: low
+    requires: [multi-actor]
+    live: false
+    notes: >-
+      R-PROTO-16. Provisional: only actor-matching selector-scoped rules count (P-4). The
+      Vary: Authorization header exists because the answer depends on the caller.
+    actors:
+      alice: {sub: alice, email: alice@example.com, email_verified: true, roles: [editors]}
+    site:
+      files:
+        - path: "${P}/doc.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body><h1>Title</h1></body></html>
+      rules:
+        - {actor: "*", resource: "${P}/*", method: [GET], action: Allow}
+        - {actor: editors, resource: "${P}/*", method: [PUT], selector: "h1", action: Allow}
+    steps:
+      - name: anonymous gets the 204 fallback
+        as: anonymous
+        request:
+          method: OPTIONS
+          path: "${P}/doc.html"
+          headers: {Accept: "multipart/mixed"}
+        expect: {status: 204}
+      - name: editor gets a 207 with PUT on h1
+        as: alice
+        request:
+          method: OPTIONS
+          path: "${P}/doc.html"
+          headers: {Accept: "multipart/mixed"}
+        expect:
+          status: 207
+          body_contains: ["h1", "PUT"]

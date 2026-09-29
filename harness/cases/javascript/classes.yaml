@@ -1,0 +1,766 @@
+# JavaScript area: imported schema classes and cross-language method calls
+# (docs/spec/javascript.md R-JS-9, R-JS-16, R-JS-17, R-JS-85..R-JS-87). Class behaviour is
+# observed through a JavaScript default whose string result is stored; computed properties and
+# methods are observed through an edge Sessel QUERY (needs a QUERY grant and a named actor).
+# Spec: docs/spec/javascript.md. Generated; edit by hand freely.
+defaults:
+  area: "javascript"
+  evidence: "documented"
+  confidence: "medium"
+  requires: ["server-js"]
+  site:
+    settings:
+      default_get: "allow"
+    rules:
+      - actor: "*"
+        resource: "${P}/*"
+        method: ["GET", "HEAD", "PUT", "POST", "DELETE", "MOVE"]
+        action: "Allow"
+      - actor: "*"
+        resource: "${P}/*/*"
+        method: ["GET", "HEAD", "PUT", "POST", "DELETE", "MOVE"]
+        action: "Allow"
+      - actor: "*"
+        resource: "${P}/*/*/*"
+        method: ["GET", "HEAD", "PUT", "POST", "DELETE", "MOVE"]
+        action: "Allow"
+cases:
+  - id: "javascript.classes.import-class-behaviour"
+    title: "A schema import yields a class named after the schema with constructor, accessors and instanceof"
+    feature: "schema imports"
+    source: "docs languages/javascript/server/javascript-in-schemas §Importing schemas, §Working with imported classes (snapshot 2026-09-28)"
+    confidence: "medium"
+    live: true
+    notes: "spec: R-JS-9, R-JS-85, R-JS-86."
+    steps:
+      - name: "register declarations through the public plane (takes effect for the next request)"
+        as: "anonymous"
+        request:
+          method: "PUT"
+          path: "${P}/schema.html"
+          headers:
+            Content-Type: "text/html"
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+            <div hidden itemscope itemtype="https://pagelove.org/Schema">
+            <meta itemprop="type" content="https://pagelike.test${P}/Note">
+            <div itemprop="property" itemscope itemtype="https://pagelove.org/Property">
+            <meta itemprop="name" content="title">
+            <meta itemprop="type" content="https://schema.host/Text">
+            <meta itemprop="cardinality" content="0..1">
+            </div>
+            </div>
+            <div hidden itemscope itemtype="https://pagelove.org/Schema">
+            <meta itemprop="type" content="https://pagelike.test${P}/Board">
+            <div itemprop="property" itemscope itemtype="https://pagelove.org/Property">
+            <meta itemprop="name" content="probe">
+            <meta itemprop="type" content="https://schema.host/Text">
+            <meta itemprop="cardinality" content="0..1">
+            <div itemprop="default" itemscope itemtype="https://pagelove.org/JavaScript/Module">
+            <script itemprop="source" type="module">
+            import Note from "https://pagelike.test${P}/Note" with { type: "https://pagelove.org/Schema" };
+            export default () => {
+              const n = new Note({ title: 't' });
+              const before = n.title;
+              n.title = 'u';
+              return [Note.name, n instanceof Note, before, n.title, typeof Note].join('|');
+            };
+            </script>
+            </div>
+            </div>
+            </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "PUT an instance (a.html)"
+        as: "anonymous"
+        request:
+          method: "PUT"
+          path: "${P}/a.html"
+          headers:
+            Content-Type: "text/html"
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+            <div itemscope itemtype="https://pagelike.test${P}/Board">
+            <meta itemprop="other" content="o">
+            </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "stored state (authoring plane, raw)"
+        as: "author"
+        plane: "dav"
+        request:
+          method: "GET"
+          path: "${P}/a.html"
+        expect:
+          status: 200
+          body_contains: ["content=\"Note|true|t|u|function\""]
+  - id: "javascript.classes.default-constructs-instance"
+    title: "Documented example: a default that imports a schema and returns new Note({...}) injects a nested item"
+    feature: "schema imports"
+    source: "docs languages/javascript/server/javascript-in-schemas §Examples (Default that constructs a schema instance) (snapshot 2026-09-28)"
+    confidence: "medium"
+    live: true
+    notes: "spec: R-JS-11, R-JS-87. The injected markup (itemprop added to the item root) is pagelike's."
+    steps:
+      - name: "register declarations through the public plane (takes effect for the next request)"
+        as: "anonymous"
+        request:
+          method: "PUT"
+          path: "${P}/schema.html"
+          headers:
+            Content-Type: "text/html"
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+            <div hidden itemscope itemtype="https://pagelove.org/Schema">
+            <meta itemprop="type" content="https://pagelike.test${P}/Note2">
+            <div itemprop="property" itemscope itemtype="https://pagelove.org/Property">
+            <meta itemprop="name" content="title">
+            <meta itemprop="type" content="https://schema.host/Text">
+            <meta itemprop="cardinality" content="1..1">
+            </div>
+            <div itemprop="property" itemscope itemtype="https://pagelove.org/Property">
+            <meta itemprop="name" content="x">
+            <meta itemprop="type" content="https://schema.host/Integer">
+            <meta itemprop="cardinality" content="0..1">
+            </div>
+            <div itemprop="property" itemscope itemtype="https://pagelove.org/Property">
+            <meta itemprop="name" content="y">
+            <meta itemprop="type" content="https://schema.host/Integer">
+            <meta itemprop="cardinality" content="0..1">
+            </div>
+            </div>
+            <div hidden itemscope itemtype="https://pagelove.org/Schema">
+            <meta itemprop="type" content="https://pagelike.test${P}/Board2">
+            <div itemprop="property" itemscope itemtype="https://pagelove.org/Property">
+            <meta itemprop="name" content="note">
+            <meta itemprop="type" content="https://pagelike.test${P}/Note2">
+            <meta itemprop="cardinality" content="0..1">
+            <div itemprop="default" itemscope itemtype="https://pagelove.org/JavaScript/Module">
+            <script itemprop="source" type="module">
+            import Note2 from "https://pagelike.test${P}/Note2" with { type: "https://pagelove.org/Schema" };
+            export default () => new Note2({ title: "untitled", x: 0, y: 0 });
+            </script>
+            </div>
+            </div>
+            </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "PUT an instance (a.html)"
+        as: "anonymous"
+        request:
+          method: "PUT"
+          path: "${P}/a.html"
+          headers:
+            Content-Type: "text/html"
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+            <div itemscope itemtype="https://pagelike.test${P}/Board2">
+            <meta itemprop="other" content="o">
+            </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "stored state (authoring plane, raw)"
+        as: "author"
+        plane: "dav"
+        request:
+          method: "GET"
+          path: "${P}/a.html"
+        expect:
+          status: 200
+          body_contains: ["itemtype=\"https://pagelike.test${P}/Note2\"", "untitled", "itemprop=\"note\""]
+  - id: "javascript.classes.map-schema-extends-map"
+    title: "A schema whose chain reaches https://pagelove.org/Map yields a class extending Map with keys/entries/merge"
+    feature: "schema imports"
+    source: "docs languages/javascript/server/javascript-in-schemas §Working with imported classes ('Schemas inheriting from https://pagelove.org/Map produce classes that extend Map') (snapshot 2026-09-28)"
+    confidence: "low"
+    live: true
+    notes: "spec: R-JS-86."
+    steps:
+      - name: "register declarations through the public plane (takes effect for the next request)"
+        as: "anonymous"
+        request:
+          method: "PUT"
+          path: "${P}/schema.html"
+          headers:
+            Content-Type: "text/html"
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+            <div hidden itemscope itemtype="https://pagelove.org/Schema">
+            <meta itemprop="type" content="https://pagelike.test${P}/Cfg">
+            <meta itemprop="parent" content="https://pagelove.org/Map">
+            <div itemprop="property" itemscope itemtype="https://pagelove.org/Property">
+            <meta itemprop="name" content="a">
+            <meta itemprop="type" content="https://schema.host/Text">
+            <meta itemprop="cardinality" content="0..1">
+            </div>
+            </div>
+            <div hidden itemscope itemtype="https://pagelove.org/Schema">
+            <meta itemprop="type" content="https://pagelike.test${P}/Holder">
+            <div itemprop="property" itemscope itemtype="https://pagelove.org/Property">
+            <meta itemprop="name" content="probe">
+            <meta itemprop="type" content="https://schema.host/Text">
+            <meta itemprop="cardinality" content="0..1">
+            <div itemprop="default" itemscope itemtype="https://pagelove.org/JavaScript/Module">
+            <script itemprop="source" type="module">
+            import Cfg from "https://pagelike.test${P}/Cfg" with { type: "https://pagelove.org/Schema" };
+            export default () => {
+              const c = new Cfg({ a: '1' });
+              return [c instanceof Map, typeof c.keys, typeof c.entries, typeof c.merge].join('|');
+            };
+            </script>
+            </div>
+            </div>
+            </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "PUT an instance (a.html)"
+        as: "anonymous"
+        request:
+          method: "PUT"
+          path: "${P}/a.html"
+          headers:
+            Content-Type: "text/html"
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+            <div itemscope itemtype="https://pagelike.test${P}/Holder">
+            <meta itemprop="other" content="o">
+            </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "stored state (authoring plane, raw)"
+        as: "author"
+        plane: "dav"
+        request:
+          method: "GET"
+          path: "${P}/a.html"
+        expect:
+          status: 200
+          body_contains: ["content=\"true|function|function|function\""]
+  - id: "javascript.classes.computed-via-query"
+    title: "A JavaScript @computed runs on typed reads (documented example, via Sessel QUERY)"
+    feature: "cross-language calls"
+    source: "docs languages/javascript/server/javascript-in-schemas §Computed properties; docs reference/modeling-data/Property §Computed properties (snapshot 2026-09-28)"
+    confidence: "medium"
+    requires: ["server-js", "sessel", "multi-actor"]
+    live: false
+    notes: "spec: R-JS-16. Sessel QUERY needs a QUERY grant (protocol R-PROTO-74); live runs need an actor cookie."
+    site:
+      settings:
+        default_get: "allow"
+      rules:
+        - actor: "*"
+          resource: "${P}/*"
+          method: ["GET", "HEAD", "PUT", "POST", "DELETE", "MOVE", "QUERY"]
+          action: "Allow"
+        - actor: "*"
+          resource: "${P}/*/*"
+          method: ["GET", "HEAD", "PUT", "POST", "DELETE", "MOVE", "QUERY"]
+          action: "Allow"
+        - actor: "*"
+          resource: "${P}/*/*/*"
+          method: ["GET", "HEAD", "PUT", "POST", "DELETE", "MOVE", "QUERY"]
+          action: "Allow"
+    actors:
+      alice:
+        sub: "alice"
+        email: "alice@example.com"
+        email_verified: true
+        roles: []
+    steps:
+      - name: "register declarations through the public plane (takes effect for the next request)"
+        as: "anonymous"
+        request:
+          method: "PUT"
+          path: "${P}/schema.html"
+          headers:
+            Content-Type: "text/html"
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+            <div hidden itemscope itemtype="https://pagelove.org/Schema">
+            <meta itemprop="type" content="https://pagelike.test${P}/Person">
+            <div itemprop="property" itemscope itemtype="https://pagelove.org/Property">
+            <meta itemprop="name" content="firstName">
+            <meta itemprop="type" content="https://schema.host/Text">
+            <meta itemprop="cardinality" content="0..1">
+            </div>
+            <div itemprop="property" itemscope itemtype="https://pagelove.org/Property">
+            <meta itemprop="name" content="lastName">
+            <meta itemprop="type" content="https://schema.host/Text">
+            <meta itemprop="cardinality" content="0..1">
+            </div>
+            <div itemprop="property" itemscope itemtype="https://pagelove.org/Property">
+            <meta itemprop="name" content="name">
+            <meta itemprop="type" content="https://schema.host/Text">
+            <meta itemprop="cardinality" content="0..1">
+            </div>
+            <div itemprop="property" itemscope itemtype="https://pagelove.org/Property">
+            <meta itemprop="name" content="fullName">
+            <div itemprop="@computed" itemscope itemtype="https://pagelove.org/JavaScript/Module">
+            <script itemprop="source" type="module">
+            export default function() { return this.firstName + " " + this.lastName; }
+            </script>
+            </div>
+            </div>
+            <ul>
+            <li itemprop="property" itemscope itemtype="https://pagelove.org/Method">
+            <meta itemprop="name" content="greet">
+            <div itemprop="parameter" itemscope itemtype="https://pagelove.org/Parameter"><meta itemprop="name" content="greeting"><meta itemprop="type" content="https://schema.host/Text"></div>
+            <div itemprop="implementation" itemscope itemtype="https://pagelove.org/JavaScript/Module">
+            <script itemprop="source" type="module">
+            export default function(greeting) { return greeting + ", " + this.name + "!"; }
+            </script>
+            </div>
+            </li>
+            <li itemprop="property" itemscope itemtype="https://pagelove.org/Method">
+            <meta itemprop="name" content="probe">
+            <div itemprop="implementation" itemscope itemtype="https://pagelove.org/JavaScript/Module">
+            <script itemprop="source" type="module">
+            export default function () { return typeof document + ':' + typeof Context; }
+            </script>
+            </div>
+            </li>
+            <li itemprop="property" itemscope itemtype="https://pagelove.org/Method">
+            <meta itemprop="name" content="kind">
+            <meta itemprop="static" content="true">
+            <div itemprop="implementation" itemscope itemtype="https://pagelove.org/JavaScript/Module">
+            <script itemprop="source" type="module">
+            export default function () { return 'CLS:' + this.name; }
+            </script>
+            </div>
+            </li>
+            </ul>
+            </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "PUT an instance (a.html)"
+        as: "anonymous"
+        request:
+          method: "PUT"
+          path: "${P}/a.html"
+          headers:
+            Content-Type: "text/html"
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+            <div itemscope itemtype="https://pagelike.test${P}/Person">
+            <meta itemprop="firstName" content="Ada">
+            <meta itemprop="lastName" content="Lovelace">
+            <meta itemprop="name" content="Ada">
+            </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "QUERY"
+        as: "alice"
+        request:
+          method: "QUERY"
+          path: "${P}/a.html"
+          headers:
+            Content-Type: "text/sessel"
+          body: |-
+            @schema Person url("https://pagelike.test${P}/Person");
+            Person.search().first().fullName
+        expect:
+          status: [200, 206]
+          body_contains: ["Ada Lovelace"]
+  - id: "javascript.classes.method-greet-via-query"
+    title: "Documented example: a JavaScript method body gets positional parameters and this = the instance"
+    feature: "cross-language calls"
+    source: "docs languages/javascript/server/javascript-in-schemas §Method bodies, §Examples (Method body using a parameter and this) (snapshot 2026-09-28)"
+    confidence: "medium"
+    requires: ["server-js", "sessel", "multi-actor"]
+    live: false
+    notes: "spec: R-JS-17. Sessel QUERY needs a QUERY grant (protocol R-PROTO-74); live runs need an actor cookie."
+    site:
+      settings:
+        default_get: "allow"
+      rules:
+        - actor: "*"
+          resource: "${P}/*"
+          method: ["GET", "HEAD", "PUT", "POST", "DELETE", "MOVE", "QUERY"]
+          action: "Allow"
+        - actor: "*"
+          resource: "${P}/*/*"
+          method: ["GET", "HEAD", "PUT", "POST", "DELETE", "MOVE", "QUERY"]
+          action: "Allow"
+        - actor: "*"
+          resource: "${P}/*/*/*"
+          method: ["GET", "HEAD", "PUT", "POST", "DELETE", "MOVE", "QUERY"]
+          action: "Allow"
+    actors:
+      alice:
+        sub: "alice"
+        email: "alice@example.com"
+        email_verified: true
+        roles: []
+    steps:
+      - name: "register declarations through the public plane (takes effect for the next request)"
+        as: "anonymous"
+        request:
+          method: "PUT"
+          path: "${P}/schema.html"
+          headers:
+            Content-Type: "text/html"
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+            <div hidden itemscope itemtype="https://pagelove.org/Schema">
+            <meta itemprop="type" content="https://pagelike.test${P}/Person">
+            <div itemprop="property" itemscope itemtype="https://pagelove.org/Property">
+            <meta itemprop="name" content="firstName">
+            <meta itemprop="type" content="https://schema.host/Text">
+            <meta itemprop="cardinality" content="0..1">
+            </div>
+            <div itemprop="property" itemscope itemtype="https://pagelove.org/Property">
+            <meta itemprop="name" content="lastName">
+            <meta itemprop="type" content="https://schema.host/Text">
+            <meta itemprop="cardinality" content="0..1">
+            </div>
+            <div itemprop="property" itemscope itemtype="https://pagelove.org/Property">
+            <meta itemprop="name" content="name">
+            <meta itemprop="type" content="https://schema.host/Text">
+            <meta itemprop="cardinality" content="0..1">
+            </div>
+            <div itemprop="property" itemscope itemtype="https://pagelove.org/Property">
+            <meta itemprop="name" content="fullName">
+            <div itemprop="@computed" itemscope itemtype="https://pagelove.org/JavaScript/Module">
+            <script itemprop="source" type="module">
+            export default function() { return this.firstName + " " + this.lastName; }
+            </script>
+            </div>
+            </div>
+            <ul>
+            <li itemprop="property" itemscope itemtype="https://pagelove.org/Method">
+            <meta itemprop="name" content="greet">
+            <div itemprop="parameter" itemscope itemtype="https://pagelove.org/Parameter"><meta itemprop="name" content="greeting"><meta itemprop="type" content="https://schema.host/Text"></div>
+            <div itemprop="implementation" itemscope itemtype="https://pagelove.org/JavaScript/Module">
+            <script itemprop="source" type="module">
+            export default function(greeting) { return greeting + ", " + this.name + "!"; }
+            </script>
+            </div>
+            </li>
+            <li itemprop="property" itemscope itemtype="https://pagelove.org/Method">
+            <meta itemprop="name" content="probe">
+            <div itemprop="implementation" itemscope itemtype="https://pagelove.org/JavaScript/Module">
+            <script itemprop="source" type="module">
+            export default function () { return typeof document + ':' + typeof Context; }
+            </script>
+            </div>
+            </li>
+            <li itemprop="property" itemscope itemtype="https://pagelove.org/Method">
+            <meta itemprop="name" content="kind">
+            <meta itemprop="static" content="true">
+            <div itemprop="implementation" itemscope itemtype="https://pagelove.org/JavaScript/Module">
+            <script itemprop="source" type="module">
+            export default function () { return 'CLS:' + this.name; }
+            </script>
+            </div>
+            </li>
+            </ul>
+            </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "PUT an instance (a.html)"
+        as: "anonymous"
+        request:
+          method: "PUT"
+          path: "${P}/a.html"
+          headers:
+            Content-Type: "text/html"
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+            <div itemscope itemtype="https://pagelike.test${P}/Person">
+            <meta itemprop="firstName" content="Ada">
+            <meta itemprop="lastName" content="Lovelace">
+            <meta itemprop="name" content="Ada">
+            </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "QUERY"
+        as: "alice"
+        request:
+          method: "QUERY"
+          path: "${P}/a.html"
+          headers:
+            Content-Type: "text/sessel"
+          body: |-
+            @schema Person url("https://pagelike.test${P}/Person");
+            Person.search().first().greet("Hello")
+        expect:
+          status: [200, 206]
+          body_contains: ["Hello, Ada!"]
+  - id: "javascript.classes.method-instance-receiver-no-document"
+    title: "A method called on a typed instance has no document global but has Context"
+    feature: "cross-language calls"
+    source: "docs languages/javascript/server/javascript-in-schemas §Method bodies (third context) (snapshot 2026-09-28)"
+    confidence: "low"
+    requires: ["server-js", "sessel", "multi-actor"]
+    live: false
+    notes: "spec: R-JS-17, R-JS-63. Sessel QUERY needs a QUERY grant (protocol R-PROTO-74); live runs need an actor cookie."
+    site:
+      settings:
+        default_get: "allow"
+      rules:
+        - actor: "*"
+          resource: "${P}/*"
+          method: ["GET", "HEAD", "PUT", "POST", "DELETE", "MOVE", "QUERY"]
+          action: "Allow"
+        - actor: "*"
+          resource: "${P}/*/*"
+          method: ["GET", "HEAD", "PUT", "POST", "DELETE", "MOVE", "QUERY"]
+          action: "Allow"
+        - actor: "*"
+          resource: "${P}/*/*/*"
+          method: ["GET", "HEAD", "PUT", "POST", "DELETE", "MOVE", "QUERY"]
+          action: "Allow"
+    actors:
+      alice:
+        sub: "alice"
+        email: "alice@example.com"
+        email_verified: true
+        roles: []
+    steps:
+      - name: "register declarations through the public plane (takes effect for the next request)"
+        as: "anonymous"
+        request:
+          method: "PUT"
+          path: "${P}/schema.html"
+          headers:
+            Content-Type: "text/html"
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+            <div hidden itemscope itemtype="https://pagelove.org/Schema">
+            <meta itemprop="type" content="https://pagelike.test${P}/Person">
+            <div itemprop="property" itemscope itemtype="https://pagelove.org/Property">
+            <meta itemprop="name" content="firstName">
+            <meta itemprop="type" content="https://schema.host/Text">
+            <meta itemprop="cardinality" content="0..1">
+            </div>
+            <div itemprop="property" itemscope itemtype="https://pagelove.org/Property">
+            <meta itemprop="name" content="lastName">
+            <meta itemprop="type" content="https://schema.host/Text">
+            <meta itemprop="cardinality" content="0..1">
+            </div>
+            <div itemprop="property" itemscope itemtype="https://pagelove.org/Property">
+            <meta itemprop="name" content="name">
+            <meta itemprop="type" content="https://schema.host/Text">
+            <meta itemprop="cardinality" content="0..1">
+            </div>
+            <div itemprop="property" itemscope itemtype="https://pagelove.org/Property">
+            <meta itemprop="name" content="fullName">
+            <div itemprop="@computed" itemscope itemtype="https://pagelove.org/JavaScript/Module">
+            <script itemprop="source" type="module">
+            export default function() { return this.firstName + " " + this.lastName; }
+            </script>
+            </div>
+            </div>
+            <ul>
+            <li itemprop="property" itemscope itemtype="https://pagelove.org/Method">
+            <meta itemprop="name" content="greet">
+            <div itemprop="parameter" itemscope itemtype="https://pagelove.org/Parameter"><meta itemprop="name" content="greeting"><meta itemprop="type" content="https://schema.host/Text"></div>
+            <div itemprop="implementation" itemscope itemtype="https://pagelove.org/JavaScript/Module">
+            <script itemprop="source" type="module">
+            export default function(greeting) { return greeting + ", " + this.name + "!"; }
+            </script>
+            </div>
+            </li>
+            <li itemprop="property" itemscope itemtype="https://pagelove.org/Method">
+            <meta itemprop="name" content="probe">
+            <div itemprop="implementation" itemscope itemtype="https://pagelove.org/JavaScript/Module">
+            <script itemprop="source" type="module">
+            export default function () { return typeof document + ':' + typeof Context; }
+            </script>
+            </div>
+            </li>
+            <li itemprop="property" itemscope itemtype="https://pagelove.org/Method">
+            <meta itemprop="name" content="kind">
+            <meta itemprop="static" content="true">
+            <div itemprop="implementation" itemscope itemtype="https://pagelove.org/JavaScript/Module">
+            <script itemprop="source" type="module">
+            export default function () { return 'CLS:' + this.name; }
+            </script>
+            </div>
+            </li>
+            </ul>
+            </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "PUT an instance (a.html)"
+        as: "anonymous"
+        request:
+          method: "PUT"
+          path: "${P}/a.html"
+          headers:
+            Content-Type: "text/html"
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+            <div itemscope itemtype="https://pagelike.test${P}/Person">
+            <meta itemprop="firstName" content="Ada">
+            <meta itemprop="lastName" content="Lovelace">
+            <meta itemprop="name" content="Ada">
+            </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "QUERY"
+        as: "alice"
+        request:
+          method: "QUERY"
+          path: "${P}/a.html"
+          headers:
+            Content-Type: "text/sessel"
+          body: |-
+            @schema Person url("https://pagelike.test${P}/Person");
+            Person.search().first().probe()
+        expect:
+          status: [200, 206]
+          body_contains: ["undefined:object"]
+  - id: "javascript.classes.static-method-this-is-class"
+    title: "A static method's this is the class (named after the schema)"
+    feature: "cross-language calls"
+    source: "docs languages/javascript/server/javascript-in-schemas §Method bodies; docs reference/modeling-data/Methods §Fields (static) (snapshot 2026-09-28)"
+    confidence: "low"
+    requires: ["server-js", "sessel", "multi-actor"]
+    live: false
+    notes: "spec: R-JS-17, R-JS-85. Sessel QUERY needs a QUERY grant (protocol R-PROTO-74); live runs need an actor cookie."
+    site:
+      settings:
+        default_get: "allow"
+      rules:
+        - actor: "*"
+          resource: "${P}/*"
+          method: ["GET", "HEAD", "PUT", "POST", "DELETE", "MOVE", "QUERY"]
+          action: "Allow"
+        - actor: "*"
+          resource: "${P}/*/*"
+          method: ["GET", "HEAD", "PUT", "POST", "DELETE", "MOVE", "QUERY"]
+          action: "Allow"
+        - actor: "*"
+          resource: "${P}/*/*/*"
+          method: ["GET", "HEAD", "PUT", "POST", "DELETE", "MOVE", "QUERY"]
+          action: "Allow"
+    actors:
+      alice:
+        sub: "alice"
+        email: "alice@example.com"
+        email_verified: true
+        roles: []
+    steps:
+      - name: "register declarations through the public plane (takes effect for the next request)"
+        as: "anonymous"
+        request:
+          method: "PUT"
+          path: "${P}/schema.html"
+          headers:
+            Content-Type: "text/html"
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+            <div hidden itemscope itemtype="https://pagelove.org/Schema">
+            <meta itemprop="type" content="https://pagelike.test${P}/Person">
+            <div itemprop="property" itemscope itemtype="https://pagelove.org/Property">
+            <meta itemprop="name" content="firstName">
+            <meta itemprop="type" content="https://schema.host/Text">
+            <meta itemprop="cardinality" content="0..1">
+            </div>
+            <div itemprop="property" itemscope itemtype="https://pagelove.org/Property">
+            <meta itemprop="name" content="lastName">
+            <meta itemprop="type" content="https://schema.host/Text">
+            <meta itemprop="cardinality" content="0..1">
+            </div>
+            <div itemprop="property" itemscope itemtype="https://pagelove.org/Property">
+            <meta itemprop="name" content="name">
+            <meta itemprop="type" content="https://schema.host/Text">
+            <meta itemprop="cardinality" content="0..1">
+            </div>
+            <div itemprop="property" itemscope itemtype="https://pagelove.org/Property">
+            <meta itemprop="name" content="fullName">
+            <div itemprop="@computed" itemscope itemtype="https://pagelove.org/JavaScript/Module">
+            <script itemprop="source" type="module">
+            export default function() { return this.firstName + " " + this.lastName; }
+            </script>
+            </div>
+            </div>
+            <ul>
+            <li itemprop="property" itemscope itemtype="https://pagelove.org/Method">
+            <meta itemprop="name" content="greet">
+            <div itemprop="parameter" itemscope itemtype="https://pagelove.org/Parameter"><meta itemprop="name" content="greeting"><meta itemprop="type" content="https://schema.host/Text"></div>
+            <div itemprop="implementation" itemscope itemtype="https://pagelove.org/JavaScript/Module">
+            <script itemprop="source" type="module">
+            export default function(greeting) { return greeting + ", " + this.name + "!"; }
+            </script>
+            </div>
+            </li>
+            <li itemprop="property" itemscope itemtype="https://pagelove.org/Method">
+            <meta itemprop="name" content="probe">
+            <div itemprop="implementation" itemscope itemtype="https://pagelove.org/JavaScript/Module">
+            <script itemprop="source" type="module">
+            export default function () { return typeof document + ':' + typeof Context; }
+            </script>
+            </div>
+            </li>
+            <li itemprop="property" itemscope itemtype="https://pagelove.org/Method">
+            <meta itemprop="name" content="kind">
+            <meta itemprop="static" content="true">
+            <div itemprop="implementation" itemscope itemtype="https://pagelove.org/JavaScript/Module">
+            <script itemprop="source" type="module">
+            export default function () { return 'CLS:' + this.name; }
+            </script>
+            </div>
+            </li>
+            </ul>
+            </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "PUT an instance (a.html)"
+        as: "anonymous"
+        request:
+          method: "PUT"
+          path: "${P}/a.html"
+          headers:
+            Content-Type: "text/html"
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+            <div itemscope itemtype="https://pagelike.test${P}/Person">
+            <meta itemprop="firstName" content="Ada">
+            <meta itemprop="lastName" content="Lovelace">
+            <meta itemprop="name" content="Ada">
+            </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "QUERY"
+        as: "alice"
+        request:
+          method: "QUERY"
+          path: "${P}/a.html"
+          headers:
+            Content-Type: "text/sessel"
+          body: |-
+            @schema Person url("https://pagelike.test${P}/Person");
+            Person.kind()
+        expect:
+          status: [200, 206]
+          body_contains: ["CLS:Person"]

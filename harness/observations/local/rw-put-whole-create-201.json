@@ -1,0 +1,37 @@
+{
+  "case": "rw.put.whole-create-201",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (create)",
+      "method": "PUT",
+      "path": "/_pl/rw-put-whole-create-201-6c53b9/created.html",
+      "status": 201,
+      "headers": {
+        "content-length": "64",
+        "content-type": "text/html",
+        "etag": "\"308e47423376b53e72720f75e891d70d3ef9fd95703e291e417acb41109eeacf\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:56 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\u003ch1\u003eCreated page\u003c/h1\u003e\u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 2 (read it back)",
+      "method": "GET",
+      "path": "/_pl/rw-put-whole-create-201-6c53b9/created.html",
+      "status": 200,
+      "headers": {
+        "accept-ranges": "selector, bytes",
+        "content-length": "64",
+        "content-type": "text/html",
+        "etag": "\"308e47423376b53e72720f75e891d70d3ef9fd95703e291e417acb41109eeacf\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:56 GMT",
+        "vary": "Host, Range, Accept"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\u003ch1\u003eCreated page\u003c/h1\u003e\u003c/body\u003e\u003c/html\u003e\n"
+    }
+  ],
+  "outcome": "pass",
+  "target": "local"
+}

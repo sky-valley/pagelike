@@ -1,0 +1,167 @@
+{
+  "case": "reacting.discovery.probe-0929.handler-shape",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (trigger with an action and two otherwise values is accepted)",
+      "method": "PUT",
+      "path": "/_pl/reacting-discovery-probe-0929-handler-sh-6daa7c/r/a.html",
+      "status": 201,
+      "headers": {
+        "content-type": "text/html",
+        "etag": "\"ae1fb80c8dfc2ea3410d56589dfd33485899d7a109c0b8de249b553d711feee1\"",
+        "last-modified": "Tue, 29 Sep 2026 01:40:55 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\n\u003cdiv hidden itemscope itemtype=\"https://pagelove.org/Trigger\"\u003e\n  \u003cmeta itemprop=\"resource\" content=\"/_pl/reacting-discovery-probe-0929-handler-sh-6daa7c/d/*\"\u003e\n  \u003cmeta itemprop=\"method\" content=\"PUT\"\u003e\n  \u003cdiv itemprop=\"when\" itemscope itemtype=\"https://pagelove.org/Sessel\"\u003e\u003cscript itemprop=\"source\" type=\"text/sessel\"\u003etrue\u003c/script\u003e\u003c/div\u003e\n  \u003cdiv itemprop=\"action\" itemscope itemtype=\"https://pagelove.org/Sessel\"\u003e\u003cscript itemprop=\"source\" type=\"text/sessel\"\u003e1\u003c/script\u003e\u003c/div\u003e\n  \u003cdiv itemprop=\"otherwise\" itemscope itemtype=\"https://pagelove.org/Sessel\"\u003e\u003cscript itemprop=\"source\" type=\"text/sessel\"\u003e2\u003c/script\u003e\u003c/div\u003e\n  \u003cdiv itemprop=\"otherwise\" itemscope itemtype=\"https://pagelove.org/Sessel\"\u003e\u003cscript itemprop=\"source\" type=\"text/sessel\"\u003e3\u003c/script\u003e\u003c/div\u003e\n\u003c/div\u003e\n\n                \u003cdiv style=\"\n                            position: fixed;\n                            bottom: 0;\n                            left: 0;\n                            right: 0;\n                            padding: 8px;\n                            background: #f0f0f0;\n                            text-align: center;\n                            font-size: 12px;\n                            color: #666;\n                            z-index: 9999;\n                            opacity: 0.8;\n                            border-top: 1px solid #ddd;\n                        \"\u003e\n                    Powered by\n                    \u003ca href=\"https://pagelove.com/\" style=\"color: #4a90d9; text-decoration: none\"\u003ePagelove\u003c/a\u003e\n                \u003c/div\u003e\n            \u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 2 (trigger with two when values is refused)",
+      "method": "PUT",
+      "path": "/_pl/reacting-discovery-probe-0929-handler-sh-6daa7c/r/b.html",
+      "status": 422,
+      "headers": {
+        "content-length": "255",
+        "content-type": "text/html",
+        "vary": "Host, Range"
+      },
+      "body": "\u003cdiv itemscope itemtype=\"https://pagelove.org/SchemaViolation\"\u003e\u003cul itemprop=\"problems\"\u003e\u003cli itemprop=\"problem\"\u003e\u003cspan itemprop=\"message\"\u003e[https://pagelove.org/Handler].when: cardinality 0..1 violated: expected at most 1 value, found 2\u003c/span\u003e\u003c/li\u003e\u003c/ul\u003e\u003c/div\u003e"
+    },
+    {
+      "step": "step 3 (trigger with method HEAD is refused)",
+      "method": "PUT",
+      "path": "/_pl/reacting-discovery-probe-0929-handler-sh-6daa7c/r/c.html",
+      "status": 422,
+      "headers": {
+        "content-length": "335",
+        "content-type": "text/html",
+        "vary": "Host, Range"
+      },
+      "body": "\u003cdiv itemscope itemtype=\"https://pagelove.org/SchemaViolation\"\u003e\u003cul itemprop=\"problems\"\u003e\u003cli itemprop=\"problem\"\u003e\u003cspan itemprop=\"message\"\u003e[https://pagelove.org/RequestHandler].method: Value \"HEAD\" is not a valid https://pagelove.org/HTTPMethod (expected one of: \"GET\", \"PUT\", \"POST\", \"DELETE\", \"PATCH\", \"MOVE\", \"*\")\u003c/span\u003e\u003c/li\u003e\u003c/ul\u003e\u003c/div\u003e"
+    },
+    {
+      "step": "step 4 (trigger with method Put (mixed case) is refused)",
+      "method": "PUT",
+      "path": "/_pl/reacting-discovery-probe-0929-handler-sh-6daa7c/r/d.html",
+      "status": 422,
+      "headers": {
+        "content-length": "334",
+        "content-type": "text/html",
+        "vary": "Host, Range"
+      },
+      "body": "\u003cdiv itemscope itemtype=\"https://pagelove.org/SchemaViolation\"\u003e\u003cul itemprop=\"problems\"\u003e\u003cli itemprop=\"problem\"\u003e\u003cspan itemprop=\"message\"\u003e[https://pagelove.org/RequestHandler].method: Value \"Put\" is not a valid https://pagelove.org/HTTPMethod (expected one of: \"GET\", \"PUT\", \"POST\", \"DELETE\", \"PATCH\", \"MOVE\", \"*\")\u003c/span\u003e\u003c/li\u003e\u003c/ul\u003e\u003c/div\u003e"
+    },
+    {
+      "step": "step 5 (trigger with neither action nor a valid method lists every problem)",
+      "method": "PUT",
+      "path": "/_pl/reacting-discovery-probe-0929-handler-sh-6daa7c/r/e.html",
+      "status": 422,
+      "headers": {
+        "content-length": "733",
+        "content-type": "text/html",
+        "vary": "Host, Range"
+      },
+      "body": "\u003cdiv itemscope itemtype=\"https://pagelove.org/SchemaViolation\"\u003e\u003cul itemprop=\"problems\"\u003e\u003cli itemprop=\"problem\"\u003e\u003cspan itemprop=\"message\"\u003e[https://pagelove.org/Handler].action: cardinality 1..1 violated: expected exactly 1 value, found 0\u003c/span\u003e\u003c/li\u003e\u003cli itemprop=\"problem\"\u003e\u003cspan itemprop=\"message\"\u003e[https://pagelove.org/RequestHandler].method: Value \"put\" is not a valid https://pagelove.org/HTTPMethod (expected one of: \"GET\", \"PUT\", \"POST\", \"DELETE\", \"PATCH\", \"MOVE\", \"*\")\u003c/span\u003e\u003c/li\u003e\u003cli itemprop=\"problem\"\u003e\u003cspan itemprop=\"message\"\u003e[https://pagelove.org/RequestHandler].method: Value \"options\" is not a valid https://pagelove.org/HTTPMethod (expected one of: \"GET\", \"PUT\", \"POST\", \"DELETE\", \"PATCH\", \"MOVE\", \"*\")\u003c/span\u003e\u003c/li\u003e\u003c/ul\u003e\u003c/div\u003e"
+    },
+    {
+      "step": "step 6 (processor with a when and no action is refused)",
+      "method": "PUT",
+      "path": "/_pl/reacting-discovery-probe-0929-handler-sh-6daa7c/r/f.html",
+      "status": 422,
+      "headers": {
+        "content-length": "257",
+        "content-type": "text/html",
+        "vary": "Host, Range"
+      },
+      "body": "\u003cdiv itemscope itemtype=\"https://pagelove.org/SchemaViolation\"\u003e\u003cul itemprop=\"problems\"\u003e\u003cli itemprop=\"problem\"\u003e\u003cspan itemprop=\"message\"\u003e[https://pagelove.org/Handler].action: cardinality 1..1 violated: expected exactly 1 value, found 0\u003c/span\u003e\u003c/li\u003e\u003c/ul\u003e\u003c/div\u003e"
+    },
+    {
+      "step": "step 7 (processor with two actions is refused)",
+      "method": "PUT",
+      "path": "/_pl/reacting-discovery-probe-0929-handler-sh-6daa7c/r/g.html",
+      "status": 422,
+      "headers": {
+        "content-length": "257",
+        "content-type": "text/html",
+        "vary": "Host, Range"
+      },
+      "body": "\u003cdiv itemscope itemtype=\"https://pagelove.org/SchemaViolation\"\u003e\u003cul itemprop=\"problems\"\u003e\u003cli itemprop=\"problem\"\u003e\u003cspan itemprop=\"message\"\u003e[https://pagelove.org/Handler].action: cardinality 1..1 violated: expected exactly 1 value, found 2\u003c/span\u003e\u003c/li\u003e\u003c/ul\u003e\u003c/div\u003e"
+    },
+    {
+      "step": "step 8 (processor with method get (lower case) is refused)",
+      "method": "PUT",
+      "path": "/_pl/reacting-discovery-probe-0929-handler-sh-6daa7c/r/h.html",
+      "status": 422,
+      "headers": {
+        "content-length": "334",
+        "content-type": "text/html",
+        "vary": "Host, Range"
+      },
+      "body": "\u003cdiv itemscope itemtype=\"https://pagelove.org/SchemaViolation\"\u003e\u003cul itemprop=\"problems\"\u003e\u003cli itemprop=\"problem\"\u003e\u003cspan itemprop=\"message\"\u003e[https://pagelove.org/RequestHandler].method: Value \"get\" is not a valid https://pagelove.org/HTTPMethod (expected one of: \"GET\", \"PUT\", \"POST\", \"DELETE\", \"PATCH\", \"MOVE\", \"*\")\u003c/span\u003e\u003c/li\u003e\u003c/ul\u003e\u003c/div\u003e"
+    },
+    {
+      "step": "step 9 (transition handler with two actions is refused)",
+      "method": "PUT",
+      "path": "/_pl/reacting-discovery-probe-0929-handler-sh-6daa7c/r/i.html",
+      "status": 422,
+      "headers": {
+        "content-length": "257",
+        "content-type": "text/html",
+        "vary": "Host, Range"
+      },
+      "body": "\u003cdiv itemscope itemtype=\"https://pagelove.org/SchemaViolation\"\u003e\u003cul itemprop=\"problems\"\u003e\u003cli itemprop=\"problem\"\u003e\u003cspan itemprop=\"message\"\u003e[https://pagelove.org/Handler].action: cardinality 1..1 violated: expected exactly 1 value, found 2\u003c/span\u003e\u003c/li\u003e\u003c/ul\u003e\u003c/div\u003e"
+    },
+    {
+      "step": "step 10 (transition handler without an action is refused)",
+      "method": "PUT",
+      "path": "/_pl/reacting-discovery-probe-0929-handler-sh-6daa7c/r/j.html",
+      "status": 422,
+      "headers": {
+        "content-length": "257",
+        "content-type": "text/html",
+        "vary": "Host, Range"
+      },
+      "body": "\u003cdiv itemscope itemtype=\"https://pagelove.org/SchemaViolation\"\u003e\u003cul itemprop=\"problems\"\u003e\u003cli itemprop=\"problem\"\u003e\u003cspan itemprop=\"message\"\u003e[https://pagelove.org/Handler].action: cardinality 1..1 violated: expected exactly 1 value, found 0\u003c/span\u003e\u003c/li\u003e\u003c/ul\u003e\u003c/div\u003e"
+    },
+    {
+      "step": "step 11 (a host document for a selector write)",
+      "method": "PUT",
+      "path": "/_pl/reacting-discovery-probe-0929-handler-sh-6daa7c/r/k.html",
+      "status": 201,
+      "headers": {
+        "content-type": "text/html",
+        "etag": "\"1a58c62f79b2073e326925414af016458e699fcd69a81159a2bd228a51ea4cc8\"",
+        "last-modified": "Tue, 29 Sep 2026 01:40:58 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\u003chtml\u003e\u003cbody\u003e\u003cdiv id=\"box\"\u003e\u003c/div\u003e\n                \u003cdiv style=\"\n                            position: fixed;\n                            bottom: 0;\n                            left: 0;\n                            right: 0;\n                            padding: 8px;\n                            background: #f0f0f0;\n                            text-align: center;\n                            font-size: 12px;\n                            color: #666;\n                            z-index: 9999;\n                            opacity: 0.8;\n                            border-top: 1px solid #ddd;\n                        \"\u003e\n                    Powered by\n                    \u003ca href=\"https://pagelove.com/\" style=\"color: #4a90d9; text-decoration: none\"\u003ePagelove\u003c/a\u003e\n                \u003c/div\u003e\n            \u003c/body\u003e\u003c/html\u003e"
+    },
+    {
+      "step": "step 12 (a selector POST that inserts an action-less trigger is refused)",
+      "method": "POST",
+      "path": "/_pl/reacting-discovery-probe-0929-handler-sh-6daa7c/r/k.html",
+      "status": 422,
+      "headers": {
+        "content-length": "257",
+        "content-type": "text/html",
+        "vary": "Host, Range"
+      },
+      "body": "\u003cdiv itemscope itemtype=\"https://pagelove.org/SchemaViolation\"\u003e\u003cul itemprop=\"problems\"\u003e\u003cli itemprop=\"problem\"\u003e\u003cspan itemprop=\"message\"\u003e[https://pagelove.org/Handler].action: cardinality 1..1 violated: expected exactly 1 value, found 0\u003c/span\u003e\u003c/li\u003e\u003c/ul\u003e\u003c/div\u003e"
+    },
+    {
+      "step": "step 13 (the refused selector POST changed nothing)",
+      "method": "GET",
+      "path": "/_pl/reacting-discovery-probe-0929-handler-sh-6daa7c/r/k.html",
+      "status": 200,
+      "headers": {
+        "content-type": "text/html",
+        "etag": "\"1a58c62f79b2073e326925414af016458e699fcd69a81159a2bd228a51ea4cc8\"",
+        "last-modified": "Tue, 29 Sep 2026 01:40:58 GMT",
+        "vary": "Host, Range, Accept"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\u003chtml\u003e\u003cbody\u003e\u003cdiv id=\"box\"\u003e\u003c/div\u003e\n                \u003cdiv style=\"\n                            position: fixed;\n                            bottom: 0;\n                            left: 0;\n                            right: 0;\n                            padding: 8px;\n                            background: #f0f0f0;\n                            text-align: center;\n                            font-size: 12px;\n                            color: #666;\n                            z-index: 9999;\n                            opacity: 0.8;\n                            border-top: 1px solid #ddd;\n                        \"\u003e\n                    Powered by\n                    \u003ca href=\"https://pagelove.com/\" style=\"color: #4a90d9; text-decoration: none\"\u003ePagelove\u003c/a\u003e\n                \u003c/div\u003e\n            \u003c/body\u003e\u003c/html\u003e"
+    }
+  ],
+  "outcome": "pass",
+  "target": "live"
+}

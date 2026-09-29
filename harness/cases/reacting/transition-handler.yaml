@@ -1,0 +1,955 @@
+# Reacting: TransitionHandler (spec R-REACT-76..85).
+# See outbound.yaml for sink step conventions and transition-constraint.yaml
+# for the ${P}-scoped Order type. Handler documents are installed through the
+# serving path. Unless a case says otherwise, no TransitionConstraint exists,
+# so every change of status is permitted ("handler-only watch").
+anchors:
+  open_rules: &open_rules
+    - {actor: "*", resource: "${P}/*", method: [GET, HEAD, PUT, POST, DELETE], action: Allow}
+  install_basic_handler: &install_basic_handler
+    name: install a handler (Order.status becomes processing -> POST ${SINK}/payments)
+    as: anonymous
+    request:
+      method: PUT
+      path: "${P}/r/handlers.html"
+      headers: {Content-Type: text/html}
+      body: |
+        <!DOCTYPE html>
+        <html><body>
+        <div itemscope itemtype="https://pagelove.org/TransitionHandler">
+          <meta itemprop="selector" content="[itemtype='https://pagelike.test${P}/Order']">
+          <meta itemprop="property" content="status">
+          <meta itemprop="becomes" content="processing">
+          <div itemprop="action" itemscope itemtype="https://pagelove.org/HttpRequest">
+            <meta itemprop="url" content="${SINK}/payments">
+            <meta itemprop="method" content="POST">
+          </div>
+        </div>
+        </body></html>
+    expect: {status: [200, 201, 204]}
+  seed_pending: &seed_pending
+    name: seed order-1 at pending
+    as: anonymous
+    request:
+      method: PUT
+      path: "${P}/orders/order-1.html"
+      headers: {Content-Type: text/html}
+      body: |
+        <!DOCTYPE html>
+        <html><body><div id="order1" itemscope itemtype="https://pagelike.test${P}/Order"><meta itemprop="status" content="pending"><span itemprop="total">42.00</span></div></body></html>
+    expect: {status: [200, 201, 204]}
+  to_processing: &to_processing
+    name: move order-1 to processing
+    as: anonymous
+    request:
+      method: PUT
+      path: "${P}/orders/order-1.html"
+      headers: {Content-Type: text/html, Range: "selector=#order1"}
+      body: '<div id="order1" itemscope itemtype="https://pagelike.test${P}/Order"><meta itemprop="status" content="processing"><span itemprop="total">42.00</span></div>'
+    expect: {status: [200, 204, 206]}
+defaults:
+  area: reacting
+  requires: [outbound-http]
+  site:
+    settings: {default_get: allow}
+    rules: *open_rules
+cases:
+  - id: reacting.th.recipe-notify-worker
+    title: "State-machine recipe: the handler delivers a Transition document when an order becomes processing"
+    feature: TransitionHandler (recipe)
+    evidence: documented
+    source: "docs recipes/declaring-a-state-machine §Notify a worker; reference/reacting-to-changes/TransitionHandler §Quick example, §What the action receives (snapshot 2026-09-28)"
+    confidence: high
+    requires: [outbound-http]
+    live: true
+    notes: "spec: R-REACT-78, R-REACT-81, R-REACT-82. Rules and handler live in one document, as the recipe suggests."
+    steps:
+      - name: install the recipe rules plus the handler
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/transitions/rules.html"
+          headers: {Content-Type: text/html}
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+            <div itemscope itemtype="https://pagelove.org/TransitionConstraint">
+              <meta itemprop="selector" content="[itemtype='https://pagelike.test${P}/Order']">
+              <meta itemprop="property" content="status">
+              <meta itemprop="to" content="pending">
+            </div>
+            <div itemscope itemtype="https://pagelove.org/TransitionConstraint">
+              <meta itemprop="selector" content="[itemtype='https://pagelike.test${P}/Order']">
+              <meta itemprop="property" content="status">
+              <meta itemprop="from" content="pending">
+              <meta itemprop="to" content="processing">
+            </div>
+            <div itemscope itemtype="https://pagelove.org/TransitionConstraint">
+              <meta itemprop="selector" content="[itemtype='https://pagelike.test${P}/Order']">
+              <meta itemprop="property" content="status">
+              <meta itemprop="from" content="processing">
+              <meta itemprop="to" content="success">
+            </div>
+            <div itemscope itemtype="https://pagelove.org/TransitionConstraint">
+              <meta itemprop="selector" content="[itemtype='https://pagelike.test${P}/Order']">
+              <meta itemprop="property" content="status">
+              <meta itemprop="from" content="success">
+            </div>
+            <div itemscope itemtype="https://pagelove.org/TransitionHandler">
+              <meta itemprop="selector" content=":isa('https://pagelike.test${P}/Order')">
+              <meta itemprop="property" content="status">
+              <meta itemprop="becomes" content="processing">
+              <div itemprop="action" itemscope itemtype="https://pagelove.org/HttpRequest">
+                <meta itemprop="url" content="${SINK}/payments">
+                <meta itemprop="method" content="POST">
+              </div>
+            </div>
+            </body></html>
+        expect: {status: [200, 201, 204]}
+      - *seed_pending
+      - sink_expect_none: {path: /payments, for_ms: 2000}
+      - *to_processing
+      - sink_expect:
+          path: /payments
+          within_ms: 5000
+          method: POST
+          header_matches: {Content-Type: "^text/html"}
+          body_contains:
+            - "https://pagelove.org/Transition"
+            - 'content="${P}/orders/order-1.html"'
+            - 'itemprop="body"'
+            - "https://pagelike.test${P}/Order"
+            - 'content="processing"'
+          microdata:
+            - type: https://pagelove.org/Transition
+              properties: {}
+      - name: the worker reports back (processing -> success)
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/orders/order-1.html"
+          headers: {Content-Type: text/html, Range: "selector=#order1"}
+          body: '<div id="order1" itemscope itemtype="https://pagelike.test${P}/Order"><meta itemprop="status" content="success"><span itemprop="total">42.00</span></div>'
+        expect: {status: [200, 204, 206]}
+      - sink_expect_none: {path: /payments, for_ms: 2000}
+
+  - id: reacting.th.entry-fires
+    title: An item created directly in a becomes state fires the handler
+    feature: TransitionHandler (firing)
+    evidence: documented
+    source: "docs reference/reacting-to-changes/TransitionHandler §When a handler fires ('it fires for entries too') (snapshot 2026-09-28)"
+    confidence: high
+    requires: [outbound-http]
+    live: true
+    notes: "spec: R-REACT-78."
+    steps:
+      - *install_basic_handler
+      - name: create an order at processing
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/orders/new.html"
+          headers: {Content-Type: text/html}
+          body: '<!DOCTYPE html><html><body><div itemscope itemtype="https://pagelike.test${P}/Order"><meta itemprop="status" content="processing"></div></body></html>'
+        expect: {status: [200, 201, 204]}
+      - sink_expect: {path: /payments, within_ms: 5000, body_contains: ['content="${P}/orders/new.html"']}
+
+  - id: reacting.th.exit-never-fires
+    title: Deleting an item in the becomes state fires nothing
+    feature: TransitionHandler (firing)
+    evidence: documented
+    source: "docs reference/reacting-to-changes/TransitionHandler §When a handler fires ('exits never fire') (snapshot 2026-09-28)"
+    confidence: high
+    requires: [outbound-http]
+    live: true
+    notes: "spec: R-REACT-78."
+    steps:
+      - *install_basic_handler
+      - *seed_pending
+      - *to_processing
+      - sink_expect: {path: /payments, within_ms: 5000}
+      - name: delete the processing order
+        as: anonymous
+        request: {method: DELETE, path: "${P}/orders/order-1.html"}
+        expect: {status: [200, 204]}
+      - sink_expect_none: {path: /payments, for_ms: 3000}
+
+  - id: reacting.th.unchanged-never-fires
+    title: Rewriting the same value fires nothing
+    feature: TransitionHandler (firing)
+    evidence: documented
+    source: "docs reference/reacting-to-changes/TransitionHandler §When a handler fires ('a write that leaves the watched value unchanged fires nothing') (snapshot 2026-09-28)"
+    confidence: high
+    requires: [outbound-http]
+    live: true
+    notes: "spec: R-REACT-78."
+    steps:
+      - *install_basic_handler
+      - *seed_pending
+      - *to_processing
+      - sink_expect: {path: /payments, within_ms: 5000}
+      - name: write processing again (and change the total)
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/orders/order-1.html"
+          headers: {Content-Type: text/html, Range: "selector=#order1"}
+          body: '<div id="order1" itemscope itemtype="https://pagelike.test${P}/Order"><meta itemprop="status" content="processing"><span itemprop="total">43.00</span></div>'
+        expect: {status: [200, 204, 206]}
+      - sink_expect_none: {path: /payments, for_ms: 3000}
+
+  - id: reacting.th.becomes-or
+    title: Several becomes values are OR-ed
+    feature: TransitionHandler (firing)
+    evidence: documented
+    source: "docs reference/reacting-to-changes/TransitionHandler §When a handler fires ('repeated becomes values are OR'd') (snapshot 2026-09-28)"
+    confidence: high
+    requires: [outbound-http]
+    live: true
+    notes: "spec: R-REACT-76, R-REACT-78."
+    steps:
+      - name: install a handler for processing or shipped
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/r/handlers.html"
+          headers: {Content-Type: text/html}
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+            <div itemscope itemtype="https://pagelove.org/TransitionHandler">
+              <meta itemprop="selector" content="[itemtype='https://pagelike.test${P}/Order']">
+              <meta itemprop="property" content="status">
+              <meta itemprop="becomes" content="processing">
+              <meta itemprop="becomes" content="shipped">
+              <div itemprop="action" itemscope itemtype="https://pagelove.org/HttpRequest">
+                <meta itemprop="url" content="${SINK}/any">
+              </div>
+            </div>
+            </body></html>
+        expect: {status: [200, 201, 204]}
+      - *seed_pending
+      - name: pending -> shipped
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/orders/order-1.html"
+          headers: {Content-Type: text/html, Range: "selector=#order1"}
+          body: '<div id="order1" itemscope itemtype="https://pagelike.test${P}/Order"><meta itemprop="status" content="shipped"></div>'
+        expect: {status: [200, 204, 206]}
+      - sink_expect: {path: /any, within_ms: 5000, body_contains: ['content="shipped"']}
+
+  - id: reacting.th.once-per-item
+    title: One write that changes two items fires once per item, each with its own key-based selector
+    feature: TransitionHandler (firing)
+    evidence: documented
+    source: "docs reference/reacting-to-changes/TransitionHandler §When a handler fires ('it fires once per changed item'), §What the action receives (key-based selector) (snapshot 2026-09-28)"
+    confidence: high
+    requires: [outbound-http]
+    live: true
+    notes: "spec: R-REACT-78, R-REACT-81. Arrival order of the two deliveries is not asserted."
+    steps:
+      - name: register Order with orderNumber as @key
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/schema.html"
+          headers: {Content-Type: text/html}
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+            <div hidden itemscope itemtype="https://pagelove.org/Schema">
+              <meta itemprop="type" content="https://pagelike.test${P}/Order">
+              <div itemprop="property" itemscope itemtype="https://pagelove.org/Property">
+                <meta itemprop="name" content="orderNumber">
+                <meta itemprop="type" content="https://schema.host/Text">
+                <meta itemprop="cardinality" content="1..1">
+                <meta itemprop="unique" content="true">
+                <meta itemprop="@key" content="true">
+              </div>
+            </div>
+            </body></html>
+        expect: {status: [200, 201, 204]}
+      - *install_basic_handler
+      - name: two pending orders
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/orders/batch.html"
+          headers: {Content-Type: text/html}
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+            <div itemscope itemtype="https://pagelike.test${P}/Order"><meta itemprop="orderNumber" content="10"><meta itemprop="status" content="pending"></div>
+            <div itemscope itemtype="https://pagelike.test${P}/Order"><meta itemprop="orderNumber" content="11"><meta itemprop="status" content="pending"></div>
+            </body></html>
+        expect: {status: [200, 201, 204]}
+      - name: both become processing in one write
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/orders/batch.html"
+          headers: {Content-Type: text/html}
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+            <div itemscope itemtype="https://pagelike.test${P}/Order"><meta itemprop="orderNumber" content="10"><meta itemprop="status" content="processing"></div>
+            <div itemscope itemtype="https://pagelike.test${P}/Order"><meta itemprop="orderNumber" content="11"><meta itemprop="status" content="processing"></div>
+            </body></html>
+        expect: {status: [200, 201, 204]}
+      - sink_expect_count: {path: /payments, count: 2, within_ms: 6000}
+      - sink_expect_none: {path: /payments, for_ms: 3000}
+
+  - id: reacting.th.key-based-selector
+    title: The Transition selector is key-based when the type declares a @key
+    feature: TransitionHandler (Transition document)
+    evidence: documented
+    source: "docs reference/reacting-to-changes/TransitionHandler §What the action receives (selector example) (snapshot 2026-09-28)"
+    confidence: medium
+    requires: [outbound-http]
+    live: true
+    notes: "spec: R-REACT-81. The exact serialization is compared as documented (&quot; escaping)."
+    steps:
+      - name: register Order with orderNumber as @key
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/schema.html"
+          headers: {Content-Type: text/html}
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+            <div hidden itemscope itemtype="https://pagelove.org/Schema">
+              <meta itemprop="type" content="https://pagelike.test${P}/Order">
+              <div itemprop="property" itemscope itemtype="https://pagelove.org/Property">
+                <meta itemprop="name" content="orderNumber">
+                <meta itemprop="type" content="https://schema.host/Text">
+                <meta itemprop="cardinality" content="1..1">
+                <meta itemprop="unique" content="true">
+                <meta itemprop="@key" content="true">
+              </div>
+            </div>
+            </body></html>
+        expect: {status: [200, 201, 204]}
+      - *install_basic_handler
+      - name: create order 10 at processing
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/orders/order-1.html"
+          headers: {Content-Type: text/html}
+          body: '<!DOCTYPE html><html><body><div itemscope itemtype="https://pagelike.test${P}/Order"><meta itemprop="orderNumber" content="10"><meta itemprop="status" content="processing"></div></body></html>'
+        expect: {status: [200, 201, 204]}
+      - sink_expect:
+          path: /payments
+          within_ms: 5000
+          body_contains: [':has([itemprop=&quot;orderNumber&quot;]:value-equals(&quot;10&quot;))']
+
+  - id: reacting.th.keyless-selector-by-type
+    title: Without a @key the Transition selector addresses the item by type alone
+    feature: TransitionHandler (Transition document)
+    evidence: documented
+    source: "docs reference/reacting-to-changes/TransitionHandler §What the action receives ('with no key the item was necessarily the only one of its kind in the document, so the selector addresses it by type') (snapshot 2026-09-28)"
+    confidence: medium
+    requires: [outbound-http]
+    live: true
+    notes: "spec: R-REACT-81."
+    steps:
+      - *install_basic_handler
+      - *seed_pending
+      - *to_processing
+      - sink_expect:
+          path: /payments
+          within_ms: 5000
+          body_contains: ['content="[itemtype=&quot;https://pagelike.test${P}/Order&quot;]"']
+
+  - id: reacting.th.nested-item-itemprop-replaced
+    title: A watched item nested as another item's property is delivered with itemprop="body" instead of its own itemprop
+    feature: TransitionHandler (Transition document)
+    evidence: documented
+    source: "docs reference/reacting-to-changes/TransitionHandler §What the action receives ('its original itemprop is replaced by body on the delivered copy') (snapshot 2026-09-28)"
+    confidence: high
+    requires: [outbound-http]
+    live: true
+    notes: "spec: R-REACT-81."
+    steps:
+      - *install_basic_handler
+      - name: create a cart whose order property is an Order at processing
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/orders/cart.html"
+          headers: {Content-Type: text/html}
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+            <div itemscope itemtype="https://pagelike.test${P}/Cart">
+              <div itemprop="order" data-marker="nested-order" itemscope itemtype="https://pagelike.test${P}/Order"><meta itemprop="status" content="processing"></div>
+            </div>
+            </body></html>
+        expect: {status: [200, 201, 204]}
+      - sink_expect:
+          path: /payments
+          within_ms: 5000
+          body_contains: ['itemprop="body"', 'data-marker="nested-order"']
+          body_not_contains: ['itemprop="order"', "pagelike.test${P}/Cart"]
+
+  - id: reacting.th.class-selector-never-fires
+    title: A handler whose selector is not a type predicate never fires
+    feature: TransitionHandler (selector)
+    evidence: documented
+    source: "docs reference/reacting-to-changes/TransitionHandler §The selector must name a type (snapshot 2026-09-28)"
+    confidence: high
+    requires: [outbound-http]
+    live: true
+    notes: "spec: R-REACT-77. The order element does carry the class."
+    steps:
+      - name: install a class-selector handler
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/r/handlers.html"
+          headers: {Content-Type: text/html}
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+            <div itemscope itemtype="https://pagelove.org/TransitionHandler">
+              <meta itemprop="selector" content=".order">
+              <meta itemprop="property" content="status">
+              <meta itemprop="becomes" content="processing">
+              <div itemprop="action" itemscope itemtype="https://pagelove.org/HttpRequest">
+                <meta itemprop="url" content="${SINK}/class">
+              </div>
+            </div>
+            </body></html>
+        expect: {status: [200, 201, 204]}
+      - name: create a classed order at processing
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/orders/o.html"
+          headers: {Content-Type: text/html}
+          body: '<!DOCTYPE html><html><body><div class="order" itemscope itemtype="https://pagelike.test${P}/Order"><meta itemprop="status" content="processing"></div></body></html>'
+        expect: {status: [200, 201, 204]}
+      - sink_expect_none: {path: /class, for_ms: 3000}
+
+  - id: reacting.th.selector-list-with-type-branch-fires
+    title: A selector list fires when any branch is a type predicate that accepts the item
+    feature: TransitionHandler (selector)
+    evidence: documented
+    source: "docs reference/reacting-to-changes/TransitionHandler §The selector must name a type ('A comma-separated selector list fires if any type branch accepts the item's type') (snapshot 2026-09-28)"
+    confidence: high
+    requires: [outbound-http]
+    live: true
+    notes: "spec: R-REACT-77."
+    steps:
+      - name: install a mixed selector-list handler
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/r/handlers.html"
+          headers: {Content-Type: text/html}
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+            <div itemscope itemtype="https://pagelove.org/TransitionHandler">
+              <meta itemprop="selector" content=".order, [itemtype='https://pagelike.test${P}/Order']">
+              <meta itemprop="property" content="status">
+              <meta itemprop="becomes" content="processing">
+              <div itemprop="action" itemscope itemtype="https://pagelove.org/HttpRequest">
+                <meta itemprop="url" content="${SINK}/list">
+              </div>
+            </div>
+            </body></html>
+        expect: {status: [200, 201, 204]}
+      - name: create an order at processing
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/orders/o.html"
+          headers: {Content-Type: text/html}
+          body: '<!DOCTYPE html><html><body><div itemscope itemtype="https://pagelike.test${P}/Order"><meta itemprop="status" content="processing"></div></body></html>'
+        expect: {status: [200, 201, 204]}
+      - sink_expect: {path: /list, within_ms: 5000}
+
+  - id: reacting.th.when-gate-path
+    title: "The when gate sees the Transition item as self (self.path)"
+    feature: TransitionHandler (when)
+    evidence: documented
+    source: "docs reference/reacting-to-changes/TransitionHandler §The when gate, §Delivery (example self.path == \"/orders.html\") (snapshot 2026-09-28)"
+    confidence: medium
+    requires: [outbound-http, sessel]
+    live: true
+    notes: "spec: R-REACT-79. Only the order in a.html is delivered."
+    steps:
+      - name: install a gated handler
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/r/handlers.html"
+          headers: {Content-Type: text/html}
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+            <div itemscope itemtype="https://pagelove.org/TransitionHandler">
+              <meta itemprop="selector" content="[itemtype='https://pagelike.test${P}/Order']">
+              <meta itemprop="property" content="status">
+              <meta itemprop="becomes" content="processing">
+              <div itemprop="when" itemscope itemtype="https://pagelove.org/Sessel">
+                <script itemprop="source" type="text/sessel">self.path == "${P}/orders/a.html"</script>
+              </div>
+              <div itemprop="action" itemscope itemtype="https://pagelove.org/HttpRequest">
+                <meta itemprop="url" content="${SINK}/gated">
+              </div>
+            </div>
+            </body></html>
+        expect: {status: [200, 201, 204]}
+      - name: an order in b.html becomes processing (gate false)
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/orders/b.html"
+          headers: {Content-Type: text/html}
+          body: '<!DOCTYPE html><html><body><div itemscope itemtype="https://pagelike.test${P}/Order"><meta itemprop="status" content="processing"></div></body></html>'
+        expect: {status: [200, 201, 204]}
+      - sink_expect_none: {path: /gated, for_ms: 3000}
+      - name: an order in a.html becomes processing (gate true)
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/orders/a.html"
+          headers: {Content-Type: text/html}
+          body: '<!DOCTYPE html><html><body><div itemscope itemtype="https://pagelike.test${P}/Order"><meta itemprop="status" content="processing"></div></body></html>'
+        expect: {status: [200, 201, 204]}
+      - sink_expect: {path: /gated, within_ms: 5000, body_contains: ['content="${P}/orders/a.html"']}
+
+  - id: reacting.th.js-gate-never-fires
+    title: A JavaScript when gate is malformed for handlers, so the handler never fires
+    feature: TransitionHandler (when)
+    evidence: documented
+    source: "docs reference/reacting-to-changes/TransitionHandler §The when gate ('malformed gate (not a Sessel item, or no source): the handler never fires') (snapshot 2026-09-28)"
+    confidence: high
+    requires: [outbound-http]
+    live: true
+    notes: "spec: R-REACT-79."
+    steps:
+      - name: install a handler with a JS gate that returns true
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/r/handlers.html"
+          headers: {Content-Type: text/html}
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+            <div itemscope itemtype="https://pagelove.org/TransitionHandler">
+              <meta itemprop="selector" content="[itemtype='https://pagelike.test${P}/Order']">
+              <meta itemprop="property" content="status">
+              <meta itemprop="becomes" content="processing">
+              <div itemprop="when" itemscope itemtype="https://pagelove.org/JavaScript/Module">
+                <script type="module" itemprop="source">export default function() { return true; }</script>
+              </div>
+              <div itemprop="action" itemscope itemtype="https://pagelove.org/HttpRequest">
+                <meta itemprop="url" content="${SINK}/js-gate">
+              </div>
+            </div>
+            </body></html>
+        expect: {status: [200, 201, 204]}
+      - name: create an order at processing
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/orders/o.html"
+          headers: {Content-Type: text/html}
+          body: '<!DOCTYPE html><html><body><div itemscope itemtype="https://pagelike.test${P}/Order"><meta itemprop="status" content="processing"></div></body></html>'
+        expect: {status: [200, 201, 204]}
+      - sink_expect_none: {path: /js-gate, for_ms: 3000}
+
+  - id: reacting.th.when-gate-error-no-delivery
+    title: A gate evaluation error suppresses delivery but never affects the committed write
+    feature: TransitionHandler (when)
+    evidence: documented
+    source: "docs reference/reacting-to-changes/TransitionHandler §The when gate ('evaluation error: no delivery for that handler; the committed write is unaffected') (snapshot 2026-09-28)"
+    confidence: high
+    requires: [outbound-http, sessel]
+    live: true
+    notes: "spec: R-REACT-79."
+    steps:
+      - name: install a handler whose gate raises a type error
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/r/handlers.html"
+          headers: {Content-Type: text/html}
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+            <div itemscope itemtype="https://pagelove.org/TransitionHandler">
+              <meta itemprop="selector" content="[itemtype='https://pagelike.test${P}/Order']">
+              <meta itemprop="property" content="status">
+              <meta itemprop="becomes" content="processing">
+              <div itemprop="when" itemscope itemtype="https://pagelove.org/Sessel">
+                <script itemprop="source" type="text/sessel">"abc".Integer() > 0</script>
+              </div>
+              <div itemprop="action" itemscope itemtype="https://pagelove.org/HttpRequest">
+                <meta itemprop="url" content="${SINK}/erroring">
+              </div>
+            </div>
+            </body></html>
+        expect: {status: [200, 201, 204]}
+      - name: the write commits normally
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/orders/o.html"
+          headers: {Content-Type: text/html}
+          body: '<!DOCTYPE html><html><body><div itemscope itemtype="https://pagelike.test${P}/Order"><meta itemprop="status" content="processing"></div></body></html>'
+        expect: {status: [200, 201, 204]}
+      - sink_expect_none: {path: /erroring, for_ms: 3000}
+      - {name: stored, as: anonymous, request: {method: GET, path: "${P}/orders/o.html"}, expect: {status: 200, body_contains: ['content="processing"']}}
+
+  - id: reacting.th.sessel-action-never-fires
+    title: A handler that declares a non-HttpRequest action never fires
+    feature: TransitionHandler (action)
+    evidence: documented
+    source: "docs reference/reacting-to-changes/TransitionHandler §The action ('a handler declaring one never fires') (snapshot 2026-09-28)"
+    confidence: medium
+    requires: [outbound-http]
+    live: true
+    notes: "spec: R-REACT-80. The handler also has a valid HttpRequest action; pagelike disables the whole handler. The serving path refuses two actions (Handler.action 1..1, R-REACT-4a, live 2026-09-29), so the handler document is stored over WebDAV."
+    site:
+      settings: {default_get: allow}
+      rules: *open_rules
+      files:
+        - path: "${P}/r/handlers.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+            <div itemscope itemtype="https://pagelove.org/TransitionHandler">
+              <meta itemprop="selector" content="[itemtype='https://pagelike.test${P}/Order']">
+              <meta itemprop="property" content="status">
+              <meta itemprop="becomes" content="processing">
+              <div itemprop="action" itemscope itemtype="https://pagelove.org/Sessel">
+                <script itemprop="source" type="text/sessel">1</script>
+              </div>
+              <div itemprop="action" itemscope itemtype="https://pagelove.org/HttpRequest">
+                <meta itemprop="url" content="${SINK}/mixed">
+              </div>
+            </div>
+            </body></html>
+    steps:
+      - name: create an order at processing
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/orders/o.html"
+          headers: {Content-Type: text/html}
+          body: '<!DOCTYPE html><html><body><div itemscope itemtype="https://pagelike.test${P}/Order"><meta itemprop="status" content="processing"></div></body></html>'
+        expect: {status: [200, 201, 204]}
+      - sink_expect_none: {path: /mixed, for_ms: 3000}
+
+  - id: reacting.th.dynamic-header-disables-handler
+    title: An expression in any header value stops the handler from firing at all
+    feature: TransitionHandler (action)
+    evidence: documented
+    source: "docs reference/reacting-to-changes/TransitionHandler §Delivery ('That includes an expression in a single header') (snapshot 2026-09-28)"
+    confidence: high
+    requires: [outbound-http]
+    live: true
+    notes: "spec: R-REACT-80."
+    steps:
+      - name: install a handler with a dynamic Authorization header
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/r/handlers.html"
+          headers: {Content-Type: text/html}
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+            <div itemscope itemtype="https://pagelove.org/TransitionHandler">
+              <meta itemprop="selector" content="[itemtype='https://pagelike.test${P}/Order']">
+              <meta itemprop="property" content="status">
+              <meta itemprop="becomes" content="processing">
+              <div itemprop="action" itemscope itemtype="https://pagelove.org/HttpRequest">
+                <meta itemprop="url" content="${SINK}/dyn-header">
+                <div itemprop="header" itemscope itemtype="https://pagelove.org/Pair">
+                  <meta itemprop="key" content="Authorization">
+                  <div itemprop="value" itemscope itemtype="https://pagelove.org/Sessel">
+                    <script itemprop="source" type="text/sessel">"Bearer " + "test-token"</script>
+                  </div>
+                </div>
+              </div>
+            </div>
+            </body></html>
+        expect: {status: [200, 201, 204]}
+      - name: create an order at processing
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/orders/o.html"
+          headers: {Content-Type: text/html}
+          body: '<!DOCTYPE html><html><body><div itemscope itemtype="https://pagelike.test${P}/Order"><meta itemprop="status" content="processing"></div></body></html>'
+        expect: {status: [200, 201, 204]}
+      - sink_expect_none: {path: /dyn-header, for_ms: 3000}
+
+  - id: reacting.th.body-and-content-type-ignored
+    title: body and content-type on a handler's action are ignored; the Transition document is sent as text/html with static headers
+    feature: TransitionHandler (action)
+    evidence: documented
+    source: "docs reference/reacting-to-changes/TransitionHandler §The action ('retry, body, and content-type … have no effect') (snapshot 2026-09-28)"
+    confidence: high
+    requires: [outbound-http]
+    live: true
+    notes: "spec: R-REACT-80."
+    steps:
+      - name: install a handler with body, content-type and a static header
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/r/handlers.html"
+          headers: {Content-Type: text/html}
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+            <div itemscope itemtype="https://pagelove.org/TransitionHandler">
+              <meta itemprop="selector" content="[itemtype='https://pagelike.test${P}/Order']">
+              <meta itemprop="property" content="status">
+              <meta itemprop="becomes" content="processing">
+              <div itemprop="action" itemscope itemtype="https://pagelove.org/HttpRequest">
+                <meta itemprop="url" content="${SINK}/owned">
+                <meta itemprop="method" content="PUT">
+                <meta itemprop="content-type" content="application/json">
+                <meta itemprop="body" content='{"ignored":true}'>
+                <div itemprop="header" itemscope itemtype="https://pagelove.org/Pair">
+                  <meta itemprop="key" content="X-Worker-Token">
+                  <meta itemprop="value" content="static-test-token">
+                </div>
+              </div>
+            </div>
+            </body></html>
+        expect: {status: [200, 201, 204]}
+      - name: create an order at processing
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/orders/o.html"
+          headers: {Content-Type: text/html}
+          body: '<!DOCTYPE html><html><body><div itemscope itemtype="https://pagelike.test${P}/Order"><meta itemprop="status" content="processing"></div></body></html>'
+        expect: {status: [200, 201, 204]}
+      - sink_expect:
+          path: /owned
+          within_ms: 5000
+          method: PUT
+          headers: {X-Worker-Token: "static-test-token"}
+          header_matches: {Content-Type: "^text/html"}
+          body_contains: ["https://pagelove.org/Transition"]
+          body_not_contains: ['"ignored"']
+
+  - id: reacting.th.at-most-once-no-retry
+    title: A failed delivery is not retried, even with retry set
+    feature: TransitionHandler (delivery)
+    evidence: documented
+    source: "docs reference/reacting-to-changes/TransitionHandler §Delivery ('Delivery is at-most-once … retry on the action has no effect') (snapshot 2026-09-28)"
+    confidence: high
+    requires: [outbound-http]
+    live: true
+    notes: "spec: R-REACT-82. With retry honoured, a second attempt would arrive after 2 s."
+    steps:
+      - sink_config: {path: /once, responses: [500]}
+      - name: install a handler with retry 3
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/r/handlers.html"
+          headers: {Content-Type: text/html}
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+            <div itemscope itemtype="https://pagelove.org/TransitionHandler">
+              <meta itemprop="selector" content="[itemtype='https://pagelike.test${P}/Order']">
+              <meta itemprop="property" content="status">
+              <meta itemprop="becomes" content="processing">
+              <div itemprop="action" itemscope itemtype="https://pagelove.org/HttpRequest">
+                <meta itemprop="url" content="${SINK}/once">
+                <meta itemprop="retry" content="3">
+              </div>
+            </div>
+            </body></html>
+        expect: {status: [200, 201, 204]}
+      - name: create an order at processing
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/orders/o.html"
+          headers: {Content-Type: text/html}
+          body: '<!DOCTYPE html><html><body><div itemscope itemtype="https://pagelike.test${P}/Order"><meta itemprop="status" content="processing"></div></body></html>'
+        expect: {status: [200, 201, 204]}
+      - sink_expect: {path: /once, within_ms: 5000}
+      - sink_expect_none: {path: /once, for_ms: 7000}
+
+  - id: reacting.th.failed-delivery-does-not-affect-write
+    title: A failed delivery never affects the write that fired it
+    feature: TransitionHandler (delivery)
+    evidence: documented
+    source: "docs reference/reacting-to-changes/TransitionHandler §When a handler fires ('Firing never affects the write') (snapshot 2026-09-28)"
+    confidence: high
+    requires: [outbound-http]
+    live: true
+    notes: "spec: R-REACT-78, R-REACT-82."
+    steps:
+      - sink_config: {path: /payments, responses: [503]}
+      - *install_basic_handler
+      - *seed_pending
+      - *to_processing
+      - sink_expect: {path: /payments, within_ms: 5000}
+      - {name: committed, as: anonymous, request: {method: GET, path: "${P}/orders/order-1.html"}, expect: {status: 200, body_contains: ['content="processing"']}}
+
+  - id: reacting.th.webdav-never-fires
+    title: A status change made over WebDAV never fires a handler
+    feature: TransitionHandler (WebDAV)
+    evidence: documented
+    source: "docs reference/reacting-to-changes/TransitionHandler §WebDAV edits never fire handlers (snapshot 2026-09-28)"
+    confidence: high
+    requires: [outbound-http, webdav]
+    live: true
+    notes: "spec: R-REACT-75, R-REACT-84."
+    steps:
+      - *install_basic_handler
+      - *seed_pending
+      - name: an author sets processing over WebDAV
+        as: author
+        plane: dav
+        request:
+          method: PUT
+          path: "${P}/orders/order-1.html"
+          headers: {Content-Type: text/html}
+          body: '<!DOCTYPE html><html><body><div id="order1" itemscope itemtype="https://pagelike.test${P}/Order"><meta itemprop="status" content="processing"></div></body></html>'
+        expect: {status: [200, 201, 204]}
+      - sink_expect_none: {path: /payments, for_ms: 3000}
+
+  - id: reacting.th.multi-valued-commits-without-firing
+    title: With no constraint, a multi-valued watched property commits but does not fire
+    feature: TransitionHandler (firing)
+    evidence: documented
+    source: "docs reference/reacting-to-changes/TransitionHandler §When a handler fires ('the write still commits, and the handler does not fire for that item') (snapshot 2026-09-28)"
+    confidence: high
+    requires: [outbound-http]
+    live: true
+    notes: "spec: R-REACT-66, R-REACT-78."
+    steps:
+      - *install_basic_handler
+      - name: create an order with two status values
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/orders/o.html"
+          headers: {Content-Type: text/html}
+          body: '<!DOCTYPE html><html><body><div itemscope itemtype="https://pagelike.test${P}/Order"><meta itemprop="status" content="processing"><meta itemprop="status" content="pending"></div></body></html>'
+        expect: {status: [200, 201, 204]}
+      - sink_expect_none: {path: /payments, for_ms: 3000}
+
+  - id: reacting.th.handler-only-ambiguous-group-commits
+    title: A handler-only ambiguous group is skipped; the write commits and nothing fires
+    feature: TransitionHandler (identity)
+    evidence: documented
+    source: "docs recipes/declaring-a-state-machine §The two-orders-in-one-document wedge ('Handler-only watches are not affected … no handler fires for those items') (snapshot 2026-09-28)"
+    confidence: high
+    requires: [outbound-http]
+    live: true
+    notes: "spec: R-REACT-70, R-REACT-78."
+    steps:
+      - *install_basic_handler
+      - name: two keyless pending orders
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/orders/pair.html"
+          headers: {Content-Type: text/html}
+          body: '<!DOCTYPE html><html><body><div itemscope itemtype="https://pagelike.test${P}/Order"><meta itemprop="status" content="pending"></div><div itemscope itemtype="https://pagelike.test${P}/Order"><meta itemprop="status" content="pending"></div></body></html>'
+        expect: {status: [200, 201, 204]}
+      - name: one of them becomes processing
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/orders/pair.html"
+          headers: {Content-Type: text/html}
+          body: '<!DOCTYPE html><html><body><div itemscope itemtype="https://pagelike.test${P}/Order"><meta itemprop="status" content="processing"></div><div itemscope itemtype="https://pagelike.test${P}/Order"><meta itemprop="status" content="pending"></div></body></html>'
+        expect: {status: [200, 201, 204]}
+      - sink_expect_none: {path: /payments, for_ms: 3000}
+
+  - id: reacting.th.delivery-to-own-host-is-ordinary-write
+    title: A handler delivering to its own host performs an ordinary write of the Transition document
+    feature: TransitionHandler (delivery to PageLove)
+    evidence: documented
+    source: "docs reference/reacting-to-changes/TransitionHandler §Delivery ('A delivery sent to a Pagelove host is an ordinary write … the chain stops on its own') (snapshot 2026-09-28)"
+    confidence: medium
+    requires: [outbound-http]
+    live: true
+    notes: "spec: R-REACT-49, R-REACT-83. The copy contains the Order at processing, which fires the handler once more; that second delivery writes the same content and stops the chain."
+    steps:
+      - name: install a handler that PUTs to this host
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/r/handlers.html"
+          headers: {Content-Type: text/html}
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+            <div itemscope itemtype="https://pagelove.org/TransitionHandler">
+              <meta itemprop="selector" content="[itemtype='https://pagelike.test${P}/Order']">
+              <meta itemprop="property" content="status">
+              <meta itemprop="becomes" content="processing">
+              <div itemprop="action" itemscope itemtype="https://pagelove.org/HttpRequest">
+                <meta itemprop="url" content="${ORIGIN}${P}/inbox/copy.html">
+                <meta itemprop="method" content="PUT">
+              </div>
+            </div>
+            </body></html>
+        expect: {status: [200, 201, 204]}
+      - *seed_pending
+      - *to_processing
+      - sleep_ms: 5000
+      - name: the Transition document was written to the host
+        as: anonymous
+        request: {method: GET, path: "${P}/inbox/copy.html"}
+        expect:
+          status: 200
+          body_contains: ["https://pagelove.org/Transition", 'content="processing"']
+
+  - id: reacting.th.side-effect-write-fires
+    title: A Pagelove.PUT side-effect write goes through the serving path and fires handlers
+    feature: TransitionHandler (sources of writes)
+    evidence: inferred
+    source: "spec R-REACT-36/R-REACT-84 (side-effect writes use 'the normal request pipeline')"
+    confidence: low
+    requires: [outbound-http, sessel]
+    live: true
+    notes: "Probe P-26."
+    steps:
+      - *install_basic_handler
+      - name: install a trigger that creates an order at processing
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/r/triggers.html"
+          headers: {Content-Type: text/html}
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+            <div hidden itemscope itemtype="https://pagelove.org/Trigger">
+              <meta itemprop="resource" content="${P}/d/*">
+              <meta itemprop="method" content="PUT">
+              <div itemprop="action" itemscope itemtype="https://pagelove.org/Sessel">
+                <script itemprop="source" type="text/sessel">
+                  @schema Pagelove url("https://pagelove.org/1.0");
+                  @schema Order url("https://pagelike.test${P}/Order");
+                  Pagelove.PUT(new Order { status: "processing" }, "${P}/orders/from-trigger.html")
+                </script>
+              </div>
+            </div>
+            </body></html>
+        expect: {status: [200, 201, 204]}
+      - {name: fire the trigger, as: anonymous, request: {method: PUT, path: "${P}/d/x.html", headers: {Content-Type: text/html}, body: "<p>x</p>"}, expect: {status: [200, 201, 204]}}
+      - sink_expect: {path: /payments, within_ms: 5000, body_contains: ['content="${P}/orders/from-trigger.html"']}

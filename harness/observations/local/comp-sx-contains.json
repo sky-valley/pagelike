@@ -1,0 +1,65 @@
+{
+  "case": "comp.sx.contains",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1",
+      "method": "GET",
+      "path": "/_pl/comp-sx-contains-260353/sx.html",
+      "status": 206,
+      "headers": {
+        "accept-ranges": "selector, bytes",
+        "content-length": "29",
+        "content-range": "selector h1:contains('Hello')",
+        "content-type": "text/html",
+        "etag": "\"820d76c9e781220a775e235a2951a5766471ea88b862650a028dc7aef21885bd-820d76c9e781220a775e235a2951a5766471ea88b862650a028dc7aef21885bd-1\"",
+        "vary": "Host, Range, Accept"
+      },
+      "body": "\u003ch1 id=\"h1a\"\u003eHello World\u003c/h1\u003e"
+    },
+    {
+      "step": "step 2",
+      "method": "GET",
+      "path": "/_pl/comp-sx-contains-260353/sx.html",
+      "status": 416,
+      "headers": {
+        "content-length": "372",
+        "content-type": "text/html",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\n  \u003chead\u003e\n    \u003ctitle\u003e416 Range Not Satisfiable - Error\u003c/title\u003e\n  \u003c/head\u003e\n  \u003cbody itemscope itemtype=\"http://pagelove.org/Error\"\u003e\n    \u003ch1 itemprop=\"name\"\u003eRange Not Satisfiable\u003c/h1\u003e\n    \u003cmeta itemprop=\"statusCode\" content=\"416\"\u003e\n    \u003cp itemprop=\"description\"\u003eHTML parsing error: No elements matched selector: h1:contains('hello')\u003c/p\u003e\n  \u003c/body\u003e\n\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 3 (case-insensitive flag, first match is the h1)",
+      "method": "GET",
+      "path": "/_pl/comp-sx-contains-260353/sx.html",
+      "status": 206,
+      "headers": {
+        "accept-ranges": "selector, bytes",
+        "content-length": "29",
+        "content-range": "selector :is(h1, h2):contains('hello', i)",
+        "content-type": "text/html",
+        "etag": "\"820d76c9e781220a775e235a2951a5766471ea88b862650a028dc7aef21885bd-820d76c9e781220a775e235a2951a5766471ea88b862650a028dc7aef21885bd-1\"",
+        "vary": "Host, Range, Accept"
+      },
+      "body": "\u003ch1 id=\"h1a\"\u003eHello World\u003c/h1\u003e"
+    },
+    {
+      "step": "step 4",
+      "method": "GET",
+      "path": "/_pl/comp-sx-contains-260353/sx.html",
+      "status": 206,
+      "headers": {
+        "accept-ranges": "selector, bytes",
+        "content-length": "29",
+        "content-range": "selector h2:contains('HELLO', i)",
+        "content-type": "text/html",
+        "etag": "\"bd51b8606ca70590b1bf0dc7580c71d3d83b080dc9dab0a898e7809ee36c30aa-bd51b8606ca70590b1bf0dc7580c71d3d83b080dc9dab0a898e7809ee36c30aa-1\"",
+        "vary": "Host, Range, Accept"
+      },
+      "body": "\u003ch2 id=\"h2a\"\u003ehello world\u003c/h2\u003e"
+    }
+  ],
+  "outcome": "pass",
+  "target": "local"
+}

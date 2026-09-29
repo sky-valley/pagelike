@@ -1,0 +1,50 @@
+{
+  "case": "apps.demos.directory-index",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (directory URL)",
+      "method": "GET",
+      "path": "/_pl/apps-demos-directory-index-e6c7ea/demo-01-event/",
+      "status": 200,
+      "headers": {
+        "accept-ranges": "selector, bytes",
+        "content-length": "483",
+        "content-type": "text/html",
+        "etag": "\"d5b77f2cfd8874cb7766fa63d202c205b75a80d9b8d3fe36924d6346f3d7be07\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:41 GMT",
+        "vary": "Host, Range, Accept"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml lang=\"en\"\u003e\u003chead\u003e\u003cmeta charset=\"UTF-8\"\u003e\u003ctitle\u003eEvent — Trail Runners Fall Meetup\u003c/title\u003e\u003c/head\u003e\n\u003cbody\u003e\u003ch1\u003eTrail Runners — Fall Meetup\u003c/h1\u003e\n\u003cdiv hidden itemscope itemtype=\"https://pagelove.org/AuthorizationRule\"\u003e\n  \u003cmeta itemprop=\"actor\" content=\"*\"\u003e\n  \u003cmeta itemprop=\"resource\" content=\"/_pl/apps-demos-directory-index-e6c7ea/demo-01-event/index.html\"\u003e\n  \u003cmeta itemprop=\"method\" content=\"GET\"\u003e\n  \u003cmeta itemprop=\"action\" content=\"Allow\"\u003e\n\u003c/div\u003e\n\u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 2 (slash-less URL redirects to the directory)",
+      "method": "GET",
+      "path": "/_pl/apps-demos-directory-index-e6c7ea/demo-01-event",
+      "status": 301,
+      "headers": {
+        "cache-control": "private, max-age=3600",
+        "content-length": "0",
+        "location": "/_pl/apps-demos-directory-index-e6c7ea/demo-01-event/"
+      }
+    },
+    {
+      "step": "step 3 (a script asset without any rule is served as JavaScript (default-GET allow))",
+      "method": "GET",
+      "path": "/_pl/apps-demos-directory-index-e6c7ea/demo-01-event/app.js?v=11",
+      "status": 200,
+      "headers": {
+        "accept-ranges": "bytes",
+        "cache-control": "public, max-age=300",
+        "content-length": "28",
+        "content-type": "text/javascript",
+        "etag": "\"ac1b017e7ddd2ac478fd7f1f652e309e86e11595042bcc7a149504cbc812e5dc\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:41 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "(() =\u003e { \"use strict\"; })();"
+    }
+  ],
+  "outcome": "pass",
+  "target": "local"
+}

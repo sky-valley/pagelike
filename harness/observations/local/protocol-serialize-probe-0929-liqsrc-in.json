@@ -1,0 +1,49 @@
+{
+  "case": "protocol.serialize.probe-0929.liqsrc-in-tags",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (put template)",
+      "method": "PUT",
+      "path": "/_pl/protocol-serialize-probe-0929-liqsrc-in-6bb7c1/tpl.html",
+      "status": 201,
+      "headers": {
+        "content-length": "258",
+        "content-type": "text/html",
+        "etag": "\"99767e1f2ff2495c93ae2f30cc5887039de75350a96c1a0188760d249137ce1c\""
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml xmlns:p=\"https://pagelove.org/1.0\"\u003e\u003cbody\u003e\u003cdiv id=\"t\" p:template=\"text/liquid\"\u003e{% if 2 \u0026gt; 1 %}gt-ok{% endif %}|{{ \"x\" | append: \"\u0026amp;\" }}|{% if 1 \u0026lt; 2 %}lt-ok{% endif %}|{{ \"a\u0026amp;b\" | size }}|{{ \"q r\" | size }}\u003c/div\u003e\u003c/body\u003e\u003c/html\u003e"
+    },
+    {
+      "step": "step 2 (dav read)",
+      "method": "GET",
+      "path": "/_pl/protocol-serialize-probe-0929-liqsrc-in-6bb7c1/tpl.html",
+      "status": 200,
+      "headers": {
+        "accept-ranges": "bytes",
+        "content-length": "258",
+        "content-type": "text/html",
+        "etag": "\"99767e1f2ff2495c93ae2f30cc5887039de75350a96c1a0188760d249137ce1c\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:48 GMT"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml xmlns:p=\"https://pagelove.org/1.0\"\u003e\u003cbody\u003e\u003cdiv id=\"t\" p:template=\"text/liquid\"\u003e{% if 2 \u0026gt; 1 %}gt-ok{% endif %}|{{ \"x\" | append: \"\u0026amp;\" }}|{% if 1 \u0026lt; 2 %}lt-ok{% endif %}|{{ \"a\u0026amp;b\" | size }}|{{ \"q r\" | size }}\u003c/div\u003e\u003c/body\u003e\u003c/html\u003e"
+    },
+    {
+      "step": "step 3 (render)",
+      "method": "GET",
+      "path": "/_pl/protocol-serialize-probe-0929-liqsrc-in-6bb7c1/tpl.html",
+      "status": 200,
+      "headers": {
+        "accept-ranges": "selector, bytes",
+        "cache-control": "public, max-age=5",
+        "content-length": "82",
+        "content-type": "text/html",
+        "etag": "W/\"1cc346efbe3606cdaf4ed769d0502be05536a8742181678fc55444431211c0d1\"",
+        "vary": "Host, Range, Accept"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\u003cdiv id=\"t\"\u003egt-ok|x\u0026amp;|lt-ok|3|3\u003c/div\u003e\u003c/body\u003e\u003c/html\u003e"
+    }
+  ],
+  "outcome": "pass",
+  "target": "local"
+}

@@ -1,0 +1,33 @@
+{
+  "case": "reacting.lifecycle.trigger-runs-before-core",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (install a trigger that throws 409 on PUT under ${P}/d/)",
+      "method": "PUT",
+      "path": "/_pl/reacting-lifecycle-trigger-runs-before-c-732121/r/triggers.html",
+      "status": 201,
+      "headers": {
+        "content-length": "537",
+        "content-type": "text/html",
+        "etag": "\"976a8672b9bd02ce443583b9ebec015be234e12fc819f8ee4fb5091817a3d570\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:48 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\n\u003cdiv hidden itemscope itemtype=\"https://pagelove.org/Trigger\"\u003e\n  \u003cmeta itemprop=\"resource\" content=\"/_pl/reacting-lifecycle-trigger-runs-before-c-732121/d/*\"\u003e\n  \u003cmeta itemprop=\"method\" content=\"PUT\"\u003e\n  \u003cdiv itemprop=\"action\" itemscope itemtype=\"https://pagelove.org/Sessel\"\u003e\n    \u003cscript itemprop=\"source\" type=\"text/sessel\"\u003e\n      @schema HTTPResponse url(\"https://pagelove.org/HTTPResponse\");\n      throw new HTTPResponse { status: 409, message: \"trigger-ran\" }\n    \u003c/script\u003e\n  \u003c/div\u003e\n\u003c/div\u003e\n\u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 2 (selector PUT to a missing document gets the trigger's response)",
+      "method": "PUT",
+      "path": "/_pl/reacting-lifecycle-trigger-runs-before-c-732121/d/missing.html",
+      "status": 409,
+      "headers": {
+        "content-length": "11",
+        "content-type": "text/html; charset=utf-8"
+      },
+      "body": "trigger-ran"
+    }
+  ],
+  "outcome": "pass",
+  "target": "local"
+}

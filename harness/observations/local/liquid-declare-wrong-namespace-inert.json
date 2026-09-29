@@ -1,0 +1,23 @@
+{
+  "case": "liquid.declare.wrong-namespace-inert",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (read)",
+      "method": "GET",
+      "path": "/_pl/liquid-declare-wrong-namespace-inert-e4c678/wrongns.html",
+      "status": 200,
+      "headers": {
+        "accept-ranges": "selector, bytes",
+        "cache-control": "public, max-age=5",
+        "content-length": "78",
+        "content-type": "text/html",
+        "etag": "W/\"f9de2e47d4cabc998cedcd52ecf541db07a9dbacd16fc2497881800eef6237ae\"",
+        "vary": "Host, Range, Accept"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\n  \u003cp id=\"o\"\u003e{{ 1 | plus: 1 }}\u003c/p\u003e\n\u003c/body\u003e\u003c/html\u003e\n"
+    }
+  ],
+  "outcome": "pass",
+  "target": "local"
+}

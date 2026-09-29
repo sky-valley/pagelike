@@ -1,0 +1,51 @@
+{
+  "case": "reacting.tc.unwatched-property-unconstrained",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (install the recipe's four rules (entry pending, pending-\u003eprocessing, processing-\u003esuccess, exit success))",
+      "method": "PUT",
+      "path": "/_pl/reacting-tc-unwatched-property-unconstra-66f05d/transitions/rules.html",
+      "status": 201,
+      "headers": {
+        "content-length": "1318",
+        "content-type": "text/html",
+        "etag": "\"a7b0c6d63247440398b251ab4e27837e91191008a88293fda3a30434f2d43d15\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:49 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\n\u003cdiv itemscope itemtype=\"https://pagelove.org/TransitionConstraint\"\u003e\n  \u003cmeta itemprop=\"selector\" content=\"[itemtype='https://pagelike.test/_pl/reacting-tc-unwatched-property-unconstra-66f05d/Order']\"\u003e\n  \u003cmeta itemprop=\"property\" content=\"status\"\u003e\n  \u003cmeta itemprop=\"to\" content=\"pending\"\u003e\n\u003c/div\u003e\n\u003cdiv itemscope itemtype=\"https://pagelove.org/TransitionConstraint\"\u003e\n  \u003cmeta itemprop=\"selector\" content=\"[itemtype='https://pagelike.test/_pl/reacting-tc-unwatched-property-unconstra-66f05d/Order']\"\u003e\n  \u003cmeta itemprop=\"property\" content=\"status\"\u003e\n  \u003cmeta itemprop=\"from\" content=\"pending\"\u003e\n  \u003cmeta itemprop=\"to\" content=\"processing\"\u003e\n\u003c/div\u003e\n\u003cdiv itemscope itemtype=\"https://pagelove.org/TransitionConstraint\"\u003e\n  \u003cmeta itemprop=\"selector\" content=\"[itemtype='https://pagelike.test/_pl/reacting-tc-unwatched-property-unconstra-66f05d/Order']\"\u003e\n  \u003cmeta itemprop=\"property\" content=\"status\"\u003e\n  \u003cmeta itemprop=\"from\" content=\"processing\"\u003e\n  \u003cmeta itemprop=\"to\" content=\"success\"\u003e\n\u003c/div\u003e\n\u003cdiv itemscope itemtype=\"https://pagelove.org/TransitionConstraint\"\u003e\n  \u003cmeta itemprop=\"selector\" content=\"[itemtype='https://pagelike.test/_pl/reacting-tc-unwatched-property-unconstra-66f05d/Order']\"\u003e\n  \u003cmeta itemprop=\"property\" content=\"status\"\u003e\n  \u003cmeta itemprop=\"from\" content=\"success\"\u003e\n\u003c/div\u003e\n\u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 2 (seed order-1 at pending (entry rule permits it))",
+      "method": "PUT",
+      "path": "/_pl/reacting-tc-unwatched-property-unconstra-66f05d/orders/order-1.html",
+      "status": 201,
+      "headers": {
+        "content-length": "253",
+        "content-type": "text/html",
+        "etag": "\"4b335e004ab383e1e9117403e04ec1b5e19c8eb6067c737b30e462920678f7ba\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:49 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\n\u003cdiv id=\"order1\" itemscope itemtype=\"https://pagelike.test/_pl/reacting-tc-unwatched-property-unconstra-66f05d/Order\"\u003e\n  \u003cmeta itemprop=\"status\" content=\"pending\"\u003e\n  \u003cspan itemprop=\"total\"\u003e42.00\u003c/span\u003e\n\u003c/div\u003e\n\u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 3 (change only the total)",
+      "method": "PUT",
+      "path": "/_pl/reacting-tc-unwatched-property-unconstra-66f05d/orders/order-1.html",
+      "status": 206,
+      "headers": {
+        "content-length": "35",
+        "content-range": "selector #order1 [itemprop=total]",
+        "content-type": "text/html",
+        "etag": "\"af9d2965e51ee653bb6d3232c38d4cd39a23f010c4b557e690edb5ada168718d-af9d2965e51ee653bb6d3232c38d4cd39a23f010c4b557e690edb5ada168718d-2\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:49 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003cspan itemprop=\"total\"\u003e99.00\u003c/span\u003e"
+    }
+  ],
+  "outcome": "pass",
+  "target": "local"
+}

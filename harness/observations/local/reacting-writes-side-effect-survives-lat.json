@@ -1,0 +1,74 @@
+{
+  "case": "reacting.writes.side-effect-survives-later-throw",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (install a writer (a.html) and a thrower (b.html) in one step each)",
+      "method": "PUT",
+      "path": "/_pl/reacting-writes-side-effect-survives-lat-c80582/r/a.html",
+      "status": 201,
+      "headers": {
+        "content-length": "632",
+        "content-type": "text/html",
+        "etag": "\"71445fe0f8e0db3011cddc93f264e22fac81436986f109fd1892d1c72897d8b0\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:55 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\n\u003cdiv hidden itemscope itemtype=\"https://pagelove.org/Trigger\"\u003e\n  \u003cmeta itemprop=\"resource\" content=\"/_pl/reacting-writes-side-effect-survives-lat-c80582/d/*\"\u003e\n  \u003cmeta itemprop=\"method\" content=\"PUT\"\u003e\n  \u003cdiv itemprop=\"action\" itemscope itemtype=\"https://pagelove.org/Sessel\"\u003e\n    \u003cscript itemprop=\"source\" type=\"text/sessel\"\u003e\n      @schema Pagelove url(\"https://pagelove.org/1.0\");\n      @schema Thing url(\"https://schema.org/Thing\");\n      Pagelove.PUT(new Thing { name: \"survivor\" }, \"/_pl/reacting-writes-side-effect-survives-lat-c80582/side/record.html\")\n    \u003c/script\u003e\n  \u003c/div\u003e\n\u003c/div\u003e\n\u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 2 (install the thrower)",
+      "method": "PUT",
+      "path": "/_pl/reacting-writes-side-effect-survives-lat-c80582/r/b.html",
+      "status": 201,
+      "headers": {
+        "content-length": "537",
+        "content-type": "text/html",
+        "etag": "\"4546252ccca40853822ff93e2a8f94a742df93e60dc8a02d4044b7ab2ac5d4ab\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:55 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\n\u003cdiv hidden itemscope itemtype=\"https://pagelove.org/Trigger\"\u003e\n  \u003cmeta itemprop=\"resource\" content=\"/_pl/reacting-writes-side-effect-survives-lat-c80582/d/*\"\u003e\n  \u003cmeta itemprop=\"method\" content=\"PUT\"\u003e\n  \u003cdiv itemprop=\"action\" itemscope itemtype=\"https://pagelove.org/Sessel\"\u003e\n    \u003cscript itemprop=\"source\" type=\"text/sessel\"\u003e\n      @schema HTTPResponse url(\"https://pagelove.org/HTTPResponse\");\n      throw new HTTPResponse { status: 409, message: \"later-throw\" }\n    \u003c/script\u003e\n  \u003c/div\u003e\n\u003c/div\u003e\n\u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 3 (the request is refused by the later trigger)",
+      "method": "PUT",
+      "path": "/_pl/reacting-writes-side-effect-survives-lat-c80582/d/x.html",
+      "status": 409,
+      "headers": {
+        "content-length": "11",
+        "content-type": "text/html; charset=utf-8"
+      },
+      "body": "later-throw"
+    },
+    {
+      "step": "step 4 (the side-effect write stands)",
+      "method": "GET",
+      "path": "/_pl/reacting-writes-side-effect-survives-lat-c80582/side/record.html",
+      "status": 200,
+      "headers": {
+        "accept-ranges": "selector, bytes",
+        "content-length": "143",
+        "content-type": "text/html",
+        "etag": "\"53ddb7a848b478d46f82c60a158047d5928472ff630f6cf3290ed75c6abb3a17\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:55 GMT",
+        "vary": "Host, Range, Accept"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\n\u003cdiv itemscope itemtype=\"https://schema.org/Thing\"\u003e\u003cmeta itemprop=\"name\" content=\"survivor\"\u003e\u003c/div\u003e\n\u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 5 (the main write did not happen)",
+      "method": "GET",
+      "path": "/_pl/reacting-writes-side-effect-survives-lat-c80582/d/x.html",
+      "status": 404,
+      "headers": {
+        "content-length": "359",
+        "content-type": "text/html",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\n  \u003chead\u003e\n    \u003ctitle\u003e404 Not Found - Error\u003c/title\u003e\n  \u003c/head\u003e\n  \u003cbody itemscope itemtype=\"http://pagelove.org/Error\"\u003e\n    \u003ch1 itemprop=\"name\"\u003eNot Found\u003c/h1\u003e\n    \u003cmeta itemprop=\"statusCode\" content=\"404\"\u003e\n    \u003cp itemprop=\"description\"\u003eDocument not found: /_pl/reacting-writes-side-effect-survives-lat-c80582/d/x.html\u003c/p\u003e\n  \u003c/body\u003e\n\u003c/html\u003e\n"
+    }
+  ],
+  "outcome": "pass",
+  "target": "local"
+}

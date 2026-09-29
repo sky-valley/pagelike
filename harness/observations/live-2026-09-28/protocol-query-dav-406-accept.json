@@ -1,0 +1,33 @@
+{
+  "case": "protocol.query-dav.406-accept",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (text/html only)",
+      "method": "QUERY",
+      "path": "/_pl/protocol-query-dav-406-accept-66d372/doc.html",
+      "status": 406,
+      "headers": {
+        "content-length": "201",
+        "content-type": "text/html; charset=utf-8"
+      },
+      "body": "\u003carticle itemscope itemtype=\"https://pagelove.org/Error/Internal\"\u003e\u003cmeta itemprop=\"status\" content=\"406\"\u003e\u003cp itemprop=\"message\"\u003eQUERY responds with multipart/mixed; Accept did not permit it\u003c/p\u003e\u003c/article\u003e"
+    },
+    {
+      "step": "step 2 (wildcard accept is fine)",
+      "method": "QUERY",
+      "path": "/_pl/protocol-query-dav-406-accept-66d372/doc.html",
+      "status": 200,
+      "headers": {
+        "accept-ranges": "bytes",
+        "content-length": "489",
+        "content-type": "multipart/mixed; boundary=boundary74PlazOHrSkI71vVjcdQAFukSKDOUsPu",
+        "etag": "\"c3717f235e9f8aab780043c4e83768c62b21897b549a7daf09cdb722a2817e2c\"",
+        "last-modified": "Mon, 28 Sep 2026 22:32:22 GMT"
+      },
+      "body": "--boundary74PlazOHrSkI71vVjcdQAFukSKDOUsPu\r\nContent-Type: text/html\r\nContent-Location: /_pl/protocol-query-dav-406-accept-66d372/doc.html\r\nContent-Range: selector html:nth-child(1) \u003e body:nth-child(1) \u003e h1:nth-child(1)\r\nETag: \"1c32123f6761b73d83893fff7af936d13ce7da8411f4a35df11aaed4a7d36db1-1c32123f6761b73d83893fff7af936d13ce7da8411f4a35df11aaed4a7d36db1-1\"\r\nLast-Modified: Mon, 28 Sep 2026 22:32:22 GMT\r\nContent-Length: 14\r\n\r\n\u003ch1\u003eBenji\u003c/h1\u003e\r\n--boundary74PlazOHrSkI71vVjcdQAFukSKDOUsPu--"
+    }
+  ],
+  "outcome": "pass",
+  "target": "live"
+}

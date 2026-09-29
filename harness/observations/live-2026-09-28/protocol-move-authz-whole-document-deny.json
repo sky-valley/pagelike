@@ -1,0 +1,31 @@
+{
+  "case": "protocol.move-authz.whole-document-deny-at-destination",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (into the locked area)",
+      "method": "MOVE",
+      "path": "/_pl/protocol-move-authz-whole-document-deny-2f79c5/a.html",
+      "status": 401,
+      "headers": {
+        "content-length": "425",
+        "content-type": "text/html; charset=utf-8"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\n\u003chead\u003e\n    \u003cmeta charset=\"UTF-8\"\u003e\n    \u003ctitle\u003e401 Unauthorized\u003c/title\u003e\n\u003c/head\u003e\n\u003cbody itemscope itemtype=\"https://pagelove.org/1.0/Error\"\u003e\n    \u003ch1\u003e401 Unauthorized\u003c/h1\u003e\n    \u003cp itemprop=\"message\"\u003eAuthentication required to access this resource.\u003c/p\u003e\n    \u003cdl\u003e\n        \u003cdt\u003eResource\u003c/dt\u003e\n        \u003cdd itemprop=\"resource\"\u003e/_pl/protocol-move-authz-whole-document-deny-2f79c5/a.html\u003c/dd\u003e\n    \u003c/dl\u003e\n\u003c/body\u003e\n\u003c/html\u003e"
+    },
+    {
+      "step": "step 2 (nothing created there)",
+      "method": "GET",
+      "path": "/_pl/protocol-move-authz-whole-document-deny-2f79c5/locked/a.html",
+      "status": 404,
+      "headers": {
+        "content-length": "362",
+        "content-type": "text/html",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\n  \u003chead\u003e\n    \u003ctitle\u003e404 Not Found - Error\u003c/title\u003e\n  \u003c/head\u003e\n  \u003cbody itemscope itemtype=\"http://pagelove.org/Error\"\u003e\n    \u003ch1 itemprop=\"name\"\u003eNot Found\u003c/h1\u003e\n    \u003cmeta itemprop=\"statusCode\" content=\"404\"\u003e\n    \u003cp itemprop=\"description\"\u003eDocument not found: /_pl/protocol-move-authz-whole-document-deny-2f79c5/locked/a.html\u003c/p\u003e\n  \u003c/body\u003e\n\u003c/html\u003e"
+    }
+  ],
+  "outcome": "pass",
+  "target": "live"
+}

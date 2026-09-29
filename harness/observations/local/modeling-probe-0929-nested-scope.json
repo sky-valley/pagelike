@@ -1,0 +1,102 @@
+{
+  "case": "modeling.probe-0929.nested-scope",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (register Address and Person)",
+      "method": "PUT",
+      "path": "/_pl/modeling-probe-0929-nested-scope-913e76/schema.html",
+      "status": 201,
+      "headers": {
+        "content-length": "1469",
+        "content-type": "text/html",
+        "etag": "\"0e274095cf844590065404b9aab77d18a361d853e6444159be3fa80875aadb80\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:44 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\n  \u003cdiv hidden itemscope itemtype=\"https://pagelove.org/Schema\"\u003e\n    \u003cmeta itemprop=\"type\" content=\"https://pagelike.test/_pl/modeling-probe-0929-nested-scope-913e76/Address\"\u003e\n    \u003cdiv itemprop=\"property\" itemscope itemtype=\"https://pagelove.org/Property\"\u003e\n      \u003cmeta itemprop=\"name\" content=\"street\"\u003e\n      \u003cmeta itemprop=\"type\" content=\"https://schema.host/Text\"\u003e\n      \u003cmeta itemprop=\"cardinality\" content=\"1..1\"\u003e\n    \u003c/div\u003e\n    \u003cdiv itemprop=\"property\" itemscope itemtype=\"https://pagelove.org/Property\"\u003e\n      \u003cmeta itemprop=\"name\" content=\"city\"\u003e\n      \u003cmeta itemprop=\"type\" content=\"https://schema.host/Text\"\u003e\n      \u003cmeta itemprop=\"cardinality\" content=\"1..1\"\u003e\n    \u003c/div\u003e\n  \u003c/div\u003e\n  \u003cdiv hidden itemscope itemtype=\"https://pagelove.org/Schema\"\u003e\n    \u003cmeta itemprop=\"type\" content=\"https://pagelike.test/_pl/modeling-probe-0929-nested-scope-913e76/Person\"\u003e\n    \u003cdiv itemprop=\"property\" itemscope itemtype=\"https://pagelove.org/Property\"\u003e\n      \u003cmeta itemprop=\"name\" content=\"name\"\u003e\n      \u003cmeta itemprop=\"type\" content=\"https://schema.host/Text\"\u003e\n      \u003cmeta itemprop=\"cardinality\" content=\"1..1\"\u003e\n    \u003c/div\u003e\n    \u003cdiv itemprop=\"property\" itemscope itemtype=\"https://pagelove.org/Property\"\u003e\n      \u003cmeta itemprop=\"name\" content=\"address\"\u003e\n      \u003cmeta itemprop=\"type\" content=\"https://pagelike.test/_pl/modeling-probe-0929-nested-scope-913e76/Address\"\u003e\n      \u003cmeta itemprop=\"cardinality\" content=\"0..1\"\u003e\n    \u003c/div\u003e\n  \u003c/div\u003e\n\u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 2 (a top-level Address missing city is refused (the Address schema is live))",
+      "method": "PUT",
+      "path": "/_pl/modeling-probe-0929-nested-scope-913e76/top.html",
+      "status": 422,
+      "headers": {
+        "content-length": "856",
+        "content-type": "text/html; charset=utf-8",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\n  \u003chead\u003e\n    \u003ctitle\u003e422 Unprocessable Entity - Schema Violation\u003c/title\u003e\n  \u003c/head\u003e\n  \u003cbody itemscope itemtype=\"https://pagelove.org/SchemaViolation\"\u003e\n    \u003ch1 itemprop=\"name\"\u003eUnprocessable Entity\u003c/h1\u003e\n    \u003cmeta itemprop=\"statusCode\" content=\"422\"\u003e\n    \u003cp itemprop=\"description\"\u003eSchema validation failed\u003c/p\u003e\n    \u003cul\u003e\n      \u003cli itemprop=\"violations\" itemscope itemtype=\"https://pagelove.org/Violation\"\u003e\n        \u003cspan itemprop=\"check\"\u003ecardinality\u003c/span\u003e\n        \u003cspan itemprop=\"itemtype\"\u003ehttps://pagelike.test/_pl/modeling-probe-0929-nested-scope-913e76/Address\u003c/span\u003e\n        \u003cspan itemprop=\"property\"\u003ecity\u003c/span\u003e\n        \u003cspan itemprop=\"message\"\u003e[https://pagelike.test/_pl/modeling-probe-0929-nested-scope-913e76/Address].city: cardinality 1..1 violated: expected exactly 1 value, found 0\u003c/span\u003e\n      \u003c/li\u003e\n    \u003c/ul\u003e\n  \u003c/body\u003e\n\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 3 (an Address item inside the Person's markup (not a property value), missing city, is accepted)",
+      "method": "PUT",
+      "path": "/_pl/modeling-probe-0929-nested-scope-913e76/dom-nested.html",
+      "status": 201,
+      "headers": {
+        "content-length": "357",
+        "content-type": "text/html",
+        "etag": "\"99fd7d2d61142c09d3375a6f034a514d1e2a22ab67adb180e8feccb51d68efc9\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:44 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\n  \u003cdiv itemscope itemtype=\"https://pagelike.test/_pl/modeling-probe-0929-nested-scope-913e76/Person\"\u003e\n    \u003cspan itemprop=\"name\"\u003eAlice\u003c/span\u003e\n    \u003cdiv itemscope itemtype=\"https://pagelike.test/_pl/modeling-probe-0929-nested-scope-913e76/Address\"\u003e\n      \u003cspan itemprop=\"street\"\u003e1 Main St\u003c/span\u003e\n    \u003c/div\u003e\n  \u003c/div\u003e\n\u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 4 (an address value typed as another schema is accepted)",
+      "method": "PUT",
+      "path": "/_pl/modeling-probe-0929-nested-scope-913e76/wrong-type.html",
+      "status": 201,
+      "headers": {
+        "content-length": "367",
+        "content-type": "text/html",
+        "etag": "\"ff97df11e3629011d40208cc8f0fbff6f4ca20dd64defa8563f9b8ff3afa4392\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:44 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\n  \u003cdiv itemscope itemtype=\"https://pagelike.test/_pl/modeling-probe-0929-nested-scope-913e76/Person\"\u003e\n    \u003cspan itemprop=\"name\"\u003eAlice\u003c/span\u003e\n    \u003cdiv itemprop=\"address\" itemscope itemtype=\"https://pagelike.test/_pl/modeling-probe-0929-nested-scope-913e76/Person\"\u003e\n      \u003cspan itemprop=\"name\"\u003eBob\u003c/span\u003e\n    \u003c/div\u003e\n  \u003c/div\u003e\n\u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 5 (an address value that is plain text, not an item, is accepted)",
+      "method": "PUT",
+      "path": "/_pl/modeling-probe-0929-nested-scope-913e76/text-address.html",
+      "status": 201,
+      "headers": {
+        "content-length": "253",
+        "content-type": "text/html",
+        "etag": "\"7debbbdac6174d05be0fdf3e8b314248f4bb6785d44e2ae9a0def84f544d951f\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:44 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\n  \u003cdiv itemscope itemtype=\"https://pagelike.test/_pl/modeling-probe-0929-nested-scope-913e76/Person\"\u003e\n    \u003cspan itemprop=\"name\"\u003eAlice\u003c/span\u003e\n    \u003cspan itemprop=\"address\"\u003e1 Main St, Springfield\u003c/span\u003e\n  \u003c/div\u003e\n\u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 6 (a Person missing its name, holding an Address missing city: only the name is reported)",
+      "method": "PUT",
+      "path": "/_pl/modeling-probe-0929-nested-scope-913e76/both.html",
+      "status": 422,
+      "headers": {
+        "content-length": "854",
+        "content-type": "text/html; charset=utf-8",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\n  \u003chead\u003e\n    \u003ctitle\u003e422 Unprocessable Entity - Schema Violation\u003c/title\u003e\n  \u003c/head\u003e\n  \u003cbody itemscope itemtype=\"https://pagelove.org/SchemaViolation\"\u003e\n    \u003ch1 itemprop=\"name\"\u003eUnprocessable Entity\u003c/h1\u003e\n    \u003cmeta itemprop=\"statusCode\" content=\"422\"\u003e\n    \u003cp itemprop=\"description\"\u003eSchema validation failed\u003c/p\u003e\n    \u003cul\u003e\n      \u003cli itemprop=\"violations\" itemscope itemtype=\"https://pagelove.org/Violation\"\u003e\n        \u003cspan itemprop=\"check\"\u003ecardinality\u003c/span\u003e\n        \u003cspan itemprop=\"itemtype\"\u003ehttps://pagelike.test/_pl/modeling-probe-0929-nested-scope-913e76/Person\u003c/span\u003e\n        \u003cspan itemprop=\"property\"\u003ename\u003c/span\u003e\n        \u003cspan itemprop=\"message\"\u003e[https://pagelike.test/_pl/modeling-probe-0929-nested-scope-913e76/Person].name: cardinality 1..1 violated: expected exactly 1 value, found 0\u003c/span\u003e\n      \u003c/li\u003e\n    \u003c/ul\u003e\n  \u003c/body\u003e\n\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 7 (an Address item inside an item whose type has no schema, missing city)",
+      "method": "PUT",
+      "path": "/_pl/modeling-probe-0929-nested-scope-913e76/wrapped.html",
+      "status": 201,
+      "headers": {
+        "content-length": "309",
+        "content-type": "text/html",
+        "etag": "\"b3303f733fac0558bd9351c1eeb474959e7d3bbd36d44bc6ac6de4b4fb3c65f4\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:44 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\n  \u003cdiv itemscope itemtype=\"https://example.org/Wrapper\"\u003e\n    \u003cspan itemprop=\"label\"\u003ew\u003c/span\u003e\n    \u003cdiv itemscope itemtype=\"https://pagelike.test/_pl/modeling-probe-0929-nested-scope-913e76/Address\"\u003e\n      \u003cspan itemprop=\"street\"\u003e1 Main St\u003c/span\u003e\n    \u003c/div\u003e\n  \u003c/div\u003e\n\u003c/body\u003e\u003c/html\u003e\n"
+    }
+  ],
+  "outcome": "pass",
+  "target": "local"
+}

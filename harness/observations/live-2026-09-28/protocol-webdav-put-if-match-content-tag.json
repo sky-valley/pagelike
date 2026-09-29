@@ -1,0 +1,60 @@
+{
+  "case": "protocol.webdav.put-if-match-content-tag",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (content tag)",
+      "method": "GET",
+      "path": "/_pl/protocol-webdav-put-if-match-content-tag-6976f9/dav/a.html",
+      "status": 200,
+      "headers": {
+        "accept-ranges": "bytes",
+        "content-length": "53",
+        "content-type": "text/html",
+        "etag": "\"018b3777697859dce21939d17486caa4a5187d5383b48a2f93fae06aa8608d3b\"",
+        "last-modified": "Mon, 28 Sep 2026 22:33:39 GMT"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\u003ch1\u003eA\u003c/h1\u003e\u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 2 (guarded write succeeds)",
+      "method": "PUT",
+      "path": "/_pl/protocol-webdav-put-if-match-content-tag-6976f9/dav/a.html",
+      "status": 200,
+      "headers": {
+        "accept-ranges": "bytes",
+        "content-length": "54",
+        "content-type": "text/html",
+        "etag": "\"a47df433779a0588c21fec09724c73501b18d74ca35e7437cd4b91d4b19e9ae3\""
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\u003ch1\u003eA2\u003c/h1\u003e\u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 3 (same tag is now stale)",
+      "method": "PUT",
+      "path": "/_pl/protocol-webdav-put-if-match-content-tag-6976f9/dav/a.html",
+      "status": 412,
+      "headers": {
+        "content-length": "443",
+        "content-type": "text/html; charset=utf-8"
+      },
+      "body": "\u003carticle itemscope itemtype=\"https://pagelove.org/Error\"\u003e\u003cmeta itemprop=\"status\" content=\"412\"\u003e\u003cmeta itemprop=\"kind\" content=\"Internal\"\u003e\u003cdiv itemprop=\"type\" itemscope itemtype=\"https://dombase.pagelove.team/ns/error/Internal\"\u003e\u003c/div\u003e\u003cdiv itemprop=\"detail\"\u003e\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\u003cdiv itemscope itemtype=\"http://pagelove.org/Error\"\u003e\u003cspan itemprop=\"message\"\u003ePrecondition Failed: ETag does not match\u003c/span\u003e\u003c/div\u003e\u003c/body\u003e\u003c/html\u003e\u003c/div\u003e\u003c/article\u003e"
+    },
+    {
+      "step": "step 4 (content is A2)",
+      "method": "GET",
+      "path": "/_pl/protocol-webdav-put-if-match-content-tag-6976f9/dav/a.html",
+      "status": 200,
+      "headers": {
+        "accept-ranges": "bytes",
+        "content-length": "54",
+        "content-type": "text/html",
+        "etag": "\"a47df433779a0588c21fec09724c73501b18d74ca35e7437cd4b91d4b19e9ae3\"",
+        "last-modified": "Mon, 28 Sep 2026 22:33:40 GMT"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\u003ch1\u003eA2\u003c/h1\u003e\u003c/body\u003e\u003c/html\u003e\n"
+    }
+  ],
+  "outcome": "pass",
+  "target": "live"
+}

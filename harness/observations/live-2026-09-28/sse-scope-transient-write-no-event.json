@@ -1,0 +1,31 @@
+{
+  "case": "sse.scope.transient-write-no-event",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 2",
+      "events": [
+        {
+          "event": "pagelove-connection",
+          "data": "e8b4e4cd-147d-48c0-97e9-b01be9597eb4"
+        }
+      ]
+    },
+    {
+      "step": "step 3 (another session adds to its cart)",
+      "method": "POST",
+      "path": "/_pl/sse-scope-transient-write-no-event-eff277/shop.html",
+      "status": 206,
+      "headers": {
+        "content-length": "21",
+        "content-type": "text/html",
+        "etag": "\"a2d0c66c4e22e7a45b2c1ae0f060188379a1db2aa8bd62f5a1efc2e9aa8b0b75-a2d0c66c4e22e7a45b2c1ae0f060188379a1db2aa8bd62f5a1efc2e9aa8b0b75-1\"",
+        "last-modified": "Mon, 28 Sep 2026 22:35:49 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003cli\u003ePrivate item\u003c/li\u003e"
+    }
+  ],
+  "outcome": "pass",
+  "target": "live"
+}

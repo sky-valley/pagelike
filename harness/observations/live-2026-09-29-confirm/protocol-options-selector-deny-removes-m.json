@@ -1,0 +1,28 @@
+{
+  "case": "protocol.options.selector-deny-removes-method.live",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (PUT advertised at the locked selector)",
+      "method": "OPTIONS",
+      "path": "/_pl/protocol-options-selector-deny-removes-m-32cec5/doc.html",
+      "status": 200,
+      "headers": {
+        "allow": "GET, PUT, HEAD, OPTIONS",
+        "vary": "Authorization, Accept"
+      }
+    },
+    {
+      "step": "step 2 (deny selectors make no multipart part)",
+      "method": "OPTIONS",
+      "path": "/_pl/protocol-options-selector-deny-removes-m-32cec5/doc.html",
+      "status": 204,
+      "headers": {
+        "allow": "GET, HEAD, PUT, OPTIONS",
+        "vary": "Authorization, Accept"
+      }
+    }
+  ],
+  "outcome": "pass",
+  "target": "live"
+}

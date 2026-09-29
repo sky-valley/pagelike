@@ -1,0 +1,35 @@
+{
+  "case": "protocol.options.selector-deny-removes-method",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (PUT not allowed at the locked selector)",
+      "method": "OPTIONS",
+      "path": "/_pl/protocol-options-selector-deny-removes-m-22e1e2/doc.html",
+      "status": 200,
+      "headers": {
+        "accept-query": "text/css-selector, text/sessel",
+        "accept-ranges": "selector",
+        "allow": "GET, HEAD, OPTIONS",
+        "content-length": "0",
+        "vary": "Authorization, Accept"
+      }
+    },
+    {
+      "step": "step 2 (multipart lists the locked selector as its own part)",
+      "method": "OPTIONS",
+      "path": "/_pl/protocol-options-selector-deny-removes-m-22e1e2/doc.html",
+      "status": 207,
+      "headers": {
+        "accept-query": "text/css-selector, text/sessel",
+        "accept-ranges": "selector",
+        "content-length": "221",
+        "content-type": "multipart/mixed; boundary=boundaryeJRDdtMYEq2rNFeYngfspLbd9JcZz6WY",
+        "vary": "Authorization, Accept"
+      },
+      "body": "--boundaryeJRDdtMYEq2rNFeYngfspLbd9JcZz6WY\r\nAllow: GET, HEAD, PUT, OPTIONS\r\n\r\n--boundaryeJRDdtMYEq2rNFeYngfspLbd9JcZz6WY\r\nContent-Range: selector h1.locked\r\nAllow: OPTIONS\r\n\r\n--boundaryeJRDdtMYEq2rNFeYngfspLbd9JcZz6WY--\r\n"
+    }
+  ],
+  "outcome": "pass",
+  "target": "local"
+}

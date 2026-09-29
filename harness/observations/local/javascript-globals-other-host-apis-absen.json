@@ -1,0 +1,37 @@
+{
+  "case": "javascript.globals.other-host-apis-absent",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (PUT the page (public plane; registers inline declarations))",
+      "method": "PUT",
+      "path": "/_pl/javascript-globals-other-host-apis-absen-87bd5e/j.html",
+      "status": 201,
+      "headers": {
+        "content-length": "468",
+        "content-type": "text/html",
+        "etag": "\"1565a720abdd200b7a19d3b88710c8863e6be0e489466187b6292b840870d365\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:43 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml xmlns:j=\"https://pagelove.org/Binding/JavaScript\" xmlns:p=\"https://pagelove.org/1.0\"\u003e\u003cbody\u003e\n\u003cmain\u003e\n\u003cdiv j:g=\"'G2:' + [typeof XMLHttpRequest, typeof WebSocket, typeof EventSource, typeof console, typeof queueMicrotask, typeof structuredClone, typeof clearTimeout, typeof setImmediate, typeof window, typeof navigator, typeof localStorage, typeof Buffer, typeof module, typeof exports].join('|')\"\u003e\u003cp:stamp g\u003e\u003c/p:stamp\u003e\u003c/div\u003e\n\u003c/main\u003e\n\u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 2 (GET the composed page)",
+      "method": "GET",
+      "path": "/_pl/javascript-globals-other-host-apis-absen-87bd5e/j.html",
+      "status": 206,
+      "headers": {
+        "accept-ranges": "selector, bytes",
+        "content-length": "168",
+        "content-range": "selector main",
+        "content-type": "text/html",
+        "etag": "\"b64efad4284c3af42732097ef12ac13ff123ebb2ad2ac85a95af72df327856b7-b64efad4284c3af42732097ef12ac13ff123ebb2ad2ac85a95af72df327856b7-1\"",
+        "vary": "Host, Range, Accept"
+      },
+      "body": "\u003cmain\u003e\n\u003cdiv\u003eG2:undefined|undefined|undefined|undefined|undefined|undefined|undefined|undefined|undefined|undefined|undefined|undefined|undefined|undefined\u003c/div\u003e\n\u003c/main\u003e"
+    }
+  ],
+  "outcome": "pass",
+  "target": "local"
+}

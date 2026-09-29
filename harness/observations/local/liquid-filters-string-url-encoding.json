@@ -1,0 +1,23 @@
+{
+  "case": "liquid.filters-string.url-encoding",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (read)",
+      "method": "GET",
+      "path": "/_pl/liquid-filters-string-url-encoding-93ef5e/url.html",
+      "status": 200,
+      "headers": {
+        "accept-ranges": "selector, bytes",
+        "cache-control": "public, max-age=5",
+        "content-length": "332",
+        "content-type": "text/html",
+        "etag": "W/\"a7004ecd911186473ddf2b24a0b696d6b29b19969f4373bb47e5eb87678cbb70\"",
+        "vary": "Host, Range, Accept"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\n  \u003cdiv itemscope itemtype=\"urn:liquid:result\"\u003e\n    \u003cspan itemprop=\"enc\"\u003ea+b%26c\u003c/span\u003e\n    \u003cspan itemprop=\"dec\"\u003ea b\u0026amp;c\u003c/span\u003e\n    \u003cspan itemprop=\"cgi\"\u003ea+b+%26+c\u003c/span\u003e\n    \u003cspan itemprop=\"uri\"\u003ehttp://x/a%20b?q=1\u0026amp;r=2\u003c/span\u003e\n    \u003cspan itemprop=\"utf8\"\u003e%C3%A9%2F%C3%BC\u003c/span\u003e\n  \u003c/div\u003e\n\u003c/body\u003e\u003c/html\u003e\n"
+    }
+  ],
+  "outcome": "pass",
+  "target": "local"
+}

@@ -1,0 +1,48 @@
+{
+  "case": "reacting.discovery.no-action-skipped",
+  "failures": [
+    "step 1 (install an action-less trigger) PUT ${P}/r/triggers.html: status 422, want [200 201 204] (body: \u003cdiv itemscope itemtype=\"https://pagelove.org/SchemaViolation\"\u003e\u003cul itemprop=\"problems\"\u003e\u003cli itemprop=\"problem\"\u003e\u003cspan itemprop=\"message\"\u003e[https://pagelove.org/Handler].action: cardinality 1..1 violated: expected exactly 1 value, found 0\u003c/span…)"
+  ],
+  "observations": [
+    {
+      "step": "step 1 (install an action-less trigger)",
+      "method": "PUT",
+      "path": "/_pl/reacting-discovery-no-action-skipped-916da2/r/triggers.html",
+      "status": 422,
+      "headers": {
+        "content-length": "257",
+        "content-type": "text/html",
+        "vary": "Host, Range"
+      },
+      "body": "\u003cdiv itemscope itemtype=\"https://pagelove.org/SchemaViolation\"\u003e\u003cul itemprop=\"problems\"\u003e\u003cli itemprop=\"problem\"\u003e\u003cspan itemprop=\"message\"\u003e[https://pagelove.org/Handler].action: cardinality 1..1 violated: expected exactly 1 value, found 0\u003c/span\u003e\u003c/li\u003e\u003c/ul\u003e\u003c/div\u003e"
+    },
+    {
+      "step": "step 2 (the write proceeds normally)",
+      "method": "PUT",
+      "path": "/_pl/reacting-discovery-no-action-skipped-916da2/d/x.html",
+      "status": 201,
+      "headers": {
+        "content-type": "text/html",
+        "etag": "\"e0d47d4ab9b732c87c2063336da1f228068f2d3704ccbf302d94fb6167f944ad\"",
+        "last-modified": "Tue, 29 Sep 2026 00:49:28 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\u003chtml\u003e\u003cbody\u003e\u003cp id=\"v\"\u003ewritten\u003c/p\u003e\n                \u003cdiv style=\"\n                            position: fixed;\n                            bottom: 0;\n                            left: 0;\n                            right: 0;\n                            padding: 8px;\n                            background: #f0f0f0;\n                            text-align: center;\n                            font-size: 12px;\n                            color: #666;\n                            z-index: 9999;\n                            opacity: 0.8;\n                            border-top: 1px solid #ddd;\n                        \"\u003e\n                    Powered by\n                    \u003ca href=\"https://pagelove.com/\" style=\"color: #4a90d9; text-decoration: none\"\u003ePagelove\u003c/a\u003e\n                \u003c/div\u003e\n            \u003c/body\u003e\u003c/html\u003e"
+    },
+    {
+      "step": "step 3 (read back)",
+      "method": "GET",
+      "path": "/_pl/reacting-discovery-no-action-skipped-916da2/d/x.html",
+      "status": 200,
+      "headers": {
+        "content-type": "text/html",
+        "etag": "\"e0d47d4ab9b732c87c2063336da1f228068f2d3704ccbf302d94fb6167f944ad\"",
+        "last-modified": "Tue, 29 Sep 2026 00:49:28 GMT",
+        "vary": "Host, Range, Accept"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\u003chtml\u003e\u003cbody\u003e\u003cp id=\"v\"\u003ewritten\u003c/p\u003e\n                \u003cdiv style=\"\n                            position: fixed;\n                            bottom: 0;\n                            left: 0;\n                            right: 0;\n                            padding: 8px;\n                            background: #f0f0f0;\n                            text-align: center;\n                            font-size: 12px;\n                            color: #666;\n                            z-index: 9999;\n                            opacity: 0.8;\n                            border-top: 1px solid #ddd;\n                        \"\u003e\n                    Powered by\n                    \u003ca href=\"https://pagelove.com/\" style=\"color: #4a90d9; text-decoration: none\"\u003ePagelove\u003c/a\u003e\n                \u003c/div\u003e\n            \u003c/body\u003e\u003c/html\u003e"
+    }
+  ],
+  "outcome": "fail",
+  "target": "live"
+}

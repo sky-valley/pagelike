@@ -1,0 +1,65 @@
+{
+  "case": "reacting.tc.unchanged-value-passes",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (install the recipe's four rules (entry pending, pending-\u003eprocessing, processing-\u003esuccess, exit success))",
+      "method": "PUT",
+      "path": "/_pl/reacting-tc-unchanged-value-passes-d6d71c/transitions/rules.html",
+      "status": 201,
+      "headers": {
+        "content-length": "1294",
+        "content-type": "text/html",
+        "etag": "\"dbc14c8b87ff7ddb27fb59492b38eacb9eb0fdfb0ed130290c785688b6e62bf3\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:49 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\n\u003cdiv itemscope itemtype=\"https://pagelove.org/TransitionConstraint\"\u003e\n  \u003cmeta itemprop=\"selector\" content=\"[itemtype='https://pagelike.test/_pl/reacting-tc-unchanged-value-passes-d6d71c/Order']\"\u003e\n  \u003cmeta itemprop=\"property\" content=\"status\"\u003e\n  \u003cmeta itemprop=\"to\" content=\"pending\"\u003e\n\u003c/div\u003e\n\u003cdiv itemscope itemtype=\"https://pagelove.org/TransitionConstraint\"\u003e\n  \u003cmeta itemprop=\"selector\" content=\"[itemtype='https://pagelike.test/_pl/reacting-tc-unchanged-value-passes-d6d71c/Order']\"\u003e\n  \u003cmeta itemprop=\"property\" content=\"status\"\u003e\n  \u003cmeta itemprop=\"from\" content=\"pending\"\u003e\n  \u003cmeta itemprop=\"to\" content=\"processing\"\u003e\n\u003c/div\u003e\n\u003cdiv itemscope itemtype=\"https://pagelove.org/TransitionConstraint\"\u003e\n  \u003cmeta itemprop=\"selector\" content=\"[itemtype='https://pagelike.test/_pl/reacting-tc-unchanged-value-passes-d6d71c/Order']\"\u003e\n  \u003cmeta itemprop=\"property\" content=\"status\"\u003e\n  \u003cmeta itemprop=\"from\" content=\"processing\"\u003e\n  \u003cmeta itemprop=\"to\" content=\"success\"\u003e\n\u003c/div\u003e\n\u003cdiv itemscope itemtype=\"https://pagelove.org/TransitionConstraint\"\u003e\n  \u003cmeta itemprop=\"selector\" content=\"[itemtype='https://pagelike.test/_pl/reacting-tc-unchanged-value-passes-d6d71c/Order']\"\u003e\n  \u003cmeta itemprop=\"property\" content=\"status\"\u003e\n  \u003cmeta itemprop=\"from\" content=\"success\"\u003e\n\u003c/div\u003e\n\u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 2 (seed order-1 at pending (entry rule permits it))",
+      "method": "PUT",
+      "path": "/_pl/reacting-tc-unchanged-value-passes-d6d71c/orders/order-1.html",
+      "status": 201,
+      "headers": {
+        "content-length": "247",
+        "content-type": "text/html",
+        "etag": "\"f125cca3c78798e32c1fdade003b8171f1dea5d1a2aa0fc10a089a4120ebf90e\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:49 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\n\u003cdiv id=\"order1\" itemscope itemtype=\"https://pagelike.test/_pl/reacting-tc-unchanged-value-passes-d6d71c/Order\"\u003e\n  \u003cmeta itemprop=\"status\" content=\"pending\"\u003e\n  \u003cspan itemprop=\"total\"\u003e42.00\u003c/span\u003e\n\u003c/div\u003e\n\u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 3 (whole-document PUT with the same status and a new total)",
+      "method": "PUT",
+      "path": "/_pl/reacting-tc-unchanged-value-passes-d6d71c/orders/order-1.html",
+      "status": 200,
+      "headers": {
+        "content-length": "247",
+        "content-type": "text/html",
+        "etag": "\"dce8b79fd0d9d203f084aa1ff78090be145a08d700eeb9608b1dc3b72bc2381d\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:49 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\n\u003cdiv id=\"order1\" itemscope itemtype=\"https://pagelike.test/_pl/reacting-tc-unchanged-value-passes-d6d71c/Order\"\u003e\n  \u003cmeta itemprop=\"status\" content=\"pending\"\u003e\n  \u003cspan itemprop=\"total\"\u003e50.00\u003c/span\u003e\n\u003c/div\u003e\n\u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 4 (selector PUT with the same status)",
+      "method": "PUT",
+      "path": "/_pl/reacting-tc-unchanged-value-passes-d6d71c/orders/order-1.html",
+      "status": 206,
+      "headers": {
+        "content-length": "202",
+        "content-range": "selector #order1",
+        "content-type": "text/html",
+        "etag": "\"1a68f5cd7828f4831beefd0d40a4c3bb47db6c5a03baa036d44d723654a01d46-1a68f5cd7828f4831beefd0d40a4c3bb47db6c5a03baa036d44d723654a01d46-3\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:49 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003cdiv id=\"order1\" itemscope itemtype=\"https://pagelike.test/_pl/reacting-tc-unchanged-value-passes-d6d71c/Order\"\u003e\n  \u003cmeta itemprop=\"status\" content=\"pending\"\u003e\n  \u003cspan itemprop=\"total\"\u003e51.00\u003c/span\u003e\n\u003c/div\u003e"
+    }
+  ],
+  "outcome": "pass",
+  "target": "local"
+}

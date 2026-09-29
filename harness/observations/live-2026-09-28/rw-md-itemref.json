@@ -1,0 +1,26 @@
+{
+  "case": "rw.md.itemref",
+  "failures": [
+    "step 1 (JSON-LD includes the referenced property) GET ${P}/itemref.html: body does not contain \"email\" (body: {\n  \"@context\": \"http://schema.org/\",\n  \"@type\": \"Person\",\n  \"name\": \"Ref Person\"\n})",
+    "step 1 (JSON-LD includes the referenced property) GET ${P}/itemref.html: body does not contain \"ref@example.com\" (body: {\n  \"@context\": \"http://schema.org/\",\n  \"@type\": \"Person\",\n  \"name\": \"Ref Person\"\n})"
+  ],
+  "observations": [
+    {
+      "step": "step 1 (JSON-LD includes the referenced property)",
+      "method": "GET",
+      "path": "/_pl/rw-md-itemref-f0fbab/itemref.html",
+      "status": 200,
+      "headers": {
+        "accept-ranges": "bytes",
+        "content-length": "83",
+        "content-type": "application/ld+json; charset=utf-8",
+        "etag": "\"a6fe447a740005c39def687f1a30c280c3fe56f5fd975caccf462daec76d4b73\"",
+        "last-modified": "Mon, 28 Sep 2026 22:27:21 GMT",
+        "vary": "Host, Range, Accept"
+      },
+      "body": "{\n  \"@context\": \"http://schema.org/\",\n  \"@type\": \"Person\",\n  \"name\": \"Ref Person\"\n}"
+    }
+  ],
+  "outcome": "fail",
+  "target": "live"
+}

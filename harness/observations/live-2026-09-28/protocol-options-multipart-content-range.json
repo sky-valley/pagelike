@@ -1,0 +1,21 @@
+{
+  "case": "protocol.options.multipart-content-range-equals-form",
+  "failures": [
+    "step 1 (equals form) OPTIONS ${P}/doc.html: body does not contain \"Content-Range: selector=ul\" (body: --boundaryy7ezuLm7A3BFHAYelhNVUatWcGHHJ5bK\r\nAllow: GET, HEAD, OPTIONS\r\n\r\n--boundaryy7ezuLm7A3BFHAYelhNVUatWcGHHJ5bK\r\nContent-Range: selector ul\r\nAllow: POST, OPTIONS\r\n\r\n--boundaryy7ezuLm7A3BFHAYelhNVUatWcGHHJ5bK--\r\n)"
+  ],
+  "observations": [
+    {
+      "step": "step 1 (equals form)",
+      "method": "OPTIONS",
+      "path": "/_pl/protocol-options-multipart-content-range-d9496f/doc.html",
+      "status": 207,
+      "headers": {
+        "content-type": "multipart/mixed; boundary=boundaryy7ezuLm7A3BFHAYelhNVUatWcGHHJ5bK",
+        "vary": "Authorization, Accept"
+      },
+      "body": "--boundaryy7ezuLm7A3BFHAYelhNVUatWcGHHJ5bK\r\nAllow: GET, HEAD, OPTIONS\r\n\r\n--boundaryy7ezuLm7A3BFHAYelhNVUatWcGHHJ5bK\r\nContent-Range: selector ul\r\nAllow: POST, OPTIONS\r\n\r\n--boundaryy7ezuLm7A3BFHAYelhNVUatWcGHHJ5bK--\r\n"
+    }
+  ],
+  "outcome": "fail",
+  "target": "live"
+}

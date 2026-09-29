@@ -1,0 +1,35 @@
+{
+  "case": "sse.replay.stream-continues-after-reset",
+  "failures": [
+    "step 2: no matching \"reset\" event on s1 within 3s (1 events seen)"
+  ],
+  "observations": [
+    {
+      "step": "step 3 (write after the reset)",
+      "method": "PUT",
+      "path": "/_pl/sse-replay-stream-continues-after-reset-f25f4f/doc.html",
+      "status": 206,
+      "headers": {
+        "content-length": "19",
+        "content-range": "selector h1",
+        "content-type": "text/html",
+        "etag": "\"58d26309b68cbb18c0b67c76c81aa7c7653ab4f63e6ce2fb62a7c76f9ccc77d1-58d26309b68cbb18c0b67c76c81aa7c7653ab4f63e6ce2fb62a7c76f9ccc77d1-2\"",
+        "last-modified": "Mon, 28 Sep 2026 22:35:32 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003ch1\u003ePost-reset\u003c/h1\u003e"
+    },
+    {
+      "step": "step 4",
+      "events": [
+        {
+          "id": "v1~1000-0~cbd957845967.1790634932214-0",
+          "event": "mutation",
+          "data": "\u003carticle itemscope itemtype=\"https://pagelove.org/Mutation\"\u003e\n  \u003cspan itemprop=\"method\"\u003ePUT\u003c/span\u003e\n  \u003cspan itemprop=\"selector\"\u003eh1\u003c/span\u003e\n  \u003cspan itemprop=\"etag\"\u003e1f3fb09a1a598c365805abfe0a992fb857b1a8c23ea4be77ed1321f01424185e\u003c/span\u003e\n  \u003cspan itemprop=\"path\"\u003e/_pl/sse-replay-stream-continues-after-reset-f25f4f/doc.html\u003c/span\u003e\n  \u003cspan itemprop=\"host\"\u003elive-test-host.onpagelove.com\u003c/span\u003e\n  \u003cdiv itemprop=\"body\"\u003e\u003ch1\u003ePost-reset\u003c/h1\u003e\u003c/div\u003e\n\u003c/article\u003e"
+        }
+      ]
+    }
+  ],
+  "outcome": "fail",
+  "target": "live"
+}

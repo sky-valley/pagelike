@@ -1,0 +1,50 @@
+{
+  "case": "modeling.resolvers.write-runs-before-validation",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (register declarations through the public plane (takes effect for the next request))",
+      "method": "PUT",
+      "path": "/_pl/modeling-resolvers-write-runs-before-val-6002e7/schema.html",
+      "status": 201,
+      "headers": {
+        "content-length": "692",
+        "content-type": "text/html",
+        "etag": "\"1d1736ad995b21479d6196690dfa2de0f04c9732f11ec21e6513cfc44e7d6ab6\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:44 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\n  \u003cdiv hidden itemscope itemtype=\"https://pagelove.org/Schema\"\u003e\n    \u003cmeta itemprop=\"type\" content=\"https://pagelike.test/_pl/modeling-resolvers-write-runs-before-val-6002e7/Flag\"\u003e\n    \u003cdiv itemprop=\"property\" itemscope itemtype=\"https://pagelove.org/Property\"\u003e\n      \u003cmeta itemprop=\"name\" content=\"on\"\u003e\n      \u003cmeta itemprop=\"type\" content=\"https://schema.host/Boolean\"\u003e\n      \u003cmeta itemprop=\"cardinality\" content=\"1..1\"\u003e\n      \u003cdiv itemprop=\"@write\" itemscope itemtype=\"https://pagelove.org/Sessel\"\u003e\n        \u003cscript itemprop=\"source\" type=\"text/sessel\"\u003eself.map((el) =\u003e el.set_text(el.text().lowercase()))\u003c/script\u003e\n      \u003c/div\u003e\n    \u003c/div\u003e\n  \u003c/div\u003e\n\u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 2 (TRUE is lowercased, then passes Boolean)",
+      "method": "PUT",
+      "path": "/_pl/modeling-resolvers-write-runs-before-val-6002e7/f.html",
+      "status": 201,
+      "headers": {
+        "content-length": "197",
+        "content-type": "text/html",
+        "etag": "\"2a80bfcf0eab68d37e2cb9c8a5e10cf7e4b2adb8b4d55dec0f75efd17d0adf36\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:44 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\n  \u003cdiv itemscope itemtype=\"https://pagelike.test/_pl/modeling-resolvers-write-runs-before-val-6002e7/Flag\"\u003e\n    \u003cspan itemprop=\"on\"\u003etrue\u003c/span\u003e\n  \u003c/div\u003e\n\u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 3 (stored state of f.html (authoring plane, raw))",
+      "method": "GET",
+      "path": "/_pl/modeling-resolvers-write-runs-before-val-6002e7/f.html",
+      "status": 200,
+      "headers": {
+        "accept-ranges": "bytes",
+        "content-length": "197",
+        "content-type": "text/html",
+        "etag": "\"2a80bfcf0eab68d37e2cb9c8a5e10cf7e4b2adb8b4d55dec0f75efd17d0adf36\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:44 GMT"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\n  \u003cdiv itemscope itemtype=\"https://pagelike.test/_pl/modeling-resolvers-write-runs-before-val-6002e7/Flag\"\u003e\n    \u003cspan itemprop=\"on\"\u003etrue\u003c/span\u003e\n  \u003c/div\u003e\n\u003c/body\u003e\u003c/html\u003e\n"
+    }
+  ],
+  "outcome": "pass",
+  "target": "local"
+}

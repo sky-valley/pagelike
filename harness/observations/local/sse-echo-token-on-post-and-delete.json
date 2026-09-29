@@ -1,0 +1,94 @@
+{
+  "case": "sse.echo.token-on-post-and-delete",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (sse open tab_a)",
+      "method": "GET",
+      "path": "/_pl/sse-echo-token-on-post-and-delete-85a320/doc.html",
+      "status": 200,
+      "headers": {
+        "cache-control": "no-cache",
+        "content-type": "text/event-stream",
+        "x-accel-buffering": "no"
+      }
+    },
+    {
+      "step": "step 2 (sse open tab_b)",
+      "method": "GET",
+      "path": "/_pl/sse-echo-token-on-post-and-delete-85a320/doc.html",
+      "status": 200,
+      "headers": {
+        "cache-control": "no-cache",
+        "content-type": "text/event-stream",
+        "x-accel-buffering": "no"
+      }
+    },
+    {
+      "step": "step 3",
+      "events": [
+        {
+          "event": "pagelove-connection",
+          "data": "f83fea3d-7ea2-4729-9375-045f84c16133"
+        }
+      ]
+    },
+    {
+      "step": "step 4",
+      "events": [
+        {
+          "event": "pagelove-connection",
+          "data": "fe9100ab-e072-4e4f-bb6f-e1551bef2277"
+        }
+      ]
+    },
+    {
+      "step": "step 5 (tab A appends)",
+      "method": "POST",
+      "path": "/_pl/sse-echo-token-on-post-and-delete-85a320/doc.html",
+      "status": 206,
+      "headers": {
+        "content-length": "17",
+        "content-range": "selector ul",
+        "content-type": "text/html",
+        "etag": "\"0932956bca3d99ed9c2b4f784f882a1e84b3e95493fa74dde881ffd13504d5b0-0932956bca3d99ed9c2b4f784f882a1e84b3e95493fa74dde881ffd13504d5b0-2\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:57 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003cli id=\"y\"\u003ey\u003c/li\u003e"
+    },
+    {
+      "step": "step 6",
+      "events": [
+        {
+          "id": "v1~8d8d8a6cbb0a.1790649657143-1",
+          "event": "mutation",
+          "data": "\u003carticle itemscope itemtype=\"https://pagelove.org/Mutation\"\u003e\n  \u003cspan itemprop=\"method\"\u003ePOST\u003c/span\u003e\n  \u003cspan itemprop=\"selector\"\u003eul\u003c/span\u003e\n  \u003cspan itemprop=\"etag\"\u003e9186afd6177662b7bedb5890edb17677d97b38334adc78e1c27a0152c4e78189\u003c/span\u003e\n  \u003cspan itemprop=\"path\"\u003e/_pl/sse-echo-token-on-post-and-delete-85a320/doc.html\u003c/span\u003e\n  \u003cspan itemprop=\"host\"\u003et.localhost\u003c/span\u003e\n  \u003cdiv itemprop=\"body\"\u003e\u003cli id=\"y\"\u003ey\u003c/li\u003e\u003c/div\u003e\n  \u003cspan itemprop=\"placement\"\u003eappend\u003c/span\u003e\n\u003c/article\u003e"
+        }
+      ]
+    },
+    {
+      "step": "step 7 (tab A deletes)",
+      "method": "DELETE",
+      "path": "/_pl/sse-echo-token-on-post-and-delete-85a320/doc.html",
+      "status": 204,
+      "headers": {
+        "etag": "\"d646a95e0735e0f06c46903639855cacd7002acac4534b430240d53f01a8927c\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:57 GMT",
+        "vary": "Host, Range"
+      }
+    },
+    {
+      "step": "step 8",
+      "events": [
+        {
+          "id": "v1~8d8d8a6cbb0a.1790649657144-2",
+          "event": "mutation",
+          "data": "\u003carticle itemscope itemtype=\"https://pagelove.org/Mutation\"\u003e\n  \u003cspan itemprop=\"method\"\u003eDELETE\u003c/span\u003e\n  \u003cspan itemprop=\"selector\"\u003e#x\u003c/span\u003e\n  \u003cspan itemprop=\"etag\"\u003ed646a95e0735e0f06c46903639855cacd7002acac4534b430240d53f01a8927c\u003c/span\u003e\n  \u003cspan itemprop=\"path\"\u003e/_pl/sse-echo-token-on-post-and-delete-85a320/doc.html\u003c/span\u003e\n  \u003cspan itemprop=\"host\"\u003et.localhost\u003c/span\u003e\n  \u003cdiv itemprop=\"body\"\u003e\u003c/div\u003e\n\u003c/article\u003e"
+        }
+      ]
+    }
+  ],
+  "outcome": "pass",
+  "target": "local"
+}

@@ -1,0 +1,29 @@
+Live reconciliation of the javascript area, 2026-09-29 (docs/compat/decisions-2026-09-29/javascript.md).
+Target: the disposable live host of harness/observations/live-2026-09-29/; runner rate 3 req/s.
+
+Run 4 (final; this directory's *.json): 13 cases, 13 passed, 0 failed.
+PASS javascript.client.head-etag-then-conditional-writes
+PASS javascript.dom.classlist
+PASS javascript.dom.closest-and-matches
+PASS javascript.dom.domparser-ignores-type
+PASS javascript.dom.inner-outer-adjacent-html
+PASS javascript.dom.namespace-pipe-selectors
+PASS javascript.dom.node-identity.live
+PASS javascript.dom.probe-0929.classlist-duplicates
+PASS javascript.dom.probe-0929.document-children
+PASS javascript.dom.probe-0929.domparser-shape
+PASS javascript.dom.probe-0929.kept-divergences
+PASS javascript.dom.tree-operations
+PASS javascript.query.javascript-body-415
+
+Earlier runs (exploratory/, stdout in RUN-1.txt .. RUN-3.txt):
+Run 1: 11 cases (7 loose probes, the two reworked DOMParser-dependent cases, the two
+       client cases already reconciled on 2026-09-28): 10 passed; tree-operations failed on
+       l.ownerDocument === d (node identity).
+Run 2: 3 probes: document-children and namespace-pipe passed; domparser-tree-builder
+       answered 500 "return-type error ... JavaScript value type cannot be marshalled back
+       into dombase Value" (its ~700-character result string; see the decisions file).
+Run 3: 13 cases (the final set, kept-divergences loose): 12 passed; domparser-shape failed
+       on '<p>a<p>b<table>...' (PageLove nests the p and adds no tbody), which moved to the
+       kept-divergences probe (exploratory/javascript-dom-probe-0929-domparser-shap-run3.json).
+Total: 4 runs, 40 case executions.

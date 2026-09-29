@@ -1,0 +1,62 @@
+{
+  "case": "reacting.discovery.trigger-in-separate-document",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (seed the target document)",
+      "method": "PUT",
+      "path": "/_pl/reacting-discovery-trigger-in-separate-d-69674b/d/doc.html",
+      "status": 201,
+      "headers": {
+        "content-length": "67",
+        "content-type": "text/html",
+        "etag": "\"e31a2c1e0c49519ce7aa16bed087235d7b94cac10933616e6f4d9c92162b6bf8\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:48 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\u003ch1 id=\"h\"\u003eOriginal\u003c/h1\u003e\u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 2 (install a trigger that refuses PUT under ${P}/d/)",
+      "method": "PUT",
+      "path": "/_pl/reacting-discovery-trigger-in-separate-d-69674b/r/triggers.html",
+      "status": 201,
+      "headers": {
+        "content-length": "580",
+        "content-type": "text/html",
+        "etag": "\"5f3d5430015ce08f07da68ad74b778f94f2ee4a29e96f67b8b11090a78fad488\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:48 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003chead\u003e\u003ctitle\u003etriggers\u003c/title\u003e\u003c/head\u003e\u003cbody\u003e\n\u003cdiv hidden itemscope itemtype=\"https://pagelove.org/Trigger\"\u003e\n  \u003cmeta itemprop=\"resource\" content=\"/_pl/reacting-discovery-trigger-in-separate-d-69674b/d/*\"\u003e\n  \u003cmeta itemprop=\"method\" content=\"PUT\"\u003e\n  \u003cdiv itemprop=\"action\" itemscope itemtype=\"https://pagelove.org/Sessel\"\u003e\n    \u003cscript itemprop=\"source\" type=\"text/sessel\"\u003e\n      @schema HTTPResponse url(\"https://pagelove.org/HTTPResponse\");\n      throw new HTTPResponse { status: 409, message: \"refused-by-trigger\" }\n    \u003c/script\u003e\n  \u003c/div\u003e\n\u003c/div\u003e\n\u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 3 (a PUT to the governed document is refused by the trigger)",
+      "method": "PUT",
+      "path": "/_pl/reacting-discovery-trigger-in-separate-d-69674b/d/doc.html",
+      "status": 409,
+      "headers": {
+        "content-length": "18",
+        "content-type": "text/html; charset=utf-8"
+      },
+      "body": "refused-by-trigger"
+    },
+    {
+      "step": "step 4 (the document is unchanged and GET is not affected (method filter))",
+      "method": "GET",
+      "path": "/_pl/reacting-discovery-trigger-in-separate-d-69674b/d/doc.html",
+      "status": 200,
+      "headers": {
+        "accept-ranges": "selector, bytes",
+        "content-length": "67",
+        "content-type": "text/html",
+        "etag": "\"e31a2c1e0c49519ce7aa16bed087235d7b94cac10933616e6f4d9c92162b6bf8\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:48 GMT",
+        "vary": "Host, Range, Accept"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\u003ch1 id=\"h\"\u003eOriginal\u003c/h1\u003e\u003c/body\u003e\u003c/html\u003e\n"
+    }
+  ],
+  "outcome": "pass",
+  "target": "local"
+}

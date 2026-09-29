@@ -1,0 +1,53 @@
+{
+  "case": "sse.mutation.multiline-body",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (sse open s1)",
+      "method": "GET",
+      "path": "/_pl/sse-mutation-multiline-body-3394b1/doc.html",
+      "status": 200,
+      "headers": {
+        "cache-control": "no-cache",
+        "content-type": "text/event-stream",
+        "x-accel-buffering": "no"
+      }
+    },
+    {
+      "step": "step 2",
+      "events": [
+        {
+          "event": "pagelove-connection",
+          "data": "e41c19d1-2e28-4212-bda6-a934dcf945a7"
+        }
+      ]
+    },
+    {
+      "step": "step 3 (append a two-line item)",
+      "method": "POST",
+      "path": "/_pl/sse-mutation-multiline-body-3394b1/doc.html",
+      "status": 206,
+      "headers": {
+        "content-length": "26",
+        "content-range": "selector ul",
+        "content-type": "text/html",
+        "etag": "\"ceb167afa8fe38474b43de0c4be639cad9d23221fc9cc76f67d487cc02376339-ceb167afa8fe38474b43de0c4be639cad9d23221fc9cc76f67d487cc02376339-2\"",
+        "last-modified": "Tue, 29 Sep 2026 02:41:00 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003cli\u003eline one\nline two\u003c/li\u003e"
+    },
+    {
+      "step": "step 4",
+      "events": [
+        {
+          "id": "v1~cc26e3fd4cb4.1790649660073-1",
+          "event": "mutation",
+          "data": "\u003carticle itemscope itemtype=\"https://pagelove.org/Mutation\"\u003e\n  \u003cspan itemprop=\"method\"\u003ePOST\u003c/span\u003e\n  \u003cspan itemprop=\"selector\"\u003eul\u003c/span\u003e\n  \u003cspan itemprop=\"etag\"\u003e64032ee3c2e7af6b579b5bca1761f0e26bf46244d5af8f007e041c8d3f39bdd3\u003c/span\u003e\n  \u003cspan itemprop=\"path\"\u003e/_pl/sse-mutation-multiline-body-3394b1/doc.html\u003c/span\u003e\n  \u003cspan itemprop=\"host\"\u003et.localhost\u003c/span\u003e\n  \u003cdiv itemprop=\"body\"\u003e\u003cli\u003eline one\nline two\u003c/li\u003e\u003c/div\u003e\n  \u003cspan itemprop=\"placement\"\u003eappend\u003c/span\u003e\n\u003c/article\u003e"
+        }
+      ]
+    }
+  ],
+  "outcome": "pass",
+  "target": "local"
+}

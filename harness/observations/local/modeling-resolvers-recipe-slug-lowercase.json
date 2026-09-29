@@ -1,0 +1,65 @@
+{
+  "case": "modeling.resolvers.recipe-slug-lowercase",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (register declarations through the public plane (takes effect for the next request))",
+      "method": "PUT",
+      "path": "/_pl/modeling-resolvers-recipe-slug-lowercase-d24b63/schema.html",
+      "status": 201,
+      "headers": {
+        "content-length": "701",
+        "content-type": "text/html",
+        "etag": "\"e407ee220c9a4dcfbe16c15bbeb3a890e57fe9fb0affcd0d02c0c308047d635a\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:44 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\n  \u003cdiv hidden itemscope itemtype=\"https://pagelove.org/Schema\"\u003e\n    \u003cmeta itemprop=\"type\" content=\"https://pagelike.test/_pl/modeling-resolvers-recipe-slug-lowercase-d24b63/Project\"\u003e\n    \u003cli itemprop=\"property\" itemscope itemtype=\"https://pagelove.org/Property\"\u003e\n      \u003cmeta itemprop=\"name\" content=\"slug\"\u003e\n      \u003cmeta itemprop=\"type\" content=\"https://schema.host/Text\"\u003e\n      \u003cmeta itemprop=\"cardinality\" content=\"1..1\"\u003e\n      \u003cscript type=\"text/sessel\" itemprop=\"@write\"\u003e\n        self.map((el) =\u003e {\n          let normalized = el.value().lowercase();\n          new meta[itemprop=\"slug\"][content=normalized] {}\n        })\n      \u003c/script\u003e\n    \u003c/li\u003e\n  \u003c/div\u003e\n\u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 2 (PUT My-Project)",
+      "method": "PUT",
+      "path": "/_pl/modeling-resolvers-recipe-slug-lowercase-d24b63/p.html",
+      "status": 201,
+      "headers": {
+        "content-length": "212",
+        "content-type": "text/html",
+        "etag": "\"07e97473807f21cf7f1af0ae94320027f81956eda53a2f06b2cef5967c132ab4\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:44 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\n  \u003cdiv itemscope itemtype=\"https://pagelike.test/_pl/modeling-resolvers-recipe-slug-lowercase-d24b63/Project\"\u003e\n    \u003cmeta itemprop=\"slug\" content=\"my-project\"\u003e\n  \u003c/div\u003e\n\u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 3 (stored state of p.html (authoring plane, raw))",
+      "method": "GET",
+      "path": "/_pl/modeling-resolvers-recipe-slug-lowercase-d24b63/p.html",
+      "status": 200,
+      "headers": {
+        "accept-ranges": "bytes",
+        "content-length": "212",
+        "content-type": "text/html",
+        "etag": "\"07e97473807f21cf7f1af0ae94320027f81956eda53a2f06b2cef5967c132ab4\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:44 GMT"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\n  \u003cdiv itemscope itemtype=\"https://pagelike.test/_pl/modeling-resolvers-recipe-slug-lowercase-d24b63/Project\"\u003e\n    \u003cmeta itemprop=\"slug\" content=\"my-project\"\u003e\n  \u003c/div\u003e\n\u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 4 (public GET returns the lowercase form)",
+      "method": "GET",
+      "path": "/_pl/modeling-resolvers-recipe-slug-lowercase-d24b63/p.html",
+      "status": 200,
+      "headers": {
+        "accept-ranges": "selector, bytes",
+        "content-length": "212",
+        "content-type": "text/html",
+        "etag": "\"07e97473807f21cf7f1af0ae94320027f81956eda53a2f06b2cef5967c132ab4\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:44 GMT",
+        "vary": "Host, Range, Accept"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\n  \u003cdiv itemscope itemtype=\"https://pagelike.test/_pl/modeling-resolvers-recipe-slug-lowercase-d24b63/Project\"\u003e\n    \u003cmeta itemprop=\"slug\" content=\"my-project\"\u003e\n  \u003c/div\u003e\n\u003c/body\u003e\u003c/html\u003e\n"
+    }
+  ],
+  "outcome": "pass",
+  "target": "local"
+}

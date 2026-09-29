@@ -1,0 +1,57 @@
+{
+  "case": "reacting.filters.get-implies-head",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (install a GET trigger)",
+      "method": "PUT",
+      "path": "/_pl/reacting-filters-get-implies-head-ee7248/r/triggers.html",
+      "status": 201,
+      "headers": {
+        "content-length": "526",
+        "content-type": "text/html",
+        "etag": "\"92d3ce70354e87370cdb201d4f97af004db8da68d23181f1fb81590e3e5c78d2\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:48 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\n\u003cdiv hidden itemscope itemtype=\"https://pagelove.org/Trigger\"\u003e\n  \u003cmeta itemprop=\"resource\" content=\"/_pl/reacting-filters-get-implies-head-ee7248/d/*\"\u003e\n  \u003cmeta itemprop=\"method\" content=\"GET\"\u003e\n  \u003cdiv itemprop=\"action\" itemscope itemtype=\"https://pagelove.org/Sessel\"\u003e\n    \u003cscript itemprop=\"source\" type=\"text/sessel\"\u003e\n      @schema HTTPResponse url(\"https://pagelove.org/HTTPResponse\");\n      throw new HTTPResponse { status: 409, message: \"get-hit\" }\n    \u003c/script\u003e\n  \u003c/div\u003e\n\u003c/div\u003e\n\u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 2 (GET fires)",
+      "method": "GET",
+      "path": "/_pl/reacting-filters-get-implies-head-ee7248/d/doc.html",
+      "status": 409,
+      "headers": {
+        "content-length": "7",
+        "content-type": "text/html; charset=utf-8"
+      },
+      "body": "get-hit"
+    },
+    {
+      "step": "step 3 (HEAD fires too)",
+      "method": "HEAD",
+      "path": "/_pl/reacting-filters-get-implies-head-ee7248/d/doc.html",
+      "status": 409,
+      "headers": {
+        "content-length": "7",
+        "content-type": "text/html; charset=utf-8"
+      }
+    },
+    {
+      "step": "step 4 (PUT does not)",
+      "method": "PUT",
+      "path": "/_pl/reacting-filters-get-implies-head-ee7248/d/doc.html",
+      "status": 200,
+      "headers": {
+        "content-length": "53",
+        "content-type": "text/html",
+        "etag": "\"4f82d03dbf1768182b0808ef8786d832b8088e6327a40a02f74d74f502bef2d5\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:48 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\u003chtml\u003e\u003cbody\u003e\u003ch1\u003eNew\u003c/h1\u003e\u003c/body\u003e\u003c/html\u003e"
+    }
+  ],
+  "outcome": "pass",
+  "target": "local"
+}

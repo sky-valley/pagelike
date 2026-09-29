@@ -1,0 +1,33 @@
+{
+  "case": "javascript.reactions.processor-docs-custom-404",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (register the trigger/processor (public plane))",
+      "method": "PUT",
+      "path": "/_pl/javascript-reactions-processor-docs-cust-4f802b/reactions.html",
+      "status": 201,
+      "headers": {
+        "content-length": "787",
+        "content-type": "text/html",
+        "etag": "\"762511c9e00f74e8a1b804ec3b9efd9b2f880d2e368ffd47f7303cebd863b82a\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:43 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\n\u003cdiv itemscope itemtype=\"https://pagelove.org/Processor\"\u003e\n\u003cmeta itemprop=\"resource\" content=\"/_pl/javascript-reactions-processor-docs-cust-4f802b/p/*\"\u003e\n\u003cmeta itemprop=\"method\" content=\"GET\"\u003e\n\u003cmeta itemprop=\"status\" content=\"404\"\u003e\n\u003cdiv itemprop=\"when\" itemscope itemtype=\"https://pagelove.org/JavaScript/Module\"\u003e\n\u003cscript itemprop=\"source\" type=\"module\"\u003e\nexport default function(ctx) {\n  return ctx.response.status === 404;\n}\n\u003c/script\u003e\n\u003c/div\u003e\n\u003cdiv itemprop=\"action\" itemscope itemtype=\"https://pagelove.org/JavaScript/Module\"\u003e\n\u003cscript itemprop=\"source\" type=\"module\"\u003e\nexport default function(ctx) {\n  throw {\n    schema_url: \"https://pagelove.org/HTTPResponse\",\n    status: 200,\n    body: \"\u003cp\u003eCustom 404 page\u003c/p\u003e\"\n  };\n}\n\u003c/script\u003e\n\u003c/div\u003e\n\u003c/div\u003e\n\u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 2 (the 404 is replaced)",
+      "method": "GET",
+      "path": "/_pl/javascript-reactions-processor-docs-cust-4f802b/p/missing.html",
+      "status": 200,
+      "headers": {
+        "content-length": "22",
+        "content-type": "text/html; charset=utf-8"
+      },
+      "body": "\u003cp\u003eCustom 404 page\u003c/p\u003e"
+    }
+  ],
+  "outcome": "pass",
+  "target": "local"
+}

@@ -1,0 +1,92 @@
+{
+  "case": "comp.pag.probe-0929.single-with-id",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (prefixed page and length with another parameter)",
+      "method": "GET",
+      "path": "/_pl/comp-pag-probe-0929-single-with-id-ee1252/contacts.html?q=smith\u0026paginate:contacts:page=2\u0026paginate:contacts:length=2",
+      "status": 200,
+      "headers": {
+        "cache-control": "private",
+        "content-type": "text/html",
+        "etag": "W/\"75becfa5f2beb42bd781e5ead9bd92e875c735cdf601625f527c9c229fb676c7\"",
+        "link": "\u003c/_pl/comp-pag-probe-0929-single-with-id-ee1252/contacts.html?paginate:contacts:page=1\u003e; rel=\"first\"; title=\"contacts\", \u003c/_pl/comp-pag-probe-0929-single-with-id-ee1252/contacts.html?paginate:contacts:page=4\u003e; rel=\"last\"; title=\"contacts\", \u003c/_pl/comp-pag-probe-0929-single-with-id-ee1252/contacts.html?paginate:contacts:page=1\u003e; rel=\"prev\"; title=\"contacts\", \u003c/_pl/comp-pag-probe-0929-single-with-id-ee1252/contacts.html?paginate:contacts:page=3\u003e; rel=\"next\"; title=\"contacts\"",
+        "vary": "Host, Range, Accept"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003chead\u003e\u003ctitle\u003eContacts\u003c/title\u003e\u003clink rel=\"first\" href=\"/_pl/comp-pag-probe-0929-single-with-id-ee1252/contacts.html?paginate:contacts:page=1\" title=\"contacts\"\u003e\u003clink rel=\"last\" href=\"/_pl/comp-pag-probe-0929-single-with-id-ee1252/contacts.html?paginate:contacts:page=4\" title=\"contacts\"\u003e\u003clink rel=\"prev\" href=\"/_pl/comp-pag-probe-0929-single-with-id-ee1252/contacts.html?paginate:contacts:page=1\" title=\"contacts\"\u003e\u003clink rel=\"next\" href=\"/_pl/comp-pag-probe-0929-single-with-id-ee1252/contacts.html?paginate:contacts:page=3\" title=\"contacts\"\u003e\u003c/head\u003e\u003cbody\u003e\n\u003cul id=\"contacts\"\u003e\n\n\u003cli\u003eCarol\u003c/li\u003e\u003cli\u003eDave\u003c/li\u003e\u003c/ul\u003e\n\n                \u003cdiv style=\"\n                            position: fixed;\n                            bottom: 0;\n                            left: 0;\n                            right: 0;\n                            padding: 8px;\n                            background: #f0f0f0;\n                            text-align: center;\n                            font-size: 12px;\n                            color: #666;\n                            z-index: 9999;\n                            opacity: 0.8;\n                            border-top: 1px solid #ddd;\n                        \"\u003e\n                    Powered by\n                    \u003ca href=\"https://pagelove.com/\" style=\"color: #4a90d9; text-decoration: none\"\u003ePagelove\u003c/a\u003e\n                \u003c/div\u003e\n            \u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 2 (unprefixed length only)",
+      "method": "GET",
+      "path": "/_pl/comp-pag-probe-0929-single-with-id-ee1252/contacts.html?paginate:length=2",
+      "status": 200,
+      "headers": {
+        "cache-control": "private",
+        "content-type": "text/html",
+        "etag": "W/\"23c4da58e73f02572a45255b10ba30512f8345ef58c7889376dd83fd8aeec289\"",
+        "link": "\u003c/_pl/comp-pag-probe-0929-single-with-id-ee1252/contacts.html?paginate:contacts:page=1\u003e; rel=\"first\"; title=\"contacts\", \u003c/_pl/comp-pag-probe-0929-single-with-id-ee1252/contacts.html?paginate:contacts:page=4\u003e; rel=\"last\"; title=\"contacts\", \u003c/_pl/comp-pag-probe-0929-single-with-id-ee1252/contacts.html?paginate:contacts:page=2\u003e; rel=\"next\"; title=\"contacts\"",
+        "vary": "Host, Range, Accept"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003chead\u003e\u003ctitle\u003eContacts\u003c/title\u003e\u003clink rel=\"first\" href=\"/_pl/comp-pag-probe-0929-single-with-id-ee1252/contacts.html?paginate:contacts:page=1\" title=\"contacts\"\u003e\u003clink rel=\"last\" href=\"/_pl/comp-pag-probe-0929-single-with-id-ee1252/contacts.html?paginate:contacts:page=4\" title=\"contacts\"\u003e\u003clink rel=\"next\" href=\"/_pl/comp-pag-probe-0929-single-with-id-ee1252/contacts.html?paginate:contacts:page=2\" title=\"contacts\"\u003e\u003c/head\u003e\u003cbody\u003e\n\u003cul id=\"contacts\"\u003e\n\n\u003cli\u003eAlice\u003c/li\u003e\u003cli\u003eBob\u003c/li\u003e\u003c/ul\u003e\n\n                \u003cdiv style=\"\n                            position: fixed;\n                            bottom: 0;\n                            left: 0;\n                            right: 0;\n                            padding: 8px;\n                            background: #f0f0f0;\n                            text-align: center;\n                            font-size: 12px;\n                            color: #666;\n                            z-index: 9999;\n                            opacity: 0.8;\n                            border-top: 1px solid #ddd;\n                        \"\u003e\n                    Powered by\n                    \u003ca href=\"https://pagelove.com/\" style=\"color: #4a90d9; text-decoration: none\"\u003ePagelove\u003c/a\u003e\n                \u003c/div\u003e\n            \u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 3 (prefixed last page)",
+      "method": "GET",
+      "path": "/_pl/comp-pag-probe-0929-single-with-id-ee1252/contacts.html?paginate:contacts:page=3",
+      "status": 200,
+      "headers": {
+        "cache-control": "private",
+        "content-type": "text/html",
+        "etag": "W/\"7214797fcda8995284328fb236c5049bffdf4494a7e25a16e282462294eda79f\"",
+        "link": "\u003c/_pl/comp-pag-probe-0929-single-with-id-ee1252/contacts.html?paginate:contacts:page=1\u003e; rel=\"first\"; title=\"contacts\", \u003c/_pl/comp-pag-probe-0929-single-with-id-ee1252/contacts.html?paginate:contacts:page=3\u003e; rel=\"last\"; title=\"contacts\", \u003c/_pl/comp-pag-probe-0929-single-with-id-ee1252/contacts.html?paginate:contacts:page=2\u003e; rel=\"prev\"; title=\"contacts\"",
+        "vary": "Host, Range, Accept"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003chead\u003e\u003ctitle\u003eContacts\u003c/title\u003e\u003clink rel=\"first\" href=\"/_pl/comp-pag-probe-0929-single-with-id-ee1252/contacts.html?paginate:contacts:page=1\" title=\"contacts\"\u003e\u003clink rel=\"last\" href=\"/_pl/comp-pag-probe-0929-single-with-id-ee1252/contacts.html?paginate:contacts:page=3\" title=\"contacts\"\u003e\u003clink rel=\"prev\" href=\"/_pl/comp-pag-probe-0929-single-with-id-ee1252/contacts.html?paginate:contacts:page=2\" title=\"contacts\"\u003e\u003c/head\u003e\u003cbody\u003e\n\u003cul id=\"contacts\"\u003e\n\n\u003cli\u003eGrace\u003c/li\u003e\u003c/ul\u003e\n\n                \u003cdiv style=\"\n                            position: fixed;\n                            bottom: 0;\n                            left: 0;\n                            right: 0;\n                            padding: 8px;\n                            background: #f0f0f0;\n                            text-align: center;\n                            font-size: 12px;\n                            color: #666;\n                            z-index: 9999;\n                            opacity: 0.8;\n                            border-top: 1px solid #ddd;\n                        \"\u003e\n                    Powered by\n                    \u003ca href=\"https://pagelove.com/\" style=\"color: #4a90d9; text-decoration: none\"\u003ePagelove\u003c/a\u003e\n                \u003c/div\u003e\n            \u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 4 (the prefixed page wins over the unprefixed one)",
+      "method": "GET",
+      "path": "/_pl/comp-pag-probe-0929-single-with-id-ee1252/contacts.html?paginate:page=2\u0026paginate:contacts:page=3",
+      "status": 200,
+      "headers": {
+        "cache-control": "private",
+        "content-type": "text/html",
+        "etag": "W/\"7214797fcda8995284328fb236c5049bffdf4494a7e25a16e282462294eda79f\"",
+        "link": "\u003c/_pl/comp-pag-probe-0929-single-with-id-ee1252/contacts.html?paginate:contacts:page=1\u003e; rel=\"first\"; title=\"contacts\", \u003c/_pl/comp-pag-probe-0929-single-with-id-ee1252/contacts.html?paginate:contacts:page=3\u003e; rel=\"last\"; title=\"contacts\", \u003c/_pl/comp-pag-probe-0929-single-with-id-ee1252/contacts.html?paginate:contacts:page=2\u003e; rel=\"prev\"; title=\"contacts\"",
+        "vary": "Host, Range, Accept"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003chead\u003e\u003ctitle\u003eContacts\u003c/title\u003e\u003clink rel=\"first\" href=\"/_pl/comp-pag-probe-0929-single-with-id-ee1252/contacts.html?paginate:contacts:page=1\" title=\"contacts\"\u003e\u003clink rel=\"last\" href=\"/_pl/comp-pag-probe-0929-single-with-id-ee1252/contacts.html?paginate:contacts:page=3\" title=\"contacts\"\u003e\u003clink rel=\"prev\" href=\"/_pl/comp-pag-probe-0929-single-with-id-ee1252/contacts.html?paginate:contacts:page=2\" title=\"contacts\"\u003e\u003c/head\u003e\u003cbody\u003e\n\u003cul id=\"contacts\"\u003e\n\n\u003cli\u003eGrace\u003c/li\u003e\u003c/ul\u003e\n\n                \u003cdiv style=\"\n                            position: fixed;\n                            bottom: 0;\n                            left: 0;\n                            right: 0;\n                            padding: 8px;\n                            background: #f0f0f0;\n                            text-align: center;\n                            font-size: 12px;\n                            color: #666;\n                            z-index: 9999;\n                            opacity: 0.8;\n                            border-top: 1px solid #ddd;\n                        \"\u003e\n                    Powered by\n                    \u003ca href=\"https://pagelove.com/\" style=\"color: #4a90d9; text-decoration: none\"\u003ePagelove\u003c/a\u003e\n                \u003c/div\u003e\n            \u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 5 (unprefixed last page)",
+      "method": "GET",
+      "path": "/_pl/comp-pag-probe-0929-single-with-id-ee1252/contacts.html?paginate:page=3",
+      "status": 200,
+      "headers": {
+        "cache-control": "private",
+        "content-type": "text/html",
+        "etag": "W/\"7214797fcda8995284328fb236c5049bffdf4494a7e25a16e282462294eda79f\"",
+        "link": "\u003c/_pl/comp-pag-probe-0929-single-with-id-ee1252/contacts.html?paginate:contacts:page=1\u003e; rel=\"first\"; title=\"contacts\", \u003c/_pl/comp-pag-probe-0929-single-with-id-ee1252/contacts.html?paginate:contacts:page=3\u003e; rel=\"last\"; title=\"contacts\", \u003c/_pl/comp-pag-probe-0929-single-with-id-ee1252/contacts.html?paginate:contacts:page=2\u003e; rel=\"prev\"; title=\"contacts\"",
+        "vary": "Host, Range, Accept"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003chead\u003e\u003ctitle\u003eContacts\u003c/title\u003e\u003clink rel=\"first\" href=\"/_pl/comp-pag-probe-0929-single-with-id-ee1252/contacts.html?paginate:contacts:page=1\" title=\"contacts\"\u003e\u003clink rel=\"last\" href=\"/_pl/comp-pag-probe-0929-single-with-id-ee1252/contacts.html?paginate:contacts:page=3\" title=\"contacts\"\u003e\u003clink rel=\"prev\" href=\"/_pl/comp-pag-probe-0929-single-with-id-ee1252/contacts.html?paginate:contacts:page=2\" title=\"contacts\"\u003e\u003c/head\u003e\u003cbody\u003e\n\u003cul id=\"contacts\"\u003e\n\n\u003cli\u003eGrace\u003c/li\u003e\u003c/ul\u003e\n\n                \u003cdiv style=\"\n                            position: fixed;\n                            bottom: 0;\n                            left: 0;\n                            right: 0;\n                            padding: 8px;\n                            background: #f0f0f0;\n                            text-align: center;\n                            font-size: 12px;\n                            color: #666;\n                            z-index: 9999;\n                            opacity: 0.8;\n                            border-top: 1px solid #ddd;\n                        \"\u003e\n                    Powered by\n                    \u003ca href=\"https://pagelove.com/\" style=\"color: #4a90d9; text-decoration: none\"\u003ePagelove\u003c/a\u003e\n                \u003c/div\u003e\n            \u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 6 (another parameter, unprefixed page)",
+      "method": "GET",
+      "path": "/_pl/comp-pag-probe-0929-single-with-id-ee1252/contacts.html?q=smith\u0026paginate:page=2",
+      "status": 200,
+      "headers": {
+        "cache-control": "private",
+        "content-type": "text/html",
+        "etag": "W/\"766d5b206f4872a57125a7bdb489f9d719ef4cd4c3480a9e2ad81731ef975578\"",
+        "link": "\u003c/_pl/comp-pag-probe-0929-single-with-id-ee1252/contacts.html?paginate:contacts:page=1\u003e; rel=\"first\"; title=\"contacts\", \u003c/_pl/comp-pag-probe-0929-single-with-id-ee1252/contacts.html?paginate:contacts:page=3\u003e; rel=\"last\"; title=\"contacts\", \u003c/_pl/comp-pag-probe-0929-single-with-id-ee1252/contacts.html?paginate:contacts:page=1\u003e; rel=\"prev\"; title=\"contacts\", \u003c/_pl/comp-pag-probe-0929-single-with-id-ee1252/contacts.html?paginate:contacts:page=3\u003e; rel=\"next\"; title=\"contacts\"",
+        "vary": "Host, Range, Accept"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003chead\u003e\u003ctitle\u003eContacts\u003c/title\u003e\u003clink rel=\"first\" href=\"/_pl/comp-pag-probe-0929-single-with-id-ee1252/contacts.html?paginate:contacts:page=1\" title=\"contacts\"\u003e\u003clink rel=\"last\" href=\"/_pl/comp-pag-probe-0929-single-with-id-ee1252/contacts.html?paginate:contacts:page=3\" title=\"contacts\"\u003e\u003clink rel=\"prev\" href=\"/_pl/comp-pag-probe-0929-single-with-id-ee1252/contacts.html?paginate:contacts:page=1\" title=\"contacts\"\u003e\u003clink rel=\"next\" href=\"/_pl/comp-pag-probe-0929-single-with-id-ee1252/contacts.html?paginate:contacts:page=3\" title=\"contacts\"\u003e\u003c/head\u003e\u003cbody\u003e\n\u003cul id=\"contacts\"\u003e\n\n\u003cli\u003eDave\u003c/li\u003e\u003cli\u003eEve\u003c/li\u003e\u003cli\u003eFrank\u003c/li\u003e\u003c/ul\u003e\n\n                \u003cdiv style=\"\n                            position: fixed;\n                            bottom: 0;\n                            left: 0;\n                            right: 0;\n                            padding: 8px;\n                            background: #f0f0f0;\n                            text-align: center;\n                            font-size: 12px;\n                            color: #666;\n                            z-index: 9999;\n                            opacity: 0.8;\n                            border-top: 1px solid #ddd;\n                        \"\u003e\n                    Powered by\n                    \u003ca href=\"https://pagelove.com/\" style=\"color: #4a90d9; text-decoration: none\"\u003ePagelove\u003c/a\u003e\n                \u003c/div\u003e\n            \u003c/body\u003e\u003c/html\u003e\n"
+    }
+  ],
+  "outcome": "pass",
+  "target": "live"
+}

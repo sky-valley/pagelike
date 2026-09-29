@@ -1,0 +1,29 @@
+FAIL reacting.context.probe-0929.trigger-bindings [harness/cases/reacting/probe-0929.yaml]
+     - step 2 (r:secret on the trigger element (private document)) PUT ${P}/a/x.html: status 500, want [409] (body: <div itemscope itemtype="https://pagelove.org/Error">
+    <meta itemprop="type" content="TriggerError">
+    <meta itemprop="source" content="/_pl/reacting-context-probe-0929-trigger-bind-433fff/r/triggers.html">
+    <meta itemprop="line" co…)
+     - step 2 (r:secret on the trigger element (private document)) PUT ${P}/a/x.html: body = "<div itemscope itemtype=\"https://pagelove.org/Error\">\n    <meta itemprop=\"type\" content=\"TriggerError\">\n    <meta itemprop=\"source\" content=\"/_pl/reacting-context-probe-0929-trigger-bind-433fff/r/triggers.html\">\n    <meta itemprop=\"line\" content=\"3\">\n    <meta itemprop=\"column\" content=\"58\">\n    <meta itemprop=\"phase\" content=\"action\">\n    <p itemprop=\"message\">undefined variable: secret</p>\n</div…", want "n=1"
+     - step 3 (r:pub on the trigger element (public document)) PUT ${P}/b/x.html: status 500, want [409] (body: <div itemscope itemtype="https://pagelove.org/Error">
+    <meta itemprop="type" content="TriggerError">
+    <meta itemprop="source" content="/_pl/reacting-context-probe-0929-trigger-bind-433fff/r/triggers.html">
+    <meta itemprop="line" co…)
+     - step 3 (r:pub on the trigger element (public document)) PUT ${P}/b/x.html: body = "<div itemscope itemtype=\"https://pagelove.org/Error\">\n    <meta itemprop=\"type\" content=\"TriggerError\">\n    <meta itemprop=\"source\" content=\"/_pl/reacting-context-probe-0929-trigger-bind-433fff/r/triggers.html\">\n    <meta itemprop=\"line\" content=\"3\">\n    <meta itemprop=\"column\" content=\"58\">\n    <meta itemprop=\"phase\" content=\"action\">\n    <p itemprop=\"message\">undefined variable: pub</p>\n</div>", want "n=1"
+     - step 4 (bare Sessel selector of the private document) PUT ${P}/c/x.html: status 500, want [409] (body: <div itemscope itemtype="https://pagelove.org/Error">
+    <meta itemprop="type" content="TriggerError">
+    <meta itemprop="source" content="/_pl/reacting-context-probe-0929-trigger-bind-433fff/r/triggers.html">
+    <meta itemprop="line" co…)
+     - step 4 (bare Sessel selector of the private document) PUT ${P}/c/x.html: body = "<div itemscope itemtype=\"https://pagelove.org/Error\">\n    <meta itemprop=\"type\" content=\"TriggerError\">\n    <meta itemprop=\"source\" content=\"/_pl/reacting-context-probe-0929-trigger-bind-433fff/r/triggers.html\">\n    <meta itemprop=\"line\" content=\"3\">\n    <meta itemprop=\"column\" content=\"58\">\n    <meta itemprop=\"phase\" content=\"action\">\n    <p itemprop=\"message\">undefined variable: token</p>\n</div>", want "v=s3cret-test-token"
+     - step 5 (r:outer on an ancestor of the trigger) PUT ${P}/e/x.html: status 500, want [409] (body: <div itemscope itemtype="https://pagelove.org/Error">
+    <meta itemprop="type" content="TriggerError">
+    <meta itemprop="source" content="/_pl/reacting-context-probe-0929-trigger-bind-433fff/r/triggers.html">
+    <meta itemprop="line" co…)
+     - step 5 (r:outer on an ancestor of the trigger) PUT ${P}/e/x.html: body = "<div itemscope itemtype=\"https://pagelove.org/Error\">\n    <meta itemprop=\"type\" content=\"TriggerError\">\n    <meta itemprop=\"source\" content=\"/_pl/reacting-context-probe-0929-trigger-bind-433fff/r/triggers.html\">\n    <meta itemprop=\"line\" content=\"3\">\n    <meta itemprop=\"column\" content=\"58\">\n    <meta itemprop=\"phase\" content=\"action\">\n    <p itemprop=\"message\">undefined variable: outer</p>\n</div>", want "n=1"
+     - step 6 (value of r:secret) PUT ${P}/f/x.html: status 500, want [409] (body: <div itemscope itemtype="https://pagelove.org/Error">
+    <meta itemprop="type" content="TriggerError">
+    <meta itemprop="source" content="/_pl/reacting-context-probe-0929-trigger-bind-433fff/r/triggers.html">
+    <meta itemprop="line" co…)
+     - step 6 (value of r:secret) PUT ${P}/f/x.html: body = "<div itemscope itemtype=\"https://pagelove.org/Error\">\n    <meta itemprop=\"type\" content=\"TriggerError\">\n    <meta itemprop=\"source\" content=\"/_pl/reacting-context-probe-0929-trigger-bind-433fff/r/triggers.html\">\n    <meta itemprop=\"line\" content=\"3\">\n    <meta itemprop=\"column\" content=\"58\">\n    <meta itemprop=\"phase\" content=\"action\">\n    <p itemprop=\"message\">undefined variable: secret</p>\n</div…", want "v=s3cret-test-token"
+     - step 7 (a when that fails at run time) PUT ${P}/g/x.html: status 409, want [500] (body: when-false)
+
+3 passed, 1 failed, 0 skipped

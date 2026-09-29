@@ -1,0 +1,37 @@
+{
+  "case": "comp.rc.direct-put",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1",
+      "method": "PUT",
+      "path": "/_pl/comp-rc-direct-put-574a77/new-blog-post.html",
+      "status": 201,
+      "headers": {
+        "content-length": "58",
+        "content-type": "text/html",
+        "etag": "\"72daf77265d3d8f20e4a8c5defac3be0ce315cc5fe70bb86c02a68e6be4dfe63\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:42 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\u003ch1\u003eDirect\u003c/h1\u003e\u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 2",
+      "method": "GET",
+      "path": "/_pl/comp-rc-direct-put-574a77/new-blog-post.html",
+      "status": 200,
+      "headers": {
+        "accept-ranges": "selector, bytes",
+        "content-length": "58",
+        "content-type": "text/html",
+        "etag": "\"72daf77265d3d8f20e4a8c5defac3be0ce315cc5fe70bb86c02a68e6be4dfe63\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:42 GMT",
+        "vary": "Host, Range, Accept"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\u003ch1\u003eDirect\u003c/h1\u003e\u003c/body\u003e\u003c/html\u003e\n"
+    }
+  ],
+  "outcome": "pass",
+  "target": "local"
+}

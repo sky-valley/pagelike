@@ -1,0 +1,65 @@
+{
+  "case": "modeling.resolvers.js-read-uppercase",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (register declarations through the public plane (takes effect for the next request))",
+      "method": "PUT",
+      "path": "/_pl/modeling-resolvers-js-read-uppercase-d6df75/schema.html",
+      "status": 201,
+      "headers": {
+        "content-length": "714",
+        "content-type": "text/html",
+        "etag": "\"bf98a21f3d924452745467a22343f3a7675b31cb6c0fef99c6ad8b454eb9b624\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:44 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\n  \u003cdiv hidden itemscope itemtype=\"https://pagelove.org/Schema\"\u003e\n    \u003cmeta itemprop=\"type\" content=\"https://pagelike.test/_pl/modeling-resolvers-js-read-uppercase-d6df75/Doc\"\u003e\n    \u003cdiv itemprop=\"property\" itemscope itemtype=\"https://pagelove.org/Property\"\u003e\n      \u003cmeta itemprop=\"name\" content=\"title\"\u003e\n      \u003cmeta itemprop=\"type\" content=\"https://schema.host/Text\"\u003e\n      \u003cmeta itemprop=\"cardinality\" content=\"1..1\"\u003e\n      \u003cdiv itemprop=\"@read\" itemscope itemtype=\"https://pagelove.org/JavaScript/Module\"\u003e\n        \u003cscript itemprop=\"source\" type=\"module\"\u003eexport default (val) =\u003e typeof val === 'string' ? val.toUpperCase() : val;\u003c/script\u003e\n      \u003c/div\u003e\n    \u003c/div\u003e\n  \u003c/div\u003e\n\u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 2 (store a lowercase title)",
+      "method": "PUT",
+      "path": "/_pl/modeling-resolvers-js-read-uppercase-d6df75/d.html",
+      "status": 201,
+      "headers": {
+        "content-length": "196",
+        "content-type": "text/html",
+        "etag": "\"c578adca5358e224bd7816c2de3e36a663b7cfd403c1b2d12b2843a52e4e8742\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:44 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\n  \u003cdiv itemscope itemtype=\"https://pagelike.test/_pl/modeling-resolvers-js-read-uppercase-d6df75/Doc\"\u003e\n    \u003cspan itemprop=\"title\"\u003ehello\u003c/span\u003e\n  \u003c/div\u003e\n\u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 3 (public GET shows the transformed value)",
+      "method": "GET",
+      "path": "/_pl/modeling-resolvers-js-read-uppercase-d6df75/d.html",
+      "status": 200,
+      "headers": {
+        "accept-ranges": "selector, bytes",
+        "cache-control": "public, max-age=5",
+        "content-length": "196",
+        "content-type": "text/html",
+        "etag": "W/\"46f10a86d8321f672b6848cc8b2079ac11d06e57b3f0df9af80062813a32bfb1\"",
+        "vary": "Host, Range, Accept"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\n  \u003cdiv itemscope itemtype=\"https://pagelike.test/_pl/modeling-resolvers-js-read-uppercase-d6df75/Doc\"\u003e\n    \u003cspan itemprop=\"title\"\u003eHELLO\u003c/span\u003e\n  \u003c/div\u003e\n\u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 4 (stored (authoring plane) value is unchanged)",
+      "method": "GET",
+      "path": "/_pl/modeling-resolvers-js-read-uppercase-d6df75/d.html",
+      "status": 200,
+      "headers": {
+        "accept-ranges": "bytes",
+        "content-length": "196",
+        "content-type": "text/html",
+        "etag": "\"c578adca5358e224bd7816c2de3e36a663b7cfd403c1b2d12b2843a52e4e8742\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:44 GMT"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\n  \u003cdiv itemscope itemtype=\"https://pagelike.test/_pl/modeling-resolvers-js-read-uppercase-d6df75/Doc\"\u003e\n    \u003cspan itemprop=\"title\"\u003ehello\u003c/span\u003e\n  \u003c/div\u003e\n\u003c/body\u003e\u003c/html\u003e\n"
+    }
+  ],
+  "outcome": "pass",
+  "target": "local"
+}

@@ -1,0 +1,74 @@
+{
+  "case": "modeling.types.datetime-grammar-edges",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (register declarations through the public plane (takes effect for the next request))",
+      "method": "PUT",
+      "path": "/_pl/modeling-types-datetime-grammar-edges-c3d021/schema.html",
+      "status": 201,
+      "headers": {
+        "content-length": "483",
+        "content-type": "text/html",
+        "etag": "\"b246314e6efe20a1c5da4dfbb8b021a1f6d6ce824445c6d7e3f1a9536c189fe8\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:45 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\n  \u003cdiv hidden itemscope itemtype=\"https://pagelove.org/Schema\"\u003e\n    \u003cmeta itemprop=\"type\" content=\"https://pagelike.test/_pl/modeling-types-datetime-grammar-edges-c3d021/Value\"\u003e\n    \u003cdiv itemprop=\"property\" itemscope itemtype=\"https://pagelove.org/Property\"\u003e\n      \u003cmeta itemprop=\"name\" content=\"v\"\u003e\n      \u003cmeta itemprop=\"type\" content=\"https://schema.host/DateTime\"\u003e\n      \u003cmeta itemprop=\"cardinality\" content=\"1..1\"\u003e\n    \u003c/div\u003e\n  \u003c/div\u003e\n\u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 2 (valid: \"2024-01-15T10:30:00.123+01:00\")",
+      "method": "PUT",
+      "path": "/_pl/modeling-types-datetime-grammar-edges-c3d021/ok-0.html",
+      "status": 201,
+      "headers": {
+        "content-length": "223",
+        "content-type": "text/html",
+        "etag": "\"46c79a9903eb8a17730ee30b9a2b217a4148144332974b6e48c85d33fa718612\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:45 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\n  \u003cdiv itemscope itemtype=\"https://pagelike.test/_pl/modeling-types-datetime-grammar-edges-c3d021/Value\"\u003e\n    \u003cmeta itemprop=\"v\" content=\"2024-01-15T10:30:00.123+01:00\"\u003e\n  \u003c/div\u003e\n\u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 3 (valid: \"2024-01-15T10:30:00-05:00\")",
+      "method": "PUT",
+      "path": "/_pl/modeling-types-datetime-grammar-edges-c3d021/ok-1.html",
+      "status": 201,
+      "headers": {
+        "content-length": "219",
+        "content-type": "text/html",
+        "etag": "\"3f0c2e7df8cc33e2a40745e1d95f69e4623dff5f4b6747b599de984189393c45\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:45 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\n  \u003cdiv itemscope itemtype=\"https://pagelike.test/_pl/modeling-types-datetime-grammar-edges-c3d021/Value\"\u003e\n    \u003cmeta itemprop=\"v\" content=\"2024-01-15T10:30:00-05:00\"\u003e\n  \u003c/div\u003e\n\u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 4 (invalid: \"2024-01-15T10:30:00\")",
+      "method": "PUT",
+      "path": "/_pl/modeling-types-datetime-grammar-edges-c3d021/bad-0.html",
+      "status": 422,
+      "headers": {
+        "content-length": "928",
+        "content-type": "text/html; charset=utf-8",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\n  \u003chead\u003e\n    \u003ctitle\u003e422 Unprocessable Entity - Schema Violation\u003c/title\u003e\n  \u003c/head\u003e\n  \u003cbody itemscope itemtype=\"https://pagelove.org/SchemaViolation\"\u003e\n    \u003ch1 itemprop=\"name\"\u003eUnprocessable Entity\u003c/h1\u003e\n    \u003cmeta itemprop=\"statusCode\" content=\"422\"\u003e\n    \u003cp itemprop=\"description\"\u003eSchema validation failed\u003c/p\u003e\n    \u003cul\u003e\n      \u003cli itemprop=\"violations\" itemscope itemtype=\"https://pagelove.org/Violation\"\u003e\n        \u003cspan itemprop=\"check\"\u003etype\u003c/span\u003e\n        \u003cspan itemprop=\"itemtype\"\u003ehttps://pagelike.test/_pl/modeling-types-datetime-grammar-edges-c3d021/Value\u003c/span\u003e\n        \u003cspan itemprop=\"property\"\u003ev\u003c/span\u003e\n        \u003cspan itemprop=\"value\"\u003e2024-01-15T10:30:00\u003c/span\u003e\n        \u003cspan itemprop=\"message\"\u003e[https://pagelike.test/_pl/modeling-types-datetime-grammar-edges-c3d021/Value].v: Value \u0026quot;2024-01-15T10:30:00\u0026quot; is not a valid https://schema.host/DateTime\u003c/span\u003e\n      \u003c/li\u003e\n    \u003c/ul\u003e\n  \u003c/body\u003e\n\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 5 (invalid: \"2024-01-15 10:30\")",
+      "method": "PUT",
+      "path": "/_pl/modeling-types-datetime-grammar-edges-c3d021/bad-1.html",
+      "status": 422,
+      "headers": {
+        "content-length": "922",
+        "content-type": "text/html; charset=utf-8",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\n  \u003chead\u003e\n    \u003ctitle\u003e422 Unprocessable Entity - Schema Violation\u003c/title\u003e\n  \u003c/head\u003e\n  \u003cbody itemscope itemtype=\"https://pagelove.org/SchemaViolation\"\u003e\n    \u003ch1 itemprop=\"name\"\u003eUnprocessable Entity\u003c/h1\u003e\n    \u003cmeta itemprop=\"statusCode\" content=\"422\"\u003e\n    \u003cp itemprop=\"description\"\u003eSchema validation failed\u003c/p\u003e\n    \u003cul\u003e\n      \u003cli itemprop=\"violations\" itemscope itemtype=\"https://pagelove.org/Violation\"\u003e\n        \u003cspan itemprop=\"check\"\u003etype\u003c/span\u003e\n        \u003cspan itemprop=\"itemtype\"\u003ehttps://pagelike.test/_pl/modeling-types-datetime-grammar-edges-c3d021/Value\u003c/span\u003e\n        \u003cspan itemprop=\"property\"\u003ev\u003c/span\u003e\n        \u003cspan itemprop=\"value\"\u003e2024-01-15 10:30\u003c/span\u003e\n        \u003cspan itemprop=\"message\"\u003e[https://pagelike.test/_pl/modeling-types-datetime-grammar-edges-c3d021/Value].v: Value \u0026quot;2024-01-15 10:30\u0026quot; is not a valid https://schema.host/DateTime\u003c/span\u003e\n      \u003c/li\u003e\n    \u003c/ul\u003e\n  \u003c/body\u003e\n\u003c/html\u003e\n"
+    }
+  ],
+  "outcome": "pass",
+  "target": "local"
+}

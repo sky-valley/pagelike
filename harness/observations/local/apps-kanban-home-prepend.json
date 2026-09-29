@@ -1,0 +1,93 @@
+{
+  "case": "apps.kanban.home-prepend",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (create the board document (whole-document PUT))",
+      "method": "PUT",
+      "path": "/_pl/apps-kanban-home-prepend-afa534/boards/b-new0001.html",
+      "status": 201,
+      "headers": {
+        "content-length": "193",
+        "content-type": "text/html",
+        "etag": "\"317ed7b8989383fc30bd422d96512dc277f058bc303414c487c9780d24c113ab\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:41 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\u003chtml lang=\"en\"\u003e\u003chead\u003e\u003cmeta charset=\"utf-8\"\u003e\u003ctitle\u003eNew — Board\u003c/title\u003e\u003c/head\u003e\u003cbody class=\"board\" data-board=\"b-new0001\"\u003e\u003cmain class=\"lists-row\" id=\"lists\"\u003e\u003c/main\u003e\u003c/body\u003e\u003c/html\u003e"
+    },
+    {
+      "step": "step 2 (prepend its tile on the home page)",
+      "method": "POST",
+      "path": "/_pl/apps-kanban-home-prepend-afa534/index.html",
+      "status": 206,
+      "headers": {
+        "content-length": "431",
+        "content-range": "selector #boards",
+        "content-type": "text/html",
+        "etag": "\"777687085c941db2b7acd91dfdf3a5360d48998933cf75801ede8432bf726cac-777687085c941db2b7acd91dfdf3a5360d48998933cf75801ede8432bf726cac-2\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:41 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003cli class=\"board-tile\" id=\"b-new0001\" data-board=\"b-new0001\" data-bg=\"forest\" itemscope itemtype=\"urn:board:BoardRef\"\u003e\u003ca href=\"/boards/b-new0001.html\" itemprop=\"name\"\u003eNew\u003c/a\u003e\u003cmeta data-f=\"starred\" content=\"false\"\u003e\u003cmeta data-f=\"bg\" content=\"forest\"\u003e\u003cbutton class=\"tile-archive\" type=\"button\" aria-label=\"Archive board\"\u003eArchive\u003c/button\u003e\u003cbutton class=\"star\" type=\"button\" aria-pressed=\"false\" aria-label=\"Star board\"\u003e★\u003c/button\u003e\u003c/li\u003e"
+    },
+    {
+      "step": "step 3 (the new tile is first)",
+      "method": "GET",
+      "path": "/_pl/apps-kanban-home-prepend-afa534/index.html",
+      "status": 206,
+      "headers": {
+        "accept-ranges": "selector, bytes",
+        "content-length": "431",
+        "content-range": "selector #boards \u003e li:first-child",
+        "content-type": "text/html",
+        "etag": "\"777687085c941db2b7acd91dfdf3a5360d48998933cf75801ede8432bf726cac-777687085c941db2b7acd91dfdf3a5360d48998933cf75801ede8432bf726cac-2\"",
+        "vary": "Host, Range, Accept"
+      },
+      "body": "\u003cli class=\"board-tile\" id=\"b-new0001\" data-board=\"b-new0001\" data-bg=\"forest\" itemscope itemtype=\"urn:board:BoardRef\"\u003e\u003ca href=\"/boards/b-new0001.html\" itemprop=\"name\"\u003eNew\u003c/a\u003e\u003cmeta data-f=\"starred\" content=\"false\"\u003e\u003cmeta data-f=\"bg\" content=\"forest\"\u003e\u003cbutton class=\"tile-archive\" type=\"button\" aria-label=\"Archive board\"\u003eArchive\u003c/button\u003e\u003cbutton class=\"star\" type=\"button\" aria-pressed=\"false\" aria-label=\"Star board\"\u003e★\u003c/button\u003e\u003c/li\u003e"
+    },
+    {
+      "step": "step 4 (star it (setField → PUT of one meta))",
+      "method": "PUT",
+      "path": "/_pl/apps-kanban-home-prepend-afa534/index.html",
+      "status": 206,
+      "headers": {
+        "content-length": "38",
+        "content-range": "selector #b-new0001 [data-f=\"starred\"]",
+        "content-type": "text/html",
+        "etag": "\"ea5bf297fc7821af5a7520c9f3352b3b6594ea5f83b56ea1aed4d18fb79d57e1-ea5bf297fc7821af5a7520c9f3352b3b6594ea5f83b56ea1aed4d18fb79d57e1-3\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:41 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003cmeta data-f=\"starred\" content=\"true\"\u003e"
+    },
+    {
+      "step": "step 5 (archive a board tile (MOVE into)",
+      "method": "MOVE",
+      "path": "/_pl/apps-kanban-home-prepend-afa534/index.html",
+      "status": 204,
+      "headers": {
+        "etag": "\"43c53bdaf98bb261f29ef27fc09e31e390ba8d484bd13b056309b6816afc37d0\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:41 GMT",
+        "vary": "Host, Range"
+      }
+    },
+    {
+      "step": "step 6 (final home state)",
+      "method": "GET",
+      "path": "/_pl/apps-kanban-home-prepend-afa534/index.html",
+      "status": 206,
+      "headers": {
+        "accept-ranges": "selector, bytes",
+        "content-length": "298",
+        "content-range": "selector #archived-boards",
+        "content-type": "text/html",
+        "etag": "\"252c2f75165f78708bede69d1c1f8cbe9600d6b47663b785b8bb80c98d4103cc-252c2f75165f78708bede69d1c1f8cbe9600d6b47663b785b8bb80c98d4103cc-4\"",
+        "vary": "Host, Range, Accept"
+      },
+      "body": "\u003cul class=\"board-grid\" id=\"archived-boards\"\u003e\u003cli class=\"board-tile\" id=\"b-old0001\" data-board=\"b-old0001\" data-bg=\"sand\" itemscope itemtype=\"urn:board:BoardRef\"\u003e\u003ca href=\"/boards/b-old0001.html\" itemprop=\"name\"\u003eOld\u003c/a\u003e\u003cmeta data-f=\"starred\" content=\"false\"\u003e\u003cmeta data-f=\"bg\" content=\"sand\"\u003e\u003c/li\u003e\u003c/ul\u003e"
+    }
+  ],
+  "outcome": "pass",
+  "target": "local"
+}

@@ -1,0 +1,39 @@
+{
+  "case": "authz.default-get.sse-users-only",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (anonymous subscribe refused)",
+      "method": "GET",
+      "path": "/_pl/authz-default-get-sse-users-only-2bae84/feed.html",
+      "status": 401,
+      "headers": {
+        "content-length": "466",
+        "content-type": "text/html; charset=utf-8"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\n\u003chead\u003e\n    \u003cmeta charset=\"UTF-8\"\u003e\n    \u003ctitle\u003e401 Unauthorized\u003c/title\u003e\n\u003c/head\u003e\n\u003cbody itemscope itemtype=\"https://pagelove.org/1.0/Error\"\u003e\n    \u003ch1\u003e401 Unauthorized\u003c/h1\u003e\n    \u003cp itemprop=\"message\"\u003eAuthentication required to access this resource.\u003c/p\u003e\n    \u003cdl\u003e\n        \u003cdt\u003eResource\u003c/dt\u003e\n        \u003cdd itemprop=\"resource\"\u003e/_pl/authz-default-get-sse-users-only-2bae84/feed.html\u003c/dd\u003e\n    \u003c/dl\u003e\n    \u003cp\u003e\u003ca href=\"/auth/login\"\u003eLog in\u003c/a\u003e\u003c/p\u003e\n\u003c/body\u003e\n\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 2 (sse open s1)",
+      "method": "GET",
+      "path": "/_pl/authz-default-get-sse-users-only-2bae84/feed.html",
+      "status": 200,
+      "headers": {
+        "cache-control": "no-cache",
+        "content-type": "text/event-stream",
+        "x-accel-buffering": "no"
+      }
+    },
+    {
+      "step": "step 3",
+      "events": [
+        {
+          "event": "pagelove-connection",
+          "data": "de1a73ab-c9f0-4aa2-b6ae-9915515768e2"
+        }
+      ]
+    }
+  ],
+  "outcome": "pass",
+  "target": "local"
+}

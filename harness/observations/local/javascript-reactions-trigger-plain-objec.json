@@ -1,0 +1,34 @@
+{
+  "case": "javascript.reactions.trigger-plain-object-is-error",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (register the trigger/processor (public plane))",
+      "method": "PUT",
+      "path": "/_pl/javascript-reactions-trigger-plain-objec-faf925/reactions.html",
+      "status": 201,
+      "headers": {
+        "content-length": "466",
+        "content-type": "text/html",
+        "etag": "\"b9ec2bfa1bc39b2a9e901f738bf7603326207f643f6f711883a105eab4a910da\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:43 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\n\u003cdiv itemscope itemtype=\"https://pagelove.org/Trigger\"\u003e\n\u003cmeta itemprop=\"resource\" content=\"/_pl/javascript-reactions-trigger-plain-objec-faf925/guarded/*\"\u003e\n\u003cmeta itemprop=\"method\" content=\"PUT\"\u003e\n\u003cdiv itemprop=\"action\" itemscope itemtype=\"https://pagelove.org/JavaScript/Module\"\u003e\n\u003cscript itemprop=\"source\" type=\"module\"\u003e\nexport default function() { throw { status: 402, message: 'plain-object' }; }\n\u003c/script\u003e\n\u003c/div\u003e\n\u003c/div\u003e\n\u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 2 (runtime error)",
+      "method": "PUT",
+      "path": "/_pl/javascript-reactions-trigger-plain-objec-faf925/guarded/a.html",
+      "status": 500,
+      "headers": {
+        "content-length": "817",
+        "content-type": "text/html; charset=utf-8",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\n\u003chead\u003e\n\u003cmeta charset=\"UTF-8\"\u003e\n\u003ctitle\u003e500 Internal Server Error\u003c/title\u003e\n\u003c/head\u003e\n\u003cbody\u003e\n\u003carticle itemscope itemtype=\"https://pagelove.org/Error\"\u003e\n  \u003cmeta itemprop=\"status\" content=\"500\"\u003e\n  \u003cmeta itemprop=\"kind\" content=\"BindingFailure\"\u003e\n  \u003cdiv itemprop=\"type\" itemscope itemtype=\"https://dombase.pagelove.team/ns/error/BindingFailure\"\u003e\u003c/div\u003e\n  \u003cp itemprop=\"message\"\u003ea reaction failed: [object Object]\u003c/p\u003e\n  \u003cmeta itemprop=\"resource\" content=\"/_pl/javascript-reactions-trigger-plain-objec-faf925/guarded/a.html\"\u003e\n  \u003cdiv itemprop=\"detail\"\u003e\u003cdiv itemscope itemtype=\"https://pagelove.org/BindingFailure\"\u003e\u003cmeta itemprop=\"language\" content=\"https://pagelove.org/JavaScript/Module\"\u003e\u003cmeta itemprop=\"variant\" content=\"threw\"\u003e\u003cp itemprop=\"message\"\u003e[object Object]\u003c/p\u003e\u003c/div\u003e\u003c/div\u003e\n\u003c/article\u003e\n\u003c/body\u003e\n\u003c/html\u003e\n"
+    }
+  ],
+  "outcome": "pass",
+  "target": "local"
+}

@@ -1,0 +1,50 @@
+{
+  "case": "javascript.classes.import-class-behaviour",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (register declarations through the public plane (takes effect for the next request))",
+      "method": "PUT",
+      "path": "/_pl/javascript-classes-import-class-behaviou-44d157/schema.html",
+      "status": 201,
+      "headers": {
+        "content-length": "1334",
+        "content-type": "text/html",
+        "etag": "\"db6527506850a9b68c2dff30d70f369f56f0f372986f670902da10ff48064bec\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:42 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\n\u003cdiv hidden itemscope itemtype=\"https://pagelove.org/Schema\"\u003e\n\u003cmeta itemprop=\"type\" content=\"https://pagelike.test/_pl/javascript-classes-import-class-behaviou-44d157/Note\"\u003e\n\u003cdiv itemprop=\"property\" itemscope itemtype=\"https://pagelove.org/Property\"\u003e\n\u003cmeta itemprop=\"name\" content=\"title\"\u003e\n\u003cmeta itemprop=\"type\" content=\"https://schema.host/Text\"\u003e\n\u003cmeta itemprop=\"cardinality\" content=\"0..1\"\u003e\n\u003c/div\u003e\n\u003c/div\u003e\n\u003cdiv hidden itemscope itemtype=\"https://pagelove.org/Schema\"\u003e\n\u003cmeta itemprop=\"type\" content=\"https://pagelike.test/_pl/javascript-classes-import-class-behaviou-44d157/Board\"\u003e\n\u003cdiv itemprop=\"property\" itemscope itemtype=\"https://pagelove.org/Property\"\u003e\n\u003cmeta itemprop=\"name\" content=\"probe\"\u003e\n\u003cmeta itemprop=\"type\" content=\"https://schema.host/Text\"\u003e\n\u003cmeta itemprop=\"cardinality\" content=\"0..1\"\u003e\n\u003cdiv itemprop=\"default\" itemscope itemtype=\"https://pagelove.org/JavaScript/Module\"\u003e\n\u003cscript itemprop=\"source\" type=\"module\"\u003e\nimport Note from \"https://pagelike.test/_pl/javascript-classes-import-class-behaviou-44d157/Note\" with { type: \"https://pagelove.org/Schema\" };\nexport default () =\u003e {\n  const n = new Note({ title: 't' });\n  const before = n.title;\n  n.title = 'u';\n  return [Note.name, n instanceof Note, before, n.title, typeof Note].join('|');\n};\n\u003c/script\u003e\n\u003c/div\u003e\n\u003c/div\u003e\n\u003c/div\u003e\n\u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 2 (PUT an instance (a.html))",
+      "method": "PUT",
+      "path": "/_pl/javascript-classes-import-class-behaviou-44d157/a.html",
+      "status": 201,
+      "headers": {
+        "content-length": "250",
+        "content-type": "text/html",
+        "etag": "\"576a53cbd82e7253f69ff8ec74fed406ea2e73f45e515ab9fe4d7faafe5d3ca0\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:42 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\n\u003cdiv itemscope itemtype=\"https://pagelike.test/_pl/javascript-classes-import-class-behaviou-44d157/Board\"\u003e\n\u003cmeta itemprop=\"other\" content=\"o\"\u003e\n\u003cmeta itemprop=\"probe\" content=\"Note|true|t|u|function\"\u003e\u003c/div\u003e\n\u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 3 (stored state (authoring plane, raw))",
+      "method": "GET",
+      "path": "/_pl/javascript-classes-import-class-behaviou-44d157/a.html",
+      "status": 200,
+      "headers": {
+        "accept-ranges": "bytes",
+        "content-length": "250",
+        "content-type": "text/html",
+        "etag": "\"576a53cbd82e7253f69ff8ec74fed406ea2e73f45e515ab9fe4d7faafe5d3ca0\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:42 GMT"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\n\u003cdiv itemscope itemtype=\"https://pagelike.test/_pl/javascript-classes-import-class-behaviou-44d157/Board\"\u003e\n\u003cmeta itemprop=\"other\" content=\"o\"\u003e\n\u003cmeta itemprop=\"probe\" content=\"Note|true|t|u|function\"\u003e\u003c/div\u003e\n\u003c/body\u003e\u003c/html\u003e\n"
+    }
+  ],
+  "outcome": "pass",
+  "target": "local"
+}

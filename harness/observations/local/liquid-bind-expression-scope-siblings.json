@@ -1,0 +1,38 @@
+{
+  "case": "liquid.bind.expression-scope-siblings",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (declaring element)",
+      "method": "GET",
+      "path": "/_pl/liquid-bind-expression-scope-siblings-250403/scope.html",
+      "status": 206,
+      "headers": {
+        "accept-ranges": "selector, bytes",
+        "content-length": "38",
+        "content-range": "selector #d1",
+        "content-type": "text/html",
+        "etag": "\"5fe08c806605177de1e567235e0a3ca6d0597a95de63fc03a54e8699b1315e8c-5fe08c806605177de1e567235e0a3ca6d0597a95de63fc03a54e8699b1315e8c-1\"",
+        "vary": "Host, Range, Accept"
+      },
+      "body": "\u003cdiv id=\"d1\"\u003e\u003cp\u003e2 of 5 items\u003c/p\u003e\u003c/div\u003e"
+    },
+    {
+      "step": "step 2 (sibling)",
+      "method": "GET",
+      "path": "/_pl/liquid-bind-expression-scope-siblings-250403/scope.html",
+      "status": 206,
+      "headers": {
+        "accept-ranges": "selector, bytes",
+        "content-length": "42",
+        "content-range": "selector #d2",
+        "content-type": "text/html",
+        "etag": "\"323697d9d77431b8b855823df52a14fba4ab2d333875d0a4298a0cc5482c9fb1-323697d9d77431b8b855823df52a14fba4ab2d333875d0a4298a0cc5482c9fb1-1\"",
+        "vary": "Host, Range, Accept"
+      },
+      "body": "\u003cdiv id=\"d2\"\u003e\u003cp\u003e[] 5 total items\u003c/p\u003e\u003c/div\u003e"
+    }
+  ],
+  "outcome": "pass",
+  "target": "local"
+}

@@ -1,0 +1,33 @@
+{
+  "case": "modeling.discovery.same-write-not-self-validated",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (one PUT declares the schema and an invalid instance)",
+      "method": "PUT",
+      "path": "/_pl/modeling-discovery-same-write-not-self-v-7195ea/both.html",
+      "status": 201,
+      "headers": {
+        "content-type": "text/html",
+        "etag": "\"2075fc7375253600193526269368cb5b357342dc299a96db541c0c2282c5868d\"",
+        "last-modified": "Tue, 29 Sep 2026 00:47:52 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\n  \u003cdiv hidden itemscope itemtype=\"https://pagelove.org/Schema\"\u003e\n    \u003cmeta itemprop=\"type\" content=\"https://pagelike.test/_pl/modeling-discovery-same-write-not-self-v-7195ea/Tag\"\u003e\n    \u003cdiv itemprop=\"property\" itemscope itemtype=\"https://pagelove.org/Property\"\u003e\n      \u003cmeta itemprop=\"name\" content=\"label\"\u003e\n      \u003cmeta itemprop=\"type\" content=\"https://schema.host/Text\"\u003e\n      \u003cmeta itemprop=\"cardinality\" content=\"1..1\"\u003e\n    \u003c/div\u003e\n  \u003cmeta itemprop=\"@id\" content=\"https://schema.host/txcnully\"\u003e\u003cmeta itemprop=\"path\" content=\"/Schemahttps://schema.host/txcnully.html\"\u003e\u003c/div\u003e\n  \u003cdiv itemscope itemtype=\"https://pagelike.test/_pl/modeling-discovery-same-write-not-self-v-7195ea/Tag\"\u003e\u003c/div\u003e\n\n                \u003cdiv style=\"\n                            position: fixed;\n                            bottom: 0;\n                            left: 0;\n                            right: 0;\n                            padding: 8px;\n                            background: #f0f0f0;\n                            text-align: center;\n                            font-size: 12px;\n                            color: #666;\n                            z-index: 9999;\n                            opacity: 0.8;\n                            border-top: 1px solid #ddd;\n                        \"\u003e\n                    Powered by\n                    \u003ca href=\"https://pagelove.com/\" style=\"color: #4a90d9; text-decoration: none\"\u003ePagelove\u003c/a\u003e\n                \u003c/div\u003e\n            \u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 2 (the next write is validated against the new schema)",
+      "method": "PUT",
+      "path": "/_pl/modeling-discovery-same-write-not-self-v-7195ea/next.html",
+      "status": 422,
+      "headers": {
+        "content-length": "305",
+        "content-type": "text/html",
+        "vary": "Host, Range"
+      },
+      "body": "\u003cdiv itemscope itemtype=\"https://pagelove.org/SchemaViolation\"\u003e\u003cul itemprop=\"problems\"\u003e\u003cli itemprop=\"problem\"\u003e\u003cspan itemprop=\"message\"\u003e[https://pagelike.test/_pl/modeling-discovery-same-write-not-self-v-7195ea/Tag].label: cardinality 1..1 violated: expected exactly 1 value, found 0\u003c/span\u003e\u003c/li\u003e\u003c/ul\u003e\u003c/div\u003e"
+    }
+  ],
+  "outcome": "pass",
+  "target": "live"
+}

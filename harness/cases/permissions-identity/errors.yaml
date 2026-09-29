@@ -1,0 +1,207 @@
+# Denial responses: status and error document (spec R-PERM-54..57).
+cases:
+  - id: authz.error.401-document-shape
+    title: The 401 error document carries https://pagelove.org/1.0/Error with message and resource
+    area: permissions-identity
+    feature: 401 error document
+    evidence: documented
+    source: "docs reference/permissions/AuthorizationRule §Testable examples (all three examples); read-probes.json query-sessel (live, same body without the login link)"
+    confidence: high
+    requires: []
+    live: true
+    notes: The login-link paragraph is asserted separately (authz.error.401-login-link-when-oidc) because it depends on host configuration.
+    site:
+      files:
+        - path: "${P}/deny.html"
+          body: '<!DOCTYPE html><html><body><p>Original</p></body></html>'
+    steps:
+      - name: anonymous PUT with no rule
+        as: anonymous
+        request: {method: PUT, path: "${P}/deny.html", headers: {Content-Type: text/html}, body: '<!DOCTYPE html><html><body><p>Modified</p></body></html>'}
+        expect:
+          status: 401
+          header_matches: {Content-Type: "^text/html"}
+          headers_absent: [ETag]
+          body_contains:
+            - '<title>401 Unauthorized</title>'
+            - '<body itemscope itemtype="https://pagelove.org/1.0/Error">'
+            - '<h1>401 Unauthorized</h1>'
+            - '<p itemprop="message">Authentication required to access this resource.</p>'
+            - '<dt>Resource</dt>'
+          microdata:
+            itemtype: https://pagelove.org/1.0/Error
+            properties:
+              message: Authentication required to access this resource.
+              resource: "${P}/deny.html"
+
+  - id: authz.error.401-no-www-authenticate
+    title: A rule-based 401 carries no WWW-Authenticate challenge
+    area: permissions-identity
+    feature: 401 headers
+    evidence: live-observed
+    source: "read-probes.json case query-sessel (docs.pagelove.com 2026-09-28): 401 headers Date, Content-Type, Content-Length, Connection, X-Cache only"
+    confidence: medium
+    requires: []
+    live: true
+    site:
+      files:
+        - path: "${P}/doc.html"
+          body: '<!DOCTYPE html><html><body><h1>T</h1></body></html>'
+        - path: "${P}/rules.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div hidden itemscope itemtype="https://pagelove.org/AuthorizationRule">
+                <meta itemprop="actor" content="*"><meta itemprop="resource" content="${P}/doc.html">
+                <meta itemprop="method" content="GET"><meta itemprop="action" content="deny">
+              </div>
+            </body></html>
+    steps:
+      - name: denied read
+        as: anonymous
+        request: {method: GET, path: "${P}/doc.html"}
+        expect:
+          status: 401
+          headers_absent: [WWW-Authenticate]
+          header_matches: {Content-Type: "^text/html; ?charset=utf-8$"}
+
+  - id: authz.error.401-resource-is-canonical-path
+    title: The error document names the canonical document path (dir/ -> dir/index.html)
+    area: permissions-identity
+    feature: 401 error document
+    evidence: live-observed
+    source: "read-probes.json case query-sessel: request to / reported <dd itemprop=\"resource\">/index.html</dd>"
+    confidence: medium
+    requires: []
+    live: true
+    notes: Probe P-23.
+    site:
+      files:
+        - path: "${P}/dir/index.html"
+          body: '<!DOCTYPE html><html><body><h1>Dir</h1></body></html>'
+        - path: "${P}/rules.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div hidden itemscope itemtype="https://pagelove.org/AuthorizationRule">
+                <meta itemprop="actor" content="*"><meta itemprop="resource" content="${P}/dir/*">
+                <meta itemprop="method" content="GET"><meta itemprop="action" content="deny">
+              </div>
+            </body></html>
+    steps:
+      - name: denied directory read
+        as: anonymous
+        request: {method: GET, path: "${P}/dir/"}
+        expect:
+          status: 401
+          body_contains: ['<dd itemprop="resource">${P}/dir/index.html</dd>']
+
+  - id: authz.error.401-login-link-when-oidc
+    title: When the host has an identity provider the 401 document links to its login path
+    area: permissions-identity
+    feature: 401 error document login link
+    evidence: documented
+    source: "docs reference/permissions/AuthorizationRule §Testable examples (<p><a href=\"/-pagelove/oidc/login\">Log in</a></p>); apps link /auth/login (pagelove-kanban/site/app.js@85109ab:173)"
+    confidence: medium
+    requires: [oidc-config]
+    live: false
+    notes: Contradictions C2/C3. pagelike links the configured login path (default /auth/login); the docs example shows /-pagelove/oidc/login.
+    site:
+      settings:
+        oidc: stub
+      files:
+        - path: "${P}/doc.html"
+          body: '<!DOCTYPE html><html><body><h1>T</h1></body></html>'
+    steps:
+      - name: anonymous write refused with a login link
+        as: anonymous
+        request: {method: PUT, path: "${P}/doc.html", headers: {Range: "selector=h1", Content-Type: text/html}, body: '<h1>x</h1>'}
+        expect:
+          status: 401
+          body_contains: ['<p><a href="', '">Log in</a></p>']
+
+  - id: authz.error.403-for-authenticated
+    title: A signed-in principal who is refused gets 403 with an Error document naming the resource
+    area: permissions-identity
+    feature: 403 error document
+    evidence: inferred
+    source: "status: docs reference/reading-and-writing/MOVE-method §Denials; body shape inferred from the documented 401 document (no 403 example exists)"
+    confidence: medium
+    requires: [multi-actor]
+    live: false
+    notes: Only status, itemtype and resource are asserted. Probe P-17.
+    site:
+      files:
+        - path: "${P}/doc.html"
+          body: '<!DOCTYPE html><html><body><h1>T</h1></body></html>'
+    actors:
+      bob: {sub: sub-bob, email: bob@example.com, email_verified: true, roles: []}
+    steps:
+      - name: signed-in write with no rule
+        as: bob
+        request: {method: PUT, path: "${P}/doc.html", headers: {Range: "selector=h1", Content-Type: text/html}, body: '<h1>x</h1>'}
+        expect:
+          status: 403
+          header_matches: {Content-Type: "^text/html"}
+          body_contains: ['itemtype="https://pagelove.org/1.0/Error"', '<dd itemprop="resource">${P}/doc.html</dd>']
+
+  - id: authz.error.head-denied-no-body
+    title: A denied HEAD returns the denial status with no body
+    area: permissions-identity
+    feature: denial for HEAD
+    evidence: inferred
+    source: "HTTP HEAD semantics; spec R-PERM-55"
+    confidence: medium
+    requires: []
+    live: true
+    site:
+      files:
+        - path: "${P}/doc.html"
+          body: '<!DOCTYPE html><html><body><h1>T</h1></body></html>'
+        - path: "${P}/rules.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div hidden itemscope itemtype="https://pagelove.org/AuthorizationRule">
+                <meta itemprop="actor" content="*"><meta itemprop="resource" content="${P}/doc.html">
+                <meta itemprop="method" content="GET"><meta itemprop="action" content="deny">
+              </div>
+            </body></html>
+    steps:
+      - name: HEAD refused
+        as: anonymous
+        request: {method: HEAD, path: "${P}/doc.html"}
+        expect:
+          status: 401
+          body: ""
+
+  - id: authz.error.sse-denied-is-plain-error
+    title: A refused SSE subscribe is an ordinary HTML error response, not an event stream
+    area: permissions-identity
+    feature: denial for SSE
+    evidence: inferred
+    source: "docs reference/reading-and-writing/Server-Sent-Events §Subscribing (subject to the same rules as any other read)"
+    confidence: medium
+    requires: []
+    live: true
+    site:
+      files:
+        - path: "${P}/doc.html"
+          body: '<!DOCTYPE html><html><body><h1>T</h1></body></html>'
+        - path: "${P}/rules.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div hidden itemscope itemtype="https://pagelove.org/AuthorizationRule">
+                <meta itemprop="actor" content="*"><meta itemprop="resource" content="${P}/doc.html">
+                <meta itemprop="method" content="GET"><meta itemprop="action" content="deny">
+              </div>
+            </body></html>
+    steps:
+      - name: subscribe refused
+        as: anonymous
+        request: {method: GET, path: "${P}/doc.html", headers: {Accept: text/event-stream}}
+        expect:
+          status: 401
+          header_matches: {Content-Type: "^text/html"}
+          body_contains: ['itemtype="https://pagelove.org/1.0/Error"']

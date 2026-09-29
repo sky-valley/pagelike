@@ -1,0 +1,37 @@
+{
+  "case": "javascript.jbind.docs-example-liquid",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (PUT the page (public plane; registers inline declarations))",
+      "method": "PUT",
+      "path": "/_pl/javascript-jbind-docs-example-liquid-7b810e/js-expr-summary.html",
+      "status": 201,
+      "headers": {
+        "content-length": "320",
+        "content-type": "text/html",
+        "etag": "\"c9d3248db3992b60bbd349db386dd515fd0bfe9f24cb92ed507327dcdd6d4ae2\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:43 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml xmlns:j=\"https://pagelove.org/Binding/JavaScript\" xmlns:pagelove=\"https://pagelove.org/1.0\"\u003e\n\u003cbody\u003e\n\u003cul j:total=\"[10, 20, 30].reduce((a, b) =\u0026gt; a + b, 0)\" j:doubled=\"total * 2\" pagelove:template=\"text/liquid\"\u003e\n  \u003cli\u003eTotal: {{ total }}\u003c/li\u003e\n  \u003cli\u003eDoubled: {{ doubled }}\u003c/li\u003e\n\u003c/ul\u003e\n\u003c/body\u003e\n\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 2 (GET renders the computed values; binding attributes are stripped)",
+      "method": "GET",
+      "path": "/_pl/javascript-jbind-docs-example-liquid-7b810e/js-expr-summary.html",
+      "status": 200,
+      "headers": {
+        "accept-ranges": "selector, bytes",
+        "cache-control": "public, max-age=5",
+        "content-length": "102",
+        "content-type": "text/html",
+        "etag": "W/\"3f872b9b2e18499bed0533213e0e7941430fbcb27cdd504cb02a5d68569397a2\"",
+        "vary": "Host, Range, Accept"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\n\u003cbody\u003e\n\u003cul\u003e\n  \u003cli\u003eTotal: 60\u003c/li\u003e\n  \u003cli\u003eDoubled: 120\u003c/li\u003e\n\u003c/ul\u003e\n\u003c/body\u003e\n\u003c/html\u003e\n"
+    }
+  ],
+  "outcome": "pass",
+  "target": "local"
+}

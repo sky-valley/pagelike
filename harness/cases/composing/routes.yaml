@@ -1,0 +1,561 @@
+# Composing: parameterized routes.
+# Spec: docs/spec/composing.md §15 (R-COMP-100..109).
+# Template paths contain a literal ':' segment; the runner writes them as-is.
+cases:
+  - id: comp.route.basic-id
+    title: One template stored at a :id path serves every concrete URL with request.params
+    area: composing
+    feature: parameterized routes
+    evidence: documented
+    source: "docs reference/composing-pages/Parameterized-Routes §Example (snapshot 2026-09-28)"
+    confidence: high
+    requires: [sessel]
+    live: true
+    site:
+      settings: {default_get: allow}
+      files:
+        - path: "${P}/users/:id/profile.html"
+          body: |
+            <!DOCTYPE html>
+            <html xmlns:e="https://pagelove.org/Binding/Sessel" xmlns:p="https://pagelove.org/1.0">
+              <body e:uid="request.params.id">
+                <main><p:stamp uid></p:stamp></main>
+              </body>
+            </html>
+      rules:
+        - {actor: "*", resource: "${P}/*", method: [GET, HEAD], action: Allow}
+    steps:
+      - as: anonymous
+        request: {method: GET, path: "${P}/users/42/profile.html"}
+        expect: {status: 200, body_matches: '<main>\s*42\s*</main>'}
+      - as: anonymous
+        request: {method: GET, path: "${P}/users/alice/profile.html"}
+        expect: {status: 200, body_matches: '<main>\s*alice\s*</main>'}
+
+  - id: comp.route.filename-param
+    title: A :slug.html filename captures the name before the extension and requires it
+    area: composing
+    feature: parameterized routes
+    evidence: documented
+    source: "docs reference/composing-pages/Parameterized-Routes §Authoring a route (snapshot 2026-09-28)"
+    confidence: high
+    requires: [sessel]
+    live: true
+    site:
+      settings: {default_get: allow}
+      files:
+        - path: "${P}/pages/:slug.html"
+          body: |
+            <!DOCTYPE html>
+            <html xmlns:e="https://pagelove.org/Binding/Sessel" xmlns:p="https://pagelove.org/1.0">
+            <body e:slug="request.params.slug"><main id="m"><p:stamp slug></p:stamp></main></body>
+            </html>
+      rules:
+        - {actor: "*", resource: "${P}/*", method: [GET, HEAD], action: Allow}
+    steps:
+      - as: anonymous
+        request: {method: GET, path: "${P}/pages/hello-world.html"}
+        expect: {status: 200, body_matches: 'id="m">\s*hello-world\s*<'}
+      - name: other extensions do not match the template
+        as: anonymous
+        request: {method: GET, path: "${P}/pages/hello-world.txt"}
+        expect: {status: 404}
+
+  - id: comp.route.multi-params
+    title: Several parameterized directory segments are all captured
+    area: composing
+    feature: parameterized routes
+    evidence: documented
+    source: "docs reference/composing-pages/Parameterized-Routes §Authoring a route (table row 2) (snapshot 2026-09-28)"
+    confidence: high
+    requires: [sessel]
+    live: true
+    site:
+      settings: {default_get: allow}
+      files:
+        - path: "${P}/orgs/:org_id/teams/:team_id/members.html"
+          body: |
+            <!DOCTYPE html>
+            <html xmlns:e="https://pagelove.org/Binding/Sessel" xmlns:p="https://pagelove.org/1.0">
+            <body e:o="request.params.org_id" e:t="request.params.team_id">
+              <p id="o"><p:stamp o></p:stamp></p>
+              <p id="t"><p:stamp t></p:stamp></p>
+            </body>
+            </html>
+      rules:
+        - {actor: "*", resource: "${P}/*", method: [GET, HEAD], action: Allow}
+    steps:
+      - as: anonymous
+        request: {method: GET, path: "${P}/orgs/acme/teams/backend/members.html"}
+        expect:
+          status: 200
+          body_matches: 'id="o">\s*acme\s*<[\s\S]*id="t">\s*backend\s*<'
+
+  - id: comp.route.percent-decoded
+    title: Captured values are percent-decoded
+    area: composing
+    feature: parameterized routes
+    evidence: documented
+    source: "docs reference/composing-pages/Parameterized-Routes §Resolution ('/pages/hello%20world.html captures slug = \"hello world\"') (snapshot 2026-09-28)"
+    confidence: high
+    requires: [sessel]
+    live: true
+    notes: "The runner percent-encodes the space in the request path."
+    site:
+      settings: {default_get: allow}
+      files:
+        - path: "${P}/pages/:slug.html"
+          body: |
+            <!DOCTYPE html>
+            <html xmlns:e="https://pagelove.org/Binding/Sessel" xmlns:p="https://pagelove.org/1.0">
+            <body e:slug="request.params.slug"><main id="m"><p:stamp slug></p:stamp></main></body>
+            </html>
+      rules:
+        - {actor: "*", resource: "${P}/*", method: [GET, HEAD], action: Allow}
+    steps:
+      - as: anonymous
+        request: {method: GET, path: "${P}/pages/hello world.html"}
+        expect: {status: 200, body_matches: 'id="m">\s*hello world\s*<'}
+
+  - id: comp.route.most-literal-wins
+    title: Among matching templates the one with the most literal segments wins
+    area: composing
+    feature: route precedence
+    evidence: documented
+    source: "docs reference/composing-pages/Parameterized-Routes §Most-literal-wins (snapshot 2026-09-28)"
+    confidence: high
+    requires: []
+    live: true
+    site:
+      settings: {default_get: allow}
+      files:
+        - path: "${P}/m/:p/q/view.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body><main>MORE-LITERAL</main></body></html>
+        - path: "${P}/m/:p/:q/view.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body><main>LESS-LITERAL</main></body></html>
+      rules:
+        - {actor: "*", resource: "${P}/*", method: [GET, HEAD], action: Allow}
+    steps:
+      - as: anonymous
+        request: {method: GET, path: "${P}/m/1/q/view.html"}
+        expect: {status: 200, body_contains: ["MORE-LITERAL"]}
+      - as: anonymous
+        request: {method: GET, path: "${P}/m/1/z/view.html"}
+        expect: {status: 200, body_contains: ["LESS-LITERAL"]}
+
+  - id: comp.route.tie-lexicographic
+    title: Equally literal templates tie-break by stored path in ascending order
+    area: composing
+    feature: route precedence
+    evidence: documented
+    source: "docs reference/composing-pages/Parameterized-Routes §Most-literal-wins (table row 2) (snapshot 2026-09-28)"
+    confidence: high
+    requires: []
+    live: true
+    site:
+      settings: {default_get: allow}
+      files:
+        - path: "${P}/items/:b_param/view.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body><main>B-PARAM</main></body></html>
+        - path: "${P}/items/:a_param/view.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body><main>A-PARAM</main></body></html>
+      rules:
+        - {actor: "*", resource: "${P}/*", method: [GET, HEAD], action: Allow}
+    steps:
+      - as: anonymous
+        request: {method: GET, path: "${P}/items/x/view.html"}
+        expect: {status: 200, body_contains: ["A-PARAM"], body_not_contains: ["B-PARAM"]}
+
+  - id: comp.route.literal-document-wins
+    title: A literal document at the exact path always wins over a template
+    area: composing
+    feature: route precedence
+    evidence: documented
+    source: "docs reference/composing-pages/Parameterized-Routes §Most-literal-wins (table row 1 and closing sentence) (snapshot 2026-09-28)"
+    confidence: high
+    requires: []
+    live: true
+    site:
+      settings: {default_get: allow}
+      files:
+        - path: "${P}/pages/about/index.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body><main>LITERAL-ABOUT</main></body></html>
+        - path: "${P}/pages/:slug/index.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body><main>FROM-TEMPLATE</main></body></html>
+      rules:
+        - {actor: "*", resource: "${P}/*", method: [GET, HEAD], action: Allow}
+    steps:
+      - as: anonymous
+        request: {method: GET, path: "${P}/pages/about/index.html"}
+        expect: {status: 200, body_contains: ["LITERAL-ABOUT"]}
+      - as: anonymous
+        request: {method: GET, path: "${P}/pages/other/index.html"}
+        expect: {status: 200, body_contains: ["FROM-TEMPLATE"]}
+
+  - id: comp.route.no-match-404
+    title: A path with no literal document and no matching template is 404
+    area: composing
+    feature: parameterized routes
+    evidence: documented
+    source: "docs reference/composing-pages/Parameterized-Routes §Error cases (snapshot 2026-09-28)"
+    confidence: high
+    requires: []
+    live: true
+    site:
+      settings: {default_get: allow}
+      files:
+        - path: "${P}/users/:id/profile.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body><main>profile</main></body></html>
+      rules:
+        - {actor: "*", resource: "${P}/*", method: [GET, HEAD], action: Allow}
+    steps:
+      - as: anonymous
+        request: {method: GET, path: "${P}/nothing/here.html"}
+        expect: {status: 404}
+
+  - id: comp.route.no-partial-match-404
+    title: Directory segments that match a template do not help when the final document is absent
+    area: composing
+    feature: parameterized routes
+    evidence: documented
+    source: "docs reference/composing-pages/Parameterized-Routes §Error cases ('there is no partial match') (snapshot 2026-09-28)"
+    confidence: high
+    requires: []
+    live: true
+    site:
+      settings: {default_get: allow}
+      files:
+        - path: "${P}/users/:id/profile.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body><main>profile</main></body></html>
+      rules:
+        - {actor: "*", resource: "${P}/*", method: [GET, HEAD], action: Allow}
+    steps:
+      - as: anonymous
+        request: {method: GET, path: "${P}/users/42/settings.html"}
+        expect: {status: 404}
+
+  - id: comp.route.selector-get-404
+    title: A selector GET to a route URL with no literal document is 404
+    area: composing
+    feature: parameterized routes
+    evidence: documented
+    source: "docs reference/composing-pages/Parameterized-Routes §Error cases (row 3) (snapshot 2026-09-28)"
+    confidence: medium
+    requires: []
+    live: true
+    notes: "R-COMP-107; contradiction C-12 (selector writes do resolve routes). Probe Q-13."
+    site:
+      settings: {default_get: allow}
+      files:
+        - path: "${P}/users/:id/profile.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body><main>profile</main></body></html>
+      rules:
+        - {actor: "*", resource: "${P}/*", method: [GET, HEAD], action: Allow}
+    steps:
+      - as: anonymous
+        request:
+          method: GET
+          path: "${P}/users/42/profile.html"
+          headers: {Range: "selector=main"}
+        expect: {status: 404}
+
+  - id: comp.route.selector-get-resolves
+    title: "Losing claim: a selector GET to a route URL resolves the route like a whole-document read"
+    area: composing
+    feature: parameterized routes
+    evidence: inferred
+    source: "inferred from docs reference/composing-pages/Parameterized-Routes §Resolution (selector writes resolve routes) and beta-js/primitives reading elements of the current page by selector (snapshot 2026-09-28)"
+    confidence: low
+    requires: [sessel]
+    live: true
+    status: disputed
+    notes: "R-COMP-107, contradiction C-12, probe Q-13; docs/compat/decisions.md D-1. pagelike follows comp.route.selector-get-404 (the documented error table); a live run tells which claim PageLove honours."
+    site:
+      settings: {default_get: allow}
+      files:
+        - path: "${P}/users/:id/profile.html"
+          body: |
+            <!DOCTYPE html>
+            <html xmlns:e="https://pagelove.org/Binding/Sessel" xmlns:p="https://pagelove.org/1.0">
+            <body e:uid="request.params.id"><main><p:stamp uid></p:stamp></main></body>
+            </html>
+      rules:
+        - {actor: "*", resource: "${P}/*", method: [GET, HEAD], action: Allow}
+    steps:
+      - as: anonymous
+        request:
+          method: GET
+          path: "${P}/users/42/profile.html"
+          headers: {Range: "selector=main"}
+        expect: {status: 206, body_contains: ["42"]}
+
+  - id: comp.route.whole-put-literal
+    title: A whole-document PUT to a concrete route URL creates a literal document; the template is untouched
+    area: composing
+    feature: parameterized routes
+    evidence: documented
+    source: "docs reference/composing-pages/Parameterized-Routes §Resolution ('Whole-document writes … are literal only') (snapshot 2026-09-28)"
+    confidence: high
+    requires: [sessel]
+    live: true
+    site:
+      settings: {default_get: allow}
+      files:
+        - path: "${P}/users/:id/profile.html"
+          body: |
+            <!DOCTYPE html>
+            <html xmlns:e="https://pagelove.org/Binding/Sessel" xmlns:p="https://pagelove.org/1.0">
+            <body e:uid="request.params.id"><main><p:stamp uid></p:stamp></main></body>
+            </html>
+      rules:
+        - {actor: "*", resource: "${P}/*", method: [GET, HEAD, PUT], action: Allow}
+    steps:
+      - as: anonymous
+        request:
+          method: PUT
+          path: "${P}/users/7/profile.html"
+          headers: {Content-Type: "text/html"}
+          body: |
+            <!DOCTYPE html>
+            <html><body><main>LITERAL-7</main></body></html>
+        expect: {status: [200, 201, 204]}
+      - as: anonymous
+        request: {method: GET, path: "${P}/users/7/profile.html"}
+        expect: {status: 200, body_contains: ["LITERAL-7"]}
+      - as: anonymous
+        request: {method: GET, path: "${P}/users/8/profile.html"}
+        expect: {status: 200, body_matches: '<main>\s*8\s*</main>'}
+      - as: author
+        plane: dav
+        request: {method: GET, path: "${P}/users/:id/profile.html"}
+        expect: {status: 200, body_contains: ["<p:stamp uid>"], body_not_contains: ["LITERAL-7"]}
+
+  - id: comp.route.selector-write-through-stamp
+    title: A comment POSTed to a route page lands in the stamped post's data file
+    area: composing
+    feature: write-through
+    evidence: documented
+    source: "docs learn/build-a-blog §One page for every post, §Letting readers comment; reference/composing-pages/Parameterized-Routes §Resolution; Stamp §Interaction (snapshot 2026-09-28)"
+    confidence: high
+    requires: [sessel]
+    live: true
+    notes: "R-COMP-106. The rule grants POST only on the route pages; the data folder is not even readable."
+    site:
+      settings: {default_get: allow}
+      files:
+        - path: "${P}/data/posts/hello.html"
+          body: |
+            <!DOCTYPE html>
+            <html lang="en"><body>
+              <article itemscope itemtype="https://example.test${P}/Post" id="post-hello">
+                <meta itemprop="slug" content="hello">
+                <meta itemprop="status" content="Published">
+                <h1 itemprop="title">Hello, world</h1>
+                <ul itemprop="comments" id="comments-hello" class="comment-list"></ul>
+              </article>
+            </body></html>
+        - path: "${P}/posts/:slug.html"
+          body: |
+            <!DOCTYPE html>
+            <html lang="en" xmlns:e="https://pagelove.org/Binding/Sessel" xmlns:p="https://pagelove.org/1.0">
+            <body e:post="${[itemtype='https://example.test${P}/Post']:has([itemprop='slug']:value-equals(request.params.slug)):has([itemprop='status']:value-equals('Published'))}.first()">
+              <main class="reading post">
+                <p:stamp post></p:stamp>
+                <div class="post-missing"><h1>Not found</h1></div>
+              </main>
+            </body>
+            </html>
+      rules:
+        - {actor: "*", resource: "${P}/*", method: [GET, HEAD], action: Allow}
+        - {actor: "*", resource: "${P}/data/*", method: [GET, HEAD], action: Deny}
+        - {actor: "*", resource: "${P}/posts/*", method: [POST], selector: "[itemprop='comments']", action: Allow}
+    steps:
+      - as: anonymous
+        request:
+          method: POST
+          path: "${P}/posts/hello.html"
+          headers: {Range: "selector=#comments-hello", Content-Type: "text/html"}
+          body: '<li class="comment">Nice post</li>'
+        expect: {status: [200, 206]}
+      - name: the data file has the comment
+        as: author
+        plane: dav
+        request: {method: GET, path: "${P}/data/posts/hello.html"}
+        expect: {status: 200, body_contains: ['<li class="comment">Nice post</li>']}
+      - name: the route template does not
+        as: author
+        plane: dav
+        request: {method: GET, path: "${P}/posts/:slug.html"}
+        expect: {status: 200, body_not_contains: ["Nice post"]}
+      - name: the page composes it back in
+        as: anonymous
+        request: {method: GET, path: "${P}/posts/hello.html"}
+        expect: {status: 200, body_contains: ["Nice post", "Hello, world"]}
+
+  - id: comp.route.selector-write-non-projected-416
+    title: A selector write on a route page to an element that is not stamped or included is 416
+    area: composing
+    feature: write-through
+    evidence: documented
+    source: "docs reference/composing-pages/Parameterized-Routes §Resolution ('matches an element that is not stamped/included … returns 416') (snapshot 2026-09-28)"
+    confidence: high
+    requires: [sessel]
+    live: true
+    site:
+      settings: {default_get: allow}
+      files:
+        - path: "${P}/posts/:slug.html"
+          body: |
+            <!DOCTYPE html>
+            <html xmlns:e="https://pagelove.org/Binding/Sessel" xmlns:p="https://pagelove.org/1.0">
+            <body e:s="request.params.slug"><main><p:stamp s></p:stamp><ul id="native-list"></ul></main></body>
+            </html>
+      rules:
+        - {actor: "*", resource: "${P}/*", method: [GET, HEAD, POST], action: Allow}
+    steps:
+      - name: native element of the template
+        as: anonymous
+        request:
+          method: POST
+          path: "${P}/posts/hello.html"
+          headers: {Range: "selector=#native-list", Content-Type: "text/html"}
+          body: "<li>no</li>"
+        expect: {status: 416}
+      - name: nothing matches
+        as: anonymous
+        request:
+          method: POST
+          path: "${P}/posts/hello.html"
+          headers: {Range: "selector=#absent", Content-Type: "text/html"}
+          body: "<li>no</li>"
+        expect: {status: 416}
+      - as: author
+        plane: dav
+        request: {method: GET, path: "${P}/posts/:slug.html"}
+        expect: {status: 200, body_not_contains: ["<li>no</li>"]}
+
+  - id: comp.route.missing-record-200
+    title: A route page whose binding finds nothing still composes with 200
+    area: composing
+    feature: parameterized routes
+    evidence: documented
+    source: "docs learn/build-a-blog §One page for every post, §Making the 404 real ('the server said 200 OK') (snapshot 2026-09-28)"
+    confidence: high
+    requires: [sessel]
+    live: true
+    notes: "R-COMP-108/162. A Processor (area reactions) is how authors turn this into 404."
+    site:
+      settings: {default_get: allow}
+      files:
+        - path: "${P}/posts/:slug.html"
+          body: |
+            <!DOCTYPE html>
+            <html lang="en" xmlns:e="https://pagelove.org/Binding/Sessel" xmlns:p="https://pagelove.org/1.0">
+            <body e:post="${[itemtype='https://example.test${P}/Post']:has([itemprop='slug']:value-equals(request.params.slug))}.first()">
+              <main><p:stamp post></p:stamp><div class="post-missing"><h1>Not found</h1></div></main>
+            </body>
+            </html>
+      rules:
+        - {actor: "*", resource: "${P}/*", method: [GET, HEAD], action: Allow}
+    steps:
+      - as: anonymous
+        request: {method: GET, path: "${P}/posts/nonsense.html"}
+        expect:
+          status: 200
+          body_contains: ['<div class="post-missing"><h1>Not found</h1></div>']
+          body_not_contains: ["p:stamp"]
+
+  - id: comp.route.directory-index
+    title: A trailing-slash URL resolves a parameterized directory's index.html
+    area: composing
+    feature: parameterized routes
+    evidence: demo-source
+    source: "pagelove-ats/site/README.html@8f200fc:53, site/index.html:443; live-observed https://ats.pagelove.com/roles/founding-software-engineer/ ([OBS])"
+    confidence: high
+    requires: [sessel]
+    live: true
+    notes: "R-COMP-103. The slash-less form is open (Q-11)."
+    site:
+      settings: {default_get: allow}
+      files:
+        - path: "${P}/roles/:role_name/index.html"
+          body: |
+            <!DOCTYPE html>
+            <html xmlns:e="https://pagelove.org/Binding/Sessel" xmlns:p="https://pagelove.org/1.0">
+            <body e:r="request.params.role_name"><main id="m"><p:stamp r></p:stamp></main></body>
+            </html>
+      rules:
+        - {actor: "*", resource: "${P}/*", method: [GET, HEAD], action: Allow}
+    steps:
+      - as: anonymous
+        request: {method: GET, path: "${P}/roles/founding-engineer/"}
+        expect: {status: 200, body_matches: 'id="m">\s*founding-engineer\s*<'}
+
+  - id: comp.route.params-in-liquid
+    title: request.params is readable from a Liquid template
+    area: composing
+    feature: parameterized routes
+    evidence: documented
+    source: "docs reference/composing-pages/Parameterized-Routes §Reading captured parameters (Liquid bullet is empty in the snapshot) (snapshot 2026-09-28)"
+    confidence: medium
+    requires: [liquid]
+    live: true
+    site:
+      settings: {default_get: allow}
+      files:
+        - path: "${P}/tags/:tag.html"
+          body: |
+            <!DOCTYPE html>
+            <html xmlns:p="https://pagelove.org/1.0">
+            <body><main p:template="text/liquid">tag={{ request.params.tag }};</main></body>
+            </html>
+      rules:
+        - {actor: "*", resource: "${P}/*", method: [GET, HEAD], action: Allow}
+    steps:
+      - as: anonymous
+        request: {method: GET, path: "${P}/tags/golang.html"}
+        expect: {status: 200, body_contains: ["tag=golang;"]}
+
+  - id: comp.route.route-parameters-header
+    title: A routed response carries a route-parameters header
+    area: composing
+    feature: parameterized routes
+    evidence: live-observed
+    source: "[OBS] secondary-index.json headers of blog.pagelove.com/posts/*.html ('route-parameters: slug=building-our-own-hiring-platform')"
+    confidence: medium
+    requires: []
+    live: true
+    notes: "R-COMP-105. Only the single-parameter form is known (multi-parameter format: probe Q-12)."
+    site:
+      settings: {default_get: allow}
+      files:
+        - path: "${P}/pages/:slug.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body><main>page</main></body></html>
+      rules:
+        - {actor: "*", resource: "${P}/*", method: [GET, HEAD], action: Allow}
+    steps:
+      - as: anonymous
+        request: {method: GET, path: "${P}/pages/abc.html"}
+        expect:
+          status: 200
+          headers: {route-parameters: "slug=abc"}

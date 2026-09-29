@@ -1,0 +1,34 @@
+{
+  "case": "liquid.request.form-post-resource-creation",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (post the form)",
+      "method": "POST",
+      "path": "/_pl/liquid-request-form-post-resource-creati-337065/sspi-rc-templates/new-entry.html",
+      "status": 301,
+      "headers": {
+        "content-length": "0",
+        "location": "/_pl/liquid-request-form-post-resource-creati-337065/sspi-rc-entries/hello-world.html",
+        "vary": "Host, Range"
+      }
+    },
+    {
+      "step": "step 2 (the created entry)",
+      "method": "GET",
+      "path": "/_pl/liquid-request-form-post-resource-creati-337065/sspi-rc-entries/hello-world.html",
+      "status": 206,
+      "headers": {
+        "accept-ranges": "selector, bytes",
+        "content-length": "106",
+        "content-range": "selector #entry",
+        "content-type": "text/html",
+        "etag": "\"30201a4b9f2ce5f2c67051797b50b29e539fc7b2c339cb1509897e7ca2622b27-30201a4b9f2ce5f2c67051797b50b29e539fc7b2c339cb1509897e7ca2622b27-1\"",
+        "vary": "Host, Range, Accept"
+      },
+      "body": "\u003carticle id=\"entry\"\u003e\u003ch1\u003eHello World\u003c/h1\u003e\u003cp class=\"content\"\u003eFirst post\u003c/p\u003e\u003cp class=\"via\"\u003ePOST\u003c/p\u003e\u003c/article\u003e"
+    }
+  ],
+  "outcome": "pass",
+  "target": "local"
+}

@@ -1,0 +1,82 @@
+{
+  "case": "apps.shop.order-confirmation-elevated",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (the confirmation page shows the order)",
+      "method": "GET",
+      "path": "/_pl/apps-shop-order-confirmation-elevated-45ecd5/orders/ord-abc123.html",
+      "status": 200,
+      "headers": {
+        "accept-ranges": "selector, bytes",
+        "cache-control": "public, max-age=5",
+        "content-length": "776",
+        "content-type": "text/html",
+        "etag": "W/\"3b8b7b4adb8fe9f4506a6a963da45b5360d9f34a911126a1f4e3a7c62bd74c2a\"",
+        "route-parameters": "id=ord-abc123",
+        "vary": "Host, Range, Accept"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml lang=\"en\"\u003e\n\u003chead\u003e\u003cmeta charset=\"UTF-8\"\u003e\u003ctitle\u003eOrder — Pagelove Shop\u003c/title\u003e\u003c/head\u003e\n\u003cbody\u003e\n  \u003cmain class=\"wrap confirm\" data-order-page\u003e\n    \u003cdiv itemscope itemtype=\"https://pagelike.test/_pl/apps-shop-order-confirmation-elevated-45ecd5/Order\" id=\"order-ord-abc123\"\u003e\u003cmeta itemprop=\"orderId\" content=\"ord-abc123\"\u003e\u003cmeta itemprop=\"placedAt\" content=\"2026-09-28T10:00:00.000Z\"\u003e\u003cmeta itemprop=\"currency\" content=\"GBP\"\u003e\u003cmeta itemprop=\"amountTotal\" content=\"3295\"\u003e\u003cmeta itemprop=\"paymentStatus\" content=\"pending\"\u003e\u003cmeta itemprop=\"email\" content=\"grace@example.com\"\u003e\u003cul itemprop=\"lines\"\u003e\u003cli itemscope itemtype=\"https://shop.example/OrderLine\"\u003e\u003cmeta itemprop=\"sku\" content=\"PL-TEE\"\u003e\u003cmeta itemprop=\"quantity\" content=\"1\"\u003e\u003c/li\u003e\u003c/ul\u003e\u003c/div\u003e\n  \u003c/main\u003e\n\u003c/body\u003e\n\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 2 (the raw record is not public)",
+      "method": "GET",
+      "path": "/_pl/apps-shop-order-confirmation-elevated-45ecd5/data/orders/ord-abc123.html",
+      "status": 401,
+      "headers": {
+        "content-length": "445",
+        "content-type": "text/html; charset=utf-8"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\n\u003chead\u003e\n    \u003cmeta charset=\"UTF-8\"\u003e\n    \u003ctitle\u003e401 Unauthorized\u003c/title\u003e\n\u003c/head\u003e\n\u003cbody itemscope itemtype=\"https://pagelove.org/1.0/Error\"\u003e\n    \u003ch1\u003e401 Unauthorized\u003c/h1\u003e\n    \u003cp itemprop=\"message\"\u003eAuthentication required to access this resource.\u003c/p\u003e\n    \u003cdl\u003e\n        \u003cdt\u003eResource\u003c/dt\u003e\n        \u003cdd itemprop=\"resource\"\u003e/_pl/apps-shop-order-confirmation-elevated-45ecd5/data/orders/ord-abc123.html\u003c/dd\u003e\n    \u003c/dl\u003e\n\u003c/body\u003e\n\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 3 (admin UI: one selector PUT replaces the status meta)",
+      "method": "PUT",
+      "path": "/_pl/apps-shop-order-confirmation-elevated-45ecd5/data/orders/ord-abc123.html",
+      "status": 206,
+      "headers": {
+        "content-length": "46",
+        "content-range": "selector [itemprop=\"paymentStatus\"]",
+        "content-type": "text/html",
+        "etag": "\"4a11b329b0ada5104c3d8be11d62ecae9b283cc55c486f2013c2b50bfaa01942-4a11b329b0ada5104c3d8be11d62ecae9b283cc55c486f2013c2b50bfaa01942-2\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:41 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003cmeta itemprop=\"paymentStatus\" content=\"paid\"\u003e"
+    },
+    {
+      "step": "step 4 (the confirmation page reflects it)",
+      "method": "GET",
+      "path": "/_pl/apps-shop-order-confirmation-elevated-45ecd5/orders/ord-abc123.html",
+      "status": 200,
+      "headers": {
+        "accept-ranges": "selector, bytes",
+        "cache-control": "public, max-age=5",
+        "content-length": "773",
+        "content-type": "text/html",
+        "etag": "W/\"36524c0a4c5aba593681c602f7bbb37eef635b8a6f23860a1f7ed45640058305\"",
+        "route-parameters": "id=ord-abc123",
+        "vary": "Host, Range, Accept"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml lang=\"en\"\u003e\n\u003chead\u003e\u003cmeta charset=\"UTF-8\"\u003e\u003ctitle\u003eOrder — Pagelove Shop\u003c/title\u003e\u003c/head\u003e\n\u003cbody\u003e\n  \u003cmain class=\"wrap confirm\" data-order-page\u003e\n    \u003cdiv itemscope itemtype=\"https://pagelike.test/_pl/apps-shop-order-confirmation-elevated-45ecd5/Order\" id=\"order-ord-abc123\"\u003e\u003cmeta itemprop=\"orderId\" content=\"ord-abc123\"\u003e\u003cmeta itemprop=\"placedAt\" content=\"2026-09-28T10:00:00.000Z\"\u003e\u003cmeta itemprop=\"currency\" content=\"GBP\"\u003e\u003cmeta itemprop=\"amountTotal\" content=\"3295\"\u003e\u003cmeta itemprop=\"paymentStatus\" content=\"paid\"\u003e\u003cmeta itemprop=\"email\" content=\"grace@example.com\"\u003e\u003cul itemprop=\"lines\"\u003e\u003cli itemscope itemtype=\"https://shop.example/OrderLine\"\u003e\u003cmeta itemprop=\"sku\" content=\"PL-TEE\"\u003e\u003cmeta itemprop=\"quantity\" content=\"1\"\u003e\u003c/li\u003e\u003c/ul\u003e\u003c/div\u003e\n  \u003c/main\u003e\n\u003c/body\u003e\n\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 5 (an unknown order id renders the page without an order)",
+      "method": "GET",
+      "path": "/_pl/apps-shop-order-confirmation-elevated-45ecd5/orders/nope.html",
+      "status": 200,
+      "headers": {
+        "accept-ranges": "selector, bytes",
+        "cache-control": "public, max-age=5",
+        "content-length": "191",
+        "content-type": "text/html",
+        "etag": "W/\"7f50b52b1f8a62992a315d1cd5a9ea24eccc1e408373494c494736ad2f3ee075\"",
+        "route-parameters": "id=nope",
+        "vary": "Host, Range, Accept"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml lang=\"en\"\u003e\n\u003chead\u003e\u003cmeta charset=\"UTF-8\"\u003e\u003ctitle\u003eOrder — Pagelove Shop\u003c/title\u003e\u003c/head\u003e\n\u003cbody\u003e\n  \u003cmain class=\"wrap confirm\" data-order-page\u003e\n    \n  \u003c/main\u003e\n\u003c/body\u003e\n\u003c/html\u003e\n"
+    }
+  ],
+  "outcome": "pass",
+  "target": "local"
+}

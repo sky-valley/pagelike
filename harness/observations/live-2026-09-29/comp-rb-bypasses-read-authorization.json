@@ -1,0 +1,32 @@
+{
+  "case": "comp.rb.bypasses-read-authorization",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (direct read is refused)",
+      "method": "GET",
+      "path": "/_pl/comp-rb-bypasses-read-authorization-aae190/data/secret.html",
+      "status": 401,
+      "headers": {
+        "content-length": "431",
+        "content-type": "text/html; charset=utf-8"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\n\u003chead\u003e\n    \u003cmeta charset=\"UTF-8\"\u003e\n    \u003ctitle\u003e401 Unauthorized\u003c/title\u003e\n\u003c/head\u003e\n\u003cbody itemscope itemtype=\"https://pagelove.org/1.0/Error\"\u003e\n    \u003ch1\u003e401 Unauthorized\u003c/h1\u003e\n    \u003cp itemprop=\"message\"\u003eAuthentication required to access this resource.\u003c/p\u003e\n    \u003cdl\u003e\n        \u003cdt\u003eResource\u003c/dt\u003e\n        \u003cdd itemprop=\"resource\"\u003e/_pl/comp-rb-bypasses-read-authorization-aae190/data/secret.html\u003c/dd\u003e\n    \u003c/dl\u003e\n\u003c/body\u003e\n\u003c/html\u003e"
+    },
+    {
+      "step": "step 2 (the composed page shows the record)",
+      "method": "GET",
+      "path": "/_pl/comp-rb-bypasses-read-authorization-aae190/page.html",
+      "status": 200,
+      "headers": {
+        "cache-control": "private",
+        "content-type": "text/html",
+        "etag": "W/\"8995fedb5ec28b349379cbdf45ca0759aa376095fdd219771369b02aa8dbaa5c\"",
+        "vary": "Host, Range, Accept"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\n\u003cbody\u003e\u003cul\u003e\u003cli\u003eS3CR3T-VALUE\u003c/li\u003e\u003c/ul\u003e\n                \u003cdiv style=\"\n                            position: fixed;\n                            bottom: 0;\n                            left: 0;\n                            right: 0;\n                            padding: 8px;\n                            background: #f0f0f0;\n                            text-align: center;\n                            font-size: 12px;\n                            color: #666;\n                            z-index: 9999;\n                            opacity: 0.8;\n                            border-top: 1px solid #ddd;\n                        \"\u003e\n                    Powered by\n                    \u003ca href=\"https://pagelove.com/\" style=\"color: #4a90d9; text-decoration: none\"\u003ePagelove\u003c/a\u003e\n                \u003c/div\u003e\n            \u003c/body\u003e\n\u003c/html\u003e\n"
+    }
+  ],
+  "outcome": "pass",
+  "target": "live"
+}

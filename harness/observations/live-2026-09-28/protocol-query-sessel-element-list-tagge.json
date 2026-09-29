@@ -1,0 +1,24 @@
+{
+  "case": "protocol.query-sessel.element-list-tagged",
+  "failures": [
+    "step 1 (list of two elements) QUERY ${P}/list.html: status 400, want [200] (body: \u003c!DOCTYPE html\u003e\n\u003chtml\u003e\n  \u003chead\u003e\n    \u003ctitle\u003e400 Bad Request - Error\u003c/title\u003e\n  \u003c/head\u003e\n  \u003cbody itemscope itemtype=\"http://pagelove.org/Error\"\u003e\n    \u003ch1 itemprop=\"name\"\u003eBad Request\u003c/h1\u003e\n    \u003cmeta itemprop=\"statusCode\" content=\"400\"\u003e\n    \u003cp item…)",
+    "step 1 (list of two elements) QUERY ${P}/list.html: header Content-Type = \"text/html\", want match \"^application/sessel\\\\+json\"",
+    "step 1 (list of two elements) QUERY ${P}/list.html: body is not JSON: invalid character '\u003c' looking for beginning of value"
+  ],
+  "observations": [
+    {
+      "step": "step 1 (list of two elements)",
+      "method": "QUERY",
+      "path": "/_pl/protocol-query-sessel-element-list-tagge-6e6d3f/list.html",
+      "status": 400,
+      "headers": {
+        "content-length": "349",
+        "content-type": "text/html",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\n  \u003chead\u003e\n    \u003ctitle\u003e400 Bad Request - Error\u003c/title\u003e\n  \u003c/head\u003e\n  \u003cbody itemscope itemtype=\"http://pagelove.org/Error\"\u003e\n    \u003ch1 itemprop=\"name\"\u003eBad Request\u003c/h1\u003e\n    \u003cmeta itemprop=\"statusCode\" content=\"400\"\u003e\n    \u003cp itemprop=\"description\"\u003eSessel evaluation error: unknown function: execute (at bytes 16..20)\u003c/p\u003e\n  \u003c/body\u003e\n\u003c/html\u003e"
+    }
+  ],
+  "outcome": "fail",
+  "target": "live"
+}

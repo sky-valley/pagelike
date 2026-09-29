@@ -1,0 +1,322 @@
+# Microdata value extraction as observed through JSON-LD.
+# Spec: docs/spec/reading-writing.md §8 (R-RW-50..53) and §7.
+cases:
+  - id: rw.md.value-sources
+    title: Each element kind contributes the WHATWG microdata value (attribute, not visible text)
+    area: reading-writing
+    feature: Microdata values
+    evidence: documented
+    source: "docs reference/composing-pages/Selector-Extensions §Text content vs microdata values (value-source table) (snapshot 2026-09-28); glossary microdata-value"
+    confidence: high
+    requires: []
+    live: true
+    notes: "URL-valued properties are checked by substring so raw ('/x') and absolute ('https://host/x') forms both pass (spec R-RW-51, Q-12)."
+    site:
+      settings: {default_get: allow}
+      files:
+        - path: "${P}/values.html"
+          body: |
+            <!DOCTYPE html>
+            <html><head><title>values</title></head><body>
+            <div itemscope itemtype="http://schema.org/Thing">
+              <meta itemprop="pMeta" content="meta-value">
+              <a itemprop="pA" href="/target-page">Anchor text here</a>
+              <img itemprop="pImg" src="/img/pic.png" alt="Alt text here">
+              <data itemprop="pData" value="42">Forty-two</data>
+              <meter itemprop="pMeter" value="0.75">three quarters</meter>
+              <time itemprop="pTime" datetime="2026-01-02">Jan second</time>
+              <time itemprop="pTimeText">Tuesday afternoon</time>
+              <object itemprop="pObject" data="/obj/data.bin">object fallback</object>
+              <audio itemprop="pAudio" src="/media/a.mp3">audio fallback</audio>
+              <video itemprop="pVideo" src="/media/v.mp4">video fallback</video>
+              <video><source itemprop="pSource" src="/media/s.webm"><track itemprop="pTrack" src="/media/t.vtt"></video>
+              <iframe itemprop="pIframe" src="/frames/f.html"></iframe>
+              <embed itemprop="pEmbed" src="/embeds/e.bin">
+              <map name="m"><area itemprop="pArea" href="/area-target" alt="area alt text"></map>
+              <link itemprop="pLink" href="/linked-resource">
+              <span itemprop="pSpan">Hello <b>bold</b> world</span>
+            </div>
+            </body></html>
+      rules:
+        - {actor: "*", resource: "${P}/*", method: [GET, HEAD], action: Allow}
+    steps:
+      - name: JSON-LD values
+        as: anonymous
+        request:
+          method: GET
+          path: "${P}/values.html"
+          headers: {Accept: "application/ld+json"}
+        expect:
+          status: 200
+          body_contains:
+            - "meta-value"
+            - "/target-page"
+            - "/img/pic.png"
+            - "42"
+            - "0.75"
+            - "2026-01-02"
+            - "Tuesday afternoon"
+            - "/obj/data.bin"
+            - "/media/a.mp3"
+            - "/media/v.mp4"
+            - "/media/s.webm"
+            - "/media/t.vtt"
+            - "/frames/f.html"
+            - "/embeds/e.bin"
+            - "/area-target"
+            - "/linked-resource"
+            - "Hello bold world"
+          body_not_contains:
+            - "Anchor text here"
+            - "Alt text here"
+            - "Forty-two"
+            - "three quarters"
+            - "Jan second"
+            - "object fallback"
+            - "audio fallback"
+            - "video fallback"
+            - "area alt text"
+
+  - id: rw.md.missing-attribute-empty
+    title: A spec-listed element missing its value attribute has an empty-string value (time falls back to text)
+    area: reading-writing
+    feature: Microdata values
+    evidence: documented
+    source: "docs reference/composing-pages/Selector-Extensions §Text content vs microdata values ('When a spec-listed element is missing its designated attribute, the microdata value is an empty string — except <time>') (snapshot 2026-09-28)"
+    confidence: medium
+    requires: []
+    live: true
+    site:
+      settings: {default_get: allow}
+      files:
+        - path: "${P}/empty.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+            <div itemscope itemtype="http://schema.org/Thing">
+              <meta itemprop="noContent">
+              <img itemprop="noSrc" alt="alt should not leak">
+              <a itemprop="noHref">link text should not leak</a>
+              <data itemprop="noValue">data text should not leak</data>
+            </div>
+            </body></html>
+      rules:
+        - {actor: "*", resource: "${P}/*", method: [GET, HEAD], action: Allow}
+    steps:
+      - name: JSON-LD of empty-valued properties
+        as: anonymous
+        request:
+          method: GET
+          path: "${P}/empty.html"
+          headers: {Accept: "application/ld+json"}
+        expect:
+          status: 200
+          body_contains: ["noContent", "noSrc", "noHref", "noValue"]
+          body_not_contains: ["alt should not leak", "link text should not leak", "data text should not leak"]
+
+  - id: rw.md.itemref
+    title: itemref pulls properties from referenced elements into the item
+    area: reading-writing
+    feature: Microdata values
+    evidence: inferred
+    source: "WHATWG HTML microdata §5.2.5 'the properties of an item' (itemref crawl); docs glossary microdata-value ('Values follow the HTML Microdata specification')"
+    confidence: medium
+    requires: []
+    live: true
+    notes: >-
+      Live PageLove ignores itemref (harness/observations/live-2026-09-28/rw-md-itemref.json).
+      pagelike keeps the standard data model (docs/compat/decisions.md, keep-standard): dropping
+      referenced properties would publish items that misstate the document. rw.md.itemref.live
+      measures the divergence.
+    site:
+      settings: {default_get: allow}
+      files:
+        - path: "${P}/itemref.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div itemscope itemtype="http://schema.org/Person" itemref="extra-email"><span itemprop="name">Ref Person</span></div>
+              <p id="extra-email" itemprop="email">ref@example.com</p>
+            </body></html>
+      rules:
+        - {actor: "*", resource: "${P}/*", method: [GET, HEAD], action: Allow}
+    steps:
+      - name: JSON-LD includes the referenced property
+        as: anonymous
+        request:
+          method: GET
+          path: "${P}/itemref.html"
+          headers: {Accept: "application/ld+json"}
+        expect:
+          status: 200
+          body_contains: ["Ref Person", "email", "ref@example.com"]
+          body_not_contains: ["@graph"]
+
+  - id: rw.md.itemref.live
+    title: Live PageLove's JSON-LD ignores itemref
+    area: reading-writing
+    feature: Microdata values
+    status: live-divergence
+    evidence: live-observed
+    source: "harness/observations/live-2026-09-28/rw-md-itemref.json (host live-test-host, 2026-09-28)"
+    confidence: high
+    requires: []
+    live: true
+    notes: "Measures a deliberate divergence (docs/compat/decisions.md, keep-standard). Runs only against --target live."
+    site:
+      settings: {default_get: allow}
+      files:
+        - path: "${P}/itemref.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div itemscope itemtype="http://schema.org/Person" itemref="extra-email"><span itemprop="name">Ref Person</span></div>
+              <p id="extra-email" itemprop="email">ref@example.com</p>
+            </body></html>
+      rules:
+        - {actor: "*", resource: "${P}/*", method: [GET, HEAD], action: Allow}
+    steps:
+      - name: the referenced property is missing
+        as: anonymous
+        request:
+          method: GET
+          path: "${P}/itemref.html"
+          headers: {Accept: "application/ld+json"}
+        expect:
+          status: 200
+          body_json:
+            "@context": "http://schema.org/"
+            "@type": Person
+            name: Ref Person
+
+  - id: rw.md.multiple-itemprop-tokens
+    title: An itemprop with several tokens contributes the value to each property
+    area: reading-writing
+    feature: Microdata values
+    evidence: inferred
+    source: "WHATWG HTML microdata (itemprop is an unordered set of unique space-separated tokens)"
+    confidence: medium
+    requires: []
+    live: true
+    notes: >-
+      Live PageLove emits one key "name alternateName" (harness/observations/live-2026-09-28/rw-md-multiple-itemprop-tokens.json),
+      a property name no vocabulary has. pagelike keeps the standard reading (docs/compat/decisions.md,
+      keep-standard); rw.md.multiple-itemprop-tokens.live measures the divergence.
+    site:
+      settings: {default_get: allow}
+      files:
+        - path: "${P}/tokens.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body><div itemscope itemtype="http://schema.org/Person"><span itemprop="name alternateName">Zed</span></div></body></html>
+      rules:
+        - {actor: "*", resource: "${P}/*", method: [GET, HEAD], action: Allow}
+    steps:
+      - name: both names present
+        as: anonymous
+        request:
+          method: GET
+          path: "${P}/tokens.html"
+          headers: {Accept: "application/ld+json"}
+        expect:
+          status: 200
+          body_json:
+            "@context": "http://schema.org/"
+            "@type": Person
+            name: Zed
+            alternateName: Zed
+
+  - id: rw.md.multiple-itemprop-tokens.live
+    title: Live PageLove treats a multi-token itemprop as one property name
+    area: reading-writing
+    feature: Microdata values
+    status: live-divergence
+    evidence: live-observed
+    source: "harness/observations/live-2026-09-28/rw-md-multiple-itemprop-tokens.json (host live-test-host, 2026-09-28)"
+    confidence: high
+    requires: []
+    live: true
+    notes: "Measures a deliberate divergence (docs/compat/decisions.md, keep-standard). Runs only against --target live."
+    site:
+      settings: {default_get: allow}
+      files:
+        - path: "${P}/tokens.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body><div itemscope itemtype="http://schema.org/Person"><span itemprop="name alternateName">Zed</span></div></body></html>
+      rules:
+        - {actor: "*", resource: "${P}/*", method: [GET, HEAD], action: Allow}
+    steps:
+      - name: one key holding both tokens
+        as: anonymous
+        request:
+          method: GET
+          path: "${P}/tokens.html"
+          headers: {Accept: "application/ld+json"}
+        expect:
+          status: 200
+          body_json:
+            "@context": "http://schema.org/"
+            "@type": Person
+            "name alternateName": Zed
+
+  - id: rw.md.repeated-property-array
+    title: A property that occurs twice in one item becomes a JSON array in document order
+    area: reading-writing
+    feature: Microdata values
+    evidence: inferred
+    source: "docs Content-Negotiation shows scalar values only; array for repeats is a pagelike decision (spec R-RW-45)"
+    confidence: low
+    requires: []
+    live: true
+    site:
+      settings: {default_get: allow}
+      files:
+        - path: "${P}/tags.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body><div itemscope itemtype="http://schema.org/Thing"><span itemprop="tag">red</span><span itemprop="tag">blue</span></div></body></html>
+      rules:
+        - {actor: "*", resource: "${P}/*", method: [GET, HEAD], action: Allow}
+    steps:
+      - name: repeated property
+        as: anonymous
+        request:
+          method: GET
+          path: "${P}/tags.html"
+          headers: {Accept: "application/ld+json"}
+        expect:
+          status: 200
+          body_json:
+            "@context": "http://schema.org/"
+            "@type": Thing
+            tag: [red, blue]
+
+  - id: rw.md.itemid
+    title: itemid is carried into the JSON-LD (as @id)
+    area: reading-writing
+    feature: Microdata values
+    evidence: inferred
+    source: "WHATWG microdata itemid (global identifier); JSON-LD @id mapping is a pagelike decision (spec R-RW-47)"
+    confidence: low
+    requires: []
+    live: true
+    site:
+      settings: {default_get: allow}
+      files:
+        - path: "${P}/book.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body><div itemscope itemtype="http://schema.org/Book" itemid="urn:isbn:0-330-34032-8"><span itemprop="name">The Book</span></div></body></html>
+      rules:
+        - {actor: "*", resource: "${P}/*", method: [GET, HEAD], action: Allow}
+    steps:
+      - name: identifier present
+        as: anonymous
+        request:
+          method: GET
+          path: "${P}/book.html"
+          headers: {Accept: "application/ld+json"}
+        expect:
+          status: 200
+          body_contains: ["urn:isbn:0-330-34032-8", "The Book"]

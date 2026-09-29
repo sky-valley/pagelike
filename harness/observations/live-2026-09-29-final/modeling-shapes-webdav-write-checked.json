@@ -1,0 +1,50 @@
+{
+  "case": "modeling.shapes.webdav-write-checked",
+  "failures": [
+    "step 2 (author PUT of a user missing email is refused) PUT ${P}/people/w.html: status 201, want [422] (body: \u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\n  \u003cdiv itemscope itemtype=\"https://example.org/User\"\u003e\n    \u003cspan itemprop=\"username\"\u003ew\u003c/span\u003e\n  \u003c/div\u003e\n\u003c/body\u003e\u003c/html\u003e\n)",
+    "step 3 (w.html was not stored) GET ${P}/people/w.html: status 200, want [404] (body: \u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\n  \u003cdiv itemscope itemtype=\"https://example.org/User\"\u003e\n    \u003cspan itemprop=\"username\"\u003ew\u003c/span\u003e\n  \u003c/div\u003e\n\u003c/body\u003e\u003c/html\u003e\n)"
+  ],
+  "observations": [
+    {
+      "step": "step 1 (register declarations through the public plane (takes effect for the next request))",
+      "method": "PUT",
+      "path": "/_pl/modeling-shapes-webdav-write-checked-7cf91c/shapes.html",
+      "status": 201,
+      "headers": {
+        "content-type": "text/html",
+        "etag": "\"86afd90e7b49316af5b0375ce0ef74c521a4db1e50360e25277b75c61637984d\"",
+        "last-modified": "Tue, 29 Sep 2026 02:42:51 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\n  \u003cdiv hidden itemscope itemtype=\"https://pagelove.org/ShapeConstraint\"\u003e\n    \u003cmeta itemprop=\"resource\" content=\"/_pl/modeling-shapes-webdav-write-checked-7cf91c/people/*\"\u003e\n    \u003ccode itemprop=\"selector\"\u003e[itemtype*=User]\u003c/code\u003e\n    \u003ccode itemprop=\"constraint\"\u003e:has([itemprop=\"username\"])\u003c/code\u003e\n    \u003ccode itemprop=\"constraint\"\u003e:has([itemprop=\"email\"])\u003c/code\u003e\n  \u003c/div\u003e\n\n                \u003cdiv style=\"\n                            position: fixed;\n                            bottom: 0;\n                            left: 0;\n                            right: 0;\n                            padding: 8px;\n                            background: #f0f0f0;\n                            text-align: center;\n                            font-size: 12px;\n                            color: #666;\n                            z-index: 9999;\n                            opacity: 0.8;\n                            border-top: 1px solid #ddd;\n                        \"\u003e\n                    Powered by\n                    \u003ca href=\"https://pagelove.com/\" style=\"color: #4a90d9; text-decoration: none\"\u003ePagelove\u003c/a\u003e\n                \u003c/div\u003e\n            \u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 2 (author PUT of a user missing email is refused)",
+      "method": "PUT",
+      "path": "/_pl/modeling-shapes-webdav-write-checked-7cf91c/people/w.html",
+      "status": 201,
+      "headers": {
+        "content-length": "146",
+        "content-type": "text/html",
+        "etag": "\"3bb63eec4b60485897117550cd8761e32147284d5c403a057c76bd38e3727023\""
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\n  \u003cdiv itemscope itemtype=\"https://example.org/User\"\u003e\n    \u003cspan itemprop=\"username\"\u003ew\u003c/span\u003e\n  \u003c/div\u003e\n\u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 3 (w.html was not stored)",
+      "method": "GET",
+      "path": "/_pl/modeling-shapes-webdav-write-checked-7cf91c/people/w.html",
+      "status": 200,
+      "headers": {
+        "accept-ranges": "bytes",
+        "content-length": "146",
+        "content-type": "text/html",
+        "etag": "\"3bb63eec4b60485897117550cd8761e32147284d5c403a057c76bd38e3727023\"",
+        "last-modified": "Tue, 29 Sep 2026 02:42:51 GMT"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\n  \u003cdiv itemscope itemtype=\"https://example.org/User\"\u003e\n    \u003cspan itemprop=\"username\"\u003ew\u003c/span\u003e\n  \u003c/div\u003e\n\u003c/body\u003e\u003c/html\u003e\n"
+    }
+  ],
+  "outcome": "fail",
+  "target": "live"
+}

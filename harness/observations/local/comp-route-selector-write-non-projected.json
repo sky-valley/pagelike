@@ -1,0 +1,46 @@
+{
+  "case": "comp.route.selector-write-non-projected-416",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (native element of the template)",
+      "method": "POST",
+      "path": "/_pl/comp-route-selector-write-non-projected-58ebef/posts/hello.html",
+      "status": 416,
+      "headers": {
+        "content-length": "364",
+        "content-type": "text/html",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\n  \u003chead\u003e\n    \u003ctitle\u003e416 Range Not Satisfiable - Error\u003c/title\u003e\n  \u003c/head\u003e\n  \u003cbody itemscope itemtype=\"http://pagelove.org/Error\"\u003e\n    \u003ch1 itemprop=\"name\"\u003eRange Not Satisfiable\u003c/h1\u003e\n    \u003cmeta itemprop=\"statusCode\" content=\"416\"\u003e\n    \u003cp itemprop=\"description\"\u003eHTML parsing error: No elements matched selector: #native-list\u003c/p\u003e\n  \u003c/body\u003e\n\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 2 (nothing matches)",
+      "method": "POST",
+      "path": "/_pl/comp-route-selector-write-non-projected-58ebef/posts/hello.html",
+      "status": 416,
+      "headers": {
+        "content-length": "359",
+        "content-type": "text/html",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\n  \u003chead\u003e\n    \u003ctitle\u003e416 Range Not Satisfiable - Error\u003c/title\u003e\n  \u003c/head\u003e\n  \u003cbody itemscope itemtype=\"http://pagelove.org/Error\"\u003e\n    \u003ch1 itemprop=\"name\"\u003eRange Not Satisfiable\u003c/h1\u003e\n    \u003cmeta itemprop=\"statusCode\" content=\"416\"\u003e\n    \u003cp itemprop=\"description\"\u003eHTML parsing error: No elements matched selector: #absent\u003c/p\u003e\n  \u003c/body\u003e\n\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 3",
+      "method": "GET",
+      "path": "/_pl/comp-route-selector-write-non-projected-58ebef/posts/:slug.html",
+      "status": 200,
+      "headers": {
+        "accept-ranges": "bytes",
+        "content-length": "212",
+        "content-type": "text/html",
+        "etag": "\"6d0ccb6de71ceab84823a36aa0599c91d1e00124e823d01bf0abccbba4ecdc2a\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:42 GMT"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml xmlns:e=\"https://pagelove.org/Binding/Sessel\" xmlns:p=\"https://pagelove.org/1.0\"\u003e\n\u003cbody e:s=\"request.params.slug\"\u003e\u003cmain\u003e\u003cp:stamp s\u003e\u003c/p:stamp\u003e\u003cul id=\"native-list\"\u003e\u003c/ul\u003e\u003c/main\u003e\u003c/body\u003e\n\u003c/html\u003e\n"
+    }
+  ],
+  "outcome": "pass",
+  "target": "local"
+}

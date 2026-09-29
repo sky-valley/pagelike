@@ -1,0 +1,94 @@
+{
+  "case": "reacting.tc.demo3-claim-status-span",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (register the Listing schema (listingId is the @key))",
+      "method": "PUT",
+      "path": "/_pl/reacting-tc-demo3-claim-status-span-20d7dc/exchange/schema/listing.html",
+      "status": 201,
+      "headers": {
+        "content-length": "2081",
+        "content-type": "text/html",
+        "etag": "\"a19fe5db28cb1e46c0ff532fa56706532b21c65c8e5a1155964a1348bd574e4a\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:49 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\n\u003cdiv itemscope itemtype=\"https://pagelove.org/Schema\"\u003e\n  \u003cmeta itemprop=\"type\" content=\"https://pagelike.test/_pl/reacting-tc-demo3-claim-status-span-20d7dc/Listing\"\u003e\n  \u003cdiv itemprop=\"property\" itemscope itemtype=\"https://pagelove.org/Property\"\u003e\n    \u003cmeta itemprop=\"name\" content=\"listingId\"\u003e\u003cmeta itemprop=\"type\" content=\"https://schema.host/Text\"\u003e\u003cmeta itemprop=\"cardinality\" content=\"1..1\"\u003e\u003cmeta itemprop=\"unique\" content=\"true\"\u003e\u003cmeta itemprop=\"@key\" content=\"true\"\u003e\n  \u003c/div\u003e\n  \u003cdiv itemprop=\"property\" itemscope itemtype=\"https://pagelove.org/Property\"\u003e\n    \u003cmeta itemprop=\"name\" content=\"status\"\u003e\u003cmeta itemprop=\"type\" content=\"https://schema.host/Text\"\u003e\u003cmeta itemprop=\"cardinality\" content=\"1..1\"\u003e\n  \u003c/div\u003e\n\u003c/div\u003e\n\u003cdiv hidden itemscope itemtype=\"https://pagelove.org/TransitionConstraint\"\u003e\n  \u003cmeta itemprop=\"selector\" content=\"[itemtype='https://pagelike.test/_pl/reacting-tc-demo3-claim-status-span-20d7dc/Listing']\"\u003e\n  \u003cmeta itemprop=\"property\" content=\"status\"\u003e\n  \u003cmeta itemprop=\"to\" content=\"open\"\u003e\n\u003c/div\u003e\n\u003cdiv hidden itemscope itemtype=\"https://pagelove.org/TransitionConstraint\"\u003e\n  \u003cmeta itemprop=\"selector\" content=\"[itemtype='https://pagelike.test/_pl/reacting-tc-demo3-claim-status-span-20d7dc/Listing']\"\u003e\n  \u003cmeta itemprop=\"property\" content=\"status\"\u003e\n  \u003cmeta itemprop=\"from\" content=\"open\"\u003e\n  \u003cmeta itemprop=\"to\" content=\"claimed\"\u003e\n\u003c/div\u003e\n\u003cdiv hidden itemscope itemtype=\"https://pagelove.org/TransitionConstraint\"\u003e\n  \u003cmeta itemprop=\"selector\" content=\"[itemtype='https://pagelike.test/_pl/reacting-tc-demo3-claim-status-span-20d7dc/Listing']\"\u003e\n  \u003cmeta itemprop=\"property\" content=\"status\"\u003e\n  \u003cmeta itemprop=\"from\" content=\"claimed\"\u003e\n  \u003cmeta itemprop=\"to\" content=\"completed\"\u003e\n\u003c/div\u003e\n\u003cdiv hidden itemscope itemtype=\"https://pagelove.org/TransitionConstraint\"\u003e\n  \u003cmeta itemprop=\"selector\" content=\"[itemtype='https://pagelike.test/_pl/reacting-tc-demo3-claim-status-span-20d7dc/Listing']\"\u003e\n  \u003cmeta itemprop=\"property\" content=\"status\"\u003e\n  \u003cmeta itemprop=\"from\" content=\"claimed\"\u003e\n  \u003cmeta itemprop=\"to\" content=\"open\"\u003e\n\u003c/div\u003e\n\u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 2 (post a new listing (entry at open))",
+      "method": "POST",
+      "path": "/_pl/reacting-tc-demo3-claim-status-span-20d7dc/exchange/index.html",
+      "status": 206,
+      "headers": {
+        "content-length": "352",
+        "content-range": "selector #pl-listings",
+        "content-type": "text/html",
+        "etag": "\"d5359cefea3c5b4b0bf1a470b25d097ff7d510f911e31cd4a6fcf07c9f5a2ec6-d5359cefea3c5b4b0bf1a470b25d097ff7d510f911e31cd4a6fcf07c9f5a2ec6-2\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:49 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003cli class=\"listing\" id=\"L1\" itemscope itemtype=\"https://pagelike.test/_pl/reacting-tc-demo3-claim-status-span-20d7dc/Listing\"\u003e\n  \u003cmeta itemprop=\"listingId\" content=\"L1\"\u003e\n  \u003ch2 class=\"listing-title\"\u003eCordless drill\u003c/h2\u003e\n  \u003cp class=\"listing-meta\"\u003eby Ana · \u003cspan class=\"status-tag\" id=\"status-L1\" data-status=\"open\" itemprop=\"status\"\u003eopen\u003c/span\u003e\u003c/p\u003e\n\u003c/li\u003e"
+    },
+    {
+      "step": "step 3 (claim (open -\u003e claimed))",
+      "method": "PUT",
+      "path": "/_pl/reacting-tc-demo3-claim-status-span-20d7dc/exchange/index.html",
+      "status": 206,
+      "headers": {
+        "content-length": "94",
+        "content-range": "selector #status-L1",
+        "content-type": "text/html",
+        "etag": "\"b0fa7764fdba4aa747a3a6fa445e7a88d4da795cd93d25eb3f67dc61b243791b-b0fa7764fdba4aa747a3a6fa445e7a88d4da795cd93d25eb3f67dc61b243791b-3\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:49 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003cspan class=\"status-tag\" id=\"status-L1\" data-status=\"claimed\" itemprop=\"status\"\u003eclaimed\u003c/span\u003e"
+    },
+    {
+      "step": "step 4 (a second claimant writing the same value is a no-op, not a rejection)",
+      "method": "PUT",
+      "path": "/_pl/reacting-tc-demo3-claim-status-span-20d7dc/exchange/index.html",
+      "status": 206,
+      "headers": {
+        "content-length": "94",
+        "content-range": "selector #status-L1",
+        "content-type": "text/html",
+        "etag": "\"b0fa7764fdba4aa747a3a6fa445e7a88d4da795cd93d25eb3f67dc61b243791b-b0fa7764fdba4aa747a3a6fa445e7a88d4da795cd93d25eb3f67dc61b243791b-4\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:49 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003cspan class=\"status-tag\" id=\"status-L1\" data-status=\"claimed\" itemprop=\"status\"\u003eclaimed\u003c/span\u003e"
+    },
+    {
+      "step": "step 5 (complete (claimed -\u003e completed))",
+      "method": "PUT",
+      "path": "/_pl/reacting-tc-demo3-claim-status-span-20d7dc/exchange/index.html",
+      "status": 206,
+      "headers": {
+        "content-length": "98",
+        "content-range": "selector #status-L1",
+        "content-type": "text/html",
+        "etag": "\"dd198a579ff84dc7d43aa02d6c7c26ccc72d626a633b13dec4f69187889998e4-dd198a579ff84dc7d43aa02d6c7c26ccc72d626a633b13dec4f69187889998e4-5\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:49 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003cspan class=\"status-tag\" id=\"status-L1\" data-status=\"completed\" itemprop=\"status\"\u003ecompleted\u003c/span\u003e"
+    },
+    {
+      "step": "step 6 (re-opening a completed listing is rejected)",
+      "method": "PUT",
+      "path": "/_pl/reacting-tc-demo3-claim-status-span-20d7dc/exchange/index.html",
+      "status": 422,
+      "headers": {
+        "content-length": "1234",
+        "content-type": "text/html; charset=utf-8",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\n  \u003chead\u003e\n    \u003ctitle\u003e422 Unprocessable Entity - Transition Constraint Violation\u003c/title\u003e\n  \u003c/head\u003e\n  \u003cbody itemscope itemtype=\"https://pagelove.org/ConstraintViolation\"\u003e\n    \u003ch1 itemprop=\"name\"\u003eUnprocessable Entity\u003c/h1\u003e\n    \u003cmeta itemprop=\"statusCode\" content=\"422\"\u003e\n    \u003cp itemprop=\"description\"\u003eTransition constraints violated\u003c/p\u003e\n    \u003cul\u003e\n      \u003cli itemprop=\"violations\" itemscope itemtype=\"https://pagelove.org/Violation\"\u003e\n        \u003cspan itemprop=\"constraintSelector\"\u003e[itemprop='status']\u003c/span\u003e\n        \u003cspan itemprop=\"failedConstraint\"\u003etransition(status)\u003c/span\u003e\n        \u003cspan itemprop=\"message\"\u003eTransition violation: 'https://pagelike.test/_pl/reacting-tc-demo3-claim-status-span-20d7dc/Listing' item 'L1' property 'status' may not change from 'completed' to 'open' (constraint declared in '/_pl/reacting-tc-demo3-claim-status-span-20d7dc/exchange/schema/listing.html')\u003c/span\u003e\n        \u003cspan itemprop=\"itemtype\"\u003ehttps://pagelike.test/_pl/reacting-tc-demo3-claim-status-span-20d7dc/Listing\u003c/span\u003e\n        \u003cspan itemprop=\"property\"\u003estatus\u003c/span\u003e\n        \u003cspan itemprop=\"key\"\u003eL1\u003c/span\u003e\n        \u003cspan itemprop=\"from\"\u003ecompleted\u003c/span\u003e\n        \u003cspan itemprop=\"to\"\u003eopen\u003c/span\u003e\n      \u003c/li\u003e\n    \u003c/ul\u003e\n  \u003c/body\u003e\n\u003c/html\u003e\n"
+    }
+  ],
+  "outcome": "pass",
+  "target": "local"
+}

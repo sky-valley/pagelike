@@ -1,0 +1,52 @@
+{
+  "case": "sessel.query.sel.multi-source-and-block",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (inline multi-source)",
+      "method": "QUERY",
+      "path": "/_pl/sessel-query-sel-multi-source-and-block-5ec72b/doc.html",
+      "status": 200,
+      "headers": {
+        "content-length": "1",
+        "content-type": "application/sessel+json"
+      },
+      "body": "0"
+    },
+    {
+      "step": "step 2 (block-level multi-source)",
+      "method": "QUERY",
+      "path": "/_pl/sessel-query-sel-multi-source-and-block-5ec72b/doc.html",
+      "status": 200,
+      "headers": {
+        "content-length": "1",
+        "content-type": "application/sessel+json"
+      },
+      "body": "0"
+    },
+    {
+      "step": "step 3 (explicit from overrides the block scope)",
+      "method": "QUERY",
+      "path": "/_pl/sessel-query-sel-multi-source-and-block-5ec72b/doc.html",
+      "status": 200,
+      "headers": {
+        "content-length": "16",
+        "content-type": "application/sessel+json"
+      },
+      "body": "[null,\"Welcome\"]"
+    },
+    {
+      "step": "step 4 (self plus a path)",
+      "method": "QUERY",
+      "path": "/_pl/sessel-query-sel-multi-source-and-block-5ec72b/doc.html",
+      "status": 200,
+      "headers": {
+        "content-length": "11",
+        "content-type": "application/sessel+json"
+      },
+      "body": "[\"Welcome\"]"
+    }
+  ],
+  "outcome": "pass",
+  "target": "local"
+}

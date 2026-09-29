@@ -1,0 +1,333 @@
+# Sessel inside triggers and processors: when/otherwise gates, HTTPResponse throws, Context.request /
+# Context.response, header lookup, Pagelove.PUT side effects.
+# Spec: docs/spec/sessel.md R-SESSEL-1, R-SESSEL-290..295; reactions mechanics belong to the reactions area.
+# All resources are under ${P}. live: false because trigger/processor discovery may be cached on
+# the live host (propagation undocumented); the cases are otherwise safe to run live.
+defaults:
+  area: sessel
+  evidence: documented
+  confidence: medium
+  requires: [sessel]
+cases:
+  - id: sessel.react.when-otherwise-http-response
+    title: A falsy Sessel when runs otherwise, whose thrown HTTPResponse (with a Pair header) becomes the response
+    feature: triggers
+    source: "docs reference/reacting-to-changes/Trigger §otherwise, §Response headers (snapshot 2026-09-28); pagelove-shop/site/admin-auth.html@d887054:22-33"
+    live: false
+    notes: >-
+      R-SESSEL-293 (the gate reads "X-Sessel-Key" while the client sends it lower-cased; lookup is
+      case-insensitive), R-SESSEL-294.
+    site:
+      files:
+        - path: "${P}/triggers.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+            <div itemscope itemtype="https://pagelove.org/Trigger">
+              <meta itemprop="resource" content="${P}/guarded/*">
+              <meta itemprop="method" content="PUT">
+              <div itemprop="when" itemscope itemtype="https://pagelove.org/Sessel">
+                <script itemprop="source" type="text/sessel">
+            @schema Context url("https://pagelove.org/Context");
+            (Context.request.headers["X-Sessel-Key"] ?? "") == "letmein"
+                </script>
+              </div>
+              <div itemprop="otherwise" itemscope itemtype="https://pagelove.org/Sessel">
+                <script itemprop="source" type="text/sessel">
+            @schema HTTPResponse url("https://pagelove.org/HTTPResponse");
+            @schema Pair url("https://pagelove.org/Pair");
+            throw new HTTPResponse { status: 401, header: new Pair { key: "X-Guard", value: "sessel" }, body: "Key required" }
+                </script>
+              </div>
+            </div>
+            </body></html>
+        - path: "${P}/guarded/doc.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body><h1>Old</h1></body></html>
+      rules:
+        - {actor: "*", resource: "${P}/*", method: [GET, PUT], action: Allow}
+    steps:
+      - name: without the key the otherwise branch answers
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/guarded/doc.html"
+          headers: {Range: "selector=h1", Content-Type: "text/html"}
+          body: "<h1>New</h1>"
+        expect:
+          status: 401
+          headers: {X-Guard: sessel}
+          body_contains: ["Key required"]
+      - name: the document is unchanged
+        as: anonymous
+        request: {method: GET, path: "${P}/guarded/doc.html"}
+        expect:
+          status: 200
+          body_contains: ["<h1>Old</h1>"]
+      - name: with the key (lower-case header name) the write proceeds
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/guarded/doc.html"
+          headers: {Range: "selector=h1", Content-Type: "text/html", x-sessel-key: "letmein"}
+          body: "<h1>New</h1>"
+        expect:
+          status: 206
+          body_html: "<h1>New</h1>"
+
+  - id: sessel.react.chain-termination
+    title: A Sessel action throwing HTTPResponse stops the request before core processing
+    feature: triggers
+    source: "docs reference/reacting-to-changes/Trigger §Chain termination (snapshot 2026-09-28)"
+    live: false
+    notes: R-SESSEL-294; missing headers read as null (R-SESSEL-74).
+    site:
+      files:
+        - path: "${P}/triggers.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+            <div itemscope itemtype="https://pagelove.org/Trigger">
+              <meta itemprop="resource" content="${P}/locked/*">
+              <meta itemprop="method" content="DELETE">
+              <div itemprop="action" itemscope itemtype="https://pagelove.org/Sessel">
+                <script itemprop="source" type="text/sessel">
+                  @schema Context url("https://pagelove.org/Context");
+                  @schema HTTPResponse url("https://pagelove.org/HTTPResponse");
+                  if (Context.request.headers["X-Sessel-Unlock"] == null) {
+                    throw new HTTPResponse {
+                      status: 403,
+                      message: "<p>Forbidden</p>"
+                    }
+                  }
+                </script>
+              </div>
+            </div>
+            </body></html>
+        - path: "${P}/locked/doc.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body><h1>Keep</h1></body></html>
+      rules:
+        - {actor: "*", resource: "${P}/*", method: [GET, DELETE], action: Allow}
+    steps:
+      - name: delete is refused by the trigger
+        as: anonymous
+        request: {method: DELETE, path: "${P}/locked/doc.html"}
+        expect:
+          status: 403
+          body_contains: ["Forbidden"]
+      - name: document still exists
+        as: anonymous
+        request: {method: GET, path: "${P}/locked/doc.html"}
+        expect: {status: 200}
+
+  - id: sessel.react.side-effect-put
+    title: Pagelove.PUT in a trigger action writes another document through the normal pipeline
+    feature: platform interface
+    source: "docs reference/reacting-to-changes/Trigger §Writing from triggers (snapshot 2026-09-28)"
+    confidence: low
+    live: false
+    notes: R-SESSEL-295 (document shape of the materialised instance inferred; only its microdata is asserted).
+    site:
+      files:
+        - path: "${P}/triggers.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+            <div itemscope itemtype="https://pagelove.org/Trigger">
+              <meta itemprop="resource" content="${P}/inbox/*">
+              <meta itemprop="method" content="PUT">
+              <div itemprop="action" itemscope itemtype="https://pagelove.org/Sessel">
+                <script itemprop="source" type="text/sessel">
+                  @schema Pagelove url("https://pagelove.org/1.0");
+                  @schema Thing url("https://schema.org/Thing");
+                  let item = new Thing { name: "side-effect-doc" };
+                  Pagelove.PUT(item, "${P}/side-effects/record.html")
+                </script>
+              </div>
+            </div>
+            </body></html>
+      rules:
+        - {actor: "*", resource: "${P}/*", method: [GET, PUT], action: Allow}
+    steps:
+      - name: trigger fires on a write to the inbox
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/inbox/msg.html"
+          headers: {Content-Type: "text/html"}
+          body: |
+            <!DOCTYPE html>
+            <html><body><p>hi</p></body></html>
+        expect: {status: [200, 201, 204]}
+      - name: the side-effect document exists
+        as: anonymous
+        request: {method: GET, path: "${P}/side-effects/record.html"}
+        expect:
+          status: 200
+          body_contains: ['itemtype="https://schema.org/Thing"', "side-effect-doc"]
+
+  - id: sessel.react.processor-status
+    title: A Sessel processor gated on the response body changes only the status
+    feature: processors
+    source: "docs learn/build-a-blog §Making the 404 real (snapshot 2026-09-28)"
+    live: false
+    notes: R-SESSEL-290 (Context.response read and status assignment).
+    site:
+      files:
+        - path: "${P}/processors.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+            <div itemscope itemtype="https://pagelove.org/Processor">
+              <meta itemprop="resource" content="${P}/posts/*">
+              <meta itemprop="method" content="GET">
+              <meta itemprop="status" content="200">
+              <div itemprop="when" itemscope itemtype="https://pagelove.org/Sessel">
+                <script itemprop="source" type="text/sessel">
+            @schema Context url("https://pagelove.org/Context");
+            Context.response.body.contains("blog.example/Post") == false
+                </script>
+              </div>
+              <div itemprop="action" itemscope itemtype="https://pagelove.org/Sessel">
+                <script itemprop="source" type="text/sessel">
+            @schema Context url("https://pagelove.org/Context");
+            Context.response.status = 404
+                </script>
+              </div>
+            </div>
+            </body></html>
+        - path: "${P}/posts/real.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body><article itemscope itemtype="https://blog.example/Post"><h1>Real</h1></article></body></html>
+        - path: "${P}/posts/empty.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body><h1>Not found</h1></body></html>
+      rules:
+        - {actor: "*", resource: "${P}/*", method: [GET], action: Allow}
+    steps:
+      - name: a page with a Post stays 200
+        as: anonymous
+        request: {method: GET, path: "${P}/posts/real.html"}
+        expect: {status: 200}
+      - name: a page without a Post becomes 404 with its body intact
+        as: anonymous
+        request: {method: GET, path: "${P}/posts/empty.html"}
+        expect:
+          status: 404
+          body_contains: ["Not found"]
+
+  - id: sessel.react.processor-body
+    title: A Sessel processor action replaces the response body by assignment
+    feature: processors
+    source: "docs reference/reacting-to-changes/Processor §Quick example (snapshot 2026-09-28)"
+    live: false
+    notes: R-SESSEL-290, R-SESSEL-35 (dotted assignment target).
+    site:
+      files:
+        - path: "${P}/processors.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+            <div itemscope itemtype="https://pagelove.org/Processor">
+              <meta itemprop="resource" content="${P}/*">
+              <meta itemprop="method" content="GET">
+              <meta itemprop="status" content="404">
+              <div itemprop="action" itemscope itemtype="https://pagelove.org/Sessel">
+                <script itemprop="source" type="text/sessel">
+                  @schema Context url("https://pagelove.org/Context");
+                  Context.response.body = "<h1>Page not found</h1><p>Sorry, that page doesn't exist.</p>"
+                </script>
+              </div>
+            </div>
+            </body></html>
+      rules:
+        - {actor: "*", resource: "${P}/*", method: [GET], action: Allow}
+    steps:
+      - name: missing page
+        as: anonymous
+        request: {method: GET, path: "${P}/missing.html"}
+        expect:
+          status: 404
+          body_contains: ["Page not found"]
+
+  - id: sessel.react.polls-range-guard
+    title: The polls app's Sessel trigger restricts selector writes by matching the Range header
+    feature: triggers
+    evidence: demo-source
+    source: "pagelove-polls/site/admin/auth.html@c9270e5:99-128"
+    live: false
+    notes: R-SESSEL-111 (matches), R-SESSEL-293 (lower-case header lookup), R-SESSEL-31 (statements without semicolons).
+    site:
+      files:
+        - path: "${P}/triggers.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+            <div itemscope itemtype="https://pagelove.org/Trigger">
+              <meta itemprop="resource" content="${P}/polls/*">
+              <meta itemprop="method" content="PUT">
+              <meta itemprop="method" content="POST">
+              <div itemprop="when" itemscope itemtype="https://pagelove.org/Sessel">
+                <script itemprop="source" type="text/sessel">
+                  @schema Context url("https://pagelove.org/Context");
+                  Context.request.headers["range"] != null
+                </script>
+              </div>
+              <div itemprop="action" itemscope itemtype="https://pagelove.org/Sessel">
+                <script itemprop="source" type="text/sessel">
+                  @schema Context url("https://pagelove.org/Context");
+                  @schema HTTPResponse url("https://pagelove.org/HTTPResponse");
+                  let range = Context.request.headers["range"];
+                  let method = Context.request.method;
+                  if (method == "POST") {
+                    if (range.matches("^selector=#responses$") == false) {
+                      throw new HTTPResponse { status: 403, message: "Responses may only be appended to #responses." }
+                    }
+                  }
+                  if (method == "PUT") {
+                    if (range.matches("^selector=#r-[a-z0-9]{1,24}$") == false) {
+                      throw new HTTPResponse { status: 403, message: "Only a response row may be replaced." }
+                    }
+                  }
+                </script>
+              </div>
+            </div>
+            </body></html>
+        - path: "${P}/polls/p1.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body><h1>Poll</h1><ul id="responses"><li id="r-abc">yes</li></ul></body></html>
+      rules:
+        - {actor: "*", resource: "${P}/*", method: [GET, PUT, POST], action: Allow}
+    steps:
+      - name: replacing the heading is refused
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/polls/p1.html"
+          headers: {Range: "selector=h1", Content-Type: "text/html"}
+          body: "<h1>Hijacked</h1>"
+        expect:
+          status: 403
+          body_contains: ["Only a response row may be replaced."]
+      - name: replacing a response row is allowed
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/polls/p1.html"
+          headers: {Range: "selector=#r-abc", Content-Type: "text/html"}
+          body: '<li id="r-abc">no</li>'
+        expect: {status: 206}
+      - name: appending to #responses is allowed
+        as: anonymous
+        request:
+          method: POST
+          path: "${P}/polls/p1.html"
+          headers: {Range: "selector=#responses", Content-Type: "text/html"}
+          body: '<li id="r-new">maybe</li>'
+        expect: {status: [200, 201, 204, 206]}

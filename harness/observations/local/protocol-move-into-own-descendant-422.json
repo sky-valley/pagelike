@@ -1,0 +1,35 @@
+{
+  "case": "protocol.move.into-own-descendant-422",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (lane into its own card)",
+      "method": "MOVE",
+      "path": "/_pl/protocol-move-into-own-descendant-422-adcd37/board.html",
+      "status": 422,
+      "headers": {
+        "content-length": "236",
+        "content-type": "text/html",
+        "vary": "Host, Range"
+      },
+      "body": "\u003cdiv itemscope itemtype=\"https://dombase.pagelove.team/ns/error/InvalidPath\"\u003e\u003cul itemprop=\"problems\"\u003e\u003cli itemprop=\"problem\"\u003e\u003cspan itemprop=\"message\"\u003eInvalid MOVE: destination is inside the source element's subtree\u003c/span\u003e\u003c/li\u003e\u003c/ul\u003e\u003c/div\u003e"
+    },
+    {
+      "step": "step 2 (board unchanged)",
+      "method": "GET",
+      "path": "/_pl/protocol-move-into-own-descendant-422-adcd37/board.html",
+      "status": 206,
+      "headers": {
+        "accept-ranges": "selector, bytes",
+        "content-length": "47",
+        "content-range": "selector #card-1",
+        "content-type": "text/html",
+        "etag": "\"039333748ca5f00d7a1f93fcff3dfecd77de0f6870c1b2ec29f01ccb2afb11fb-039333748ca5f00d7a1f93fcff3dfecd77de0f6870c1b2ec29f01ccb2afb11fb-1\"",
+        "vary": "Host, Range, Accept"
+      },
+      "body": "\u003carticle class=\"card\" id=\"card-1\"\u003eOne\u003c/article\u003e"
+    }
+  ],
+  "outcome": "pass",
+  "target": "local"
+}

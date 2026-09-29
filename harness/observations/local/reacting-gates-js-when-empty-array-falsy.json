@@ -1,0 +1,36 @@
+{
+  "case": "reacting.gates.js-when-empty-array-falsy",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (install a trigger with a JS gate returning [])",
+      "method": "PUT",
+      "path": "/_pl/reacting-gates-js-when-empty-array-falsy-7c7a26/r/triggers.html",
+      "status": 201,
+      "headers": {
+        "content-length": "740",
+        "content-type": "text/html",
+        "etag": "\"0340b69fdcb16fb8044423568a479749892b73d55e40c95098a9bc47ac8d6023\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:48 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\n\u003cdiv hidden itemscope itemtype=\"https://pagelove.org/Trigger\"\u003e\n  \u003cmeta itemprop=\"resource\" content=\"/_pl/reacting-gates-js-when-empty-array-falsy-7c7a26/d/*\"\u003e\n  \u003cmeta itemprop=\"method\" content=\"PUT\"\u003e\n  \u003cdiv itemprop=\"when\" itemscope itemtype=\"https://pagelove.org/JavaScript/Module\"\u003e\n    \u003cscript type=\"module\" itemprop=\"source\"\u003e\n      export default function(ctx) { return []; }\n    \u003c/script\u003e\n  \u003c/div\u003e\n  \u003cdiv itemprop=\"action\" itemscope itemtype=\"https://pagelove.org/Sessel\"\u003e\n    \u003cscript itemprop=\"source\" type=\"text/sessel\"\u003e\n      @schema HTTPResponse url(\"https://pagelove.org/HTTPResponse\");\n      throw new HTTPResponse { status: 409, message: \"array-truthy\" }\n    \u003c/script\u003e\n  \u003c/div\u003e\n\u003c/div\u003e\n\u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 2 (the trigger is skipped)",
+      "method": "PUT",
+      "path": "/_pl/reacting-gates-js-when-empty-array-falsy-7c7a26/d/x.html",
+      "status": 201,
+      "headers": {
+        "content-length": "8",
+        "content-type": "text/html",
+        "etag": "\"31d8e07ec305ac4e2515d1f0b1c8c603b3858044eb7d97807d6d0970838cb0be\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:48 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003cp\u003ex\u003c/p\u003e"
+    }
+  ],
+  "outcome": "pass",
+  "target": "local"
+}

@@ -1,0 +1,47 @@
+{
+  "case": "authz.resource.trailing-slash-star-not-bare-name",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (bare name covered by the directory pattern)",
+      "method": "PUT",
+      "path": "/_pl/authz-resource-trailing-slash-star-not-b-3f2511/x",
+      "status": 201,
+      "headers": {
+        "content-length": "1",
+        "content-type": "text/plain",
+        "etag": "\"2d711642b726b04401627ca9fbac32f5c8530fb1903cc4db02258717921a4881\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:47 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "x"
+    },
+    {
+      "step": "step 2 (prefix-sharing sibling refused)",
+      "method": "PUT",
+      "path": "/_pl/authz-resource-trailing-slash-star-not-b-3f2511/xy.html",
+      "status": 401,
+      "headers": {
+        "content-length": "428",
+        "content-type": "text/html; charset=utf-8"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\n\u003chead\u003e\n    \u003cmeta charset=\"UTF-8\"\u003e\n    \u003ctitle\u003e401 Unauthorized\u003c/title\u003e\n\u003c/head\u003e\n\u003cbody itemscope itemtype=\"https://pagelove.org/1.0/Error\"\u003e\n    \u003ch1\u003e401 Unauthorized\u003c/h1\u003e\n    \u003cp itemprop=\"message\"\u003eAuthentication required to access this resource.\u003c/p\u003e\n    \u003cdl\u003e\n        \u003cdt\u003eResource\u003c/dt\u003e\n        \u003cdd itemprop=\"resource\"\u003e/_pl/authz-resource-trailing-slash-star-not-b-3f2511/xy.html\u003c/dd\u003e\n    \u003c/dl\u003e\n\u003c/body\u003e\n\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 3 (child allowed)",
+      "method": "PUT",
+      "path": "/_pl/authz-resource-trailing-slash-star-not-b-3f2511/x/a.html",
+      "status": 201,
+      "headers": {
+        "content-length": "41",
+        "content-type": "text/html",
+        "etag": "\"a09179dd962df38a01440ce2e4748c37bd832fe1ac2f65ad974490a89d63d129\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:47 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\u003chtml\u003e\u003cbody\u003e\u003c/body\u003e\u003c/html\u003e"
+    }
+  ],
+  "outcome": "pass",
+  "target": "local"
+}

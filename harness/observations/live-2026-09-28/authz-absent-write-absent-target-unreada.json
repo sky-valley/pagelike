@@ -1,0 +1,34 @@
+{
+  "case": "authz.absent.write-absent-target-unreadable-refused",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (PUT of a missing element)",
+      "method": "PUT",
+      "path": "/_pl/authz-absent-write-absent-target-unreada-5b8ae6/doc.html",
+      "status": 401,
+      "headers": {
+        "content-length": "428",
+        "content-type": "text/html; charset=utf-8"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\n\u003chead\u003e\n    \u003cmeta charset=\"UTF-8\"\u003e\n    \u003ctitle\u003e401 Unauthorized\u003c/title\u003e\n\u003c/head\u003e\n\u003cbody itemscope itemtype=\"https://pagelove.org/1.0/Error\"\u003e\n    \u003ch1\u003e401 Unauthorized\u003c/h1\u003e\n    \u003cp itemprop=\"message\"\u003eAuthentication required to access this resource.\u003c/p\u003e\n    \u003cdl\u003e\n        \u003cdt\u003eResource\u003c/dt\u003e\n        \u003cdd itemprop=\"resource\"\u003e/_pl/authz-absent-write-absent-target-unreada-5b8ae6/doc.html\u003c/dd\u003e\n    \u003c/dl\u003e\n\u003c/body\u003e\n\u003c/html\u003e"
+    },
+    {
+      "step": "step 2 (PUT of an existing permitted element still works without read access)",
+      "method": "PUT",
+      "path": "/_pl/authz-absent-write-absent-target-unreada-5b8ae6/doc.html",
+      "status": 206,
+      "headers": {
+        "content-length": "18",
+        "content-range": "selector #a",
+        "content-type": "text/html",
+        "etag": "\"97216a7a77b34d28b3dd8a7d322f09d4121b2f0f139a5ad9f7ffc9cf82e6a4f5-97216a7a77b34d28b3dd8a7d322f09d4121b2f0f139a5ad9f7ffc9cf82e6a4f5-2\"",
+        "last-modified": "Mon, 28 Sep 2026 22:37:37 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003cli id=\"a\"\u003eA2\u003c/li\u003e"
+    }
+  ],
+  "outcome": "pass",
+  "target": "live"
+}

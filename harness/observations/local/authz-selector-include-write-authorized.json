@@ -1,0 +1,48 @@
+{
+  "case": "authz.selector.include-write-authorized-on-composed-page",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (PUT through the composed page)",
+      "method": "PUT",
+      "path": "/_pl/authz-selector-include-write-authorized-e6b481/page.html",
+      "status": 206,
+      "headers": {
+        "content-length": "37",
+        "content-range": "selector header#nav",
+        "content-type": "text/html",
+        "etag": "\"2862099462da0f0adafe71f563af8e66525e0c20d037f49122d956e0f5a703e9-2862099462da0f0adafe71f563af8e66525e0c20d037f49122d956e0f5a703e9-2\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:47 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003cheader id=\"nav\"\u003eUpdated nav\u003c/header\u003e"
+    },
+    {
+      "step": "step 2 (the origin received the write)",
+      "method": "GET",
+      "path": "/_pl/authz-selector-include-write-authorized-e6b481/partials.html",
+      "status": 200,
+      "headers": {
+        "accept-ranges": "bytes",
+        "content-length": "80",
+        "content-type": "text/html",
+        "etag": "\"4214c375eac676fac06470985a6166f321c0cbc939109cd19873bbe971b0db98\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:47 GMT"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\u003cheader id=\"nav\"\u003eUpdated nav\u003c/header\u003e\u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 3 (writing the origin directly has no rule)",
+      "method": "PUT",
+      "path": "/_pl/authz-selector-include-write-authorized-e6b481/partials.html",
+      "status": 401,
+      "headers": {
+        "content-length": "433",
+        "content-type": "text/html; charset=utf-8"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\n\u003chead\u003e\n    \u003cmeta charset=\"UTF-8\"\u003e\n    \u003ctitle\u003e401 Unauthorized\u003c/title\u003e\n\u003c/head\u003e\n\u003cbody itemscope itemtype=\"https://pagelove.org/1.0/Error\"\u003e\n    \u003ch1\u003e401 Unauthorized\u003c/h1\u003e\n    \u003cp itemprop=\"message\"\u003eAuthentication required to access this resource.\u003c/p\u003e\n    \u003cdl\u003e\n        \u003cdt\u003eResource\u003c/dt\u003e\n        \u003cdd itemprop=\"resource\"\u003e/_pl/authz-selector-include-write-authorized-e6b481/partials.html\u003c/dd\u003e\n    \u003c/dl\u003e\n\u003c/body\u003e\n\u003c/html\u003e\n"
+    }
+  ],
+  "outcome": "pass",
+  "target": "local"
+}

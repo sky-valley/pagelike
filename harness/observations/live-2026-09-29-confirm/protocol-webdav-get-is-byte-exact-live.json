@@ -1,0 +1,34 @@
+{
+  "case": "protocol.webdav.get-is-byte-exact.live",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (upload irregular markup)",
+      "method": "PUT",
+      "path": "/_pl/protocol-webdav-get-is-byte-exact-live-614a8b/raw.html",
+      "status": 201,
+      "headers": {
+        "content-length": "91",
+        "content-type": "text/html",
+        "etag": "\"9bd681457030b858d6c90ca9764b391931dfa26408e2b81cc20bffce289f9d6f\""
+      },
+      "body": "\u003chtml\u003e\u003cbody class=\"x\"\u003e\u003ch1 id=\"a\"\u003eHi\u003c/h1\u003e\u003cp\u003e{{ 1 | plus: 1 }}\u003c!-- keep --\u003e\u003c/p\u003e\u003c/body\u003e\u003c/html\u003e"
+    },
+    {
+      "step": "step 2 (read back normalized)",
+      "method": "GET",
+      "path": "/_pl/protocol-webdav-get-is-byte-exact-live-614a8b/raw.html",
+      "status": 200,
+      "headers": {
+        "accept-ranges": "bytes",
+        "content-length": "91",
+        "content-type": "text/html",
+        "etag": "\"9bd681457030b858d6c90ca9764b391931dfa26408e2b81cc20bffce289f9d6f\"",
+        "last-modified": "Tue, 29 Sep 2026 00:17:59 GMT"
+      },
+      "body": "\u003chtml\u003e\u003cbody class=\"x\"\u003e\u003ch1 id=\"a\"\u003eHi\u003c/h1\u003e\u003cp\u003e{{ 1 | plus: 1 }}\u003c!-- keep --\u003e\u003c/p\u003e\u003c/body\u003e\u003c/html\u003e"
+    }
+  ],
+  "outcome": "pass",
+  "target": "live"
+}

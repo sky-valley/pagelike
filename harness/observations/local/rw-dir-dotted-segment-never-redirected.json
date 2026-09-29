@@ -1,0 +1,35 @@
+{
+  "case": "rw.dir.dotted-segment-never-redirected",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (dotted slash-less path)",
+      "method": "GET",
+      "path": "/_pl/rw-dir-dotted-segment-never-redirected-70cc21/v1.2",
+      "status": 404,
+      "headers": {
+        "content-length": "353",
+        "content-type": "text/html",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\n  \u003chead\u003e\n    \u003ctitle\u003e404 Not Found - Error\u003c/title\u003e\n  \u003c/head\u003e\n  \u003cbody itemscope itemtype=\"http://pagelove.org/Error\"\u003e\n    \u003ch1 itemprop=\"name\"\u003eNot Found\u003c/h1\u003e\n    \u003cmeta itemprop=\"statusCode\" content=\"404\"\u003e\n    \u003cp itemprop=\"description\"\u003eDocument not found: /_pl/rw-dir-dotted-segment-never-redirected-70cc21/v1.2\u003c/p\u003e\n  \u003c/body\u003e\n\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 2 (dotted directory with trailing slash still serves its index)",
+      "method": "GET",
+      "path": "/_pl/rw-dir-dotted-segment-never-redirected-70cc21/v1.2/",
+      "status": 200,
+      "headers": {
+        "accept-ranges": "selector, bytes",
+        "content-length": "63",
+        "content-type": "text/html",
+        "etag": "\"f785ae27b92a01658015f6bd43170756de0198b3dfbaa4a8c7ae4f9fbb33b20a\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:55 GMT",
+        "vary": "Host, Range, Accept"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\u003ch1\u003eVersion 1.2\u003c/h1\u003e\u003c/body\u003e\u003c/html\u003e\n"
+    }
+  ],
+  "outcome": "pass",
+  "target": "local"
+}

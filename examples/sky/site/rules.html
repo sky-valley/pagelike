@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head><meta charset="utf-8"><title>Show me your sky · rules</title></head>
+<body>
+<h1>Rules for “Show me your sky”</h1>
+<p>Everything is denied unless a rule below allows it. Participants can add
+their own sky, change or remove only their own, and upload photos only into
+their own folder. Nobody but the author (over the authoring plane) can change
+the invitation or these rules.</p>
+
+<table>
+<thead><tr><th>Actor</th><th>Resource</th><th>Method</th><th>Selector</th><th>Action</th></tr></thead>
+<tbody>
+  <!-- Anyone can read the experience, its assets and the photos, and follow live updates. -->
+  <tr itemscope itemtype="https://pagelove.org/AuthorizationRule">
+    <td itemprop="actor">*</td>
+    <td><ul><li itemprop="resource">/</li><li itemprop="resource">/index.html</li><li itemprop="resource">/assets/*</li><li itemprop="resource">/uploads/*</li></ul></td>
+    <td><ul><li itemprop="method">GET</li><li itemprop="method">HEAD</li><li itemprop="method">OPTIONS</li></ul></td>
+    <td itemprop="selector"></td>
+    <td itemprop="action">Allow</td>
+  </tr>
+
+  <!-- Signed-in participants add a sky to the gallery. -->
+  <tr itemscope itemtype="https://pagelove.org/AuthorizationRule">
+    <td itemprop="actor">users</td>
+    <td itemprop="resource">/index.html</td>
+    <td itemprop="method">POST</td>
+    <td itemprop="selector">#skies</td>
+    <td itemprop="action">Allow</td>
+  </tr>
+
+  <!-- ...and change or withdraw only the entries they own. -->
+  <tr itemscope itemtype="https://pagelove.org/AuthorizationRule">
+    <td itemprop="actor">users</td>
+    <td itemprop="resource">/index.html</td>
+    <td><ul><li itemprop="method">PUT</li><li itemprop="method">DELETE</li></ul></td>
+    <td itemprop="selector">#skies &gt; li[data-owner="${request.auth.username}"]</td>
+    <td itemprop="action">Allow</td>
+  </tr>
+
+  <!-- Photos go into the participant's own folder. -->
+  <tr itemscope itemtype="https://pagelove.org/AuthorizationRule">
+    <td itemprop="actor">users</td>
+    <td itemprop="resource">/uploads/${request.auth.username}/*</td>
+    <td><ul><li itemprop="method">PUT</li><li itemprop="method">DELETE</li></ul></td>
+    <td itemprop="selector"></td>
+    <td itemprop="action">Allow</td>
+  </tr>
+</tbody>
+</table>
+
+<h2>Constraints</h2>
+
+<!-- An entry must be posted as the signed-in user and point at their own photo. -->
+<div itemscope itemtype="https://pagelove.org/Trigger">
+  <meta itemprop="resource" content="/index.html">
+  <meta itemprop="method" content="POST">
+  <meta itemprop="method" content="PUT">
+  <div itemprop="action" itemscope itemtype="https://pagelove.org/Sessel">
+    <script itemprop="source" type="text/sessel">
+      @schema Context url("https://pagelove.org/Context");
+      @schema HTTPResponse url("https://pagelove.org/HTTPResponse");
+      let me = Context.request.auth.username;
+      if (Context.request.headers["range"] == null) {
+        throw new HTTPResponse { status: 403, message: "Only the author can replace the whole page." }
+      }
+      let entry = Element.fromString(Context.request.body);
+      if (entry.attr("data-owner") != me) {
+        throw new HTTPResponse { status: 403, message: "A sky must be shared as yourself." }
+      }
+      let photo = entry.${img[itemprop="image"]}.first();
+      if (photo == null || photo.attr("src").startsWith("/uploads/" + me + "/") == false) {
+        throw new HTTPResponse { status: 422, message: "The photo must be one you uploaded." }
+      }
+    </script>
+  </div>
+</div>
+
+<!-- Uploads are images only: no HTML, SVG or scripts can be planted on this origin. -->
+<div itemscope itemtype="https://pagelove.org/Trigger">
+  <meta itemprop="resource" content="/uploads/*">
+  <meta itemprop="method" content="PUT">
+  <div itemprop="action" itemscope itemtype="https://pagelove.org/Sessel">
+    <script itemprop="source" type="text/sessel">
+      @schema Context url("https://pagelove.org/Context");
+      @schema HTTPResponse url("https://pagelove.org/HTTPResponse");
+      let type = Context.request.headers["content-type"] ?? "";
+      let path = Context.request.path.lower();
+      if (type.matches("^image/(png|jpeg|webp|gif|avif)$") == false || path.matches("[.](png|jpe?g|webp|gif|avif)$") == false) {
+        throw new HTTPResponse { status: 415, message: "Only photos (PNG, JPEG, WebP, GIF, AVIF) can be uploaded." }
+      }
+    </script>
+  </div>
+</div>
+
+<!-- Closed shapes: a posted sky may contain only these elements and attributes. -->
+<div itemscope itemtype="https://pagelove.org/ShapeConstraint">
+  <meta itemprop="resource" content="/index.html">
+  <meta itemprop="selector" content="#skies">
+  <!-- Closed shapes check the root too, so the container itself is permitted. -->
+  <code itemprop="permit">ul[id][class]</code>
+  <code itemprop="permit">li[id][itemscope][itemtype="https://example.org/Sky"][data-owner]</code>
+  <code itemprop="permit">img[itemprop="image"][src][alt]</code>
+  <code itemprop="permit">p[itemprop="caption"]</code>
+  <code itemprop="permit">meta[itemprop="author"][content]</code>
+  <code itemprop="permit">time[itemprop="posted"][datetime]</code>
+</div>
+<div itemscope itemtype="https://pagelove.org/ShapeConstraint">
+  <meta itemprop="resource" content="/index.html">
+  <meta itemprop="selector" content="#skies &gt; li">
+  <code itemprop="permit">li[id][itemscope][itemtype="https://example.org/Sky"][data-owner]</code>
+  <code itemprop="permit">img[itemprop="image"][src][alt]</code>
+  <code itemprop="permit">p[itemprop="caption"]</code>
+  <code itemprop="permit">meta[itemprop="author"][content]</code>
+  <code itemprop="permit">time[itemprop="posted"][datetime]</code>
+</div>
+</body>
+</html>

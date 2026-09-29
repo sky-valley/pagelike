@@ -1,0 +1,44 @@
+{
+  "case": "authz.move.three-checks-allow",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (append card-1 to the done lane)",
+      "method": "MOVE",
+      "path": "/_pl/authz-move-three-checks-allow-56ce38/board.html",
+      "status": 204,
+      "headers": {
+        "etag": "\"959074923887d74764723cecd9d55c76a93577c4d0b2d31a8180b7c6a94dc8ad\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:47 GMT",
+        "vary": "Host, Range"
+      }
+    },
+    {
+      "step": "step 2 (card-1 is now in the done lane)",
+      "method": "GET",
+      "path": "/_pl/authz-move-three-checks-allow-56ce38/board.html",
+      "status": 200,
+      "headers": {
+        "accept-ranges": "bytes",
+        "content-length": "287",
+        "content-type": "text/html",
+        "etag": "\"959074923887d74764723cecd9d55c76a93577c4d0b2d31a8180b7c6a94dc8ad\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:47 GMT"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\n  \u003csection id=\"lane-todo\" class=\"lane\"\u003e\u003carticle id=\"card-2\" class=\"card\"\u003eTwo\u003c/article\u003e\u003c/section\u003e\n  \u003csection id=\"lane-done\" class=\"lane\"\u003e\u003carticle id=\"card-3\" class=\"card\"\u003eThree\u003c/article\u003e\u003carticle id=\"card-1\" class=\"card\"\u003eOne\u003c/article\u003e\u003c/section\u003e\n\u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 3 (reorder with placement=before (POST keyed on the anchor's parent lane))",
+      "method": "MOVE",
+      "path": "/_pl/authz-move-three-checks-allow-56ce38/board.html",
+      "status": 204,
+      "headers": {
+        "etag": "\"cc3beaaaef5abecdb4815239830f8f8c78b5e6508cf21f8cf79d284253ad03f5\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:47 GMT",
+        "vary": "Host, Range"
+      }
+    }
+  ],
+  "outcome": "pass",
+  "target": "local"
+}

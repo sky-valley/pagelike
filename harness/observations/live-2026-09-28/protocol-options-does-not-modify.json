@@ -1,0 +1,45 @@
+{
+  "case": "protocol.options.does-not-modify",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (read the document ETag)",
+      "method": "GET",
+      "path": "/_pl/protocol-options-does-not-modify-836acd/doc.html",
+      "status": 200,
+      "headers": {
+        "content-type": "text/html",
+        "etag": "\"7c96d67659685bc9f0dd24694d0b5a38b876427e3ffbb399631023e985b3d93c\"",
+        "last-modified": "Mon, 28 Sep 2026 22:31:51 GMT",
+        "vary": "Host, Range, Accept"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\u003ch1\u003eTitle\u003c/h1\u003e\n                \u003cdiv style=\"\n                            position: fixed;\n                            bottom: 0;\n                            left: 0;\n                            right: 0;\n                            padding: 8px;\n                            background: #f0f0f0;\n                            text-align: center;\n                            font-size: 12px;\n                            color: #666;\n                            z-index: 9999;\n                            opacity: 0.8;\n                            border-top: 1px solid #ddd;\n                        \"\u003e\n                    Powered by\n                    \u003ca href=\"https://pagelove.com/\" style=\"color: #4a90d9; text-decoration: none\"\u003ePagelove\u003c/a\u003e\n                \u003c/div\u003e\n            \u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 2 (flat, selector and multipart OPTIONS)",
+      "method": "OPTIONS",
+      "path": "/_pl/protocol-options-does-not-modify-836acd/doc.html",
+      "status": 207,
+      "headers": {
+        "content-type": "multipart/mixed; boundary=boundaryDBym4cdwgIzncbXtxewQiHBfFEhffm4c",
+        "vary": "Authorization, Accept"
+      },
+      "body": "--boundaryDBym4cdwgIzncbXtxewQiHBfFEhffm4c\r\nAllow: GET, HEAD, OPTIONS\r\n\r\n--boundaryDBym4cdwgIzncbXtxewQiHBfFEhffm4c\r\nContent-Range: selector h1\r\nAllow: PUT, OPTIONS\r\n\r\n--boundaryDBym4cdwgIzncbXtxewQiHBfFEhffm4c--\r\n"
+    },
+    {
+      "step": "step 3 (ETag unchanged)",
+      "method": "GET",
+      "path": "/_pl/protocol-options-does-not-modify-836acd/doc.html",
+      "status": 200,
+      "headers": {
+        "content-type": "text/html",
+        "etag": "\"7c96d67659685bc9f0dd24694d0b5a38b876427e3ffbb399631023e985b3d93c\"",
+        "last-modified": "Mon, 28 Sep 2026 22:31:51 GMT",
+        "vary": "Host, Range, Accept"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\u003ch1\u003eTitle\u003c/h1\u003e\n                \u003cdiv style=\"\n                            position: fixed;\n                            bottom: 0;\n                            left: 0;\n                            right: 0;\n                            padding: 8px;\n                            background: #f0f0f0;\n                            text-align: center;\n                            font-size: 12px;\n                            color: #666;\n                            z-index: 9999;\n                            opacity: 0.8;\n                            border-top: 1px solid #ddd;\n                        \"\u003e\n                    Powered by\n                    \u003ca href=\"https://pagelove.com/\" style=\"color: #4a90d9; text-decoration: none\"\u003ePagelove\u003c/a\u003e\n                \u003c/div\u003e\n            \u003c/body\u003e\u003c/html\u003e\n"
+    }
+  ],
+  "outcome": "pass",
+  "target": "live"
+}

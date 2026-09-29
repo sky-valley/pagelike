@@ -1,0 +1,34 @@
+{
+  "case": "javascript.jbind.unknown-identifier-500",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (PUT the page (public plane; registers inline declarations))",
+      "method": "PUT",
+      "path": "/_pl/javascript-jbind-unknown-identifier-500-f34198/j.html",
+      "status": 201,
+      "headers": {
+        "content-length": "206",
+        "content-type": "text/html",
+        "etag": "\"bbc02ddeef75999cadcc0f32c1c344522808b7efd9605910f9a0a7ae4878961d\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:43 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml xmlns:j=\"https://pagelove.org/Binding/JavaScript\" xmlns:p=\"https://pagelove.org/1.0\"\u003e\u003cbody\u003e\n\u003cmain\u003e\n\u003cdiv j:v=\"notDefinedAnywhere + 1\"\u003e\u003cp:stamp v\u003e\u003c/p:stamp\u003e\u003c/div\u003e\n\u003c/main\u003e\n\u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 2 (GET the composed page)",
+      "method": "GET",
+      "path": "/_pl/javascript-jbind-unknown-identifier-500-f34198/j.html",
+      "status": 500,
+      "headers": {
+        "content-length": "958",
+        "content-type": "text/html; charset=utf-8",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\n\u003chead\u003e\n\u003cmeta charset=\"UTF-8\"\u003e\n\u003ctitle\u003e500 Internal Server Error\u003c/title\u003e\n\u003c/head\u003e\n\u003cbody\u003e\n\u003carticle itemscope itemtype=\"https://pagelove.org/Error\"\u003e\n  \u003cmeta itemprop=\"status\" content=\"500\"\u003e\n  \u003cmeta itemprop=\"kind\" content=\"CompositionError\"\u003e\n  \u003cdiv itemprop=\"type\" itemscope itemtype=\"https://dombase.pagelove.team/ns/error/CompositionError\"\u003e\u003c/div\u003e\n  \u003cp itemprop=\"message\"\u003ej:v: ReferenceError: \u0026#39;notDefinedAnywhere\u0026#39; is not defined\u003c/p\u003e\n  \u003cmeta itemprop=\"resource\" content=\"/_pl/javascript-jbind-unknown-identifier-500-f34198/j.html\"\u003e\n  \u003cdiv itemprop=\"detail\"\u003e\u003cdiv itemprop=\"failure\" itemscope itemtype=\"https://pagelove.org/BindingFailure\"\u003e\u003cmeta itemprop=\"language\" content=\"https://pagelove.org/JavaScript/Module\"\u003e\u003cmeta itemprop=\"variant\" content=\"threw\"\u003e\u003cp itemprop=\"message\"\u003eReferenceError: \u0026#39;notDefinedAnywhere\u0026#39; is not defined\u003c/p\u003e\u003cpre itemprop=\"stack\"\u003e    at default (eval:2:1)\u003c/pre\u003e\u003c/div\u003e\u003c/div\u003e\n\u003c/article\u003e\n\u003c/body\u003e\n\u003c/html\u003e\n"
+    }
+  ],
+  "outcome": "pass",
+  "target": "local"
+}

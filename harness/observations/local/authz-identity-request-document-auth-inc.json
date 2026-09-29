@@ -1,0 +1,23 @@
+{
+  "case": "authz.identity.request-document-auth-include",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (auth section with username, claims and roles)",
+      "method": "GET",
+      "path": "/_pl/authz-identity-request-document-auth-inc-d78cff/me.html",
+      "status": 200,
+      "headers": {
+        "accept-ranges": "selector, bytes",
+        "cache-control": "private",
+        "content-length": "528",
+        "content-type": "text/html",
+        "etag": "W/\"4ee8148e93d87be6e2fbf9005cfa2cd19cdecfed72725d5ffddc13b1d3a1f707\"",
+        "vary": "Host, Range, Accept"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\n  \u003csection itemprop=\"auth\" itemscope itemtype=\"https://pagelove.org/Authorization\"\u003e\n  \u003csection itemprop=\"claims\" itemscope itemtype=\"https://pagelove.org/Claims\"\u003e\n    \u003cmeta itemprop=\"email\" content=\"alice@example.com\"\u003e\n    \u003cmeta itemprop=\"email_verified\" content=\"true\"\u003e\n    \u003cmeta itemprop=\"sub\" content=\"sub-alice\"\u003e\n  \u003c/section\u003e\n  \u003cmeta itemprop=\"username\" content=\"sub-alice\"\u003e\n  \u003cmeta itemprop=\"role\" content=\"alice@example.com\"\u003e\n  \u003cmeta itemprop=\"role\" content=\"users\"\u003e\n\u003c/section\u003e\n\u003c/body\u003e\u003c/html\u003e\n"
+    }
+  ],
+  "outcome": "pass",
+  "target": "local"
+}

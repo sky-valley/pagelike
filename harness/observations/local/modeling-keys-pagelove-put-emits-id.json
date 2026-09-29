@@ -1,0 +1,64 @@
+{
+  "case": "modeling.keys.pagelove-put-emits-id",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (register declarations through the public plane (takes effect for the next request))",
+      "method": "PUT",
+      "path": "/_pl/modeling-keys-pagelove-put-emits-id-72b881/schema.html",
+      "status": 201,
+      "headers": {
+        "content-length": "819",
+        "content-type": "text/html",
+        "etag": "\"7bd374b02f8b68b60b96ea00991cd82b171333a9c34628071919eb47622218ba\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:44 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\n  \u003cdiv hidden itemscope itemtype=\"https://pagelove.org/Schema\"\u003e\n    \u003cmeta itemprop=\"type\" content=\"https://pagelike.test/_pl/modeling-keys-pagelove-put-emits-id-72b881/Host\"\u003e\n    \u003cli itemprop=\"property\" itemscope itemtype=\"https://pagelove.org/Property\"\u003e\n      \u003cmeta itemprop=\"name\" content=\"hid\"\u003e\n      \u003cmeta itemprop=\"type\" content=\"https://schema.host/Text\"\u003e\n      \u003cmeta itemprop=\"cardinality\" content=\"1..1\"\u003e\n      \u003cmeta itemprop=\"unique\" content=\"true\"\u003e\n      \u003cmeta itemprop=\"@key\" content=\"true\"\u003e\n    \u003c/li\u003e\n    \u003cli itemprop=\"property\" itemscope itemtype=\"https://pagelove.org/Property\"\u003e\n      \u003cmeta itemprop=\"name\" content=\"hostname\"\u003e\n      \u003cmeta itemprop=\"type\" content=\"https://schema.host/Text\"\u003e\n      \u003cmeta itemprop=\"cardinality\" content=\"1..1\"\u003e\n    \u003c/li\u003e\n  \u003c/div\u003e\n\u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 2 (register a trigger that materialises a Host)",
+      "method": "PUT",
+      "path": "/_pl/modeling-keys-pagelove-put-emits-id-72b881/trigger.html",
+      "status": 201,
+      "headers": {
+        "content-length": "744",
+        "content-type": "text/html",
+        "etag": "\"d9804c8ab20fa8d6c3617721f2637ffedc377f382869ca0ecceb8c56b9270ca8\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:44 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\n  \u003cdiv hidden itemscope itemtype=\"https://pagelove.org/Trigger\"\u003e\n    \u003cmeta itemprop=\"resource\" content=\"/_pl/modeling-keys-pagelove-put-emits-id-72b881/go.html\"\u003e\n    \u003cmeta itemprop=\"method\" content=\"PUT\"\u003e\n    \u003cdiv itemprop=\"action\" itemscope itemtype=\"https://pagelove.org/Sessel\"\u003e\n      \u003cscript itemprop=\"source\" type=\"text/sessel\"\u003e\n        @schema Pagelove url(\"https://pagelove.org/1.0\");\n        @schema Host url(\"https://pagelike.test/_pl/modeling-keys-pagelove-put-emits-id-72b881/Host\");\n        let h = new Host { hid: \"abc123\", hostname: \"abc123.example.com\" };\n        Pagelove.PUT(h, \"/_pl/modeling-keys-pagelove-put-emits-id-72b881/hosts/abc123.html\")\n      \u003c/script\u003e\n    \u003c/div\u003e\n  \u003c/div\u003e\n\u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 3 (fire the trigger)",
+      "method": "PUT",
+      "path": "/_pl/modeling-keys-pagelove-put-emits-id-72b881/go.html",
+      "status": 201,
+      "headers": {
+        "content-length": "56",
+        "content-type": "text/html",
+        "etag": "\"5c043634c698dab2a73a93643d80a8b9b1121f26c984d90b9ab207bece6c3199\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:44 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\n  \u003cp\u003ego\u003c/p\u003e\n\u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 4 (stored state of abc123.html (authoring plane, raw))",
+      "method": "GET",
+      "path": "/_pl/modeling-keys-pagelove-put-emits-id-72b881/hosts/abc123.html",
+      "status": 200,
+      "headers": {
+        "accept-ranges": "bytes",
+        "content-length": "256",
+        "content-type": "text/html",
+        "etag": "\"d83517cb15d7610a6db4d398f597a269d5eb7f9394db50c3a04791fcd3ef383d\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:44 GMT"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\n\u003cdiv itemscope itemtype=\"https://pagelike.test/_pl/modeling-keys-pagelove-put-emits-id-72b881/Host\" id=\"abc123\"\u003e\u003cmeta itemprop=\"hid\" content=\"abc123\"\u003e\u003cmeta itemprop=\"hostname\" content=\"abc123.example.com\"\u003e\u003c/div\u003e\n\u003c/body\u003e\u003c/html\u003e\n"
+    }
+  ],
+  "outcome": "pass",
+  "target": "local"
+}

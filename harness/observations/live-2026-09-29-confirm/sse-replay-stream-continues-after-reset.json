@@ -1,0 +1,103 @@
+{
+  "case": "sse.replay.stream-continues-after-reset",
+  "failures": [
+    "step 7: no matching \"reset\" event on s1 within 3s (2 events seen: pagelove-connection, mutation#v1~a6c51db9b816.1790641137009-0)"
+  ],
+  "observations": [
+    {
+      "step": "step 1 (sse open s0)",
+      "method": "GET",
+      "path": "/_pl/sse-replay-stream-continues-after-reset-757983/doc.html",
+      "status": 200,
+      "headers": {
+        "cache-control": "no-cache",
+        "content-type": "text/event-stream"
+      }
+    },
+    {
+      "step": "step 2",
+      "events": [
+        {
+          "event": "pagelove-connection",
+          "data": "23f3c524-8d42-4446-a565-28ba917f4f7a"
+        }
+      ]
+    },
+    {
+      "step": "step 3 (write, to learn this document's id prefix)",
+      "method": "PUT",
+      "path": "/_pl/sse-replay-stream-continues-after-reset-757983/doc.html",
+      "status": 206,
+      "headers": {
+        "content-length": "18",
+        "content-range": "selector h1",
+        "content-type": "text/html",
+        "etag": "\"fc0bca7a8b1819e9bf4f48dc58acaf359190416e3bbed5d720dcd85d83fee190-fc0bca7a8b1819e9bf4f48dc58acaf359190416e3bbed5d720dcd85d83fee190-2\"",
+        "last-modified": "Tue, 29 Sep 2026 00:18:57 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003ch1\u003eId source\u003c/h1\u003e"
+    },
+    {
+      "step": "step 4",
+      "events": [
+        {
+          "id": "v1~a6c51db9b816.1790641137009-0",
+          "event": "mutation",
+          "data": "\u003carticle itemscope itemtype=\"https://pagelove.org/Mutation\"\u003e\n  \u003cspan itemprop=\"method\"\u003ePUT\u003c/span\u003e\n  \u003cspan itemprop=\"selector\"\u003eh1\u003c/span\u003e\n  \u003cspan itemprop=\"etag\"\u003ed7d2b0eee71f0e9137b0c2e5ca7f3af7eaed7db721b5f16d12a9ba4dba944a42\u003c/span\u003e\n  \u003cspan itemprop=\"path\"\u003e/_pl/sse-replay-stream-continues-after-reset-757983/doc.html\u003c/span\u003e\n  \u003cspan itemprop=\"host\"\u003elive-test-host.onpagelove.com\u003c/span\u003e\n  \u003cdiv itemprop=\"body\"\u003e\u003ch1\u003eId source\u003c/h1\u003e\u003c/div\u003e\n\u003c/article\u003e"
+        }
+      ]
+    },
+    {
+      "step": "step 6 (sse open s1)",
+      "method": "GET",
+      "path": "/_pl/sse-replay-stream-continues-after-reset-757983/doc.html",
+      "status": 200,
+      "headers": {
+        "cache-control": "no-cache",
+        "content-type": "text/event-stream"
+      }
+    },
+    {
+      "step": "step 7 (all events on s1)",
+      "events": [
+        {
+          "event": "pagelove-connection",
+          "data": "db79b069-c284-4d4e-843b-6e045b546452"
+        },
+        {
+          "id": "v1~a6c51db9b816.1790641137009-0",
+          "event": "mutation",
+          "data": "\u003carticle itemscope itemtype=\"https://pagelove.org/Mutation\"\u003e\n  \u003cspan itemprop=\"method\"\u003ePUT\u003c/span\u003e\n  \u003cspan itemprop=\"selector\"\u003eh1\u003c/span\u003e\n  \u003cspan itemprop=\"etag\"\u003ed7d2b0eee71f0e9137b0c2e5ca7f3af7eaed7db721b5f16d12a9ba4dba944a42\u003c/span\u003e\n  \u003cspan itemprop=\"path\"\u003e/_pl/sse-replay-stream-continues-after-reset-757983/doc.html\u003c/span\u003e\n  \u003cspan itemprop=\"host\"\u003elive-test-host.onpagelove.com\u003c/span\u003e\n  \u003cdiv itemprop=\"body\"\u003e\u003ch1\u003eId source\u003c/h1\u003e\u003c/div\u003e\n\u003c/article\u003e"
+        }
+      ]
+    },
+    {
+      "step": "step 8 (write after the reset)",
+      "method": "PUT",
+      "path": "/_pl/sse-replay-stream-continues-after-reset-757983/doc.html",
+      "status": 206,
+      "headers": {
+        "content-length": "19",
+        "content-range": "selector h1",
+        "content-type": "text/html",
+        "etag": "\"58d26309b68cbb18c0b67c76c81aa7c7653ab4f63e6ce2fb62a7c76f9ccc77d1-58d26309b68cbb18c0b67c76c81aa7c7653ab4f63e6ce2fb62a7c76f9ccc77d1-3\"",
+        "last-modified": "Tue, 29 Sep 2026 00:19:01 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003ch1\u003ePost-reset\u003c/h1\u003e"
+    },
+    {
+      "step": "step 9",
+      "events": [
+        {
+          "id": "v1~a6c51db9b816.1790641141202-0",
+          "event": "mutation",
+          "data": "\u003carticle itemscope itemtype=\"https://pagelove.org/Mutation\"\u003e\n  \u003cspan itemprop=\"method\"\u003ePUT\u003c/span\u003e\n  \u003cspan itemprop=\"selector\"\u003eh1\u003c/span\u003e\n  \u003cspan itemprop=\"etag\"\u003e1f3fb09a1a598c365805abfe0a992fb857b1a8c23ea4be77ed1321f01424185e\u003c/span\u003e\n  \u003cspan itemprop=\"path\"\u003e/_pl/sse-replay-stream-continues-after-reset-757983/doc.html\u003c/span\u003e\n  \u003cspan itemprop=\"host\"\u003elive-test-host.onpagelove.com\u003c/span\u003e\n  \u003cdiv itemprop=\"body\"\u003e\u003ch1\u003ePost-reset\u003c/h1\u003e\u003c/div\u003e\n\u003c/article\u003e"
+        }
+      ]
+    }
+  ],
+  "outcome": "fail",
+  "target": "live"
+}

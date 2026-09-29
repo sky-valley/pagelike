@@ -1,0 +1,76 @@
+{
+  "case": "sse.scope.include-not-propagated",
+  "failures": [
+    "step 7: unexpected mutation event on page: \u003carticle itemscope itemtype=\"https://pagelove.org/Mutation\"\u003e\n  \u003cspan itemprop=\"method\"\u003ePUT\u003c/span\u003e\n  \u003cspan itemprop=\"selector\"\u003eheader#nav\u003c/span\u003e\n  \u003cspan itemprop=\"etag\"\u003e53ace1b63c784d8224b0f5b6f4c34433628c3ba08109e0bbbe3d4625b2ba1087\u003c/span\u003e\n  \u003cspan itemprop=\"path\"\u003e/_pl/sse-scope-include-not-propagate…"
+  ],
+  "observations": [
+    {
+      "step": "step 3",
+      "events": [
+        {
+          "event": "pagelove-connection",
+          "data": "10290fd5-57e8-4e30-a936-883027624e18"
+        }
+      ]
+    },
+    {
+      "step": "step 4",
+      "events": [
+        {
+          "event": "pagelove-connection",
+          "data": "0dc7f47c-0a5d-4e0b-bc5b-07aed84f1fa0"
+        }
+      ]
+    },
+    {
+      "step": "step 5 (edit the partial directly)",
+      "method": "PUT",
+      "path": "/_pl/sse-scope-include-not-propagated-49a543/partial.html",
+      "status": 206,
+      "headers": {
+        "content-length": "32",
+        "content-range": "selector header#nav",
+        "content-type": "text/html",
+        "etag": "\"69b192443a31fca2036d1de983c78092b6597c5ec91f2df7a09c4a6bede8cb2a-69b192443a31fca2036d1de983c78092b6597c5ec91f2df7a09c4a6bede8cb2a-2\"",
+        "last-modified": "Mon, 28 Sep 2026 22:35:40 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003cheader id=\"nav\"\u003eNav v2\u003c/header\u003e"
+    },
+    {
+      "step": "step 6",
+      "events": [
+        {
+          "id": "v1~54a7cfd7e77c.1790634940295-0",
+          "event": "mutation",
+          "data": "\u003carticle itemscope itemtype=\"https://pagelove.org/Mutation\"\u003e\n  \u003cspan itemprop=\"method\"\u003ePUT\u003c/span\u003e\n  \u003cspan itemprop=\"selector\"\u003eheader#nav\u003c/span\u003e\n  \u003cspan itemprop=\"etag\"\u003e53ace1b63c784d8224b0f5b6f4c34433628c3ba08109e0bbbe3d4625b2ba1087\u003c/span\u003e\n  \u003cspan itemprop=\"path\"\u003e/_pl/sse-scope-include-not-propagated-49a543/partial.html\u003c/span\u003e\n  \u003cspan itemprop=\"host\"\u003elive-test-host.onpagelove.com\u003c/span\u003e\n  \u003cdiv itemprop=\"body\"\u003e\u003cheader id=\"nav\"\u003eNav v2\u003c/header\u003e\u003c/div\u003e\n\u003c/article\u003e"
+        }
+      ]
+    },
+    {
+      "step": "step 7",
+      "events": [
+        {
+          "id": "v1~54a7cfd7e77c.1790634940295-0",
+          "event": "mutation",
+          "data": "\u003carticle itemscope itemtype=\"https://pagelove.org/Mutation\"\u003e\n  \u003cspan itemprop=\"method\"\u003ePUT\u003c/span\u003e\n  \u003cspan itemprop=\"selector\"\u003eheader#nav\u003c/span\u003e\n  \u003cspan itemprop=\"etag\"\u003e53ace1b63c784d8224b0f5b6f4c34433628c3ba08109e0bbbe3d4625b2ba1087\u003c/span\u003e\n  \u003cspan itemprop=\"path\"\u003e/_pl/sse-scope-include-not-propagated-49a543/partial.html\u003c/span\u003e\n  \u003cspan itemprop=\"host\"\u003elive-test-host.onpagelove.com\u003c/span\u003e\n  \u003cdiv itemprop=\"body\"\u003e\u003cheader id=\"nav\"\u003eNav v2\u003c/header\u003e\u003c/div\u003e\n\u003c/article\u003e"
+        }
+      ]
+    },
+    {
+      "step": "step 8 (the composed page shows the new header)",
+      "method": "GET",
+      "path": "/_pl/sse-scope-include-not-propagated-49a543/page.html",
+      "status": 200,
+      "headers": {
+        "cache-control": "public, max-age=5",
+        "content-type": "text/html",
+        "etag": "W/\"08678a0137a0cdb4ddd2d78275a7397d939678cff6e6a4f849711f5d838a4278\"",
+        "vary": "Host, Range, Accept"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\n  \u003cheader id=\"nav\"\u003eNav v2\u003c/header\u003e\n  \u003cmain\u003e\u003ch1\u003ePage\u003c/h1\u003e\u003c/main\u003e\n\n                \u003cdiv style=\"\n                            position: fixed;\n                            bottom: 0;\n                            left: 0;\n                            right: 0;\n                            padding: 8px;\n                            background: #f0f0f0;\n                            text-align: center;\n                            font-size: 12px;\n                            color: #666;\n                            z-index: 9999;\n                            opacity: 0.8;\n                            border-top: 1px solid #ddd;\n                        \"\u003e\n                    Powered by\n                    \u003ca href=\"https://pagelove.com/\" style=\"color: #4a90d9; text-decoration: none\"\u003ePagelove\u003c/a\u003e\n                \u003c/div\u003e\n            \u003c/body\u003e\u003c/html\u003e\n"
+    }
+  ],
+  "outcome": "fail",
+  "target": "live"
+}

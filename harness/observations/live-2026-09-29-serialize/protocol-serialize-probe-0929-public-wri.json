@@ -1,0 +1,99 @@
+{
+  "case": "protocol.serialize.probe-0929.public-writes",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (read seeded)",
+      "method": "GET",
+      "path": "/_pl/protocol-serialize-probe-0929-public-wri-643878/list.html",
+      "status": 200,
+      "headers": {
+        "content-type": "text/html",
+        "etag": "\"01887a9ea4a88e40c4b3a237426ab959e323758dafa6226410744fbb3b2a23b3\"",
+        "last-modified": "Tue, 29 Sep 2026 01:25:36 GMT",
+        "vary": "Host, Range, Accept"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\n  \u003cul id=\"l\"\u003e\n    \u003cli\u003eone\u003c/li\u003e\n  \u003c/ul\u003e\n  \u003cp id=\"q\"\u003eq\u003c/p\u003e\n\n                \u003cdiv style=\"\n                            position: fixed;\n                            bottom: 0;\n                            left: 0;\n                            right: 0;\n                            padding: 8px;\n                            background: #f0f0f0;\n                            text-align: center;\n                            font-size: 12px;\n                            color: #666;\n                            z-index: 9999;\n                            opacity: 0.8;\n                            border-top: 1px solid #ddd;\n                        \"\u003e\n                    Powered by\n                    \u003ca href=\"https://pagelove.com/\" style=\"color: #4a90d9; text-decoration: none\"\u003ePagelove\u003c/a\u003e\n                \u003c/div\u003e\n            \u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 2 (post irregular fragment)",
+      "method": "POST",
+      "path": "/_pl/protocol-serialize-probe-0929-public-wri-643878/list.html",
+      "status": 206,
+      "headers": {
+        "content-length": "49",
+        "content-range": "selector #l",
+        "content-type": "text/html",
+        "etag": "\"389c80acb2e9d9c5987be564a0d8d3de0fd087e30c0a79a1ddd7513b45390426-389c80acb2e9d9c5987be564a0d8d3de0fd087e30c0a79a1ddd7513b45390426-2\"",
+        "last-modified": "Tue, 29 Sep 2026 01:25:37 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003cli class=\"a\" data-x=\"1\"\u003etwo\u003cinput disabled\u003e\u003c/li\u003e"
+    },
+    {
+      "step": "step 3 (read after post)",
+      "method": "GET",
+      "path": "/_pl/protocol-serialize-probe-0929-public-wri-643878/list.html",
+      "status": 200,
+      "headers": {
+        "content-type": "text/html",
+        "etag": "\"1f8da85bdd7c7a4df7e209f2a0b341c068af4d0bc4b2bbe09dda43a995a48c81\"",
+        "last-modified": "Tue, 29 Sep 2026 01:25:37 GMT",
+        "vary": "Host, Range, Accept"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\n  \u003cul id=\"l\"\u003e\n    \u003cli\u003eone\u003c/li\u003e\n  \u003cli class=\"a\" data-x=\"1\"\u003etwo\u003cinput disabled\u003e\u003c/li\u003e\u003c/ul\u003e\n  \u003cp id=\"q\"\u003eq\u003c/p\u003e\n\n                \u003cdiv style=\"\n                            position: fixed;\n                            bottom: 0;\n                            left: 0;\n                            right: 0;\n                            padding: 8px;\n                            background: #f0f0f0;\n                            text-align: center;\n                            font-size: 12px;\n                            color: #666;\n                            z-index: 9999;\n                            opacity: 0.8;\n                            border-top: 1px solid #ddd;\n                        \"\u003e\n                    Powered by\n                    \u003ca href=\"https://pagelove.com/\" style=\"color: #4a90d9; text-decoration: none\"\u003ePagelove\u003c/a\u003e\n                \u003c/div\u003e\n            \u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 4 (delete one item)",
+      "method": "DELETE",
+      "path": "/_pl/protocol-serialize-probe-0929-public-wri-643878/list.html",
+      "status": 204,
+      "headers": {
+        "etag": "\"90f7a2732df4f6d4cc9c8ced3fe22e4cb95224ae4e62daf7504b472f901832c5\"",
+        "last-modified": "Tue, 29 Sep 2026 01:25:38 GMT",
+        "vary": "Host, Range"
+      }
+    },
+    {
+      "step": "step 5 (read after delete)",
+      "method": "GET",
+      "path": "/_pl/protocol-serialize-probe-0929-public-wri-643878/list.html",
+      "status": 200,
+      "headers": {
+        "content-type": "text/html",
+        "etag": "\"90f7a2732df4f6d4cc9c8ced3fe22e4cb95224ae4e62daf7504b472f901832c5\"",
+        "last-modified": "Tue, 29 Sep 2026 01:25:38 GMT",
+        "vary": "Host, Range, Accept"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\n  \u003cul id=\"l\"\u003e\n    \n  \u003cli class=\"a\" data-x=\"1\"\u003etwo\u003cinput disabled\u003e\u003c/li\u003e\u003c/ul\u003e\n  \u003cp id=\"q\"\u003eq\u003c/p\u003e\n\n                \u003cdiv style=\"\n                            position: fixed;\n                            bottom: 0;\n                            left: 0;\n                            right: 0;\n                            padding: 8px;\n                            background: #f0f0f0;\n                            text-align: center;\n                            font-size: 12px;\n                            color: #666;\n                            z-index: 9999;\n                            opacity: 0.8;\n                            border-top: 1px solid #ddd;\n                        \"\u003e\n                    Powered by\n                    \u003ca href=\"https://pagelove.com/\" style=\"color: #4a90d9; text-decoration: none\"\u003ePagelove\u003c/a\u003e\n                \u003c/div\u003e\n            \u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 6 (whole-document public put)",
+      "method": "PUT",
+      "path": "/_pl/protocol-serialize-probe-0929-public-wri-643878/whole.html",
+      "status": 201,
+      "headers": {
+        "content-type": "text/html",
+        "etag": "\"03ee6794173e838681e00c3f69109742fe361933e12d1413c42c8a46413730ce\"",
+        "last-modified": "Tue, 29 Sep 2026 01:25:39 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003chtml\u003e\u003cbody class=\"x\"\u003e\u003ch1 id=\"a\"\u003eHi\u003c/h1\u003e\u003cp\u003e{{ 1 | plus: 1 }}\u003cinput disabled\u003e\u003c/p\u003e\n                \u003cdiv style=\"\n                            position: fixed;\n                            bottom: 0;\n                            left: 0;\n                            right: 0;\n                            padding: 8px;\n                            background: #f0f0f0;\n                            text-align: center;\n                            font-size: 12px;\n                            color: #666;\n                            z-index: 9999;\n                            opacity: 0.8;\n                            border-top: 1px solid #ddd;\n                        \"\u003e\n                    Powered by\n                    \u003ca href=\"https://pagelove.com/\" style=\"color: #4a90d9; text-decoration: none\"\u003ePagelove\u003c/a\u003e\n                \u003c/div\u003e\n            \u003c/body\u003e\u003c/html\u003e"
+    },
+    {
+      "step": "step 7 (read whole)",
+      "method": "GET",
+      "path": "/_pl/protocol-serialize-probe-0929-public-wri-643878/whole.html",
+      "status": 200,
+      "headers": {
+        "content-type": "text/html",
+        "etag": "\"03ee6794173e838681e00c3f69109742fe361933e12d1413c42c8a46413730ce\"",
+        "last-modified": "Tue, 29 Sep 2026 01:25:39 GMT",
+        "vary": "Host, Range, Accept"
+      },
+      "body": "\u003chtml\u003e\u003cbody class=\"x\"\u003e\u003ch1 id=\"a\"\u003eHi\u003c/h1\u003e\u003cp\u003e{{ 1 | plus: 1 }}\u003cinput disabled\u003e\u003c/p\u003e\n                \u003cdiv style=\"\n                            position: fixed;\n                            bottom: 0;\n                            left: 0;\n                            right: 0;\n                            padding: 8px;\n                            background: #f0f0f0;\n                            text-align: center;\n                            font-size: 12px;\n                            color: #666;\n                            z-index: 9999;\n                            opacity: 0.8;\n                            border-top: 1px solid #ddd;\n                        \"\u003e\n                    Powered by\n                    \u003ca href=\"https://pagelove.com/\" style=\"color: #4a90d9; text-decoration: none\"\u003ePagelove\u003c/a\u003e\n                \u003c/div\u003e\n            \u003c/body\u003e\u003c/html\u003e"
+    }
+  ],
+  "outcome": "pass",
+  "target": "live"
+}

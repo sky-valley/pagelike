@@ -1,0 +1,69 @@
+{
+  "case": "sse.echo.token-on-move",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (sse open tab_a)",
+      "method": "GET",
+      "path": "/_pl/sse-echo-token-on-move-dc1782/list.html",
+      "status": 200,
+      "headers": {
+        "cache-control": "no-cache",
+        "content-type": "text/event-stream",
+        "x-accel-buffering": "no"
+      }
+    },
+    {
+      "step": "step 2 (sse open tab_b)",
+      "method": "GET",
+      "path": "/_pl/sse-echo-token-on-move-dc1782/list.html",
+      "status": 200,
+      "headers": {
+        "cache-control": "no-cache",
+        "content-type": "text/event-stream",
+        "x-accel-buffering": "no"
+      }
+    },
+    {
+      "step": "step 3",
+      "events": [
+        {
+          "event": "pagelove-connection",
+          "data": "0eea9c8e-d258-4a39-9b75-6366ac8a68f0"
+        }
+      ]
+    },
+    {
+      "step": "step 4",
+      "events": [
+        {
+          "event": "pagelove-connection",
+          "data": "7b4cdecb-b6c5-4fd4-afc7-79aedcd1151f"
+        }
+      ]
+    },
+    {
+      "step": "step 5 (tab A reorders)",
+      "method": "MOVE",
+      "path": "/_pl/sse-echo-token-on-move-dc1782/list.html",
+      "status": 204,
+      "headers": {
+        "etag": "\"057e1ceb1b325387374d790527695b653f855d94d0e4ea0c3be1ac4b6d138fe1\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:58 GMT",
+        "vary": "Host, Range"
+      }
+    },
+    {
+      "step": "step 6",
+      "events": [
+        {
+          "id": "v1~a00a314c72bc.1790649658547-1",
+          "event": "mutation",
+          "data": "\u003carticle itemscope itemtype=\"https://pagelove.org/Mutation\"\u003e\n  \u003cspan itemprop=\"method\"\u003eMOVE\u003c/span\u003e\n  \u003cspan itemprop=\"selector\"\u003e#item-b\u003c/span\u003e\n  \u003cspan itemprop=\"etag\"\u003e057e1ceb1b325387374d790527695b653f855d94d0e4ea0c3be1ac4b6d138fe1\u003c/span\u003e\n  \u003cspan itemprop=\"path\"\u003e/_pl/sse-echo-token-on-move-dc1782/list.html\u003c/span\u003e\n  \u003cspan itemprop=\"host\"\u003et.localhost\u003c/span\u003e\n  \u003cdiv itemprop=\"body\"\u003e\u003cli id=\"item-b\"\u003eB\u003c/li\u003e\u003c/div\u003e\n  \u003cspan itemprop=\"placement\"\u003ebefore\u003c/span\u003e\n  \u003cspan itemprop=\"destination\"\u003e#item-a\u003c/span\u003e\n\u003c/article\u003e"
+        }
+      ]
+    }
+  ],
+  "outcome": "pass",
+  "target": "local"
+}

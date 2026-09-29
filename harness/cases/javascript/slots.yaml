@@ -1,0 +1,1755 @@
+# JavaScript area: JavaScript in schema slots (docs/spec/javascript.md A2, A3, A6-A8, A11;
+# R-JS-5..R-JS-17, R-JS-40..R-JS-57, R-JS-85..R-JS-87). Pattern: PUT a declarations page on the
+# public plane (registers the schema), PUT an instance page, then read the stored bytes on the
+# authoring plane or observe the rejection. Only statuses, the BindingFailure variant and stored
+# values are asserted; messages are engine-specific (docs show V8 wording, QuickJS differs).
+# Spec: docs/spec/javascript.md. Generated; edit by hand freely.
+defaults:
+  area: "javascript"
+  evidence: "documented"
+  confidence: "medium"
+  requires: ["server-js"]
+  site:
+    settings:
+      default_get: "allow"
+    rules:
+      - actor: "*"
+        resource: "${P}/*"
+        method: ["GET", "HEAD", "PUT", "POST", "DELETE", "MOVE"]
+        action: "Allow"
+      - actor: "*"
+        resource: "${P}/*/*"
+        method: ["GET", "HEAD", "PUT", "POST", "DELETE", "MOVE"]
+        action: "Allow"
+      - actor: "*"
+        resource: "${P}/*/*/*"
+        method: ["GET", "HEAD", "PUT", "POST", "DELETE", "MOVE"]
+        action: "Allow"
+cases:
+  - id: "javascript.slots.default-fresh-context"
+    title: "Each default evaluation gets a fresh module instance (module state is not shared between writes)"
+    feature: "default slot"
+    source: "docs languages/javascript/server/javascript-in-schemas §The export default contract ('Evaluates the module in a fresh context') (snapshot 2026-09-28)"
+    confidence: "high"
+    live: true
+    notes: "spec: R-JS-5, R-JS-11."
+    steps:
+      - name: "register declarations through the public plane (takes effect for the next request)"
+        as: "anonymous"
+        request:
+          method: "PUT"
+          path: "${P}/schema.html"
+          headers:
+            Content-Type: "text/html"
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+            <div hidden itemscope itemtype="https://pagelove.org/Schema">
+            <meta itemprop="type" content="https://pagelike.test${P}/Dfdefaultfreshcontext">
+            <div itemprop="property" itemscope itemtype="https://pagelove.org/Property">
+            <meta itemprop="name" content="d">
+            <meta itemprop="type" content="https://schema.host/Text">
+            <meta itemprop="cardinality" content="0..1">
+            <div itemprop="default" itemscope itemtype="https://pagelove.org/JavaScript/Module">
+            <script itemprop="source" type="module">
+            let n = 0;
+            export default () => 'seq-' + (++n);
+            </script>
+            </div>
+            </div>
+            </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "PUT an instance (a.html)"
+        as: "anonymous"
+        request:
+          method: "PUT"
+          path: "${P}/a.html"
+          headers:
+            Content-Type: "text/html"
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+            <div itemscope itemtype="https://pagelike.test${P}/Dfdefaultfreshcontext">
+            <meta itemprop="other" content="o">
+            </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "PUT an instance (b.html)"
+        as: "anonymous"
+        request:
+          method: "PUT"
+          path: "${P}/b.html"
+          headers:
+            Content-Type: "text/html"
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+            <div itemscope itemtype="https://pagelike.test${P}/Dfdefaultfreshcontext">
+            <meta itemprop="other" content="o">
+            </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "stored state (authoring plane, raw)"
+        as: "author"
+        plane: "dav"
+        request:
+          method: "GET"
+          path: "${P}/a.html"
+        expect:
+          status: 200
+          body_contains: ["content=\"seq-1\""]
+      - name: "stored state (authoring plane, raw)"
+        as: "author"
+        plane: "dav"
+        request:
+          method: "GET"
+          path: "${P}/b.html"
+        expect:
+          status: 200
+          body_contains: ["content=\"seq-1\""]
+          body_not_contains: ["content=\"seq-2\""]
+  - id: "javascript.slots.default-context-document-html"
+    title: "A default receives context.document_html, the serialized document being written"
+    feature: "default slot"
+    source: "docs languages/javascript/server/javascript-in-schemas §context: request and host information (snapshot 2026-09-28)"
+    confidence: "medium"
+    live: true
+    notes: "spec: R-JS-11 ('when one is available': pagelike always provides it on HTTP writes)."
+    steps:
+      - name: "register declarations through the public plane (takes effect for the next request)"
+        as: "anonymous"
+        request:
+          method: "PUT"
+          path: "${P}/schema.html"
+          headers:
+            Content-Type: "text/html"
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+            <div hidden itemscope itemtype="https://pagelove.org/Schema">
+            <meta itemprop="type" content="https://pagelike.test${P}/Dfdefaultcontextdocumenthtml">
+            <div itemprop="property" itemscope itemtype="https://pagelove.org/Property">
+            <meta itemprop="name" content="d">
+            <meta itemprop="type" content="https://schema.host/Text">
+            <meta itemprop="cardinality" content="0..1">
+            <div itemprop="default" itemscope itemtype="https://pagelove.org/JavaScript/Module">
+            <script itemprop="source" type="module">
+            export default function (context) {
+              const ok = context !== null && typeof context === 'object' && typeof context.document_html === 'string' && context.document_html.includes('ctx-marker-zq');
+              return ok ? 'has-doc' : 'no-doc';
+            }
+            </script>
+            </div>
+            </div>
+            </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "PUT an instance (a.html)"
+        as: "anonymous"
+        request:
+          method: "PUT"
+          path: "${P}/a.html"
+          headers:
+            Content-Type: "text/html"
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+            <p>ctx-marker-zq</p>
+            <div itemscope itemtype="https://pagelike.test${P}/Dfdefaultcontextdocumenthtml">
+            <meta itemprop="other" content="o">
+            </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "stored state (authoring plane, raw)"
+        as: "author"
+        plane: "dav"
+        request:
+          method: "GET"
+          path: "${P}/a.html"
+        expect:
+          status: 200
+          body_contains: ["content=\"has-doc\""]
+  - id: "javascript.slots.default-arrow-this-undefined"
+    title: "An arrow default does not bind this (module this is undefined)"
+    feature: "default slot"
+    source: "docs languages/javascript/server/javascript-in-schemas §The export default contract ('arrow functions do not bind their own this') (snapshot 2026-09-28)"
+    confidence: "high"
+    live: true
+    notes: "spec: R-JS-7."
+    steps:
+      - name: "register declarations through the public plane (takes effect for the next request)"
+        as: "anonymous"
+        request:
+          method: "PUT"
+          path: "${P}/schema.html"
+          headers:
+            Content-Type: "text/html"
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+            <div hidden itemscope itemtype="https://pagelove.org/Schema">
+            <meta itemprop="type" content="https://pagelike.test${P}/Dfdefaultarrowthisundefined">
+            <div itemprop="property" itemscope itemtype="https://pagelove.org/Property">
+            <meta itemprop="name" content="d">
+            <meta itemprop="type" content="https://schema.host/Text">
+            <meta itemprop="cardinality" content="0..1">
+            <div itemprop="default" itemscope itemtype="https://pagelove.org/JavaScript/Module">
+            <script itemprop="source" type="module">
+            export default () => 'this-' + typeof this;
+            </script>
+            </div>
+            </div>
+            </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "PUT an instance (a.html)"
+        as: "anonymous"
+        request:
+          method: "PUT"
+          path: "${P}/a.html"
+          headers:
+            Content-Type: "text/html"
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+            <div itemscope itemtype="https://pagelike.test${P}/Dfdefaultarrowthisundefined">
+            <meta itemprop="other" content="o">
+            </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "stored state (authoring plane, raw)"
+        as: "author"
+        plane: "dav"
+        request:
+          method: "GET"
+          path: "${P}/a.html"
+        expect:
+          status: 200
+          body_contains: ["content=\"this-undefined\""]
+  - id: "javascript.slots.default-timestamp-docs-example"
+    title: "Documented example: a default reading context returns 'created at <ISO timestamp>'"
+    feature: "default slot"
+    source: "docs languages/javascript/server/javascript-in-schemas §Examples (Timestamp default reading context) (snapshot 2026-09-28)"
+    confidence: "high"
+    live: true
+    notes: "spec: R-JS-11, R-JS-37."
+    steps:
+      - name: "register declarations through the public plane (takes effect for the next request)"
+        as: "anonymous"
+        request:
+          method: "PUT"
+          path: "${P}/schema.html"
+          headers:
+            Content-Type: "text/html"
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+            <div hidden itemscope itemtype="https://pagelove.org/Schema">
+            <meta itemprop="type" content="https://pagelike.test${P}/Dfdefaulttimestampdocsexample">
+            <div itemprop="property" itemscope itemtype="https://pagelove.org/Property">
+            <meta itemprop="name" content="d">
+            <meta itemprop="type" content="https://schema.host/Text">
+            <meta itemprop="cardinality" content="0..1">
+            <div itemprop="default" itemscope itemtype="https://pagelove.org/JavaScript/Module">
+            <script itemprop="source" type="module">
+            export default function(context) {
+              return `created at $${new Date().toISOString()}`;
+            }
+            </script>
+            </div>
+            </div>
+            </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "PUT an instance (a.html)"
+        as: "anonymous"
+        request:
+          method: "PUT"
+          path: "${P}/a.html"
+          headers:
+            Content-Type: "text/html"
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+            <div itemscope itemtype="https://pagelike.test${P}/Dfdefaulttimestampdocsexample">
+            <meta itemprop="other" content="o">
+            </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "stored state (authoring plane, raw)"
+        as: "author"
+        plane: "dav"
+        request:
+          method: "GET"
+          path: "${P}/a.html"
+        expect:
+          status: 200
+          body_matches: "content=\"created at 20[0-9]{2}-[0-9]{2}-[0-9]{2}T[0-9:.]+Z\""
+  - id: "javascript.slots.default-document-writable"
+    title: "A default's document global is a writable view of the in-progress element; its changes are kept"
+    feature: "default slot"
+    source: "docs languages/javascript/server/javascript-in-schemas §The document global (snapshot 2026-09-28)"
+    confidence: "low"
+    live: true
+    notes: "spec: R-JS-11, R-JS-61. What documentElement is for this view is a pagelike decision (the instance element)."
+    steps:
+      - name: "register declarations through the public plane (takes effect for the next request)"
+        as: "anonymous"
+        request:
+          method: "PUT"
+          path: "${P}/schema.html"
+          headers:
+            Content-Type: "text/html"
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+            <div hidden itemscope itemtype="https://pagelove.org/Schema">
+            <meta itemprop="type" content="https://pagelike.test${P}/Dfdefaultdocumentwritable">
+            <div itemprop="property" itemscope itemtype="https://pagelove.org/Property">
+            <meta itemprop="name" content="title">
+            <meta itemprop="type" content="https://schema.host/Text">
+            <meta itemprop="cardinality" content="0..1">
+            </div>
+            <div itemprop="property" itemscope itemtype="https://pagelove.org/Property">
+            <meta itemprop="name" content="d">
+            <meta itemprop="type" content="https://schema.host/Text">
+            <meta itemprop="cardinality" content="0..1">
+            <div itemprop="default" itemscope itemtype="https://pagelove.org/JavaScript/Module">
+            <script itemprop="source" type="module">
+            export default function () {
+              const t = document.querySelector('[itemprop="title"]');
+              if (t) t.setAttribute('data-seen', 'yes');
+              return t ? t.getAttribute('content').toLowerCase() : 'none';
+            }
+            </script>
+            </div>
+            </div>
+            </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "PUT an instance (a.html)"
+        as: "anonymous"
+        request:
+          method: "PUT"
+          path: "${P}/a.html"
+          headers:
+            Content-Type: "text/html"
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+            <div itemscope itemtype="https://pagelike.test${P}/Dfdefaultdocumentwritable">
+            <meta itemprop="title" content="Hello">
+            </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "stored state (authoring plane, raw)"
+        as: "author"
+        plane: "dav"
+        request:
+          method: "GET"
+          path: "${P}/a.html"
+        expect:
+          status: 200
+          body_contains: ["content=\"hello\"", "data-seen=\"yes\""]
+  - id: "javascript.slots.default-parse-failure"
+    title: "A default whose module fails to parse makes the write fail with variant parse"
+    feature: "binding failures"
+    source: "docs languages/javascript/server/javascript-in-schemas §Errors (parse); docs reference/modeling-data/Property §Error cases (dynamic default failure) (snapshot 2026-09-28)"
+    confidence: "medium"
+    live: true
+    notes: "spec: R-JS-51, R-JS-52 (422 per modeling R-MOD-29). Nothing is stored."
+    steps:
+      - name: "register declarations through the public plane (takes effect for the next request)"
+        as: "anonymous"
+        request:
+          method: "PUT"
+          path: "${P}/schema.html"
+          headers:
+            Content-Type: "text/html"
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+            <div hidden itemscope itemtype="https://pagelove.org/Schema">
+            <meta itemprop="type" content="https://pagelike.test${P}/Dfdefaultparsefailure">
+            <div itemprop="property" itemscope itemtype="https://pagelove.org/Property">
+            <meta itemprop="name" content="d">
+            <meta itemprop="type" content="https://schema.host/Text">
+            <meta itemprop="cardinality" content="0..1">
+            <div itemprop="default" itemscope itemtype="https://pagelove.org/JavaScript/Module">
+            <script itemprop="source" type="module">
+            export default (
+            </script>
+            </div>
+            </div>
+            </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "PUT an instance (a.html)"
+        as: "anonymous"
+        request:
+          method: "PUT"
+          path: "${P}/a.html"
+          headers:
+            Content-Type: "text/html"
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+            <div itemscope itemtype="https://pagelike.test${P}/Dfdefaultparsefailure">
+            <meta itemprop="other" content="o">
+            </div>
+            </body></html>
+        expect:
+          status: [422, 500]
+          header_matches:
+            Content-Type: "^text/html"
+          body_contains: ["https://pagelove.org/BindingFailure", "content=\"parse\""]
+      - name: "stored state (authoring plane, raw)"
+        as: "author"
+        plane: "dav"
+        request:
+          method: "GET"
+          path: "${P}/a.html"
+        expect:
+          status: 404
+  - id: "javascript.slots.default-shape-not-function"
+    title: "A default export that is not a function fails with variant shape"
+    feature: "binding failures"
+    source: "docs languages/javascript/server/javascript-in-schemas §The export default contract, §Errors (shape) (snapshot 2026-09-28)"
+    confidence: "high"
+    live: true
+    notes: "spec: R-JS-6, R-JS-51."
+    steps:
+      - name: "register declarations through the public plane (takes effect for the next request)"
+        as: "anonymous"
+        request:
+          method: "PUT"
+          path: "${P}/schema.html"
+          headers:
+            Content-Type: "text/html"
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+            <div hidden itemscope itemtype="https://pagelove.org/Schema">
+            <meta itemprop="type" content="https://pagelike.test${P}/Dfdefaultshapenotfunction">
+            <div itemprop="property" itemscope itemtype="https://pagelove.org/Property">
+            <meta itemprop="name" content="d">
+            <meta itemprop="type" content="https://schema.host/Text">
+            <meta itemprop="cardinality" content="0..1">
+            <div itemprop="default" itemscope itemtype="https://pagelove.org/JavaScript/Module">
+            <script itemprop="source" type="module">
+            export default 42;
+            </script>
+            </div>
+            </div>
+            </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "PUT an instance (a.html)"
+        as: "anonymous"
+        request:
+          method: "PUT"
+          path: "${P}/a.html"
+          headers:
+            Content-Type: "text/html"
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+            <div itemscope itemtype="https://pagelike.test${P}/Dfdefaultshapenotfunction">
+            <meta itemprop="other" content="o">
+            </div>
+            </body></html>
+        expect:
+          status: [422, 500]
+          header_matches:
+            Content-Type: "^text/html"
+          body_contains: ["https://pagelove.org/BindingFailure", "content=\"shape\""]
+      - name: "stored state (authoring plane, raw)"
+        as: "author"
+        plane: "dav"
+        request:
+          method: "GET"
+          path: "${P}/a.html"
+        expect:
+          status: 404
+  - id: "javascript.slots.validate-docs-example-hostname"
+    title: "Documented example: a @validate throws an HTTPResponse with its own status and message"
+    feature: "thrown HTTPResponse"
+    source: "docs languages/javascript/server/javascript-in-schemas §Explaining why a value was rejected (snapshot 2026-09-28)"
+    confidence: "high"
+    live: true
+    notes: "spec: R-JS-14, R-JS-53. The docs snippet omits allowed/hostname; they are defined here."
+    steps:
+      - name: "register declarations through the public plane (takes effect for the next request)"
+        as: "anonymous"
+        request:
+          method: "PUT"
+          path: "${P}/schema.html"
+          headers:
+            Content-Type: "text/html"
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+            <div hidden itemscope itemtype="https://pagelove.org/Schema">
+            <meta itemprop="type" content="https://pagelike.test${P}/Vvalidatedocsexamplehostname">
+            <div itemprop="property" itemscope itemtype="https://pagelove.org/Property">
+            <meta itemprop="name" content="v">
+            <meta itemprop="type" content="https://schema.host/Text">
+            <meta itemprop="cardinality" content="1..1">
+            <div itemprop="@validate" itemscope itemtype="https://pagelove.org/JavaScript/Module">
+            <script itemprop="source" type="module">
+            export default (v) => {
+              const allowed = ['example.com'];
+              const hostname = String(v).replace(/^https?:\/\//, '').split('/')[0];
+              if (!allowed.includes(hostname)) {
+                throw {
+                  schema_url: "https://pagelove.org/HTTPResponse",
+                  status: 422,
+                  message: `$${hostname} is not on this platform`,
+                };
+              }
+              return true;
+            };
+            </script>
+            </div>
+            </div>
+            </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "PUT an instance (a.html)"
+        as: "anonymous"
+        request:
+          method: "PUT"
+          path: "${P}/a.html"
+          headers:
+            Content-Type: "text/html"
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+            <div itemscope itemtype="https://pagelike.test${P}/Vvalidatedocsexamplehostname">
+            <meta itemprop="v" content="https://evil.test/x">
+            </div>
+            </body></html>
+        expect:
+          status: 422
+          body_contains: ["evil.test is not on this platform"]
+      - name: "an allowed host is accepted"
+        as: "anonymous"
+        request:
+          method: "PUT"
+          path: "${P}/ok.html"
+          headers:
+            Content-Type: "text/html"
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+            <div itemscope itemtype="https://pagelike.test${P}/Vvalidatedocsexamplehostname">
+            <meta itemprop="v" content="https://example.com/a">
+            </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+  - id: "javascript.slots.validate-truthy-accepts"
+    title: "A JavaScript @validate returning a truthy non-boolean ('yes') accepts the write"
+    feature: "property @validate"
+    source: "docs languages/javascript/server/javascript-in-schemas §Slot semantics ('Truthy to accept') (snapshot 2026-09-28)"
+    confidence: "medium"
+    live: true
+    notes: "spec: R-JS-14; contradiction C-JS-2 (primary)."
+    steps:
+      - name: "register declarations through the public plane (takes effect for the next request)"
+        as: "anonymous"
+        request:
+          method: "PUT"
+          path: "${P}/schema.html"
+          headers:
+            Content-Type: "text/html"
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+            <div hidden itemscope itemtype="https://pagelove.org/Schema">
+            <meta itemprop="type" content="https://pagelike.test${P}/Vvalidatetruthyaccepts">
+            <div itemprop="property" itemscope itemtype="https://pagelove.org/Property">
+            <meta itemprop="name" content="v">
+            <meta itemprop="type" content="https://schema.host/Text">
+            <meta itemprop="cardinality" content="1..1">
+            <div itemprop="@validate" itemscope itemtype="https://pagelove.org/JavaScript/Module">
+            <script itemprop="source" type="module">
+            export default (v) => v === 'x' ? 'yes' : '';
+            </script>
+            </div>
+            </div>
+            </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "PUT an instance (a.html)"
+        as: "anonymous"
+        request:
+          method: "PUT"
+          path: "${P}/a.html"
+          headers:
+            Content-Type: "text/html"
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+            <div itemscope itemtype="https://pagelike.test${P}/Vvalidatetruthyaccepts">
+            <meta itemprop="v" content="x">
+            </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "an empty-string result (falsy) rejects"
+        as: "anonymous"
+        request:
+          method: "PUT"
+          path: "${P}/b.html"
+          headers:
+            Content-Type: "text/html"
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+            <div itemscope itemtype="https://pagelike.test${P}/Vvalidatetruthyaccepts">
+            <meta itemprop="v" content="y">
+            </div>
+            </body></html>
+        expect:
+          status: 422
+          body_contains: ["https://pagelove.org/SchemaViolation"]
+  - id: "javascript.slots.validate-strictly-true"
+    title: "Property page claim: @validate returning anything other than true is rejected"
+    feature: "property @validate"
+    source: "docs reference/modeling-data/Property §Error cases ('@validate returns anything other than true') (snapshot 2026-09-28)"
+    confidence: "low"
+    live: true
+    status: "disputed"
+    notes: "Losing claim of C-JS-2."
+    steps:
+      - name: "register declarations through the public plane (takes effect for the next request)"
+        as: "anonymous"
+        request:
+          method: "PUT"
+          path: "${P}/schema.html"
+          headers:
+            Content-Type: "text/html"
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+            <div hidden itemscope itemtype="https://pagelove.org/Schema">
+            <meta itemprop="type" content="https://pagelike.test${P}/Vvalidatestrictlytrue">
+            <div itemprop="property" itemscope itemtype="https://pagelove.org/Property">
+            <meta itemprop="name" content="v">
+            <meta itemprop="type" content="https://schema.host/Text">
+            <meta itemprop="cardinality" content="1..1">
+            <div itemprop="@validate" itemscope itemtype="https://pagelove.org/JavaScript/Module">
+            <script itemprop="source" type="module">
+            export default (v) => 'yes';
+            </script>
+            </div>
+            </div>
+            </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "PUT an instance (a.html)"
+        as: "anonymous"
+        request:
+          method: "PUT"
+          path: "${P}/a.html"
+          headers:
+            Content-Type: "text/html"
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+            <div itemscope itemtype="https://pagelike.test${P}/Vvalidatestrictlytrue">
+            <meta itemprop="v" content="x">
+            </div>
+            </body></html>
+        expect:
+          status: 422
+  - id: "javascript.slots.validate-async"
+    title: "An async @validate is settled: a resolved false rejects, a resolved true accepts"
+    feature: "property @validate"
+    source: "docs languages/javascript/server/javascript-in-schemas §Method bodies ('the same way an async default export settles') (snapshot 2026-09-28)"
+    confidence: "medium"
+    live: true
+    notes: "spec: R-JS-8, R-JS-14."
+    steps:
+      - name: "register declarations through the public plane (takes effect for the next request)"
+        as: "anonymous"
+        request:
+          method: "PUT"
+          path: "${P}/schema.html"
+          headers:
+            Content-Type: "text/html"
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+            <div hidden itemscope itemtype="https://pagelove.org/Schema">
+            <meta itemprop="type" content="https://pagelike.test${P}/Vvalidateasync">
+            <div itemprop="property" itemscope itemtype="https://pagelove.org/Property">
+            <meta itemprop="name" content="v">
+            <meta itemprop="type" content="https://schema.host/Text">
+            <meta itemprop="cardinality" content="1..1">
+            <div itemprop="@validate" itemscope itemtype="https://pagelove.org/JavaScript/Module">
+            <script itemprop="source" type="module">
+            export default async (v) => { await null; return v === 'ok'; };
+            </script>
+            </div>
+            </div>
+            </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "PUT an instance (a.html)"
+        as: "anonymous"
+        request:
+          method: "PUT"
+          path: "${P}/a.html"
+          headers:
+            Content-Type: "text/html"
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+            <div itemscope itemtype="https://pagelike.test${P}/Vvalidateasync">
+            <meta itemprop="v" content="bad">
+            </div>
+            </body></html>
+        expect:
+          status: 422
+      - name: "the resolved true accepts"
+        as: "anonymous"
+        request:
+          method: "PUT"
+          path: "${P}/b.html"
+          headers:
+            Content-Type: "text/html"
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+            <div itemscope itemtype="https://pagelike.test${P}/Vvalidateasync">
+            <meta itemprop="v" content="ok">
+            </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+  - id: "javascript.slots.validate-sees-default"
+    title: "A property @validate receives the value after defaults (a default the validator refuses fails the write)"
+    feature: "property @validate"
+    source: "docs languages/javascript/server/javascript-in-schemas §Slot semantics ('the property's current value after defaults') (snapshot 2026-09-28)"
+    confidence: "medium"
+    live: true
+    notes: "spec: R-JS-14; modeling R-MOD-45 (validators run on properties with a value)."
+    steps:
+      - name: "register declarations through the public plane (takes effect for the next request)"
+        as: "anonymous"
+        request:
+          method: "PUT"
+          path: "${P}/schema.html"
+          headers:
+            Content-Type: "text/html"
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+            <div hidden itemscope itemtype="https://pagelove.org/Schema">
+            <meta itemprop="type" content="https://pagelike.test${P}/Vsd">
+            <div itemprop="property" itemscope itemtype="https://pagelove.org/Property">
+            <meta itemprop="name" content="status">
+            <meta itemprop="type" content="https://schema.host/Text">
+            <meta itemprop="cardinality" content="0..1">
+            <meta itemprop="default" content="draft">
+            <div itemprop="@validate" itemscope itemtype="https://pagelove.org/JavaScript/Module">
+            <script itemprop="source" type="module">
+            export default (v) => v !== 'draft';
+            </script>
+            </div>
+            </div>
+            </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "no status: default 'draft' is injected, then refused"
+        as: "anonymous"
+        request:
+          method: "PUT"
+          path: "${P}/a.html"
+          headers:
+            Content-Type: "text/html"
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+            <div itemscope itemtype="https://pagelike.test${P}/Vsd">
+            <meta itemprop="other" content="o">
+            </div>
+            </body></html>
+        expect:
+          status: 422
+      - name: "an explicit value passes"
+        as: "anonymous"
+        request:
+          method: "PUT"
+          path: "${P}/b.html"
+          headers:
+            Content-Type: "text/html"
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+            <div itemscope itemtype="https://pagelike.test${P}/Vsd">
+            <meta itemprop="status" content="live">
+            </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+  - id: "javascript.slots.validate-strict-mode-referenceerror"
+    title: "A validator that assigns an undeclared variable throws (strict mode) and the write is rejected with variant threw"
+    feature: "binding failures"
+    source: "docs languages/javascript/server/javascript-in-schemas §The export default contract (strict mode), §Errors (threw) (snapshot 2026-09-28)"
+    confidence: "medium"
+    live: true
+    notes: "spec: R-JS-5, R-JS-51, R-JS-52."
+    steps:
+      - name: "register declarations through the public plane (takes effect for the next request)"
+        as: "anonymous"
+        request:
+          method: "PUT"
+          path: "${P}/schema.html"
+          headers:
+            Content-Type: "text/html"
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+            <div hidden itemscope itemtype="https://pagelove.org/Schema">
+            <meta itemprop="type" content="https://pagelike.test${P}/Vvalidatestrictmodereferencee">
+            <div itemprop="property" itemscope itemtype="https://pagelove.org/Property">
+            <meta itemprop="name" content="v">
+            <meta itemprop="type" content="https://schema.host/Text">
+            <meta itemprop="cardinality" content="1..1">
+            <div itemprop="@validate" itemscope itemtype="https://pagelove.org/JavaScript/Module">
+            <script itemprop="source" type="module">
+            export default function (v) { undeclaredVar = v; return true; }
+            </script>
+            </div>
+            </div>
+            </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "PUT an instance (a.html)"
+        as: "anonymous"
+        request:
+          method: "PUT"
+          path: "${P}/a.html"
+          headers:
+            Content-Type: "text/html"
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+            <div itemscope itemtype="https://pagelike.test${P}/Vvalidatestrictmodereferencee">
+            <meta itemprop="v" content="x">
+            </div>
+            </body></html>
+        expect:
+          status: 422
+          body_contains: ["https://pagelove.org/BindingFailure", "content=\"threw\""]
+  - id: "javascript.slots.validate-plain-object-throw-is-generic"
+    title: "Throwing an object without the HTTPResponse marker gives the standard rejection, not its status"
+    feature: "thrown HTTPResponse"
+    source: "docs languages/javascript/server/javascript-in-schemas §Explaining why a value was rejected ('Throwing anything else ... still produces the standard rejection') (snapshot 2026-09-28)"
+    confidence: "high"
+    live: true
+    notes: "spec: R-JS-53."
+    steps:
+      - name: "register declarations through the public plane (takes effect for the next request)"
+        as: "anonymous"
+        request:
+          method: "PUT"
+          path: "${P}/schema.html"
+          headers:
+            Content-Type: "text/html"
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+            <div hidden itemscope itemtype="https://pagelove.org/Schema">
+            <meta itemprop="type" content="https://pagelike.test${P}/Vvalidateplainobjectthrowisge">
+            <div itemprop="property" itemscope itemtype="https://pagelove.org/Property">
+            <meta itemprop="name" content="v">
+            <meta itemprop="type" content="https://schema.host/Text">
+            <meta itemprop="cardinality" content="1..1">
+            <div itemprop="@validate" itemscope itemtype="https://pagelove.org/JavaScript/Module">
+            <script itemprop="source" type="module">
+            export default () => { throw { status: 409, message: 'nope' }; };
+            </script>
+            </div>
+            </div>
+            </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "PUT an instance (a.html)"
+        as: "anonymous"
+        request:
+          method: "PUT"
+          path: "${P}/a.html"
+          headers:
+            Content-Type: "text/html"
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+            <div itemscope itemtype="https://pagelike.test${P}/Vvalidateplainobjectthrowisge">
+            <meta itemprop="v" content="x">
+            </div>
+            </body></html>
+        expect:
+          status: 422
+          body_contains: ["https://pagelove.org/SchemaViolation"]
+  - id: "javascript.slots.validate-httpresponse-itemtype-key"
+    title: "An HTTPResponse marked with itemtype (instead of schema_url) chooses the status and message"
+    feature: "thrown HTTPResponse"
+    source: "docs languages/javascript/server/javascript-in-schemas §Explaining why a value was rejected ('schema_url (or itemtype)') (snapshot 2026-09-28)"
+    confidence: "high"
+    live: true
+    notes: "spec: R-JS-53."
+    steps:
+      - name: "register declarations through the public plane (takes effect for the next request)"
+        as: "anonymous"
+        request:
+          method: "PUT"
+          path: "${P}/schema.html"
+          headers:
+            Content-Type: "text/html"
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+            <div hidden itemscope itemtype="https://pagelove.org/Schema">
+            <meta itemprop="type" content="https://pagelike.test${P}/Vvalidatehttpresponseitemtype">
+            <div itemprop="property" itemscope itemtype="https://pagelove.org/Property">
+            <meta itemprop="name" content="v">
+            <meta itemprop="type" content="https://schema.host/Text">
+            <meta itemprop="cardinality" content="1..1">
+            <div itemprop="@validate" itemscope itemtype="https://pagelove.org/JavaScript/Module">
+            <script itemprop="source" type="module">
+            export default () => { throw { itemtype: 'https://pagelove.org/HTTPResponse', status: 409, message: 'taken-by-itemtype' }; };
+            </script>
+            </div>
+            </div>
+            </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "PUT an instance (a.html)"
+        as: "anonymous"
+        request:
+          method: "PUT"
+          path: "${P}/a.html"
+          headers:
+            Content-Type: "text/html"
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+            <div itemscope itemtype="https://pagelike.test${P}/Vvalidatehttpresponseitemtype">
+            <meta itemprop="v" content="x">
+            </div>
+            </body></html>
+        expect:
+          status: 409
+          body_contains: ["taken-by-itemtype"]
+  - id: "javascript.slots.schema-validate-this-is-string-context-null"
+    title: "Schema-level @validate: this is the serialized instance (a string) and the context argument is null"
+    feature: "schema @validate"
+    source: "docs reference/modeling-data/Schema §JavaScript; docs languages/javascript/server/javascript-in-schemas §Slot semantics (snapshot 2026-09-28)"
+    confidence: "high"
+    live: true
+    notes: "spec: R-JS-15."
+    steps:
+      - name: "register declarations through the public plane (takes effect for the next request)"
+        as: "anonymous"
+        request:
+          method: "PUT"
+          path: "${P}/schema.html"
+          headers:
+            Content-Type: "text/html"
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+            <div hidden itemscope itemtype="https://pagelove.org/Schema">
+            <meta itemprop="type" content="https://pagelike.test${P}/SchemaVal">
+            <div itemprop="property" itemscope itemtype="https://pagelove.org/Property">
+            <meta itemprop="name" content="n">
+            <meta itemprop="type" content="https://schema.host/Text">
+            <meta itemprop="cardinality" content="0..1">
+            </div>
+            <div itemprop="@validate" itemscope itemtype="https://pagelove.org/JavaScript/Module">
+            <script itemprop="source" type="module">
+            export default function (context) {
+              return typeof this === 'string' && context === null && this.includes('itemprop="n"');
+            }
+            </script>
+            </div>
+            </div>
+            <div hidden itemscope itemtype="https://pagelove.org/Schema">
+            <meta itemprop="type" content="https://pagelike.test${P}/SchemaValNeg">
+            <div itemprop="property" itemscope itemtype="https://pagelove.org/Property">
+            <meta itemprop="name" content="n">
+            <meta itemprop="type" content="https://schema.host/Text">
+            <meta itemprop="cardinality" content="0..1">
+            </div>
+            <div itemprop="@validate" itemscope itemtype="https://pagelove.org/JavaScript/Module">
+            <script itemprop="source" type="module">
+            export default function () { return typeof this !== 'string'; }
+            </script>
+            </div>
+            </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "the positive validator accepts"
+        as: "anonymous"
+        request:
+          method: "PUT"
+          path: "${P}/a.html"
+          headers:
+            Content-Type: "text/html"
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+            <div itemscope itemtype="https://pagelike.test${P}/SchemaVal">
+            <meta itemprop="n" content="x">
+            </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "the negated validator rejects (so the check above is meaningful)"
+        as: "anonymous"
+        request:
+          method: "PUT"
+          path: "${P}/b.html"
+          headers:
+            Content-Type: "text/html"
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+            <div itemscope itemtype="https://pagelike.test${P}/SchemaValNeg">
+            <meta itemprop="n" content="x">
+            </div>
+            </body></html>
+        expect:
+          status: 422
+  - id: "javascript.slots.write-returns-function"
+    title: "A @write returning a function fails with variant return-type"
+    feature: "binding failures"
+    source: "docs languages/javascript/server/javascript-in-schemas §Errors (return-type), §Marshalling (snapshot 2026-09-28)"
+    confidence: "medium"
+    live: true
+    notes: "spec: R-JS-41, R-JS-51, R-JS-52 (500 per modeling R-MOD-52; 422 also accepted)."
+    steps:
+      - name: "register declarations through the public plane (takes effect for the next request)"
+        as: "anonymous"
+        request:
+          method: "PUT"
+          path: "${P}/schema.html"
+          headers:
+            Content-Type: "text/html"
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+            <div hidden itemscope itemtype="https://pagelove.org/Schema">
+            <meta itemprop="type" content="https://pagelike.test${P}/WriteFn">
+            <div itemprop="property" itemscope itemtype="https://pagelove.org/Property">
+            <meta itemprop="name" content="v">
+            <meta itemprop="type" content="https://schema.host/Text">
+            <meta itemprop="cardinality" content="0..1">
+            <div itemprop="@write" itemscope itemtype="https://pagelove.org/JavaScript/Module">
+            <script itemprop="source" type="module">
+            export default () => () => 1;
+            </script>
+            </div>
+            </div>
+            </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "PUT an instance (a.html)"
+        as: "anonymous"
+        request:
+          method: "PUT"
+          path: "${P}/a.html"
+          headers:
+            Content-Type: "text/html"
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+            <div itemscope itemtype="https://pagelike.test${P}/WriteFn">
+            <meta itemprop="v" content="x">
+            </div>
+            </body></html>
+        expect:
+          status: [422, 500]
+          header_matches:
+            Content-Type: "^text/html"
+          body_contains: ["https://pagelove.org/BindingFailure", "content=\"return-type\""]
+      - name: "nothing was stored"
+        as: "author"
+        plane: "dav"
+        request:
+          method: "GET"
+          path: "${P}/a.html"
+        expect:
+          status: 404
+  - id: "javascript.slots.write-returns-cycle"
+    title: "A @write returning a cyclic object fails with variant return-type"
+    feature: "binding failures"
+    source: "docs languages/javascript/server/javascript-in-schemas §Errors (return-type) (snapshot 2026-09-28)"
+    confidence: "medium"
+    live: true
+    notes: "spec: R-JS-41."
+    steps:
+      - name: "register declarations through the public plane (takes effect for the next request)"
+        as: "anonymous"
+        request:
+          method: "PUT"
+          path: "${P}/schema.html"
+          headers:
+            Content-Type: "text/html"
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+            <div hidden itemscope itemtype="https://pagelove.org/Schema">
+            <meta itemprop="type" content="https://pagelike.test${P}/WriteCycle">
+            <div itemprop="property" itemscope itemtype="https://pagelove.org/Property">
+            <meta itemprop="name" content="v">
+            <meta itemprop="type" content="https://schema.host/Text">
+            <meta itemprop="cardinality" content="0..1">
+            <div itemprop="@write" itemscope itemtype="https://pagelove.org/JavaScript/Module">
+            <script itemprop="source" type="module">
+            export default () => { const o = {}; o.self = o; return o; };
+            </script>
+            </div>
+            </div>
+            </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "PUT an instance (a.html)"
+        as: "anonymous"
+        request:
+          method: "PUT"
+          path: "${P}/a.html"
+          headers:
+            Content-Type: "text/html"
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+            <div itemscope itemtype="https://pagelike.test${P}/WriteCycle">
+            <meta itemprop="v" content="x">
+            </div>
+            </body></html>
+        expect:
+          status: [422, 500]
+          header_matches:
+            Content-Type: "^text/html"
+          body_contains: ["https://pagelove.org/BindingFailure", "content=\"return-type\""]
+  - id: "javascript.slots.timeout"
+    title: "An evaluation that exceeds the time budget fails with variant timeout"
+    feature: "budgets"
+    source: "docs languages/javascript/server/javascript-in-schemas §Resource limits, §Errors (timeout) (snapshot 2026-09-28)"
+    confidence: "medium"
+    live: true
+    notes: "spec: R-JS-56, R-JS-57 (pagelike 503; C-JS-9)."
+    steps:
+      - name: "register declarations through the public plane (takes effect for the next request)"
+        as: "anonymous"
+        request:
+          method: "PUT"
+          path: "${P}/schema.html"
+          headers:
+            Content-Type: "text/html"
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+            <div hidden itemscope itemtype="https://pagelove.org/Schema">
+            <meta itemprop="type" content="https://pagelike.test${P}/Vtimeout">
+            <div itemprop="property" itemscope itemtype="https://pagelove.org/Property">
+            <meta itemprop="name" content="v">
+            <meta itemprop="type" content="https://schema.host/Text">
+            <meta itemprop="cardinality" content="1..1">
+            <div itemprop="@validate" itemscope itemtype="https://pagelove.org/JavaScript/Module">
+            <script itemprop="source" type="module">
+            export default () => { for (;;) {} };
+            </script>
+            </div>
+            </div>
+            </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "PUT an instance (a.html)"
+        as: "anonymous"
+        request:
+          method: "PUT"
+          path: "${P}/a.html"
+          headers:
+            Content-Type: "text/html"
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+            <div itemscope itemtype="https://pagelike.test${P}/Vtimeout">
+            <meta itemprop="v" content="x">
+            </div>
+            </body></html>
+        expect:
+          status: [422, 500, 503]
+          header_matches:
+            Content-Type: "^text/html"
+          body_contains: ["https://pagelove.org/BindingFailure", "content=\"timeout\""]
+  - id: "javascript.slots.out-of-memory"
+    title: "An evaluation that exceeds the memory budget fails with variant out-of-memory"
+    feature: "budgets"
+    source: "docs languages/javascript/server/javascript-in-schemas §Resource limits, §Errors (out-of-memory) (snapshot 2026-09-28)"
+    confidence: "medium"
+    live: true
+    notes: "spec: R-JS-56, R-JS-57."
+    steps:
+      - name: "register declarations through the public plane (takes effect for the next request)"
+        as: "anonymous"
+        request:
+          method: "PUT"
+          path: "${P}/schema.html"
+          headers:
+            Content-Type: "text/html"
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+            <div hidden itemscope itemtype="https://pagelove.org/Schema">
+            <meta itemprop="type" content="https://pagelike.test${P}/Voutofmemory">
+            <div itemprop="property" itemscope itemtype="https://pagelove.org/Property">
+            <meta itemprop="name" content="v">
+            <meta itemprop="type" content="https://schema.host/Text">
+            <meta itemprop="cardinality" content="1..1">
+            <div itemprop="@validate" itemscope itemtype="https://pagelove.org/JavaScript/Module">
+            <script itemprop="source" type="module">
+            export default () => { const a = []; for (;;) a.push(new Array(100000).fill(7)); };
+            </script>
+            </div>
+            </div>
+            </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "PUT an instance (a.html)"
+        as: "anonymous"
+        request:
+          method: "PUT"
+          path: "${P}/a.html"
+          headers:
+            Content-Type: "text/html"
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+            <div itemscope itemtype="https://pagelike.test${P}/Voutofmemory">
+            <meta itemprop="v" content="x">
+            </div>
+            </body></html>
+        expect:
+          status: [422, 500, 503]
+          header_matches:
+            Content-Type: "^text/html"
+          body_contains: ["https://pagelove.org/BindingFailure", "content=\"out-of-memory\""]
+  - id: "javascript.slots.stack-overflow-is-threw"
+    title: "Unbounded recursion fails with variant threw (stack overflow), not a budget variant"
+    feature: "budgets"
+    source: "docs languages/javascript/server/javascript-in-schemas §Resource limits (Stack row: threw, typically InternalError: stack overflow) (snapshot 2026-09-28)"
+    confidence: "high"
+    live: true
+    notes: "spec: R-JS-56."
+    steps:
+      - name: "register declarations through the public plane (takes effect for the next request)"
+        as: "anonymous"
+        request:
+          method: "PUT"
+          path: "${P}/schema.html"
+          headers:
+            Content-Type: "text/html"
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+            <div hidden itemscope itemtype="https://pagelove.org/Schema">
+            <meta itemprop="type" content="https://pagelike.test${P}/Vstackoverflowisthrew">
+            <div itemprop="property" itemscope itemtype="https://pagelove.org/Property">
+            <meta itemprop="name" content="v">
+            <meta itemprop="type" content="https://schema.host/Text">
+            <meta itemprop="cardinality" content="1..1">
+            <div itemprop="@validate" itemscope itemtype="https://pagelove.org/JavaScript/Module">
+            <script itemprop="source" type="module">
+            const f = (n) => f(n + 1) + 1;
+            export default () => f(0);
+            </script>
+            </div>
+            </div>
+            </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "PUT an instance (a.html)"
+        as: "anonymous"
+        request:
+          method: "PUT"
+          path: "${P}/a.html"
+          headers:
+            Content-Type: "text/html"
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+            <div itemscope itemtype="https://pagelike.test${P}/Vstackoverflowisthrew">
+            <meta itemprop="v" content="x">
+            </div>
+            </body></html>
+        expect:
+          status: 422
+          body_contains: ["https://pagelove.org/BindingFailure", "content=\"threw\""]
+  - id: "javascript.slots.recursion-depth-500-ok"
+    title: "A recursion depth of 500 frames stays within the stack limit"
+    feature: "budgets"
+    evidence: "inferred"
+    source: "inferred from docs languages/javascript/server/javascript-in-schemas §Resource limits (256 KB stack) (snapshot 2026-09-28)"
+    confidence: "medium"
+    live: true
+    notes: "spec: R-JS-56 (floor pagelike guarantees; ADR 0001 calibrates the engine frame limit). Probe P-JS-7."
+    steps:
+      - name: "register declarations through the public plane (takes effect for the next request)"
+        as: "anonymous"
+        request:
+          method: "PUT"
+          path: "${P}/schema.html"
+          headers:
+            Content-Type: "text/html"
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+            <div hidden itemscope itemtype="https://pagelove.org/Schema">
+            <meta itemprop="type" content="https://pagelike.test${P}/Vrecursiondepth500ok">
+            <div itemprop="property" itemscope itemtype="https://pagelove.org/Property">
+            <meta itemprop="name" content="v">
+            <meta itemprop="type" content="https://schema.host/Text">
+            <meta itemprop="cardinality" content="1..1">
+            <div itemprop="@validate" itemscope itemtype="https://pagelove.org/JavaScript/Module">
+            <script itemprop="source" type="module">
+            const f = (n) => (n === 0 ? 0 : 1 + f(n - 1));
+            export default (v) => v === 'x' && f(500) === 500;
+            </script>
+            </div>
+            </div>
+            </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "PUT an instance (a.html)"
+        as: "anonymous"
+        request:
+          method: "PUT"
+          path: "${P}/a.html"
+          headers:
+            Content-Type: "text/html"
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+            <div itemscope itemtype="https://pagelike.test${P}/Vrecursiondepth500ok">
+            <meta itemprop="v" content="x">
+            </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "control: the same validator refuses v=y (validators run)"
+        as: "anonymous"
+        request:
+          method: "PUT"
+          path: "${P}/b.html"
+          headers:
+            Content-Type: "text/html"
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+            <div itemscope itemtype="https://pagelike.test${P}/Vrecursiondepth500ok">
+            <meta itemprop="v" content="y">
+            </div>
+            </body></html>
+        expect:
+          status: 422
+  - id: "javascript.slots.import-bare-specifier"
+    title: "A bare import specifier fails with variant import-not-allowed"
+    feature: "imports"
+    source: "docs languages/javascript/server/javascript-in-schemas §Importing schemas, §Errors (import-not-allowed), §First-cut exclusions (snapshot 2026-09-28)"
+    confidence: "high"
+    live: true
+    notes: "spec: R-JS-9, R-JS-51."
+    steps:
+      - name: "register declarations through the public plane (takes effect for the next request)"
+        as: "anonymous"
+        request:
+          method: "PUT"
+          path: "${P}/schema.html"
+          headers:
+            Content-Type: "text/html"
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+            <div hidden itemscope itemtype="https://pagelove.org/Schema">
+            <meta itemprop="type" content="https://pagelike.test${P}/Vimportbarespecifier">
+            <div itemprop="property" itemscope itemtype="https://pagelove.org/Property">
+            <meta itemprop="name" content="v">
+            <meta itemprop="type" content="https://schema.host/Text">
+            <meta itemprop="cardinality" content="1..1">
+            <div itemprop="@validate" itemscope itemtype="https://pagelove.org/JavaScript/Module">
+            <script itemprop="source" type="module">
+            import x from 'lodash';
+            export default () => true;
+            </script>
+            </div>
+            </div>
+            </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "PUT an instance (a.html)"
+        as: "anonymous"
+        request:
+          method: "PUT"
+          path: "${P}/a.html"
+          headers:
+            Content-Type: "text/html"
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+            <div itemscope itemtype="https://pagelike.test${P}/Vimportbarespecifier">
+            <meta itemprop="v" content="x">
+            </div>
+            </body></html>
+        expect:
+          status: 422
+          body_contains: ["https://pagelove.org/BindingFailure", "content=\"import-not-allowed\""]
+  - id: "javascript.slots.import-http-url"
+    title: "An HTTP URL import (without the schema type attribute) fails with import-not-allowed"
+    feature: "imports"
+    source: "docs languages/javascript/server/javascript-in-schemas §Importing schemas, §Errors (import-not-allowed), §First-cut exclusions (snapshot 2026-09-28)"
+    confidence: "high"
+    live: true
+    notes: "spec: R-JS-9, R-JS-51."
+    steps:
+      - name: "register declarations through the public plane (takes effect for the next request)"
+        as: "anonymous"
+        request:
+          method: "PUT"
+          path: "${P}/schema.html"
+          headers:
+            Content-Type: "text/html"
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+            <div hidden itemscope itemtype="https://pagelove.org/Schema">
+            <meta itemprop="type" content="https://pagelike.test${P}/Vimporthttpurl">
+            <div itemprop="property" itemscope itemtype="https://pagelove.org/Property">
+            <meta itemprop="name" content="v">
+            <meta itemprop="type" content="https://schema.host/Text">
+            <meta itemprop="cardinality" content="1..1">
+            <div itemprop="@validate" itemscope itemtype="https://pagelove.org/JavaScript/Module">
+            <script itemprop="source" type="module">
+            import x from 'https://example.com/x.js';
+            export default () => true;
+            </script>
+            </div>
+            </div>
+            </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "PUT an instance (a.html)"
+        as: "anonymous"
+        request:
+          method: "PUT"
+          path: "${P}/a.html"
+          headers:
+            Content-Type: "text/html"
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+            <div itemscope itemtype="https://pagelike.test${P}/Vimporthttpurl">
+            <meta itemprop="v" content="x">
+            </div>
+            </body></html>
+        expect:
+          status: 422
+          body_contains: ["https://pagelove.org/BindingFailure", "content=\"import-not-allowed\""]
+  - id: "javascript.slots.import-pagelove-host"
+    title: "There is no pagelove:host module (import-not-allowed)"
+    feature: "imports"
+    source: "docs languages/javascript/server/javascript-in-schemas §Importing schemas, §Errors (import-not-allowed), §First-cut exclusions (snapshot 2026-09-28)"
+    confidence: "high"
+    live: true
+    notes: "spec: R-JS-9, R-JS-51."
+    steps:
+      - name: "register declarations through the public plane (takes effect for the next request)"
+        as: "anonymous"
+        request:
+          method: "PUT"
+          path: "${P}/schema.html"
+          headers:
+            Content-Type: "text/html"
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+            <div hidden itemscope itemtype="https://pagelove.org/Schema">
+            <meta itemprop="type" content="https://pagelike.test${P}/Vimportpagelovehost">
+            <div itemprop="property" itemscope itemtype="https://pagelove.org/Property">
+            <meta itemprop="name" content="v">
+            <meta itemprop="type" content="https://schema.host/Text">
+            <meta itemprop="cardinality" content="1..1">
+            <div itemprop="@validate" itemscope itemtype="https://pagelove.org/JavaScript/Module">
+            <script itemprop="source" type="module">
+            import host from 'pagelove:host';
+            export default () => true;
+            </script>
+            </div>
+            </div>
+            </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "PUT an instance (a.html)"
+        as: "anonymous"
+        request:
+          method: "PUT"
+          path: "${P}/a.html"
+          headers:
+            Content-Type: "text/html"
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+            <div itemscope itemtype="https://pagelike.test${P}/Vimportpagelovehost">
+            <meta itemprop="v" content="x">
+            </div>
+            </body></html>
+        expect:
+          status: 422
+          body_contains: ["https://pagelove.org/BindingFailure", "content=\"import-not-allowed\""]
+  - id: "javascript.slots.import-dynamic"
+    title: "A dynamic import() fails with import-not-allowed"
+    feature: "imports"
+    source: "docs languages/javascript/server/javascript-in-schemas §Importing schemas, §Errors (import-not-allowed), §First-cut exclusions (snapshot 2026-09-28)"
+    confidence: "medium"
+    live: true
+    notes: "spec: R-JS-9, R-JS-51. The docs do not mention dynamic import; ADR 0001 measured it."
+    steps:
+      - name: "register declarations through the public plane (takes effect for the next request)"
+        as: "anonymous"
+        request:
+          method: "PUT"
+          path: "${P}/schema.html"
+          headers:
+            Content-Type: "text/html"
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+            <div hidden itemscope itemtype="https://pagelove.org/Schema">
+            <meta itemprop="type" content="https://pagelike.test${P}/Vimportdynamic">
+            <div itemprop="property" itemscope itemtype="https://pagelove.org/Property">
+            <meta itemprop="name" content="v">
+            <meta itemprop="type" content="https://schema.host/Text">
+            <meta itemprop="cardinality" content="1..1">
+            <div itemprop="@validate" itemscope itemtype="https://pagelove.org/JavaScript/Module">
+            <script itemprop="source" type="module">
+            export default async () => { await import('./x.js'); return true; };
+            </script>
+            </div>
+            </div>
+            </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "PUT an instance (a.html)"
+        as: "anonymous"
+        request:
+          method: "PUT"
+          path: "${P}/a.html"
+          headers:
+            Content-Type: "text/html"
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+            <div itemscope itemtype="https://pagelike.test${P}/Vimportdynamic">
+            <meta itemprop="v" content="x">
+            </div>
+            </body></html>
+        expect:
+          status: 422
+          body_contains: ["https://pagelove.org/BindingFailure", "content=\"import-not-allowed\""]
+  - id: "javascript.slots.import-schema-without-type-attribute"
+    title: "A schema URL imported without the type attribute is not a schema import"
+    feature: "imports"
+    evidence: "inferred"
+    source: "docs languages/javascript/server/javascript-in-schemas §Importing schemas, §Errors (import-not-allowed), §First-cut exclusions (snapshot 2026-09-28)"
+    confidence: "low"
+    live: true
+    notes: "spec: R-JS-9, R-JS-51. pagelike decision (R-JS-9)."
+    steps:
+      - name: "register declarations through the public plane (takes effect for the next request)"
+        as: "anonymous"
+        request:
+          method: "PUT"
+          path: "${P}/schema.html"
+          headers:
+            Content-Type: "text/html"
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+            <div hidden itemscope itemtype="https://pagelove.org/Schema">
+            <meta itemprop="type" content="https://pagelike.test${P}/Vimportschemawithouttypeattri">
+            <div itemprop="property" itemscope itemtype="https://pagelove.org/Property">
+            <meta itemprop="name" content="v">
+            <meta itemprop="type" content="https://schema.host/Text">
+            <meta itemprop="cardinality" content="1..1">
+            <div itemprop="@validate" itemscope itemtype="https://pagelove.org/JavaScript/Module">
+            <script itemprop="source" type="module">
+            import Ghost from 'https://pagelike.test${P}/Vimportschemawithouttypeattri';
+            export default () => true;
+            </script>
+            </div>
+            </div>
+            </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "PUT an instance (a.html)"
+        as: "anonymous"
+        request:
+          method: "PUT"
+          path: "${P}/a.html"
+          headers:
+            Content-Type: "text/html"
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+            <div itemscope itemtype="https://pagelike.test${P}/Vimportschemawithouttypeattri">
+            <meta itemprop="v" content="x">
+            </div>
+            </body></html>
+        expect:
+          status: 422
+          body_contains: ["https://pagelove.org/BindingFailure", "content=\"import-not-allowed\""]
+  - id: "javascript.slots.import-literal-pagelove-schema"
+    title: "A literal 'pagelove:schema' specifier is not the schema import form"
+    feature: "imports"
+    evidence: "inferred"
+    source: "docs languages/javascript/server/javascript-in-schemas §Importing schemas, §Errors (import-not-allowed), §First-cut exclusions (snapshot 2026-09-28)"
+    confidence: "low"
+    live: true
+    notes: "spec: R-JS-9, R-JS-51. Contradiction C-JS-1 (the docs call the import 'pagelove:schema')."
+    steps:
+      - name: "register declarations through the public plane (takes effect for the next request)"
+        as: "anonymous"
+        request:
+          method: "PUT"
+          path: "${P}/schema.html"
+          headers:
+            Content-Type: "text/html"
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+            <div hidden itemscope itemtype="https://pagelove.org/Schema">
+            <meta itemprop="type" content="https://pagelike.test${P}/Vimportliteralpageloveschema">
+            <div itemprop="property" itemscope itemtype="https://pagelove.org/Property">
+            <meta itemprop="name" content="v">
+            <meta itemprop="type" content="https://schema.host/Text">
+            <meta itemprop="cardinality" content="1..1">
+            <div itemprop="@validate" itemscope itemtype="https://pagelove.org/JavaScript/Module">
+            <script itemprop="source" type="module">
+            import S from 'pagelove:schema';
+            export default () => true;
+            </script>
+            </div>
+            </div>
+            </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "PUT an instance (a.html)"
+        as: "anonymous"
+        request:
+          method: "PUT"
+          path: "${P}/a.html"
+          headers:
+            Content-Type: "text/html"
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+            <div itemscope itemtype="https://pagelike.test${P}/Vimportliteralpageloveschema">
+            <meta itemprop="v" content="x">
+            </div>
+            </body></html>
+        expect:
+          status: 422
+          body_contains: ["https://pagelove.org/BindingFailure", "content=\"import-not-allowed\""]
+  - id: "javascript.slots.import-unknown-schema"
+    title: "A schema import naming an unregistered schema fails with variant unknown-schema"
+    feature: "imports"
+    source: "docs languages/javascript/server/javascript-in-schemas §Importing schemas, §Errors (unknown-schema) (snapshot 2026-09-28)"
+    confidence: "high"
+    live: true
+    notes: "spec: R-JS-9, R-JS-51."
+    steps:
+      - name: "register declarations through the public plane (takes effect for the next request)"
+        as: "anonymous"
+        request:
+          method: "PUT"
+          path: "${P}/schema.html"
+          headers:
+            Content-Type: "text/html"
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+            <div hidden itemscope itemtype="https://pagelove.org/Schema">
+            <meta itemprop="type" content="https://pagelike.test${P}/Vimportunknownschema">
+            <div itemprop="property" itemscope itemtype="https://pagelove.org/Property">
+            <meta itemprop="name" content="v">
+            <meta itemprop="type" content="https://schema.host/Text">
+            <meta itemprop="cardinality" content="1..1">
+            <div itemprop="@validate" itemscope itemtype="https://pagelove.org/JavaScript/Module">
+            <script itemprop="source" type="module">
+            import Ghost from 'https://pagelike.test${P}/NeverDeclared' with { type: 'https://pagelove.org/Schema' };
+            export default () => true;
+            </script>
+            </div>
+            </div>
+            </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "PUT an instance (a.html)"
+        as: "anonymous"
+        request:
+          method: "PUT"
+          path: "${P}/a.html"
+          headers:
+            Content-Type: "text/html"
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+            <div itemscope itemtype="https://pagelike.test${P}/Vimportunknownschema">
+            <meta itemprop="v" content="x">
+            </div>
+            </body></html>
+        expect:
+          status: 422
+          body_contains: ["https://pagelove.org/BindingFailure", "content=\"unknown-schema\""]

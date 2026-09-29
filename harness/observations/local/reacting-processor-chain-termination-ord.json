@@ -1,0 +1,47 @@
+{
+  "case": "reacting.processor.chain-termination-order",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (install b.html (would throw 423))",
+      "method": "PUT",
+      "path": "/_pl/reacting-processor-chain-termination-ord-e62b80/r/b.html",
+      "status": 201,
+      "headers": {
+        "content-length": "534",
+        "content-type": "text/html",
+        "etag": "\"eb04f0d679d0c989641b54b8b191c8ae02f358e42df7c33ce305aed33f43da41\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:49 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\n\u003cdiv hidden itemscope itemtype=\"https://pagelove.org/Processor\"\u003e\n  \u003cmeta itemprop=\"resource\" content=\"/_pl/reacting-processor-chain-termination-ord-e62b80/d/*\"\u003e\n  \u003cmeta itemprop=\"method\" content=\"GET\"\u003e\n  \u003cdiv itemprop=\"action\" itemscope itemtype=\"https://pagelove.org/Sessel\"\u003e\n    \u003cscript itemprop=\"source\" type=\"text/sessel\"\u003e\n      @schema HTTPResponse url(\"https://pagelove.org/HTTPResponse\");\n      throw new HTTPResponse { status: 423, message: \"from-b\" }\n    \u003c/script\u003e\n  \u003c/div\u003e\n\u003c/div\u003e\n\u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 2 (install a.html (throws 409))",
+      "method": "PUT",
+      "path": "/_pl/reacting-processor-chain-termination-ord-e62b80/r/a.html",
+      "status": 201,
+      "headers": {
+        "content-length": "534",
+        "content-type": "text/html",
+        "etag": "\"880dfcf9b43eb9dec918c06a60bd1ff30fc04b8baf807e6faf79741686a7a310\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:49 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\n\u003cdiv hidden itemscope itemtype=\"https://pagelove.org/Processor\"\u003e\n  \u003cmeta itemprop=\"resource\" content=\"/_pl/reacting-processor-chain-termination-ord-e62b80/d/*\"\u003e\n  \u003cmeta itemprop=\"method\" content=\"GET\"\u003e\n  \u003cdiv itemprop=\"action\" itemscope itemtype=\"https://pagelove.org/Sessel\"\u003e\n    \u003cscript itemprop=\"source\" type=\"text/sessel\"\u003e\n      @schema HTTPResponse url(\"https://pagelove.org/HTTPResponse\");\n      throw new HTTPResponse { status: 409, message: \"from-a\" }\n    \u003c/script\u003e\n  \u003c/div\u003e\n\u003c/div\u003e\n\u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 3 (a.html's processor wins)",
+      "method": "GET",
+      "path": "/_pl/reacting-processor-chain-termination-ord-e62b80/d/doc.html",
+      "status": 409,
+      "headers": {
+        "content-length": "6",
+        "content-type": "text/html; charset=utf-8"
+      },
+      "body": "from-a"
+    }
+  ],
+  "outcome": "pass",
+  "target": "local"
+}

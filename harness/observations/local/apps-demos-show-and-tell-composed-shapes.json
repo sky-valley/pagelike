@@ -1,0 +1,77 @@
+{
+  "case": "apps.demos.show-and-tell-composed-shapes",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (comment on the birdhouse)",
+      "method": "POST",
+      "path": "/_pl/apps-demos-show-and-tell-composed-shapes-d1b5a6/demo-02-show-and-tell/index.html",
+      "status": 206,
+      "headers": {
+        "content-length": "461",
+        "content-range": "selector #comments-submission-birdhouse",
+        "content-type": "text/html",
+        "etag": "\"4691e0788119d1b2f605de7ae37fabd465a8057047797669fb4033567af15d4c-4691e0788119d1b2f605de7ae37fabd465a8057047797669fb4033567af15d4c-2\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:41 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003cli class=\"comment\" id=\"comment-mf1a2b\" data-author=\"ben\" itemscope itemtype=\"https://pagelike.test/_pl/apps-demos-show-and-tell-composed-shapes-d1b5a6/vocab/ShowComment\"\u003e\n  \u003cmeta itemprop=\"submissionId\" content=\"submission-birdhouse\"\u003e\n  \u003cp class=\"comment-meta\"\u003e\u003cstrong itemprop=\"author\"\u003eBen\u003c/strong\u003e \u003ctime itemprop=\"createdAt\" datetime=\"2026-09-28T10:00:00.000Z\"\u003e\u003c/time\u003e\u003c/p\u003e\n  \u003cp class=\"comment-body\" itemprop=\"body\"\u003eThe angled roof is the best part.\u003c/p\u003e\n\u003c/li\u003e"
+    },
+    {
+      "step": "step 2 (a comment carrying an image is refused)",
+      "method": "POST",
+      "path": "/_pl/apps-demos-show-and-tell-composed-shapes-d1b5a6/demo-02-show-and-tell/index.html",
+      "status": 422,
+      "headers": {
+        "content-length": "379",
+        "content-type": "text/html",
+        "vary": "Host, Range"
+      },
+      "body": "\u003cdiv itemscope itemtype=\"https://dombase.pagelove.team/ns/error/ShapeConstraint\"\u003e\u003cul itemprop=\"problems\"\u003e\u003cli itemprop=\"problem\"\u003e\u003cspan itemprop=\"message\"\u003eShape constraints violated\u003c/span\u003e\u003c/li\u003e\u003cli itemprop=\"problem\"\u003e\u003cspan itemprop=\"message\"\u003ehttps://pagelove.org/ShapeConstraint .comments: Element \u0026lt;img\u0026gt; inside '.comments' is not permitted by any permit\u003c/span\u003e\u003c/li\u003e\u003c/ul\u003e\u003c/div\u003e"
+    },
+    {
+      "step": "step 3 (publish a project)",
+      "method": "POST",
+      "path": "/_pl/apps-demos-show-and-tell-composed-shapes-d1b5a6/demo-02-show-and-tell/index.html",
+      "status": 206,
+      "headers": {
+        "content-length": "1003",
+        "content-range": "selector #pl-grid",
+        "content-type": "text/html",
+        "etag": "\"a84694d3c00d66b751ed7e1268f3354e9891b7101b6de951ca2cd4e9ebc25448-a84694d3c00d66b751ed7e1268f3354e9891b7101b6de951ca2cd4e9ebc25448-3\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:41 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003cli class=\"card\" id=\"submission-kite\" data-author=\"carla\" itemscope itemtype=\"https://pagelike.test/_pl/apps-demos-show-and-tell-composed-shapes-d1b5a6/vocab/ShowSubmission\"\u003e\n  \u003cdiv class=\"card-thumb\" aria-hidden=\"true\"\u003e🪁\u003c/div\u003e\n  \u003cdiv class=\"card-body\"\u003e\n    \u003ch2 class=\"card-title\" itemprop=\"title\"\u003eKite\u003c/h2\u003e\n    \u003cp class=\"card-desc\" itemprop=\"description\"\u003ePaper and sticks.\u003c/p\u003e\n    \u003cul class=\"tags\"\u003e\u003c/ul\u003e\n    \u003cp class=\"card-meta\"\u003eby \u003cstrong itemprop=\"author\"\u003eCarla\u003c/strong\u003e \u003ctime itemprop=\"createdAt\" datetime=\"2026-09-28T10:00:00.000Z\"\u003e\u003c/time\u003e\u003c/p\u003e\n    \u003cdiv class=\"card-foot\"\u003e\n      \u003cspan class=\"reaction-count\" data-count-for=\"submission-kite\"\u003e0\u003c/span\u003e\n      \u003cbutton type=\"button\" class=\"btn-react\" data-react-for=\"submission-kite\"\u003eReact\u003c/button\u003e\n      \u003cbutton type=\"button\" class=\"btn-ghost\" data-comment-toggle=\"comments-submission-kite\"\u003eComment\u003c/button\u003e\n    \u003c/div\u003e\n    \u003cul class=\"comments\" id=\"comments-submission-kite\" aria-label=\"Comments\" data-submission=\"submission-kite\"\u003e\u003c/ul\u003e\n  \u003c/div\u003e\n\u003c/li\u003e"
+    },
+    {
+      "step": "step 4 (react once)",
+      "method": "POST",
+      "path": "/_pl/apps-demos-show-and-tell-composed-shapes-d1b5a6/demo-02-show-and-tell/index.html",
+      "status": 206,
+      "headers": {
+        "content-length": "332",
+        "content-range": "selector #pl-reactions",
+        "content-type": "text/html",
+        "etag": "\"1e62aeb20552539382a8483e48c30376ff34e9265f88d4882df08043478e3e41-1e62aeb20552539382a8483e48c30376ff34e9265f88d4882df08043478e3e41-4\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:41 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003cli id=\"reaction-a1\" data-submission=\"submission-kite\" itemscope itemtype=\"https://pagelike.test/_pl/apps-demos-show-and-tell-composed-shapes-d1b5a6/vocab/ShowReaction\"\u003e\u003cmeta itemprop=\"reactionKey\" content=\"submission-kite:dmitri\"\u003e\u003cmeta itemprop=\"submissionId\" content=\"submission-kite\"\u003e\u003cmeta itemprop=\"voter\" content=\"dmitri\"\u003e\u003c/li\u003e"
+    },
+    {
+      "step": "step 5 (the same voter reacting again is a uniqueness violation)",
+      "method": "POST",
+      "path": "/_pl/apps-demos-show-and-tell-composed-shapes-d1b5a6/demo-02-show-and-tell/index.html",
+      "status": 422,
+      "headers": {
+        "content-length": "497",
+        "content-type": "text/html",
+        "vary": "Host, Range"
+      },
+      "body": "\u003cdiv itemscope itemtype=\"https://dombase.pagelove.team/ns/error/ConstraintViolation\"\u003e\u003cul itemprop=\"problems\"\u003e\u003cli itemprop=\"problem\"\u003e\u003cspan itemprop=\"message\"\u003eConstraint violation: 1 violation(s):\n  - [uniqueness] [itemprop='reactionKey'] (unique(reactionKey)): Uniqueness violation: another item in '/_pl/apps-demos-show-and-tell-composed-shapes-d1b5a6/demo-02-show-and-tell/index.html' already claims this value for property 'reactionKey' (first claimed by item '0.2.3.5.0')\u003c/span\u003e\u003c/li\u003e\u003c/ul\u003e\u003c/div\u003e"
+    }
+  ],
+  "outcome": "pass",
+  "target": "local"
+}

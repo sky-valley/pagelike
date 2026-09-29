@@ -1,0 +1,50 @@
+{
+  "case": "modeling.nested.schema-validate-self-is-nested-item",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (register declarations through the public plane (takes effect for the next request))",
+      "method": "PUT",
+      "path": "/_pl/modeling-nested-schema-validate-self-is-3aafec/schema.html",
+      "status": 201,
+      "headers": {
+        "content-length": "1601",
+        "content-type": "text/html",
+        "etag": "\"5770fa48c5c2b2a32dd37f87b24220a4f281131016bf0d044c40e39fd0a9e47f\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:44 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\n  \u003cdiv hidden itemscope itemtype=\"https://pagelove.org/Schema\"\u003e\n    \u003cmeta itemprop=\"type\" content=\"https://pagelike.test/_pl/modeling-nested-schema-validate-self-is-3aafec/Address\"\u003e\n    \u003cdiv itemprop=\"property\" itemscope itemtype=\"https://pagelove.org/Property\"\u003e\n      \u003cmeta itemprop=\"name\" content=\"street\"\u003e\n      \u003cmeta itemprop=\"type\" content=\"https://schema.host/Text\"\u003e\n      \u003cmeta itemprop=\"cardinality\" content=\"1..1\"\u003e\n    \u003c/div\u003e\n    \u003cdiv itemprop=\"property\" itemscope itemtype=\"https://pagelove.org/Property\"\u003e\n      \u003cmeta itemprop=\"name\" content=\"city\"\u003e\n      \u003cmeta itemprop=\"type\" content=\"https://schema.host/Text\"\u003e\n      \u003cmeta itemprop=\"cardinality\" content=\"1..1\"\u003e\n    \u003c/div\u003e\n    \u003cscript type=\"text/sessel\" itemprop=\"@validate\"\u003eself.microdata()[\"city\"].first() == \"Springfield\"\u003c/script\u003e\n  \u003c/div\u003e\n  \u003cdiv hidden itemscope itemtype=\"https://pagelove.org/Schema\"\u003e\n    \u003cmeta itemprop=\"type\" content=\"https://pagelike.test/_pl/modeling-nested-schema-validate-self-is-3aafec/Person\"\u003e\n    \u003cdiv itemprop=\"property\" itemscope itemtype=\"https://pagelove.org/Property\"\u003e\n      \u003cmeta itemprop=\"name\" content=\"name\"\u003e\n      \u003cmeta itemprop=\"type\" content=\"https://schema.host/Text\"\u003e\n      \u003cmeta itemprop=\"cardinality\" content=\"1..1\"\u003e\n    \u003c/div\u003e\n    \u003cdiv itemprop=\"property\" itemscope itemtype=\"https://pagelove.org/Property\"\u003e\n      \u003cmeta itemprop=\"name\" content=\"address\"\u003e\n      \u003cmeta itemprop=\"type\" content=\"https://pagelike.test/_pl/modeling-nested-schema-validate-self-is-3aafec/Address\"\u003e\n      \u003cmeta itemprop=\"cardinality\" content=\"0..1\"\u003e\n    \u003c/div\u003e\n  \u003c/div\u003e\n\u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 2 (nested address in Springfield accepted)",
+      "method": "PUT",
+      "path": "/_pl/modeling-nested-schema-validate-self-is-3aafec/p1.html",
+      "status": 201,
+      "headers": {
+        "content-length": "442",
+        "content-type": "text/html",
+        "etag": "\"b3a31b469cf93ec35fbf4eb6e7f15dcca1c7416e3a46a3672c172f0f7013a33c\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:44 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\n  \u003cdiv itemscope itemtype=\"https://pagelike.test/_pl/modeling-nested-schema-validate-self-is-3aafec/Person\"\u003e\n    \u003cspan itemprop=\"name\"\u003eAlice\u003c/span\u003e\n    \u003cdiv itemscope itemtype=\"https://pagelike.test/_pl/modeling-nested-schema-validate-self-is-3aafec/Address\" itemprop=\"address\"\u003e\n      \u003cmeta itemprop=\"street\" content=\"1 Main\"\u003e\n      \u003cmeta itemprop=\"city\" content=\"Springfield\"\u003e\n    \u003c/div\u003e\n  \u003c/div\u003e\n\u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 3 (nested address elsewhere accepted)",
+      "method": "PUT",
+      "path": "/_pl/modeling-nested-schema-validate-self-is-3aafec/p2.html",
+      "status": 201,
+      "headers": {
+        "content-length": "442",
+        "content-type": "text/html",
+        "etag": "\"ad12403c66e4d67900356e140eb698cc235eeca2226fb127e17ccb3f70f2e6bf\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:44 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\n  \u003cdiv itemscope itemtype=\"https://pagelike.test/_pl/modeling-nested-schema-validate-self-is-3aafec/Person\"\u003e\n    \u003cspan itemprop=\"name\"\u003eAlice\u003c/span\u003e\n    \u003cdiv itemscope itemtype=\"https://pagelike.test/_pl/modeling-nested-schema-validate-self-is-3aafec/Address\" itemprop=\"address\"\u003e\n      \u003cmeta itemprop=\"street\" content=\"1 Main\"\u003e\n      \u003cmeta itemprop=\"city\" content=\"Shelbyville\"\u003e\n    \u003c/div\u003e\n  \u003c/div\u003e\n\u003c/body\u003e\u003c/html\u003e\n"
+    }
+  ],
+  "outcome": "pass",
+  "target": "local"
+}

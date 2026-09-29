@@ -1,0 +1,65 @@
+{
+  "case": "rw.cond.put-if-none-match-etag",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (read)",
+      "method": "GET",
+      "path": "/_pl/rw-cond-put-if-none-match-etag-539940/inm.html",
+      "status": 200,
+      "headers": {
+        "accept-ranges": "selector, bytes",
+        "content-length": "53",
+        "content-type": "text/html",
+        "etag": "\"bcc7b398d7597a8155486744c76858327901bae06f6d8a4cb0d2b5d08fa1d60d\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:55 GMT",
+        "vary": "Host, Range, Accept"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\u003cp\u003eone\u003c/p\u003e\u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 2 (blocked)",
+      "method": "PUT",
+      "path": "/_pl/rw-cond-put-if-none-match-etag-539940/inm.html",
+      "status": 412,
+      "headers": {
+        "content-length": "179",
+        "content-type": "text/html",
+        "etag": "\"bcc7b398d7597a8155486744c76858327901bae06f6d8a4cb0d2b5d08fa1d60d\"",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\u003cdiv itemscope itemtype=\"http://pagelove.org/Error\"\u003e\u003cspan itemprop=\"message\"\u003ePrecondition Failed: ETag matches If-None-Match\u003c/span\u003e\u003c/div\u003e\u003c/body\u003e\u003c/html\u003e"
+    },
+    {
+      "step": "step 3 (not blocked)",
+      "method": "PUT",
+      "path": "/_pl/rw-cond-put-if-none-match-etag-539940/inm.html",
+      "status": 200,
+      "headers": {
+        "content-length": "53",
+        "content-type": "text/html",
+        "etag": "\"4aa5e0427d83e9eab089f86bcec8e6d01a7123b84d519174ae2034f7e4e4f8bd\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:55 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\u003cp\u003etwo\u003c/p\u003e\u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 4 (result)",
+      "method": "GET",
+      "path": "/_pl/rw-cond-put-if-none-match-etag-539940/inm.html",
+      "status": 200,
+      "headers": {
+        "accept-ranges": "selector, bytes",
+        "content-length": "53",
+        "content-type": "text/html",
+        "etag": "\"4aa5e0427d83e9eab089f86bcec8e6d01a7123b84d519174ae2034f7e4e4f8bd\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:55 GMT",
+        "vary": "Host, Range, Accept"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\u003cp\u003etwo\u003c/p\u003e\u003c/body\u003e\u003c/html\u003e\n"
+    }
+  ],
+  "outcome": "pass",
+  "target": "local"
+}

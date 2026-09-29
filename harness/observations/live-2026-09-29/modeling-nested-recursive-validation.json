@@ -1,0 +1,64 @@
+{
+  "case": "modeling.nested.recursive-validation",
+  "failures": [
+    "step 3 (nested address missing city rejected) PUT ${P}/p2.html: status 201, want [422] (body: \u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\n  \u003cdiv itemscope itemtype=\"https://pagelike.test/_pl/modeling-nested-recursive-validation-a3c63f/Person\"\u003e\n    \u003cspan itemprop=\"name\"\u003eAlice\u003c/span\u003e\n    \u003cdiv itemscope itemtype=\"https://pagelike.test/_pl/modeling-ne…)",
+    "step 3 (nested address missing city rejected) PUT ${P}/p2.html: body does not contain \"https://pagelove.org/SchemaViolation\" (body: \u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\n  \u003cdiv itemscope itemtype=\"https://pagelike.test/_pl/modeling-nested-recursive-validation-a3c63f/Person\"\u003e\n    \u003cspan itemprop=\"name\"\u003eAlice\u003c/span\u003e\n    \u003cdiv itemscope itemtype=\"https://pagelike.test/_pl/modeling-nested-recursive-validation-a3c63f/Address\" itemprop=\"address\"\u003e\n      \u003cspan itemprop=\"street\"\u003e123 Main St\u003c/span\u003e\n    \u003c/div\u003e\n  \u003c/div\u003e\n\n                \u003cdiv style=\"…)",
+    "step 3 (nested address missing city rejected) PUT ${P}/p2.html: body does not contain \"cardinality\" (body: \u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\n  \u003cdiv itemscope itemtype=\"https://pagelike.test/_pl/modeling-nested-recursive-validation-a3c63f/Person\"\u003e\n    \u003cspan itemprop=\"name\"\u003eAlice\u003c/span\u003e\n    \u003cdiv itemscope itemtype=\"https://pagelike.test/_pl/modeling-nested-recursive-validation-a3c63f/Address\" itemprop=\"address\"\u003e\n      \u003cspan itemprop=\"street\"\u003e123 Main St\u003c/span\u003e\n    \u003c/div\u003e\n  \u003c/div\u003e\n\n                \u003cdiv style=\"…)"
+  ],
+  "observations": [
+    {
+      "step": "step 1 (register declarations through the public plane (takes effect for the next request))",
+      "method": "PUT",
+      "path": "/_pl/modeling-nested-recursive-validation-a3c63f/schema.html",
+      "status": 201,
+      "headers": {
+        "content-type": "text/html",
+        "etag": "\"c02e97df443c052a49059071d24f97c9b2ac849f795ecf3c24ffce0cdb026d2f\"",
+        "last-modified": "Tue, 29 Sep 2026 00:48:10 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\n  \u003cdiv hidden itemscope itemtype=\"https://pagelove.org/Schema\"\u003e\n    \u003cmeta itemprop=\"type\" content=\"https://pagelike.test/_pl/modeling-nested-recursive-validation-a3c63f/Address\"\u003e\n    \u003cdiv itemprop=\"property\" itemscope itemtype=\"https://pagelove.org/Property\"\u003e\n      \u003cmeta itemprop=\"name\" content=\"street\"\u003e\n      \u003cmeta itemprop=\"type\" content=\"https://schema.host/Text\"\u003e\n      \u003cmeta itemprop=\"cardinality\" content=\"1..1\"\u003e\n    \u003c/div\u003e\n    \u003cdiv itemprop=\"property\" itemscope itemtype=\"https://pagelove.org/Property\"\u003e\n      \u003cmeta itemprop=\"name\" content=\"city\"\u003e\n      \u003cmeta itemprop=\"type\" content=\"https://schema.host/Text\"\u003e\n      \u003cmeta itemprop=\"cardinality\" content=\"1..1\"\u003e\n    \u003c/div\u003e\n  \u003cmeta itemprop=\"@id\" content=\"https://schema.host/qq7zkxll\"\u003e\u003cmeta itemprop=\"path\" content=\"/Schemahttps://schema.host/qq7zkxll.html\"\u003e\u003c/div\u003e\n  \u003cdiv hidden itemscope itemtype=\"https://pagelove.org/Schema\"\u003e\n    \u003cmeta itemprop=\"type\" content=\"https://pagelike.test/_pl/modeling-nested-recursive-validation-a3c63f/Person\"\u003e\n    \u003cdiv itemprop=\"property\" itemscope itemtype=\"https://pagelove.org/Property\"\u003e\n      \u003cmeta itemprop=\"name\" content=\"name\"\u003e\n      \u003cmeta itemprop=\"type\" content=\"https://schema.host/Text\"\u003e\n      \u003cmeta itemprop=\"cardinality\" content=\"1..1\"\u003e\n    \u003c/div\u003e\n    \u003cdiv itemprop=\"property\" itemscope itemtype=\"https://pagelove.org/Property\"\u003e\n      \u003cmeta itemprop=\"name\" content=\"address\"\u003e\n      \u003cmeta itemprop=\"type\" content=\"https://pagelike.test/_pl/modeling-nested-recursive-validation-a3c63f/Address\"\u003e\n      \u003cmeta itemprop=\"cardinality\" content=\"0..1\"\u003e\n    \u003c/div\u003e\n  \u003cmeta itemprop=\"@id\" content=\"https://schema.host/cughtvkr\"\u003e\u003cmeta itemprop=\"path\" content=\"/Schemahttps://schema.host/cughtvkr.html\"\u003e\u003c/div\u003e\n\n                \u003cdiv style=\"\n                            position: fixed;\n                            bottom: 0;\n                            left: 0;\n                            right: 0;\n                            padding: 8px;\n                            background: #f0f0f0;\n                            text-align: center;\n                            font-size: 12px;\n                            color: #666;\n                            z-index: 9999;\n                            opacity: 0.8;\n                            border-top: 1px solid #ddd;\n                        \"\u003e\n                    Powered by\n                    \u003ca href=\"https://pagelove.com/\" style=\"color: #4a90d9; text-decoration: none\"\u003ePagelove\u003c/a\u003e\n                \u003c/div\u003e\n            \u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 2 (complete nested address accepted)",
+      "method": "PUT",
+      "path": "/_pl/modeling-nested-recursive-validation-a3c63f/p1.html",
+      "status": 201,
+      "headers": {
+        "content-type": "text/html",
+        "etag": "\"058861c5e2ff589c8f4c5c90ef992220c813f2a702f75633d78ec561d8067615\"",
+        "last-modified": "Tue, 29 Sep 2026 00:48:10 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\n  \u003cdiv itemscope itemtype=\"https://pagelike.test/_pl/modeling-nested-recursive-validation-a3c63f/Person\"\u003e\n    \u003cspan itemprop=\"name\"\u003eAlice\u003c/span\u003e\n    \u003cdiv itemscope itemtype=\"https://pagelike.test/_pl/modeling-nested-recursive-validation-a3c63f/Address\" itemprop=\"address\"\u003e\n      \u003cspan itemprop=\"street\"\u003e123 Main St\u003c/span\u003e\n      \u003cspan itemprop=\"city\"\u003eSpringfield\u003c/span\u003e\n    \u003c/div\u003e\n  \u003c/div\u003e\n\n                \u003cdiv style=\"\n                            position: fixed;\n                            bottom: 0;\n                            left: 0;\n                            right: 0;\n                            padding: 8px;\n                            background: #f0f0f0;\n                            text-align: center;\n                            font-size: 12px;\n                            color: #666;\n                            z-index: 9999;\n                            opacity: 0.8;\n                            border-top: 1px solid #ddd;\n                        \"\u003e\n                    Powered by\n                    \u003ca href=\"https://pagelove.com/\" style=\"color: #4a90d9; text-decoration: none\"\u003ePagelove\u003c/a\u003e\n                \u003c/div\u003e\n            \u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 3 (nested address missing city rejected)",
+      "method": "PUT",
+      "path": "/_pl/modeling-nested-recursive-validation-a3c63f/p2.html",
+      "status": 201,
+      "headers": {
+        "content-type": "text/html",
+        "etag": "\"13e0e492e63f57327a778d93c34c5b7012ce2ad30744bcf0d40de6154663519c\"",
+        "last-modified": "Tue, 29 Sep 2026 00:48:10 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\n  \u003cdiv itemscope itemtype=\"https://pagelike.test/_pl/modeling-nested-recursive-validation-a3c63f/Person\"\u003e\n    \u003cspan itemprop=\"name\"\u003eAlice\u003c/span\u003e\n    \u003cdiv itemscope itemtype=\"https://pagelike.test/_pl/modeling-nested-recursive-validation-a3c63f/Address\" itemprop=\"address\"\u003e\n      \u003cspan itemprop=\"street\"\u003e123 Main St\u003c/span\u003e\n    \u003c/div\u003e\n  \u003c/div\u003e\n\n                \u003cdiv style=\"\n                            position: fixed;\n                            bottom: 0;\n                            left: 0;\n                            right: 0;\n                            padding: 8px;\n                            background: #f0f0f0;\n                            text-align: center;\n                            font-size: 12px;\n                            color: #666;\n                            z-index: 9999;\n                            opacity: 0.8;\n                            border-top: 1px solid #ddd;\n                        \"\u003e\n                    Powered by\n                    \u003ca href=\"https://pagelove.com/\" style=\"color: #4a90d9; text-decoration: none\"\u003ePagelove\u003c/a\u003e\n                \u003c/div\u003e\n            \u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 4 (absent optional address accepted)",
+      "method": "PUT",
+      "path": "/_pl/modeling-nested-recursive-validation-a3c63f/p3.html",
+      "status": 201,
+      "headers": {
+        "content-type": "text/html",
+        "etag": "\"252ea3c8a66923e4396a2953dfbab6d4e009f29bf5776c7dcd6ba2b170fd3fc6\"",
+        "last-modified": "Tue, 29 Sep 2026 00:48:11 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\n  \u003cdiv itemscope itemtype=\"https://pagelike.test/_pl/modeling-nested-recursive-validation-a3c63f/Person\"\u003e\n    \u003cspan itemprop=\"name\"\u003eAlice\u003c/span\u003e\n  \u003c/div\u003e\n\n                \u003cdiv style=\"\n                            position: fixed;\n                            bottom: 0;\n                            left: 0;\n                            right: 0;\n                            padding: 8px;\n                            background: #f0f0f0;\n                            text-align: center;\n                            font-size: 12px;\n                            color: #666;\n                            z-index: 9999;\n                            opacity: 0.8;\n                            border-top: 1px solid #ddd;\n                        \"\u003e\n                    Powered by\n                    \u003ca href=\"https://pagelove.com/\" style=\"color: #4a90d9; text-decoration: none\"\u003ePagelove\u003c/a\u003e\n                \u003c/div\u003e\n            \u003c/body\u003e\u003c/html\u003e\n"
+    }
+  ],
+  "outcome": "fail",
+  "target": "live"
+}

@@ -1,0 +1,77 @@
+{
+  "case": "modeling.shapes.post-into-container-checks-new-children",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (register declarations through the public plane (takes effect for the next request))",
+      "method": "PUT",
+      "path": "/_pl/modeling-shapes-post-into-container-chec-14500d/shapes.html",
+      "status": 201,
+      "headers": {
+        "content-length": "338",
+        "content-type": "text/html",
+        "etag": "\"fcb7ab5f11dfe742a61f34463537224be06b0b8129508635b304cab381ed6eee\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:45 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\n  \u003cdiv hidden itemscope itemtype=\"https://pagelove.org/ShapeConstraint\"\u003e\n    \u003cmeta itemprop=\"resource\" content=\"/_pl/modeling-shapes-post-into-container-chec-14500d/lists/*\"\u003e\n    \u003ccode itemprop=\"selector\"\u003e#my-list li\u003c/code\u003e\n    \u003ccode itemprop=\"constraint\"\u003e:has([itemprop=name])\u003c/code\u003e\n  \u003c/div\u003e\n\u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 2 (seed a list)",
+      "method": "PUT",
+      "path": "/_pl/modeling-shapes-post-into-container-chec-14500d/lists/l.html",
+      "status": 201,
+      "headers": {
+        "content-length": "69",
+        "content-type": "text/html",
+        "etag": "\"359e47df6096996fe80666034af562f07426d68769004236268e871c3ace0e35\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:45 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\n  \u003cul id=\"my-list\"\u003e\u003c/ul\u003e\n\u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 3 (malformed item rejected)",
+      "method": "POST",
+      "path": "/_pl/modeling-shapes-post-into-container-chec-14500d/lists/l.html",
+      "status": 422,
+      "headers": {
+        "content-length": "394",
+        "content-type": "text/html",
+        "vary": "Host, Range"
+      },
+      "body": "\u003cdiv itemscope itemtype=\"https://dombase.pagelove.team/ns/error/ShapeConstraint\"\u003e\u003cul itemprop=\"problems\"\u003e\u003cli itemprop=\"problem\"\u003e\u003cspan itemprop=\"message\"\u003eShape constraints violated\u003c/span\u003e\u003c/li\u003e\u003cli itemprop=\"problem\"\u003e\u003cspan itemprop=\"message\"\u003ehttps://pagelove.org/ShapeConstraint #my-list li: Element matching '#my-list li' does not satisfy constraint ':has([itemprop=name])'\u003c/span\u003e\u003c/li\u003e\u003c/ul\u003e\u003c/div\u003e"
+    },
+    {
+      "step": "step 4 (well-formed item accepted)",
+      "method": "POST",
+      "path": "/_pl/modeling-shapes-post-into-container-chec-14500d/lists/l.html",
+      "status": 206,
+      "headers": {
+        "content-length": "40",
+        "content-range": "selector #my-list",
+        "content-type": "text/html",
+        "etag": "\"8bacfed0615031c1354fd541c63fd219f7fdf1fde6ac062449b4c5d777273d6f-8bacfed0615031c1354fd541c63fd219f7fdf1fde6ac062449b4c5d777273d6f-2\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:45 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003cli\u003e\u003cspan itemprop=\"name\"\u003eok\u003c/span\u003e\u003c/li\u003e"
+    },
+    {
+      "step": "step 5 (stored state of l.html (authoring plane, raw))",
+      "method": "GET",
+      "path": "/_pl/modeling-shapes-post-into-container-chec-14500d/lists/l.html",
+      "status": 200,
+      "headers": {
+        "accept-ranges": "bytes",
+        "content-length": "109",
+        "content-type": "text/html",
+        "etag": "\"6fe3387f244f6920cf9ad07fab747394330458f60110cf15a073d716660dda7d\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:45 GMT"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\n  \u003cul id=\"my-list\"\u003e\u003cli\u003e\u003cspan itemprop=\"name\"\u003eok\u003c/span\u003e\u003c/li\u003e\u003c/ul\u003e\n\u003c/body\u003e\u003c/html\u003e\n"
+    }
+  ],
+  "outcome": "pass",
+  "target": "local"
+}

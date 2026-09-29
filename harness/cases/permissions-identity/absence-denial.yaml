@@ -1,0 +1,302 @@
+# Absence vs denial: 404/416 vs 401/403 ordering (spec R-PERM-50, 51).
+cases:
+  - id: authz.absent.write-absent-target-readable-416
+    title: A selector write whose target is absent is 416 when the page is readable
+    area: permissions-identity
+    feature: absence vs denial (writes)
+    evidence: documented
+    source: "docs reference/reading-and-writing/PUT-method, DELETE-method ('Absence and denial are distinct … a 416 means the element really was absent')"
+    confidence: high
+    requires: []
+    live: true
+    site:
+      files:
+        - path: "${P}/doc.html"
+          body: '<!DOCTYPE html><html><body><ul><li id="a">A</li></ul></body></html>'
+        - path: "${P}/rules.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div hidden itemscope itemtype="https://pagelove.org/AuthorizationRule">
+                <meta itemprop="actor" content="*"><meta itemprop="resource" content="${P}/doc.html">
+                <meta itemprop="method" content="GET"><meta itemprop="action" content="allow">
+              </div>
+              <div hidden itemscope itemtype="https://pagelove.org/AuthorizationRule">
+                <meta itemprop="actor" content="*"><meta itemprop="resource" content="${P}/doc.html">
+                <meta itemprop="method" content="PUT"><meta itemprop="method" content="DELETE">
+                <meta itemprop="selector" content="li"><meta itemprop="action" content="allow">
+              </div>
+            </body></html>
+    steps:
+      - name: PUT of a missing element
+        as: anonymous
+        request: {method: PUT, path: "${P}/doc.html", headers: {Range: "selector=#missing", Content-Type: text/html}, body: '<li id="missing">x</li>'}
+        expect: {status: 416}
+      - name: DELETE of a missing element
+        as: anonymous
+        request: {method: DELETE, path: "${P}/doc.html", headers: {Range: "selector=#missing"}}
+        expect: {status: 416}
+
+  - id: authz.absent.write-absent-target-unreadable-refused
+    title: A selector write to an absent target on an unreadable page is refused, not 416
+    area: permissions-identity
+    feature: absence vs denial (writes)
+    evidence: documented
+    source: "docs reference/reading-and-writing/PUT-method ('a target you would not be permitted to read … writes refuse identically whether the target exists or not')"
+    confidence: high
+    requires: []
+    live: true
+    site:
+      files:
+        - path: "${P}/doc.html"
+          body: '<!DOCTYPE html><html><body><ul><li id="a">A</li></ul></body></html>'
+        - path: "${P}/rules.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div hidden itemscope itemtype="https://pagelove.org/AuthorizationRule">
+                <meta itemprop="actor" content="*"><meta itemprop="resource" content="${P}/doc.html">
+                <meta itemprop="method" content="GET"><meta itemprop="action" content="deny">
+              </div>
+              <div hidden itemscope itemtype="https://pagelove.org/AuthorizationRule">
+                <meta itemprop="actor" content="*"><meta itemprop="resource" content="${P}/doc.html">
+                <meta itemprop="method" content="PUT"><meta itemprop="selector" content="li">
+                <meta itemprop="action" content="allow">
+              </div>
+            </body></html>
+    steps:
+      - name: PUT of a missing element
+        as: anonymous
+        request: {method: PUT, path: "${P}/doc.html", headers: {Range: "selector=#missing", Content-Type: text/html}, body: '<li id="missing">x</li>'}
+        expect: {status: 401}
+      - name: PUT of an existing permitted element still works without read access
+        as: anonymous
+        request: {method: PUT, path: "${P}/doc.html", headers: {Range: "selector=#a", Content-Type: text/html}, body: '<li id="a">A2</li>'}
+        expect: {status: 206}
+
+  - id: authz.absent.write-existing-target-denied-not-416
+    title: An existing target covered by a deny is refused (401/403), never reported as absent
+    area: permissions-identity
+    feature: absence vs denial (writes)
+    evidence: documented
+    source: "docs reference/reading-and-writing/POST-method ('a target that exists but is covered by a rule denying it, which is a genuine authorization answer')"
+    confidence: high
+    requires: []
+    live: true
+    site:
+      files:
+        - path: "${P}/doc.html"
+          body: '<!DOCTYPE html><html><body><ul><li id="a">A</li><li id="l" class="locked">L</li></ul></body></html>'
+        - path: "${P}/rules.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div hidden itemscope itemtype="https://pagelove.org/AuthorizationRule">
+                <meta itemprop="actor" content="*"><meta itemprop="resource" content="${P}/doc.html">
+                <meta itemprop="method" content="GET"><meta itemprop="action" content="allow">
+              </div>
+              <div hidden itemscope itemtype="https://pagelove.org/AuthorizationRule">
+                <meta itemprop="actor" content="*"><meta itemprop="resource" content="${P}/doc.html">
+                <meta itemprop="method" content="PUT"><meta itemprop="selector" content="li">
+                <meta itemprop="action" content="allow">
+              </div>
+              <div hidden itemscope itemtype="https://pagelove.org/AuthorizationRule">
+                <meta itemprop="actor" content="*"><meta itemprop="resource" content="${P}/doc.html">
+                <meta itemprop="method" content="PUT"><meta itemprop="selector" content=".locked">
+                <meta itemprop="action" content="deny">
+              </div>
+            </body></html>
+    steps:
+      - name: PUT of the locked element
+        as: anonymous
+        request: {method: PUT, path: "${P}/doc.html", headers: {Range: "selector=#l", Content-Type: text/html}, body: '<li id="l" class="locked">x</li>'}
+        expect: {status: 401}
+
+  - id: authz.absent.post-before-absent-anchor-refuses
+    title: POST placement=before/after with an absent anchor on a readable page is 416, like append
+    area: permissions-identity
+    feature: absence vs denial (POST placement)
+    evidence: live-observed
+    source: "harness/observations/live-2026-09-28/authz-absent-post-before-absent-anchor-r.json (416 for both; the POST grant is selector-scoped, so it is the authorization layer's 416 with Content-Range: selector */); docs reference/reading-and-writing/POST-method (claims a refusal)"
+    confidence: high
+    requires: []
+    live: true
+    notes: "The id keeps its original name; the documented refusal is superseded for readers of the page (docs/compat/decisions.md)."
+    site:
+      files:
+        - path: "${P}/doc.html"
+          body: '<!DOCTYPE html><html><body><ul id="list"><li id="a">A</li></ul></body></html>'
+        - path: "${P}/rules.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div hidden itemscope itemtype="https://pagelove.org/AuthorizationRule">
+                <meta itemprop="actor" content="*"><meta itemprop="resource" content="${P}/doc.html">
+                <meta itemprop="method" content="GET"><meta itemprop="action" content="allow">
+              </div>
+              <div hidden itemscope itemtype="https://pagelove.org/AuthorizationRule">
+                <meta itemprop="actor" content="*"><meta itemprop="resource" content="${P}/doc.html">
+                <meta itemprop="method" content="POST"><meta itemprop="selector" content="ul, li">
+                <meta itemprop="action" content="allow">
+              </div>
+            </body></html>
+    steps:
+      - name: before an absent anchor
+        as: anonymous
+        request: {method: POST, path: "${P}/doc.html", headers: {Range: "selector=#missing; placement=before", Content-Type: text/html}, body: '<li>x</li>'}
+        expect:
+          status: 416
+          headers: {Content-Range: "selector */", Content-Type: "text/html; charset=utf-8"}
+          headers_absent: [Vary]
+          body_contains: ['<p itemprop="description">HTML parsing error: No elements matched selector: #missing</p>']
+      - name: append into an absent anchor
+        as: anonymous
+        request: {method: POST, path: "${P}/doc.html", headers: {Range: "selector=#missing", Content-Type: text/html}, body: '<li>x</li>'}
+        expect:
+          status: 416
+          headers: {Content-Range: "selector */"}
+
+  - id: authz.absent.write-allowed-read-denied
+    title: A public write window works on a page anonymous users cannot read
+    area: permissions-identity
+    feature: write without read
+    evidence: demo-source
+    source: "pagelove-ats/site/admin/auth.html@8f200fc:324-333 ('Independent of GET rules'); demo-apps README.md@c4dd883:62-66 and demo-04-accountability/feed.html@c4dd883:79-96"
+    confidence: high
+    requires: []
+    live: true
+    site:
+      files:
+        - path: "${P}/feed.html"
+          body: '<!DOCTYPE html><html><body><h1>Feed</h1><ul id="pl-checkins"></ul></body></html>'
+        - path: "${P}/rules.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div hidden itemscope itemtype="https://pagelove.org/AuthorizationRule">
+                <meta itemprop="actor" content="*"><meta itemprop="resource" content="${P}/feed.html">
+                <meta itemprop="method" content="GET"><meta itemprop="action" content="Deny">
+              </div>
+              <div hidden itemscope itemtype="https://pagelove.org/AuthorizationRule">
+                <meta itemprop="actor" content="*"><meta itemprop="resource" content="${P}/feed.html">
+                <meta itemprop="method" content="POST"><meta itemprop="selector" content="#pl-checkins">
+                <meta itemprop="action" content="Allow">
+              </div>
+            </body></html>
+    steps:
+      - name: anonymous check-in accepted
+        as: anonymous
+        request: {method: POST, path: "${P}/feed.html", headers: {Range: "selector=#pl-checkins", Content-Type: text/html}, body: '<li>checked in</li>'}
+        expect: {status: 206}
+      - name: the feed stays unreadable
+        as: anonymous
+        request: {method: GET, path: "${P}/feed.html"}
+        expect: {status: 401, body_not_contains: ['checked in']}
+
+  - id: authz.absent.get-nonexistent-doc-denied-401
+    title: A GET for a missing document the actor may not read is 401, not 404
+    area: permissions-identity
+    feature: absence vs denial (reads)
+    evidence: inferred
+    source: "docs reference/permissions/AuthorizationRule §Testable examples › Path restrictions (denied path answered 401); 'there is nothing there is itself information' (PUT-method note)"
+    confidence: medium
+    requires: []
+    live: true
+    site:
+      files:
+        - path: "${P}/rules.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div hidden itemscope itemtype="https://pagelove.org/AuthorizationRule">
+                <meta itemprop="actor" content="*"><meta itemprop="resource" content="${P}/private/*">
+                <meta itemprop="method" content="GET"><meta itemprop="action" content="deny">
+              </div>
+            </body></html>
+    steps:
+      - name: missing document under a denied path
+        as: anonymous
+        request: {method: GET, path: "${P}/private/nope.html"}
+        expect: {status: 401}
+
+  - id: authz.absent.get-nonexistent-doc-allowed-404
+    title: A GET for a missing document the actor may read is 404
+    area: permissions-identity
+    feature: absence vs denial (reads)
+    evidence: documented
+    source: "docs reference/reading-and-writing/GET-method §Resource not found"
+    confidence: high
+    requires: []
+    live: true
+    site:
+      files:
+        - path: "${P}/rules.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div hidden itemscope itemtype="https://pagelove.org/AuthorizationRule">
+                <meta itemprop="actor" content="*"><meta itemprop="resource" content="${P}/open/*">
+                <meta itemprop="method" content="GET"><meta itemprop="action" content="allow">
+              </div>
+            </body></html>
+    steps:
+      - name: missing document under an allowed path
+        as: anonymous
+        request: {method: GET, path: "${P}/open/nope.html"}
+        expect: {status: 404}
+
+  - id: authz.absent.get-selector-nomatch-readable-416
+    title: A selector read that matches nothing is 416 when the page is readable
+    area: permissions-identity
+    feature: absence vs denial (reads)
+    evidence: documented
+    source: "docs reference/reading-and-writing/GET-method §Selector matches nothing"
+    confidence: high
+    requires: []
+    live: true
+    site:
+      files:
+        - path: "${P}/doc.html"
+          body: '<!DOCTYPE html><html><body><p>no heading</p></body></html>'
+        - path: "${P}/rules.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div hidden itemscope itemtype="https://pagelove.org/AuthorizationRule">
+                <meta itemprop="actor" content="*"><meta itemprop="resource" content="${P}/doc.html">
+                <meta itemprop="method" content="GET"><meta itemprop="action" content="allow">
+              </div>
+            </body></html>
+    steps:
+      - name: no h1
+        as: anonymous
+        request: {method: GET, path: "${P}/doc.html", headers: {Range: "selector=h1"}}
+        expect: {status: 416}
+
+  - id: authz.absent.get-selector-nomatch-unreadable-401
+    title: A selector read that matches nothing on an unreadable page is 401, not 416
+    area: permissions-identity
+    feature: absence vs denial (reads)
+    evidence: inferred
+    source: "spec R-PERM-50 (existence must not leak to non-readers); PUT-method note on unreadable targets"
+    confidence: medium
+    requires: []
+    live: true
+    site:
+      files:
+        - path: "${P}/doc.html"
+          body: '<!DOCTYPE html><html><body><p>no heading</p></body></html>'
+        - path: "${P}/rules.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div hidden itemscope itemtype="https://pagelove.org/AuthorizationRule">
+                <meta itemprop="actor" content="*"><meta itemprop="resource" content="${P}/doc.html">
+                <meta itemprop="method" content="GET"><meta itemprop="action" content="deny">
+              </div>
+            </body></html>
+    steps:
+      - name: no h1, page unreadable
+        as: anonymous
+        request: {method: GET, path: "${P}/doc.html", headers: {Range: "selector=h1"}}
+        expect: {status: 401}

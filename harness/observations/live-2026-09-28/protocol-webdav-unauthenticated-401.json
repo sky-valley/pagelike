@@ -1,0 +1,38 @@
+{
+  "case": "protocol.webdav.unauthenticated-401",
+  "failures": [
+    "step 1 (anonymous PROPFIND) PROPFIND ${P}/: status 207, want [401] (body: \u003c?xml version=\"1.0\" encoding=\"utf-8\" ?\u003e\n\u003cD:multistatus xmlns:D=\"DAV:\"\u003e\n  \u003cD:response\u003e\n    \u003cD:href\u003e/_pl/protocol-webdav-unauthenticated-401-a0fa66/\u003c/D:href\u003e\n    \u003cD:propstat\u003e\n      \u003cD:prop\u003e\n      \u003cD:resourcetype\u003e\u003cD:collection/\u003e\u003c/D:resourcetyp…)",
+    "step 2 (anonymous GET) GET ${P}/doc.html: status 200, want [401] (body: \u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\u003ch1\u003eA\u003c/h1\u003e\u003c/body\u003e\u003c/html\u003e\n)"
+  ],
+  "observations": [
+    {
+      "step": "step 1 (anonymous PROPFIND)",
+      "method": "PROPFIND",
+      "path": "/_pl/protocol-webdav-unauthenticated-401-a0fa66/",
+      "status": 207,
+      "headers": {
+        "content-length": "971",
+        "content-type": "application/xml; charset=utf-8",
+        "etag": "\"sha256:b1b028c40911325c303330a62e077b7238c8ad15f8c7b74f0827b8eadd636e05\"",
+        "vary": "Depth"
+      },
+      "body": "\u003c?xml version=\"1.0\" encoding=\"utf-8\" ?\u003e\n\u003cD:multistatus xmlns:D=\"DAV:\"\u003e\n  \u003cD:response\u003e\n    \u003cD:href\u003e/_pl/protocol-webdav-unauthenticated-401-a0fa66/\u003c/D:href\u003e\n    \u003cD:propstat\u003e\n      \u003cD:prop\u003e\n      \u003cD:resourcetype\u003e\u003cD:collection/\u003e\u003c/D:resourcetype\u003e\n      \u003cD:getetag\u003e\"sha256:b1b028c40911325c303330a62e077b7238c8ad15f8c7b74f0827b8eadd636e05\"\u003c/D:getetag\u003e\n      \u003c/D:prop\u003e\n      \u003cD:status\u003eHTTP/1.1 200 OK\u003c/D:status\u003e\n    \u003c/D:propstat\u003e\n  \u003c/D:response\u003e\n  \u003cD:response\u003e\n    \u003cD:href\u003e/_pl/protocol-webdav-unauthenticated-401-a0fa66/doc.html\u003c/D:href\u003e\n    \u003cD:propstat\u003e\n      \u003cD:prop\u003e\n      \u003cD:resourcetype/\u003e\n      \u003cD:getcontenttype\u003etext/html\u003c/D:getcontenttype\u003e\n      \u003cD:getcontentlength\u003e53\u003c/D:getcontentlength\u003e\n      \u003cD:getlastmodified\u003eMon, 28 Sep 2026 22:33:53 GMT\u003c/D:getlastmodified\u003e\n      \u003cD:getetag\u003e\"018b3777697859dce21939d17486caa4a5187d5383b48a2f93fae06aa8608d3b\"\u003c/D:getetag\u003e\n      \u003c/D:prop\u003e\n      \u003cD:status\u003eHTTP/1.1 200 OK\u003c/D:status\u003e\n    \u003c/D:propstat\u003e\n  \u003c/D:response\u003e\n\u003c/D:multistatus\u003e"
+    },
+    {
+      "step": "step 2 (anonymous GET)",
+      "method": "GET",
+      "path": "/_pl/protocol-webdav-unauthenticated-401-a0fa66/doc.html",
+      "status": 200,
+      "headers": {
+        "accept-ranges": "bytes",
+        "content-length": "53",
+        "content-type": "text/html",
+        "etag": "\"018b3777697859dce21939d17486caa4a5187d5383b48a2f93fae06aa8608d3b\"",
+        "last-modified": "Mon, 28 Sep 2026 22:33:53 GMT"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\u003ch1\u003eA\u003c/h1\u003e\u003c/body\u003e\u003c/html\u003e\n"
+    }
+  ],
+  "outcome": "fail",
+  "target": "live"
+}

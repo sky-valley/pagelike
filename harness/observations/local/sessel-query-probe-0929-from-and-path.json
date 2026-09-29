@@ -1,0 +1,144 @@
+{
+  "case": "sessel.query.probe-0929.from-and-path",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (path of a self element)",
+      "method": "QUERY",
+      "path": "/_pl/sessel-query-probe-0929-from-and-path-b12879/doc.html",
+      "status": 200,
+      "headers": {
+        "content-length": "4",
+        "content-type": "application/sessel+json"
+      },
+      "body": "null"
+    },
+    {
+      "step": "step 2 (public-plane write of a second document)",
+      "method": "PUT",
+      "path": "/_pl/sessel-query-probe-0929-from-and-path-b12879/pub.html",
+      "status": 201,
+      "headers": {
+        "content-length": "121",
+        "content-type": "text/html",
+        "etag": "\"2dc3ef88c713ae00839c396911d7ef2cb11e4dc25c9f77af1e032e39a11df946\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:56 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\u003chtml\u003e\u003cbody\u003e\u003ch1 data-case=\"/_pl/sessel-query-probe-0929-from-and-path-b12879\"\u003ePub-q0929\u003c/h1\u003e\u003c/body\u003e\u003c/html\u003e"
+    },
+    {
+      "step": "step 3 (from path variants)",
+      "method": "QUERY",
+      "path": "/_pl/sessel-query-probe-0929-from-and-path-b12879/doc.html",
+      "status": 200,
+      "headers": {
+        "content-length": "17",
+        "content-type": "application/sessel+json"
+      },
+      "body": "[0,0,0,0,0,0,0,0]"
+    },
+    {
+      "step": "step 4 (site-wide paths)",
+      "method": "QUERY",
+      "path": "/_pl/sessel-query-probe-0929-from-and-path-b12879/doc.html",
+      "status": 200,
+      "headers": {
+        "content-length": "24",
+        "content-type": "application/sessel+json"
+      },
+      "body": "[[\"Welcome-q0929\",null]]"
+    },
+    {
+      "step": "step 5 (glob element path and document)",
+      "method": "QUERY",
+      "path": "/_pl/sessel-query-probe-0929-from-and-path-b12879/doc.html",
+      "status": 200,
+      "headers": {
+        "content-length": "16",
+        "content-type": "application/sessel+json"
+      },
+      "body": "[null,null,null]"
+    },
+    {
+      "step": "step 6 (element as a from source and sub-select provenance)",
+      "method": "QUERY",
+      "path": "/_pl/sessel-query-probe-0929-from-and-path-b12879/doc.html",
+      "status": 200,
+      "headers": {
+        "content-length": "12",
+        "content-type": "application/sessel+json"
+      },
+      "body": "[0,2,null,0]"
+    },
+    {
+      "step": "step 7 (path of a self element of a public-plane document)",
+      "method": "QUERY",
+      "path": "/_pl/sessel-query-probe-0929-from-and-path-b12879/pub.html",
+      "status": 200,
+      "headers": {
+        "content-length": "16",
+        "content-type": "application/sessel+json"
+      },
+      "body": "[null,null,null]"
+    },
+    {
+      "step": "step 8 (self, document, multi-source and block-level from)",
+      "method": "QUERY",
+      "path": "/_pl/sessel-query-probe-0929-from-and-path-b12879/doc.html",
+      "status": 200,
+      "headers": {
+        "content-length": "14",
+        "content-type": "application/sessel+json"
+      },
+      "body": "[null,0,1,0,1]"
+    },
+    {
+      "step": "step 9 (microdata of a self element has no @id)",
+      "method": "QUERY",
+      "path": "/_pl/sessel-query-probe-0929-from-and-path-b12879/doc.html",
+      "status": 200,
+      "headers": {
+        "content-length": "20",
+        "content-type": "application/sessel+json"
+      },
+      "body": "[\"Product\",\"W\",null]"
+    },
+    {
+      "step": "step 10 (Pagelove.GET of another document)",
+      "method": "QUERY",
+      "path": "/_pl/sessel-query-probe-0929-from-and-path-b12879/doc.html",
+      "status": 400,
+      "headers": {
+        "content-length": "560",
+        "content-type": "text/html; charset=utf-8",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\n\u003chead\u003e\n\u003cmeta charset=\"UTF-8\"\u003e\n\u003ctitle\u003e400 Bad Request\u003c/title\u003e\n\u003c/head\u003e\n\u003cbody\u003e\n\u003carticle itemscope itemtype=\"https://pagelove.org/Error\"\u003e\n  \u003cmeta itemprop=\"status\" content=\"400\"\u003e\n  \u003cmeta itemprop=\"kind\" content=\"SesselEvaluationError\"\u003e\n  \u003cdiv itemprop=\"type\" itemscope itemtype=\"https://dombase.pagelove.team/ns/error/SesselEvaluationError\"\u003e\u003c/div\u003e\n  \u003cp itemprop=\"message\"\u003eSessel TypeError: unknown function: GET\u003c/p\u003e\n  \u003cmeta itemprop=\"resource\" content=\"/_pl/sessel-query-probe-0929-from-and-path-b12879/doc.html\"\u003e\n\u003c/article\u003e\n\u003c/body\u003e\n\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 11 (expressions of the reconciled query-selectors cases)",
+      "method": "QUERY",
+      "path": "/_pl/sessel-query-probe-0929-from-and-path-b12879/doc.html",
+      "status": 200,
+      "headers": {
+        "content-length": "54",
+        "content-type": "application/sessel+json"
+      },
+      "body": "[[],0,[\"en\",\"Welcome-q0929\",0],[null,\"Welcome-q0929\"]]"
+    },
+    {
+      "step": "step 12 (sum over a glob that reaches nothing)",
+      "method": "QUERY",
+      "path": "/_pl/sessel-query-probe-0929-from-and-path-b12879/doc.html",
+      "status": 200,
+      "headers": {
+        "content-length": "1",
+        "content-type": "application/sessel+json"
+      },
+      "body": "0"
+    }
+  ],
+  "outcome": "pass",
+  "target": "local"
+}

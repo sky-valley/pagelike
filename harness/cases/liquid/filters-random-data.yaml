@@ -1,0 +1,141 @@
+# Random generation and data/JSON filters.
+# Spec: docs/spec/liquid.md §17 (R-LIQ-185..187) and §18 (R-LIQ-190..192).
+defaults:
+  area: liquid
+  requires: [liquid]
+  evidence: documented
+  confidence: high
+cases:
+  - id: liquid.filters-random.random-default-and-classes
+    title: "random: length from the input; default alphanumeric; class keywords restrict the alphabet"
+    feature: random filters
+    source: "docs languages/liquid/filters/random §random ({{ 32 | random }}; 16 | random: lower: true, digits: true; url_safe)"
+    live: true
+    notes: R-LIQ-185, R-LIQ-75 (keyword-only arguments).
+    site:
+      settings: {default_get: allow}
+      files:
+        - path: "${P}/rnd.html"
+          body: |
+            <!DOCTYPE html>
+            <html xmlns:p="https://pagelove.org/1.0"><body>
+              <p id="a" p:template="text/liquid">[{{ 32 | random }}]</p>
+              <p id="b" p:template="text/liquid">[{{ 16 | random: lower: true, digits: true }}]</p>
+              <p id="c" p:template="text/liquid">[{{ 40 | random: url_safe: true }}]</p>
+              <p id="d" p:template="text/liquid">[{{ 12 | random: chars: "xyz" }}]</p>
+              <p id="e" p:template="text/liquid">{% assign r1 = 32 | random %}{% assign r2 = 32 | random %}{% if r1 != r2 %}fresh{% endif %}</p>
+            </body></html>
+      rules: [{actor: "*", resource: "${P}/*", method: [GET, HEAD], action: Allow}]
+    steps:
+      - name: read
+        as: anonymous
+        request: {method: GET, path: "${P}/rnd.html"}
+        expect:
+          status: 200
+          body_matches: '(?s)<p id="a">\[[A-Za-z0-9]{32}\]</p>.*<p id="b">\[[a-z0-9]{16}\]</p>.*<p id="c">\[[A-Za-z0-9_-]{40}\]</p>.*<p id="d">\[[xyz]{12}\]</p>.*<p id="e">fresh</p>'
+
+  - id: liquid.filters-random.random-minimum-counts
+    title: "random: upper: 3, lower: 3, digits: 2 guarantees the minimum count of each class"
+    feature: random filters
+    source: "docs languages/liquid/filters/random §random (24-char string with at least 3 uppercase, 3 lowercase, 2 digits)"
+    live: true
+    notes: R-LIQ-185. The template counts classes itself; the check is repeated in five renders on one page.
+    site:
+      settings: {default_get: allow}
+      files:
+        - path: "${P}/mins.html"
+          body: |
+            <!DOCTYPE html>
+            <html xmlns:p="https://pagelove.org/1.0"><body>
+              <p id="o" p:template="text/liquid">{% for k in (1..5) %}{% assign r = 24 | random: upper: 3, lower: 3, digits: 2 %}{% assign U = 0 %}{% assign L = 0 %}{% assign D = 0 %}{% assign O = 0 %}{% assign chars = r | split: "" %}{% for c in chars %}{% if "ABCDEFGHIJKLMNOPQRSTUVWXYZ" contains c %}{% assign U = U | plus: 1 %}{% elsif "abcdefghijklmnopqrstuvwxyz" contains c %}{% assign L = L | plus: 1 %}{% elsif "0123456789" contains c %}{% assign D = D | plus: 1 %}{% else %}{% assign O = O | plus: 1 %}{% endif %}{% endfor %}{% if r.size == 24 and U >= 3 and L >= 3 and D >= 2 and O == 0 %}ok{% else %}bad:{{ r }}{% endif %};{% endfor %}</p>
+            </body></html>
+      rules: [{actor: "*", resource: "${P}/*", method: [GET, HEAD], action: Allow}]
+    steps:
+      - name: read
+        as: anonymous
+        request: {method: GET, path: "${P}/mins.html", headers: {Range: "selector=#o"}}
+        expect:
+          status: 206
+          body_contains: [">ok;ok;ok;ok;ok;</p>"]
+
+  - id: liquid.filters-random.diceware
+    title: diceware joins lower-case words with hyphens; the count defaults to 3 and is clamped to 1–10
+    feature: random filters
+    source: "docs languages/liquid/filters/random §diceware ({{ 3 | diceware }} → e.g. fuzzy-blue-wombat; 'clamped to 1–10; default 3')"
+    live: true
+    notes: R-LIQ-186. The word list itself is not compared.
+    site:
+      settings: {default_get: allow}
+      files:
+        - path: "${P}/dice.html"
+          body: |
+            <!DOCTYPE html>
+            <html xmlns:p="https://pagelove.org/1.0"><body>
+              <p id="three" p:template="text/liquid">[{{ 3 | diceware }}]</p>
+              <p id="counts" p:template="text/liquid">{{ 20 | diceware | split: "-" | size }}|{{ 0 | diceware | split: "-" | size }}|{{ nothing | diceware | split: "-" | size }}</p>
+            </body></html>
+      rules: [{actor: "*", resource: "${P}/*", method: [GET, HEAD], action: Allow}]
+    steps:
+      - name: read
+        as: anonymous
+        request: {method: GET, path: "${P}/dice.html"}
+        expect:
+          status: 200
+          body_matches: '(?s)<p id="three">\[[a-z]+-[a-z]+-[a-z]+\]</p>.*<p id="counts">10\|1\|3</p>'
+
+  - id: liquid.filters-data.json-jsonify-inspect
+    title: json is compact, json:2 pretty-prints, jsonify is an alias, inspect equals compact json
+    feature: data filters
+    source: "docs languages/liquid/filters/data (json, json: 2, jsonify, inspect)"
+    live: true
+    notes: R-LIQ-190..192. Checked as microdata text, so quote escaping does not matter.
+    site:
+      settings: {default_get: allow}
+      files:
+        - path: "${P}/json.html"
+          body: |
+            <!DOCTYPE html>
+            <html xmlns:p="https://pagelove.org/1.0"><body>
+              <div itemscope itemtype="urn:liquid:result" p:template="text/liquid">{% assign xs = "a,b" | split: "," %}
+                <span itemprop="list">{{ xs | json }}</span>
+                <span itemprop="jsonify">{{ xs | jsonify }}</span>
+                <span itemprop="inspect">{{ xs | inspect }}</span>
+                <span itemprop="scalars">{{ "s" | json }}{{ 1 | json }}{{ nothing | json }}{{ true | json }}</span>
+              </div>
+              <pre id="pretty" p:template="text/liquid">{{ "a,b" | split: "," | json: 2 }}</pre>
+            </body></html>
+      rules: [{actor: "*", resource: "${P}/*", method: [GET, HEAD], action: Allow}]
+    steps:
+      - name: read
+        as: anonymous
+        request: {method: GET, path: "${P}/json.html"}
+        expect:
+          status: 200
+          microdata: {list: '["a","b"]', jsonify: '["a","b"]', inspect: '["a","b"]', scalars: '"s"1nulltrue'}
+          body_matches: '<pre id="pretty">\[\n  (&quot;|&#34;|")a(&quot;|&#34;|"),\n  (&quot;|&#34;|")b(&quot;|&#34;|")\n\]</pre>'
+
+  - id: liquid.filters-data.json-not-html-escaped
+    title: json leaves <, > and & unescaped inside strings
+    feature: data filters
+    evidence: inferred
+    source: "docs languages/liquid/filters/data (json converts a value to a JSON string; no HTML-escaping described); docs/decisions/0002-liquid.md"
+    confidence: low
+    live: true
+    notes: R-LIQ-190, P-LIQ-13.
+    site:
+      settings: {default_get: allow}
+      files:
+        - path: "${P}/json2.html"
+          body: |
+            <!DOCTYPE html>
+            <html xmlns:p="https://pagelove.org/1.0"><body>
+              <script id="s" p:template="text/liquid">var d = {{ "<b>&" | split: "," | json }};</script>
+            </body></html>
+      rules: [{actor: "*", resource: "${P}/*", method: [GET, HEAD], action: Allow}]
+    steps:
+      - name: read
+        as: anonymous
+        request: {method: GET, path: "${P}/json2.html"}
+        expect:
+          status: 200
+          body_contains: ['var d = ["<b>&"];']

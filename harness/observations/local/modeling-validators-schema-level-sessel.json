@@ -1,0 +1,48 @@
+{
+  "case": "modeling.validators.schema-level-sessel-dates",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (register declarations through the public plane (takes effect for the next request))",
+      "method": "PUT",
+      "path": "/_pl/modeling-validators-schema-level-sessel-b47434/schema.html",
+      "status": 201,
+      "headers": {
+        "content-length": "901",
+        "content-type": "text/html",
+        "etag": "\"03f31266422ed1c8ec40d3b34cb37a296ff342a8cb77270e2e6ecbcccf800b86\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:45 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\n  \u003cdiv hidden itemscope itemtype=\"https://pagelove.org/Schema\"\u003e\n    \u003cmeta itemprop=\"type\" content=\"https://pagelike.test/_pl/modeling-validators-schema-level-sessel-b47434/Event\"\u003e\n    \u003cdiv itemprop=\"property\" itemscope itemtype=\"https://pagelove.org/Property\"\u003e\n      \u003cmeta itemprop=\"name\" content=\"start-date\"\u003e\n      \u003cmeta itemprop=\"type\" content=\"https://schema.host/Date\"\u003e\n      \u003cmeta itemprop=\"cardinality\" content=\"1..1\"\u003e\n    \u003c/div\u003e\n    \u003cdiv itemprop=\"property\" itemscope itemtype=\"https://pagelove.org/Property\"\u003e\n      \u003cmeta itemprop=\"name\" content=\"end-date\"\u003e\n      \u003cmeta itemprop=\"type\" content=\"https://schema.host/Date\"\u003e\n      \u003cmeta itemprop=\"cardinality\" content=\"1..1\"\u003e\n    \u003c/div\u003e\n    \u003cscript type=\"text/sessel\" itemprop=\"@validate\"\u003e\n      let md = self.microdata();\n      md[\"start-date\"].first() \u003c md[\"end-date\"].first()\n    \u003c/script\u003e\n  \u003c/div\u003e\n\u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 2 (start before end accepted)",
+      "method": "PUT",
+      "path": "/_pl/modeling-validators-schema-level-sessel-b47434/a.html",
+      "status": 201,
+      "headers": {
+        "content-length": "267",
+        "content-type": "text/html",
+        "etag": "\"c6b4e44b2d54f9adca2bdcb424e13b010bff5d543750da7a5b6a4c2aec53f23f\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:45 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\n  \u003cdiv itemscope itemtype=\"https://pagelike.test/_pl/modeling-validators-schema-level-sessel-b47434/Event\"\u003e\n    \u003cmeta itemprop=\"start-date\" content=\"2024-01-10\"\u003e\n    \u003cmeta itemprop=\"end-date\" content=\"2024-01-20\"\u003e\n  \u003c/div\u003e\n\u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 3 (end before start rejected)",
+      "method": "PUT",
+      "path": "/_pl/modeling-validators-schema-level-sessel-b47434/b.html",
+      "status": 422,
+      "headers": {
+        "content-length": "791",
+        "content-type": "text/html; charset=utf-8",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\n  \u003chead\u003e\n    \u003ctitle\u003e422 Unprocessable Entity - Schema Violation\u003c/title\u003e\n  \u003c/head\u003e\n  \u003cbody itemscope itemtype=\"https://pagelove.org/SchemaViolation\"\u003e\n    \u003ch1 itemprop=\"name\"\u003eUnprocessable Entity\u003c/h1\u003e\n    \u003cmeta itemprop=\"statusCode\" content=\"422\"\u003e\n    \u003cp itemprop=\"description\"\u003eSchema validation failed\u003c/p\u003e\n    \u003cul\u003e\n      \u003cli itemprop=\"violations\" itemscope itemtype=\"https://pagelove.org/Violation\"\u003e\n        \u003cspan itemprop=\"check\"\u003e@validate\u003c/span\u003e\n        \u003cspan itemprop=\"itemtype\"\u003ehttps://pagelike.test/_pl/modeling-validators-schema-level-sessel-b47434/Event\u003c/span\u003e\n        \u003cspan itemprop=\"message\"\u003e[https://pagelike.test/_pl/modeling-validators-schema-level-sessel-b47434/Event]: the instance was rejected by @validate\u003c/span\u003e\n      \u003c/li\u003e\n    \u003c/ul\u003e\n  \u003c/body\u003e\n\u003c/html\u003e\n"
+    }
+  ],
+  "outcome": "pass",
+  "target": "local"
+}

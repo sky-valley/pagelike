@@ -1,0 +1,52 @@
+{
+  "case": "comp.pag.after-template",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (page 1 has three rendered items)",
+      "method": "GET",
+      "path": "/_pl/comp-pag-after-template-f5419e/gen.html",
+      "status": 206,
+      "headers": {
+        "accept-ranges": "selector, bytes",
+        "content-length": "13",
+        "content-range": "selector #gen \u003e li:nth-child(3)",
+        "content-type": "text/html",
+        "etag": "\"0126c6d056f83528777110114d74f675091fce24469ad0e133ef68d6d55fca6d-0126c6d056f83528777110114d74f675091fce24469ad0e133ef68d6d55fca6d-1\"",
+        "link": "\u003c/_pl/comp-pag-after-template-f5419e/gen.html?paginate:gen:page=1\u003e; rel=\"first\"; title=\"gen\", \u003c/_pl/comp-pag-after-template-f5419e/gen.html?paginate:gen:page=2\u003e; rel=\"last\"; title=\"gen\", \u003c/_pl/comp-pag-after-template-f5419e/gen.html?paginate:gen:page=2\u003e; rel=\"next\"; title=\"gen\"",
+        "vary": "Host, Range, Accept"
+      },
+      "body": "\u003cli\u003eitem\u003c/li\u003e"
+    },
+    {
+      "step": "step 2 (and not a fourth)",
+      "method": "GET",
+      "path": "/_pl/comp-pag-after-template-f5419e/gen.html",
+      "status": 416,
+      "headers": {
+        "content-length": "377",
+        "content-type": "text/html",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\n  \u003chead\u003e\n    \u003ctitle\u003e416 Range Not Satisfiable - Error\u003c/title\u003e\n  \u003c/head\u003e\n  \u003cbody itemscope itemtype=\"http://pagelove.org/Error\"\u003e\n    \u003ch1 itemprop=\"name\"\u003eRange Not Satisfiable\u003c/h1\u003e\n    \u003cmeta itemprop=\"statusCode\" content=\"416\"\u003e\n    \u003cp itemprop=\"description\"\u003eHTML parsing error: No elements matched selector: #gen \u0026gt; li:nth-child(4)\u003c/p\u003e\n  \u003c/body\u003e\n\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 3 (page 2 has the remaining two)",
+      "method": "GET",
+      "path": "/_pl/comp-pag-after-template-f5419e/gen.html?paginate:page=2",
+      "status": 206,
+      "headers": {
+        "accept-ranges": "selector, bytes",
+        "content-length": "13",
+        "content-range": "selector #gen \u003e li:nth-child(2)",
+        "content-type": "text/html",
+        "etag": "\"0126c6d056f83528777110114d74f675091fce24469ad0e133ef68d6d55fca6d-0126c6d056f83528777110114d74f675091fce24469ad0e133ef68d6d55fca6d-1\"",
+        "link": "\u003c/_pl/comp-pag-after-template-f5419e/gen.html?paginate:gen:page=1\u003e; rel=\"first\"; title=\"gen\", \u003c/_pl/comp-pag-after-template-f5419e/gen.html?paginate:gen:page=2\u003e; rel=\"last\"; title=\"gen\", \u003c/_pl/comp-pag-after-template-f5419e/gen.html?paginate:gen:page=1\u003e; rel=\"prev\"; title=\"gen\"",
+        "vary": "Host, Range, Accept"
+      },
+      "body": "\u003cli\u003eitem\u003c/li\u003e"
+    }
+  ],
+  "outcome": "pass",
+  "target": "local"
+}

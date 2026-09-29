@@ -1,0 +1,40 @@
+{
+  "case": "liquid.request.route-params",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (numeric id)",
+      "method": "GET",
+      "path": "/_pl/liquid-request-route-params-2b2b4e/users/42/profile.html",
+      "status": 200,
+      "headers": {
+        "accept-ranges": "selector, bytes",
+        "cache-control": "public, max-age=5",
+        "content-length": "139",
+        "content-type": "text/html",
+        "etag": "W/\"6e77f9c3a73916c6975b5318ea44adf0b12a375b463258c03a33e7e12156813f\"",
+        "route-parameters": "id=42",
+        "vary": "Host, Range, Accept"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\n  \u003cbody\u003e\n    \u003cmain id=\"m\"\u003e42|/_pl/liquid-request-route-params-2b2b4e/users/42/profile.html\u003c/main\u003e\n  \u003c/body\u003e\n\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 2 (percent-decoded id)",
+      "method": "GET",
+      "path": "/_pl/liquid-request-route-params-2b2b4e/users/alice b/profile.html",
+      "status": 200,
+      "headers": {
+        "accept-ranges": "selector, bytes",
+        "cache-control": "public, max-age=5",
+        "content-length": "149",
+        "content-type": "text/html",
+        "etag": "W/\"ee6b207e10746742e7b43577b1f1161726bf90b73c3b15d521a7a22fb9531d01\"",
+        "route-parameters": "id=alice b",
+        "vary": "Host, Range, Accept"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\n  \u003cbody\u003e\n    \u003cmain id=\"m\"\u003ealice b|/_pl/liquid-request-route-params-2b2b4e/users/alice b/profile.html\u003c/main\u003e\n  \u003c/body\u003e\n\u003c/html\u003e\n"
+    }
+  ],
+  "outcome": "pass",
+  "target": "local"
+}

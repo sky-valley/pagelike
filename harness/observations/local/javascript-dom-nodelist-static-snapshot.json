@@ -1,0 +1,37 @@
+{
+  "case": "javascript.dom.nodelist-static-snapshot",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (PUT the page (public plane; registers inline declarations))",
+      "method": "PUT",
+      "path": "/_pl/javascript-dom-nodelist-static-snapshot-dd4142/probe.html",
+      "status": 201,
+      "headers": {
+        "content-length": "1413",
+        "content-type": "text/html",
+        "etag": "\"42ca3dfbe09d36f992049e9d5bbacc11d5f545234fc46374c0b5045f0cf70c38\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:42 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml xmlns:t=\"https://pagelike.test/_pl/javascript-dom-nodelist-static-snapshot-dd4142/Dnodeliststaticsnapshot\"\u003e\u003cbody\u003e\n\u003cmain\u003e\n\u003ct:probe\u003e\u003c/t:probe\u003e\n\u003c/main\u003e\n\u003cdiv hidden itemscope itemtype=\"https://pagelove.org/Schema\"\u003e\n\u003cmeta itemprop=\"type\" content=\"https://pagelike.test/_pl/javascript-dom-nodelist-static-snapshot-dd4142/Dnodeliststaticsnapshot\"\u003e\n\u003cul\u003e\n\u003cli itemprop=\"property\" itemscope itemtype=\"https://pagelove.org/Method\"\u003e\n\u003cmeta itemprop=\"name\" content=\"probe\"\u003e\n\u003cdiv itemprop=\"implementation\" itemscope itemtype=\"https://pagelove.org/JavaScript/Module\"\u003e\n\u003cscript itemprop=\"source\" type=\"module\"\u003e\nconst S = (...a) =\u003e a.map(String).join('|');\nconst H = (x) =\u003e String(x).replace(/[\u003c\u003e\"]/g, (c) =\u003e ({ '\u003c': '[', '\u003e': ']', '\"': \"'\" })[c]);\nconst tryName = (f) =\u003e { try { f(); return 'ok'; } catch (e) { return e.name + ':' + e.code; } };\nexport default function () {\nconst d = new DOMParser().parseFromString('\u003cul\u003e\u003cli\u003e1\u003c/li\u003e\u003cli\u003e2\u003c/li\u003e\u003c/ul\u003e', 'text/html');\nconst ul = d.querySelector('ul'); const lis = d.querySelectorAll('li'); const kids = ul.children; const nodes = ul.childNodes;\nul.removeChild(ul.firstElementChild);\nreturn 'R:' + S(lis.length, kids.length, nodes.length, ul.children.length, d.querySelectorAll('li').length, lis.item(0).textContent, lis.item(-1), lis.item(5), Array.from(lis, (x) =\u003e x.textContent).join(','), [...kids].length);\n}\n\u003c/script\u003e\n\u003c/div\u003e\n\u003c/li\u003e\n\u003c/ul\u003e\n\u003c/div\u003e\n\u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 2 (GET \u003cmain\u003e: the method result is inserted as text)",
+      "method": "GET",
+      "path": "/_pl/javascript-dom-nodelist-static-snapshot-dd4142/probe.html",
+      "status": 206,
+      "headers": {
+        "accept-ranges": "selector, bytes",
+        "content-length": "44",
+        "content-range": "selector main",
+        "content-type": "text/html",
+        "etag": "\"f00f573242a911807769fa853ce1e9d53dc01af2dc75fd8dc29332f749da9f98-f00f573242a911807769fa853ce1e9d53dc01af2dc75fd8dc29332f749da9f98-1\"",
+        "vary": "Host, Range, Accept"
+      },
+      "body": "\u003cmain\u003e\nR:2|2|2|1|1|1|null|null|1,2|2\n\u003c/main\u003e"
+    }
+  ],
+  "outcome": "pass",
+  "target": "local"
+}

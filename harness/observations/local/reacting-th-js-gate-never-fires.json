@@ -1,0 +1,36 @@
+{
+  "case": "reacting.th.js-gate-never-fires",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (install a handler with a JS gate that returns true)",
+      "method": "PUT",
+      "path": "/_pl/reacting-th-js-gate-never-fires-7dd546/r/handlers.html",
+      "status": 201,
+      "headers": {
+        "content-length": "691",
+        "content-type": "text/html",
+        "etag": "\"99e03bd55d543bf2e7607599c15254e937f8bc7f188ca59d9bc359b085ed832f\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:52 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\n\u003cdiv itemscope itemtype=\"https://pagelove.org/TransitionHandler\"\u003e\n  \u003cmeta itemprop=\"selector\" content=\"[itemtype='https://pagelike.test/_pl/reacting-th-js-gate-never-fires-7dd546/Order']\"\u003e\n  \u003cmeta itemprop=\"property\" content=\"status\"\u003e\n  \u003cmeta itemprop=\"becomes\" content=\"processing\"\u003e\n  \u003cdiv itemprop=\"when\" itemscope itemtype=\"https://pagelove.org/JavaScript/Module\"\u003e\n    \u003cscript type=\"module\" itemprop=\"source\"\u003eexport default function() { return true; }\u003c/script\u003e\n  \u003c/div\u003e\n  \u003cdiv itemprop=\"action\" itemscope itemtype=\"https://pagelove.org/HttpRequest\"\u003e\n    \u003cmeta itemprop=\"url\" content=\"http://127.0.0.1:53655/c-bd2ffe0b/js-gate\"\u003e\n  \u003c/div\u003e\n\u003c/div\u003e\n\u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 2 (create an order at processing)",
+      "method": "PUT",
+      "path": "/_pl/reacting-th-js-gate-never-fires-7dd546/orders/o.html",
+      "status": 201,
+      "headers": {
+        "content-length": "189",
+        "content-type": "text/html",
+        "etag": "\"539d0de040566d73d5b16c368b6b9a70a60b216c41217c44133e89bb77a8413d\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:52 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\u003chtml\u003e\u003cbody\u003e\u003cdiv itemscope itemtype=\"https://pagelike.test/_pl/reacting-th-js-gate-never-fires-7dd546/Order\"\u003e\u003cmeta itemprop=\"status\" content=\"processing\"\u003e\u003c/div\u003e\u003c/body\u003e\u003c/html\u003e"
+    }
+  ],
+  "outcome": "pass",
+  "target": "local"
+}

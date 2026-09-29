@@ -1,0 +1,58 @@
+{
+  "case": "modeling.groups.exactly-one-auth-method",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (register declarations through the public plane (takes effect for the next request))",
+      "method": "PUT",
+      "path": "/_pl/modeling-groups-exactly-one-auth-method-c6f814/schema.html",
+      "status": 201,
+      "headers": {
+        "content-type": "text/html",
+        "etag": "\"a39d1eb4563756898d583aae01af3546a562280d74aa7959acb0cb33680ed42c\"",
+        "last-modified": "Tue, 29 Sep 2026 00:47:59 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\n  \u003cdiv hidden itemscope itemtype=\"https://pagelove.org/Schema\"\u003e\n    \u003cmeta itemprop=\"type\" content=\"https://pagelike.test/_pl/modeling-groups-exactly-one-auth-method-c6f814/UserAuth\"\u003e\n    \u003cmeta itemprop=\"name\" content=\"UserAuth\"\u003e\n    \u003cdiv itemprop=\"property\" itemscope itemtype=\"https://pagelove.org/Property\"\u003e\n      \u003cmeta itemprop=\"name\" content=\"password\"\u003e\n      \u003cmeta itemprop=\"type\" content=\"https://schema.host/Text\"\u003e\n      \u003cmeta itemprop=\"cardinality\" content=\"0..1\"\u003e\n      \u003cmeta itemprop=\"group\" content=\"auth-method\"\u003e\n    \u003c/div\u003e\n    \u003cdiv itemprop=\"property\" itemscope itemtype=\"https://pagelove.org/Property\"\u003e\n      \u003cmeta itemprop=\"name\" content=\"oauth-token\"\u003e\n      \u003cmeta itemprop=\"type\" content=\"https://schema.host/Text\"\u003e\n      \u003cmeta itemprop=\"cardinality\" content=\"0..1\"\u003e\n      \u003cmeta itemprop=\"group\" content=\"auth-method\"\u003e\n    \u003c/div\u003e\n    \u003cdiv itemprop=\"constraint\" itemscope itemtype=\"https://schema.host/GroupConstraint\"\u003e\n      \u003cmeta itemprop=\"group\" content=\"auth-method\"\u003e\n      \u003cmeta itemprop=\"cardinality\" content=\"1..1\"\u003e\n    \u003c/div\u003e\n  \u003cmeta itemprop=\"@id\" content=\"https://schema.host/yyvz43nv\"\u003e\u003cmeta itemprop=\"path\" content=\"/Schemahttps://schema.host/yyvz43nv.html\"\u003e\u003c/div\u003e\n\n                \u003cdiv style=\"\n                            position: fixed;\n                            bottom: 0;\n                            left: 0;\n                            right: 0;\n                            padding: 8px;\n                            background: #f0f0f0;\n                            text-align: center;\n                            font-size: 12px;\n                            color: #666;\n                            z-index: 9999;\n                            opacity: 0.8;\n                            border-top: 1px solid #ddd;\n                        \"\u003e\n                    Powered by\n                    \u003ca href=\"https://pagelove.com/\" style=\"color: #4a90d9; text-decoration: none\"\u003ePagelove\u003c/a\u003e\n                \u003c/div\u003e\n            \u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 2 (alice with password only accepted)",
+      "method": "PUT",
+      "path": "/_pl/modeling-groups-exactly-one-auth-method-c6f814/alice.html",
+      "status": 201,
+      "headers": {
+        "content-type": "text/html",
+        "etag": "\"32def28b5a2db586c417a85db7a5756bc1e3aa90adcec773f2a014681cca720e\"",
+        "last-modified": "Tue, 29 Sep 2026 00:48:00 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\n  \u003cdiv itemscope itemtype=\"https://pagelike.test/_pl/modeling-groups-exactly-one-auth-method-c6f814/UserAuth\"\u003e\n    \u003cmeta itemprop=\"password\" content=\"hashed-secret\"\u003e\n  \u003c/div\u003e\n\n                \u003cdiv style=\"\n                            position: fixed;\n                            bottom: 0;\n                            left: 0;\n                            right: 0;\n                            padding: 8px;\n                            background: #f0f0f0;\n                            text-align: center;\n                            font-size: 12px;\n                            color: #666;\n                            z-index: 9999;\n                            opacity: 0.8;\n                            border-top: 1px solid #ddd;\n                        \"\u003e\n                    Powered by\n                    \u003ca href=\"https://pagelove.com/\" style=\"color: #4a90d9; text-decoration: none\"\u003ePagelove\u003c/a\u003e\n                \u003c/div\u003e\n            \u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 3 (bob with both rejected)",
+      "method": "PUT",
+      "path": "/_pl/modeling-groups-exactly-one-auth-method-c6f814/bob.html",
+      "status": 422,
+      "headers": {
+        "content-length": "344",
+        "content-type": "text/html",
+        "vary": "Host, Range"
+      },
+      "body": "\u003cdiv itemscope itemtype=\"https://pagelove.org/SchemaViolation\"\u003e\u003cul itemprop=\"problems\"\u003e\u003cli itemprop=\"problem\"\u003e\u003cspan itemprop=\"message\"\u003e[https://pagelike.test/_pl/modeling-groups-exactly-one-auth-method-c6f814/UserAuth]: group 'auth-method' constraint violated: cardinality 1..1 violated: expected exactly 1 value, found 2\u003c/span\u003e\u003c/li\u003e\u003c/ul\u003e\u003c/div\u003e"
+    },
+    {
+      "step": "step 4 (carol with neither rejected)",
+      "method": "PUT",
+      "path": "/_pl/modeling-groups-exactly-one-auth-method-c6f814/carol.html",
+      "status": 422,
+      "headers": {
+        "content-length": "344",
+        "content-type": "text/html",
+        "vary": "Host, Range"
+      },
+      "body": "\u003cdiv itemscope itemtype=\"https://pagelove.org/SchemaViolation\"\u003e\u003cul itemprop=\"problems\"\u003e\u003cli itemprop=\"problem\"\u003e\u003cspan itemprop=\"message\"\u003e[https://pagelike.test/_pl/modeling-groups-exactly-one-auth-method-c6f814/UserAuth]: group 'auth-method' constraint violated: cardinality 1..1 violated: expected exactly 1 value, found 0\u003c/span\u003e\u003c/li\u003e\u003c/ul\u003e\u003c/div\u003e"
+    }
+  ],
+  "outcome": "pass",
+  "target": "live"
+}

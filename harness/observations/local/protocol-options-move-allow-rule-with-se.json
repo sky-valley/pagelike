@@ -1,0 +1,33 @@
+{
+  "case": "protocol.options.move-allow-rule-with-selector-discarded",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (MOVE absent from the document-level set)",
+      "method": "OPTIONS",
+      "path": "/_pl/protocol-options-move-allow-rule-with-se-e24f80/board.html",
+      "status": 200,
+      "headers": {
+        "accept-query": "text/css-selector, text/sessel",
+        "accept-ranges": "selector",
+        "allow": "GET, HEAD, OPTIONS",
+        "content-length": "0",
+        "vary": "Authorization, Accept"
+      }
+    },
+    {
+      "step": "step 2 (no selector-scoped rule survives, so multipart is a 204)",
+      "method": "OPTIONS",
+      "path": "/_pl/protocol-options-move-allow-rule-with-se-e24f80/board.html",
+      "status": 204,
+      "headers": {
+        "accept-query": "text/css-selector, text/sessel",
+        "accept-ranges": "selector",
+        "allow": "GET, HEAD, OPTIONS",
+        "vary": "Authorization, Accept"
+      }
+    }
+  ],
+  "outcome": "pass",
+  "target": "local"
+}

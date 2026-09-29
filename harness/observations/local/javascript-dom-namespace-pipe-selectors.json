@@ -1,0 +1,37 @@
+{
+  "case": "javascript.dom.namespace-pipe-selectors",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (PUT the page (public plane; registers inline declarations))",
+      "method": "PUT",
+      "path": "/_pl/javascript-dom-namespace-pipe-selectors-0be19a/probe.html",
+      "status": 201,
+      "headers": {
+        "content-length": "1520",
+        "content-type": "text/html",
+        "etag": "\"630c567d4d006b5b490934480ebaeeb46120d4e81865ea093c92708d742266c4\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:43 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml xmlns:t=\"https://pagelike.test/_pl/javascript-dom-namespace-pipe-selectors-0be19a/Dnamespacepipeselectors\"\u003e\u003cbody\u003e\n\u003cmain\u003e\n\u003ct:probe\u003e\u003c/t:probe\u003e\n\u003c/main\u003e\n\u003cdiv hidden itemscope itemtype=\"https://pagelove.org/Schema\"\u003e\n\u003cmeta itemprop=\"type\" content=\"https://pagelike.test/_pl/javascript-dom-namespace-pipe-selectors-0be19a/Dnamespacepipeselectors\"\u003e\n\u003cul\u003e\n\u003cli itemprop=\"property\" itemscope itemtype=\"https://pagelove.org/Method\"\u003e\n\u003cmeta itemprop=\"name\" content=\"probe\"\u003e\n\u003cdiv itemprop=\"implementation\" itemscope itemtype=\"https://pagelove.org/JavaScript/Module\"\u003e\n\u003cscript itemprop=\"source\" type=\"module\"\u003e\nconst S = (...a) =\u003e a.map(String).join('|');\nconst H = (x) =\u003e String(x).replace(/[\u003c\u003e\"]/g, (c) =\u003e ({ '\u003c': '[', '\u003e': ']', '\"': \"'\" })[c]);\nconst tryName = (f) =\u003e { try { f(); return 'ok'; } catch (e) { return e.name + ':' + e.code; } };\nexport default function () {\nconst d = new DOMParser().parseFromString('\u003cdiv id=\"r\"\u003e\u003cp\u003ex\u003c/p\u003e\u003cdiv\u003e\u003cp\u003ey\u003c/p\u003e\u003c/div\u003e\u003csvg\u003e\u003cg\u003e\u003c/g\u003e\u003c/svg\u003e\u003c/div\u003e', 'text/html');\nd.querySelector('#r').appendChild(d.createElementNS('http://www.w3.org/2000/svg', 'circle'));\nlet e1 = 'no-throw'; try { d.querySelector('svg|g'); } catch (e) { e1 = e.name; }\nconst n = (sel) =\u003e { try { return d.querySelectorAll(sel).length; } catch (e) { return e.name; } };\nconst p = d.querySelector('p');\nreturn 'R:' + S(e1, n('*|p'), n('p'), n('*|*'), n('*'), n('|p'), n('*|circle'), n('|circle'), n('|*'), n('[*|id]'), p.matches('*|p'), p.closest('*|div').id);\n}\n\u003c/script\u003e\n\u003c/div\u003e\n\u003c/li\u003e\n\u003c/ul\u003e\n\u003c/div\u003e\n\u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 2 (GET \u003cmain\u003e: the method result is inserted as text)",
+      "method": "GET",
+      "path": "/_pl/javascript-dom-namespace-pipe-selectors-0be19a/probe.html",
+      "status": 206,
+      "headers": {
+        "accept-ranges": "selector, bytes",
+        "content-length": "53",
+        "content-range": "selector main",
+        "content-type": "text/html",
+        "etag": "\"f90ae45f0efe02050b28e567ae689e8c6696bbb657eb6494f0a867f91c203ebc-f90ae45f0efe02050b28e567ae689e8c6696bbb657eb6494f0a867f91c203ebc-1\"",
+        "vary": "Host, Range, Accept"
+      },
+      "body": "\u003cmain\u003e\nR:SyntaxError|2|2|7|7|2|1|0|6|1|true|r\n\u003c/main\u003e"
+    }
+  ],
+  "outcome": "pass",
+  "target": "local"
+}

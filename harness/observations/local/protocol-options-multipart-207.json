@@ -1,0 +1,22 @@
+{
+  "case": "protocol.options.multipart-207",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (207 multipart with Allow and Content-Range lines)",
+      "method": "OPTIONS",
+      "path": "/_pl/protocol-options-multipart-207-5de3d1/doc.html",
+      "status": 207,
+      "headers": {
+        "accept-query": "text/css-selector, text/sessel",
+        "accept-ranges": "selector",
+        "content-length": "215",
+        "content-type": "multipart/mixed; boundary=boundary0FMdNwAFCPhIAnua6QQhYEPY9TSclV5F",
+        "vary": "Authorization, Accept"
+      },
+      "body": "--boundary0FMdNwAFCPhIAnua6QQhYEPY9TSclV5F\r\nAllow: GET, HEAD, OPTIONS\r\n\r\n--boundary0FMdNwAFCPhIAnua6QQhYEPY9TSclV5F\r\nContent-Range: selector ul\r\nAllow: POST, OPTIONS\r\n\r\n--boundary0FMdNwAFCPhIAnua6QQhYEPY9TSclV5F--\r\n"
+    }
+  ],
+  "outcome": "pass",
+  "target": "local"
+}

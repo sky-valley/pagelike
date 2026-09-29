@@ -1,0 +1,70 @@
+{
+  "case": "protocol.move.incomplete-requests-422",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (Range without Destination-Range)",
+      "method": "MOVE",
+      "path": "/_pl/protocol-move-incomplete-requests-422-d23963/board.html",
+      "status": 422,
+      "headers": {
+        "content-length": "249",
+        "content-type": "text/html",
+        "vary": "Host, Range"
+      },
+      "body": "\u003cdiv itemscope itemtype=\"https://dombase.pagelove.team/ns/error/MoveMissingHeaders\"\u003e\u003cul itemprop=\"problems\"\u003e\u003cli itemprop=\"problem\"\u003e\u003cspan itemprop=\"message\"\u003eMOVE requires Range, Destination, and Destination-Range with placement\u003c/span\u003e\u003c/li\u003e\u003c/ul\u003e\u003c/div\u003e"
+    },
+    {
+      "step": "step 2 (Destination-Range without Range)",
+      "method": "MOVE",
+      "path": "/_pl/protocol-move-incomplete-requests-422-d23963/board.html",
+      "status": 422,
+      "headers": {
+        "content-length": "249",
+        "content-type": "text/html",
+        "vary": "Host, Range"
+      },
+      "body": "\u003cdiv itemscope itemtype=\"https://dombase.pagelove.team/ns/error/MoveMissingHeaders\"\u003e\u003cul itemprop=\"problems\"\u003e\u003cli itemprop=\"problem\"\u003e\u003cspan itemprop=\"message\"\u003eMOVE requires Range, Destination, and Destination-Range with placement\u003c/span\u003e\u003c/li\u003e\u003c/ul\u003e\u003c/div\u003e"
+    },
+    {
+      "step": "step 3 (Destination-Range without placement)",
+      "method": "MOVE",
+      "path": "/_pl/protocol-move-incomplete-requests-422-d23963/board.html",
+      "status": 422,
+      "headers": {
+        "content-length": "249",
+        "content-type": "text/html",
+        "vary": "Host, Range"
+      },
+      "body": "\u003cdiv itemscope itemtype=\"https://dombase.pagelove.team/ns/error/MoveMissingHeaders\"\u003e\u003cul itemprop=\"problems\"\u003e\u003cli itemprop=\"problem\"\u003e\u003cspan itemprop=\"message\"\u003eMOVE requires Range, Destination, and Destination-Range with placement\u003c/span\u003e\u003c/li\u003e\u003c/ul\u003e\u003c/div\u003e"
+    },
+    {
+      "step": "step 4 (whole-document move without Destination)",
+      "method": "MOVE",
+      "path": "/_pl/protocol-move-incomplete-requests-422-d23963/board.html",
+      "status": 422,
+      "headers": {
+        "content-length": "213",
+        "content-type": "text/html",
+        "vary": "Host, Range"
+      },
+      "body": "\u003cdiv itemscope itemtype=\"https://dombase.pagelove.team/ns/error/MoveMissingHeaders\"\u003e\u003cul itemprop=\"problems\"\u003e\u003cli itemprop=\"problem\"\u003e\u003cspan itemprop=\"message\"\u003eMOVE requires a Destination header\u003c/span\u003e\u003c/li\u003e\u003c/ul\u003e\u003c/div\u003e"
+    },
+    {
+      "step": "step 5 (document unchanged)",
+      "method": "GET",
+      "path": "/_pl/protocol-move-incomplete-requests-422-d23963/board.html",
+      "status": 206,
+      "headers": {
+        "content-length": "190",
+        "content-range": "selector #lane-todo",
+        "content-type": "text/html",
+        "etag": "\"d90c29204f276cf47c317794655fce214e63b474a3c86245437cf3b7de13b11c-d90c29204f276cf47c317794655fce214e63b474a3c86245437cf3b7de13b11c-1\"",
+        "vary": "Host, Range, Accept"
+      },
+      "body": "\u003csection class=\"lane\" id=\"lane-todo\"\u003e\u003carticle class=\"card\" id=\"card-1\"\u003eOne\u003c/article\u003e\u003carticle class=\"card\" id=\"card-2\"\u003eTwo\u003c/article\u003e\u003carticle class=\"card\" id=\"card-3\"\u003eThree\u003c/article\u003e\u003c/section\u003e"
+    }
+  ],
+  "outcome": "pass",
+  "target": "live"
+}

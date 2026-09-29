@@ -1,0 +1,73 @@
+{
+  "case": "modeling.uniqueness.duplicate-across-documents",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (register declarations through the public plane (takes effect for the next request))",
+      "method": "PUT",
+      "path": "/_pl/modeling-uniqueness-duplicate-across-doc-397256/schema.html",
+      "status": 201,
+      "headers": {
+        "content-length": "531",
+        "content-type": "text/html",
+        "etag": "\"3e39c9e9513adb85600c15e5bdf8bbd2435d47743955884b280ce75a73ab38d9\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:45 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\n  \u003cdiv hidden itemscope itemtype=\"https://pagelove.org/Schema\"\u003e\n    \u003cmeta itemprop=\"type\" content=\"https://pagelike.test/_pl/modeling-uniqueness-duplicate-across-doc-397256/Project\"\u003e\n    \u003cli itemprop=\"property\" itemscope itemtype=\"https://pagelove.org/Property\"\u003e\n      \u003cmeta itemprop=\"name\" content=\"slug\"\u003e\n      \u003cmeta itemprop=\"type\" content=\"https://schema.host/Text\"\u003e\n      \u003cmeta itemprop=\"cardinality\" content=\"1..1\"\u003e\n      \u003cmeta itemprop=\"unique\" content=\"true\"\u003e\n    \u003c/li\u003e\n  \u003c/div\u003e\n\u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 2 (first project)",
+      "method": "PUT",
+      "path": "/_pl/modeling-uniqueness-duplicate-across-doc-397256/p1.html",
+      "status": 201,
+      "headers": {
+        "content-length": "208",
+        "content-type": "text/html",
+        "etag": "\"7b9d8f838c7fabb605c8ef6037547c05565a03d67dbcd8839e73c70c527086c8\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:45 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\n  \u003cdiv itemscope itemtype=\"https://pagelike.test/_pl/modeling-uniqueness-duplicate-across-doc-397256/Project\"\u003e\n    \u003cmeta itemprop=\"slug\" content=\"launch\"\u003e\n  \u003c/div\u003e\n\u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 3 (second project with the same slug)",
+      "method": "PUT",
+      "path": "/_pl/modeling-uniqueness-duplicate-across-doc-397256/p2.html",
+      "status": 422,
+      "headers": {
+        "content-length": "331",
+        "content-type": "text/html",
+        "vary": "Host, Range"
+      },
+      "body": "\u003cdiv itemscope itemtype=\"https://dombase.pagelove.team/ns/error/ConstraintViolation\"\u003e\u003cul itemprop=\"problems\"\u003e\u003cli itemprop=\"problem\"\u003e\u003cspan itemprop=\"message\"\u003eConstraint violation: 1 violation(s):\n  - [uniqueness] [itemprop='slug'] (unique(slug)): Uniqueness violation: value already exists for property 'slug'\u003c/span\u003e\u003c/li\u003e\u003c/ul\u003e\u003c/div\u003e"
+    },
+    {
+      "step": "step 4 (p2.html was not stored)",
+      "method": "GET",
+      "path": "/_pl/modeling-uniqueness-duplicate-across-doc-397256/p2.html",
+      "status": 404,
+      "headers": {
+        "content-length": "211",
+        "content-type": "text/html; charset=utf-8"
+      },
+      "body": "\u003carticle itemscope itemtype=\"https://pagelove.org/Error/NotFound\"\u003e\u003cmeta itemprop=\"status\" content=\"404\"\u003e\u003cp itemprop=\"message\"\u003eNot found: /_pl/modeling-uniqueness-duplicate-across-doc-397256/p2.html\u003c/p\u003e\u003c/article\u003e"
+    },
+    {
+      "step": "step 5 (stored state of p1.html (authoring plane, raw))",
+      "method": "GET",
+      "path": "/_pl/modeling-uniqueness-duplicate-across-doc-397256/p1.html",
+      "status": 200,
+      "headers": {
+        "accept-ranges": "bytes",
+        "content-length": "208",
+        "content-type": "text/html",
+        "etag": "\"7b9d8f838c7fabb605c8ef6037547c05565a03d67dbcd8839e73c70c527086c8\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:45 GMT"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\n  \u003cdiv itemscope itemtype=\"https://pagelike.test/_pl/modeling-uniqueness-duplicate-across-doc-397256/Project\"\u003e\n    \u003cmeta itemprop=\"slug\" content=\"launch\"\u003e\n  \u003c/div\u003e\n\u003c/body\u003e\u003c/html\u003e\n"
+    }
+  ],
+  "outcome": "pass",
+  "target": "local"
+}

@@ -1,0 +1,62 @@
+{
+  "case": "modeling.cardinality.selector-post-exceeds-max",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (register declarations through the public plane (takes effect for the next request))",
+      "method": "PUT",
+      "path": "/_pl/modeling-cardinality-selector-post-excee-51e7f1/schema.html",
+      "status": 201,
+      "headers": {
+        "content-length": "481",
+        "content-type": "text/html",
+        "etag": "\"e7496788a864a62dd64f2d1d547b30b241d0df599542acbcb15ddf93c2e8ff8d\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:44 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\n  \u003cdiv hidden itemscope itemtype=\"https://pagelove.org/Schema\"\u003e\n    \u003cmeta itemprop=\"type\" content=\"https://pagelike.test/_pl/modeling-cardinality-selector-post-excee-51e7f1/Note\"\u003e\n    \u003cdiv itemprop=\"property\" itemscope itemtype=\"https://pagelove.org/Property\"\u003e\n      \u003cmeta itemprop=\"name\" content=\"v\"\u003e\n      \u003cmeta itemprop=\"type\" content=\"https://schema.host/Text\"\u003e\n      \u003cmeta itemprop=\"cardinality\" content=\"0..1\"\u003e\n    \u003c/div\u003e\n  \u003c/div\u003e\n\u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 2 (seed)",
+      "method": "PUT",
+      "path": "/_pl/modeling-cardinality-selector-post-excee-51e7f1/n.html",
+      "status": 201,
+      "headers": {
+        "content-length": "209",
+        "content-type": "text/html",
+        "etag": "\"80ebf4b493a05acdd328c922042299a176a7d19928b7a7e60c3ffbf2d4069241\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:44 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\n  \u003cdiv itemscope itemtype=\"https://pagelike.test/_pl/modeling-cardinality-selector-post-excee-51e7f1/Note\" id=\"n1\"\u003e\n    \u003cmeta itemprop=\"v\" content=\"first\"\u003e\n  \u003c/div\u003e\n\u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 3 (append a second value)",
+      "method": "POST",
+      "path": "/_pl/modeling-cardinality-selector-post-excee-51e7f1/n.html",
+      "status": 422,
+      "headers": {
+        "content-length": "329",
+        "content-type": "text/html",
+        "vary": "Host, Range"
+      },
+      "body": "\u003cdiv itemscope itemtype=\"https://dombase.pagelove.team/ns/error/Cardinality\"\u003e\u003cul itemprop=\"problems\"\u003e\u003cli itemprop=\"problem\"\u003e\u003cspan itemprop=\"message\"\u003ehttps://pagelike.test/_pl/modeling-cardinality-selector-post-excee-51e7f1/Note /v: cardinality 0..1 violated: expected at most 1 value, found 2 (cardinality)\u003c/span\u003e\u003c/li\u003e\u003c/ul\u003e\u003c/div\u003e"
+    },
+    {
+      "step": "step 4 (stored state of n.html (authoring plane, raw))",
+      "method": "GET",
+      "path": "/_pl/modeling-cardinality-selector-post-excee-51e7f1/n.html",
+      "status": 200,
+      "headers": {
+        "accept-ranges": "bytes",
+        "content-length": "209",
+        "content-type": "text/html",
+        "etag": "\"80ebf4b493a05acdd328c922042299a176a7d19928b7a7e60c3ffbf2d4069241\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:44 GMT"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\n  \u003cdiv itemscope itemtype=\"https://pagelike.test/_pl/modeling-cardinality-selector-post-excee-51e7f1/Note\" id=\"n1\"\u003e\n    \u003cmeta itemprop=\"v\" content=\"first\"\u003e\n  \u003c/div\u003e\n\u003c/body\u003e\u003c/html\u003e\n"
+    }
+  ],
+  "outcome": "pass",
+  "target": "local"
+}

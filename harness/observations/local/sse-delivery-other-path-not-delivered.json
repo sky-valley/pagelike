@@ -1,0 +1,73 @@
+{
+  "case": "sse.delivery.other-path-not-delivered",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (sse open sa)",
+      "method": "GET",
+      "path": "/_pl/sse-delivery-other-path-not-delivered-09b0b3/a.html",
+      "status": 200,
+      "headers": {
+        "cache-control": "no-cache",
+        "content-type": "text/event-stream",
+        "x-accel-buffering": "no"
+      }
+    },
+    {
+      "step": "step 2 (sse open sb)",
+      "method": "GET",
+      "path": "/_pl/sse-delivery-other-path-not-delivered-09b0b3/b.html",
+      "status": 200,
+      "headers": {
+        "cache-control": "no-cache",
+        "content-type": "text/event-stream",
+        "x-accel-buffering": "no"
+      }
+    },
+    {
+      "step": "step 3",
+      "events": [
+        {
+          "event": "pagelove-connection",
+          "data": "656aa0ca-f593-4a1d-9b32-e4cccf38e3df"
+        }
+      ]
+    },
+    {
+      "step": "step 4",
+      "events": [
+        {
+          "event": "pagelove-connection",
+          "data": "044d6710-236e-457f-ae4a-2f8da6ecaeec"
+        }
+      ]
+    },
+    {
+      "step": "step 5 (write only to b)",
+      "method": "PUT",
+      "path": "/_pl/sse-delivery-other-path-not-delivered-09b0b3/b.html",
+      "status": 206,
+      "headers": {
+        "content-length": "11",
+        "content-range": "selector h1",
+        "content-type": "text/html",
+        "etag": "\"f68ec6a3694d59e0b2c85256ebff8260e688e89a2f48b0c12378f85d0cd948ee-f68ec6a3694d59e0b2c85256ebff8260e688e89a2f48b0c12378f85d0cd948ee-2\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:56 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003ch1\u003eB2\u003c/h1\u003e"
+    },
+    {
+      "step": "step 6",
+      "events": [
+        {
+          "id": "v1~21cdb5379371.1790649656926-1",
+          "event": "mutation",
+          "data": "\u003carticle itemscope itemtype=\"https://pagelove.org/Mutation\"\u003e\n  \u003cspan itemprop=\"method\"\u003ePUT\u003c/span\u003e\n  \u003cspan itemprop=\"selector\"\u003eh1\u003c/span\u003e\n  \u003cspan itemprop=\"etag\"\u003ee2c93f65bb54104eb7379fb5a29a89aef7116a1b8c61285abee65e5d88a560b0\u003c/span\u003e\n  \u003cspan itemprop=\"path\"\u003e/_pl/sse-delivery-other-path-not-delivered-09b0b3/b.html\u003c/span\u003e\n  \u003cspan itemprop=\"host\"\u003et.localhost\u003c/span\u003e\n  \u003cdiv itemprop=\"body\"\u003e\u003ch1\u003eB2\u003c/h1\u003e\u003c/div\u003e\n\u003c/article\u003e"
+        }
+      ]
+    }
+  ],
+  "outcome": "pass",
+  "target": "local"
+}

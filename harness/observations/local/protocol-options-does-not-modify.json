@@ -1,0 +1,52 @@
+{
+  "case": "protocol.options.does-not-modify",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (read the document ETag)",
+      "method": "GET",
+      "path": "/_pl/protocol-options-does-not-modify-cae7b9/doc.html",
+      "status": 200,
+      "headers": {
+        "accept-ranges": "selector, bytes",
+        "content-length": "57",
+        "content-type": "text/html",
+        "etag": "\"123947718c7a4d829044445a7fa2537f191bfe48ae2ff4de64f453e72c92de47\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:48 GMT",
+        "vary": "Host, Range, Accept"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\u003ch1\u003eTitle\u003c/h1\u003e\u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 2 (flat, selector and multipart OPTIONS)",
+      "method": "OPTIONS",
+      "path": "/_pl/protocol-options-does-not-modify-cae7b9/doc.html",
+      "status": 207,
+      "headers": {
+        "accept-query": "text/css-selector, text/sessel",
+        "accept-ranges": "selector",
+        "content-length": "214",
+        "content-type": "multipart/mixed; boundary=boundaryLvlcFIWkl9dKe67GzdMtIMw5ER34Utx8",
+        "vary": "Authorization, Accept"
+      },
+      "body": "--boundaryLvlcFIWkl9dKe67GzdMtIMw5ER34Utx8\r\nAllow: GET, HEAD, OPTIONS\r\n\r\n--boundaryLvlcFIWkl9dKe67GzdMtIMw5ER34Utx8\r\nContent-Range: selector h1\r\nAllow: PUT, OPTIONS\r\n\r\n--boundaryLvlcFIWkl9dKe67GzdMtIMw5ER34Utx8--\r\n"
+    },
+    {
+      "step": "step 3 (ETag unchanged)",
+      "method": "GET",
+      "path": "/_pl/protocol-options-does-not-modify-cae7b9/doc.html",
+      "status": 200,
+      "headers": {
+        "accept-ranges": "selector, bytes",
+        "content-length": "57",
+        "content-type": "text/html",
+        "etag": "\"123947718c7a4d829044445a7fa2537f191bfe48ae2ff4de64f453e72c92de47\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:48 GMT",
+        "vary": "Host, Range, Accept"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\u003ch1\u003eTitle\u003c/h1\u003e\u003c/body\u003e\u003c/html\u003e\n"
+    }
+  ],
+  "outcome": "pass",
+  "target": "local"
+}

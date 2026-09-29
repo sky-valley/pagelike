@@ -1,0 +1,507 @@
+# Minimised live probes of 2026-09-29 (sessel reconciliation; docs/compat/decisions-2026-09-29/sessel.md).
+# Each case isolates the behaviours behind one group of diverging sessel.query.* cases.
+# Observations: harness/observations/live-2026-09-29-reconcile-sessel/ (file = id with dots → dashes, 40 chars).
+defaults:
+  area: sessel
+  evidence: live-observed
+  confidence: high
+  requires: [sessel]
+cases:
+  - id: sessel.query.probe-0929.from-and-path
+    title: "Probe: a Sessel QUERY sees only its target document (from sources, bare selectors, provenance)"
+    feature: from clause
+    live: true
+    source: "live 2026-09-29 probe (harness/observations/live-2026-09-29-reconcile-sessel/sessel-query-probe-0929-from-and-path.json)"
+    notes: >-
+      Isolates sessel.query.sel.from-path, from-self-list, sub-select-provenance and element-getters step 1.
+      In a QUERY, string and element from-sources match nothing (WebDAV- and public-plane-written documents alike),
+      bare selectors search only the target document, and elements have no provenance (path()/document() null).
+    site:
+      files:
+        - path: "${P}/doc.html"
+          body: |
+            <!DOCTYPE html>
+            <html lang="en"><body><h1 data-case="${P}">Welcome-q0929</h1><section><li>a</li><li>b</li></section><div id="w" itemscope itemtype="https://example.com/Product"><span itemprop="name">W</span></div></body></html>
+        - path: "${P}/products/shoes.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body><h1 data-case="${P}">Nike-q0929</h1><data itemprop="price" value="100">100</data></body></html>
+      rules:
+        - {actor: "*", resource: "${P}/*", method: [GET, QUERY, PUT], action: Allow}
+    steps:
+      - name: path of a self element
+        as: anonymous
+        request:
+          method: QUERY
+          path: "${P}/doc.html"
+          headers: {Content-Type: "text/sessel"}
+          body: '(${h1} from self).first().path()'
+        expect:
+          status: 200
+          body_json: null
+      - name: public-plane write of a second document
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/pub.html"
+          headers: {Content-Type: "text/html"}
+          body: '<!DOCTYPE html><html><body><h1 data-case="${P}">Pub-q0929</h1></body></html>'
+        expect:
+          status: [200, 201, 204]
+      - name: from path variants
+        as: anonymous
+        request:
+          method: QUERY
+          path: "${P}/doc.html"
+          headers: {Content-Type: "text/sessel"}
+          body: '[(${h1} from "${P}/products/shoes.html").count(), (${h1} from "${P}/products/shoes").count(), (${h1} from "${P}/products/*").count(), (${h1} from "${P}/pub.html").count(), (${h1} from "${P}/pub").count(), (${h1} from "products/shoes.html").count(), (${h1} from "${P}/products/shoes.htm*").count(), (${h1} from "${P}/doc.html").count()]'
+        expect:
+          status: 200
+          body_json: [0, 0, 0, 0, 0, 0, 0, 0]
+      - name: site-wide paths
+        as: anonymous
+        request:
+          method: QUERY
+          path: "${P}/doc.html"
+          headers: {Content-Type: "text/sessel"}
+          body: '${h1[data-case="${P}"]}.map(e => [e.text(), e.path()])'
+        expect:
+          status: 200
+          body_json: [[Welcome-q0929, null]]
+      - name: glob element path and document
+        as: anonymous
+        request:
+          method: QUERY
+          path: "${P}/doc.html"
+          headers: {Content-Type: "text/sessel"}
+          body: 'let e = (${h1} from "${P}/products/*").first(); [e.path(), e.document().${ [itemprop="price"] }.first().value(), (${h1} from self).first().document().${ h1 }.count()]'
+        expect:
+          status: 200
+          body_json: [null, null, null]
+      - name: element as a from source and sub-select provenance
+        as: anonymous
+        request:
+          method: QUERY
+          path: "${P}/doc.html"
+          headers: {Content-Type: "text/sessel"}
+          body: 'let s = (${section} from self).first(); [(${li} from s).count(), s.${ li }.count(), s.${ li }.first().path(), (${li} from [s]).count()]'
+        expect:
+          status: 200
+          body_json: [0, 2, null, 0]
+      - name: path of a self element of a public-plane document
+        as: anonymous
+        request:
+          method: QUERY
+          path: "${P}/pub.html"
+          headers: {Content-Type: "text/sessel"}
+          body: '[(${h1} from self).first().path(), (${h1} from "${P}/pub.html").first().path(), (${h1} from "${P}/doc.html").first().path()]'
+        expect:
+          status: 200
+          body_json: [null, null, null]
+      - name: self, document, multi-source and block-level from
+        as: anonymous
+        request:
+          method: QUERY
+          path: "${P}/doc.html"
+          headers: {Content-Type: "text/sessel"}
+          body: '[self.path(), (${h1} from document).count(), (${h1} from self, "${P}/products/shoes.html").count(), from "${P}/products/shoes.html" { ${h1}.count() }, from self { ${h1}.count() }]'
+        expect:
+          status: 200
+          body_json: [null, 0, 1, 0, 1]
+      - name: microdata of a self element has no @id
+        as: anonymous
+        request:
+          method: QUERY
+          path: "${P}/doc.html"
+          headers: {Content-Type: "text/sessel"}
+          body: 'let m = (${#w} from self).first().microdata(); [m["@type"], m.name, m["@id"]]'
+        expect:
+          status: 200
+          body_json: [Product, W, null]
+      - name: Pagelove.GET of another document
+        as: anonymous
+        request:
+          method: QUERY
+          path: "${P}/doc.html"
+          headers: {Content-Type: "text/sessel"}
+          body: '@schema Pagelove url("https://pagelove.org/1.0"); let d = Pagelove.GET("${P}/products/shoes.html"); [d == null, d.${ h1 }.first().text()]'
+        expect:
+          status: 400
+          body_contains: ["unknown function: GET"]
+      - name: expressions of the reconciled query-selectors cases
+        as: anonymous
+        request:
+          method: QUERY
+          path: "${P}/doc.html"
+          headers: {Content-Type: "text/sessel"}
+          body: '[(${h1} from "${P}/products/*").map(e => e.text()), ${h1}.filter(e => e.path().startsWith("${P}/")).count(), [self.attr("lang"), self.${ h1 }.first().text(), (${h1} from document).count()], from "${P}/products/shoes.html" { [${h1}.first().text(), (${h1} from self).first().text()] }]'
+        expect:
+          status: 200
+          body_json: [[], 0, [en, Welcome-q0929, 0], [null, Welcome-q0929]]
+      - name: sum over a glob that reaches nothing
+        as: anonymous
+        request:
+          method: QUERY
+          path: "${P}/doc.html"
+          headers: {Content-Type: "text/sessel"}
+          body: '(${[itemprop="price"]} from "${P}/products/*").sum()'
+        expect:
+          status: 200
+          body_json: 0
+
+  - id: sessel.query.probe-0929.values
+    title: "Probe: Float text forms, arithmetic type errors, Temporal accessor methods, empty text()"
+    feature: numbers
+    live: true
+    source: "live 2026-09-29 probe (harness/observations/live-2026-09-29-reconcile-sessel/sessel-query-probe-0929-values.json)"
+    notes: >-
+      Isolates sessel.query.values.integer-and-float-division, try-catch-message, temporal-format and
+      element-getters step 2. Temporal property access (null live) is measured by sessel.query.values.temporal-format.live.
+    site:
+      files:
+        - path: "${P}/doc.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body><h1>Welcome</h1><meta itemprop="m" content="c"><span id="empty" itemprop="e"></span><p id="sp"> </p><h2 id="ws">  a
+              b </h2><p id="mix"> x <b> y </b> </p></body></html>
+      rules:
+        - {actor: "*", resource: "${P}/*", method: [GET, QUERY], action: Allow}
+    steps:
+      - name: float text forms
+        as: anonymous
+        request:
+          method: QUERY
+          path: "${P}/doc.html"
+          headers: {Content-Type: "text/sessel"}
+          body: '[42.Float().String(), "#{42.Float()}", 42.0, 100.0, (2.5).String(), (0.1 + 0.2).String(), (10 / 4.0).String(), [42.0, 1].join(",")]'
+        expect:
+          status: 200
+          body: '["42","42",42.0,100.0,"2.5","0.30000000000000004","2.5","42,1"]'
+      - name: float extremes
+        as: anonymous
+        request:
+          method: QUERY
+          path: "${P}/doc.html"
+          headers: {Content-Type: "text/sessel"}
+          body: '[(1.0 * 10000000000000000).String(), (0.00000015).String(), (-0.0).String(), 1.0 * 10000000000000000, 0.00000015]'
+        expect:
+          status: 200
+          body: '["10000000000000000","0.00000015","-0",1e+16,1.5e-7]'
+      - name: float JSON thresholds
+        as: anonymous
+        request:
+          method: QUERY
+          path: "${P}/doc.html"
+          headers: {Content-Type: "text/sessel"}
+          body: '[1.0 * 1000000000000000, 0.0001, 0.00001, 0.000001, 2.5 * 1000000000000000]'
+        expect:
+          status: 200
+          body: '[1000000000000000.0,0.0001,0.00001,1e-6,2500000000000000.0]'
+      - name: float as constructed text
+        as: anonymous
+        request:
+          method: QUERY
+          path: "${P}/doc.html"
+          headers: {Content-Type: "text/sessel"}
+          body: 'new p { text: 42.0 }'
+        expect:
+          status: [200, 206]
+          body_html: '<p>42</p>'
+      - name: String + Integer
+        as: anonymous
+        request:
+          method: QUERY
+          path: "${P}/doc.html"
+          headers: {Content-Type: "text/sessel"}
+          body: 'try { "a" + 1 } catch (e) { [e.type, e.message] }'
+        expect:
+          status: 200
+          body_json: [TypeError, "type error: cannot use 'a' in arithmetic"]
+      - name: Integer + String
+        as: anonymous
+        request:
+          method: QUERY
+          path: "${P}/doc.html"
+          headers: {Content-Type: "text/sessel"}
+          body: 'try { 1 + "a" } catch (e) { [e.type, e.message] }'
+        expect:
+          status: 200
+          body_json: [TypeError, "type error: cannot use 'a' in arithmetic"]
+      - name: numeric String + Integer
+        as: anonymous
+        request:
+          method: QUERY
+          path: "${P}/doc.html"
+          headers: {Content-Type: "text/sessel"}
+          body: 'try { "5" + 1 } catch (e) { [e.type, e.message] }'
+        expect:
+          status: 200
+          body_json: [TypeError, "type error: cannot use '5' in arithmetic"]
+      - name: String * Integer
+        as: anonymous
+        request:
+          method: QUERY
+          path: "${P}/doc.html"
+          headers: {Content-Type: "text/sessel"}
+          body: 'try { "a" * 2 } catch (e) { [e.type, e.message] }'
+        expect:
+          status: 200
+          body_json: [TypeError, "type error: cannot use 'a' in arithmetic"]
+      - name: Boolean + Integer
+        as: anonymous
+        request:
+          method: QUERY
+          path: "${P}/doc.html"
+          headers: {Content-Type: "text/sessel"}
+          body: 'try { true + 1 } catch (e) { [e.type, e.message] }'
+        expect:
+          status: 200
+          body_json: [TypeError, "type error: cannot use 'true' in arithmetic"]
+      - name: List + Integer
+        as: anonymous
+        request:
+          method: QUERY
+          path: "${P}/doc.html"
+          headers: {Content-Type: "text/sessel"}
+          body: 'try { [1] + 1 } catch (e) { [e.type, e.message] }'
+        expect:
+          status: 200
+          body_json: [TypeError, "type error: cannot use '1' in arithmetic"]
+      - name: two-item List + Integer
+        as: anonymous
+        request:
+          method: QUERY
+          path: "${P}/doc.html"
+          headers: {Content-Type: "text/sessel"}
+          body: 'try { [1, "b"] + 1 } catch (e) { [e.type, e.message] }'
+        expect:
+          status: 200
+          body_json: [TypeError, "type error: cannot use '1, b' in arithmetic"]
+      - name: Dictionary + Integer
+        as: anonymous
+        request:
+          method: QUERY
+          path: "${P}/doc.html"
+          headers: {Content-Type: "text/sessel"}
+          body: 'try { {a: 1} + 1 } catch (e) { [e.type, e.message] }'
+        expect:
+          status: 200
+          body_json: [TypeError, "type error: cannot use '{\"a\":1}' in arithmetic"]
+      - name: String + Boolean
+        as: anonymous
+        request:
+          method: QUERY
+          path: "${P}/doc.html"
+          headers: {Content-Type: "text/sessel"}
+          body: 'try { "a" + true } catch (e) { [e.type, e.message] }'
+        expect:
+          status: 200
+          body_json: [TypeError, "type error: cannot use 'a' in arithmetic"]
+      - name: numeric String * numeric String
+        as: anonymous
+        request:
+          method: QUERY
+          path: "${P}/doc.html"
+          headers: {Content-Type: "text/sessel"}
+          body: 'try { "5" * "2" } catch (e) { [e.type, e.message] }'
+        expect:
+          status: 200
+          body_json: [TypeError, "type error: cannot use '5' in arithmetic"]
+      - name: division by zero message
+        as: anonymous
+        request:
+          method: QUERY
+          path: "${P}/doc.html"
+          headers: {Content-Type: "text/sessel"}
+          body: 'try { 1 / 0 } catch (e) { [e.type, e.message] }'
+        expect:
+          status: 200
+          body_json: [RuntimeError, "division by zero"]
+      - name: PlainDate accessor methods
+        as: anonymous
+        request:
+          method: QUERY
+          path: "${P}/doc.html"
+          headers: {Content-Type: "text/sessel"}
+          body: 'let d = Temporal.PlainDate.from("2026-03-23"); [d.year(), d.month(), d.day(), d.dayOfWeek(), d.dayOfYear(), d.weekOfYear(), d.daysInMonth(), d.daysInYear(), d.inLeapYear()]'
+        expect:
+          status: 200
+          body_json: [2026, 3, 23, 1, 82, 13, 31, 365, false]
+      - name: PlainDateTime accessor methods
+        as: anonymous
+        request:
+          method: QUERY
+          path: "${P}/doc.html"
+          headers: {Content-Type: "text/sessel"}
+          body: 'let dt = Temporal.PlainDateTime.from("2026-03-23T14:30:45"); [dt.year(), dt.month(), dt.day(), dt.hour(), dt.minute(), dt.second()]'
+        expect:
+          status: 200
+          body_json: [2026, 3, 23, 14, 30, 45]
+      - name: Duration accessor method
+        as: anonymous
+        request:
+          method: QUERY
+          path: "${P}/doc.html"
+          headers: {Content-Type: "text/sessel"}
+          body: 'let p = Temporal.Duration.from("P1Y2M3D"); [p.years(), p.months(), p.days()]'
+        expect:
+          status: 200
+          body_json: [1, 2, 3]
+      - name: PlainDate weekday name format
+        as: anonymous
+        request:
+          method: QUERY
+          path: "${P}/doc.html"
+          headers: {Content-Type: "text/sessel"}
+          body: 'Temporal.PlainDate.from("2026-03-23").format("EEEE")'
+        expect:
+          status: 200
+          body_json: Monday
+      - name: empty text and value
+        as: anonymous
+        request:
+          method: QUERY
+          path: "${P}/doc.html"
+          headers: {Content-Type: "text/sessel"}
+          body: '[(${[itemprop="m"]} from self).first().text(), (${#empty} from self).first().text(), (${#empty} from self).first().value(), (new p {}).text(), (new p {}).value(), (${#sp} from self).first().text()]'
+        expect:
+          status: 200
+          body_json: ["", "", null, "", null, ""]
+      - name: whitespace in text and value
+        as: anonymous
+        request:
+          method: QUERY
+          path: "${P}/doc.html"
+          headers: {Content-Type: "text/sessel"}
+          body: '[(${#ws} from self).first().text(), (${#mix} from self).first().text(), (${#sp} from self).first().value(), (${#ws} from self).first().value(), new p { text: " x " }.text()]'
+        expect:
+          status: 200
+          body_json: ["a b", "x y", null, "a b", " x "]
+
+  - id: sessel.query.probe-0929.mutation-and-selector
+    title: "Probe: mutable references for insertBefore, sub-select results of constructed trees, the Selector type"
+    feature: element setters
+    live: true
+    source: "live 2026-09-29 probe (harness/observations/live-2026-09-29-reconcile-sessel/sessel-query-probe-0929-mutation-and-sel.json)"
+    notes: >-
+      Isolates sessel.query.new.setters-and-mutation step 2 and sessel.query.sel.selector-type. Sub-select results are
+      stored (immutable) elements even under a constructed element; children() returns live mutable children.
+      Without @schema, `new Selector {…}` builds a <selector> element.
+    site:
+      files:
+        - path: "${P}/doc.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body><h1>Welcome</h1></body></html>
+        - path: "${P}/other.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body><h1>Other</h1></body></html>
+      rules:
+        - {actor: "*", resource: "${P}/*", method: [GET, QUERY], action: Allow}
+    steps:
+      - name: insertBefore a child from children()
+        as: anonymous
+        request:
+          method: QUERY
+          path: "${P}/doc.html"
+          headers: {Content-Type: "text/sessel"}
+          body: |
+            let el = new ul { new li { text: "c" } };
+            el.prepend(new li { text: "a" });
+            new li { text: "b" }.insertBefore(el.children().last());
+            el.getHTML()
+        expect:
+          status: 200
+          body_json: "<li>a</li><li>b</li><li>c</li>"
+      - name: insertBefore a sub-selected reference (caught)
+        as: anonymous
+        request:
+          method: QUERY
+          path: "${P}/doc.html"
+          headers: {Content-Type: "text/sessel"}
+          body: 'let el = new ul { new li { text: "c" } }; try { new li { text: "b" }.insertBefore(el.${ li }.last()) } catch (e) { [e.type, e.message] }'
+        expect:
+          status: 200
+          body_json: [TypeError, "type error: insertBefore() reference must be a mutable child element, not a stored element"]
+      - name: setter on a sub-selected element of a constructed tree
+        as: anonymous
+        request:
+          method: QUERY
+          path: "${P}/doc.html"
+          headers: {Content-Type: "text/sessel"}
+          body: 'let el = new div { new p { text: "x" } }; el.${ p }.first().text("y"); el.getHTML()'
+        expect:
+          status: 400
+          body_contains: ["type error: text(value) setter requires a constructed element, got element"]
+      - name: remove on a sub-selected element (docs example)
+        as: anonymous
+        request:
+          method: QUERY
+          path: "${P}/doc.html"
+          headers: {Content-Type: "text/sessel"}
+          body: 'let el = new div { new p { text: "Hello" } }; el.${ p }.first().remove(); el.getHTML()'
+        expect:
+          status: 200
+          body_json: "<p>Hello</p>"
+      - name: replaceWith on a sub-selected element (docs example)
+        as: anonymous
+        request:
+          method: QUERY
+          path: "${P}/doc.html"
+          headers: {Content-Type: "text/sessel"}
+          body: 'let el = new div { new p { text: "old" } }; el.${ p }.first().replaceWith(new span { text: "new" }); el.getHTML()'
+        expect:
+          status: 400
+          body_contains: ["type error: replaceWith() cannot be used on stored (immutable) elements"]
+      - name: setter on a child from children()
+        as: anonymous
+        request:
+          method: QUERY
+          path: "${P}/doc.html"
+          headers: {Content-Type: "text/sessel"}
+          body: 'let el = new div { new p { text: "x" } }; el.children().first().text("y"); el.getHTML()'
+        expect:
+          status: 200
+          body_json: "<p>y</p>"
+      - name: remove and setter on a queried element
+        as: anonymous
+        request:
+          method: QUERY
+          path: "${P}/doc.html"
+          headers: {Content-Type: "text/sessel"}
+          body: 'let h = (${h1} from self).first(); [h.remove(), try { h.text("x") } catch (e) { e.message }, (${h1} from self).count()]'
+        expect:
+          status: 200
+          body_json: [null, "type error: text(value) setter requires a constructed element, got element", 1]
+      - name: Selector without @schema
+        as: anonymous
+        request:
+          method: QUERY
+          path: "${P}/doc.html"
+          headers: {Content-Type: "text/sessel"}
+          body: 'new Selector { "h1" }'
+        expect:
+          status: [200, 206]
+          header_matches: {Content-Type: '^text/html'}
+          body_html: '<selector>h1</selector>'
+      - name: Selector with @schema, execute() and toString()
+        as: anonymous
+        request:
+          method: QUERY
+          path: "${P}/doc.html"
+          headers: {Content-Type: "text/sessel"}
+          body: '@schema Selector url("https://pagelove.org/Selector"); let sel = new Selector { selector: "h1" }; [sel.execute().count(), sel.toString()]'
+        expect:
+          status: 200
+          body_json: [1, h1]
+      - name: Selector with @schema, positional CSS, execute(path)
+        as: anonymous
+        request:
+          method: QUERY
+          path: "${P}/doc.html"
+          headers: {Content-Type: "text/sessel"}
+          body: '@schema Selector url("https://pagelove.org/Selector"); let sel = new Selector { "h1" }; [sel.execute("${P}/other.html").count(), sel.execute("${P}/*").count(), sel.execute().first().text()]'
+        expect:
+          status: 200
+          body_json: [0, 0, Welcome]

@@ -1,0 +1,79 @@
+{
+  "case": "modeling.references.change-rewrites-referrers",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (register declarations through the public plane (takes effect for the next request))",
+      "method": "PUT",
+      "path": "/_pl/modeling-references-change-rewrites-refe-005bee/schema.html",
+      "status": 201,
+      "headers": {
+        "content-length": "1157",
+        "content-type": "text/html",
+        "etag": "\"c12f6fffc950c3a4c6599ea9c5310d2e7808497ff59b6f52262e2906092f07bf\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:44 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\n  \u003cdiv hidden itemscope itemtype=\"https://pagelove.org/Schema\"\u003e\n    \u003cmeta itemprop=\"type\" content=\"https://pagelike.test/_pl/modeling-references-change-rewrites-refe-005bee/Org\"\u003e\n    \u003cdiv itemprop=\"property\" itemscope itemtype=\"https://pagelove.org/Property\"\u003e\n      \u003cmeta itemprop=\"name\" content=\"identifier\"\u003e\n      \u003cmeta itemprop=\"type\" content=\"https://schema.host/Text\"\u003e\n      \u003cmeta itemprop=\"cardinality\" content=\"1..1\"\u003e\n      \u003cmeta itemprop=\"unique\" content=\"true\"\u003e\n    \u003c/div\u003e\n  \u003c/div\u003e\n  \u003cdiv hidden itemscope itemtype=\"https://pagelove.org/Schema\"\u003e\n    \u003cmeta itemprop=\"type\" content=\"https://pagelike.test/_pl/modeling-references-change-rewrites-refe-005bee/Member\"\u003e\n    \u003cdiv itemprop=\"property\" itemscope itemtype=\"https://pagelove.org/Property\"\u003e\n      \u003cmeta itemprop=\"name\" content=\"org\"\u003e\n      \u003cmeta itemprop=\"type\" content=\"https://schema.host/Text\"\u003e\n      \u003cmeta itemprop=\"cardinality\" content=\"1..1\"\u003e\n      \u003cmeta itemprop=\"references\" content=\"https://pagelike.test/_pl/modeling-references-change-rewrites-refe-005bee/Org#identifier\"\u003e\n      \u003cmeta itemprop=\"cascade\" content=\"true\"\u003e\n    \u003c/div\u003e\n  \u003c/div\u003e\n\u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 2 (org acme)",
+      "method": "PUT",
+      "path": "/_pl/modeling-references-change-rewrites-refe-005bee/org.html",
+      "status": 201,
+      "headers": {
+        "content-length": "215",
+        "content-type": "text/html",
+        "etag": "\"1f84581e677ab94c7e892781395107f8ce8a41623f976e836f104335f66116b0\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:44 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\n  \u003cdiv itemscope itemtype=\"https://pagelike.test/_pl/modeling-references-change-rewrites-refe-005bee/Org\" id=\"o\"\u003e\n    \u003cmeta itemprop=\"identifier\" content=\"acme\"\u003e\n  \u003c/div\u003e\n\u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 3 (member of acme)",
+      "method": "PUT",
+      "path": "/_pl/modeling-references-change-rewrites-refe-005bee/m.html",
+      "status": 201,
+      "headers": {
+        "content-length": "204",
+        "content-type": "text/html",
+        "etag": "\"71e9161a7bd569c26053f435ada819bc95b07ef917221b91627d37b89852b201\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:44 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\n  \u003cdiv itemscope itemtype=\"https://pagelike.test/_pl/modeling-references-change-rewrites-refe-005bee/Member\"\u003e\n    \u003cmeta itemprop=\"org\" content=\"acme\"\u003e\n  \u003c/div\u003e\n\u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 4 (rename the org identifier)",
+      "method": "PUT",
+      "path": "/_pl/modeling-references-change-rewrites-refe-005bee/org.html",
+      "status": 206,
+      "headers": {
+        "content-length": "44",
+        "content-range": "selector #o \u003e meta[itemprop=\"identifier\"]",
+        "content-type": "text/html",
+        "etag": "\"4e875ccfb1a6312beddc227331a8bb2a3ac5c8b2de61ff7dfa72efa2967082f1-4e875ccfb1a6312beddc227331a8bb2a3ac5c8b2de61ff7dfa72efa2967082f1-2\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:44 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003cmeta itemprop=\"identifier\" content=\"acme2\"\u003e"
+    },
+    {
+      "step": "step 5 (stored state of m.html (authoring plane, raw))",
+      "method": "GET",
+      "path": "/_pl/modeling-references-change-rewrites-refe-005bee/m.html",
+      "status": 200,
+      "headers": {
+        "accept-ranges": "bytes",
+        "content-length": "205",
+        "content-type": "text/html",
+        "etag": "\"c8a06b72190035d1c8b964fdd420b1f0eca566c9a3edc64e3b2fe719cdc78fc6\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:44 GMT"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\n  \u003cdiv itemscope itemtype=\"https://pagelike.test/_pl/modeling-references-change-rewrites-refe-005bee/Member\"\u003e\n    \u003cmeta itemprop=\"org\" content=\"acme2\"\u003e\n  \u003c/div\u003e\n\u003c/body\u003e\u003c/html\u003e\n"
+    }
+  ],
+  "outcome": "pass",
+  "target": "local"
+}

@@ -1,0 +1,22 @@
+{
+  "case": "authz.multimatch.single-read-first-match-denied.live",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (first match served)",
+      "method": "GET",
+      "path": "/_pl/authz-multimatch-single-read-first-match-02c400/list.html",
+      "status": 206,
+      "headers": {
+        "content-length": "34",
+        "content-range": "selector .item",
+        "content-type": "text/html",
+        "etag": "\"57297703b49ce8c1431947df9856b4df6298b91c2d47d2afcda422ec9fc6e923-57297703b49ce8c1431947df9856b4df6298b91c2d47d2afcda422ec9fc6e923-1\"",
+        "vary": "Host, Range, Accept"
+      },
+      "body": "\u003cli class=\"item secret\"\u003eBravo\u003c/li\u003e"
+    }
+  ],
+  "outcome": "pass",
+  "target": "live"
+}

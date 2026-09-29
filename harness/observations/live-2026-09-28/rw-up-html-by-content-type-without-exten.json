@@ -1,0 +1,35 @@
+{
+  "case": "rw.up.html-by-content-type-without-extension",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (store HTML at an extension-less path)",
+      "method": "PUT",
+      "path": "/_pl/rw-up-html-by-content-type-without-exten-e76028/page",
+      "status": 201,
+      "headers": {
+        "content-type": "text/html",
+        "etag": "\"3562774e2cf8e1d8b443c64df174f37faf90fc819045449bf5b1741e6731c549\"",
+        "last-modified": "Mon, 28 Sep 2026 22:29:27 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\u003ch1\u003eNo extension\u003c/h1\u003e\n                \u003cdiv style=\"\n                            position: fixed;\n                            bottom: 0;\n                            left: 0;\n                            right: 0;\n                            padding: 8px;\n                            background: #f0f0f0;\n                            text-align: center;\n                            font-size: 12px;\n                            color: #666;\n                            z-index: 9999;\n                            opacity: 0.8;\n                            border-top: 1px solid #ddd;\n                        \"\u003e\n                    Powered by\n                    \u003ca href=\"https://pagelove.com/\" style=\"color: #4a90d9; text-decoration: none\"\u003ePagelove\u003c/a\u003e\n                \u003c/div\u003e\n            \u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 2 (selector-addressable)",
+      "method": "GET",
+      "path": "/_pl/rw-up-html-by-content-type-without-exten-e76028/page",
+      "status": 206,
+      "headers": {
+        "content-length": "21",
+        "content-range": "selector h1",
+        "content-type": "text/html",
+        "etag": "\"24455d43cc0c0a7ed574af894e4a3eb505e16002d88f7c2b4148f9b53ac1ca49-24455d43cc0c0a7ed574af894e4a3eb505e16002d88f7c2b4148f9b53ac1ca49-1\"",
+        "vary": "Host, Range, Accept"
+      },
+      "body": "\u003ch1\u003eNo extension\u003c/h1\u003e"
+    }
+  ],
+  "outcome": "pass",
+  "target": "live"
+}

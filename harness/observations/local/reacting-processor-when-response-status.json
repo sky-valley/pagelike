@@ -1,0 +1,49 @@
+{
+  "case": "reacting.processor.when-response-status",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (install a gated processor with no status filter)",
+      "method": "PUT",
+      "path": "/_pl/reacting-processor-when-response-status-0a3de1/r/processors.html",
+      "status": 201,
+      "headers": {
+        "content-length": "743",
+        "content-type": "text/html",
+        "etag": "\"4dc64afb7b3b1e1fa210b969d22d8eeae44c70e6cb23ff4fb9e1de47971ef1c4\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:49 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\n\u003cdiv hidden itemscope itemtype=\"https://pagelove.org/Processor\"\u003e\n  \u003cmeta itemprop=\"resource\" content=\"/_pl/reacting-processor-when-response-status-0a3de1/d/*\"\u003e\n  \u003cmeta itemprop=\"method\" content=\"GET\"\u003e\n  \u003cdiv itemprop=\"when\" itemscope itemtype=\"https://pagelove.org/Sessel\"\u003e\n    \u003cscript itemprop=\"source\" type=\"text/sessel\"\u003e\n      @schema Context url(\"https://pagelove.org/Context\");\n      Context.response.status == 404\n    \u003c/script\u003e\n  \u003c/div\u003e\n  \u003cdiv itemprop=\"action\" itemscope itemtype=\"https://pagelove.org/Sessel\"\u003e\n    \u003cscript itemprop=\"source\" type=\"text/sessel\"\u003e\n      @schema Context url(\"https://pagelove.org/Context\");\n      Context.response.body = \"gated-404\"\n    \u003c/script\u003e\n  \u003c/div\u003e\n\u003c/div\u003e\n\u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 2 (missing page)",
+      "method": "GET",
+      "path": "/_pl/reacting-processor-when-response-status-0a3de1/d/missing.html",
+      "status": 404,
+      "headers": {
+        "content-length": "9",
+        "content-type": "text/html",
+        "vary": "Host, Range"
+      },
+      "body": "gated-404"
+    },
+    {
+      "step": "step 3 (existing page)",
+      "method": "GET",
+      "path": "/_pl/reacting-processor-when-response-status-0a3de1/d/doc.html",
+      "status": 200,
+      "headers": {
+        "accept-ranges": "selector, bytes",
+        "content-length": "61",
+        "content-type": "text/html",
+        "etag": "\"c157ad921b14f66de238811003ae2ff22fdeab3735266c6aecd6351e0027e1fe\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:49 GMT",
+        "vary": "Host, Range, Accept"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\u003ch1\u003eReal page\u003c/h1\u003e\u003c/body\u003e\u003c/html\u003e\n"
+    }
+  ],
+  "outcome": "pass",
+  "target": "local"
+}

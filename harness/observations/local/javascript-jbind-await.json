@@ -1,0 +1,37 @@
+{
+  "case": "javascript.jbind.await",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (PUT the page (public plane; registers inline declarations))",
+      "method": "PUT",
+      "path": "/_pl/javascript-jbind-await-fde988/j.html",
+      "status": 201,
+      "headers": {
+        "content-length": "250",
+        "content-type": "text/html",
+        "etag": "\"27f235fe9809dd02463337baa590e09d116ac76eb28184037fa2bc3db7352e7c\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:43 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml xmlns:j=\"https://pagelove.org/Binding/JavaScript\" xmlns:p=\"https://pagelove.org/1.0\"\u003e\u003cbody\u003e\n\u003cmain\u003e\n\u003cdiv j:v=\"await Promise.resolve(41).then((x) =\u0026gt; x + 1)\" j:out=\"'A=' + v\"\u003e\u003cp:stamp out\u003e\u003c/p:stamp\u003e\u003c/div\u003e\n\u003c/main\u003e\n\u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 2 (GET the composed page)",
+      "method": "GET",
+      "path": "/_pl/javascript-jbind-await-fde988/j.html",
+      "status": 206,
+      "headers": {
+        "accept-ranges": "selector, bytes",
+        "content-length": "30",
+        "content-range": "selector main",
+        "content-type": "text/html",
+        "etag": "\"d6b7bf9983f24ff077b0d9ce1016655aecd3382e0068d574378ea1e4e1dca94a-d6b7bf9983f24ff077b0d9ce1016655aecd3382e0068d574378ea1e4e1dca94a-1\"",
+        "vary": "Host, Range, Accept"
+      },
+      "body": "\u003cmain\u003e\n\u003cdiv\u003eA=42\u003c/div\u003e\n\u003c/main\u003e"
+    }
+  ],
+  "outcome": "pass",
+  "target": "local"
+}

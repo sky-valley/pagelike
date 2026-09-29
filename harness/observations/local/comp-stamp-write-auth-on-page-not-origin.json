@@ -1,0 +1,33 @@
+{
+  "case": "comp.stamp.write-auth-on-page-not-origin",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1",
+      "method": "PUT",
+      "path": "/_pl/comp-stamp-write-auth-on-page-not-origin-303826/page.html",
+      "status": 401,
+      "headers": {
+        "content-length": "430",
+        "content-type": "text/html; charset=utf-8"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\n\u003chead\u003e\n    \u003cmeta charset=\"UTF-8\"\u003e\n    \u003ctitle\u003e401 Unauthorized\u003c/title\u003e\n\u003c/head\u003e\n\u003cbody itemscope itemtype=\"https://pagelove.org/1.0/Error\"\u003e\n    \u003ch1\u003e401 Unauthorized\u003c/h1\u003e\n    \u003cp itemprop=\"message\"\u003eAuthentication required to access this resource.\u003c/p\u003e\n    \u003cdl\u003e\n        \u003cdt\u003eResource\u003c/dt\u003e\n        \u003cdd itemprop=\"resource\"\u003e/_pl/comp-stamp-write-auth-on-page-not-origin-303826/page.html\u003c/dd\u003e\n    \u003c/dl\u003e\n\u003c/body\u003e\n\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 2",
+      "method": "GET",
+      "path": "/_pl/comp-stamp-write-auth-on-page-not-origin-303826/data/rec.html",
+      "status": 200,
+      "headers": {
+        "accept-ranges": "bytes",
+        "content-length": "207",
+        "content-type": "text/html",
+        "etag": "\"da63f3888ce864777e812e13a43c5ae36f3852e4a37ccd72fbdf7eead33cef48\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:42 GMT"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\u003carticle id=\"rec-1\" itemscope itemtype=\"https://example.test/_pl/comp-stamp-write-auth-on-page-not-origin-303826/Rec\"\u003e\u003ch1 itemprop=\"title\"\u003eRecord One\u003c/h1\u003e\u003c/article\u003e\u003c/body\u003e\u003c/html\u003e\n"
+    }
+  ],
+  "outcome": "pass",
+  "target": "local"
+}

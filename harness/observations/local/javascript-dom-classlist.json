@@ -1,0 +1,37 @@
+{
+  "case": "javascript.dom.classlist",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (PUT the page (public plane; registers inline declarations))",
+      "method": "PUT",
+      "path": "/_pl/javascript-dom-classlist-ecfefc/probe.html",
+      "status": 201,
+      "headers": {
+        "content-length": "1521",
+        "content-type": "text/html",
+        "etag": "\"e382e387ee70bc9e1f83f26c13aa4ba32c1c75567a43b2cb4c47c0ec99cc9f21\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:42 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml xmlns:t=\"https://pagelike.test/_pl/javascript-dom-classlist-ecfefc/Dclasslist\"\u003e\u003cbody\u003e\n\u003cmain\u003e\n\u003ct:probe\u003e\u003c/t:probe\u003e\n\u003c/main\u003e\n\u003cdiv hidden itemscope itemtype=\"https://pagelove.org/Schema\"\u003e\n\u003cmeta itemprop=\"type\" content=\"https://pagelike.test/_pl/javascript-dom-classlist-ecfefc/Dclasslist\"\u003e\n\u003cul\u003e\n\u003cli itemprop=\"property\" itemscope itemtype=\"https://pagelove.org/Method\"\u003e\n\u003cmeta itemprop=\"name\" content=\"probe\"\u003e\n\u003cdiv itemprop=\"implementation\" itemscope itemtype=\"https://pagelove.org/JavaScript/Module\"\u003e\n\u003cscript itemprop=\"source\" type=\"module\"\u003e\nconst S = (...a) =\u003e a.map(String).join('|');\nconst H = (x) =\u003e String(x).replace(/[\u003c\u003e\"]/g, (c) =\u003e ({ '\u003c': '[', '\u003e': ']', '\"': \"'\" })[c]);\nconst tryName = (f) =\u003e { try { f(); return 'ok'; } catch (e) { return e.name + ':' + e.code; } };\nexport default function () {\nconst d = new DOMParser().parseFromString('\u003cp class=\"a b a\"\u003e\u003c/p\u003e', 'text/html');\nconst p = d.querySelector('p'), cl = p.classList;\nconst out = [cl.length, cl.contains('a'), cl.value];\ncl.add('c', 'a'); out.push(p.getAttribute('class'));\nout.push(cl.toggle('b')); out.push(cl.toggle('z', false)); out.push(cl.toggle('z', true)); out.push(p.className);\nout.push(cl.replace('a', 'x')); out.push(cl.replace('nope', 'y')); out.push(p.className);\nout.push(cl.item(0), cl.item(-1), cl.item(99), [...cl].join(','));\ncl.remove('x', 'c', 'z'); out.push(p.hasAttribute('class'), cl.length);\ncl.value = 'm n'; out.push(p.className);\nreturn 'R:' + S(...out);\n}\n\u003c/script\u003e\n\u003c/div\u003e\n\u003c/li\u003e\n\u003c/ul\u003e\n\u003c/div\u003e\n\u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 2 (GET \u003cmain\u003e: the method result is inserted as text)",
+      "method": "GET",
+      "path": "/_pl/javascript-dom-classlist-ecfefc/probe.html",
+      "status": 206,
+      "headers": {
+        "accept-ranges": "selector, bytes",
+        "content-length": "122",
+        "content-range": "selector main",
+        "content-type": "text/html",
+        "etag": "\"0c2011ad4d8bc0c0b21bf70e8e2073e545b5f233f15dcaf069060fd1e288020f-0c2011ad4d8bc0c0b21bf70e8e2073e545b5f233f15dcaf069060fd1e288020f-1\"",
+        "vary": "Host, Range, Accept"
+      },
+      "body": "\u003cmain\u003e\nR:3|true|a b a|a b a c|false|false|true|a a c z|true|false|x a c z|x|undefined|undefined|x,a,c,z|true|1|m n\n\u003c/main\u003e"
+    }
+  ],
+  "outcome": "pass",
+  "target": "local"
+}

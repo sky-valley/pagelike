@@ -1,0 +1,64 @@
+{
+  "case": "authz.actor.username-token-deprecated",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (:username)",
+      "method": "PUT",
+      "path": "/_pl/authz-actor-username-token-deprecated-a2cca3/a.html",
+      "status": 206,
+      "headers": {
+        "content-length": "10",
+        "content-range": "selector h1",
+        "content-type": "text/html",
+        "etag": "\"0e3ab556a09b50a60589ff4d86bb2f9986936aab4c0a32b561633f9a5c1afaef-0e3ab556a09b50a60589ff4d86bb2f9986936aab4c0a32b561633f9a5c1afaef-2\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:45 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003ch1\u003eB\u003c/h1\u003e"
+    },
+    {
+      "step": "step 2 (${username})",
+      "method": "PUT",
+      "path": "/_pl/authz-actor-username-token-deprecated-a2cca3/b.html",
+      "status": 206,
+      "headers": {
+        "content-length": "10",
+        "content-range": "selector h1",
+        "content-type": "text/html",
+        "etag": "\"0e3ab556a09b50a60589ff4d86bb2f9986936aab4c0a32b561633f9a5c1afaef-0e3ab556a09b50a60589ff4d86bb2f9986936aab4c0a32b561633f9a5c1afaef-2\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:45 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003ch1\u003eB\u003c/h1\u003e"
+    },
+    {
+      "step": "step 3 (${request.auth.username})",
+      "method": "PUT",
+      "path": "/_pl/authz-actor-username-token-deprecated-a2cca3/c.html",
+      "status": 206,
+      "headers": {
+        "content-length": "10",
+        "content-range": "selector h1",
+        "content-type": "text/html",
+        "etag": "\"0e3ab556a09b50a60589ff4d86bb2f9986936aab4c0a32b561633f9a5c1afaef-0e3ab556a09b50a60589ff4d86bb2f9986936aab4c0a32b561633f9a5c1afaef-2\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:45 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003ch1\u003eB\u003c/h1\u003e"
+    },
+    {
+      "step": "step 4 (anonymous never matches)",
+      "method": "PUT",
+      "path": "/_pl/authz-actor-username-token-deprecated-a2cca3/a.html",
+      "status": 401,
+      "headers": {
+        "content-length": "468",
+        "content-type": "text/html; charset=utf-8"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\n\u003chead\u003e\n    \u003cmeta charset=\"UTF-8\"\u003e\n    \u003ctitle\u003e401 Unauthorized\u003c/title\u003e\n\u003c/head\u003e\n\u003cbody itemscope itemtype=\"https://pagelove.org/1.0/Error\"\u003e\n    \u003ch1\u003e401 Unauthorized\u003c/h1\u003e\n    \u003cp itemprop=\"message\"\u003eAuthentication required to access this resource.\u003c/p\u003e\n    \u003cdl\u003e\n        \u003cdt\u003eResource\u003c/dt\u003e\n        \u003cdd itemprop=\"resource\"\u003e/_pl/authz-actor-username-token-deprecated-a2cca3/a.html\u003c/dd\u003e\n    \u003c/dl\u003e\n    \u003cp\u003e\u003ca href=\"/auth/login\"\u003eLog in\u003c/a\u003e\u003c/p\u003e\n\u003c/body\u003e\n\u003c/html\u003e\n"
+    }
+  ],
+  "outcome": "pass",
+  "target": "local"
+}

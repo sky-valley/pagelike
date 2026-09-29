@@ -1,0 +1,455 @@
+# Reacting: request context seen by triggers (spec R-REACT-22..25).
+# See discovery.yaml for directory conventions.
+anchors:
+  open_rules: &open_rules
+    - {actor: "*", resource: "${P}/*", method: [GET, HEAD, PUT, POST, DELETE], action: Allow}
+defaults:
+  area: reacting
+  site:
+    settings: {default_get: allow}
+    rules: *open_rules
+cases:
+  - id: reacting.context.sessel-request-fields
+    title: Sessel Context.request exposes method, path, query, headers and body
+    feature: trigger context (Sessel)
+    evidence: documented
+    source: "docs reference/reacting-to-changes/Trigger §Context (Sessel table) (snapshot 2026-09-28)"
+    confidence: medium
+    requires: [sessel]
+    live: true
+    notes: "spec: R-REACT-22, R-REACT-23. Path excludes the query string; header keys are looked up in lower case."
+    steps:
+      - name: install a trigger that echoes the context in a thrown body
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/r/triggers.html"
+          headers: {Content-Type: text/html}
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+            <div hidden itemscope itemtype="https://pagelove.org/Trigger">
+              <meta itemprop="resource" content="${P}/d/*">
+              <meta itemprop="method" content="PUT">
+              <div itemprop="action" itemscope itemtype="https://pagelove.org/Sessel">
+                <script itemprop="source" type="text/sessel">
+                  @schema Context url("https://pagelove.org/Context");
+                  @schema HTTPResponse url("https://pagelove.org/HTTPResponse");
+                  throw new HTTPResponse {
+                    status: 409,
+                    body: "m=" + Context.request.method + ";p=" + Context.request.path + ";q=" + (Context.request.query["a"] ?? "none") + ";h=" + (Context.request.headers["x-test"] ?? "none") + ";b=" + Context.request.body + ";end"
+                  }
+                </script>
+              </div>
+            </div>
+            </body></html>
+        expect: {status: [200, 201, 204]}
+      - name: every field is visible
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/d/note.txt?a=1"
+          headers: {Content-Type: text/plain, X-Test: "yes"}
+          body: "hello-body"
+        expect:
+          status: 409
+          body_contains: ["m=PUT", ";p=${P}/d/note.txt;", ";q=1;", ";h=yes;", ";b=hello-body;end"]
+
+  - id: reacting.context.header-lookup-lowercase
+    title: A lower-case header lookup finds the Authorization header (shop and polls pattern)
+    feature: trigger context (headers)
+    evidence: demo-source
+    source: "pagelove-shop/site/admin-auth.html@d887054:16-18,25,50; pagelove-polls/site/admin/auth.html@c9270e5:107,114,137"
+    confidence: high
+    requires: [sessel]
+    live: true
+    notes: "spec: R-REACT-23. Test credential value only. Carries the documented no-op action `1`: PageLove refuses a Trigger without exactly one action (live 2026-09-29, harness/observations/live-2026-09-29/reacting-context-header-lookup-lowercase.json)."
+    steps:
+      - name: install a lower-case gate
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/r/triggers.html"
+          headers: {Content-Type: text/html}
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+            <div hidden itemscope itemtype="https://pagelove.org/Trigger">
+              <meta itemprop="resource" content="${P}/d/*">
+              <meta itemprop="method" content="PUT">
+              <div itemprop="when" itemscope itemtype="https://pagelove.org/Sessel">
+                <script itemprop="source" type="text/sessel">
+                  @schema Context url("https://pagelove.org/Context");
+                  (Context.request.headers["authorization"] ?? "") == "Basic dGVzdDp0ZXN0"
+                </script>
+              </div>
+              <div itemprop="action" itemscope itemtype="https://pagelove.org/Sessel">
+                <script itemprop="source" type="text/sessel">1</script>
+              </div>
+              <div itemprop="otherwise" itemscope itemtype="https://pagelove.org/Sessel">
+                <script itemprop="source" type="text/sessel">
+                  @schema HTTPResponse url("https://pagelove.org/HTTPResponse");
+                  throw new HTTPResponse { status: 401, body: "Admin credential required" }
+                </script>
+              </div>
+            </div>
+            </body></html>
+        expect: {status: [200, 201, 204]}
+      - name: without the header
+        as: anonymous
+        request: {method: PUT, path: "${P}/d/x.html", headers: {Content-Type: text/html}, body: "<p>x</p>"}
+        expect: {status: 401, body_contains: ["Admin credential required"]}
+      - name: with the header
+        as: anonymous
+        request: {method: PUT, path: "${P}/d/x.html", headers: {Content-Type: text/html, Authorization: "Basic dGVzdDp0ZXN0"}, body: "<p>x</p>"}
+        expect: {status: [200, 201, 204]}
+
+  - id: reacting.context.header-lookup-canonical-case
+    title: A canonical-case header lookup (as in the docs) also finds the header
+    feature: trigger context (headers)
+    evidence: documented
+    source: "docs reference/reacting-to-changes/Trigger §when, §Chain termination (headers[\"Authorization\"]) (snapshot 2026-09-28)"
+    confidence: medium
+    requires: [sessel]
+    live: true
+    notes: "spec: R-REACT-23, decision C2 (case-insensitive lookup). Competing claim: reacting.context.header-lookup-canonical-case-misses-http2 (disputed). Probe P-2. Carries the documented no-op action `1` (R-REACT-4a, live 2026-09-29)."
+    steps:
+      - name: install a canonical-case gate
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/r/triggers.html"
+          headers: {Content-Type: text/html}
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+            <div hidden itemscope itemtype="https://pagelove.org/Trigger">
+              <meta itemprop="resource" content="${P}/d/*">
+              <meta itemprop="method" content="PUT">
+              <div itemprop="when" itemscope itemtype="https://pagelove.org/Sessel">
+                <script itemprop="source" type="text/sessel">
+                  @schema Context url("https://pagelove.org/Context");
+                  Context.request.headers["Authorization"] != null
+                </script>
+              </div>
+              <div itemprop="action" itemscope itemtype="https://pagelove.org/Sessel">
+                <script itemprop="source" type="text/sessel">1</script>
+              </div>
+              <div itemprop="otherwise" itemscope itemtype="https://pagelove.org/Sessel">
+                <script itemprop="source" type="text/sessel">
+                  @schema HTTPResponse url("https://pagelove.org/HTTPResponse");
+                  throw new HTTPResponse { status: 401, body: "Authorization required" }
+                </script>
+              </div>
+            </div>
+            </body></html>
+        expect: {status: [200, 201, 204]}
+      - name: without the header
+        as: anonymous
+        request: {method: PUT, path: "${P}/d/x.html", headers: {Content-Type: text/html}, body: "<p>x</p>"}
+        expect: {status: 401}
+      - name: with the header the gate passes
+        as: anonymous
+        request: {method: PUT, path: "${P}/d/x.html", headers: {Content-Type: text/html, Authorization: "Bearer pagelike-test-token"}, body: "<p>x</p>"}
+        expect: {status: [200, 201, 204]}
+
+  - id: reacting.context.header-lookup-canonical-case-misses-http2
+    title: "Competing claim: over HTTP/2 a canonical-case lookup never finds the header"
+    feature: trigger context (headers)
+    evidence: demo-source
+    source: "pagelove-shop/site/admin-auth.html@d887054:16-18 ('HTTP/2 sends header names lowercased, so headers[\"Authorization\"] is always empty')"
+    confidence: medium
+    status: disputed
+    requires: [sessel]
+    live: true
+    notes: "spec C2. Records the observed live behaviour (the live harness client uses HTTP/2). pagelike decided on case-insensitive lookup. Carries the documented no-op action `1` so that PageLove stores the trigger (R-REACT-4a, live 2026-09-29)."
+    steps:
+      - name: install a canonical-case gate
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/r/triggers.html"
+          headers: {Content-Type: text/html}
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+            <div hidden itemscope itemtype="https://pagelove.org/Trigger">
+              <meta itemprop="resource" content="${P}/d/*">
+              <meta itemprop="method" content="PUT">
+              <div itemprop="when" itemscope itemtype="https://pagelove.org/Sessel">
+                <script itemprop="source" type="text/sessel">
+                  @schema Context url("https://pagelove.org/Context");
+                  Context.request.headers["Authorization"] != null
+                </script>
+              </div>
+              <div itemprop="action" itemscope itemtype="https://pagelove.org/Sessel">
+                <script itemprop="source" type="text/sessel">1</script>
+              </div>
+              <div itemprop="otherwise" itemscope itemtype="https://pagelove.org/Sessel">
+                <script itemprop="source" type="text/sessel">
+                  @schema HTTPResponse url("https://pagelove.org/HTTPResponse");
+                  throw new HTTPResponse { status: 401, body: "Authorization required" }
+                </script>
+              </div>
+            </div>
+            </body></html>
+        expect: {status: [200, 201, 204]}
+      - name: even with the header the lookup misses
+        as: anonymous
+        request: {method: PUT, path: "${P}/d/x.html", headers: {Content-Type: text/html, Authorization: "Bearer pagelike-test-token"}, body: "<p>x</p>"}
+        expect: {status: 401}
+
+  - id: reacting.context.js-request-fields
+    title: JavaScript ctx.request exposes method, path, headers, host, query and body
+    feature: trigger context (JavaScript)
+    evidence: documented
+    source: "docs reference/reacting-to-changes/Trigger §Context (JavaScript table) (snapshot 2026-09-28)"
+    confidence: medium
+    requires: [server-js]
+    live: true
+    notes: "spec: R-REACT-25. The JS-thrown body is sent byte-for-byte (R-REACT-32), so JSON survives."
+    steps:
+      - name: install a JS echo trigger
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/r/triggers.html"
+          headers: {Content-Type: text/html}
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+            <div hidden itemscope itemtype="https://pagelove.org/Trigger">
+              <meta itemprop="resource" content="${P}/d/*">
+              <meta itemprop="method" content="PUT">
+              <div itemprop="action" itemscope itemtype="https://pagelove.org/JavaScript/Module">
+                <script type="module" itemprop="source">
+                  export default function(ctx) {
+                    const r = ctx.request;
+                    throw {
+                      schema_url: "https://pagelove.org/HTTPResponse",
+                      status: 409,
+                      headers: { "Content-Type": "application/json" },
+                      body: JSON.stringify({
+                        m: r.method,
+                        p: r.path,
+                        h: r.headers["x-test"] ?? null,
+                        q: (r.query || {}).a ?? null,
+                        b: r.body ?? null,
+                        hostIsString: typeof r.host === "string" && r.host.length > 0
+                      })
+                    };
+                  }
+                </script>
+              </div>
+            </div>
+            </body></html>
+        expect: {status: [200, 201, 204]}
+      - name: every field is visible
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/d/note.txt?a=1"
+          headers: {Content-Type: text/plain, X-Test: "yes"}
+          body: "hello-body"
+        expect:
+          status: 409
+          body_contains: ['"m":"PUT"', '"p":"${P}/d/note.txt"', '"h":"yes"', '"q":"1"', '"b":"hello-body"', '"hostIsString":true']
+
+  - id: reacting.context.js-auth-claims
+    title: ctx.request.auth carries the signed-in principal's claims
+    feature: trigger context (auth)
+    evidence: documented
+    source: "docs reference/reacting-to-changes/Trigger §Context ('ctx.request.auth … Authentication claims, when available') (snapshot 2026-09-28)"
+    confidence: medium
+    requires: [server-js, multi-actor]
+    live: true
+    notes: "spec: R-REACT-25; shape per permissions R-PERM-74."
+    actors:
+      alice: {sub: alice, email: alice@example.com, email_verified: true, name: Alice}
+    steps:
+      - name: install a JS trigger that echoes auth
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/r/triggers.html"
+          headers: {Content-Type: text/html}
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+            <div hidden itemscope itemtype="https://pagelove.org/Trigger">
+              <meta itemprop="resource" content="${P}/d/*">
+              <meta itemprop="method" content="PUT">
+              <div itemprop="action" itemscope itemtype="https://pagelove.org/JavaScript/Module">
+                <script type="module" itemprop="source">
+                  export default function(ctx) {
+                    throw { schema_url: "https://pagelove.org/HTTPResponse", status: 409, body: JSON.stringify(ctx.request.auth ?? null) };
+                  }
+                </script>
+              </div>
+            </div>
+            </body></html>
+        expect: {status: [200, 201, 204]}
+      - name: alice's claims are visible
+        as: alice
+        request: {method: PUT, path: "${P}/d/x.html", headers: {Content-Type: text/html}, body: "<p>x</p>"}
+        expect: {status: 409, body_contains: ["alice@example.com"]}
+
+  - id: reacting.context.js-auth-anonymous-null
+    title: ctx.request.auth for an anonymous request is an object with empty claims and roles
+    feature: trigger context (auth)
+    evidence: live-observed
+    source: "harness/observations/live-2026-09-29/reacting-context-js-auth-anonymous-null.json (2026-09-29)"
+    confidence: high
+    requires: [server-js]
+    live: true
+    notes: "spec: R-REACT-25 (live 2026-09-29). The id keeps its old name; the value is not null. It holds no claim and no role, so a claim or role check still refuses an anonymous request."
+    steps:
+      - name: install a JS trigger that echoes auth
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/r/triggers.html"
+          headers: {Content-Type: text/html}
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+            <div hidden itemscope itemtype="https://pagelove.org/Trigger">
+              <meta itemprop="resource" content="${P}/d/*">
+              <meta itemprop="method" content="PUT">
+              <div itemprop="action" itemscope itemtype="https://pagelove.org/JavaScript/Module">
+                <script type="module" itemprop="source">
+                  export default function(ctx) {
+                    throw { schema_url: "https://pagelove.org/HTTPResponse", status: 409, body: "auth=" + JSON.stringify(ctx.request.auth ?? null) };
+                  }
+                </script>
+              </div>
+            </div>
+            </body></html>
+        expect: {status: [200, 201, 204]}
+      - name: anonymous auth has empty claims and roles
+        as: anonymous
+        request: {method: PUT, path: "${P}/d/x.html", headers: {Content-Type: text/html}, body: "<p>x</p>"}
+        expect: {status: 409, body: 'auth={"claims":{},"roles":[]}'}
+
+  - id: reacting.context.resource-binding-on-trigger
+    title: A resource binding declared on the trigger element is not bound in trigger code (a reference fails the request)
+    feature: trigger context (resource bindings)
+    evidence: live-observed
+    source: "harness/observations/live-2026-09-29-reconcile-reacting/reacting-context-resource-binding-on-tri.json and reacting-context-probe-0929-trigger-bind.json (2026-09-29); the docs (Resource-Binding §Binding placement, 'For triggers, bindings on the trigger element or its ancestors are available') say otherwise"
+    confidence: high
+    requires: [sessel]
+    live: true
+    notes: "spec: R-REACT-24 (live 2026-09-29). The id keeps its old name. The first live run used the binding in a when gate with the documented no-op action added: PageLove took the otherwise branch for the right token too, because the name was undefined and a failing when is falsy there (pagelike keeps failing the request, R-REACT-34). The gate now reads the binding in an action. Trigger code reads stored documents with a bare Sessel selector instead (reacting.gates.shop-basic-auth-gate)."
+    site:
+      settings: {default_get: allow}
+      rules:
+        - {actor: "*", resource: "${P}/*", method: [GET, HEAD, PUT, POST, DELETE], action: Allow}
+        - {actor: "*", resource: "${P}/private/*", method: [GET, HEAD], action: Deny}
+      files:
+        - path: "${P}/private/secret.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+            <div itemscope itemtype="https://pagelike.test${P}/Secret"><meta itemprop="token" content="s3cret-test-token"></div>
+            </body></html>
+    steps:
+      - name: install a trigger whose action reads r:secret
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/r/triggers.html"
+          headers: {Content-Type: text/html}
+          body: |
+            <!DOCTYPE html>
+            <html xmlns:p="https://pagelove.org/1.0" xmlns:r="https://pagelove.org/Binding/CSS"><body>
+            <div hidden r:secret="[itemtype='https://pagelike.test${P}/Secret'] [itemprop=token]" itemscope itemtype="https://pagelove.org/Trigger">
+              <meta itemprop="resource" content="${P}/d/*">
+              <meta itemprop="method" content="PUT">
+              <div itemprop="action" itemscope itemtype="https://pagelove.org/Sessel">
+                <script itemprop="source" type="text/sessel">
+                  @schema HTTPResponse url("https://pagelove.org/HTTPResponse");
+                  throw new HTTPResponse { status: 409, body: "v=" + secret.first().value() }
+                </script>
+              </div>
+            </div>
+            </body></html>
+        expect: {status: [200, 201, 204]}
+      - name: the name is not bound, so the action fails the request
+        as: anonymous
+        request: {method: PUT, path: "${P}/d/x.html", headers: {Content-Type: text/html}, body: "<p>x</p>"}
+        expect:
+          status: 500
+          body_contains: ["variable: secret"]
+          body_not_contains: ["s3cret-test-token"]
+      - name: nothing was written
+        as: anonymous
+        request: {method: GET, path: "${P}/d/x.html"}
+        expect: {status: 404}
+
+  - id: reacting.context.polls-existing-document-guard
+    title: "Polls guard: a whole-document PUT may create a poll but not overwrite an existing one"
+    feature: store queries from triggers
+    evidence: demo-source
+    source: "pagelove-polls/site/admin/auth.html@c9270e5:130-150"
+    confidence: high
+    requires: [sessel]
+    live: true
+    notes: "spec: R-REACT-24 (from-scoped store query, element .path()). Contradicts the demo-apps README claim that triggers see only the request (C7)."
+    steps:
+      - name: install the polls guard
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/r/polls-guard.html"
+          headers: {Content-Type: text/html}
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+            <div class="constraint" itemscope itemtype="https://pagelove.org/Trigger">
+              <meta itemprop="resource" content="${P}/polls/*">
+              <meta itemprop="method" content="PUT">
+              <div itemprop="when" itemscope itemtype="https://pagelove.org/Sessel">
+                <script itemprop="source" type="text/sessel">
+                  @schema Context url("https://pagelove.org/Context");
+                  Context.request.headers["range"] == null
+                </script>
+              </div>
+              <div itemprop="action" itemscope itemtype="https://pagelove.org/Sessel">
+                <script itemprop="source" type="text/sessel">
+                  @schema Context url("https://pagelove.org/Context");
+                  @schema HTTPResponse url("https://pagelove.org/HTTPResponse");
+                  let path = Context.request.path;
+                  if ((${[itemtype="https://pagelike.test${P}/Poll"]} from "${P}/polls/*").any(p => p.path() == path)) {
+                    throw new HTTPResponse { status: 409, message: "This poll already exists and cannot be replaced." }
+                  }
+                </script>
+              </div>
+            </div>
+            </body></html>
+        expect: {status: [200, 201, 204]}
+      - name: creating a new poll is allowed
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/polls/p1.html"
+          headers: {Content-Type: text/html}
+          body: |
+            <!DOCTYPE html>
+            <html><body><main itemscope itemtype="https://pagelike.test${P}/Poll"><h1 id="q" itemprop="name">Lunch?</h1></main></body></html>
+        expect: {status: [200, 201, 204]}
+      - name: overwriting it is refused
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/polls/p1.html"
+          headers: {Content-Type: text/html}
+          body: '<!DOCTYPE html><html><body><main><h1>Hijacked</h1></main></body></html>'
+        expect: {status: 409, body_contains: ["already exists"]}
+      - name: an element-level write is not covered by this guard
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/polls/p1.html"
+          headers: {Content-Type: text/html, Range: "selector=#q"}
+          body: '<h1 id="q" itemprop="name">Dinner?</h1>'
+        expect: {status: [200, 204, 206]}

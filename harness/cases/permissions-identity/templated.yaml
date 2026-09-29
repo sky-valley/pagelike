@@ -1,0 +1,483 @@
+# Templated rule values (spec R-PERM-30..37).
+# NOTE for the runner: rule bodies contain PageLove lookups such as ${request.method};
+# only ${P}, ${HOST}, ${SINK} and captured names may be substituted.
+cases:
+  - id: authz.template.request-method-in-selector
+    title: "${request.method} in a selector is filled in per request"
+    area: permissions-identity
+    feature: templated selector
+    evidence: documented
+    source: "docs reference/permissions/AuthorizationRule §Templated values (lookup object: request.method)"
+    confidence: medium
+    requires: []
+    live: true
+    site:
+      files:
+        - path: "${P}/doc.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body><p id="p1" data-m="PUT">put me</p><p id="p2" data-m="DELETE">delete me</p></body></html>
+        - path: "${P}/rules.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div hidden itemscope itemtype="https://pagelove.org/AuthorizationRule">
+                <meta itemprop="actor" content="*"><meta itemprop="resource" content="${P}/doc.html">
+                <meta itemprop="method" content="PUT"><meta itemprop="method" content="DELETE">
+                <meta itemprop="selector" content='[data-m="${request.method}"]'>
+                <meta itemprop="action" content="allow">
+              </div>
+            </body></html>
+    steps:
+      - name: PUT on the element labelled PUT
+        as: anonymous
+        request: {method: PUT, path: "${P}/doc.html", headers: {Range: "selector=#p1", Content-Type: text/html}, body: '<p id="p1" data-m="PUT">done</p>'}
+        expect: {status: 206}
+      - name: PUT on the element labelled DELETE
+        as: anonymous
+        request: {method: PUT, path: "${P}/doc.html", headers: {Range: "selector=#p2", Content-Type: text/html}, body: '<p id="p2" data-m="DELETE">x</p>'}
+        expect: {status: 401}
+      - name: DELETE on the element labelled DELETE
+        as: anonymous
+        request: {method: DELETE, path: "${P}/doc.html", headers: {Range: "selector=#p2"}}
+        expect: {status: 204}
+
+  - id: authz.template.header-lookup-in-selector
+    title: "${request.headers.<name>} reads a request header (lowercase name)"
+    area: permissions-identity
+    feature: templated selector
+    evidence: documented
+    source: "docs reference/permissions/AuthorizationRule §Templated values (headers: every request header); pagelove-shop/site/admin-auth.html@d887054:16-18 (header names are lowercase)"
+    confidence: medium
+    requires: []
+    live: true
+    site:
+      files:
+        - path: "${P}/doc.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body><p id="a" data-owner="bob">bob's row</p></body></html>
+        - path: "${P}/rules.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div hidden itemscope itemtype="https://pagelove.org/AuthorizationRule">
+                <meta itemprop="actor" content="*"><meta itemprop="resource" content="${P}/doc.html">
+                <meta itemprop="method" content="PUT">
+                <meta itemprop="selector" content='[data-owner="${request.headers.x-owner}"]'>
+                <meta itemprop="action" content="allow">
+              </div>
+            </body></html>
+    steps:
+      - name: matching header value
+        as: anonymous
+        request: {method: PUT, path: "${P}/doc.html", headers: {Range: "selector=#a", Content-Type: text/html, X-Owner: bob}, body: '<p id="a" data-owner="bob">edited</p>'}
+        expect: {status: 206}
+      - name: different header value
+        as: anonymous
+        request: {method: PUT, path: "${P}/doc.html", headers: {Range: "selector=#a", Content-Type: text/html, X-Owner: carol}, body: '<p id="a" data-owner="bob">x</p>'}
+        expect: {status: 401}
+      - name: header absent renders empty
+        as: anonymous
+        request: {method: PUT, path: "${P}/doc.html", headers: {Range: "selector=#a", Content-Type: text/html}, body: '<p id="a" data-owner="bob">x</p>'}
+        expect: {status: 401}
+
+  - id: authz.template.query-lookup-in-resource
+    title: "${request.query.<k>} in a resource pattern"
+    area: permissions-identity
+    feature: templated resource
+    evidence: documented
+    source: "docs reference/permissions/AuthorizationRule §Templated values (query_string and parsed query)"
+    confidence: medium
+    requires: []
+    live: true
+    site:
+      files:
+        - path: "${P}/rules.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div hidden itemscope itemtype="https://pagelove.org/AuthorizationRule">
+                <meta itemprop="actor" content="*"><meta itemprop="resource" content="${P}/q/${request.query.slot}.html">
+                <meta itemprop="method" content="PUT"><meta itemprop="action" content="allow">
+              </div>
+            </body></html>
+    steps:
+      - name: query names the path being written
+        as: anonymous
+        request: {method: PUT, path: "${P}/q/a.html?slot=a", headers: {Content-Type: text/html}, body: '<!DOCTYPE html><html><body>a</body></html>'}
+        expect: {status: [200, 201, 204]}
+      - name: query names a different path
+        as: anonymous
+        request: {method: PUT, path: "${P}/q/a.html?slot=b", headers: {Content-Type: text/html}, body: '<!DOCTYPE html><html><body>a</body></html>'}
+        expect: {status: 401}
+
+  - id: authz.template.missing-lookup-empty-string
+    title: A lookup that resolves to nothing becomes the empty string
+    area: permissions-identity
+    feature: templated values rendering
+    evidence: documented
+    source: "docs reference/permissions/AuthorizationRule §Templated values ('A path that resolves to nothing becomes the empty string')"
+    confidence: high
+    requires: []
+    live: true
+    site:
+      files:
+        - path: "${P}/rules.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div hidden itemscope itemtype="https://pagelove.org/AuthorizationRule">
+                <meta itemprop="actor" content="*"><meta itemprop="resource" content="${P}/m/${request.query.nope}x.html">
+                <meta itemprop="method" content="PUT"><meta itemprop="action" content="allow">
+              </div>
+            </body></html>
+    steps:
+      - name: pattern collapsed to .../m/x.html
+        as: anonymous
+        request: {method: PUT, path: "${P}/m/x.html", headers: {Content-Type: text/html}, body: '<!DOCTYPE html><html><body>x</body></html>'}
+        expect: {status: [200, 201, 204]}
+
+  - id: authz.template.object-lookup-empty
+    title: A lookup that reaches an object or list renders empty (not a serialized value)
+    area: permissions-identity
+    feature: templated values rendering
+    evidence: documented
+    source: "docs reference/permissions/AuthorizationRule §Templated values ('A path that reaches a list or an object … produces the empty string')"
+    confidence: high
+    requires: []
+    live: true
+    site:
+      files:
+        - path: "${P}/rules.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div hidden itemscope itemtype="https://pagelove.org/AuthorizationRule">
+                <meta itemprop="actor" content="*"><meta itemprop="resource" content="${P}/o/${request.headers}a.html">
+                <meta itemprop="method" content="PUT"><meta itemprop="action" content="allow">
+              </div>
+            </body></html>
+    steps:
+      - name: pattern collapsed to .../o/a.html
+        as: anonymous
+        request: {method: PUT, path: "${P}/o/a.html", headers: {Content-Type: text/html}, body: '<!DOCTYPE html><html><body>a</body></html>'}
+        expect: {status: [200, 201, 204]}
+
+  - id: authz.template.anonymous-auth-lookup-empty
+    title: request.auth lookups are empty for anonymous requests (a per-user area grants nothing)
+    area: permissions-identity
+    feature: templated resource
+    evidence: documented
+    source: "docs reference/permissions/AuthorizationRule §Templated values ('only for an authenticated request — auth.sub, auth.username …'; nothing → empty string)"
+    confidence: high
+    requires: []
+    live: true
+    site:
+      files:
+        - path: "${P}/rules.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div hidden itemscope itemtype="https://pagelove.org/AuthorizationRule">
+                <meta itemprop="actor" content="*"><meta itemprop="resource" content="${P}/u/${request.auth.username}/*">
+                <meta itemprop="method" content="PUT"><meta itemprop="action" content="allow">
+              </div>
+            </body></html>
+    steps:
+      - name: anonymous cannot write any user area
+        as: anonymous
+        request: {method: PUT, path: "${P}/u/anyone/doc.html", headers: {Content-Type: text/html}, body: '<!DOCTYPE html><html><body>x</body></html>'}
+        expect: {status: 401}
+
+  - id: authz.template.liquid-braces-literal-allow-stops-granting
+    title: "{{ … }} in a rule is literal text: a legacy Liquid allow grants nothing"
+    area: permissions-identity
+    feature: Liquid removed from rules
+    evidence: documented
+    source: "docs reference/permissions/AuthorizationRule §Templated values ('an allow written that way simply stops granting'); pagelove-dev SKILL.md@b489923:272"
+    confidence: high
+    requires: []
+    live: true
+    site:
+      files:
+        - path: "${P}/rules.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div hidden itemscope itemtype="https://pagelove.org/AuthorizationRule">
+                <meta itemprop="actor" content="*"><meta itemprop="resource" content="${P}/t/{{ request.method }}.html">
+                <meta itemprop="method" content="PUT"><meta itemprop="action" content="allow">
+              </div>
+            </body></html>
+    steps:
+      - name: path a Liquid rendering would have produced is refused
+        as: anonymous
+        request: {method: PUT, path: "${P}/t/PUT.html", headers: {Content-Type: text/html}, body: '<!DOCTYPE html><html><body>x</body></html>'}
+        expect: {status: 401}
+
+  - id: authz.template.liquid-braces-literal-deny-stops-denying
+    title: "{{ … }} in a deny rule is literal text: the legacy deny stops denying"
+    area: permissions-identity
+    feature: Liquid removed from rules
+    evidence: documented
+    source: "docs reference/permissions/AuthorizationRule §Templated values ('a deny written that way stops denying')"
+    confidence: high
+    requires: []
+    live: true
+    site:
+      files:
+        - path: "${P}/rules.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div hidden itemscope itemtype="https://pagelove.org/AuthorizationRule">
+                <meta itemprop="actor" content="*"><meta itemprop="resource" content="${P}/d/*">
+                <meta itemprop="method" content="PUT"><meta itemprop="action" content="allow">
+              </div>
+              <div hidden itemscope itemtype="https://pagelove.org/AuthorizationRule">
+                <meta itemprop="actor" content="*"><meta itemprop="resource" content="${P}/d/{{ request.method }}.html">
+                <meta itemprop="method" content="PUT"><meta itemprop="action" content="deny">
+              </div>
+            </body></html>
+    steps:
+      - name: write the deny was meant to block succeeds
+        as: anonymous
+        request: {method: PUT, path: "${P}/d/PUT.html", headers: {Content-Type: text/html}, body: '<!DOCTYPE html><html><body>x</body></html>'}
+        expect: {status: [200, 201, 204]}
+
+  - id: authz.template.header-value-is-literal-in-resource
+    title: Glob characters arriving through a substituted value are literal
+    area: permissions-identity
+    feature: templated resource literal substitution
+    evidence: documented
+    source: "docs reference/permissions/AuthorizationRule §A substituted value in a resource is a literal"
+    confidence: high
+    requires: []
+    live: true
+    site:
+      files:
+        - path: "${P}/rules.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div hidden itemscope itemtype="https://pagelove.org/AuthorizationRule">
+                <meta itemprop="actor" content="*"><meta itemprop="resource" content="${P}/h/${request.headers.x-slot}/*">
+                <meta itemprop="method" content="PUT"><meta itemprop="action" content="allow">
+              </div>
+            </body></html>
+    steps:
+      - name: X-Slot star does not expand to other areas
+        as: anonymous
+        request: {method: PUT, path: "${P}/h/a/doc.html", headers: {Content-Type: text/html, X-Slot: "*"}, body: '<!DOCTYPE html><html><body>x</body></html>'}
+        expect: {status: 401}
+      - name: X-Slot matching the area
+        as: anonymous
+        request: {method: PUT, path: "${P}/h/a/doc.html", headers: {Content-Type: text/html, X-Slot: a}, body: '<!DOCTYPE html><html><body>x</body></html>'}
+        expect: {status: [200, 201, 204]}
+      - name: the author's trailing star still works below the area
+        as: anonymous
+        request: {method: PUT, path: "${P}/h/a/deeper/doc.html", headers: {Content-Type: text/html, X-Slot: a}, body: '<!DOCTYPE html><html><body>x</body></html>'}
+        expect: {status: [200, 201, 204]}
+
+  - id: authz.template.substituted-slash-spans-segments
+    title: A substituted value containing / still spans path segments (documented open issue)
+    area: permissions-identity
+    feature: templated resource literal substitution
+    evidence: documented
+    source: "docs reference/permissions/AuthorizationRule §A substituted value in a resource is a literal ('a substituted value containing / still spans two path segments')"
+    confidence: medium
+    requires: []
+    live: true
+    notes: Upstream tracks making this inert; if it changes, this case flips to 401.
+    site:
+      files:
+        - path: "${P}/rules.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div hidden itemscope itemtype="https://pagelove.org/AuthorizationRule">
+                <meta itemprop="actor" content="*"><meta itemprop="resource" content="${P}/h/${request.headers.x-slot}/*">
+                <meta itemprop="method" content="PUT"><meta itemprop="action" content="allow">
+              </div>
+            </body></html>
+    steps:
+      - name: X-Slot a/b reaches .../h/a/b/...
+        as: anonymous
+        request: {method: PUT, path: "${P}/h/a/b/doc.html", headers: {Content-Type: text/html, X-Slot: a/b}, body: '<!DOCTYPE html><html><body>x</body></html>'}
+        expect: {status: [200, 201, 204]}
+
+  - id: authz.template.username-in-resource
+    title: Per-user areas with ${request.auth.username} and the :username shorthand
+    area: permissions-identity
+    feature: templated resource
+    evidence: documented
+    source: "docs reference/permissions/AuthorizationRule §A substituted value in a resource is a literal ('/users/${request.auth.username}/* grants each signed-in user the area named after them'); §Templated values (:username shorthand)"
+    confidence: medium
+    notes: The first two steps are documented (high); the :username-in-resource step is low confidence (shorthand documented for lookups generally).
+    requires: [multi-actor]
+    live: false
+    site:
+      files:
+        - path: "${P}/rules.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div hidden itemscope itemtype="https://pagelove.org/AuthorizationRule">
+                <meta itemprop="actor" content="users"><meta itemprop="resource" content="${P}/users/${request.auth.username}/*">
+                <meta itemprop="method" content="PUT"><meta itemprop="action" content="allow">
+              </div>
+              <div hidden itemscope itemtype="https://pagelove.org/AuthorizationRule">
+                <meta itemprop="actor" content="users"><meta itemprop="resource" content="${P}/legacy/:username/*">
+                <meta itemprop="method" content="PUT"><meta itemprop="action" content="allow">
+              </div>
+            </body></html>
+    actors:
+      alice: {sub: sub-alice, email: alice@example.com, email_verified: true, roles: []}
+    steps:
+      - name: own area
+        as: alice
+        request: {method: PUT, path: "${P}/users/sub-alice/notes.html", headers: {Content-Type: text/html}, body: '<!DOCTYPE html><html><body>mine</body></html>'}
+        expect: {status: [200, 201, 204]}
+      - name: someone else's area
+        as: alice
+        request: {method: PUT, path: "${P}/users/sub-bob/notes.html", headers: {Content-Type: text/html}, body: '<!DOCTYPE html><html><body>theirs</body></html>'}
+        expect: {status: 403}
+      - name: ":username shorthand in a resource"
+        as: alice
+        request: {method: PUT, path: "${P}/legacy/sub-alice/notes.html", headers: {Content-Type: text/html}, body: '<!DOCTYPE html><html><body>mine</body></html>'}
+        expect: {status: [200, 201, 204]}
+
+  - id: authz.template.username-literal-glob
+    title: A user whose sub contains * gets only the area named exactly that
+    area: permissions-identity
+    feature: templated resource literal substitution
+    evidence: documented
+    source: "docs reference/permissions/AuthorizationRule §A substituted value in a resource is a literal ('If a principal's name happens to contain *, ?, [ or {, the rule matches the area whose name is exactly that')"
+    confidence: high
+    requires: [multi-actor]
+    live: false
+    site:
+      files:
+        - path: "${P}/rules.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div hidden itemscope itemtype="https://pagelove.org/AuthorizationRule">
+                <meta itemprop="actor" content="users"><meta itemprop="resource" content="${P}/users/${request.auth.username}/*">
+                <meta itemprop="method" content="PUT"><meta itemprop="action" content="allow">
+              </div>
+            </body></html>
+    actors:
+      star: {sub: "a*", email: star@example.com, email_verified: true, roles: []}
+    steps:
+      - name: literal area named a*
+        as: star
+        request: {method: PUT, path: "${P}/users/a*/x.html", headers: {Content-Type: text/html}, body: '<!DOCTYPE html><html><body>x</body></html>'}
+        expect: {status: [200, 201, 204]}
+      - name: area ab is not covered
+        as: star
+        request: {method: PUT, path: "${P}/users/ab/x.html", headers: {Content-Type: text/html}, body: '<!DOCTYPE html><html><body>x</body></html>'}
+        expect: {status: 403}
+
+  - id: authz.template.roles-list-lookup-empty
+    title: "${request.auth.roles} is a list and renders empty"
+    area: permissions-identity
+    feature: templated values rendering
+    evidence: documented
+    source: "docs reference/permissions/AuthorizationRule §Templated values ('${request.auth.roles}, for instance — produces the empty string')"
+    confidence: high
+    requires: [multi-actor]
+    live: false
+    site:
+      files:
+        - path: "${P}/rules.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div hidden itemscope itemtype="https://pagelove.org/AuthorizationRule">
+                <meta itemprop="actor" content="users"><meta itemprop="resource" content="${P}/r/${request.auth.roles}x.html">
+                <meta itemprop="method" content="PUT"><meta itemprop="action" content="allow">
+              </div>
+            </body></html>
+    actors:
+      dave: {sub: sub-dave, email: dave@example.com, email_verified: true, roles: [staff]}
+    steps:
+      - name: pattern collapsed to .../r/x.html
+        as: dave
+        request: {method: PUT, path: "${P}/r/x.html", headers: {Content-Type: text/html}, body: '<!DOCTYPE html><html><body>x</body></html>'}
+        expect: {status: [200, 201, 204]}
+      - name: no rendering of the role name
+        as: dave
+        request: {method: PUT, path: "${P}/r/staffx.html", headers: {Content-Type: text/html}, body: '<!DOCTYPE html><html><body>x</body></html>'}
+        expect: {status: 403}
+
+  - id: authz.template.auth-email-in-selector
+    title: Ownership pattern — a selector keyed on the signed-in email
+    area: permissions-identity
+    feature: templated selector
+    evidence: documented
+    source: "docs reference/permissions/AuthorizationRule §Templated values (request.auth.email); ownership pattern from pagelove-cursor SKILL.md@b97c3ef:107-126 rewritten with ${…}"
+    confidence: medium
+    requires: [multi-actor]
+    live: false
+    site:
+      files:
+        - path: "${P}/team.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body><section id="team">
+              <article id="m1" data-owner="alice@example.com"><h2 itemprop="name">Alice</h2></article>
+              <article id="m2" data-owner="bob@example.com"><h2 itemprop="name">Bob</h2></article>
+            </section></body></html>
+        - path: "${P}/rules.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div hidden itemscope itemtype="https://pagelove.org/AuthorizationRule">
+                <meta itemprop="actor" content="users"><meta itemprop="resource" content="${P}/team.html">
+                <meta itemprop="method" content="PUT">
+                <meta itemprop="selector" content='#team [data-owner="${request.auth.email}"]'>
+                <meta itemprop="action" content="allow">
+              </div>
+            </body></html>
+    actors:
+      alice: {sub: sub-alice, email: alice@example.com, email_verified: true, roles: []}
+    steps:
+      - name: own record
+        as: alice
+        request: {method: PUT, path: "${P}/team.html", headers: {Range: "selector=#m1", Content-Type: text/html}, body: '<article id="m1" data-owner="alice@example.com"><h2 itemprop="name">Alice L.</h2></article>'}
+        expect: {status: 206}
+      - name: someone else's record
+        as: alice
+        request: {method: PUT, path: "${P}/team.html", headers: {Range: "selector=#m2", Content-Type: text/html}, body: '<article id="m2" data-owner="bob@example.com"><h2 itemprop="name">Bob?</h2></article>'}
+        expect: {status: 403}
+
+  - id: authz.template.claims-bare-spelling
+    title: The Sessel-doc rule spelling ${auth.claims.email} is accepted as an alias
+    area: permissions-identity
+    feature: templated lookup aliases
+    evidence: documented
+    source: "docs languages/sessel/reference/syntax §Context variables (auth.claims.* 'Authorization rules only'); contrast reference/permissions/AuthorizationRule §Templated values (request.* only)"
+    confidence: low
+    requires: [multi-actor]
+    live: false
+    notes: Compatibility decision C10 (accept both spellings).
+    site:
+      files:
+        - path: "${P}/rules.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div hidden itemscope itemtype="https://pagelove.org/AuthorizationRule">
+                <meta itemprop="actor" content="users"><meta itemprop="resource" content="${P}/e/${auth.claims.email}.html">
+                <meta itemprop="method" content="PUT"><meta itemprop="action" content="allow">
+              </div>
+            </body></html>
+    actors:
+      alice: {sub: sub-alice, email: alice@example.com, email_verified: true, roles: []}
+    steps:
+      - name: path named after the email claim
+        as: alice
+        request: {method: PUT, path: "${P}/e/alice@example.com.html", headers: {Content-Type: text/html}, body: '<!DOCTYPE html><html><body>x</body></html>'}
+        expect: {status: [200, 201, 204]}

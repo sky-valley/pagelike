@@ -1,0 +1,23 @@
+{
+  "case": "rw.get.content-range-space",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (read heading and inspect Content-Range)",
+      "method": "GET",
+      "path": "/_pl/rw-get-content-range-space-bdbcd9/cr.html",
+      "status": 206,
+      "headers": {
+        "accept-ranges": "selector, bytes",
+        "content-length": "16",
+        "content-range": "selector h1",
+        "content-type": "text/html",
+        "etag": "\"17f1483382109c1670ab32aeb3e3e4fbfc55d9bf9265b09c67abb44e8d39a386-17f1483382109c1670ab32aeb3e3e4fbfc55d9bf9265b09c67abb44e8d39a386-1\"",
+        "vary": "Host, Range, Accept"
+      },
+      "body": "\u003ch1\u003eHeading\u003c/h1\u003e"
+    }
+  ],
+  "outcome": "pass",
+  "target": "local"
+}

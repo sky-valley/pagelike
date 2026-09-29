@@ -1,0 +1,221 @@
+# Reacting: retry semantics of outbound HttpRequest actions (spec R-REACT-57, 58).
+# See outbound.yaml for the sink step conventions.
+anchors:
+  open_rules: &open_rules
+    - {actor: "*", resource: "${P}/*", method: [GET, HEAD, PUT, POST, DELETE], action: Allow}
+defaults:
+  area: reacting
+  requires: [outbound-http]
+  site:
+    settings: {default_get: allow}
+    rules: *open_rules
+cases:
+  - id: reacting.outbound.retry-default-zero-single-attempt
+    title: Without retry a failed request is attempted once and abandoned
+    feature: outbound retry
+    evidence: documented
+    source: "docs reference/reacting-to-changes/HTTPRequest §Retry ('retry defaults to 0, meaning the request is attempted once and abandoned if it fails') (snapshot 2026-09-28)"
+    confidence: high
+    requires: [outbound-http]
+    live: true
+    notes: "spec: R-REACT-57. A second attempt would arrive after 2 s."
+    steps:
+      - sink_config: {path: /fail, responses: [500]}
+      - name: install
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/r/triggers.html"
+          headers: {Content-Type: text/html}
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+            <div hidden itemscope itemtype="https://pagelove.org/Trigger">
+              <meta itemprop="resource" content="${P}/d/*">
+              <meta itemprop="method" content="PUT">
+              <div itemprop="action" itemscope itemtype="https://pagelove.org/HttpRequest">
+                <meta itemprop="url" content="${SINK}/fail">
+              </div>
+            </div>
+            </body></html>
+        expect: {status: [200, 201, 204]}
+      - {name: write, as: anonymous, request: {method: PUT, path: "${P}/d/x.html", headers: {Content-Type: text/html}, body: "<p>x</p>"}, expect: {status: [200, 201, 204]}}
+      - sink_expect: {path: /fail, within_ms: 5000}
+      - sink_expect_none: {path: /fail, for_ms: 5000}
+
+  - id: reacting.outbound.retry-default-ats-claim
+    title: "Competing claim: failed outbound requests are retried with backoff even without retry"
+    feature: outbound retry
+    evidence: demo-source
+    source: "pagelove-ats/site/outbox/index.html@8f200fc:6-8 ('failures retried by Pagelove with exponential backoff'; no retry property)"
+    confidence: low
+    status: disputed
+    requires: [outbound-http]
+    live: true
+    notes: "spec C13. The docs (retry defaults to 0) win in pagelike."
+    steps:
+      - sink_config: {path: /fail, responses: [500]}
+      - name: install
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/r/triggers.html"
+          headers: {Content-Type: text/html}
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+            <div hidden itemscope itemtype="https://pagelove.org/Trigger">
+              <meta itemprop="resource" content="${P}/d/*">
+              <meta itemprop="method" content="PUT">
+              <div itemprop="action" itemscope itemtype="https://pagelove.org/HttpRequest">
+                <meta itemprop="url" content="${SINK}/fail">
+              </div>
+            </div>
+            </body></html>
+        expect: {status: [200, 201, 204]}
+      - {name: write, as: anonymous, request: {method: PUT, path: "${P}/d/x.html", headers: {Content-Type: text/html}, body: "<p>x</p>"}, expect: {status: [200, 201, 204]}}
+      - sink_expect_count: {path: /fail, count: 2, within_ms: 8000}
+
+  - id: reacting.outbound.retry-3-four-attempts
+    title: "retry 3 makes 4 attempts with 2 s, 4 s, 8 s backoff"
+    feature: outbound retry
+    evidence: documented
+    source: "docs reference/reacting-to-changes/HTTPRequest §Retry (table; 'That asks for 3 retries — 4 attempts in total') (snapshot 2026-09-28)"
+    confidence: high
+    requires: [outbound-http, slow]
+    live: true
+    notes: "spec: R-REACT-57. Gap bounds allow for scheduling jitter."
+    steps:
+      - sink_config: {path: /flaky, responses: [500]}
+      - name: install
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/r/triggers.html"
+          headers: {Content-Type: text/html}
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+            <div hidden itemscope itemtype="https://pagelove.org/Trigger">
+              <meta itemprop="resource" content="${P}/d/*">
+              <meta itemprop="method" content="PUT">
+              <div itemprop="action" itemscope itemtype="https://pagelove.org/HttpRequest">
+                <meta itemprop="url" content="${SINK}/flaky">
+                <meta itemprop="retry" content="3">
+              </div>
+            </div>
+            </body></html>
+        expect: {status: [200, 201, 204]}
+      - {name: write, as: anonymous, request: {method: PUT, path: "${P}/d/x.html", headers: {Content-Type: text/html}, body: "<p>x</p>"}, expect: {status: [200, 201, 204]}}
+      - sink_expect_count:
+          path: /flaky
+          count: 4
+          within_ms: 25000
+          gaps_min_ms: [1500, 3200, 6400]
+          gaps_max_ms: [4000, 7000, 12000]
+      - sink_expect_none: {path: /flaky, for_ms: 20000}
+
+  - id: reacting.outbound.retry-clamped-to-4
+    title: "retry 9 behaves exactly like retry 4: 5 attempts, then abandoned"
+    feature: outbound retry
+    evidence: documented
+    source: "docs reference/reacting-to-changes/HTTPRequest §Retry ('it is clamped to 4 — so retry of 9 behaves exactly as 4') (snapshot 2026-09-28)"
+    confidence: high
+    requires: [outbound-http, slow]
+    live: true
+    notes: "spec: R-REACT-57. Attempts at roughly 0, 2, 6, 14 and 30 s; a sixth would come at least 30 s later."
+    steps:
+      - sink_config: {path: /flaky, responses: [500]}
+      - name: install
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/r/triggers.html"
+          headers: {Content-Type: text/html}
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+            <div hidden itemscope itemtype="https://pagelove.org/Trigger">
+              <meta itemprop="resource" content="${P}/d/*">
+              <meta itemprop="method" content="PUT">
+              <div itemprop="action" itemscope itemtype="https://pagelove.org/HttpRequest">
+                <meta itemprop="url" content="${SINK}/flaky">
+                <meta itemprop="retry" content="9">
+              </div>
+            </div>
+            </body></html>
+        expect: {status: [200, 201, 204]}
+      - {name: write, as: anonymous, request: {method: PUT, path: "${P}/d/x.html", headers: {Content-Type: text/html}, body: "<p>x</p>"}, expect: {status: [200, 201, 204]}}
+      - sink_expect_count:
+          path: /flaky
+          count: 5
+          within_ms: 45000
+          gaps_min_ms: [1500, 3200, 6400, 12800]
+      - sink_expect_none: {path: /flaky, for_ms: 40000}
+
+  - id: reacting.outbound.retry-stops-after-success
+    title: Retries stop at the first 2xx response
+    feature: outbound retry
+    evidence: documented
+    source: "docs reference/reacting-to-changes/HTTPRequest §Error handling (non-2xx responses are retried) (snapshot 2026-09-28)"
+    confidence: high
+    requires: [outbound-http, slow]
+    live: true
+    notes: "spec: R-REACT-57, R-REACT-58."
+    steps:
+      - sink_config: {path: /flaky, responses: [500, 200]}
+      - name: install
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/r/triggers.html"
+          headers: {Content-Type: text/html}
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+            <div hidden itemscope itemtype="https://pagelove.org/Trigger">
+              <meta itemprop="resource" content="${P}/d/*">
+              <meta itemprop="method" content="PUT">
+              <div itemprop="action" itemscope itemtype="https://pagelove.org/HttpRequest">
+                <meta itemprop="url" content="${SINK}/flaky">
+                <meta itemprop="retry" content="3">
+              </div>
+            </div>
+            </body></html>
+        expect: {status: [200, 201, 204]}
+      - {name: write, as: anonymous, request: {method: PUT, path: "${P}/d/x.html", headers: {Content-Type: text/html}, body: "<p>x</p>"}, expect: {status: [200, 201, 204]}}
+      - sink_expect_count: {path: /flaky, count: 2, within_ms: 8000}
+      - sink_expect_none: {path: /flaky, for_ms: 10000}
+
+  - id: reacting.outbound.retry-non-numeric-is-zero
+    title: A non-numeric retry value counts as 0
+    feature: outbound retry
+    evidence: inferred
+    source: "spec R-REACT-57 (pagelike decision; docs: retry 'is a plain number')"
+    confidence: low
+    requires: [outbound-http]
+    live: true
+    steps:
+      - sink_config: {path: /fail, responses: [500]}
+      - name: install
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/r/triggers.html"
+          headers: {Content-Type: text/html}
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+            <div hidden itemscope itemtype="https://pagelove.org/Trigger">
+              <meta itemprop="resource" content="${P}/d/*">
+              <meta itemprop="method" content="PUT">
+              <div itemprop="action" itemscope itemtype="https://pagelove.org/HttpRequest">
+                <meta itemprop="url" content="${SINK}/fail">
+                <meta itemprop="retry" content="three">
+              </div>
+            </div>
+            </body></html>
+        expect: {status: [200, 201, 204]}
+      - {name: write, as: anonymous, request: {method: PUT, path: "${P}/d/x.html", headers: {Content-Type: text/html}, body: "<p>x</p>"}, expect: {status: [200, 201, 204]}}
+      - sink_expect: {path: /fail, within_ms: 5000}
+      - sink_expect_none: {path: /fail, for_ms: 5000}

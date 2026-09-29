@@ -1,0 +1,36 @@
+{
+  "case": "javascript.dom.probe-0929.domparser-tree-builder",
+  "failures": [
+    "step 2 (GET \u003cmain\u003e: the method result is inserted as text) GET ${P}/probe.html: status 500, want [206] (body: \u003c!DOCTYPE html\u003e\n\u003chtml\u003e\n  \u003chead\u003e\n    \u003ctitle\u003e500 Internal Server Error - Error\u003c/title\u003e\n  \u003c/head\u003e\n  \u003cbody itemscope itemtype=\"http://pagelove.org/Error\"\u003e\n    \u003ch1 itemprop=\"name\"\u003eInternal Server Error\u003c/h1\u003e\n    \u003cmeta itemprop=\"statusCode\" conten…)",
+    "step 2 (GET \u003cmain\u003e: the method result is inserted as text) GET ${P}/probe.html: body does not contain \"R:\" (body: \u003c!DOCTYPE html\u003e\n\u003chtml\u003e\n  \u003chead\u003e\n    \u003ctitle\u003e500 Internal Server Error - Error\u003c/title\u003e\n  \u003c/head\u003e\n  \u003cbody itemscope itemtype=\"http://pagelove.org/Error\"\u003e\n    \u003ch1 itemprop=\"name\"\u003eInternal Server Error\u003c/h1\u003e\n    \u003cmeta itemprop=\"statusCode\" content=\"500\"\u003e\n    \u003cp itemprop=\"description\"\u003eComposition failed: internal error: JS method \u0026#x27;probe\u0026#x27; failed: return-type error in javascript/module binding: J…)"
+  ],
+  "observations": [
+    {
+      "step": "step 1 (PUT the page (public plane; registers inline declarations))",
+      "method": "PUT",
+      "path": "/_pl/javascript-dom-probe-0929-domparser-tree-9ca202/probe.html",
+      "status": 201,
+      "headers": {
+        "content-type": "text/html",
+        "etag": "\"467ace4f2eec0c55204fbe7b66fa32188e4fe867fad454ed76132736be530a39\"",
+        "last-modified": "Tue, 29 Sep 2026 01:35:52 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml xmlns:t=\"https://pagelike.test/_pl/javascript-dom-probe-0929-domparser-tree-9ca202/Pdomparsertreebuilder\"\u003e\u003cbody\u003e\n\u003cmain\u003e\n\u003ct:probe\u003e\u003c/t:probe\u003e\n\u003c/main\u003e\n\u003cdiv hidden itemscope itemtype=\"https://pagelove.org/Schema\"\u003e\n\u003cmeta itemprop=\"type\" content=\"https://pagelike.test/_pl/javascript-dom-probe-0929-domparser-tree-9ca202/Pdomparsertreebuilder\"\u003e\n\u003cul\u003e\n\u003cli itemprop=\"property\" itemscope itemtype=\"https://pagelove.org/Method\"\u003e\n\u003cmeta itemprop=\"name\" content=\"probe\"\u003e\n\u003cdiv itemprop=\"implementation\" itemscope itemtype=\"https://pagelove.org/JavaScript/Module\"\u003e\n\u003cscript itemprop=\"source\" type=\"module\"\u003e\nconst H = (x) =\u003e String(x).replace(/[\u003c\u003e\"]/g, (c) =\u003e ({ '\u003c': '[', '\u003e': ']', '\"': \"'\" })[c]);\nconst T = (f) =\u003e { try { return H(f()); } catch (e) { return 'E:' + e.name; } };\nconst J = (x) =\u003e JSON.stringify(x);\nconst X = (n) =\u003e new XMLSerializer().serializeToString(n);\nconst N = (n) =\u003e (n === null ? 'null' : n === undefined ? 'undef' : typeof n === 'object' ? 'node:' + n.nodeName : typeof n + ':' + n);\nexport default function () {\nconst P = new DOMParser();\nconst inputs = [['\u003cfoo\u003e\u003cbar/\u003e\u003cbaz\u003et\u003c/baz\u003e\u003c/foo\u003e', 'text/html'], ['\u003cfoo\u003e\u003cbar/\u003e\u003cbaz\u003et\u003c/baz\u003e\u003c/foo\u003e', 'application/xml'], ['\u003cdiv\u003e\u003cspan/\u003e\u003ci\u003et\u003c/i\u003e\u003c/div\u003e', 'text/html'],\n  ['\u003cp\u003ea\u003cp\u003eb', 'text/html'], ['\u003cul\u003e\u003cli\u003ea\u003cli\u003eb\u003c/ul\u003e', 'text/html'], ['\u003ctable\u003e\u003ctr\u003e\u003ctd\u003ex\u003c/td\u003e\u003c/tr\u003e\u003c/table\u003e', 'text/html'], ['\u003cFoo Bar=\"1\"\u003et\u003c/Foo\u003e', 'text/html'],\n  ['\u003cbr\u003e\u003cimg src=\"i\"\u003e\u003cinput/\u003e', 'text/html'], ['\u003ct:x/\u003e\u003ci\u003et\u003c/i\u003e', 'text/html'], ['\u003chead\u003e\u003ctitle\u003et\u003c/title\u003e\u003c/head\u003e\u003cp\u003ex\u003c/p\u003e', 'text/html'], ['\u003chtml\u003e\u003cp\u003ex\u003c/p\u003e\u003c/html\u003e', 'text/html'],\n  ['\u003csvg\u003e\u003cg/\u003e\u003ccircle/\u003e\u003c/svg\u003e', 'image/svg+xml'], ['\u003cp\u003ex\u003c/p\u003e\u003c!--c--\u003e tail', 'text/html']];\nreturn 'R:' + inputs.map(([m, t]) =\u003e T(() =\u003e { const d = P.parseFromString(m, t); return X(d) + '/' + N(d.documentElement) + '/' + N(d.head) + '/' + N(d.body) + '/' + d.childNodes.length; })).join(' ## ');\n}\n\u003c/script\u003e\n\u003c/div\u003e\n\u003c/li\u003e\n\u003c/ul\u003e\n\u003cmeta itemprop=\"@id\" content=\"https://schema.host/rvvpcbqx\"\u003e\u003cmeta itemprop=\"path\" content=\"/Schemahttps://schema.host/rvvpcbqx.html\"\u003e\u003c/div\u003e\n\n                \u003cdiv style=\"\n                            position: fixed;\n                            bottom: 0;\n                            left: 0;\n                            right: 0;\n                            padding: 8px;\n                            background: #f0f0f0;\n                            text-align: center;\n                            font-size: 12px;\n                            color: #666;\n                            z-index: 9999;\n                            opacity: 0.8;\n                            border-top: 1px solid #ddd;\n                        \"\u003e\n                    Powered by\n                    \u003ca href=\"https://pagelove.com/\" style=\"color: #4a90d9; text-decoration: none\"\u003ePagelove\u003c/a\u003e\n                \u003c/div\u003e\n            \u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 2 (GET \u003cmain\u003e: the method result is inserted as text)",
+      "method": "GET",
+      "path": "/_pl/javascript-dom-probe-0929-domparser-tree-9ca202/probe.html",
+      "status": 500,
+      "headers": {
+        "content-length": "487",
+        "content-type": "text/html",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\n  \u003chead\u003e\n    \u003ctitle\u003e500 Internal Server Error - Error\u003c/title\u003e\n  \u003c/head\u003e\n  \u003cbody itemscope itemtype=\"http://pagelove.org/Error\"\u003e\n    \u003ch1 itemprop=\"name\"\u003eInternal Server Error\u003c/h1\u003e\n    \u003cmeta itemprop=\"statusCode\" content=\"500\"\u003e\n    \u003cp itemprop=\"description\"\u003eComposition failed: internal error: JS method \u0026#x27;probe\u0026#x27; failed: return-type error in javascript/module binding: JavaScript value type cannot be marshalled back into dombase Value\u003c/p\u003e\n  \u003c/body\u003e\n\u003c/html\u003e"
+    }
+  ],
+  "outcome": "fail",
+  "target": "live"
+}

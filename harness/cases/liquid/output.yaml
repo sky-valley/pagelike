@@ -1,0 +1,338 @@
+# Where rendered output goes and what the template source is.
+# Spec: docs/spec/liquid.md §2 (R-LIQ-10..14) and §4 (R-LIQ-30..35).
+defaults:
+  area: liquid
+  requires: [liquid]
+cases:
+  - id: liquid.output.query-calc-example
+    title: "The composed element is the host minus its template attribute: <main class=\"calc\">5</main>"
+    feature: output placement
+    evidence: documented
+    source: "docs reference/protocol/QUERY §On the edge proxy (stored <main class=calc pagelove:template> → composed <main class=\"calc\">5</main>; blocks misaligned, spec C-8)"
+    confidence: medium
+    live: true
+    notes: R-LIQ-30.
+    site:
+      settings: {default_get: allow}
+      files:
+        - path: "${P}/query-composed-doc.html"
+          body: |
+            <!DOCTYPE html>
+            <html xmlns:pagelove="https://pagelove.org/1.0"><body>
+              <main class="calc" pagelove:template="text/liquid">{{ 2 | plus: 3 }}</main>
+            </body></html>
+      rules: [{actor: "*", resource: "${P}/*", method: [GET, HEAD], action: Allow}]
+    steps:
+      - name: select the host
+        as: anonymous
+        request: {method: GET, path: "${P}/query-composed-doc.html", headers: {Range: "selector=.calc"}}
+        expect:
+          status: 206
+          body: '<main class="calc">5</main>'
+
+  - id: liquid.output.host-kept-directives-stripped
+    title: The host keeps its ordinary attributes; p:template and binding attributes are removed
+    feature: output placement
+    evidence: documented
+    source: "docs languages/liquid/templating §Worked example ('All SSPI namespaces and binding attributes have been stripped from the output'); pagelove-kanban/site/app.js@85109ab:653,137 (id and hidden kept)"
+    confidence: high
+    live: true
+    notes: R-LIQ-30. Items isolated per run by an itemtype containing the case prefix.
+    site:
+      settings: {default_get: allow}
+      files:
+        - path: "${P}/data.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div itemscope itemtype="https://example.test${P}/Thing"><span itemprop="name">one</span></div>
+            </body></html>
+        - path: "${P}/list.html"
+          body: |
+            <!DOCTYPE html>
+            <html xmlns:p="https://pagelove.org/1.0" xmlns:r="https://pagelove.org/Binding/CSS"><body>
+              <ul id="list" class="c" data-x="1" hidden r:things="[itemtype='https://example.test${P}/Thing']" p:template="text/liquid">{% for t in things %}<li>{{ t.name }}</li>{% endfor %}</ul>
+            </body></html>
+      rules: [{actor: "*", resource: "${P}/*", method: [GET, HEAD], action: Allow}]
+    steps:
+      - name: fragment of the host
+        as: anonymous
+        request: {method: GET, path: "${P}/list.html", headers: {Range: "selector=#list"}}
+        expect:
+          status: 206
+          body_contains: ['<ul id="list" class="c" data-x="1" hidden', '<li>one</li></ul>']
+          body_not_contains: ["r:things", "p:template", "{%"]
+
+  - id: liquid.output.whitespace-preserved
+    title: Text between tags is copied verbatim; a tag line leaves its indentation and newline
+    feature: whitespace
+    evidence: documented
+    source: "docs languages/liquid/templating §Worked example: listing people (output '<ul>\\n    \\n    <li>Anna</li>\\n    \\n    <li>Ben</li>\\n    \\n  </ul>')"
+    confidence: high
+    live: true
+    notes: R-LIQ-14. Same template shape as the worked example, with a range instead of a binding.
+    site:
+      settings: {default_get: allow}
+      files:
+        - path: "${P}/ws.html"
+          body: |
+            <!DOCTYPE html>
+            <html xmlns:p="https://pagelove.org/1.0">
+            <body>
+              <ul id="w" p:template="text/liquid">
+                {% for n in (1..2) %}
+                <li>{{ n }}</li>
+                {% endfor %}
+              </ul>
+            </body>
+            </html>
+      rules: [{actor: "*", resource: "${P}/*", method: [GET, HEAD], action: Allow}]
+    steps:
+      - name: read
+        as: anonymous
+        request: {method: GET, path: "${P}/ws.html"}
+        expect:
+          status: 200
+          body_contains: ["<ul id=\"w\">\n    \n    <li>1</li>\n    \n    <li>2</li>\n    \n  </ul>"]
+
+  - id: liquid.output.whitespace-control
+    title: "{%- and -%} trim surrounding whitespace, as in the Templating listing example"
+    feature: whitespace
+    evidence: documented
+    source: "docs languages/liquid/templating §Listing with resource binding ({%- for user in users -%} … {%- endfor -%})"
+    confidence: high
+    live: true
+    notes: R-LIQ-12.
+    site:
+      settings: {default_get: allow}
+      files:
+        - path: "${P}/wc.html"
+          body: |
+            <!DOCTYPE html>
+            <html xmlns:p="https://pagelove.org/1.0"><body>
+              <ul id="wc" p:template="text/liquid">
+                {%- for n in (1..3) -%}
+                <li>{{- n -}}</li>
+                {%- endfor -%}
+              </ul>
+            </body></html>
+      rules: [{actor: "*", resource: "${P}/*", method: [GET, HEAD], action: Allow}]
+    steps:
+      - name: read
+        as: anonymous
+        request: {method: GET, path: "${P}/wc.html"}
+        expect:
+          status: 200
+          body_contains: ['<ul id="wc"><li>1</li><li>2</li><li>3</li></ul>']
+
+  - id: liquid.output.empty-output-keeps-whitespace
+    title: A loop over an empty binding leaves the host with only the template's literal whitespace
+    feature: output placement
+    evidence: documented
+    source: "docs languages/liquid/fixtures/people-listing (raw page shows <ul>\\n    \\n  </ul> for zero people; weak evidence, spec C-14); reference/composing-pages/Resource-Binding §Error cases (no match = empty collection)"
+    confidence: medium
+    live: true
+    notes: R-LIQ-32, R-LIQ-51.
+    site:
+      settings: {default_get: allow}
+      files:
+        - path: "${P}/empty.html"
+          body: |
+            <!DOCTYPE html>
+            <html xmlns:p="https://pagelove.org/1.0" xmlns:r="https://pagelove.org/Binding/CSS">
+            <body>
+              <ul id="e" r:people="[itemtype='https://example.test${P}/Nobody']" p:template="text/liquid">
+                {% for person in people %}
+                <li>{{ person.name }}</li>
+                {% endfor %}
+              </ul>
+            </body>
+            </html>
+      rules: [{actor: "*", resource: "${P}/*", method: [GET, HEAD], action: Allow}]
+    steps:
+      - name: read
+        as: anonymous
+        request: {method: GET, path: "${P}/empty.html"}
+        expect:
+          status: 200
+          body_contains: ["<ul id=\"e\">\n    \n  </ul>"]
+          body_not_contains: ["<li>"]
+
+  - id: liquid.output.table-rows-in-place
+    title: Liquid loops between table parts generate rows in place (no foster parenting)
+    feature: template source
+    evidence: demo-source
+    source: "pagelove-polls/site/templates/new-poll.html@c9270e5:56-84 ({% for %} inside <thead><tr>, <tbody>, <tfoot>); site/polls/kfd47o4zqd.html@c9270e5:56-93 (generated cells in place)"
+    confidence: medium
+    live: true
+    notes: "R-LIQ-10, spec C-3. An April 2026 skill said this broke under foster parenting; the polls app (Sept 2026) relies on it."
+    site:
+      settings: {default_get: allow}
+      files:
+        - path: "${P}/table.html"
+          body: |
+            <!DOCTYPE html>
+            <html xmlns:p="https://pagelove.org/1.0"><body>
+            <div p:template="text/liquid">
+            <table id="t">
+              <thead><tr><th>Who</th>{% for o in (1..2) %}<th id="o{{ forloop.index }}">{{ o }}</th>{% endfor %}</tr></thead>
+              <tbody id="rows">{% for r in (1..2) %}<tr><td>{{ r }}</td></tr>{% endfor %}</tbody>
+            </table>
+            </div>
+            </body></html>
+      rules: [{actor: "*", resource: "${P}/*", method: [GET, HEAD], action: Allow}]
+    steps:
+      - name: header cells in place
+        as: anonymous
+        request: {method: GET, path: "${P}/table.html", headers: {Range: "selector=#t thead tr"}}
+        expect:
+          status: 206
+          body_contains: ['<th>Who</th><th id="o1">1</th><th id="o2">2</th>']
+      - name: body rows in place
+        as: anonymous
+        request: {method: GET, path: "${P}/table.html", headers: {Range: "selector=#rows"}}
+        expect:
+          status: 206
+          body_contains: ["<tr><td>1</td></tr><tr><td>2</td></tr>"]
+          body_not_contains: ["{%"]
+
+  - id: liquid.output.attribute-and-raw-text-contexts
+    title: Output expressions render inside attribute values, <title>, <script> and comments
+    feature: template source
+    evidence: demo-source
+    source: "pagelove-polls/site/templates/new-poll.html@c9270e5:6-10,34,50 (Liquid in <title>, <base href>, itemtype, value=); pagelove-cursor SKILL.md@b97c3ef:389-399 (Liquid processes <script> contents)"
+    confidence: medium
+    live: true
+    notes: R-LIQ-10.
+    site:
+      settings: {default_get: allow}
+      files:
+        - path: "${P}/ctx.html"
+          body: |
+            <!DOCTYPE html>
+            <html lang="en" xmlns:p="https://pagelove.org/1.0" p:template="text/liquid">
+            <head><title>{{ "T" | append: "1" }}</title></head>
+            <body>
+              <a id="a" href="/x/{{ 3 | plus: 4 }}.html" data-q='{{ "q" | upcase }}'>link</a>
+              <!-- c{{ 1 | plus: 1 }} -->
+              <script>var n = {{ 5 | times: 2 }};</script>
+            </body>
+            </html>
+      rules: [{actor: "*", resource: "${P}/*", method: [GET, HEAD], action: Allow}]
+    steps:
+      - name: read
+        as: anonymous
+        request: {method: GET, path: "${P}/ctx.html"}
+        expect:
+          status: 200
+          body_contains: ["<title>T1</title>", 'href="/x/7.html"', "Q", "<!-- c2 -->", "var n = 10;"]
+          body_not_contains: ["{{"]
+
+  - id: liquid.output.lt-gt-inside-liquid-tags
+    title: "< and > inside Liquid tags and expression strings are Liquid operators, not markup"
+    feature: template source
+    evidence: documented
+    source: "docs learn/build-a-blog §The feed ({% if pub.size > 0 %}); languages/liquid/filters/expressions §find_exp (\"p.price < 10\")"
+    confidence: medium
+    live: true
+    notes: R-LIQ-10, R-LIQ-13 (raw source, no entity round-trip).
+    site:
+      settings: {default_get: allow}
+      files:
+        - path: "${P}/ops.html"
+          body: |
+            <!DOCTYPE html>
+            <html xmlns:p="https://pagelove.org/1.0"><body>
+              <p id="o" p:template="text/liquid">{% if 3 > 2 %}gt{% endif %}{% if 1 < 2 %}lt{% endif %}{% assign xs = "1,5" | split: "," %}{% if xs.size >= 2 %}ge{% endif %}</p>
+            </body></html>
+      rules: [{actor: "*", resource: "${P}/*", method: [GET, HEAD], action: Allow}]
+    steps:
+      - name: read
+        as: anonymous
+        request: {method: GET, path: "${P}/ops.html", headers: {Range: "selector=#o"}}
+        expect:
+          status: 206
+          body_contains: [">gtltge</p>"]
+
+  - id: liquid.output.entities-not-decoded
+    title: Entity references inside Liquid tags are decoded; markup outside them is output as stored
+    feature: template source
+    evidence: live-observed
+    source: "harness/observations/live-2026-09-29-serialize/protocol-serialize-probe-0929-liqsrc-in.json ({{ \"a&amp;b\" | size }} is 3) and -liqsrc-outs.json; harness/observations/live-2026-09-29-reconcile-composing-liquid/run2/liquid-escape-probe-0929-source-text.json (host live-test-host, 2026-09-29); supersedes pagelike decision R-LIQ-13"
+    confidence: high
+    live: true
+    notes: >-
+      R-LIQ-13 as reconciled (docs/compat/decisions-2026-09-29/composing-liquid.md, adopt-live): "a &amp; b"
+      inside {{ }} is the five characters a & b to Liquid, as live PageLove renders {{ "&amp;" | size }}
+      as 1; text outside Liquid markup keeps its references. The id keeps its old name for history.
+      Confirmed live 2026-09-29 (harness/observations/live-2026-09-29-serialize/liquid-output-entities-not-decoded.json).
+    site:
+      settings: {default_get: allow}
+      files:
+        - path: "${P}/ent.html"
+          body: |
+            <!DOCTYPE html>
+            <html xmlns:p="https://pagelove.org/1.0"><body>
+              <p id="o" p:template="text/liquid">{{ "a &amp; b" | size }}|A &amp; B|<a href="/f?x=1&amp;y=2">f</a></p>
+            </body></html>
+      rules: [{actor: "*", resource: "${P}/*", method: [GET, HEAD], action: Allow}]
+    steps:
+      - name: read
+        as: anonymous
+        request: {method: GET, path: "${P}/ent.html", headers: {Range: "selector=#o"}}
+        expect:
+          status: 206
+          body_contains: [">5|A &amp; B|", 'href="/f?x=1&amp;y=2"']
+
+  - id: liquid.output.host-attributes-not-rendered
+    title: Liquid inside the host's own attribute values is not evaluated
+    feature: output placement
+    evidence: inferred
+    source: "pagelike decision R-LIQ-11 (children-only model, docs/decisions/0002-liquid.md §Integration 2)"
+    confidence: low
+    live: true
+    notes: P-LIQ-7. If PageLove renders the host start tag, data-v becomes "2".
+    site:
+      settings: {default_get: allow}
+      files:
+        - path: "${P}/hostattr.html"
+          body: |
+            <!DOCTYPE html>
+            <html xmlns:p="https://pagelove.org/1.0"><body>
+              <div id="h" data-v="{{ 1 | plus: 1 }}" p:template="text/liquid">{{ 1 | plus: 1 }}</div>
+            </body></html>
+      rules: [{actor: "*", resource: "${P}/*", method: [GET, HEAD], action: Allow}]
+    steps:
+      - name: read
+        as: anonymous
+        request: {method: GET, path: "${P}/hostattr.html", headers: {Range: "selector=#h"}}
+        expect:
+          status: 206
+          body_contains: ['data-v="{{ 1 | plus: 1 }}"', ">2</div>"]
+
+  - id: liquid.output.xmlns-stripped-in-html
+    title: PageLove xmlns declarations are stripped from a composed HTML response
+    feature: output placement
+    evidence: documented
+    source: "docs reference/composing-pages/Includes §Basic include (xmlns:p 'like every xmlns:* declaration in the composed document — has been stripped'); languages/liquid/templating §Worked example (<html> without attributes)"
+    confidence: medium
+    live: true
+    notes: R-LIQ-33 (cross-area composing X-2).
+    site:
+      settings: {default_get: allow}
+      files:
+        - path: "${P}/ns.html"
+          body: |
+            <!DOCTYPE html>
+            <html xmlns:p="https://pagelove.org/1.0" xmlns:r="https://pagelove.org/Binding/CSS">
+            <body><p id="o" p:template="text/liquid">{{ "x" }}</p></body>
+            </html>
+      rules: [{actor: "*", resource: "${P}/*", method: [GET, HEAD], action: Allow}]
+    steps:
+      - name: read
+        as: anonymous
+        request: {method: GET, path: "${P}/ns.html"}
+        expect:
+          status: 200
+          body_contains: ['<p id="o">x</p>']
+          body_not_contains: ["xmlns:p", "xmlns:r"]

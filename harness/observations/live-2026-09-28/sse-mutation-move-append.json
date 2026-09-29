@@ -1,0 +1,38 @@
+{
+  "case": "sse.mutation.move-append",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 2",
+      "events": [
+        {
+          "event": "pagelove-connection",
+          "data": "73cad739-19b3-4ed9-a4c6-7e5f420d75bc"
+        }
+      ]
+    },
+    {
+      "step": "step 3 (move card 3 to the end of the done lane)",
+      "method": "MOVE",
+      "path": "/_pl/sse-mutation-move-append-9c55b6/board.html",
+      "status": 204,
+      "headers": {
+        "etag": "\"8a4067c8f059187ae79e7b0e1364d69b4af1b5eaaf2e2af1647dcae98b374109\"",
+        "last-modified": "Mon, 28 Sep 2026 22:34:56 GMT",
+        "vary": "Host, Range"
+      }
+    },
+    {
+      "step": "step 4",
+      "events": [
+        {
+          "id": "v1~32f1a992a3eb.1790634896653-0",
+          "event": "mutation",
+          "data": "\u003carticle itemscope itemtype=\"https://pagelove.org/Mutation\"\u003e\n  \u003cspan itemprop=\"method\"\u003eMOVE\u003c/span\u003e\n  \u003cspan itemprop=\"selector\"\u003e#card-3\u003c/span\u003e\n  \u003cspan itemprop=\"etag\"\u003e8a4067c8f059187ae79e7b0e1364d69b4af1b5eaaf2e2af1647dcae98b374109\u003c/span\u003e\n  \u003cspan itemprop=\"path\"\u003e/_pl/sse-mutation-move-append-9c55b6/board.html\u003c/span\u003e\n  \u003cspan itemprop=\"host\"\u003elive-test-host.onpagelove.com\u003c/span\u003e\n  \u003cdiv itemprop=\"body\"\u003e\u003c/div\u003e\n  \u003cspan itemprop=\"destination\"\u003e#lane-done\u003c/span\u003e\n  \u003cspan itemprop=\"placement\"\u003eappend\u003c/span\u003e\n\u003c/article\u003e"
+        }
+      ]
+    }
+  ],
+  "outcome": "pass",
+  "target": "live"
+}

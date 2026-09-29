@@ -1,0 +1,49 @@
+{
+  "case": "sessel.react.polls-range-guard",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (replacing the heading is refused)",
+      "method": "PUT",
+      "path": "/_pl/sessel-react-polls-range-guard-8c8ae3/polls/p1.html",
+      "status": 403,
+      "headers": {
+        "content-length": "36",
+        "content-type": "text/html; charset=utf-8"
+      },
+      "body": "Only a response row may be replaced."
+    },
+    {
+      "step": "step 2 (replacing a response row is allowed)",
+      "method": "PUT",
+      "path": "/_pl/sessel-react-polls-range-guard-8c8ae3/polls/p1.html",
+      "status": 206,
+      "headers": {
+        "content-length": "22",
+        "content-range": "selector #r-abc",
+        "content-type": "text/html",
+        "etag": "\"cafd0a97e4ac911372e1845bfa10a90b8c82ec137fe6f5fb608c4d27db24377b-cafd0a97e4ac911372e1845bfa10a90b8c82ec137fe6f5fb608c4d27db24377b-2\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:56 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003cli id=\"r-abc\"\u003eno\u003c/li\u003e"
+    },
+    {
+      "step": "step 3 (appending to)",
+      "method": "POST",
+      "path": "/_pl/sessel-react-polls-range-guard-8c8ae3/polls/p1.html",
+      "status": 206,
+      "headers": {
+        "content-length": "25",
+        "content-range": "selector #responses",
+        "content-type": "text/html",
+        "etag": "\"e50507562e73a4988327f29c6641512ff45f77b1db55937f6edb3191a15a09f5-e50507562e73a4988327f29c6641512ff45f77b1db55937f6edb3191a15a09f5-3\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:56 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003cli id=\"r-new\"\u003emaybe\u003c/li\u003e"
+    }
+  ],
+  "outcome": "pass",
+  "target": "local"
+}

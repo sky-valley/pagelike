@@ -1,0 +1,48 @@
+{
+  "case": "modeling.groups.child-overrides-constraint",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (register declarations through the public plane (takes effect for the next request))",
+      "method": "PUT",
+      "path": "/_pl/modeling-groups-child-overrides-constrai-04e76e/schema.html",
+      "status": 201,
+      "headers": {
+        "content-length": "1622",
+        "content-type": "text/html",
+        "etag": "\"e5c6fcb5035752e0564fbe6596aca2934e92cd10d7d077d396a2562ee022e205\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:44 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\n  \u003cdiv hidden itemscope itemtype=\"https://pagelove.org/Schema\"\u003e\n    \u003cmeta itemprop=\"type\" content=\"https://pagelike.test/_pl/modeling-groups-child-overrides-constrai-04e76e/UserAuth\"\u003e\n    \u003cmeta itemprop=\"name\" content=\"UserAuth\"\u003e\n    \u003cdiv itemprop=\"property\" itemscope itemtype=\"https://pagelove.org/Property\"\u003e\n      \u003cmeta itemprop=\"name\" content=\"password\"\u003e\n      \u003cmeta itemprop=\"type\" content=\"https://schema.host/Text\"\u003e\n      \u003cmeta itemprop=\"cardinality\" content=\"0..1\"\u003e\n      \u003cmeta itemprop=\"group\" content=\"auth-method\"\u003e\n    \u003c/div\u003e\n    \u003cdiv itemprop=\"property\" itemscope itemtype=\"https://pagelove.org/Property\"\u003e\n      \u003cmeta itemprop=\"name\" content=\"oauth-token\"\u003e\n      \u003cmeta itemprop=\"type\" content=\"https://schema.host/Text\"\u003e\n      \u003cmeta itemprop=\"cardinality\" content=\"0..1\"\u003e\n      \u003cmeta itemprop=\"group\" content=\"auth-method\"\u003e\n    \u003c/div\u003e\n    \u003cdiv itemprop=\"constraint\" itemscope itemtype=\"https://schema.host/GroupConstraint\"\u003e\n      \u003cmeta itemprop=\"group\" content=\"auth-method\"\u003e\n      \u003cmeta itemprop=\"cardinality\" content=\"1..1\"\u003e\n    \u003c/div\u003e\n  \u003c/div\u003e\n  \u003cdiv hidden itemscope itemtype=\"https://pagelove.org/Schema\"\u003e\n    \u003cmeta itemprop=\"type\" content=\"https://pagelike.test/_pl/modeling-groups-child-overrides-constrai-04e76e/MultiAuth\"\u003e\n    \u003cmeta itemprop=\"parent\" content=\"https://pagelike.test/_pl/modeling-groups-child-overrides-constrai-04e76e/UserAuth\"\u003e\n    \u003cdiv itemprop=\"constraint\" itemscope itemtype=\"https://schema.host/GroupConstraint\"\u003e\n      \u003cmeta itemprop=\"group\" content=\"auth-method\"\u003e\n      \u003cmeta itemprop=\"cardinality\" content=\"1..n\"\u003e\n    \u003c/div\u003e\n  \u003c/div\u003e\n\u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 2 (child with both methods accepted)",
+      "method": "PUT",
+      "path": "/_pl/modeling-groups-child-overrides-constrai-04e76e/a.html",
+      "status": 201,
+      "headers": {
+        "content-length": "255",
+        "content-type": "text/html",
+        "etag": "\"69bcc5e9cc4747bd8ed46bef94e4d4cfb8a02dd38477edafd2903d6641fe7305\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:44 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\n  \u003cdiv itemscope itemtype=\"https://pagelike.test/_pl/modeling-groups-child-overrides-constrai-04e76e/MultiAuth\"\u003e\n    \u003cmeta itemprop=\"password\" content=\"p\"\u003e\n    \u003cmeta itemprop=\"oauth-token\" content=\"t\"\u003e\n  \u003c/div\u003e\n\u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 3 (parent with both methods still rejected)",
+      "method": "PUT",
+      "path": "/_pl/modeling-groups-child-overrides-constrai-04e76e/b.html",
+      "status": 422,
+      "headers": {
+        "content-length": "930",
+        "content-type": "text/html; charset=utf-8",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\n  \u003chead\u003e\n    \u003ctitle\u003e422 Unprocessable Entity - Schema Violation\u003c/title\u003e\n  \u003c/head\u003e\n  \u003cbody itemscope itemtype=\"https://pagelove.org/SchemaViolation\"\u003e\n    \u003ch1 itemprop=\"name\"\u003eUnprocessable Entity\u003c/h1\u003e\n    \u003cmeta itemprop=\"statusCode\" content=\"422\"\u003e\n    \u003cp itemprop=\"description\"\u003eSchema validation failed\u003c/p\u003e\n    \u003cul\u003e\n      \u003cli itemprop=\"violations\" itemscope itemtype=\"https://pagelove.org/Violation\"\u003e\n        \u003cspan itemprop=\"check\"\u003egroup\u003c/span\u003e\n        \u003cspan itemprop=\"itemtype\"\u003ehttps://pagelike.test/_pl/modeling-groups-child-overrides-constrai-04e76e/UserAuth\u003c/span\u003e\n        \u003cspan itemprop=\"property\"\u003epassword oauth-token\u003c/span\u003e\n        \u003cspan itemprop=\"message\"\u003e[https://pagelike.test/_pl/modeling-groups-child-overrides-constrai-04e76e/UserAuth]: group \u0026#x27;auth-method\u0026#x27; constraint violated: cardinality 1..1 violated: expected exactly 1 value, found 2\u003c/span\u003e\n      \u003c/li\u003e\n    \u003c/ul\u003e\n  \u003c/body\u003e\n\u003c/html\u003e\n"
+    }
+  ],
+  "outcome": "pass",
+  "target": "local"
+}

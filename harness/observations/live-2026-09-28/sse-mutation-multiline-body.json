@@ -1,0 +1,42 @@
+{
+  "case": "sse.mutation.multiline-body",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 2",
+      "events": [
+        {
+          "event": "pagelove-connection",
+          "data": "120f4227-e7f1-4048-b30d-84ed8b10f548"
+        }
+      ]
+    },
+    {
+      "step": "step 3 (append a two-line item)",
+      "method": "POST",
+      "path": "/_pl/sse-mutation-multiline-body-fa97ad/doc.html",
+      "status": 206,
+      "headers": {
+        "content-length": "26",
+        "content-range": "selector ul",
+        "content-type": "text/html",
+        "etag": "\"ceb167afa8fe38474b43de0c4be639cad9d23221fc9cc76f67d487cc02376339-ceb167afa8fe38474b43de0c4be639cad9d23221fc9cc76f67d487cc02376339-2\"",
+        "last-modified": "Mon, 28 Sep 2026 22:35:05 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003cli\u003eline one\nline two\u003c/li\u003e"
+    },
+    {
+      "step": "step 4",
+      "events": [
+        {
+          "id": "v1~93daa4c4ad14.1790634905714-0",
+          "event": "mutation",
+          "data": "\u003carticle itemscope itemtype=\"https://pagelove.org/Mutation\"\u003e\n  \u003cspan itemprop=\"method\"\u003ePOST\u003c/span\u003e\n  \u003cspan itemprop=\"selector\"\u003eul\u003c/span\u003e\n  \u003cspan itemprop=\"etag\"\u003e1b5234b9b9571b60d4c26547d720d202e8188e68c14af15045bbb28a81e995e0\u003c/span\u003e\n  \u003cspan itemprop=\"path\"\u003e/_pl/sse-mutation-multiline-body-fa97ad/doc.html\u003c/span\u003e\n  \u003cspan itemprop=\"host\"\u003elive-test-host.onpagelove.com\u003c/span\u003e\n  \u003cdiv itemprop=\"body\"\u003e\u003cli\u003eline one\nline two\u003c/li\u003e\u003c/div\u003e\n  \u003cspan itemprop=\"placement\"\u003eappend\u003c/span\u003e\n\u003c/article\u003e"
+        }
+      ]
+    }
+  ],
+  "outcome": "pass",
+  "target": "live"
+}

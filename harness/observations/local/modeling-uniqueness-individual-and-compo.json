@@ -1,0 +1,62 @@
+{
+  "case": "modeling.uniqueness.individual-and-composite",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (register declarations through the public plane (takes effect for the next request))",
+      "method": "PUT",
+      "path": "/_pl/modeling-uniqueness-individual-and-compo-334e81/schema.html",
+      "status": 201,
+      "headers": {
+        "content-length": "886",
+        "content-type": "text/html",
+        "etag": "\"a8d0ea6890a345a8008d483398c59bc8ce9d5aaa24a4e9bc7b468e2aaac54a10\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:45 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\n  \u003cdiv hidden itemscope itemtype=\"https://pagelove.org/Schema\"\u003e\n    \u003cmeta itemprop=\"type\" content=\"https://pagelike.test/_pl/modeling-uniqueness-individual-and-compo-334e81/Account\"\u003e\n    \u003cdiv itemprop=\"property\" itemscope itemtype=\"https://pagelove.org/Property\"\u003e\n      \u003cmeta itemprop=\"name\" content=\"email\"\u003e\n      \u003cmeta itemprop=\"type\" content=\"https://schema.host/Text\"\u003e\n      \u003cmeta itemprop=\"cardinality\" content=\"1..1\"\u003e\n      \u003cmeta itemprop=\"unique\" content=\"true\"\u003e\n      \u003cmeta itemprop=\"unique\" content=\"email-org\"\u003e\n    \u003c/div\u003e\n    \u003cdiv itemprop=\"property\" itemscope itemtype=\"https://pagelove.org/Property\"\u003e\n      \u003cmeta itemprop=\"name\" content=\"org\"\u003e\n      \u003cmeta itemprop=\"type\" content=\"https://schema.host/Text\"\u003e\n      \u003cmeta itemprop=\"cardinality\" content=\"1..1\"\u003e\n      \u003cmeta itemprop=\"unique\" content=\"email-org\"\u003e\n    \u003c/div\u003e\n  \u003c/div\u003e\n\u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 2 (a@x in o1)",
+      "method": "PUT",
+      "path": "/_pl/modeling-uniqueness-individual-and-compo-334e81/a.html",
+      "status": 201,
+      "headers": {
+        "content-length": "245",
+        "content-type": "text/html",
+        "etag": "\"f940aff66ee86f4af3ad19a89ecbb9a56ff2c508bc87aa4957f5a45158fa845e\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:45 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\n  \u003cdiv itemscope itemtype=\"https://pagelike.test/_pl/modeling-uniqueness-individual-and-compo-334e81/Account\"\u003e\n    \u003cmeta itemprop=\"email\" content=\"a@x\"\u003e\n    \u003cmeta itemprop=\"org\" content=\"o1\"\u003e\n  \u003c/div\u003e\n\u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 3 (b@x in o1)",
+      "method": "PUT",
+      "path": "/_pl/modeling-uniqueness-individual-and-compo-334e81/b.html",
+      "status": 201,
+      "headers": {
+        "content-length": "245",
+        "content-type": "text/html",
+        "etag": "\"8b36058bc1096438ff84b286f28042c2190ecc87b69538226f0a7e89679498d6\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:45 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\n  \u003cdiv itemscope itemtype=\"https://pagelike.test/_pl/modeling-uniqueness-individual-and-compo-334e81/Account\"\u003e\n    \u003cmeta itemprop=\"email\" content=\"b@x\"\u003e\n    \u003cmeta itemprop=\"org\" content=\"o1\"\u003e\n  \u003c/div\u003e\n\u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 4 (a@x in o2 violates individual uniqueness of email)",
+      "method": "PUT",
+      "path": "/_pl/modeling-uniqueness-individual-and-compo-334e81/c.html",
+      "status": 422,
+      "headers": {
+        "content-length": "334",
+        "content-type": "text/html",
+        "vary": "Host, Range"
+      },
+      "body": "\u003cdiv itemscope itemtype=\"https://dombase.pagelove.team/ns/error/ConstraintViolation\"\u003e\u003cul itemprop=\"problems\"\u003e\u003cli itemprop=\"problem\"\u003e\u003cspan itemprop=\"message\"\u003eConstraint violation: 1 violation(s):\n  - [uniqueness] [itemprop='email'] (unique(email)): Uniqueness violation: value already exists for property 'email'\u003c/span\u003e\u003c/li\u003e\u003c/ul\u003e\u003c/div\u003e"
+    }
+  ],
+  "outcome": "pass",
+  "target": "local"
+}

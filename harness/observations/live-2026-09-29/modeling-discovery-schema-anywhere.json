@@ -1,0 +1,71 @@
+{
+  "case": "modeling.discovery.schema-anywhere",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (register declarations through the public plane (takes effect for the next request))",
+      "method": "PUT",
+      "path": "/_pl/modeling-discovery-schema-anywhere-643b97/deep/definitions.html",
+      "status": 201,
+      "headers": {
+        "content-type": "text/html",
+        "etag": "\"5432043898a465a85f0260124e7be0928b3fe51c70f551857e1c0b42169f58e3\"",
+        "last-modified": "Tue, 29 Sep 2026 00:47:49 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\n  \u003cdiv hidden itemscope itemtype=\"https://pagelove.org/Schema\"\u003e\n    \u003cmeta itemprop=\"type\" content=\"https://pagelike.test/_pl/modeling-discovery-schema-anywhere-643b97/Tag\"\u003e\n    \u003cdiv itemprop=\"property\" itemscope itemtype=\"https://pagelove.org/Property\"\u003e\n      \u003cmeta itemprop=\"name\" content=\"label\"\u003e\n      \u003cmeta itemprop=\"type\" content=\"https://schema.host/Text\"\u003e\n      \u003cmeta itemprop=\"cardinality\" content=\"1..1\"\u003e\n    \u003c/div\u003e\n  \u003cmeta itemprop=\"@id\" content=\"https://schema.host/qt2zbvb6\"\u003e\u003cmeta itemprop=\"path\" content=\"/Schemahttps://schema.host/qt2zbvb6.html\"\u003e\u003c/div\u003e\n\n                \u003cdiv style=\"\n                            position: fixed;\n                            bottom: 0;\n                            left: 0;\n                            right: 0;\n                            padding: 8px;\n                            background: #f0f0f0;\n                            text-align: center;\n                            font-size: 12px;\n                            color: #666;\n                            z-index: 9999;\n                            opacity: 0.8;\n                            border-top: 1px solid #ddd;\n                        \"\u003e\n                    Powered by\n                    \u003ca href=\"https://pagelove.com/\" style=\"color: #4a90d9; text-decoration: none\"\u003ePagelove\u003c/a\u003e\n                \u003c/div\u003e\n            \u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 2 (instance missing the required label is rejected)",
+      "method": "PUT",
+      "path": "/_pl/modeling-discovery-schema-anywhere-643b97/tag-missing.html",
+      "status": 422,
+      "headers": {
+        "content-length": "299",
+        "content-type": "text/html",
+        "vary": "Host, Range"
+      },
+      "body": "\u003cdiv itemscope itemtype=\"https://pagelove.org/SchemaViolation\"\u003e\u003cul itemprop=\"problems\"\u003e\u003cli itemprop=\"problem\"\u003e\u003cspan itemprop=\"message\"\u003e[https://pagelike.test/_pl/modeling-discovery-schema-anywhere-643b97/Tag].label: cardinality 1..1 violated: expected exactly 1 value, found 0\u003c/span\u003e\u003c/li\u003e\u003c/ul\u003e\u003c/div\u003e"
+    },
+    {
+      "step": "step 3 (tag-missing.html was not stored)",
+      "method": "GET",
+      "path": "/_pl/modeling-discovery-schema-anywhere-643b97/tag-missing.html",
+      "status": 404,
+      "headers": {
+        "content-length": "214",
+        "content-type": "text/html; charset=utf-8"
+      },
+      "body": "\u003carticle itemscope itemtype=\"https://pagelove.org/Error/NotFound\"\u003e\u003cmeta itemprop=\"status\" content=\"404\"\u003e\u003cp itemprop=\"message\"\u003eNot found: /_pl/modeling-discovery-schema-anywhere-643b97/tag-missing.html\u003c/p\u003e\u003c/article\u003e"
+    },
+    {
+      "step": "step 4 (valid instance in another directory is accepted)",
+      "method": "PUT",
+      "path": "/_pl/modeling-discovery-schema-anywhere-643b97/tag-ok.html",
+      "status": 201,
+      "headers": {
+        "content-type": "text/html",
+        "etag": "\"a642100bb3fabbe12915fca51b4b0e5566041f3fd3ddfcf6b3e8ef70a55e20db\"",
+        "last-modified": "Tue, 29 Sep 2026 00:47:50 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\n  \u003cdiv itemscope itemtype=\"https://pagelike.test/_pl/modeling-discovery-schema-anywhere-643b97/Tag\"\u003e\n    \u003cmeta itemprop=\"label\" content=\"urgent\"\u003e\n  \u003c/div\u003e\n\n                \u003cdiv style=\"\n                            position: fixed;\n                            bottom: 0;\n                            left: 0;\n                            right: 0;\n                            padding: 8px;\n                            background: #f0f0f0;\n                            text-align: center;\n                            font-size: 12px;\n                            color: #666;\n                            z-index: 9999;\n                            opacity: 0.8;\n                            border-top: 1px solid #ddd;\n                        \"\u003e\n                    Powered by\n                    \u003ca href=\"https://pagelove.com/\" style=\"color: #4a90d9; text-decoration: none\"\u003ePagelove\u003c/a\u003e\n                \u003c/div\u003e\n            \u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 5 (stored state of tag-ok.html (authoring plane, raw))",
+      "method": "GET",
+      "path": "/_pl/modeling-discovery-schema-anywhere-643b97/tag-ok.html",
+      "status": 200,
+      "headers": {
+        "accept-ranges": "bytes",
+        "content-length": "199",
+        "content-type": "text/html",
+        "etag": "\"a642100bb3fabbe12915fca51b4b0e5566041f3fd3ddfcf6b3e8ef70a55e20db\"",
+        "last-modified": "Tue, 29 Sep 2026 00:47:50 GMT"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\n  \u003cdiv itemscope itemtype=\"https://pagelike.test/_pl/modeling-discovery-schema-anywhere-643b97/Tag\"\u003e\n    \u003cmeta itemprop=\"label\" content=\"urgent\"\u003e\n  \u003c/div\u003e\n\u003c/body\u003e\u003c/html\u003e\n"
+    }
+  ],
+  "outcome": "pass",
+  "target": "live"
+}

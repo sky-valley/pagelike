@@ -1,0 +1,37 @@
+{
+  "case": "javascript.jbind.reserved-word-name-via-context",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (PUT the page (public plane; registers inline declarations))",
+      "method": "PUT",
+      "path": "/_pl/javascript-jbind-reserved-word-name-via-3f4167/j.html",
+      "status": 201,
+      "headers": {
+        "content-length": "227",
+        "content-type": "text/html",
+        "etag": "\"d887baa7581f97406c8b440918706fb65561fdc04c15f803b6f30ae070ab4de7\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:43 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml xmlns:j=\"https://pagelove.org/Binding/JavaScript\" xmlns:p=\"https://pagelove.org/1.0\"\u003e\u003cbody\u003e\n\u003cmain\u003e\n\u003cdiv j:class=\"'kw'\" j:out=\"Context['class'] + '-ok'\"\u003e\u003cp:stamp out\u003e\u003c/p:stamp\u003e\u003c/div\u003e\n\u003c/main\u003e\n\u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 2 (GET the composed page)",
+      "method": "GET",
+      "path": "/_pl/javascript-jbind-reserved-word-name-via-3f4167/j.html",
+      "status": 206,
+      "headers": {
+        "accept-ranges": "selector, bytes",
+        "content-length": "31",
+        "content-range": "selector main",
+        "content-type": "text/html",
+        "etag": "\"76c0ef94d8523e70bcc48631a3060df00b0ce679f2ae9c996211b1d03815206d-76c0ef94d8523e70bcc48631a3060df00b0ce679f2ae9c996211b1d03815206d-1\"",
+        "vary": "Host, Range, Accept"
+      },
+      "body": "\u003cmain\u003e\n\u003cdiv\u003ekw-ok\u003c/div\u003e\n\u003c/main\u003e"
+    }
+  ],
+  "outcome": "pass",
+  "target": "local"
+}

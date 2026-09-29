@@ -1,0 +1,527 @@
+# Compatibility matrix
+
+Generated on 2026-09-29 from the local run (`harness run --slow --observations harness/observations/local`) and every live observation directory, later ones overriding earlier ones:
+
+```bash
+go run ./harness/cmd/harness matrix --live-observations harness/observations/live-2026-09-28,harness/observations/live-2026-09-29,harness/observations/live-2026-09-29-confirm,harness/observations/live-2026-09-29-serialize,harness/observations/live-2026-09-29-reconcile-composing-liquid,harness/observations/live-2026-09-29-reconcile-javascript,harness/observations/live-2026-09-29-reconcile-modeling,harness/observations/live-2026-09-29-reconcile-reacting,harness/observations/live-2026-09-29-reconcile-sessel,harness/observations/live-2026-09-29-final
+```
+
+| Area | Feature | Cases | Evidence | Local pass / fail / skip | Live PageLove (recorded runs): match / kept / differ |
+|---|---|---|---|---|---|
+| apps | demo apps: routing | 1 | demo 1 | 1 / 0 / 0 | — |
+| apps | demo: accountability | 2 | demo 2 | 2 / 0 / 0 | — |
+| apps | demo: event | 1 | demo 1 | 1 / 0 / 0 | — |
+| apps | demo: resource exchange | 1 | demo 1 | 1 / 0 / 0 | — |
+| apps | demo: show and tell | 1 | demo 1 | 1 / 0 / 0 | — |
+| apps | directory URL equivalence | 1 | client 1 | 1 / 0 / 0 | — |
+| apps | template: ats | 4 | demo 4 | 4 / 0 / 0 | — |
+| apps | template: kanban | 6 | doc 1, demo 5 | 6 / 0 / 0 | — |
+| apps | template: polls | 4 | doc 1, demo 3 | 4 / 0 / 0 | — |
+| apps | template: shop | 5 | doc 1, demo 4 | 4 / 0 / 1 | 1 / 1 / 0 |
+| apps | tutorial: blog | 7 | doc 7, disputed 1 | 6 / 0 / 1 | — |
+| apps | tutorial: first app | 2 | doc 2 | 2 / 0 / 0 | — |
+| composing | JavaScript binding | 3 | doc 3 | 3 / 0 / 0 | 1 / 0 / 0 |
+| composing | JavaScript binding errors | 1 | doc 1 | 1 / 0 / 0 | 1 / 0 / 0 |
+| composing | Liquid view of bound elements | 3 | doc 3 | 3 / 0 / 0 | — |
+| composing | Request Document | 2 | doc 2 | 2 / 0 / 0 | 1 / 0 / 0 |
+| composing | XML documents | 6 | doc 6 | 6 / 0 / 0 | — |
+| composing | binding scope | 2 | doc 2 | 2 / 0 / 0 | 1 / 0 / 0 |
+| composing | caching | 2 | doc 1, demo 1 | 2 / 0 / 0 | 1 / 0 / 0 |
+| composing | direct creation | 1 | doc 1 | 1 / 0 / 0 | — |
+| composing | evaluation order | 3 | doc 3 | 3 / 0 / 0 | 1 / 0 / 0 |
+| composing | expression binding | 3 | doc 3 | 3 / 0 / 0 | 1 / 0 / 0 |
+| composing | expression binding errors | 2 | doc 2 | 2 / 0 / 0 | 1 / 0 / 0 |
+| composing | include cardinality | 2 | doc 2 | 2 / 0 / 0 | 1 / 0 / 0 |
+| composing | includes | 6 | doc 3, demo 3 | 6 / 0 / 0 | 1 / 0 / 0 |
+| composing | method attribute form | 3 | doc 3 | 3 / 0 / 0 | 1 / 0 / 0 |
+| composing | method elements | 6 | doc 6 | 6 / 0 / 0 | 1 / 0 / 0 |
+| composing | namespace URIs | 2 | doc 2 | 2 / 0 / 0 | 1 / 0 / 0 |
+| composing | namespace prefixes | 2 | doc 2 | 2 / 0 / 0 | 1 / 0 / 0 |
+| composing | output stripping | 2 | doc 2 | 2 / 0 / 0 | 1 / 0 / 0 |
+| composing | pagination | 12 | doc 7, live 5 | 9 / 0 / 3 | 3 / 2 / 0 |
+| composing | pagination errors | 3 | doc 1, live 2 | 2 / 0 / 1 | 2 / 0 / 0 |
+| composing | pagination links | 7 | live 7 | 4 / 0 / 3 | 4 / 1 / 0 |
+| composing | parameterized routes | 13 | doc 10, demo 1, live 1, inf 1, disputed 1 | 12 / 0 / 1 | — |
+| composing | parsing | 3 | doc 1, demo 1, live 1 | 3 / 0 / 0 | 1 / 0 / 0 |
+| composing | request object | 4 | doc 4 | 4 / 0 / 0 | 1 / 0 / 0 |
+| composing | resource binding | 7 | doc 5, demo 1, inf 1 | 7 / 0 / 0 | 1 / 0 / 0 |
+| composing | resource binding errors | 1 | doc 1 | 1 / 0 / 0 | 1 / 0 / 0 |
+| composing | resource binding security | 1 | doc 1 | 1 / 0 / 0 | 1 / 0 / 0 |
+| composing | route precedence | 3 | doc 3 | 3 / 0 / 0 | — |
+| composing | selector extensions | 12 | doc 12 | 12 / 0 / 0 | — |
+| composing | selector functions | 4 | doc 4 | 4 / 0 / 0 | — |
+| composing | stamp | 7 | doc 5, demo 1, live 1 | 7 / 0 / 0 | — |
+| composing | templated creation | 5 | doc 2, demo 3 | 5 / 0 / 0 | — |
+| composing | templated creation authorization | 2 | doc 2 | 2 / 0 / 0 | — |
+| composing | templated creation errors | 2 | doc 2 | 2 / 0 / 0 | — |
+| composing | templating | 4 | doc 1, demo 2, inf 1 | 4 / 0 / 0 | — |
+| composing | templating errors | 1 | doc 1 | 1 / 0 / 0 | — |
+| composing | transient caching | 2 | doc 1, inf 1 | 2 / 0 / 0 | — |
+| composing | transient elements | 1 | doc 1 | 1 / 0 / 0 | — |
+| composing | transient isolation | 2 | doc 2 | 2 / 0 / 0 | — |
+| composing | transient writes | 6 | doc 6 | 6 / 0 / 0 | — |
+| composing | unbound prefixes | 3 | doc 2, live 1 | 3 / 0 / 0 | 2 / 0 / 0 |
+| composing | write-through | 7 | doc 7 | 7 / 0 / 0 | 1 / 0 / 0 |
+| composing | write-through authorization | 1 | doc 1 | 1 / 0 / 0 | — |
+| composing | write-through concurrency | 1 | doc 1 | 1 / 0 / 0 | — |
+| javascript | DOM CharacterData | 2 | doc 2 | 2 / 0 / 0 | 1 / 0 / 0 |
+| javascript | DOM Document | 2 | doc 2 | 2 / 0 / 0 | 1 / 0 / 0 |
+| javascript | DOM Element attributes | 1 | doc 1 | 1 / 0 / 0 | 1 / 0 / 0 |
+| javascript | DOM Element content | 1 | doc 1 | 1 / 0 / 0 | 1 / 0 / 0 |
+| javascript | DOM Element identity | 2 | doc 2 | 2 / 0 / 0 | 1 / 0 / 0 |
+| javascript | DOM Element insertion | 1 | doc 1 | 1 / 0 / 0 | 1 / 0 / 0 |
+| javascript | DOM Element traversal | 1 | doc 1 | 1 / 0 / 0 | 1 / 0 / 0 |
+| javascript | DOM Node | 3 | doc 2, live 1 | 3 / 0 / 0 | 2 / 0 / 0 |
+| javascript | DOM NodeList | 1 | doc 1 | 1 / 0 / 0 | 1 / 0 / 0 |
+| javascript | DOM classList | 2 | live 2 | 2 / 0 / 0 | 2 / 0 / 0 |
+| javascript | DOM divergences | 1 | doc 1 | 1 / 0 / 0 | 1 / 0 / 0 |
+| javascript | DOM errors | 2 | doc 2 | 2 / 0 / 0 | 1 / 0 / 0 |
+| javascript | DOM interfaces | 5 | doc 3, live 1, inf 1 | 4 / 0 / 1 | 2 / 0 / 0 |
+| javascript | DOM parsing | 4 | doc 1, live 3 | 3 / 0 / 1 | 3 / 0 / 0 |
+| javascript | DOM read-only boundary | 5 | doc 5, disputed 1 | 4 / 0 / 1 | 1 / 0 / 0 |
+| javascript | DOM reflected attributes | 9 | doc 9, disputed 1 | 8 / 0 / 1 | 1 / 0 / 0 |
+| javascript | DOM selectors | 1 | live 1 | 1 / 0 / 0 | 1 / 0 / 0 |
+| javascript | QUERY | 1 | live 1 | 1 / 0 / 0 | 1 / 0 / 0 |
+| javascript | binding failures | 5 | doc 5 | 5 / 0 / 0 | — |
+| javascript | budgets | 5 | doc 4, inf 1 | 5 / 0 / 0 | — |
+| javascript | client contract: DELETE | 1 | client 1 | 1 / 0 / 0 | 1 / 0 / 0 |
+| javascript | client contract: ETags | 1 | client 1 | 1 / 0 / 0 | 1 / 0 / 0 |
+| javascript | client contract: POST | 2 | client 2 | 2 / 0 / 0 | 1 / 0 / 0 |
+| javascript | client contract: PUT | 1 | client 1 | 1 / 0 / 0 | 1 / 0 / 0 |
+| javascript | client contract: selectors | 3 | client 3 | 3 / 0 / 0 | 1 / 0 / 0 |
+| javascript | cross-language calls | 4 | doc 4 | 4 / 0 / 0 | — |
+| javascript | default slot | 5 | doc 5 | 5 / 0 / 0 | — |
+| javascript | globals | 7 | doc 6, inf 1 | 7 / 0 / 0 | 1 / 0 / 0 |
+| javascript | imports | 7 | doc 5, inf 2 | 7 / 0 / 0 | — |
+| javascript | j: bindings | 12 | doc 10, inf 2 | 12 / 0 / 0 | — |
+| javascript | j: errors | 5 | doc 5 | 5 / 0 / 0 | — |
+| javascript | j: request object | 3 | doc 3 | 3 / 0 / 0 | — |
+| javascript | language features | 2 | doc 2 | 2 / 0 / 0 | — |
+| javascript | method elements (JavaScript) | 12 | doc 12, disputed 1 | 11 / 0 / 1 | — |
+| javascript | method results | 8 | doc 8 | 8 / 0 / 0 | — |
+| javascript | module contract | 1 | doc 1 | 1 / 0 / 0 | — |
+| javascript | processors (JavaScript) | 3 | doc 2, client 1 | 3 / 0 / 0 | — |
+| javascript | property @validate | 4 | doc 4, disputed 1 | 3 / 0 / 1 | — |
+| javascript | schema @validate | 1 | doc 1 | 1 / 0 / 0 | — |
+| javascript | schema imports | 3 | doc 3 | 3 / 0 / 0 | 1 / 0 / 0 |
+| javascript | thrown HTTPResponse | 3 | doc 3 | 3 / 0 / 0 | — |
+| javascript | triggers (JavaScript) | 10 | doc 10 | 10 / 0 / 0 | — |
+| liquid | XML documents | 1 | doc 1 | 1 / 0 / 0 | 1 / 0 / 0 |
+| liquid | app templates | 5 | doc 2, demo 3 | 5 / 0 / 0 | 2 / 0 / 0 |
+| liquid | array filters | 9 | doc 8, inf 1 | 9 / 0 / 0 | 1 / 0 / 0 |
+| liquid | authoring plane | 1 | doc 1 | 1 / 0 / 0 | 1 / 0 / 0 |
+| liquid | binding scope | 3 | doc 2, inf 1 | 3 / 0 / 0 | 1 / 0 / 0 |
+| liquid | bindings vs authorization | 1 | doc 1 | 1 / 0 / 0 | 1 / 0 / 0 |
+| liquid | bindings vs templates | 1 | demo 1 | 1 / 0 / 0 | 1 / 0 / 0 |
+| liquid | budgets | 4 | doc 4 | 4 / 0 / 0 | — |
+| liquid | composition order | 7 | doc 4, live 2, inf 1 | 5 / 0 / 2 | 3 / 0 / 0 |
+| liquid | data filters | 2 | doc 1, inf 1 | 2 / 0 / 0 | — |
+| liquid | date filters | 6 | doc 6 | 6 / 0 / 0 | 1 / 0 / 0 |
+| liquid | error degradation | 8 | doc 5, inf 3 | 8 / 0 / 0 | 2 / 0 / 0 |
+| liquid | escaping | 6 | live 5, inf 1, disputed 1 | 4 / 0 / 2 | 5 / 1 / 0 |
+| liquid | expression binding in templates | 3 | doc 3 | 3 / 0 / 0 | 1 / 0 / 0 |
+| liquid | expression filter depth | 2 | doc 2 | 2 / 0 / 0 | 1 / 0 / 0 |
+| liquid | expression filters | 5 | doc 3, live 2 | 5 / 0 / 0 | 2 / 0 / 0 |
+| liquid | expressions | 3 | doc 1, demo 2 | 3 / 0 / 0 | — |
+| liquid | item @id | 1 | demo 1 | 1 / 0 / 0 | 1 / 0 / 0 |
+| liquid | item property access | 4 | doc 1, demo 1, inf 2 | 4 / 0 / 0 | 1 / 0 / 0 |
+| liquid | nested templates | 1 | inf 1 | 1 / 0 / 0 | 1 / 0 / 0 |
+| liquid | number filters | 5 | doc 4, inf 1 | 5 / 0 / 0 | 1 / 0 / 0 |
+| liquid | output placement | 5 | doc 4, inf 1 | 5 / 0 / 0 | — |
+| liquid | random filters | 3 | doc 3 | 3 / 0 / 0 | — |
+| liquid | request object | 5 | doc 4, demo 1 | 5 / 0 / 0 | — |
+| liquid | request.auth | 1 | demo 1 | 1 / 0 / 0 | — |
+| liquid | request.body | 2 | doc 1, demo 1 | 2 / 0 / 0 | — |
+| liquid | resource binding in templates | 4 | doc 4 | 4 / 0 / 0 | 1 / 0 / 0 |
+| liquid | security filters | 5 | doc 5 | 5 / 0 / 0 | — |
+| liquid | string filters | 12 | doc 9, live 3 | 11 / 0 / 1 | 3 / 1 / 0 |
+| liquid | tags | 7 | doc 2, client 1, demo 1, inf 3 | 7 / 0 / 0 | — |
+| liquid | template declaration | 7 | doc 3, inf 4 | 7 / 0 / 0 | 1 / 0 / 0 |
+| liquid | template injection | 2 | inf 2 | 2 / 0 / 0 | 1 / 0 / 0 |
+| liquid | template placement | 1 | demo 1 | 1 / 0 / 0 | 1 / 0 / 0 |
+| liquid | template scope | 2 | doc 1, demo 1 | 2 / 0 / 0 | 1 / 0 / 0 |
+| liquid | template source | 4 | doc 1, demo 2, live 1 | 4 / 0 / 0 | 1 / 0 / 0 |
+| liquid | undefined variables | 3 | doc 2, inf 1, disputed 1 | 2 / 0 / 1 | 1 / 0 / 0 |
+| liquid | whitespace | 2 | doc 2 | 2 / 0 / 0 | — |
+| liquid | writes vs templates | 1 | inf 1 | 1 / 0 / 0 | 1 / 0 / 0 |
+| modeling | affected instances | 2 | inf 2 | 2 / 0 / 0 | 1 / 0 / 0 |
+| modeling | atomicity | 1 | live 1 | 1 / 0 / 0 | 1 / 0 / 0 |
+| modeling | cardinality | 15 | doc 12, inf 3 | 15 / 0 / 0 | 1 / 0 / 0 |
+| modeling | cascade | 11 | doc 10, inf 1, disputed 1 | 10 / 0 / 1 | 1 / 0 / 0 |
+| modeling | closed shapes | 13 | doc 10, demo 2, live 1 | 13 / 0 / 0 | 1 / 0 / 0 |
+| modeling | composite uniqueness | 3 | doc 1, live 1, inf 1 | 3 / 0 / 0 | 1 / 0 / 0 |
+| modeling | computed properties | 5 | doc 2, live 2, inf 1 | 5 / 0 / 0 | 2 / 0 / 0 |
+| modeling | defaults | 10 | doc 7, inf 3 | 10 / 0 / 0 | 2 / 0 / 0 |
+| modeling | enums | 4 | doc 2, demo 1, inf 1 | 4 / 0 / 0 | 1 / 0 / 0 |
+| modeling | error documents | 7 | doc 5, live 2 | 7 / 0 / 0 | 2 / 0 / 0 |
+| modeling | group constraints | 9 | doc 8, inf 1 | 9 / 0 / 0 | 1 / 0 / 0 |
+| modeling | inheritance | 10 | doc 8, inf 2 | 10 / 0 / 0 | 1 / 0 / 0 |
+| modeling | methods | 3 | doc 2, inf 1 | 3 / 0 / 0 | 1 / 0 / 0 |
+| modeling | nested types | 6 | live 5, inf 1 | 6 / 0 / 0 | 2 / 0 / 0 |
+| modeling | primary key | 4 | doc 3, inf 1 | 4 / 0 / 0 | 1 / 0 / 0 |
+| modeling | primitive types | 17 | doc 12, inf 5 | 17 / 0 / 0 | 1 / 0 / 0 |
+| modeling | references | 5 | doc 5 | 5 / 0 / 0 | 1 / 0 / 0 |
+| modeling | resolvers | 16 | doc 14, live 2, disputed 1 | 14 / 0 / 2 | 2 / 0 / 0 |
+| modeling | schema discovery | 4 | doc 3, inf 1 | 4 / 0 / 0 | 1 / 0 / 0 |
+| modeling | schema registration timing | 5 | doc 1, inf 4 | 4 / 0 / 1 | 1 / 0 / 0 |
+| modeling | shape constraints | 17 | doc 10, demo 3, live 2, inf 2, disputed 1 | 15 / 0 / 2 | 2 / 1 / 0 |
+| modeling | uniqueness | 10 | doc 3, demo 2, live 2, inf 3 | 9 / 0 / 1 | 2 / 0 / 0 |
+| modeling | validated operations | 5 | doc 1, live 2, inf 2 | 3 / 0 / 2 | 2 / 1 / 0 |
+| modeling | validators | 11 | doc 11, disputed 1 | 9 / 0 / 2 | 1 / 0 / 0 |
+| modeling | value extraction | 5 | doc 4, demo 1, disputed 1 | 4 / 0 / 1 | 1 / 0 / 0 |
+| permissions-identity | 401 error document | 2 | doc 1, live 1 | 2 / 0 / 0 | 2 / 0 / 0 |
+| permissions-identity | 401 error document login link | 1 | doc 1 | 1 / 0 / 0 | — |
+| permissions-identity | 401 headers | 1 | live 1 | 1 / 0 / 0 | 1 / 0 / 0 |
+| permissions-identity | 401 vs 403 | 1 | doc 1 | 1 / 0 / 0 | — |
+| permissions-identity | 403 error document | 1 | inf 1 | 1 / 0 / 0 | — |
+| permissions-identity | API keys vs end-user identity | 1 | client 1 | 1 / 0 / 0 | 1 / 0 / 0 |
+| permissions-identity | Authorization header vs identity | 1 | demo 1 | 1 / 0 / 0 | 1 / 0 / 0 |
+| permissions-identity | DELETE key element | 1 | doc 1 | 1 / 0 / 0 | 1 / 0 / 0 |
+| permissions-identity | Group document | 1 | doc 1 | 1 / 0 / 0 | — |
+| permissions-identity | Group document duplicates | 1 | inf 1 | 1 / 0 / 0 | — |
+| permissions-identity | Group document location | 1 | doc 1 | 1 / 0 / 0 | — |
+| permissions-identity | Group document name | 1 | doc 1 | 1 / 0 / 0 | — |
+| permissions-identity | Group membership changes | 1 | doc 1 | 1 / 0 / 0 | — |
+| permissions-identity | Group subtype includes() | 2 | doc 2 | 2 / 0 / 0 | — |
+| permissions-identity | Group verified-email gate | 1 | doc 1 | 1 / 0 / 0 | — |
+| permissions-identity | HEAD vs GET | 1 | inf 1 | 1 / 0 / 0 | 1 / 0 / 0 |
+| permissions-identity | Liquid removed from rules | 2 | doc 2 | 2 / 0 / 0 | 2 / 0 / 0 |
+| permissions-identity | MOVE absence vs denial | 2 | live 1, inf 1 | 2 / 0 / 0 | 2 / 0 / 0 |
+| permissions-identity | MOVE authorization | 6 | doc 6 | 6 / 0 / 0 | 6 / 0 / 0 |
+| permissions-identity | MOVE denials | 1 | doc 1 | 1 / 0 / 0 | — |
+| permissions-identity | MOVE rule normalization | 4 | doc 4 | 3 / 0 / 1 | 3 / 0 / 0 |
+| permissions-identity | OIDC login endpoint | 2 | inf 2 | 2 / 0 / 0 | 1 / 0 / 0 |
+| permissions-identity | OIDC roles | 1 | doc 1 | 1 / 0 / 0 | — |
+| permissions-identity | OPTIONS vs authorization | 1 | inf 1 | 1 / 0 / 0 | 1 / 0 / 0 |
+| permissions-identity | POST key element | 3 | doc 3 | 3 / 0 / 0 | 3 / 0 / 0 |
+| permissions-identity | QUERY authorization | 2 | doc 1, live 1 | 2 / 0 / 0 | 2 / 0 / 0 |
+| permissions-identity | SSE authorization | 4 | doc 4 | 4 / 0 / 0 | 2 / 0 / 0 |
+| permissions-identity | absence vs denial (POST placement) | 1 | live 1 | 1 / 0 / 0 | 1 / 0 / 0 |
+| permissions-identity | absence vs denial (reads) | 4 | doc 2, inf 2 | 4 / 0 / 0 | 4 / 0 / 0 |
+| permissions-identity | absence vs denial (writes) | 3 | doc 3 | 3 / 0 / 0 | 3 / 0 / 0 |
+| permissions-identity | actor OIDC role | 1 | doc 1 | 1 / 0 / 0 | — |
+| permissions-identity | actor deprecated :username | 3 | doc 2, inf 1 | 3 / 0 / 0 | — |
+| permissions-identity | actor multi-valued | 1 | doc 1 | 1 / 0 / 0 | — |
+| permissions-identity | actor role: form | 1 | doc 1 | 1 / 0 / 0 | — |
+| permissions-identity | actor user name | 1 | doc 1 | 1 / 0 / 0 | — |
+| permissions-identity | actor users | 3 | doc 3 | 3 / 0 / 0 | 1 / 0 / 0 |
+| permissions-identity | actor verified email | 2 | doc 1, inf 1 | 2 / 0 / 0 | — |
+| permissions-identity | actor wildcard | 1 | doc 1 | 1 / 0 / 0 | — |
+| permissions-identity | authoring plane vs rules | 1 | demo 1 | 1 / 0 / 0 | 1 / 0 / 0 |
+| permissions-identity | capability reporting (OPTIONS) | 1 | client 1 | 1 / 0 / 0 | 1 / 0 / 0 |
+| permissions-identity | capability reporting + default-GET | 1 | live 1 | 1 / 0 / 0 | — |
+| permissions-identity | composition is not filtered by rules | 1 | doc 1 | 1 / 0 / 0 | 1 / 0 / 0 |
+| permissions-identity | conflict resolution (email tier) | 1 | doc 1 | 1 / 0 / 0 | — |
+| permissions-identity | conflict resolution (equal tier) | 2 | doc 2 | 2 / 0 / 0 | 1 / 0 / 0 |
+| permissions-identity | conflict resolution (group over wildcard) | 3 | doc 3 | 3 / 0 / 0 | 1 / 0 / 0 |
+| permissions-identity | conflict resolution (mixed granularity) | 1 | inf 1 | 1 / 0 / 0 | — |
+| permissions-identity | conflict resolution (order independence) | 1 | doc 1 | 1 / 0 / 0 | 1 / 0 / 0 |
+| permissions-identity | conflict resolution (role tier) | 1 | doc 1 | 1 / 0 / 0 | — |
+| permissions-identity | conflict resolution (selector granularity) | 1 | doc 1 | 1 / 0 / 0 | — |
+| permissions-identity | conflict resolution (user over email) | 1 | doc 1 | 1 / 0 / 0 | — |
+| permissions-identity | conflict resolution (user over group) | 1 | doc 1 | 1 / 0 / 0 | — |
+| permissions-identity | conflict resolution (user over wildcard) | 1 | doc 1 | 1 / 0 / 0 | — |
+| permissions-identity | conflict resolution (users tier) | 1 | doc 1 | 1 / 0 / 0 | — |
+| permissions-identity | default deny for writes | 2 | doc 2 | 2 / 0 / 0 | 2 / 0 / 0 |
+| permissions-identity | default-GET mode + absence | 1 | doc 1 | 1 / 0 / 0 | — |
+| permissions-identity | default-GET mode allow | 1 | doc 1 | 1 / 0 / 0 | — |
+| permissions-identity | default-GET mode allow + selector rules | 1 | doc 1 | 1 / 0 / 0 | — |
+| permissions-identity | default-GET mode deny | 2 | doc 2 | 2 / 0 / 0 | — |
+| permissions-identity | default-GET mode deny + selector rules | 1 | doc 1 | 0 / 0 / 1 | — |
+| permissions-identity | default-GET mode vs rules | 1 | doc 1 | 1 / 0 / 0 | 1 / 0 / 0 |
+| permissions-identity | denial for HEAD | 1 | inf 1 | 1 / 0 / 0 | 1 / 0 / 0 |
+| permissions-identity | denial for SSE | 1 | inf 1 | 1 / 0 / 0 | 1 / 0 / 0 |
+| permissions-identity | directory redirect vs read permission | 2 | doc 1, live 1 | 2 / 0 / 0 | 2 / 0 / 0 |
+| permissions-identity | identity in composition | 2 | doc 1, demo 1 | 2 / 0 / 0 | — |
+| permissions-identity | include write-through authorization | 1 | doc 1 | 1 / 0 / 0 | 1 / 0 / 0 |
+| permissions-identity | legacy GroupMembership | 2 | demo 1, inf 1, disputed 1 | 1 / 0 / 1 | — |
+| permissions-identity | method matching | 1 | doc 1 | 1 / 0 / 0 | 1 / 0 / 0 |
+| permissions-identity | method wildcard | 1 | doc 1 | 1 / 0 / 0 | 1 / 0 / 0 |
+| permissions-identity | method wildcard + conflict | 1 | demo 1 | 1 / 0 / 0 | 1 / 0 / 0 |
+| permissions-identity | multi-match reads | 4 | doc 2, live 2 | 2 / 0 / 2 | 2 / 2 / 0 |
+| permissions-identity | multi-match reads + default-GET | 1 | doc 1 | 1 / 0 / 0 | — |
+| permissions-identity | multi-match writes | 1 | doc 1 | 1 / 0 / 0 | 1 / 0 / 0 |
+| permissions-identity | request document auth section | 1 | doc 1 | 1 / 0 / 0 | — |
+| permissions-identity | resource glob (*) | 1 | doc 1 | 1 / 0 / 0 | 1 / 0 / 0 |
+| permissions-identity | resource glob (?) | 1 | inf 1 | 1 / 0 / 0 | 1 / 0 / 0 |
+| permissions-identity | resource glob ([...]) | 1 | inf 1 | 1 / 0 / 0 | 1 / 0 / 0 |
+| permissions-identity | resource glob (anchoring) | 1 | live 1 | 1 / 0 / 0 | 1 / 0 / 0 |
+| permissions-identity | resource glob (case) | 1 | inf 1 | 1 / 0 / 0 | 1 / 0 / 0 |
+| permissions-identity | resource glob (directory) | 1 | doc 1 | 1 / 0 / 0 | 1 / 0 / 0 |
+| permissions-identity | resource glob (literal) | 1 | doc 1 | 1 / 0 / 0 | 1 / 0 / 0 |
+| permissions-identity | resource glob (multi-valued) | 1 | demo 1 | 1 / 0 / 0 | 1 / 0 / 0 |
+| permissions-identity | resource glob ({...}) | 1 | inf 1 | 1 / 0 / 0 | 1 / 0 / 0 |
+| permissions-identity | resource path (query) | 1 | inf 1 | 1 / 0 / 0 | 1 / 0 / 0 |
+| permissions-identity | resource path canonicalization | 2 | doc 1, live 1 | 2 / 0 / 0 | 2 / 0 / 0 |
+| permissions-identity | resource-level vs selector requests | 2 | doc 1, demo 1 | 2 / 0 / 0 | 2 / 0 / 0 |
+| permissions-identity | rule discovery (XML documents) | 1 | live 1 | 1 / 0 / 0 | 1 / 0 / 0 |
+| permissions-identity | rule discovery (host-wide) | 1 | doc 1 | 1 / 0 / 0 | 1 / 0 / 0 |
+| permissions-identity | rule discovery (itemtype) | 1 | inf 1 | 1 / 0 / 0 | 1 / 0 / 0 |
+| permissions-identity | rule discovery (same document) | 1 | doc 1 | 1 / 0 / 0 | 1 / 0 / 0 |
+| permissions-identity | rule field extraction (action) | 1 | demo 1 | 1 / 0 / 0 | 1 / 0 / 0 |
+| permissions-identity | rule field extraction (empty selector) | 1 | doc 1 | 1 / 0 / 0 | 1 / 0 / 0 |
+| permissions-identity | rule field extraction (multi-valued method) | 1 | demo 1 | 1 / 0 / 0 | 1 / 0 / 0 |
+| permissions-identity | rule field extraction (required fields) | 1 | inf 1 | 1 / 0 / 0 | 1 / 0 / 0 |
+| permissions-identity | rule field extraction (table form) | 1 | doc 1 | 1 / 0 / 0 | 1 / 0 / 0 |
+| permissions-identity | rule field extraction (table item with rows) | 2 | doc 1, live 1 | 1 / 0 / 1 | 1 / 1 / 0 |
+| permissions-identity | rule field extraction (trimming) | 2 | live 2 | 1 / 0 / 1 | 1 / 1 / 0 |
+| permissions-identity | rule freshness | 1 | doc 1 | 1 / 0 / 0 | 1 / 0 / 0 |
+| permissions-identity | selector rule matching (context) | 1 | doc 1 | 1 / 0 / 0 | 1 / 0 / 0 |
+| permissions-identity | selector rule matching (match, not inside) | 1 | inf 1 | 1 / 0 / 0 | 1 / 0 / 0 |
+| permissions-identity | selector-level conflict | 3 | doc 1, live 1, inf 1 | 2 / 0 / 1 | 2 / 1 / 0 |
+| permissions-identity | sessions | 1 | doc 1 | 1 / 0 / 0 | 1 / 0 / 0 |
+| permissions-identity | templated lookup aliases | 1 | doc 1 | 1 / 0 / 0 | — |
+| permissions-identity | templated resource | 3 | doc 3 | 3 / 0 / 0 | 2 / 0 / 0 |
+| permissions-identity | templated resource literal substitution | 3 | doc 3 | 3 / 0 / 0 | 2 / 0 / 0 |
+| permissions-identity | templated selector | 3 | doc 3 | 3 / 0 / 0 | 2 / 0 / 0 |
+| permissions-identity | templated values rendering | 3 | doc 3 | 3 / 0 / 0 | 2 / 0 / 0 |
+| permissions-identity | transient elements | 1 | demo 1 | 1 / 0 / 0 | 1 / 0 / 0 |
+| permissions-identity | whole-document MOVE authorization | 2 | doc 2 | 2 / 0 / 0 | 2 / 0 / 0 |
+| permissions-identity | write without read | 1 | demo 1 | 1 / 0 / 0 | 1 / 0 / 0 |
+| protocol | Accept-Query | 1 | doc 1 | 1 / 0 / 0 | — |
+| protocol | Accept-Ranges on HTML responses | 2 | doc 2 | 2 / 0 / 0 | — |
+| protocol | Accept-Ranges on OPTIONS | 1 | doc 1 | 1 / 0 / 0 | — |
+| protocol | HTML storage form | 6 | live 6 | 6 / 0 / 0 | 6 / 0 / 0 |
+| protocol | MOVE authorization | 2 | doc 2 | 2 / 0 / 0 | — |
+| protocol | MOVE authorization fail closed | 2 | live 1, inf 1 | 1 / 0 / 1 | 1 / 1 / 0 |
+| protocol | MOVE authorization three checks | 7 | doc 7 | 7 / 0 / 0 | 6 / 0 / 0 |
+| protocol | MOVE client compatibility | 1 | client 1 | 1 / 0 / 0 | 1 / 0 / 0 |
+| protocol | MOVE concurrency | 1 | doc 1 | 1 / 0 / 0 | 1 / 0 / 0 |
+| protocol | MOVE conditional request | 3 | doc 1, client 1, live 1 | 3 / 0 / 0 | 3 / 0 / 0 |
+| protocol | MOVE element placement | 4 | doc 4 | 4 / 0 / 0 | 4 / 0 / 0 |
+| protocol | MOVE element semantics | 2 | doc 1, inf 1 | 2 / 0 / 0 | 2 / 0 / 0 |
+| protocol | MOVE events | 1 | client 1 | 1 / 0 / 0 | 1 / 0 / 0 |
+| protocol | MOVE headers | 2 | client 1, live 1 | 1 / 0 / 1 | 1 / 1 / 0 |
+| protocol | MOVE rule normalization | 4 | doc 4 | 4 / 0 / 0 | 4 / 0 / 0 |
+| protocol | MOVE validation | 10 | doc 6, live 1, inf 3 | 10 / 0 / 0 | 9 / 0 / 0 |
+| protocol | MOVE whole document | 3 | doc 1, live 1, inf 1 | 2 / 0 / 1 | 2 / 1 / 0 |
+| protocol | MOVE whole-document authorization | 3 | doc 3 | 2 / 0 / 1 | 2 / 0 / 0 |
+| protocol | OPTIONS and MOVE rule normalization | 1 | doc 1 | 1 / 0 / 0 | 1 / 0 / 0 |
+| protocol | OPTIONS and default-GET mode | 3 | doc 1, live 1, inf 1 | 3 / 0 / 0 | — |
+| protocol | OPTIONS client compatibility | 1 | client 1 | 1 / 0 / 0 | 1 / 0 / 0 |
+| protocol | OPTIONS flat document-level response | 2 | doc 2 | 2 / 0 / 0 | 2 / 0 / 0 |
+| protocol | OPTIONS multipart 204 fallback | 3 | doc 2, live 1 | 3 / 0 / 0 | 3 / 0 / 0 |
+| protocol | OPTIONS multipart 207 | 4 | doc 2, client 1, inf 1, disputed 1 | 3 / 0 / 1 | 1 / 1 / 0 |
+| protocol | OPTIONS never checks existence | 1 | doc 1 | 1 / 0 / 0 | 1 / 0 / 0 |
+| protocol | OPTIONS never evaluates the selector | 1 | doc 1 | 1 / 0 / 0 | 1 / 0 / 0 |
+| protocol | OPTIONS selector-scoped response | 3 | live 2, inf 1 | 2 / 0 / 1 | 2 / 1 / 0 |
+| protocol | OPTIONS wildcard expansion | 3 | doc 3, disputed 1 | 2 / 0 / 1 | 2 / 1 / 0 |
+| protocol | QUERY conditional re-query | 4 | doc 3, live 1 | 4 / 0 / 0 | 4 / 0 / 0 |
+| protocol | QUERY css (authoring plane) | 5 | doc 5 | 5 / 0 / 0 | 5 / 0 / 0 |
+| protocol | QUERY css (public plane) | 7 | doc 2, live 3, inf 2, disputed 1 | 6 / 0 / 1 | 6 / 1 / 0 |
+| protocol | QUERY css authorization | 2 | doc 1, live 1 | 2 / 0 / 0 | 1 / 0 / 0 |
+| protocol | QUERY css errors (public plane) | 2 | doc 1, live 1 | 2 / 0 / 0 | 2 / 0 / 0 |
+| protocol | QUERY css scopes (authoring plane) | 2 | doc 2 | 2 / 0 / 0 | 1 / 0 / 0 |
+| protocol | QUERY errors (authoring plane) | 5 | doc 4, inf 1 | 5 / 0 / 0 | 5 / 0 / 0 |
+| protocol | QUERY errors (public plane) | 3 | live 3 | 3 / 0 / 0 | 3 / 0 / 0 |
+| protocol | QUERY sessel authorization | 2 | live 2 | 2 / 0 / 0 | 1 / 0 / 0 |
+| protocol | QUERY sessel bindings | 1 | live 1 | 1 / 0 / 0 | 1 / 0 / 0 |
+| protocol | QUERY sessel errors | 3 | doc 1, live 2 | 3 / 0 / 0 | 3 / 0 / 0 |
+| protocol | QUERY sessel result encoding | 3 | doc 3 | 3 / 0 / 0 | 3 / 0 / 0 |
+| protocol | Unrecognised range units | 2 | doc 2 | 2 / 0 / 0 | 2 / 0 / 0 |
+| protocol | WebDAV ETag semantics | 2 | doc 1, inf 1 | 2 / 0 / 0 | 2 / 0 / 0 |
+| protocol | WebDAV GET | 1 | live 1 | 1 / 0 / 0 | 1 / 0 / 0 |
+| protocol | WebDAV MKCOL | 1 | demo 1 | 1 / 0 / 0 | 1 / 0 / 0 |
+| protocol | WebDAV PROPFIND | 2 | doc 2 | 2 / 0 / 0 | 2 / 0 / 0 |
+| protocol | WebDAV PROPFIND revalidation | 5 | doc 4, inf 1 | 5 / 0 / 0 | 5 / 0 / 0 |
+| protocol | WebDAV PUT | 2 | demo 2 | 2 / 0 / 0 | 2 / 0 / 0 |
+| protocol | WebDAV authorization | 2 | demo 2 | 2 / 0 / 0 | 2 / 0 / 0 |
+| protocol | WebDAV conditional writes | 2 | client 1, demo 1 | 2 / 0 / 0 | 2 / 0 / 0 |
+| protocol | WebDAV errors | 1 | live 1 | 1 / 0 / 0 | 1 / 0 / 0 |
+| protocol | application/sessel+json | 2 | doc 1, live 1 | 2 / 0 / 0 | 2 / 0 / 0 |
+| protocol | entries range unit | 3 | doc 1, live 2 | 3 / 0 / 0 | 3 / 0 / 0 |
+| reacting | TransitionConstraint (WebDAV bypass) | 1 | doc 1 | 1 / 0 / 0 | — |
+| reacting | TransitionConstraint (concurrency) | 1 | doc 1 | 1 / 0 / 0 | — |
+| reacting | TransitionConstraint (demo state machine) | 1 | demo 1 | 1 / 0 / 0 | — |
+| reacting | TransitionConstraint (exit) | 1 | doc 1 | 1 / 0 / 0 | — |
+| reacting | TransitionConstraint (identity) | 5 | doc 4, inf 1 | 5 / 0 / 0 | — |
+| reacting | TransitionConstraint (identity, 422 body) | 1 | doc 1 | 1 / 0 / 0 | — |
+| reacting | TransitionConstraint (malformed) | 2 | doc 2 | 2 / 0 / 0 | — |
+| reacting | TransitionConstraint (pipeline position) | 1 | inf 1 | 1 / 0 / 0 | — |
+| reacting | TransitionConstraint (recipe) | 1 | doc 1 | 1 / 0 / 0 | — |
+| reacting | TransitionConstraint (scope) | 2 | doc 2 | 2 / 0 / 0 | — |
+| reacting | TransitionConstraint (selector) | 1 | doc 1 | 1 / 0 / 0 | — |
+| reacting | TransitionConstraint (selector-scoped writes) | 2 | doc 1, demo 1 | 2 / 0 / 0 | — |
+| reacting | TransitionConstraint (single-valued) | 1 | doc 1 | 1 / 0 / 0 | — |
+| reacting | TransitionConstraint (strictness) | 1 | doc 1 | 1 / 0 / 0 | — |
+| reacting | TransitionConstraint (strictness, entry) | 1 | doc 1 | 1 / 0 / 0 | — |
+| reacting | TransitionConstraint (taking effect) | 4 | doc 2, inf 2 | 4 / 0 / 0 | — |
+| reacting | TransitionConstraint (values) | 1 | doc 1 | 1 / 0 / 0 | — |
+| reacting | TransitionHandler (Transition document) | 3 | doc 3 | 3 / 0 / 0 | — |
+| reacting | TransitionHandler (WebDAV) | 1 | doc 1 | 1 / 0 / 0 | — |
+| reacting | TransitionHandler (action) | 3 | doc 3 | 3 / 0 / 0 | — |
+| reacting | TransitionHandler (delivery to PageLove) | 1 | doc 1 | 1 / 0 / 0 | — |
+| reacting | TransitionHandler (delivery) | 2 | doc 2 | 2 / 0 / 0 | — |
+| reacting | TransitionHandler (firing) | 6 | doc 6 | 6 / 0 / 0 | — |
+| reacting | TransitionHandler (identity) | 1 | doc 1 | 1 / 0 / 0 | — |
+| reacting | TransitionHandler (recipe) | 1 | doc 1 | 1 / 0 / 0 | — |
+| reacting | TransitionHandler (selector) | 2 | doc 2 | 2 / 0 / 0 | — |
+| reacting | TransitionHandler (sources of writes) | 1 | inf 1 | 1 / 0 / 0 | — |
+| reacting | TransitionHandler (when) | 3 | doc 3 | 3 / 0 / 0 | — |
+| reacting | action order | 2 | doc 1, live 1 | 1 / 0 / 1 | 1 / 0 / 0 |
+| reacting | binding time | 1 | inf 1 | 1 / 0 / 0 | 1 / 0 / 0 |
+| reacting | body transformation | 3 | doc 3 | 3 / 0 / 0 | — |
+| reacting | chain termination | 1 | doc 1 | 1 / 0 / 0 | — |
+| reacting | chain termination (JavaScript) | 4 | doc 4 | 4 / 0 / 0 | 1 / 0 / 0 |
+| reacting | chain termination (Sessel) | 2 | doc 2 | 2 / 0 / 0 | 1 / 0 / 0 |
+| reacting | discovery (host-wide) | 1 | doc 1 | 1 / 0 / 0 | 1 / 0 / 0 |
+| reacting | discovery (inheritance) | 1 | doc 1 | 1 / 0 / 0 | 1 / 0 / 0 |
+| reacting | discovery (same document) | 1 | doc 1 | 1 / 0 / 0 | 1 / 0 / 0 |
+| reacting | discovery (stored tree only) | 1 | inf 1 | 1 / 0 / 0 | 1 / 0 / 0 |
+| reacting | execution order | 2 | doc 2 | 2 / 0 / 0 | — |
+| reacting | filter combination | 1 | doc 1 | 1 / 0 / 0 | 1 / 0 / 0 |
+| reacting | lifecycle | 1 | doc 1 | 1 / 0 / 0 | — |
+| reacting | lifecycle (authorization vs triggers) | 2 | doc 1, inf 1, disputed 1 | 1 / 0 / 1 | — |
+| reacting | lifecycle (processors on denials) | 1 | inf 1 | 1 / 0 / 0 | — |
+| reacting | lifecycle (triggers before core) | 1 | doc 1 | 1 / 0 / 0 | — |
+| reacting | malformed items | 4 | doc 1, live 2, inf 1 | 4 / 0 / 0 | 2 / 0 / 0 |
+| reacting | method filter | 3 | doc 2, live 1 | 2 / 0 / 1 | 1 / 0 / 0 |
+| reacting | otherwise | 2 | doc 2 | 2 / 0 / 0 | 1 / 0 / 0 |
+| reacting | outbound HttpRequest | 1 | doc 1 | 1 / 0 / 0 | — |
+| reacting | outbound HttpRequest (content-type) | 1 | doc 1 | 1 / 0 / 0 | — |
+| reacting | outbound HttpRequest (dynamic properties) | 2 | doc 2 | 2 / 0 / 0 | — |
+| reacting | outbound HttpRequest (fire-and-forget) | 1 | doc 1 | 1 / 0 / 0 | — |
+| reacting | outbound HttpRequest (headers) | 5 | doc 5 | 5 / 0 / 0 | — |
+| reacting | outbound HttpRequest (itemtype) | 1 | doc 1 | 1 / 0 / 0 | — |
+| reacting | outbound HttpRequest (method) | 2 | doc 2 | 2 / 0 / 0 | — |
+| reacting | outbound HttpRequest (processor) | 2 | doc 2 | 2 / 0 / 0 | — |
+| reacting | outbound HttpRequest (queue lifetime) | 2 | inf 2 | 2 / 0 / 0 | — |
+| reacting | outbound HttpRequest (relay) | 1 | demo 1 | 1 / 0 / 0 | — |
+| reacting | outbound retry | 6 | doc 4, demo 1, inf 1, disputed 1 | 5 / 0 / 1 | — |
+| reacting | processor (chain) | 1 | inf 1 | 1 / 0 / 0 | — |
+| reacting | processor (order, chain termination) | 1 | doc 1 | 1 / 0 / 0 | — |
+| reacting | processor (pass-through) | 1 | doc 1 | 1 / 0 / 0 | — |
+| reacting | processor (response-mutation asymmetry) | 1 | doc 1 | 1 / 0 / 0 | — |
+| reacting | processor (status assignment, HEAD sees body) | 1 | doc 1 | 1 / 0 / 0 | — |
+| reacting | processor (status filter) | 3 | doc 3 | 3 / 0 / 0 | — |
+| reacting | processor (status filter, body assignment) | 1 | doc 1 | 1 / 0 / 0 | — |
+| reacting | processor (throw to add headers) | 1 | client 1 | 1 / 0 / 0 | — |
+| reacting | processor (thrown body) | 3 | doc 1, client 2, disputed 1 | 2 / 0 / 1 | — |
+| reacting | processor (when) | 1 | doc 1 | 1 / 0 / 0 | — |
+| reacting | processor (when, JavaScript) | 1 | doc 1 | 1 / 0 / 0 | — |
+| reacting | processor (writes) | 1 | doc 1 | 1 / 0 / 0 | — |
+| reacting | resource filter | 4 | doc 2, inf 2, disputed 1 | 3 / 0 / 1 | 1 / 0 / 0 |
+| reacting | response headers (Pair) | 4 | doc 2, live 2 | 2 / 0 / 2 | 2 / 0 / 0 |
+| reacting | runtime errors | 2 | doc 2 | 2 / 0 / 0 | 1 / 0 / 0 |
+| reacting | selector filter | 6 | doc 1, live 5 | 6 / 0 / 0 | 2 / 0 / 0 |
+| reacting | side-effect writes | 3 | doc 3 | 3 / 0 / 0 | — |
+| reacting | side-effect writes (JavaScript) | 1 | doc 1 | 1 / 0 / 0 | — |
+| reacting | side-effect writes (authorization) | 1 | doc 1 | 1 / 0 / 0 | — |
+| reacting | store queries from triggers | 1 | demo 1 | 1 / 0 / 0 | 1 / 0 / 0 |
+| reacting | thrown response on the wire | 1 | client 1 | 1 / 0 / 0 | 1 / 0 / 0 |
+| reacting | trigger context (JavaScript) | 1 | doc 1 | 1 / 0 / 0 | 1 / 0 / 0 |
+| reacting | trigger context (Sessel) | 1 | doc 1 | 1 / 0 / 0 | 1 / 0 / 0 |
+| reacting | trigger context (auth) | 2 | doc 1, live 1 | 2 / 0 / 0 | 1 / 0 / 0 |
+| reacting | trigger context (headers) | 3 | doc 1, demo 2, disputed 1 | 2 / 0 / 1 | 1 / 0 / 0 |
+| reacting | trigger context (resource bindings) | 2 | live 2 | 1 / 0 / 1 | 2 / 0 / 0 |
+| reacting | when gate | 4 | doc 2, live 1, inf 1 | 3 / 0 / 1 | 1 / 0 / 0 |
+| reacting | when gate (JavaScript) | 2 | doc 1, inf 1 | 2 / 0 / 0 | 1 / 0 / 0 |
+| reacting | when/otherwise with store query | 1 | demo 1 | 1 / 0 / 0 | — |
+| reading-writing | Absence vs denial | 11 | doc 6, live 2, inf 3 | 10 / 0 / 1 | 9 / 1 / 0 |
+| reading-writing | All-matches reads | 2 | doc 2 | 2 / 0 / 0 | 2 / 0 / 0 |
+| reading-writing | Blob ETags | 2 | doc 2 | 2 / 0 / 0 | 2 / 0 / 0 |
+| reading-writing | Blob opacity | 1 | doc 1 | 1 / 0 / 0 | 1 / 0 / 0 |
+| reading-writing | Blob upload | 2 | doc 2 | 2 / 0 / 0 | 2 / 0 / 0 |
+| reading-writing | Byte ranges | 1 | inf 1 | 1 / 0 / 0 | 1 / 0 / 0 |
+| reading-writing | Caching headers | 4 | doc 3, live 1 | 3 / 0 / 1 | 3 / 1 / 0 |
+| reading-writing | Conditional DELETE | 1 | doc 1 | 1 / 0 / 0 | 1 / 0 / 0 |
+| reading-writing | Conditional GET | 5 | doc 1, live 1, inf 3 | 5 / 0 / 0 | 5 / 0 / 0 |
+| reading-writing | Conditional POST | 1 | live 1 | 1 / 0 / 0 | 1 / 0 / 0 |
+| reading-writing | Conditional PUT | 6 | doc 6 | 6 / 0 / 0 | 6 / 0 / 0 |
+| reading-writing | Conditional requests ordering | 1 | inf 1 | 1 / 0 / 0 | 1 / 0 / 0 |
+| reading-writing | Conditional selector PUT | 1 | client 1 | 1 / 0 / 0 | 1 / 0 / 0 |
+| reading-writing | Content negotiation | 4 | doc 3, inf 1 | 4 / 0 / 0 | 4 / 0 / 0 |
+| reading-writing | Content type resolution | 6 | doc 6 | 6 / 0 / 0 | 6 / 0 / 0 |
+| reading-writing | Content-Range wire format | 2 | doc 1, live 1, disputed 1 | 1 / 0 / 1 | 1 / 1 / 0 |
+| reading-writing | DELETE errors | 2 | doc 1, live 1 | 2 / 0 / 0 | 2 / 0 / 0 |
+| reading-writing | DELETE selector range | 5 | doc 3, client 1, live 1 | 5 / 0 / 0 | 5 / 0 / 0 |
+| reading-writing | DELETE whole document | 2 | doc 1, inf 1 | 2 / 0 / 0 | 2 / 0 / 0 |
+| reading-writing | Directory index | 3 | doc 2, inf 1 | 3 / 0 / 0 | 3 / 0 / 0 |
+| reading-writing | Directory redirect | 5 | doc 3, live 1, inf 1 | 5 / 0 / 0 | 5 / 0 / 0 |
+| reading-writing | Error documents | 2 | doc 1, live 1 | 2 / 0 / 0 | 2 / 0 / 0 |
+| reading-writing | Fragment parsing context | 2 | demo 2 | 2 / 0 / 0 | 2 / 0 / 0 |
+| reading-writing | GET errors | 2 | doc 2 | 2 / 0 / 0 | 2 / 0 / 0 |
+| reading-writing | GET selector range | 6 | doc 3, demo 1, inf 2 | 6 / 0 / 0 | 6 / 0 / 0 |
+| reading-writing | GET whole document | 1 | doc 1 | 1 / 0 / 0 | 1 / 0 / 0 |
+| reading-writing | HEAD selector range | 1 | client 1 | 1 / 0 / 0 | 1 / 0 / 0 |
+| reading-writing | HEAD whole document | 1 | inf 1 | 1 / 0 / 0 | 1 / 0 / 0 |
+| reading-writing | JSON-LD negotiation | 6 | doc 5, inf 1 | 6 / 0 / 0 | 6 / 0 / 0 |
+| reading-writing | Microdata values | 8 | doc 2, live 2, inf 4 | 6 / 0 / 2 | 6 / 2 / 0 |
+| reading-writing | POST concurrency | 1 | doc 1 | 1 / 0 / 0 | 1 / 0 / 0 |
+| reading-writing | POST placement | 7 | doc 4, live 2, inf 1 | 7 / 0 / 0 | 7 / 0 / 0 |
+| reading-writing | POST response headers | 1 | live 1 | 1 / 0 / 0 | 1 / 0 / 0 |
+| reading-writing | POST selector append | 6 | doc 6 | 6 / 0 / 0 | 6 / 0 / 0 |
+| reading-writing | PUT selector range | 9 | doc 5, client 2, inf 2 | 9 / 0 / 0 | 9 / 0 / 0 |
+| reading-writing | PUT whole document | 3 | doc 1, demo 1, inf 1 | 3 / 0 / 0 | 3 / 0 / 0 |
+| reading-writing | Path resolution | 2 | demo 1, inf 1 | 2 / 0 / 0 | 2 / 0 / 0 |
+| reading-writing | Range header parsing | 3 | doc 2, inf 1 | 3 / 0 / 0 | 3 / 0 / 0 |
+| reading-writing | Request Document | 2 | doc 2 | 2 / 0 / 0 | 2 / 0 / 0 |
+| reading-writing | Request body size cap | 4 | doc 3, inf 1 | 4 / 0 / 0 | — |
+| reading-writing | Reserved namespace | 2 | doc 1, inf 1 | 2 / 0 / 0 | 1 / 0 / 0 |
+| reading-writing | XML documents | 1 | live 1 | 1 / 0 / 0 | 1 / 0 / 0 |
+| sessel | Class search | 2 | doc 2 | 2 / 0 / 0 | — |
+| sessel | Selector type | 1 | live 1 | 1 / 0 / 0 | 1 / 0 / 0 |
+| sessel | coercion | 2 | doc 2, disputed 1 | 1 / 0 / 1 | 1 / 0 / 0 |
+| sessel | construction | 7 | doc 6, inf 1 | 7 / 0 / 0 | 1 / 0 / 0 |
+| sessel | context variables | 5 | doc 2, live 1, inf 2 | 5 / 0 / 0 | 1 / 0 / 0 |
+| sessel | crypto | 1 | doc 1 | 1 / 0 / 0 | 1 / 0 / 0 |
+| sessel | dictionaries | 1 | doc 1 | 1 / 0 / 0 | 1 / 0 / 0 |
+| sessel | element getters | 3 | doc 1, live 2 | 3 / 0 / 0 | 1 / 0 / 0 |
+| sessel | element parsing | 1 | doc 1 | 1 / 0 / 0 | 1 / 0 / 0 |
+| sessel | element setters | 2 | live 2 | 2 / 0 / 0 | 2 / 0 / 0 |
+| sessel | errors | 3 | doc 2, live 1 | 3 / 0 / 0 | 1 / 0 / 0 |
+| sessel | expression bindings | 7 | doc 7 | 7 / 0 / 0 | 1 / 0 / 0 |
+| sessel | expression embedding | 1 | doc 1 | 1 / 0 / 0 | 1 / 0 / 0 |
+| sessel | from clause | 6 | live 6 | 6 / 0 / 0 | 2 / 0 / 0 |
+| sessel | instance methods | 1 | doc 1 | 1 / 0 / 0 | — |
+| sessel | instances | 2 | doc 2 | 2 / 0 / 0 | 1 / 0 / 0 |
+| sessel | lists | 1 | doc 1 | 1 / 0 / 0 | 1 / 0 / 0 |
+| sessel | numbers | 3 | live 2, inf 1 | 3 / 0 / 0 | 2 / 0 / 0 |
+| sessel | operators | 1 | doc 1 | 1 / 0 / 0 | 1 / 0 / 0 |
+| sessel | platform interface | 1 | doc 1 | 1 / 0 / 0 | — |
+| sessel | processors | 2 | doc 2 | 2 / 0 / 0 | — |
+| sessel | random | 1 | doc 1 | 1 / 0 / 0 | 1 / 0 / 0 |
+| sessel | reflection | 1 | doc 1 | 1 / 0 / 0 | 1 / 0 / 0 |
+| sessel | selector literals | 2 | doc 1, live 1 | 2 / 0 / 0 | 1 / 0 / 0 |
+| sessel | strings | 1 | doc 1 | 1 / 0 / 0 | 1 / 0 / 0 |
+| sessel | sub-select | 1 | live 1 | 1 / 0 / 0 | 1 / 0 / 0 |
+| sessel | temporal | 2 | live 2 | 1 / 0 / 1 | 2 / 0 / 0 |
+| sessel | triggers | 3 | doc 2, demo 1 | 3 / 0 / 0 | — |
+| sse | Last-Event-ID replay | 2 | doc 1, inf 1 | 2 / 0 / 0 | 2 / 0 / 0 |
+| sse | WebDAV writes | 1 | live 1 | 1 / 0 / 0 | 1 / 0 / 0 |
+| sse | bounded send buffer | 1 | doc 1 | 1 / 0 / 0 | — |
+| sse | composed resources | 2 | live 2 | 2 / 0 / 0 | 2 / 0 / 0 |
+| sse | echo suppression (connection token) | 5 | doc 2, live 1, inf 2 | 5 / 0 / 0 | 1 / 0 / 0 |
+| sse | echo suppression (session) | 3 | doc 2, inf 1 | 3 / 0 / 0 | 1 / 0 / 0 |
+| sse | event ids | 1 | live 1 | 1 / 0 / 0 | 1 / 0 / 0 |
+| sse | fan-out | 1 | doc 1 | 1 / 0 / 0 | 1 / 0 / 0 |
+| sse | keepalive | 2 | doc 2 | 2 / 0 / 0 | — |
+| sse | legacy connection channels | 2 | doc 2 | 2 / 0 / 0 | 1 / 0 / 0 |
+| sse | mutation article serialization | 1 | demo 1 | 1 / 0 / 0 | 1 / 0 / 0 |
+| sse | mutation event | 1 | doc 1 | 1 / 0 / 0 | 1 / 0 / 0 |
+| sse | mutation event fields (DELETE) | 1 | doc 1 | 1 / 0 / 0 | 1 / 0 / 0 |
+| sse | mutation event fields (MOVE) | 2 | client 2 | 2 / 0 / 0 | 2 / 0 / 0 |
+| sse | mutation event fields (POST placement) | 2 | doc 2 | 2 / 0 / 0 | 2 / 0 / 0 |
+| sse | mutation event fields (PUT) | 1 | doc 1 | 1 / 0 / 0 | 1 / 0 / 0 |
+| sse | mutation event fields (etag) | 1 | live 1 | 1 / 0 / 0 | 1 / 0 / 0 |
+| sse | mutation event fields (selector) | 2 | client 1, inf 1 | 2 / 0 / 0 | 2 / 0 / 0 |
+| sse | mutation event framing | 1 | inf 1 | 1 / 0 / 0 | 1 / 0 / 0 |
+| sse | ordering | 2 | inf 2 | 2 / 0 / 0 | 2 / 0 / 0 |
+| sse | pagelove-connection event | 4 | doc 3, inf 1 | 4 / 0 / 0 | 4 / 0 / 0 |
+| sse | read authorization of events | 1 | inf 1 | 1 / 0 / 0 | — |
+| sse | reset events | 3 | live 2, inf 1 | 3 / 0 / 0 | 2 / 0 / 0 |
+| sse | reset events (session) | 2 | doc 2 | 2 / 0 / 0 | — |
+| sse | retention | 2 | doc 2 | 2 / 0 / 0 | — |
+| sse | subscribe authorization | 5 | doc 4, inf 1 | 5 / 0 / 0 | 3 / 0 / 0 |
+| sse | subscribe request and response head | 1 | doc 1 | 1 / 0 / 0 | 1 / 0 / 0 |
+| sse | subscribe request recognition | 1 | inf 1 | 1 / 0 / 0 | 1 / 0 / 0 |
+| sse | subscribe to missing document | 1 | live 1 | 1 / 0 / 0 | 1 / 0 / 0 |
+| sse | subscription path | 2 | inf 2 | 2 / 0 / 0 | 2 / 0 / 0 |
+| sse | subscription scope | 1 | doc 1 | 1 / 0 / 0 | 1 / 0 / 0 |
+| sse | transient elements | 1 | inf 1 | 1 / 0 / 0 | 1 / 0 / 0 |
+| sse | trigger side-effect writes | 1 | live 1 | 1 / 0 / 0 | 1 / 0 / 0 |
+| sse | which requests emit | 1 | inf 1 | 1 / 0 / 0 | 1 / 0 / 0 |
+| sse | whole-document write events | 2 | inf 2 | 2 / 0 / 0 | 2 / 0 / 0 |
+| **Total** | | **1426** | | **1358 / 0 / 68** | **578 / 25 / 0** |
+
+Evidence: doc = documented, client = official client source, demo = official app source, live = observed on PageLove, inf = inferred. Local results: `go run ./harness/cmd/harness run --observations <dir>`. Live results are the latest recorded observation of each case that runs live: "match" means PageLove satisfied the case's current expectations when it was last run; "kept" means it did not, as expected — a disputed (losing) claim, or pagelike's deliberately kept behaviour, whose .live sibling asserts PageLove's and is counted as a match; "differ" is an unexplained difference. See docs/compat/decisions.md and docs/compat/decisions-2026-09-29/.

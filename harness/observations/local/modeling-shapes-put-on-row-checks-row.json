@@ -1,0 +1,63 @@
+{
+  "case": "modeling.shapes.put-on-row-checks-row",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (register declarations through the public plane (takes effect for the next request))",
+      "method": "PUT",
+      "path": "/_pl/modeling-shapes-put-on-row-checks-row-4a0e7f/shapes.html",
+      "status": 201,
+      "headers": {
+        "content-length": "356",
+        "content-type": "text/html",
+        "etag": "\"20ef8cbefb46117b10b1155600acfa9e1f03669ec330c0ff3dceefb146e68ace\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:45 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\n  \u003cdiv hidden itemscope itemtype=\"https://pagelove.org/ShapeConstraint\"\u003e\n    \u003cmeta itemprop=\"resource\" content=\"/_pl/modeling-shapes-put-on-row-checks-row-4a0e7f/polls/*\"\u003e\n    \u003ccode itemprop=\"selector\"\u003etbody#responses \u0026gt; tr\u003c/code\u003e\n    \u003ccode itemprop=\"constraint\"\u003e:has(\u0026gt; th[itemprop=\"name\"])\u003c/code\u003e\n  \u003c/div\u003e\n\u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 2 (seed a poll table)",
+      "method": "PUT",
+      "path": "/_pl/modeling-shapes-put-on-row-checks-row-4a0e7f/polls/p.html",
+      "status": 201,
+      "headers": {
+        "content-length": "157",
+        "content-type": "text/html",
+        "etag": "\"3ef9bba864daac0bb8596d733c58b57f37d3bda48b8390585a23dac5901765d7\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:45 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\n  \u003ctable\u003e\u003ctbody id=\"responses\"\u003e\n    \u003ctr id=\"r1\"\u003e\u003cth itemprop=\"name\"\u003eAnn\u003c/th\u003e\u003ctd\u003eyes\u003c/td\u003e\u003c/tr\u003e\n  \u003c/tbody\u003e\u003c/table\u003e\n\u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 3 (row without a name header rejected)",
+      "method": "PUT",
+      "path": "/_pl/modeling-shapes-put-on-row-checks-row-4a0e7f/polls/p.html",
+      "status": 422,
+      "headers": {
+        "content-length": "427",
+        "content-type": "text/html",
+        "vary": "Host, Range"
+      },
+      "body": "\u003cdiv itemscope itemtype=\"https://dombase.pagelove.team/ns/error/ShapeConstraint\"\u003e\u003cul itemprop=\"problems\"\u003e\u003cli itemprop=\"problem\"\u003e\u003cspan itemprop=\"message\"\u003eShape constraints violated\u003c/span\u003e\u003c/li\u003e\u003cli itemprop=\"problem\"\u003e\u003cspan itemprop=\"message\"\u003ehttps://pagelove.org/ShapeConstraint tbody#responses \u0026gt; tr: Element matching 'tbody#responses \u0026gt; tr' does not satisfy constraint ':has(\u0026gt; th[itemprop=\"name\"])'\u003c/span\u003e\u003c/li\u003e\u003c/ul\u003e\u003c/div\u003e"
+    },
+    {
+      "step": "step 4 (row with a name header accepted)",
+      "method": "PUT",
+      "path": "/_pl/modeling-shapes-put-on-row-checks-row-4a0e7f/polls/p.html",
+      "status": 206,
+      "headers": {
+        "content-length": "56",
+        "content-range": "selector #r1",
+        "content-type": "text/html",
+        "etag": "\"89f82b1b1ea3c8ebd960cf73df8f3a6841b28e3f55c327c5d39f1d3e297f6ecf-89f82b1b1ea3c8ebd960cf73df8f3a6841b28e3f55c327c5d39f1d3e297f6ecf-2\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:45 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003ctr id=\"r1\"\u003e\u003cth itemprop=\"name\"\u003eAnn\u003c/th\u003e\u003ctd\u003eno\u003c/td\u003e\u003c/tr\u003e"
+    }
+  ],
+  "outcome": "pass",
+  "target": "local"
+}

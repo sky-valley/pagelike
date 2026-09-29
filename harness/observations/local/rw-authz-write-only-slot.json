@@ -1,0 +1,37 @@
+{
+  "case": "rw.authz.write-only-slot",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (write the slot)",
+      "method": "PUT",
+      "path": "/_pl/rw-authz-write-only-slot-109f28/dropbox.html",
+      "status": 206,
+      "headers": {
+        "content-length": "30",
+        "content-range": "selector #slot",
+        "content-type": "text/html",
+        "etag": "\"4823da86fe9a18359fea885c60b2c6e91053b3c31d5c2f3ec96d4f6c9082eeaf-4823da86fe9a18359fea885c60b2c6e91053b3c31d5c2f3ec96d4f6c9082eeaf-2\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:55 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003cdiv id=\"slot\"\u003esubmitted\u003c/div\u003e"
+    },
+    {
+      "step": "step 2 (author sees it on the authoring plane)",
+      "method": "GET",
+      "path": "/_pl/rw-authz-write-only-slot-109f28/dropbox.html",
+      "status": 200,
+      "headers": {
+        "accept-ranges": "bytes",
+        "content-length": "73",
+        "content-type": "text/html",
+        "etag": "\"f173a25ae012b17186f4c8ad34b358a5b2d4b0df549503ddddca0537ae8816e0\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:55 GMT"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\u003cdiv id=\"slot\"\u003esubmitted\u003c/div\u003e\u003c/body\u003e\u003c/html\u003e\n"
+    }
+  ],
+  "outcome": "pass",
+  "target": "local"
+}

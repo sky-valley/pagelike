@@ -1,0 +1,84 @@
+{
+  "case": "sse.scope.write-through-event-on-origin",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (sse open page)",
+      "method": "GET",
+      "path": "/_pl/sse-scope-write-through-event-on-origin-7b50bb/page.html",
+      "status": 200,
+      "headers": {
+        "cache-control": "no-cache",
+        "content-type": "text/event-stream"
+      }
+    },
+    {
+      "step": "step 2 (sse open partial)",
+      "method": "GET",
+      "path": "/_pl/sse-scope-write-through-event-on-origin-7b50bb/partial.html",
+      "status": 200,
+      "headers": {
+        "cache-control": "no-cache",
+        "content-type": "text/event-stream"
+      }
+    },
+    {
+      "step": "step 3",
+      "events": [
+        {
+          "event": "pagelove-connection",
+          "data": "bd815ae6-f11d-47ff-aa9c-19765ef5f98f"
+        }
+      ]
+    },
+    {
+      "step": "step 4",
+      "events": [
+        {
+          "event": "pagelove-connection",
+          "data": "f4a2cab5-75f3-45d5-8018-fac239d3cb98"
+        }
+      ]
+    },
+    {
+      "step": "step 5 (write through the composed page)",
+      "method": "PUT",
+      "path": "/_pl/sse-scope-write-through-event-on-origin-7b50bb/page.html",
+      "status": 206,
+      "headers": {
+        "content-length": "38",
+        "content-range": "selector header#nav",
+        "content-type": "text/html",
+        "etag": "\"cb8920743c363d1eedf5dd388f35535c95f95e6043aa8edd44dcbdd5e4001e5c-cb8920743c363d1eedf5dd388f35535c95f95e6043aa8edd44dcbdd5e4001e5c-2\"",
+        "last-modified": "Tue, 29 Sep 2026 00:19:13 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003cheader id=\"nav\"\u003eNav via page\u003c/header\u003e"
+    },
+    {
+      "step": "step 6",
+      "events": [
+        {
+          "id": "v1~003e076d1378.1790641153403-0",
+          "event": "mutation",
+          "data": "\u003carticle itemscope itemtype=\"https://pagelove.org/Mutation\"\u003e\n  \u003cspan itemprop=\"method\"\u003ePUT\u003c/span\u003e\n  \u003cspan itemprop=\"selector\"\u003eheader#nav\u003c/span\u003e\n  \u003cspan itemprop=\"etag\"\u003e30142120a24a70c041720b13e505a647fb5390458f00cc53799c33941da7583a\u003c/span\u003e\n  \u003cspan itemprop=\"path\"\u003e/_pl/sse-scope-write-through-event-on-origin-7b50bb/page.html\u003c/span\u003e\n  \u003cspan itemprop=\"host\"\u003elive-test-host.onpagelove.com\u003c/span\u003e\n  \u003cdiv itemprop=\"body\"\u003e\u003cheader id=\"nav\"\u003eNav via page\u003c/header\u003e\u003c/div\u003e\n\u003c/article\u003e"
+        }
+      ]
+    },
+    {
+      "step": "step 8 (the origin received the write)",
+      "method": "GET",
+      "path": "/_pl/sse-scope-write-through-event-on-origin-7b50bb/partial.html",
+      "status": 200,
+      "headers": {
+        "content-type": "text/html",
+        "etag": "\"30142120a24a70c041720b13e505a647fb5390458f00cc53799c33941da7583a\"",
+        "last-modified": "Tue, 29 Sep 2026 00:19:13 GMT",
+        "vary": "Host, Range, Accept"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\u003cheader id=\"nav\"\u003eNav via page\u003c/header\u003e\n                \u003cdiv style=\"\n                            position: fixed;\n                            bottom: 0;\n                            left: 0;\n                            right: 0;\n                            padding: 8px;\n                            background: #f0f0f0;\n                            text-align: center;\n                            font-size: 12px;\n                            color: #666;\n                            z-index: 9999;\n                            opacity: 0.8;\n                            border-top: 1px solid #ddd;\n                        \"\u003e\n                    Powered by\n                    \u003ca href=\"https://pagelove.com/\" style=\"color: #4a90d9; text-decoration: none\"\u003ePagelove\u003c/a\u003e\n                \u003c/div\u003e\n            \u003c/body\u003e\u003c/html\u003e\n"
+    }
+  ],
+  "outcome": "pass",
+  "target": "live"
+}

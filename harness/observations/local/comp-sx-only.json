@@ -1,0 +1,77 @@
+{
+  "case": "comp.sx.only",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1",
+      "method": "GET",
+      "path": "/_pl/comp-sx-only-14fa10/sx.html",
+      "status": 206,
+      "headers": {
+        "accept-ranges": "selector, bytes",
+        "content-length": "37",
+        "content-range": "selector ul:only(\u003e li)",
+        "content-type": "text/html",
+        "etag": "\"d7908f5c93eaae118fbb606b20c329fde94a874af785a906ee0c21c01d9391de-d7908f5c93eaae118fbb606b20c329fde94a874af785a906ee0c21c01d9391de-1\"",
+        "vary": "Host, Range, Accept"
+      },
+      "body": "\u003cul id=\"u1\"\u003e\u003cli\u003eA\u003c/li\u003e\u003cli\u003eB\u003c/li\u003e\u003c/ul\u003e"
+    },
+    {
+      "step": "step 2",
+      "method": "GET",
+      "path": "/_pl/comp-sx-only-14fa10/sx.html",
+      "status": 416,
+      "headers": {
+        "content-length": "369",
+        "content-type": "text/html",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\n  \u003chead\u003e\n    \u003ctitle\u003e416 Range Not Satisfiable - Error\u003c/title\u003e\n  \u003c/head\u003e\n  \u003cbody itemscope itemtype=\"http://pagelove.org/Error\"\u003e\n    \u003ch1 itemprop=\"name\"\u003eRange Not Satisfiable\u003c/h1\u003e\n    \u003cmeta itemprop=\"statusCode\" content=\"416\"\u003e\n    \u003cp itemprop=\"description\"\u003eHTML parsing error: No elements matched selector: #u2:only(\u0026gt; li)\u003c/p\u003e\n  \u003c/body\u003e\n\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 3",
+      "method": "GET",
+      "path": "/_pl/comp-sx-only-14fa10/sx.html",
+      "status": 206,
+      "headers": {
+        "accept-ranges": "selector, bytes",
+        "content-length": "42",
+        "content-range": "selector #u3:only(\u003e li, \u003e li span)",
+        "content-type": "text/html",
+        "etag": "\"6d08aa4fc0fb18f3be3653e74347919daf1e341496574ab0d3e94fe619da50ba-6d08aa4fc0fb18f3be3653e74347919daf1e341496574ab0d3e94fe619da50ba-1\"",
+        "vary": "Host, Range, Accept"
+      },
+      "body": "\u003cul id=\"u3\"\u003e\u003cli\u003eA \u003cspan\u003es\u003c/span\u003e\u003c/li\u003e\u003c/ul\u003e"
+    },
+    {
+      "step": "step 4",
+      "method": "GET",
+      "path": "/_pl/comp-sx-only-14fa10/sx.html",
+      "status": 416,
+      "headers": {
+        "content-length": "369",
+        "content-type": "text/html",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\n  \u003chead\u003e\n    \u003ctitle\u003e416 Range Not Satisfiable - Error\u003c/title\u003e\n  \u003c/head\u003e\n  \u003cbody itemscope itemtype=\"http://pagelove.org/Error\"\u003e\n    \u003ch1 itemprop=\"name\"\u003eRange Not Satisfiable\u003c/h1\u003e\n    \u003cmeta itemprop=\"statusCode\" content=\"416\"\u003e\n    \u003cp itemprop=\"description\"\u003eHTML parsing error: No elements matched selector: #u3:only(\u0026gt; li)\u003c/p\u003e\n  \u003c/body\u003e\n\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 5 (no descendants matches vacuously)",
+      "method": "GET",
+      "path": "/_pl/comp-sx-only-14fa10/sx.html",
+      "status": 206,
+      "headers": {
+        "accept-ranges": "selector, bytes",
+        "content-length": "17",
+        "content-range": "selector #u4:only(\u003e li)",
+        "content-type": "text/html",
+        "etag": "\"3ac2dcb92d9ccb760bc378579ea192336c1a6637d83049ca79c7d1ae0155bb31-3ac2dcb92d9ccb760bc378579ea192336c1a6637d83049ca79c7d1ae0155bb31-1\"",
+        "vary": "Host, Range, Accept"
+      },
+      "body": "\u003cul id=\"u4\"\u003e\u003c/ul\u003e"
+    }
+  ],
+  "outcome": "pass",
+  "target": "local"
+}

@@ -1,0 +1,62 @@
+{
+  "case": "reacting.context.polls-existing-document-guard",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (install the polls guard)",
+      "method": "PUT",
+      "path": "/_pl/reacting-context-polls-existing-document-91786d/r/polls-guard.html",
+      "status": 201,
+      "headers": {
+        "content-length": "1155",
+        "content-type": "text/html",
+        "etag": "\"812acc4f672ee6b7c89cfeaf6a9340f012bf05e316ba8517a814a2b66576be53\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:48 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\n\u003cdiv class=\"constraint\" itemscope itemtype=\"https://pagelove.org/Trigger\"\u003e\n  \u003cmeta itemprop=\"resource\" content=\"/_pl/reacting-context-polls-existing-document-91786d/polls/*\"\u003e\n  \u003cmeta itemprop=\"method\" content=\"PUT\"\u003e\n  \u003cdiv itemprop=\"when\" itemscope itemtype=\"https://pagelove.org/Sessel\"\u003e\n    \u003cscript itemprop=\"source\" type=\"text/sessel\"\u003e\n      @schema Context url(\"https://pagelove.org/Context\");\n      Context.request.headers[\"range\"] == null\n    \u003c/script\u003e\n  \u003c/div\u003e\n  \u003cdiv itemprop=\"action\" itemscope itemtype=\"https://pagelove.org/Sessel\"\u003e\n    \u003cscript itemprop=\"source\" type=\"text/sessel\"\u003e\n      @schema Context url(\"https://pagelove.org/Context\");\n      @schema HTTPResponse url(\"https://pagelove.org/HTTPResponse\");\n      let path = Context.request.path;\n      if ((${[itemtype=\"https://pagelike.test/_pl/reacting-context-polls-existing-document-91786d/Poll\"]} from \"/_pl/reacting-context-polls-existing-document-91786d/polls/*\").any(p =\u003e p.path() == path)) {\n        throw new HTTPResponse { status: 409, message: \"This poll already exists and cannot be replaced.\" }\n      }\n    \u003c/script\u003e\n  \u003c/div\u003e\n\u003c/div\u003e\n\u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 2 (creating a new poll is allowed)",
+      "method": "PUT",
+      "path": "/_pl/reacting-context-polls-existing-document-91786d/polls/p1.html",
+      "status": 201,
+      "headers": {
+        "content-length": "194",
+        "content-type": "text/html",
+        "etag": "\"be99731897b4ef07a020d06397ac44b7a7c1ddc34b4d2044783dea03c64dc26e\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:48 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\u003cmain itemscope itemtype=\"https://pagelike.test/_pl/reacting-context-polls-existing-document-91786d/Poll\"\u003e\u003ch1 id=\"q\" itemprop=\"name\"\u003eLunch?\u003c/h1\u003e\u003c/main\u003e\u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 3 (overwriting it is refused)",
+      "method": "PUT",
+      "path": "/_pl/reacting-context-polls-existing-document-91786d/polls/p1.html",
+      "status": 409,
+      "headers": {
+        "content-length": "48",
+        "content-type": "text/html; charset=utf-8"
+      },
+      "body": "This poll already exists and cannot be replaced."
+    },
+    {
+      "step": "step 4 (an element-level write is not covered by this guard)",
+      "method": "PUT",
+      "path": "/_pl/reacting-context-polls-existing-document-91786d/polls/p1.html",
+      "status": 206,
+      "headers": {
+        "content-length": "39",
+        "content-range": "selector #q",
+        "content-type": "text/html",
+        "etag": "\"9b9dd180f5d7ac77c299876248935989a16138275606d38dc502139fdc37521e-9b9dd180f5d7ac77c299876248935989a16138275606d38dc502139fdc37521e-2\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:48 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003ch1 id=\"q\" itemprop=\"name\"\u003eDinner?\u003c/h1\u003e"
+    }
+  ],
+  "outcome": "pass",
+  "target": "local"
+}

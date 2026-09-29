@@ -1,0 +1,34 @@
+{
+  "case": "protocol.options.actor-specific-selector-rules",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (anonymous gets the 204 fallback)",
+      "method": "OPTIONS",
+      "path": "/_pl/protocol-options-actor-specific-selector-328760/doc.html",
+      "status": 204,
+      "headers": {
+        "accept-query": "text/css-selector, text/sessel",
+        "accept-ranges": "selector",
+        "allow": "GET, HEAD, OPTIONS",
+        "vary": "Authorization, Accept"
+      }
+    },
+    {
+      "step": "step 2 (editor gets a 207 with PUT on h1)",
+      "method": "OPTIONS",
+      "path": "/_pl/protocol-options-actor-specific-selector-328760/doc.html",
+      "status": 207,
+      "headers": {
+        "accept-query": "text/css-selector, text/sessel",
+        "accept-ranges": "selector",
+        "content-length": "214",
+        "content-type": "multipart/mixed; boundary=boundary6dyM0mPstnMDZyfxKCtAJ05xnU6zyxj1",
+        "vary": "Authorization, Accept"
+      },
+      "body": "--boundary6dyM0mPstnMDZyfxKCtAJ05xnU6zyxj1\r\nAllow: GET, HEAD, OPTIONS\r\n\r\n--boundary6dyM0mPstnMDZyfxKCtAJ05xnU6zyxj1\r\nContent-Range: selector h1\r\nAllow: PUT, OPTIONS\r\n\r\n--boundary6dyM0mPstnMDZyfxKCtAJ05xnU6zyxj1--\r\n"
+    }
+  ],
+  "outcome": "pass",
+  "target": "local"
+}

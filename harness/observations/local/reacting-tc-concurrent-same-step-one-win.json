@@ -1,0 +1,106 @@
+{
+  "case": "reacting.tc.concurrent-same-step-one-wins",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (install entry pending and step pending -\u003e processing (no exit rule))",
+      "method": "PUT",
+      "path": "/_pl/reacting-tc-concurrent-same-step-one-win-adbe96/transitions/rules.html",
+      "status": 201,
+      "headers": {
+        "content-length": "680",
+        "content-type": "text/html",
+        "etag": "\"d4ee181470b68fdc1980a0c26a0f1a61567858d8737c758096980171c0c01d90\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:49 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\n\u003cdiv itemscope itemtype=\"https://pagelove.org/TransitionConstraint\"\u003e\n  \u003cmeta itemprop=\"selector\" content=\"[itemtype='https://pagelike.test/_pl/reacting-tc-concurrent-same-step-one-win-adbe96/Order']\"\u003e\n  \u003cmeta itemprop=\"property\" content=\"status\"\u003e\n  \u003cmeta itemprop=\"to\" content=\"pending\"\u003e\n\u003c/div\u003e\n\u003cdiv itemscope itemtype=\"https://pagelove.org/TransitionConstraint\"\u003e\n  \u003cmeta itemprop=\"selector\" content=\"[itemtype='https://pagelike.test/_pl/reacting-tc-concurrent-same-step-one-win-adbe96/Order']\"\u003e\n  \u003cmeta itemprop=\"property\" content=\"status\"\u003e\n  \u003cmeta itemprop=\"from\" content=\"pending\"\u003e\n  \u003cmeta itemprop=\"to\" content=\"processing\"\u003e\n\u003c/div\u003e\n\u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 2 (seed order-1 at pending)",
+      "method": "PUT",
+      "path": "/_pl/reacting-tc-concurrent-same-step-one-win-adbe96/orders/order-1.html",
+      "status": 201,
+      "headers": {
+        "content-length": "209",
+        "content-type": "text/html",
+        "etag": "\"aa15cf6a20464de2267a4d267e63382225a66b513ca7a71e9c872a089c2889d6\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:49 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\u003cdiv id=\"order1\" itemscope itemtype=\"https://pagelike.test/_pl/reacting-tc-concurrent-same-step-one-win-adbe96/Order\"\u003e\u003cmeta itemprop=\"status\" content=\"pending\"\u003e\u003c/div\u003e\u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 201",
+      "method": "PUT",
+      "path": "/_pl/reacting-tc-concurrent-same-step-one-win-adbe96/orders/order-1.html",
+      "status": 206,
+      "headers": {
+        "content-length": "169",
+        "content-range": "selector #order1",
+        "content-type": "text/html",
+        "etag": "\"097ae2e0cb09a7f1ed5b7d588ecdba45acf94a0c91f391f1c8a19bc65935ccf8-097ae2e0cb09a7f1ed5b7d588ecdba45acf94a0c91f391f1c8a19bc65935ccf8-2\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:49 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003cdiv id=\"order1\" itemscope itemtype=\"https://pagelike.test/_pl/reacting-tc-concurrent-same-step-one-win-adbe96/Order\"\u003e\u003cmeta itemprop=\"status\" content=\"processing\"\u003e\u003c/div\u003e"
+    },
+    {
+      "step": "step 202",
+      "method": "PUT",
+      "path": "/_pl/reacting-tc-concurrent-same-step-one-win-adbe96/orders/order-1.html",
+      "status": 412,
+      "headers": {
+        "content-length": "666",
+        "content-type": "text/html; charset=utf-8",
+        "etag": "\"51c2f5d464c06a12bbd43b4d046a5fa0d4c1f6b5aa85e8f012e407daff02ba4a\"",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\n\u003chead\u003e\n\u003cmeta charset=\"UTF-8\"\u003e\n\u003ctitle\u003e412 Precondition Failed\u003c/title\u003e\n\u003c/head\u003e\n\u003cbody\u003e\n\u003carticle itemscope itemtype=\"https://pagelove.org/Error\"\u003e\n  \u003cmeta itemprop=\"status\" content=\"412\"\u003e\n  \u003cmeta itemprop=\"kind\" content=\"PreconditionFailed\"\u003e\n  \u003cdiv itemprop=\"type\" itemscope itemtype=\"https://dombase.pagelove.team/ns/error/PreconditionFailed\"\u003e\u003c/div\u003e\n  \u003cp itemprop=\"message\"\u003ethe document changed while this request was in flight and the write touches items under transition constraints; re-read and retry\u003c/p\u003e\n  \u003cmeta itemprop=\"resource\" content=\"/_pl/reacting-tc-concurrent-same-step-one-win-adbe96/orders/order-1.html\"\u003e\n\u003c/article\u003e\n\u003c/body\u003e\n\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 4 (the order is processing)",
+      "method": "GET",
+      "path": "/_pl/reacting-tc-concurrent-same-step-one-win-adbe96/orders/order-1.html",
+      "status": 200,
+      "headers": {
+        "accept-ranges": "selector, bytes",
+        "content-length": "212",
+        "content-type": "text/html",
+        "etag": "\"51c2f5d464c06a12bbd43b4d046a5fa0d4c1f6b5aa85e8f012e407daff02ba4a\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:49 GMT",
+        "vary": "Host, Range, Accept"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\u003cdiv id=\"order1\" itemscope itemtype=\"https://pagelike.test/_pl/reacting-tc-concurrent-same-step-one-win-adbe96/Order\"\u003e\u003cmeta itemprop=\"status\" content=\"processing\"\u003e\u003c/div\u003e\u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 5 (re-sending the same step after re-reading writes an unchanged value and passes)",
+      "method": "PUT",
+      "path": "/_pl/reacting-tc-concurrent-same-step-one-win-adbe96/orders/order-1.html",
+      "status": 206,
+      "headers": {
+        "content-length": "169",
+        "content-range": "selector #order1",
+        "content-type": "text/html",
+        "etag": "\"097ae2e0cb09a7f1ed5b7d588ecdba45acf94a0c91f391f1c8a19bc65935ccf8-097ae2e0cb09a7f1ed5b7d588ecdba45acf94a0c91f391f1c8a19bc65935ccf8-3\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:49 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003cdiv id=\"order1\" itemscope itemtype=\"https://pagelike.test/_pl/reacting-tc-concurrent-same-step-one-win-adbe96/Order\"\u003e\u003cmeta itemprop=\"status\" content=\"processing\"\u003e\u003c/div\u003e"
+    },
+    {
+      "step": "step 6 (an undeclared step from the new state is rejected)",
+      "method": "PUT",
+      "path": "/_pl/reacting-tc-concurrent-same-step-one-win-adbe96/orders/order-1.html",
+      "status": 422,
+      "headers": {
+        "content-length": "1198",
+        "content-type": "text/html; charset=utf-8",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\n  \u003chead\u003e\n    \u003ctitle\u003e422 Unprocessable Entity - Transition Constraint Violation\u003c/title\u003e\n  \u003c/head\u003e\n  \u003cbody itemscope itemtype=\"https://pagelove.org/ConstraintViolation\"\u003e\n    \u003ch1 itemprop=\"name\"\u003eUnprocessable Entity\u003c/h1\u003e\n    \u003cmeta itemprop=\"statusCode\" content=\"422\"\u003e\n    \u003cp itemprop=\"description\"\u003eTransition constraints violated\u003c/p\u003e\n    \u003cul\u003e\n      \u003cli itemprop=\"violations\" itemscope itemtype=\"https://pagelove.org/Violation\"\u003e\n        \u003cspan itemprop=\"constraintSelector\"\u003e[itemprop='status']\u003c/span\u003e\n        \u003cspan itemprop=\"failedConstraint\"\u003etransition(status)\u003c/span\u003e\n        \u003cspan itemprop=\"message\"\u003eTransition violation: 'https://pagelike.test/_pl/reacting-tc-concurrent-same-step-one-win-adbe96/Order' property 'status' may not change from 'processing' to 'pending' (constraint declared in '/_pl/reacting-tc-concurrent-same-step-one-win-adbe96/transitions/rules.html')\u003c/span\u003e\n        \u003cspan itemprop=\"itemtype\"\u003ehttps://pagelike.test/_pl/reacting-tc-concurrent-same-step-one-win-adbe96/Order\u003c/span\u003e\n        \u003cspan itemprop=\"property\"\u003estatus\u003c/span\u003e\n        \u003cspan itemprop=\"from\"\u003eprocessing\u003c/span\u003e\n        \u003cspan itemprop=\"to\"\u003epending\u003c/span\u003e\n      \u003c/li\u003e\n    \u003c/ul\u003e\n  \u003c/body\u003e\n\u003c/html\u003e\n"
+    }
+  ],
+  "outcome": "pass",
+  "target": "local"
+}

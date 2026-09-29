@@ -1,0 +1,32 @@
+{
+  "case": "protocol.query-sessel.400-body-errors",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (empty body)",
+      "method": "QUERY",
+      "path": "/_pl/protocol-query-sessel-400-body-errors-312832/doc.html",
+      "status": 422,
+      "headers": {
+        "content-length": "374",
+        "content-type": "text/html",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\n  \u003chead\u003e\n    \u003ctitle\u003e422 Unprocessable Entity - Error\u003c/title\u003e\n  \u003c/head\u003e\n  \u003cbody itemscope itemtype=\"http://pagelove.org/Error\"\u003e\n    \u003ch1 itemprop=\"name\"\u003eUnprocessable Entity\u003c/h1\u003e\n    \u003cmeta itemprop=\"statusCode\" content=\"422\"\u003e\n    \u003cp itemprop=\"description\"\u003eInvalid path: QUERY method requires a body containing the sessel expression\u003c/p\u003e\n  \u003c/body\u003e\n\u003c/html\u003e"
+    },
+    {
+      "step": "step 2 (parse error)",
+      "method": "QUERY",
+      "path": "/_pl/protocol-query-sessel-400-body-errors-312832/doc.html",
+      "status": 400,
+      "headers": {
+        "content-length": "387",
+        "content-type": "text/html",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\n  \u003chead\u003e\n    \u003ctitle\u003e400 Bad Request - Error\u003c/title\u003e\n  \u003c/head\u003e\n  \u003cbody itemscope itemtype=\"http://pagelove.org/Error\"\u003e\n    \u003ch1 itemprop=\"name\"\u003eBad Request\u003c/h1\u003e\n    \u003cmeta itemprop=\"statusCode\" content=\"400\"\u003e\n    \u003cp itemprop=\"description\"\u003eSessel compilation error: parse error: unexpected token \u0026quot;Eof\u0026quot; at position 3, expected expression\u003c/p\u003e\n  \u003c/body\u003e\n\u003c/html\u003e"
+    }
+  ],
+  "outcome": "pass",
+  "target": "live"
+}

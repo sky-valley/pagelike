@@ -1,0 +1,42 @@
+{
+  "case": "sse.subscribe.connection-event-precedes-mutation",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 2 (write immediately)",
+      "method": "PUT",
+      "path": "/_pl/sse-subscribe-connection-event-precedes-42674a/doc.html",
+      "status": 206,
+      "headers": {
+        "content-length": "20",
+        "content-range": "selector h1",
+        "content-type": "text/html",
+        "etag": "\"c1fc98167f07a2fd5de82c06137eb23555bd509761b3907aa6c06ccddd2d961e-c1fc98167f07a2fd5de82c06137eb23555bd509761b3907aa6c06ccddd2d961e-2\"",
+        "last-modified": "Mon, 28 Sep 2026 22:36:10 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003ch1\u003eImmediately\u003c/h1\u003e"
+    },
+    {
+      "step": "step 3",
+      "events": [
+        {
+          "event": "pagelove-connection",
+          "data": "ad0c115c-584e-4a6a-9a54-aaff02299602"
+        }
+      ]
+    },
+    {
+      "step": "step 4",
+      "events": [
+        {
+          "id": "v1~5ecb8ef8b9f9.1790634970538-0",
+          "event": "mutation",
+          "data": "\u003carticle itemscope itemtype=\"https://pagelove.org/Mutation\"\u003e\n  \u003cspan itemprop=\"method\"\u003ePUT\u003c/span\u003e\n  \u003cspan itemprop=\"selector\"\u003eh1\u003c/span\u003e\n  \u003cspan itemprop=\"etag\"\u003e409d8ea4c1ac9958ef748fa8ef3d5e54e09772fc0308a2e8516ed623189b8da2\u003c/span\u003e\n  \u003cspan itemprop=\"path\"\u003e/_pl/sse-subscribe-connection-event-precedes-42674a/doc.html\u003c/span\u003e\n  \u003cspan itemprop=\"host\"\u003elive-test-host.onpagelove.com\u003c/span\u003e\n  \u003cdiv itemprop=\"body\"\u003e\u003ch1\u003eImmediately\u003c/h1\u003e\u003c/div\u003e\n\u003c/article\u003e"
+        }
+      ]
+    }
+  ],
+  "outcome": "pass",
+  "target": "live"
+}

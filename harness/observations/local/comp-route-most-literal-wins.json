@@ -1,0 +1,40 @@
+{
+  "case": "comp.route.most-literal-wins",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1",
+      "method": "GET",
+      "path": "/_pl/comp-route-most-literal-wins-9056ec/m/1/q/view.html",
+      "status": 200,
+      "headers": {
+        "accept-ranges": "selector, bytes",
+        "content-length": "68",
+        "content-type": "text/html",
+        "etag": "\"342b6e9818fda728b5b08b29a004b3a4dbc7f8af451ed60a98198cedc24ac9e6\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:42 GMT",
+        "route-parameters": "p=1",
+        "vary": "Host, Range, Accept"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\u003cmain\u003eMORE-LITERAL\u003c/main\u003e\u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 2",
+      "method": "GET",
+      "path": "/_pl/comp-route-most-literal-wins-9056ec/m/1/z/view.html",
+      "status": 200,
+      "headers": {
+        "accept-ranges": "selector, bytes",
+        "content-length": "68",
+        "content-type": "text/html",
+        "etag": "\"ac18b69536aa19b4ceb91e7adec00b06c6fa84807ef60a51584f53e5541c416b\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:42 GMT",
+        "route-parameters": "p=1, q=z",
+        "vary": "Host, Range, Accept"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\u003cmain\u003eLESS-LITERAL\u003c/main\u003e\u003c/body\u003e\u003c/html\u003e\n"
+    }
+  ],
+  "outcome": "pass",
+  "target": "local"
+}

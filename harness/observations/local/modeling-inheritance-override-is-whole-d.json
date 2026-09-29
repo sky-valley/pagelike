@@ -1,0 +1,50 @@
+{
+  "case": "modeling.inheritance.override-is-whole-declaration",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (register declarations through the public plane (takes effect for the next request))",
+      "method": "PUT",
+      "path": "/_pl/modeling-inheritance-override-is-whole-d-10ca2d/schema.html",
+      "status": 201,
+      "headers": {
+        "content-length": "1020",
+        "content-type": "text/html",
+        "etag": "\"5a7cff1a2ac48a09e71702b07dab5dd57793654b1473da019bc45498db0c825c\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:44 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\n  \u003cdiv hidden itemscope itemtype=\"https://pagelove.org/Schema\"\u003e\n    \u003cmeta itemprop=\"type\" content=\"https://pagelike.test/_pl/modeling-inheritance-override-is-whole-d-10ca2d/Base\"\u003e\n    \u003cdiv itemprop=\"property\" itemscope itemtype=\"https://pagelove.org/Property\"\u003e\n      \u003cmeta itemprop=\"name\" content=\"label\"\u003e\n      \u003cmeta itemprop=\"type\" content=\"https://schema.host/Integer\"\u003e\n      \u003cmeta itemprop=\"cardinality\" content=\"1..1\"\u003e\n    \u003c/div\u003e\n  \u003c/div\u003e\n  \u003cdiv hidden itemscope itemtype=\"https://pagelove.org/Schema\"\u003e\n    \u003cmeta itemprop=\"type\" content=\"https://pagelike.test/_pl/modeling-inheritance-override-is-whole-d-10ca2d/Derived\"\u003e\n    \u003cmeta itemprop=\"parent\" content=\"https://pagelike.test/_pl/modeling-inheritance-override-is-whole-d-10ca2d/Base\"\u003e\n    \u003cdiv itemprop=\"property\" itemscope itemtype=\"https://pagelove.org/Property\"\u003e\n      \u003cmeta itemprop=\"name\" content=\"label\"\u003e\n      \u003cmeta itemprop=\"description\" content=\"redeclared with no type or cardinality\"\u003e\n    \u003c/div\u003e\n  \u003c/div\u003e\n\u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 2 (Derived item without label is accepted)",
+      "method": "PUT",
+      "path": "/_pl/modeling-inheritance-override-is-whole-d-10ca2d/d.html",
+      "status": 201,
+      "headers": {
+        "content-length": "161",
+        "content-type": "text/html",
+        "etag": "\"604719c2f95f6db3b2e49d81da89e5b9aafca94328362c68fe23a8da42f3ac54\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:44 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\n  \u003cdiv itemscope itemtype=\"https://pagelike.test/_pl/modeling-inheritance-override-is-whole-d-10ca2d/Derived\"\u003e\u003c/div\u003e\n\u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 3 (Derived item with a non-integer label is accepted)",
+      "method": "PUT",
+      "path": "/_pl/modeling-inheritance-override-is-whole-d-10ca2d/e.html",
+      "status": 201,
+      "headers": {
+        "content-length": "204",
+        "content-type": "text/html",
+        "etag": "\"468dda70755d5f7ceed32c6be35513e6204ce72c5875901c8b19be718574ab3b\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:44 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\n  \u003cdiv itemscope itemtype=\"https://pagelike.test/_pl/modeling-inheritance-override-is-whole-d-10ca2d/Derived\"\u003e\n    \u003cmeta itemprop=\"label\" content=\"x\"\u003e\n  \u003c/div\u003e\n\u003c/body\u003e\u003c/html\u003e\n"
+    }
+  ],
+  "outcome": "pass",
+  "target": "local"
+}

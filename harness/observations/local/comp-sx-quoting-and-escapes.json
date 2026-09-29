@@ -1,0 +1,53 @@
+{
+  "case": "comp.sx.quoting-and-escapes",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1",
+      "method": "GET",
+      "path": "/_pl/comp-sx-quoting-and-escapes-bd9ee4/sx.html",
+      "status": 206,
+      "headers": {
+        "accept-ranges": "selector, bytes",
+        "content-length": "24",
+        "content-range": "selector p:contains(\"Title Bar\")",
+        "content-type": "text/html",
+        "etag": "\"e3979e7548afe5539b10797ff6aab8590d76a0362325b4e2aea14dead9e6be63-e3979e7548afe5539b10797ff6aab8590d76a0362325b4e2aea14dead9e6be63-1\"",
+        "vary": "Host, Range, Accept"
+      },
+      "body": "\u003cp id=\"p2\"\u003eTitle Bar\u003c/p\u003e"
+    },
+    {
+      "step": "step 2",
+      "method": "GET",
+      "path": "/_pl/comp-sx-quoting-and-escapes-bd9ee4/sx.html",
+      "status": 206,
+      "headers": {
+        "accept-ranges": "selector, bytes",
+        "content-length": "22",
+        "content-range": "selector p:contains('café')",
+        "content-type": "text/html",
+        "etag": "\"1f412e44b9029bca34dc8729fc4682cccc1261809aaa5c0cb86eb4599a402367-1f412e44b9029bca34dc8729fc4682cccc1261809aaa5c0cb86eb4599a402367-1\"",
+        "vary": "Host, Range, Accept"
+      },
+      "body": "\u003cp id=\"cafe\"\u003ecafé\u003c/p\u003e"
+    },
+    {
+      "step": "step 3 (CSS escape with a terminating space)",
+      "method": "GET",
+      "path": "/_pl/comp-sx-quoting-and-escapes-bd9ee4/sx.html",
+      "status": 206,
+      "headers": {
+        "accept-ranges": "selector, bytes",
+        "content-length": "22",
+        "content-range": "selector p:contains('caf\\E9 ')",
+        "content-type": "text/html",
+        "etag": "\"1f412e44b9029bca34dc8729fc4682cccc1261809aaa5c0cb86eb4599a402367-1f412e44b9029bca34dc8729fc4682cccc1261809aaa5c0cb86eb4599a402367-1\"",
+        "vary": "Host, Range, Accept"
+      },
+      "body": "\u003cp id=\"cafe\"\u003ecafé\u003c/p\u003e"
+    }
+  ],
+  "outcome": "pass",
+  "target": "local"
+}

@@ -1,0 +1,1146 @@
+# JavaScript area: JavaScript method bodies dispatched by page composition
+# (docs/spec/javascript.md R-JS-18..R-JS-20, R-JS-58, R-JS-60, R-JS-61). Each case PUTs one page
+# that carries its schema inline (a single PUT registers it, as in the docs examples) and reads
+# <main> back with Range: selector=main.
+# Spec: docs/spec/javascript.md. Generated; edit by hand freely.
+defaults:
+  area: "javascript"
+  evidence: "documented"
+  confidence: "medium"
+  requires: ["server-js"]
+  site:
+    settings:
+      default_get: "allow"
+    rules:
+      - actor: "*"
+        resource: "${P}/*"
+        method: ["GET", "HEAD", "PUT", "POST", "DELETE", "MOVE"]
+        action: "Allow"
+      - actor: "*"
+        resource: "${P}/*/*"
+        method: ["GET", "HEAD", "PUT", "POST", "DELETE", "MOVE"]
+        action: "Allow"
+      - actor: "*"
+        resource: "${P}/*/*/*"
+        method: ["GET", "HEAD", "PUT", "POST", "DELETE", "MOVE"]
+        action: "Allow"
+cases:
+  - id: "javascript.methods.docs-js-method-element"
+    title: "Documented example: a JavaScript Method builds a <p> with DOMParser and it is spliced in place of <j:hello>"
+    feature: "method elements (JavaScript)"
+    source: "docs reference/composing-pages/Method-Elements §JavaScript example (snapshot 2026-09-28)"
+    confidence: "high"
+    live: true
+    notes: "spec: R-JS-18, R-JS-60, R-JS-74. The docs response shows only the text; the element is asserted because an element result is spliced (Method-Elements result table). The schema type URL is per-case instead of urn:JsDemo so runs do not collide."
+    steps:
+      - name: "PUT the page (public plane; registers inline declarations)"
+        as: "anonymous"
+        request:
+          method: "PUT"
+          path: "${P}/js-method-element-demo.html"
+          headers:
+            Content-Type: "text/html"
+          body: |
+            <!DOCTYPE html>
+            <html xmlns:j="https://pagelike.test${P}/JsDemo">
+              <body>
+                <main>
+                  <j:hello></j:hello>
+                </main>
+            <div hidden itemscope itemtype="https://pagelove.org/Schema">
+            <meta itemprop="type" content="https://pagelike.test${P}/JsDemo">
+            <ul>
+            <li itemprop="property" itemscope itemtype="https://pagelove.org/Method">
+            <meta itemprop="name" content="hello">
+            <meta itemprop="returns" content="https://pagelove.org/Element">
+            <div itemprop="implementation" itemscope itemtype="https://pagelove.org/JavaScript/Module">
+            <script itemprop="source" type="module">
+            export default () => { const d = new DOMParser().parseFromString("<p>hello from JavaScript</p>", "text/html"); return d.querySelector("p"); };
+            </script>
+            </div>
+            </li>
+            </ul>
+            </div>
+              </body>
+            </html>
+        expect:
+          status: [200, 201, 204]
+      - name: "GET the composed page"
+        as: "anonymous"
+        request:
+          method: "GET"
+          path: "${P}/js-method-element-demo.html"
+          headers:
+            Range: "selector=main"
+        expect:
+          status: 206
+          headers:
+            Content-Range: "selector main"
+          body_contains: ["<p>hello from JavaScript</p>"]
+          body_not_contains: ["j:hello"]
+  - id: "javascript.methods.params-positional-by-declaration"
+    title: "Parameters are passed positionally in declared order, matched to host attributes by name"
+    feature: "method elements (JavaScript)"
+    source: "docs reference/composing-pages/Method-Elements §JavaScript implementations, §Passing arguments; docs reference/modeling-data/Methods §Parameters (snapshot 2026-09-28)"
+    confidence: "high"
+    live: true
+    notes: "spec: R-JS-18; contradiction C-JS-3 (JSS says 'by name ... rather than positionally'). Parameters are declared with <div itemprop=parameter> because a nested <li> inside the Method <li> would be closed by the HTML parser (see R-JS-18 authoring note)."
+    steps:
+      - name: "PUT the page (public plane; registers inline declarations)"
+        as: "anonymous"
+        request:
+          method: "PUT"
+          path: "${P}/m.html"
+          headers:
+            Content-Type: "text/html"
+          body: |
+            <!DOCTYPE html>
+            <html xmlns:t="https://pagelike.test${P}/Pair"><body>
+            <main>
+            <t:pair second="B" first="A" ignored="Z"></t:pair>
+            </main>
+            <div hidden itemscope itemtype="https://pagelove.org/Schema">
+            <meta itemprop="type" content="https://pagelike.test${P}/Pair">
+            <ul>
+            <li itemprop="property" itemscope itemtype="https://pagelove.org/Method">
+            <meta itemprop="name" content="pair">
+            <div itemprop="parameter" itemscope itemtype="https://pagelove.org/Parameter"><meta itemprop="name" content="first"><meta itemprop="type" content="https://schema.host/Text"></div>
+            <div itemprop="parameter" itemscope itemtype="https://pagelove.org/Parameter"><meta itemprop="name" content="second"><meta itemprop="type" content="https://schema.host/Text"></div>
+            <div itemprop="implementation" itemscope itemtype="https://pagelove.org/JavaScript/Module">
+            <script itemprop="source" type="module">
+            export default function (p, q) { return 'PAIR:' + p + '-' + q; }
+            </script>
+            </div>
+            </li>
+            </ul>
+            </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "GET the composed page"
+        as: "anonymous"
+        request:
+          method: "GET"
+          path: "${P}/m.html"
+          headers:
+            Range: "selector=main"
+        expect:
+          status: 206
+          body_contains: ["PAIR:A-B"]
+  - id: "javascript.methods.absent-parameter-is-null"
+    title: "A declared parameter with no matching attribute arrives as null"
+    feature: "method elements (JavaScript)"
+    source: "docs reference/composing-pages/Method-Elements §JavaScript implementations ('an absent attribute is null') (snapshot 2026-09-28)"
+    confidence: "medium"
+    live: true
+    notes: "spec: R-JS-18. Overload selection ('the overload whose declared parameters all appear') could instead refuse to dispatch; probe P-JS-11."
+    steps:
+      - name: "PUT the page (public plane; registers inline declarations)"
+        as: "anonymous"
+        request:
+          method: "PUT"
+          path: "${P}/m.html"
+          headers:
+            Content-Type: "text/html"
+          body: |
+            <!DOCTYPE html>
+            <html xmlns:t="https://pagelike.test${P}/Absent"><body>
+            <main>
+            <t:pair first="A"></t:pair>
+            </main>
+            <div hidden itemscope itemtype="https://pagelove.org/Schema">
+            <meta itemprop="type" content="https://pagelike.test${P}/Absent">
+            <ul>
+            <li itemprop="property" itemscope itemtype="https://pagelove.org/Method">
+            <meta itemprop="name" content="pair">
+            <div itemprop="parameter" itemscope itemtype="https://pagelove.org/Parameter"><meta itemprop="name" content="first"><meta itemprop="type" content="https://schema.host/Text"></div>
+            <div itemprop="parameter" itemscope itemtype="https://pagelove.org/Parameter"><meta itemprop="name" content="second"><meta itemprop="type" content="https://schema.host/Text"></div>
+            <div itemprop="implementation" itemscope itemtype="https://pagelove.org/JavaScript/Module">
+            <script itemprop="source" type="module">
+            export default function (p, q) { return 'ABS:' + p + '-' + (q === null); }
+            </script>
+            </div>
+            </li>
+            </ul>
+            </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "GET the composed page"
+        as: "anonymous"
+        request:
+          method: "GET"
+          path: "${P}/m.html"
+          headers:
+            Range: "selector=main"
+        expect:
+          status: 206
+          body_contains: ["ABS:A-true"]
+  - id: "javascript.methods.async-body"
+    title: "An async method body is driven to settlement"
+    feature: "method elements (JavaScript)"
+    source: "docs reference/composing-pages/Method-Elements §JavaScript implementations ('The source may be an async function'); docs languages/javascript/server/javascript-in-schemas §Method bodies (snapshot 2026-09-28)"
+    confidence: "high"
+    live: true
+    notes: "spec: R-JS-8, R-JS-18."
+    steps:
+      - name: "PUT the page (public plane; registers inline declarations)"
+        as: "anonymous"
+        request:
+          method: "PUT"
+          path: "${P}/m.html"
+          headers:
+            Content-Type: "text/html"
+          body: |
+            <!DOCTYPE html>
+            <html xmlns:t="https://pagelike.test${P}/Async"><body>
+            <main>
+            <t:later></t:later>
+            </main>
+            <div hidden itemscope itemtype="https://pagelove.org/Schema">
+            <meta itemprop="type" content="https://pagelike.test${P}/Async">
+            <ul>
+            <li itemprop="property" itemscope itemtype="https://pagelove.org/Method">
+            <meta itemprop="name" content="later">
+            <div itemprop="implementation" itemscope itemtype="https://pagelove.org/JavaScript/Module">
+            <script itemprop="source" type="module">
+            export default async () => { await null; const v = await Promise.resolve('async-ok'); return 'ASYNC:' + v; };
+            </script>
+            </div>
+            </li>
+            </ul>
+            </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "GET the composed page"
+        as: "anonymous"
+        request:
+          method: "GET"
+          path: "${P}/m.html"
+          headers:
+            Range: "selector=main"
+        expect:
+          status: 206
+          body_contains: ["ASYNC:async-ok"]
+  - id: "javascript.methods.document-scoped-to-host"
+    title: "The ambient document in a dispatched method sees only the host element's subtree"
+    feature: "method elements (JavaScript)"
+    source: "docs reference/composing-pages/Method-Elements §JavaScript implementations ('scoped to the dispatched element's subtree') (snapshot 2026-09-28)"
+    confidence: "medium"
+    live: true
+    notes: "spec: R-JS-18, R-JS-63."
+    steps:
+      - name: "PUT the page (public plane; registers inline declarations)"
+        as: "anonymous"
+        request:
+          method: "PUT"
+          path: "${P}/m.html"
+          headers:
+            Content-Type: "text/html"
+          body: |
+            <!DOCTYPE html>
+            <html xmlns:t="https://pagelike.test${P}/Scope"><body>
+            <main>
+            <t:count><p>a</p><p>b</p></t:count>
+            <p>outside</p>
+            </main>
+            <div hidden itemscope itemtype="https://pagelove.org/Schema">
+            <meta itemprop="type" content="https://pagelike.test${P}/Scope">
+            <ul>
+            <li itemprop="property" itemscope itemtype="https://pagelove.org/Method">
+            <meta itemprop="name" content="count">
+            <div itemprop="implementation" itemscope itemtype="https://pagelove.org/JavaScript/Module">
+            <script itemprop="source" type="module">
+            export default () => 'COUNT:' + document.querySelectorAll('p').length;
+            </script>
+            </div>
+            </li>
+            </ul>
+            </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "GET the composed page"
+        as: "anonymous"
+        request:
+          method: "GET"
+          path: "${P}/m.html"
+          headers:
+            Range: "selector=main"
+        expect:
+          status: 206
+          body_contains: ["COUNT:2", "<p>outside</p>"]
+  - id: "javascript.methods.readonly-mutation-fails-500"
+    title: "Mutating the read-only document in a dispatched method throws NoModificationAllowedError and composition fails with 500"
+    feature: "method elements (JavaScript)"
+    source: "docs reference/composing-pages/Method-Elements §JavaScript implementations, §Error cases (snapshot 2026-09-28)"
+    confidence: "high"
+    live: true
+    notes: "spec: R-JS-18, R-JS-52, R-JS-61."
+    steps:
+      - name: "PUT the page (public plane; registers inline declarations)"
+        as: "anonymous"
+        request:
+          method: "PUT"
+          path: "${P}/m.html"
+          headers:
+            Content-Type: "text/html"
+          body: |
+            <!DOCTYPE html>
+            <html xmlns:t="https://pagelike.test${P}/Mut"><body>
+            <main>
+            <t:mut><p>x</p></t:mut>
+            </main>
+            <div hidden itemscope itemtype="https://pagelove.org/Schema">
+            <meta itemprop="type" content="https://pagelike.test${P}/Mut">
+            <ul>
+            <li itemprop="property" itemscope itemtype="https://pagelove.org/Method">
+            <meta itemprop="name" content="mut">
+            <div itemprop="implementation" itemscope itemtype="https://pagelove.org/JavaScript/Module">
+            <script itemprop="source" type="module">
+            export default () => { document.querySelector('p').textContent = 'y'; return 'no'; };
+            </script>
+            </div>
+            </li>
+            </ul>
+            </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "GET the composed page"
+        as: "anonymous"
+        request:
+          method: "GET"
+          path: "${P}/m.html"
+          headers:
+            Range: "selector=main"
+        expect:
+          status: 500
+          header_matches:
+            Content-Type: "^text/html"
+  - id: "javascript.methods.this-is-host-element"
+    title: "this in a dispatched method is the host element (read-only), usable with getAttribute"
+    feature: "method elements (JavaScript)"
+    source: "docs reference/composing-pages/Method-Elements §JavaScript implementations ('this is the dispatched element'); docs languages/javascript/server/javascript-in-schemas §Method bodies (snapshot 2026-09-28)"
+    confidence: "low"
+    live: true
+    notes: "spec: R-JS-18. The docs call this 'a microdata object'; pagelike gives a read-only Element handle. Probe P-JS-12."
+    steps:
+      - name: "PUT the page (public plane; registers inline declarations)"
+        as: "anonymous"
+        request:
+          method: "PUT"
+          path: "${P}/m.html"
+          headers:
+            Content-Type: "text/html"
+          body: |
+            <!DOCTYPE html>
+            <html xmlns:t="https://pagelike.test${P}/Who"><body>
+            <main>
+            <t:who data-k="v1"></t:who>
+            </main>
+            <div hidden itemscope itemtype="https://pagelove.org/Schema">
+            <meta itemprop="type" content="https://pagelike.test${P}/Who">
+            <ul>
+            <li itemprop="property" itemscope itemtype="https://pagelove.org/Method">
+            <meta itemprop="name" content="who">
+            <div itemprop="implementation" itemscope itemtype="https://pagelove.org/JavaScript/Module">
+            <script itemprop="source" type="module">
+            export default function () { return 'WHO:' + (this !== undefined && this !== null) + ':' + (typeof this.getAttribute === 'function' ? this.getAttribute('data-k') : 'n/a'); }
+            </script>
+            </div>
+            </li>
+            </ul>
+            </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "GET the composed page"
+        as: "anonymous"
+        request:
+          method: "GET"
+          path: "${P}/m.html"
+          headers:
+            Range: "selector=main"
+        expect:
+          status: 206
+          body_contains: ["WHO:true:v1"]
+  - id: "javascript.methods.context-scoped-to-host-subtree"
+    title: "Context assignments made by a dispatched method are visible to the host subtree only"
+    feature: "method elements (JavaScript)"
+    source: "docs reference/composing-pages/Method-Elements §Attribute form, §JavaScript implementations (snapshot 2026-09-28)"
+    confidence: "high"
+    live: true
+    notes: "spec: R-JS-18; contradiction C-JS-4."
+    steps:
+      - name: "PUT the page (public plane; registers inline declarations)"
+        as: "anonymous"
+        request:
+          method: "PUT"
+          path: "${P}/m.html"
+          headers:
+            Content-Type: "text/html"
+          body: |
+            <!DOCTYPE html>
+            <html xmlns:t="https://pagelike.test${P}/Ctx" xmlns:p="https://pagelove.org/1.0"><body>
+            <main>
+            <div id="host" t:set="hi"><span id="inside"><p:stamp greeting></p:stamp></span></div>
+            <div id="after"><p:stamp greeting></p:stamp></div>
+            </main>
+            <div hidden itemscope itemtype="https://pagelove.org/Schema">
+            <meta itemprop="type" content="https://pagelike.test${P}/Ctx">
+            <ul>
+            <li itemprop="property" itemscope itemtype="https://pagelove.org/Method">
+            <meta itemprop="name" content="set">
+            <div itemprop="parameter" itemscope itemtype="https://pagelove.org/Parameter"><meta itemprop="name" content="value"><meta itemprop="type" content="https://schema.host/Text"></div>
+            <div itemprop="implementation" itemscope itemtype="https://pagelove.org/JavaScript/Module">
+            <script itemprop="source" type="module">
+            export default function (value) { Context.greeting = 'CTX-' + value; return null; }
+            </script>
+            </div>
+            </li>
+            </ul>
+            </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "inside the host: the stamp sees the value; the dispatching attribute is removed"
+        as: "anonymous"
+        request:
+          method: "GET"
+          path: "${P}/m.html"
+          headers:
+            Range: "selector=#host"
+        expect:
+          status: 206
+          body_contains: ["CTX-hi"]
+          body_not_contains: ["t:set"]
+      - name: "a later sibling does not see it"
+        as: "anonymous"
+        request:
+          method: "GET"
+          path: "${P}/m.html"
+          headers:
+            Range: "selector=#after"
+        expect:
+          status: 206
+          body_not_contains: ["CTX-hi"]
+  - id: "javascript.methods.context-visible-to-later-siblings"
+    title: "Stamp page claim: a method's Context mutation propagates to later dispatches on the same page"
+    feature: "method elements (JavaScript)"
+    source: "docs reference/composing-pages/Stamp §How a value reaches Context (snapshot 2026-09-28)"
+    confidence: "low"
+    live: true
+    status: "disputed"
+    notes: "Losing claim of C-JS-4 (Method-Elements scopes Context mutations to the host subtree)."
+    steps:
+      - name: "PUT the page (public plane; registers inline declarations)"
+        as: "anonymous"
+        request:
+          method: "PUT"
+          path: "${P}/m.html"
+          headers:
+            Content-Type: "text/html"
+          body: |
+            <!DOCTYPE html>
+            <html xmlns:t="https://pagelike.test${P}/Ctx2" xmlns:p="https://pagelove.org/1.0"><body>
+            <main>
+            <div id="host" t:set="hi"><span id="inside"><p:stamp greeting></p:stamp></span></div>
+            <div id="after"><p:stamp greeting></p:stamp></div>
+            </main>
+            <div hidden itemscope itemtype="https://pagelove.org/Schema">
+            <meta itemprop="type" content="https://pagelike.test${P}/Ctx2">
+            <ul>
+            <li itemprop="property" itemscope itemtype="https://pagelove.org/Method">
+            <meta itemprop="name" content="set">
+            <div itemprop="parameter" itemscope itemtype="https://pagelove.org/Parameter"><meta itemprop="name" content="value"><meta itemprop="type" content="https://schema.host/Text"></div>
+            <div itemprop="implementation" itemscope itemtype="https://pagelove.org/JavaScript/Module">
+            <script itemprop="source" type="module">
+            export default function (value) { Context.greeting = 'CTX-' + value; return null; }
+            </script>
+            </div>
+            </li>
+            </ul>
+            </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "a later sibling sees it"
+        as: "anonymous"
+        request:
+          method: "GET"
+          path: "${P}/m.html"
+          headers:
+            Range: "selector=#after"
+        expect:
+          status: 206
+          body_contains: ["CTX-hi"]
+  - id: "javascript.methods.attribute-form-replaces-host"
+    title: "Attribute form: a method returning Element replaces the whole host; the attribute value is the first parameter"
+    feature: "method elements (JavaScript)"
+    source: "docs reference/composing-pages/Method-Elements §Attribute form (snapshot 2026-09-28)"
+    confidence: "high"
+    live: true
+    notes: "spec: R-JS-18, R-JS-60."
+    steps:
+      - name: "PUT the page (public plane; registers inline declarations)"
+        as: "anonymous"
+        request:
+          method: "PUT"
+          path: "${P}/m.html"
+          headers:
+            Content-Type: "text/html"
+          body: |
+            <!DOCTYPE html>
+            <html xmlns:t="https://pagelike.test${P}/Card"><body>
+            <main>
+            <div id="h" class="host" t:card="Ada">old</div>
+            </main>
+            <div hidden itemscope itemtype="https://pagelove.org/Schema">
+            <meta itemprop="type" content="https://pagelike.test${P}/Card">
+            <ul>
+            <li itemprop="property" itemscope itemtype="https://pagelove.org/Method">
+            <meta itemprop="name" content="card">
+            <meta itemprop="returns" content="https://pagelove.org/Element">
+            <div itemprop="parameter" itemscope itemtype="https://pagelove.org/Parameter"><meta itemprop="name" content="title"><meta itemprop="type" content="https://schema.host/Text"></div>
+            <div itemprop="parameter" itemscope itemtype="https://pagelove.org/Parameter"><meta itemprop="name" content="other"><meta itemprop="type" content="https://schema.host/Text"></div>
+            <div itemprop="implementation" itemscope itemtype="https://pagelove.org/JavaScript/Module">
+            <script itemprop="source" type="module">
+            export default function (title, other) { const a = new DOMParser().parseFromString('<article class="card"></article>', 'text/html').querySelector('article'); a.textContent = 'CARD:' + title + ':' + (other === null); return a; }
+            </script>
+            </div>
+            </li>
+            </ul>
+            </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "GET the composed page"
+        as: "anonymous"
+        request:
+          method: "GET"
+          path: "${P}/m.html"
+          headers:
+            Range: "selector=main"
+        expect:
+          status: 206
+          body_contains: ["<article class=\"card\">CARD:Ada:true</article>"]
+          body_not_contains: ["class=\"host\"", ">old<"]
+  - id: "javascript.methods.dnu-element-form"
+    title: "A JavaScript doesNotUnderstand receives (messageName, parameters) with {name, value} maps for the element form"
+    feature: "method elements (JavaScript)"
+    source: "docs reference/composing-pages/Method-Elements §doesNotUnderstand fallback (snapshot 2026-09-28)"
+    confidence: "high"
+    live: true
+    notes: "spec: R-JS-19."
+    steps:
+      - name: "PUT the page (public plane; registers inline declarations)"
+        as: "anonymous"
+        request:
+          method: "PUT"
+          path: "${P}/m.html"
+          headers:
+            Content-Type: "text/html"
+          body: |
+            <!DOCTYPE html>
+            <html xmlns:t="https://pagelike.test${P}/DnuEl"><body>
+            <main>
+            <t:anything a="1" b="2"></t:anything>
+            </main>
+            <div hidden itemscope itemtype="https://pagelove.org/Schema">
+            <meta itemprop="type" content="https://pagelike.test${P}/DnuEl">
+            <ul>
+            <li itemprop="property" itemscope itemtype="https://pagelove.org/Method">
+            <meta itemprop="name" content="doesNotUnderstand">
+            <div itemprop="implementation" itemscope itemtype="https://pagelove.org/JavaScript/Module">
+            <script itemprop="source" type="module">
+            export default function (messageName, parameters) { return 'DNU:' + messageName + ':' + parameters.map((p) => p.name + '=' + p.value).join(','); }
+            </script>
+            </div>
+            </li>
+            </ul>
+            </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "GET the composed page"
+        as: "anonymous"
+        request:
+          method: "GET"
+          path: "${P}/m.html"
+          headers:
+            Range: "selector=main"
+        expect:
+          status: 206
+          body_contains: ["DNU:anything:a=1,b=2"]
+  - id: "javascript.methods.dnu-attribute-form"
+    title: "Attribute form doesNotUnderstand in JavaScript: parameters is a one-string list (JS version of the AttrDemo example)"
+    feature: "method elements (JavaScript)"
+    source: "docs reference/composing-pages/Method-Elements §doesNotUnderstand fallback, §Attribute-form example (snapshot 2026-09-28)"
+    confidence: "high"
+    live: true
+    notes: "spec: R-JS-19, R-JS-60."
+    steps:
+      - name: "PUT the page (public plane; registers inline declarations)"
+        as: "anonymous"
+        request:
+          method: "PUT"
+          path: "${P}/m.html"
+          headers:
+            Content-Type: "text/html"
+          body: |
+            <!DOCTYPE html>
+            <html xmlns:t="https://pagelike.test${P}/DnuAttr"><body>
+            <main>
+            <div t:greet="Ada"></div>
+            </main>
+            <div hidden itemscope itemtype="https://pagelove.org/Schema">
+            <meta itemprop="type" content="https://pagelike.test${P}/DnuAttr">
+            <ul>
+            <li itemprop="property" itemscope itemtype="https://pagelove.org/Method">
+            <meta itemprop="name" content="doesNotUnderstand">
+            <meta itemprop="returns" content="https://pagelove.org/Element">
+            <div itemprop="implementation" itemscope itemtype="https://pagelove.org/JavaScript/Module">
+            <script itemprop="source" type="module">
+            export default function (messageName, parameters) { const p = new DOMParser().parseFromString('<p></p>', 'text/html').querySelector('p'); p.textContent = messageName + ': ' + parameters[0] + ':' + typeof parameters[0] + ':' + parameters.length; return p; }
+            </script>
+            </div>
+            </li>
+            </ul>
+            </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "GET the composed page"
+        as: "anonymous"
+        request:
+          method: "GET"
+          path: "${P}/m.html"
+          headers:
+            Range: "selector=main"
+        expect:
+          status: 206
+          body_contains: ["<p>greet: Ada:string:1</p>"]
+          body_not_contains: ["t:greet"]
+  - id: "javascript.methods.return-elements"
+    title: "Returned element, array of elements and NodeList are serialized and spliced in order"
+    feature: "method results"
+    source: "docs languages/javascript/server/dom §Returning DOM from a binding; docs reference/composing-pages/Method-Elements §How the result becomes HTML (snapshot 2026-09-28)"
+    confidence: "high"
+    live: true
+    notes: "spec: R-JS-60."
+    steps:
+      - name: "PUT the page (public plane; registers inline declarations)"
+        as: "anonymous"
+        request:
+          method: "PUT"
+          path: "${P}/m.html"
+          headers:
+            Content-Type: "text/html"
+          body: |
+            <!DOCTYPE html>
+            <html xmlns:t="https://pagelike.test${P}/RetEl"><body>
+            <main>
+            <div id="r-el"><t:el></t:el></div><div id="r-arr"><t:arr></t:arr></div><div id="r-nl"><t:nl></t:nl></div>
+            </main>
+            <div hidden itemscope itemtype="https://pagelove.org/Schema">
+            <meta itemprop="type" content="https://pagelike.test${P}/RetEl">
+            <ul>
+            <li itemprop="property" itemscope itemtype="https://pagelove.org/Method">
+            <meta itemprop="name" content="el">
+            <meta itemprop="returns" content="https://pagelove.org/Element">
+            <div itemprop="implementation" itemscope itemtype="https://pagelove.org/JavaScript/Module">
+            <script itemprop="source" type="module">
+            export default () => new DOMParser().parseFromString('<b>EL</b>', 'text/html').querySelector('b');
+            </script>
+            </div>
+            </li>
+            <li itemprop="property" itemscope itemtype="https://pagelove.org/Method">
+            <meta itemprop="name" content="arr">
+            <meta itemprop="returns" content="https://pagelove.org/Element">
+            <div itemprop="implementation" itemscope itemtype="https://pagelove.org/JavaScript/Module">
+            <script itemprop="source" type="module">
+            export default () => { const d = new DOMParser().parseFromString('<i>A1</i><i>A2</i>', 'text/html'); return [d.querySelectorAll('i').item(0), d.querySelectorAll('i').item(1)]; };
+            </script>
+            </div>
+            </li>
+            <li itemprop="property" itemscope itemtype="https://pagelove.org/Method">
+            <meta itemprop="name" content="nl">
+            <meta itemprop="returns" content="https://pagelove.org/Element">
+            <div itemprop="implementation" itemscope itemtype="https://pagelove.org/JavaScript/Module">
+            <script itemprop="source" type="module">
+            export default () => new DOMParser().parseFromString('<i>N1</i><i>N2</i>', 'text/html').querySelectorAll('i');
+            </script>
+            </div>
+            </li>
+            </ul>
+            </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "GET the composed page"
+        as: "anonymous"
+        request:
+          method: "GET"
+          path: "${P}/m.html"
+          headers:
+            Range: "selector=main"
+        expect:
+          status: 206
+          body_contains: ["<div id=\"r-el\"><b>EL</b></div>", "<div id=\"r-arr\"><i>A1</i><i>A2</i></div>", "<div id=\"r-nl\"><i>N1</i><i>N2</i></div>"]
+  - id: "javascript.methods.return-scalars"
+    title: "Returned numbers, booleans and strings are inserted as (escaped) text"
+    feature: "method results"
+    source: "docs reference/composing-pages/Method-Elements §How the result becomes HTML, §JavaScript implementations (snapshot 2026-09-28)"
+    confidence: "high"
+    live: true
+    notes: "spec: R-JS-60, R-JS-41."
+    steps:
+      - name: "PUT the page (public plane; registers inline declarations)"
+        as: "anonymous"
+        request:
+          method: "PUT"
+          path: "${P}/m.html"
+          headers:
+            Content-Type: "text/html"
+          body: |
+            <!DOCTYPE html>
+            <html xmlns:t="https://pagelike.test${P}/RetSc"><body>
+            <main>
+            <div id="r-num"><t:num></t:num></div><div id="r-int"><t:int></t:int></div><div id="r-bool"><t:bool></t:bool></div><div id="r-str"><t:str></t:str></div>
+            </main>
+            <div hidden itemscope itemtype="https://pagelove.org/Schema">
+            <meta itemprop="type" content="https://pagelike.test${P}/RetSc">
+            <ul>
+            <li itemprop="property" itemscope itemtype="https://pagelove.org/Method">
+            <meta itemprop="name" content="num">
+            <div itemprop="implementation" itemscope itemtype="https://pagelove.org/JavaScript/Module">
+            <script itemprop="source" type="module">
+            export default () => 42.5;
+            </script>
+            </div>
+            </li>
+            <li itemprop="property" itemscope itemtype="https://pagelove.org/Method">
+            <meta itemprop="name" content="int">
+            <div itemprop="implementation" itemscope itemtype="https://pagelove.org/JavaScript/Module">
+            <script itemprop="source" type="module">
+            export default () => 7;
+            </script>
+            </div>
+            </li>
+            <li itemprop="property" itemscope itemtype="https://pagelove.org/Method">
+            <meta itemprop="name" content="bool">
+            <div itemprop="implementation" itemscope itemtype="https://pagelove.org/JavaScript/Module">
+            <script itemprop="source" type="module">
+            export default () => false;
+            </script>
+            </div>
+            </li>
+            <li itemprop="property" itemscope itemtype="https://pagelove.org/Method">
+            <meta itemprop="name" content="str">
+            <div itemprop="implementation" itemscope itemtype="https://pagelove.org/JavaScript/Module">
+            <script itemprop="source" type="module">
+            export default () => '<b>not markup</b>';
+            </script>
+            </div>
+            </li>
+            </ul>
+            </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "GET the composed page"
+        as: "anonymous"
+        request:
+          method: "GET"
+          path: "${P}/m.html"
+          headers:
+            Range: "selector=main"
+        expect:
+          status: 206
+          body_contains: ["<div id=\"r-num\">42.5</div>", "<div id=\"r-int\">7</div>", "<div id=\"r-bool\">false</div>", "<div id=\"r-str\">&lt;b&gt;not markup&lt;/b&gt;</div>"]
+  - id: "javascript.methods.return-null-undefined-removes"
+    title: "Returning null or undefined removes the method element"
+    feature: "method results"
+    source: "docs reference/composing-pages/Method-Elements §JavaScript implementations ('null/undefined removes the element') (snapshot 2026-09-28)"
+    confidence: "high"
+    live: true
+    notes: "spec: R-JS-60."
+    steps:
+      - name: "PUT the page (public plane; registers inline declarations)"
+        as: "anonymous"
+        request:
+          method: "PUT"
+          path: "${P}/m.html"
+          headers:
+            Content-Type: "text/html"
+          body: |
+            <!DOCTYPE html>
+            <html xmlns:t="https://pagelike.test${P}/RetNull"><body>
+            <main>
+            <div id="r-null">[<t:nul>child</t:nul>]</div><div id="r-undef">[<t:und>child</t:und>]</div>
+            </main>
+            <div hidden itemscope itemtype="https://pagelove.org/Schema">
+            <meta itemprop="type" content="https://pagelike.test${P}/RetNull">
+            <ul>
+            <li itemprop="property" itemscope itemtype="https://pagelove.org/Method">
+            <meta itemprop="name" content="nul">
+            <div itemprop="implementation" itemscope itemtype="https://pagelove.org/JavaScript/Module">
+            <script itemprop="source" type="module">
+            export default () => null;
+            </script>
+            </div>
+            </li>
+            <li itemprop="property" itemscope itemtype="https://pagelove.org/Method">
+            <meta itemprop="name" content="und">
+            <div itemprop="implementation" itemscope itemtype="https://pagelove.org/JavaScript/Module">
+            <script itemprop="source" type="module">
+            export default () => undefined;
+            </script>
+            </div>
+            </li>
+            </ul>
+            </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "GET the composed page"
+        as: "anonymous"
+        request:
+          method: "GET"
+          path: "${P}/m.html"
+          headers:
+            Range: "selector=main"
+        expect:
+          status: 206
+          body_contains: ["<div id=\"r-null\">[]</div>", "<div id=\"r-undef\">[]</div>"]
+  - id: "javascript.methods.return-text-node-500"
+    title: "Returning a text node is an error (500)"
+    feature: "method results"
+    source: "docs languages/javascript/server/dom §Returning DOM from a binding; docs reference/composing-pages/Method-Elements §Error cases (snapshot 2026-09-28)"
+    confidence: "high"
+    live: true
+    notes: "spec: R-JS-52, R-JS-60."
+    steps:
+      - name: "PUT the page (public plane; registers inline declarations)"
+        as: "anonymous"
+        request:
+          method: "PUT"
+          path: "${P}/m.html"
+          headers:
+            Content-Type: "text/html"
+          body: |
+            <!DOCTYPE html>
+            <html xmlns:t="https://pagelike.test${P}/ErrText"><body>
+            <main>
+            <t:bad></t:bad>
+            </main>
+            <div hidden itemscope itemtype="https://pagelove.org/Schema">
+            <meta itemprop="type" content="https://pagelike.test${P}/ErrText">
+            <ul>
+            <li itemprop="property" itemscope itemtype="https://pagelove.org/Method">
+            <meta itemprop="name" content="bad">
+            <meta itemprop="returns" content="https://pagelove.org/Element">
+            <div itemprop="implementation" itemscope itemtype="https://pagelove.org/JavaScript/Module">
+            <script itemprop="source" type="module">
+            export default () => new DOMParser().parseFromString('<p>t</p>', 'text/html').querySelector('p').firstChild;
+            </script>
+            </div>
+            </li>
+            </ul>
+            </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "GET the composed page"
+        as: "anonymous"
+        request:
+          method: "GET"
+          path: "${P}/m.html"
+          headers:
+            Range: "selector=main"
+        expect:
+          status: 500
+          header_matches:
+            Content-Type: "^text/html"
+  - id: "javascript.methods.return-document-500"
+    title: "Returning a document is an error (500)"
+    feature: "method results"
+    source: "docs languages/javascript/server/dom §Returning DOM from a binding; docs reference/composing-pages/Method-Elements §Error cases (snapshot 2026-09-28)"
+    confidence: "high"
+    live: true
+    notes: "spec: R-JS-52, R-JS-60."
+    steps:
+      - name: "PUT the page (public plane; registers inline declarations)"
+        as: "anonymous"
+        request:
+          method: "PUT"
+          path: "${P}/m.html"
+          headers:
+            Content-Type: "text/html"
+          body: |
+            <!DOCTYPE html>
+            <html xmlns:t="https://pagelike.test${P}/ErrDocument"><body>
+            <main>
+            <t:bad></t:bad>
+            </main>
+            <div hidden itemscope itemtype="https://pagelove.org/Schema">
+            <meta itemprop="type" content="https://pagelike.test${P}/ErrDocument">
+            <ul>
+            <li itemprop="property" itemscope itemtype="https://pagelove.org/Method">
+            <meta itemprop="name" content="bad">
+            <meta itemprop="returns" content="https://pagelove.org/Element">
+            <div itemprop="implementation" itemscope itemtype="https://pagelove.org/JavaScript/Module">
+            <script itemprop="source" type="module">
+            export default () => new DOMParser().parseFromString('<p>t</p>', 'text/html');
+            </script>
+            </div>
+            </li>
+            </ul>
+            </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "GET the composed page"
+        as: "anonymous"
+        request:
+          method: "GET"
+          path: "${P}/m.html"
+          headers:
+            Range: "selector=main"
+        expect:
+          status: 500
+          header_matches:
+            Content-Type: "^text/html"
+  - id: "javascript.methods.return-fragment-500"
+    title: "Returning a DocumentFragment is an error (500)"
+    feature: "method results"
+    source: "docs languages/javascript/server/dom §Returning DOM from a binding; docs reference/composing-pages/Method-Elements §Error cases (snapshot 2026-09-28)"
+    confidence: "high"
+    live: true
+    notes: "spec: R-JS-52, R-JS-60."
+    steps:
+      - name: "PUT the page (public plane; registers inline declarations)"
+        as: "anonymous"
+        request:
+          method: "PUT"
+          path: "${P}/m.html"
+          headers:
+            Content-Type: "text/html"
+          body: |
+            <!DOCTYPE html>
+            <html xmlns:t="https://pagelike.test${P}/ErrFragment"><body>
+            <main>
+            <t:bad></t:bad>
+            </main>
+            <div hidden itemscope itemtype="https://pagelove.org/Schema">
+            <meta itemprop="type" content="https://pagelike.test${P}/ErrFragment">
+            <ul>
+            <li itemprop="property" itemscope itemtype="https://pagelove.org/Method">
+            <meta itemprop="name" content="bad">
+            <meta itemprop="returns" content="https://pagelove.org/Element">
+            <div itemprop="implementation" itemscope itemtype="https://pagelove.org/JavaScript/Module">
+            <script itemprop="source" type="module">
+            export default () => { const d = new DOMParser().parseFromString('', 'text/html'); const f = d.createDocumentFragment(); f.appendChild(d.createElement('i')); return f; };
+            </script>
+            </div>
+            </li>
+            </ul>
+            </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "GET the composed page"
+        as: "anonymous"
+        request:
+          method: "GET"
+          path: "${P}/m.html"
+          headers:
+            Range: "selector=main"
+        expect:
+          status: 500
+          header_matches:
+            Content-Type: "^text/html"
+  - id: "javascript.methods.throw-500"
+    title: "An uncaught throw in a dispatched method fails composition with 500"
+    feature: "method results"
+    source: "docs languages/javascript/server/dom §Returning DOM from a binding; docs reference/composing-pages/Method-Elements §Error cases (snapshot 2026-09-28)"
+    confidence: "high"
+    live: true
+    notes: "spec: R-JS-52, R-JS-60."
+    steps:
+      - name: "PUT the page (public plane; registers inline declarations)"
+        as: "anonymous"
+        request:
+          method: "PUT"
+          path: "${P}/m.html"
+          headers:
+            Content-Type: "text/html"
+          body: |
+            <!DOCTYPE html>
+            <html xmlns:t="https://pagelike.test${P}/Err500"><body>
+            <main>
+            <t:bad></t:bad>
+            </main>
+            <div hidden itemscope itemtype="https://pagelove.org/Schema">
+            <meta itemprop="type" content="https://pagelike.test${P}/Err500">
+            <ul>
+            <li itemprop="property" itemscope itemtype="https://pagelove.org/Method">
+            <meta itemprop="name" content="bad">
+            <meta itemprop="returns" content="https://pagelove.org/Element">
+            <div itemprop="implementation" itemscope itemtype="https://pagelove.org/JavaScript/Module">
+            <script itemprop="source" type="module">
+            export default () => { throw new Error('boom'); };
+            </script>
+            </div>
+            </li>
+            </ul>
+            </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "GET the composed page"
+        as: "anonymous"
+        request:
+          method: "GET"
+          path: "${P}/m.html"
+          headers:
+            Range: "selector=main"
+        expect:
+          status: 500
+          header_matches:
+            Content-Type: "^text/html"
+  - id: "javascript.methods.shape-failure-500"
+    title: "An implementation module without a default export fails composition with 500"
+    feature: "method results"
+    source: "docs languages/javascript/server/dom §Returning DOM from a binding; docs reference/composing-pages/Method-Elements §Error cases (snapshot 2026-09-28)"
+    confidence: "medium"
+    live: true
+    notes: "spec: R-JS-52, R-JS-60. The shape variant in composition is inferred."
+    steps:
+      - name: "PUT the page (public plane; registers inline declarations)"
+        as: "anonymous"
+        request:
+          method: "PUT"
+          path: "${P}/m.html"
+          headers:
+            Content-Type: "text/html"
+          body: |
+            <!DOCTYPE html>
+            <html xmlns:t="https://pagelike.test${P}/ErrFailure"><body>
+            <main>
+            <t:bad></t:bad>
+            </main>
+            <div hidden itemscope itemtype="https://pagelove.org/Schema">
+            <meta itemprop="type" content="https://pagelike.test${P}/ErrFailure">
+            <ul>
+            <li itemprop="property" itemscope itemtype="https://pagelove.org/Method">
+            <meta itemprop="name" content="bad">
+            <meta itemprop="returns" content="https://pagelove.org/Element">
+            <div itemprop="implementation" itemscope itemtype="https://pagelove.org/JavaScript/Module">
+            <script itemprop="source" type="module">
+            export const notDefault = 1;
+            </script>
+            </div>
+            </li>
+            </ul>
+            </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "GET the composed page"
+        as: "anonymous"
+        request:
+          method: "GET"
+          path: "${P}/m.html"
+          headers:
+            Range: "selector=main"
+        expect:
+          status: 500
+          header_matches:
+            Content-Type: "^text/html"
+  - id: "javascript.methods.composition-budget-503"
+    title: "More than 500 method dispatches in one request exhausts the composition budget (503)"
+    feature: "budgets"
+    source: "docs reference/composing-pages/Method-Elements §Error cases ('Composition budget exhausted (500 dispatches per request)') (snapshot 2026-09-28)"
+    confidence: "medium"
+    live: true
+    notes: "spec: R-JS-58. A slow evaluator could also hit the time budget first; either way the status is 503."
+    steps:
+      - name: "PUT the page (public plane; registers inline declarations)"
+        as: "anonymous"
+        request:
+          method: "PUT"
+          path: "${P}/small.html"
+          headers:
+            Content-Type: "text/html"
+          body: |
+            <!DOCTYPE html>
+            <html xmlns:t="https://pagelike.test${P}/LeafA"><body>
+            <main>
+            <p>ten</p><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf>
+            </main>
+            <div hidden itemscope itemtype="https://pagelove.org/Schema">
+            <meta itemprop="type" content="https://pagelike.test${P}/LeafA">
+            <ul>
+            <li itemprop="property" itemscope itemtype="https://pagelove.org/Method">
+            <meta itemprop="name" content="leaf">
+            <div itemprop="implementation" itemscope itemtype="https://pagelove.org/JavaScript/Module">
+            <script itemprop="source" type="module">
+            export default () => null;
+            </script>
+            </div>
+            </li>
+            </ul>
+            </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "control: 10 dispatches compose"
+        as: "anonymous"
+        request:
+          method: "GET"
+          path: "${P}/small.html"
+          headers:
+            Range: "selector=main"
+        expect:
+          status: 206
+          body_contains: ["<p>ten</p>"]
+          body_not_contains: ["t:leaf"]
+      - name: "PUT the page (public plane; registers inline declarations)"
+        as: "anonymous"
+        request:
+          method: "PUT"
+          path: "${P}/big.html"
+          headers:
+            Content-Type: "text/html"
+          body: |
+            <!DOCTYPE html>
+            <html xmlns:t="https://pagelike.test${P}/LeafB"><body>
+            <main>
+            <t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf><t:leaf></t:leaf>
+            </main>
+            <div hidden itemscope itemtype="https://pagelove.org/Schema">
+            <meta itemprop="type" content="https://pagelike.test${P}/LeafB">
+            <ul>
+            <li itemprop="property" itemscope itemtype="https://pagelove.org/Method">
+            <meta itemprop="name" content="leaf">
+            <div itemprop="implementation" itemscope itemtype="https://pagelove.org/JavaScript/Module">
+            <script itemprop="source" type="module">
+            export default () => null;
+            </script>
+            </div>
+            </li>
+            </ul>
+            </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "501 dispatches: 503 composition budget exceeded"
+        as: "anonymous"
+        request:
+          method: "GET"
+          path: "${P}/big.html"
+        expect:
+          status: 503

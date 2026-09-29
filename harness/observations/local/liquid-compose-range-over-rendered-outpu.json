@@ -1,0 +1,38 @@
+{
+  "case": "liquid.compose.range-over-rendered-output",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (first generated item)",
+      "method": "GET",
+      "path": "/_pl/liquid-compose-range-over-rendered-outpu-beb324/gen.html",
+      "status": 206,
+      "headers": {
+        "accept-ranges": "selector, bytes",
+        "content-length": "26",
+        "content-range": "selector #gen li",
+        "content-type": "text/html",
+        "etag": "\"a55d80de4f0f3c9e98fbe16cc982fa51b8a4ac4408b28ea0951c78edd57a1f47-a55d80de4f0f3c9e98fbe16cc982fa51b8a4ac4408b28ea0951c78edd57a1f47-1\"",
+        "vary": "Host, Range, Accept"
+      },
+      "body": "\u003cli class=\"n1\"\u003eitem 1\u003c/li\u003e"
+    },
+    {
+      "step": "step 2 (a later generated item)",
+      "method": "GET",
+      "path": "/_pl/liquid-compose-range-over-rendered-outpu-beb324/gen.html",
+      "status": 206,
+      "headers": {
+        "accept-ranges": "selector, bytes",
+        "content-length": "26",
+        "content-range": "selector #gen .n3",
+        "content-type": "text/html",
+        "etag": "\"0169749fc8509b13cc4c4c02c338349b92e21dea6e3365e14a72bf1da1aee4d5-0169749fc8509b13cc4c4c02c338349b92e21dea6e3365e14a72bf1da1aee4d5-1\"",
+        "vary": "Host, Range, Accept"
+      },
+      "body": "\u003cli class=\"n3\"\u003eitem 3\u003c/li\u003e"
+    }
+  ],
+  "outcome": "pass",
+  "target": "local"
+}

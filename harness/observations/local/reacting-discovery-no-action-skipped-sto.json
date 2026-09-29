@@ -1,0 +1,37 @@
+{
+  "case": "reacting.discovery.no-action-skipped-stored",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (the write proceeds normally)",
+      "method": "PUT",
+      "path": "/_pl/reacting-discovery-no-action-skipped-sto-f03357/d/x.html",
+      "status": 201,
+      "headers": {
+        "content-length": "62",
+        "content-type": "text/html",
+        "etag": "\"c2e3bf08d7950913cba22506f3926ce89b75642a26d9f8c5b38c31aac9df01d2\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:48 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\u003chtml\u003e\u003cbody\u003e\u003cp id=\"v\"\u003ewritten\u003c/p\u003e\u003c/body\u003e\u003c/html\u003e"
+    },
+    {
+      "step": "step 2 (read back)",
+      "method": "GET",
+      "path": "/_pl/reacting-discovery-no-action-skipped-sto-f03357/d/x.html",
+      "status": 200,
+      "headers": {
+        "accept-ranges": "selector, bytes",
+        "content-length": "62",
+        "content-type": "text/html",
+        "etag": "\"c2e3bf08d7950913cba22506f3926ce89b75642a26d9f8c5b38c31aac9df01d2\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:48 GMT",
+        "vary": "Host, Range, Accept"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\u003chtml\u003e\u003cbody\u003e\u003cp id=\"v\"\u003ewritten\u003c/p\u003e\u003c/body\u003e\u003c/html\u003e"
+    }
+  ],
+  "outcome": "pass",
+  "target": "local"
+}

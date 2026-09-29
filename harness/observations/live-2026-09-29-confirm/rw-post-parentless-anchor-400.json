@@ -1,0 +1,45 @@
+{
+  "case": "rw.post.parentless-anchor-400",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (before html)",
+      "method": "POST",
+      "path": "/_pl/rw-post-parentless-anchor-400-3a9b2a/root.html",
+      "status": 422,
+      "headers": {
+        "content-length": "236",
+        "content-type": "text/html",
+        "vary": "Host, Range"
+      },
+      "body": "\u003cdiv itemscope itemtype=\"https://pagelove.org/Error\"\u003e\u003cul itemprop=\"problems\"\u003e\u003cli itemprop=\"problem\"\u003e\u003cspan itemprop=\"message\"\u003eplacement=Before relative to the document root is not possible: the root has no siblings\u003c/span\u003e\u003c/li\u003e\u003c/ul\u003e\u003c/div\u003e"
+    },
+    {
+      "step": "step 2 (after html)",
+      "method": "POST",
+      "path": "/_pl/rw-post-parentless-anchor-400-3a9b2a/root.html",
+      "status": 422,
+      "headers": {
+        "content-length": "235",
+        "content-type": "text/html",
+        "vary": "Host, Range"
+      },
+      "body": "\u003cdiv itemscope itemtype=\"https://pagelove.org/Error\"\u003e\u003cul itemprop=\"problems\"\u003e\u003cli itemprop=\"problem\"\u003e\u003cspan itemprop=\"message\"\u003eplacement=After relative to the document root is not possible: the root has no siblings\u003c/span\u003e\u003c/li\u003e\u003c/ul\u003e\u003c/div\u003e"
+    },
+    {
+      "step": "step 3 (nothing was written)",
+      "method": "GET",
+      "path": "/_pl/rw-post-parentless-anchor-400-3a9b2a/root.html",
+      "status": 200,
+      "headers": {
+        "content-type": "text/html",
+        "etag": "\"f02655a81ed7f7ac9c3631c7ed78d1b2f2ae220dc2876eadc059343d701564d9\"",
+        "last-modified": "Tue, 29 Sep 2026 00:18:31 GMT",
+        "vary": "Host, Range, Accept"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\u003cp\u003eroot test\u003c/p\u003e\n                \u003cdiv style=\"\n                            position: fixed;\n                            bottom: 0;\n                            left: 0;\n                            right: 0;\n                            padding: 8px;\n                            background: #f0f0f0;\n                            text-align: center;\n                            font-size: 12px;\n                            color: #666;\n                            z-index: 9999;\n                            opacity: 0.8;\n                            border-top: 1px solid #ddd;\n                        \"\u003e\n                    Powered by\n                    \u003ca href=\"https://pagelove.com/\" style=\"color: #4a90d9; text-decoration: none\"\u003ePagelove\u003c/a\u003e\n                \u003c/div\u003e\n            \u003c/body\u003e\u003c/html\u003e\n"
+    }
+  ],
+  "outcome": "pass",
+  "target": "live"
+}

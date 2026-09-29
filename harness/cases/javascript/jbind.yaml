@@ -1,0 +1,727 @@
+# JavaScript area: j: expression bindings (docs/spec/javascript.md A4, R-JS-30..R-JS-36).
+# Values are surfaced with <p:stamp name> (docs reference/composing-pages/Stamp) and read
+# back with Range: selector=main. JS template literals inside bodies are written $${...}
+# so the harness does not expand them.
+# Spec: docs/spec/javascript.md. Generated; edit by hand freely.
+defaults:
+  area: "javascript"
+  evidence: "documented"
+  confidence: "medium"
+  requires: ["server-js"]
+  site:
+    settings:
+      default_get: "allow"
+    rules:
+      - actor: "*"
+        resource: "${P}/*"
+        method: ["GET", "HEAD", "PUT", "POST", "DELETE", "MOVE"]
+        action: "Allow"
+      - actor: "*"
+        resource: "${P}/*/*"
+        method: ["GET", "HEAD", "PUT", "POST", "DELETE", "MOVE"]
+        action: "Allow"
+      - actor: "*"
+        resource: "${P}/*/*/*"
+        method: ["GET", "HEAD", "PUT", "POST", "DELETE", "MOVE"]
+        action: "Allow"
+cases:
+  - id: "javascript.jbind.docs-example-liquid"
+    title: "Documented example: j:total reduces an array, j:doubled reads it as a bare identifier, Liquid renders both"
+    feature: "j: bindings"
+    source: "docs reference/composing-pages/JavaScript-Expression-Binding §Attribute form, §In action (snapshot 2026-09-28)"
+    confidence: "high"
+    requires: ["server-js", "liquid"]
+    live: true
+    notes: "spec: R-JS-31, R-JS-32, R-JS-33. The docs page omits the setup document (unrendered {% example %} placeholder); it is reconstructed from the snippet. xmlns:pagelove is declared defensively (the snippet does not show it)."
+    steps:
+      - name: "PUT the page (public plane; registers inline declarations)"
+        as: "anonymous"
+        request:
+          method: "PUT"
+          path: "${P}/js-expr-summary.html"
+          headers:
+            Content-Type: "text/html"
+          body: |
+            <!DOCTYPE html>
+            <html xmlns:j="https://pagelove.org/Binding/JavaScript" xmlns:pagelove="https://pagelove.org/1.0">
+            <body>
+            <ul j:total="[10, 20, 30].reduce((a, b) => a + b, 0)"
+                j:doubled="total * 2"
+                pagelove:template="text/liquid">
+              <li>Total: {{ total }}</li>
+              <li>Doubled: {{ doubled }}</li>
+            </ul>
+            </body>
+            </html>
+        expect:
+          status: [200, 201, 204]
+      - name: "GET renders the computed values; binding attributes are stripped"
+        as: "anonymous"
+        request:
+          method: "GET"
+          path: "${P}/js-expr-summary.html"
+        expect:
+          status: 200
+          body_contains: ["<li>Total: 60</li>", "<li>Doubled: 120</li>"]
+          body_not_contains: ["j:total", "j:doubled", "pagelove:template", "{{"]
+  - id: "javascript.jbind.stamp-value"
+    title: "A j: value is written to Context and emitted by a descendant <p:stamp>"
+    feature: "j: bindings"
+    source: "docs reference/composing-pages/JavaScript-Expression-Binding §Attribute form; docs reference/composing-pages/Stamp §Form (snapshot 2026-09-28)"
+    confidence: "high"
+    live: true
+    notes: "spec: R-JS-33."
+    steps:
+      - name: "PUT the page (public plane; registers inline declarations)"
+        as: "anonymous"
+        request:
+          method: "PUT"
+          path: "${P}/j.html"
+          headers:
+            Content-Type: "text/html"
+          body: |
+            <!DOCTYPE html>
+            <html xmlns:j="https://pagelove.org/Binding/JavaScript" xmlns:p="https://pagelove.org/1.0"><body>
+            <main>
+            <div j:greeting="'hello from ' + 'JavaScript'"><p:stamp greeting></p:stamp></div>
+            </main>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "GET the composed page"
+        as: "anonymous"
+        request:
+          method: "GET"
+          path: "${P}/j.html"
+          headers:
+            Range: "selector=main"
+        expect:
+          status: 206
+          body_contains: ["hello from JavaScript"]
+          body_not_contains: ["p:stamp"]
+  - id: "javascript.jbind.declaration-order"
+    title: "j: attributes evaluate in declaration order; earlier bindings are bare identifiers"
+    feature: "j: bindings"
+    source: "docs reference/composing-pages/JavaScript-Expression-Binding §Attribute form, §What the expression can see (snapshot 2026-09-28)"
+    confidence: "high"
+    live: true
+    notes: "spec: R-JS-31, R-JS-32."
+    steps:
+      - name: "PUT the page (public plane; registers inline declarations)"
+        as: "anonymous"
+        request:
+          method: "PUT"
+          path: "${P}/j.html"
+          headers:
+            Content-Type: "text/html"
+          body: |
+            <!DOCTYPE html>
+            <html xmlns:j="https://pagelove.org/Binding/JavaScript" xmlns:p="https://pagelove.org/1.0"><body>
+            <main>
+            <div j:a="1" j:b="a + 1" j:c="'C=' + (b * 10)"><p:stamp c></p:stamp></div>
+            </main>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "GET the composed page"
+        as: "anonymous"
+        request:
+          method: "GET"
+          path: "${P}/j.html"
+          headers:
+            Range: "selector=main"
+        expect:
+          status: 206
+          body_contains: ["C=20"]
+  - id: "javascript.jbind.later-binding-not-in-scope"
+    title: "A j: expression cannot read a binding declared after it (ReferenceError fails composition)"
+    feature: "j: errors"
+    source: "docs reference/composing-pages/JavaScript-Expression-Binding §What the expression can see ('declared before this one'), §Error cases (snapshot 2026-09-28)"
+    confidence: "medium"
+    live: true
+    notes: "spec: R-JS-32, R-JS-36. The status is not stated by JEB; 500 follows the Method-Elements rule for dispatched implementations."
+    steps:
+      - name: "PUT the page (public plane; registers inline declarations)"
+        as: "anonymous"
+        request:
+          method: "PUT"
+          path: "${P}/j.html"
+          headers:
+            Content-Type: "text/html"
+          body: |
+            <!DOCTYPE html>
+            <html xmlns:j="https://pagelove.org/Binding/JavaScript" xmlns:p="https://pagelove.org/1.0"><body>
+            <main>
+            <div j:a="'A=' + b" j:b="1"><p:stamp a></p:stamp></div>
+            </main>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "GET the composed page"
+        as: "anonymous"
+        request:
+          method: "GET"
+          path: "${P}/j.html"
+          headers:
+            Range: "selector=main"
+        expect:
+          status: 500
+  - id: "javascript.jbind.reserved-word-name-via-context"
+    title: "A binding named after a reserved word is computed and read through Context['class']"
+    feature: "j: bindings"
+    source: "docs reference/composing-pages/JavaScript-Expression-Binding §What the expression can see (snapshot 2026-09-28)"
+    confidence: "high"
+    live: true
+    notes: "spec: R-JS-32."
+    steps:
+      - name: "PUT the page (public plane; registers inline declarations)"
+        as: "anonymous"
+        request:
+          method: "PUT"
+          path: "${P}/j.html"
+          headers:
+            Content-Type: "text/html"
+          body: |
+            <!DOCTYPE html>
+            <html xmlns:j="https://pagelove.org/Binding/JavaScript" xmlns:p="https://pagelove.org/1.0"><body>
+            <main>
+            <div j:class="'kw'" j:out="Context['class'] + '-ok'"><p:stamp out></p:stamp></div>
+            </main>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "GET the composed page"
+        as: "anonymous"
+        request:
+          method: "GET"
+          path: "${P}/j.html"
+          headers:
+            Range: "selector=main"
+        expect:
+          status: 206
+          body_contains: ["kw-ok"]
+  - id: "javascript.jbind.hyphenated-name-via-context"
+    title: "A non-identifier binding name (hyphenated) is read through Context['first-name']"
+    feature: "j: bindings"
+    source: "docs reference/composing-pages/JavaScript-Expression-Binding §What the expression can see (snapshot 2026-09-28)"
+    confidence: "high"
+    live: true
+    notes: "spec: R-JS-32."
+    steps:
+      - name: "PUT the page (public plane; registers inline declarations)"
+        as: "anonymous"
+        request:
+          method: "PUT"
+          path: "${P}/j.html"
+          headers:
+            Content-Type: "text/html"
+          body: |
+            <!DOCTYPE html>
+            <html xmlns:j="https://pagelove.org/Binding/JavaScript" xmlns:p="https://pagelove.org/1.0"><body>
+            <main>
+            <div j:first-name="'Ada'" j:out="'N=' + Context['first-name']"><p:stamp out></p:stamp></div>
+            </main>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "GET the composed page"
+        as: "anonymous"
+        request:
+          method: "GET"
+          path: "${P}/j.html"
+          headers:
+            Range: "selector=main"
+        expect:
+          status: 206
+          body_contains: ["N=Ada"]
+  - id: "javascript.jbind.names-are-lowercased"
+    title: "Binding names are lower-cased by the HTML parser: j:myVal binds myval"
+    feature: "j: bindings"
+    source: "inferred from HTML attribute-name lowercasing; docs reference/composing-pages/JavaScript-Expression-Binding §Attribute form (snapshot 2026-09-28)"
+    confidence: "medium"
+    live: true
+    notes: "spec: R-JS-32. Inferred: the HTML tokenizer lower-cases attribute names."
+    steps:
+      - name: "PUT the page (public plane; registers inline declarations)"
+        as: "anonymous"
+        request:
+          method: "PUT"
+          path: "${P}/j.html"
+          headers:
+            Content-Type: "text/html"
+          body: |
+            <!DOCTYPE html>
+            <html xmlns:j="https://pagelove.org/Binding/JavaScript" xmlns:p="https://pagelove.org/1.0"><body>
+            <main>
+            <div j:myVal="'lc'" j:out="'V=' + myval"><p:stamp out></p:stamp></div>
+            </main>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "GET the composed page"
+        as: "anonymous"
+        request:
+          method: "GET"
+          path: "${P}/j.html"
+          headers:
+            Range: "selector=main"
+        expect:
+          status: 206
+          body_contains: ["V=lc"]
+    evidence: "inferred"
+  - id: "javascript.jbind.await"
+    title: "A j: expression may await a Promise before its value is bound"
+    feature: "j: bindings"
+    source: "docs reference/composing-pages/JavaScript-Expression-Binding §Attribute form ('The expression may also use await') (snapshot 2026-09-28)"
+    confidence: "high"
+    live: true
+    notes: "spec: R-JS-31."
+    steps:
+      - name: "PUT the page (public plane; registers inline declarations)"
+        as: "anonymous"
+        request:
+          method: "PUT"
+          path: "${P}/j.html"
+          headers:
+            Content-Type: "text/html"
+          body: |
+            <!DOCTYPE html>
+            <html xmlns:j="https://pagelove.org/Binding/JavaScript" xmlns:p="https://pagelove.org/1.0"><body>
+            <main>
+            <div j:v="await Promise.resolve(41).then((x) => x + 1)" j:out="'A=' + v"><p:stamp out></p:stamp></div>
+            </main>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "GET the composed page"
+        as: "anonymous"
+        request:
+          method: "GET"
+          path: "${P}/j.html"
+          headers:
+            Range: "selector=main"
+        expect:
+          status: 206
+          body_contains: ["A=42"]
+  - id: "javascript.jbind.returned-promise-adopted"
+    title: "A j: expression that evaluates to a Promise (without await) binds the settled value"
+    feature: "j: bindings"
+    source: "inferred from docs reference/composing-pages/JavaScript-Expression-Binding §What the expression can see ('runs as the body of one JavaScript function') (snapshot 2026-09-28)"
+    confidence: "low"
+    live: true
+    notes: "spec: R-JS-31 (pagelike compiles the expression as the return of an async function)."
+    steps:
+      - name: "PUT the page (public plane; registers inline declarations)"
+        as: "anonymous"
+        request:
+          method: "PUT"
+          path: "${P}/j.html"
+          headers:
+            Content-Type: "text/html"
+          body: |
+            <!DOCTYPE html>
+            <html xmlns:j="https://pagelove.org/Binding/JavaScript" xmlns:p="https://pagelove.org/1.0"><body>
+            <main>
+            <div j:w="Promise.resolve('adopted' + '-value')"><p:stamp w></p:stamp></div>
+            </main>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "GET the composed page"
+        as: "anonymous"
+        request:
+          method: "GET"
+          path: "${P}/j.html"
+          headers:
+            Range: "selector=main"
+        expect:
+          status: 206
+          body_contains: ["adopted-value"]
+    evidence: "inferred"
+  - id: "javascript.jbind.scope-descendants-not-siblings"
+    title: "A binding is visible to descendants of its element, not to siblings"
+    feature: "j: bindings"
+    source: "docs reference/composing-pages/Expression-Binding §Scope (j: and e: are peers) (snapshot 2026-09-28)"
+    confidence: "medium"
+    live: true
+    notes: "spec: R-JS-32 (scope rule documented for e:, applied to j: as its peer)."
+    steps:
+      - name: "PUT the page (public plane; registers inline declarations)"
+        as: "anonymous"
+        request:
+          method: "PUT"
+          path: "${P}/j.html"
+          headers:
+            Content-Type: "text/html"
+          body: |
+            <!DOCTYPE html>
+            <html xmlns:j="https://pagelove.org/Binding/JavaScript" xmlns:p="https://pagelove.org/1.0"><body>
+            <main>
+            <section j:outer="'OUTER' + '-VAL'"><div><p:stamp outer></p:stamp></div></section>
+            <section><div j:sib="'SIB' + '-VAL'"></div><p:stamp sib></p:stamp></section>
+            </main>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "GET the composed page"
+        as: "anonymous"
+        request:
+          method: "GET"
+          path: "${P}/j.html"
+          headers:
+            Range: "selector=main"
+        expect:
+          status: 206
+          body_contains: ["OUTER-VAL"]
+          body_not_contains: ["SIB-VAL"]
+  - id: "javascript.jbind.interleave-with-sessel"
+    title: "e: and j: bindings interleave on one element; a j: expression reads an earlier e: value"
+    feature: "j: bindings"
+    source: "docs reference/composing-pages/JavaScript-Expression-Binding §What the expression can see, §Sessel or JavaScript? (snapshot 2026-09-28)"
+    confidence: "high"
+    requires: ["server-js", "sessel"]
+    live: true
+    notes: "spec: R-JS-32, R-JS-35."
+    steps:
+      - name: "PUT the page (public plane; registers inline declarations)"
+        as: "anonymous"
+        request:
+          method: "PUT"
+          path: "${P}/j.html"
+          headers:
+            Content-Type: "text/html"
+          body: |
+            <!DOCTYPE html>
+            <html xmlns:j="https://pagelove.org/Binding/JavaScript" xmlns:p="https://pagelove.org/1.0" xmlns:e="https://pagelove.org/Binding/Sessel"><body>
+            <main>
+            <div e:a="2" j:b="'B=' + (a * 3)"><p:stamp b></p:stamp></div>
+            </main>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "GET the composed page"
+        as: "anonymous"
+        request:
+          method: "GET"
+          path: "${P}/j.html"
+          headers:
+            Range: "selector=main"
+        expect:
+          status: 206
+          body_contains: ["B=6"]
+  - id: "javascript.jbind.reads-resource-binding"
+    title: "A j: expression reads an r: resource binding (resolved first) as a bare identifier"
+    feature: "j: bindings"
+    source: "docs reference/composing-pages/JavaScript-Expression-Binding §What the expression can see ('resolved r: resource binding'); docs reference/composing-pages/Expression-Binding §The three bindings compared (snapshot 2026-09-28)"
+    confidence: "medium"
+    live: true
+    notes: "spec: R-JS-32, R-JS-35, R-JS-40. The r: query is site-wide; the data-k value is unique to this case. That the match list reaches JavaScript as an Array is a pagelike decision."
+    steps:
+      - name: "PUT the page (public plane; registers inline declarations)"
+        as: "anonymous"
+        request:
+          method: "PUT"
+          path: "${P}/j.html"
+          headers:
+            Content-Type: "text/html"
+          body: |
+            <!DOCTYPE html>
+            <html xmlns:j="https://pagelove.org/Binding/JavaScript" xmlns:p="https://pagelove.org/1.0" xmlns:r="https://pagelove.org/Binding/CSS"><body>
+            <main>
+            <ul><li data-k="${P}">1</li><li data-k="${P}">2</li><li data-k="${P}">3</li></ul>
+            <div r:items="li[data-k='${P}']" j:n="'N=' + items.length"><p:stamp n></p:stamp></div>
+            </main>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "GET the composed page"
+        as: "anonymous"
+        request:
+          method: "GET"
+          path: "${P}/j.html"
+          headers:
+            Range: "selector=main"
+        expect:
+          status: 206
+          body_contains: ["N=3"]
+  - id: "javascript.jbind.request-fields"
+    title: "request.method, request.path and request.query are readable in j: expressions"
+    feature: "j: request object"
+    source: "docs reference/composing-pages/JavaScript-Expression-Binding §What the expression can see; docs reference/composing-pages Request Document (snapshot 2026-09-28)"
+    confidence: "high"
+    live: true
+    notes: "spec: R-JS-34."
+    steps:
+      - name: "PUT the page (public plane; registers inline declarations)"
+        as: "anonymous"
+        request:
+          method: "PUT"
+          path: "${P}/j.html"
+          headers:
+            Content-Type: "text/html"
+          body: |
+            <!DOCTYPE html>
+            <html xmlns:j="https://pagelove.org/Binding/JavaScript" xmlns:p="https://pagelove.org/1.0"><body>
+            <main>
+            <div j:out="[request.method, request.path, request.query.q].join('|')"><p:stamp out></p:stamp></div>
+            </main>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "GET the composed page"
+        as: "anonymous"
+        request:
+          method: "GET"
+          path: "${P}/j.html?q=hello"
+          headers:
+            Range: "selector=main"
+        expect:
+          status: 206
+          body_contains: ["GET|${P}/j.html|hello"]
+  - id: "javascript.jbind.request-headers-taint-private"
+    title: "Reading request.headers marks the response user-varying (Cache-Control: private)"
+    feature: "j: request object"
+    source: "docs reference/composing-pages/JavaScript-Expression-Binding §What the expression can see (Caching note) (snapshot 2026-09-28)"
+    confidence: "high"
+    live: true
+    notes: "spec: R-JS-34; cross-area reading-writing R-RW-103."
+    steps:
+      - name: "PUT the page (public plane; registers inline declarations)"
+        as: "anonymous"
+        request:
+          method: "PUT"
+          path: "${P}/j.html"
+          headers:
+            Content-Type: "text/html"
+          body: |
+            <!DOCTYPE html>
+            <html xmlns:j="https://pagelove.org/Binding/JavaScript" xmlns:p="https://pagelove.org/1.0"><body>
+            <main>
+            <div j:h="'H=' + typeof request.headers"><p:stamp h></p:stamp></div>
+            </main>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "GET the composed page"
+        as: "anonymous"
+        request:
+          method: "GET"
+          path: "${P}/j.html"
+          headers:
+            Range: "selector=main"
+        expect:
+          status: 206
+          body_contains: ["H=object"]
+          header_matches:
+            Cache-Control: "private"
+  - id: "javascript.jbind.naming-request-does-not-taint"
+    title: "Naming request without reading an identity member keeps the page shareable (no private Cache-Control)"
+    feature: "j: request object"
+    source: "docs reference/composing-pages/JavaScript-Expression-Binding §What the expression can see (Caching note: 'Naming request without reading an identity member does not taint it') (snapshot 2026-09-28)"
+    confidence: "low"
+    live: true
+    notes: "spec: R-JS-34. Asserting the absence of Cache-Control relies on reading-writing R-RW-102 (shareable fragments carry no Cache-Control; live-observed once)."
+    steps:
+      - name: "PUT the page (public plane; registers inline declarations)"
+        as: "anonymous"
+        request:
+          method: "PUT"
+          path: "${P}/j.html"
+          headers:
+            Content-Type: "text/html"
+          body: |
+            <!DOCTYPE html>
+            <html xmlns:j="https://pagelove.org/Binding/JavaScript" xmlns:p="https://pagelove.org/1.0"><body>
+            <main>
+            <div j:t="'T=' + typeof request + '-' + request.path.length"><p:stamp t></p:stamp></div>
+            </main>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "GET the composed page"
+        as: "anonymous"
+        request:
+          method: "GET"
+          path: "${P}/j.html"
+          headers:
+            Range: "selector=main"
+        expect:
+          status: 206
+          body_contains: ["T=object-"]
+          headers_absent: ["Cache-Control"]
+  - id: "javascript.jbind.wrong-namespace-ignored"
+    title: "A prefix bound to a URI other than exactly https://pagelove.org/Binding/JavaScript creates no binding"
+    feature: "j: bindings"
+    source: "docs reference/composing-pages/JavaScript-Expression-Binding §Namespace declaration, §Error cases (snapshot 2026-09-28)"
+    confidence: "high"
+    live: true
+    notes: "spec: R-JS-30. The wrong URI differs only in case ('Javascript'); the control uses the free prefix k with the exact URI."
+    steps:
+      - name: "PUT the page (public plane; registers inline declarations)"
+        as: "anonymous"
+        request:
+          method: "PUT"
+          path: "${P}/j.html"
+          headers:
+            Content-Type: "text/html"
+          body: |
+            <!DOCTYPE html>
+            <html xmlns:j="https://pagelove.org/Binding/Javascript" xmlns:k="https://pagelove.org/Binding/JavaScript" xmlns:p="https://pagelove.org/1.0"><body>
+            <main>
+            <div k:v="'RIGHT' + '-NS'"><p:stamp v></p:stamp></div>
+            <div j:w="'WRONG' + '-NS'"><p:stamp w></p:stamp></div>
+            </main>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "GET the composed page"
+        as: "anonymous"
+        request:
+          method: "GET"
+          path: "${P}/j.html"
+          headers:
+            Range: "selector=main"
+        expect:
+          status: 206
+          body_contains: ["RIGHT-NS"]
+          body_not_contains: ["WRONG-NS"]
+  - id: "javascript.jbind.parse-error-500"
+    title: "A j: expression that fails to parse fails composition with 500"
+    feature: "j: errors"
+    source: "docs reference/composing-pages/JavaScript-Expression-Binding §Error cases; docs reference/composing-pages/Method-Elements §Error cases (implementation errors are HTTP 500) (snapshot 2026-09-28)"
+    confidence: "medium"
+    live: true
+    notes: "spec: R-JS-36. JEB says the request fails with an HTML-Microdata error; the number 500 is the Method-Elements rule for dispatched implementations."
+    steps:
+      - name: "PUT the page (public plane; registers inline declarations)"
+        as: "anonymous"
+        request:
+          method: "PUT"
+          path: "${P}/j.html"
+          headers:
+            Content-Type: "text/html"
+          body: |
+            <!DOCTYPE html>
+            <html xmlns:j="https://pagelove.org/Binding/JavaScript" xmlns:p="https://pagelove.org/1.0"><body>
+            <main>
+            <div j:v="1 +"><p:stamp v></p:stamp></div>
+            </main>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "GET the composed page"
+        as: "anonymous"
+        request:
+          method: "GET"
+          path: "${P}/j.html"
+          headers:
+            Range: "selector=main"
+        expect:
+          status: 500
+          header_matches:
+            Content-Type: "^text/html"
+  - id: "javascript.jbind.throw-500"
+    title: "A j: expression that throws fails composition with 500"
+    feature: "j: errors"
+    source: "docs reference/composing-pages/JavaScript-Expression-Binding §Error cases; docs reference/composing-pages/Method-Elements §Error cases (implementation errors are HTTP 500) (snapshot 2026-09-28)"
+    confidence: "medium"
+    live: true
+    notes: "spec: R-JS-36. JEB says the request fails with an HTML-Microdata error; the number 500 is the Method-Elements rule for dispatched implementations."
+    steps:
+      - name: "PUT the page (public plane; registers inline declarations)"
+        as: "anonymous"
+        request:
+          method: "PUT"
+          path: "${P}/j.html"
+          headers:
+            Content-Type: "text/html"
+          body: |
+            <!DOCTYPE html>
+            <html xmlns:j="https://pagelove.org/Binding/JavaScript" xmlns:p="https://pagelove.org/1.0"><body>
+            <main>
+            <div j:v="(() => { throw new Error('boom'); })()"><p:stamp v></p:stamp></div>
+            </main>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "GET the composed page"
+        as: "anonymous"
+        request:
+          method: "GET"
+          path: "${P}/j.html"
+          headers:
+            Range: "selector=main"
+        expect:
+          status: 500
+          header_matches:
+            Content-Type: "^text/html"
+  - id: "javascript.jbind.reject-500"
+    title: "A j: expression whose awaited Promise rejects fails composition with 500"
+    feature: "j: errors"
+    source: "docs reference/composing-pages/JavaScript-Expression-Binding §Error cases; docs reference/composing-pages/Method-Elements §Error cases (implementation errors are HTTP 500) (snapshot 2026-09-28)"
+    confidence: "medium"
+    live: true
+    notes: "spec: R-JS-36. JEB says the request fails with an HTML-Microdata error; the number 500 is the Method-Elements rule for dispatched implementations."
+    steps:
+      - name: "PUT the page (public plane; registers inline declarations)"
+        as: "anonymous"
+        request:
+          method: "PUT"
+          path: "${P}/j.html"
+          headers:
+            Content-Type: "text/html"
+          body: |
+            <!DOCTYPE html>
+            <html xmlns:j="https://pagelove.org/Binding/JavaScript" xmlns:p="https://pagelove.org/1.0"><body>
+            <main>
+            <div j:v="await Promise.reject(new Error('no'))"><p:stamp v></p:stamp></div>
+            </main>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "GET the composed page"
+        as: "anonymous"
+        request:
+          method: "GET"
+          path: "${P}/j.html"
+          headers:
+            Range: "selector=main"
+        expect:
+          status: 500
+          header_matches:
+            Content-Type: "^text/html"
+  - id: "javascript.jbind.unknown-identifier-500"
+    title: "A j: expression referencing an unknown name fails composition with 500"
+    feature: "j: errors"
+    source: "docs reference/composing-pages/JavaScript-Expression-Binding §Error cases; docs reference/composing-pages/Method-Elements §Error cases (implementation errors are HTTP 500) (snapshot 2026-09-28)"
+    confidence: "medium"
+    live: true
+    notes: "spec: R-JS-36. JEB says the request fails with an HTML-Microdata error; the number 500 is the Method-Elements rule for dispatched implementations."
+    steps:
+      - name: "PUT the page (public plane; registers inline declarations)"
+        as: "anonymous"
+        request:
+          method: "PUT"
+          path: "${P}/j.html"
+          headers:
+            Content-Type: "text/html"
+          body: |
+            <!DOCTYPE html>
+            <html xmlns:j="https://pagelove.org/Binding/JavaScript" xmlns:p="https://pagelove.org/1.0"><body>
+            <main>
+            <div j:v="notDefinedAnywhere + 1"><p:stamp v></p:stamp></div>
+            </main>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "GET the composed page"
+        as: "anonymous"
+        request:
+          method: "GET"
+          path: "${P}/j.html"
+          headers:
+            Range: "selector=main"
+        expect:
+          status: 500
+          header_matches:
+            Content-Type: "^text/html"

@@ -1,0 +1,33 @@
+{
+  "case": "protocol.move.if-match-element-etag",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (element ETag via HEAD with a selector range)",
+      "method": "HEAD",
+      "path": "/_pl/protocol-move-if-match-element-etag-b55109/board.html",
+      "status": 206,
+      "headers": {
+        "accept-ranges": "selector, bytes",
+        "content-length": "49",
+        "content-range": "selector #card-3",
+        "content-type": "text/html",
+        "etag": "\"8fc199dfe88bd859db172be3b70f1dade97ee98fa1a150bcf0120692507a9343-8fc199dfe88bd859db172be3b70f1dade97ee98fa1a150bcf0120692507a9343-1\"",
+        "vary": "Host, Range, Accept"
+      }
+    },
+    {
+      "step": "step 2 (MOVE conditioned on the element ETag)",
+      "method": "MOVE",
+      "path": "/_pl/protocol-move-if-match-element-etag-b55109/board.html",
+      "status": 204,
+      "headers": {
+        "etag": "\"8a22fdb199535a23fff56ebff097c96b08138fdaaec51653d67efb194e88d446\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:48 GMT",
+        "vary": "Host, Range"
+      }
+    }
+  ],
+  "outcome": "pass",
+  "target": "local"
+}

@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:p="https://pagelove.org/1.0" xmlns:r="https://pagelove.org/Binding/CSS">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>What should we build next?</title>
+<link rel="stylesheet" href="/assets/poll.css">
+</head>
+<body>
+<main>
+  <h1 id="question">What should we build next?</h1>
+  <p class="me" p:template="text/liquid">{% if request.auth.username %}Voting as <strong data-me="{{ request.auth.username }}">{{ request.auth.claims.name | default: request.auth.username }}</strong>{% else %}<a href="/auth/login?redirect=/">Sign in to vote</a>{% endif %}</p>
+
+  <!-- The options are authored content: participants cannot change them. -->
+  <ul id="options" class="options">
+    <li data-choice="garden">A shared garden map</li>
+    <li data-choice="recipes">A recipe swap</li>
+    <li data-choice="soundwalk">A city soundwalk</li>
+  </ul>
+
+  <!-- Server-rendered tallies (recomputed on every read). -->
+  <section id="results" class="results" r:votes="[itemtype='https://example.org/Vote']" p:template="text/liquid">
+    <p class="total">{{ votes.size }} vote{% if votes.size != 1 %}s{% endif %}</p>
+  </section>
+
+  <!-- One row per voter. The server enforces one vote per signed-in person. -->
+  <table hidden><tbody id="votes"></tbody></table>
+</main>
+<script type="module" src="/assets/poll.js"></script>
+</body>
+</html>

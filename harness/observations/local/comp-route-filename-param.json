@@ -1,0 +1,36 @@
+{
+  "case": "comp.route.filename-param",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1",
+      "method": "GET",
+      "path": "/_pl/comp-route-filename-param-23a033/pages/hello-world.html",
+      "status": 200,
+      "headers": {
+        "accept-ranges": "selector, bytes",
+        "cache-control": "public, max-age=5",
+        "content-length": "76",
+        "content-type": "text/html",
+        "etag": "W/\"974b987103aeaf8ec8cfcacd3954a61c29771a93f7fee97b6a902532b2a78c77\"",
+        "route-parameters": "slug=hello-world",
+        "vary": "Host, Range, Accept"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\n\u003cbody\u003e\u003cmain id=\"m\"\u003ehello-world\u003c/main\u003e\u003c/body\u003e\n\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 2 (other extensions do not match the template)",
+      "method": "GET",
+      "path": "/_pl/comp-route-filename-param-23a033/pages/hello-world.txt",
+      "status": 404,
+      "headers": {
+        "content-length": "357",
+        "content-type": "text/html",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\n  \u003chead\u003e\n    \u003ctitle\u003e404 Not Found - Error\u003c/title\u003e\n  \u003c/head\u003e\n  \u003cbody itemscope itemtype=\"http://pagelove.org/Error\"\u003e\n    \u003ch1 itemprop=\"name\"\u003eNot Found\u003c/h1\u003e\n    \u003cmeta itemprop=\"statusCode\" content=\"404\"\u003e\n    \u003cp itemprop=\"description\"\u003eDocument not found: /_pl/comp-route-filename-param-23a033/pages/hello-world.txt\u003c/p\u003e\n  \u003c/body\u003e\n\u003c/html\u003e\n"
+    }
+  ],
+  "outcome": "pass",
+  "target": "local"
+}

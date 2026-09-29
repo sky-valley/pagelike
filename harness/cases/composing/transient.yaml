@@ -1,0 +1,465 @@
+# Composing: transient (session-scoped) elements.
+# Spec: docs/spec/composing.md §14 (R-COMP-110..117).
+# Steps that must share one anonymous session run as the built-in `visitor`
+# identity (an anonymous client that keeps its cookies for the whole case);
+# `anonymous` sends no cookies, so each of its requests is a fresh session.
+# Named actors each have their own session (multi-actor).
+cases:
+  - id: comp.tr.default-fresh-session
+    title: A fresh session sees the document default, without the transient marker, served private
+    area: composing
+    feature: transient elements
+    evidence: documented
+    source: "docs reference/composing-pages/Transient-Elements §Example: default content for a new session, §Reading transient elements (snapshot 2026-09-28)"
+    confidence: high
+    requires: []
+    live: true
+    site:
+      settings: {default_get: allow}
+      files:
+        - path: "${P}/sspi-transient-page.html"
+          body: |
+            <!DOCTYPE html>
+            <html xmlns:p="https://pagelove.org/1.0">
+            <body>
+              <ul id="cart" p:transient>
+                <li>Default item</li>
+              </ul>
+            </body>
+            </html>
+      rules:
+        - {actor: "*", resource: "${P}/*", method: [GET, HEAD], action: Allow}
+    steps:
+      - as: anonymous
+        request: {method: GET, path: "${P}/sspi-transient-page.html"}
+        expect:
+          status: 200
+          body_contains: ['<ul id="cart">', "<li>Default item</li>"]
+          body_not_contains: ["p:transient", "xmlns:p"]
+          header_contains: {Cache-Control: private}
+
+  - id: comp.tr.private-cache-fragment
+    title: Any selector read of a document with a transient marker is private, even of another element
+    area: composing
+    feature: transient caching
+    evidence: documented
+    source: "docs reference/composing-pages/Transient-Elements §Reading transient elements (snapshot 2026-09-28)"
+    confidence: high
+    requires: []
+    live: true
+    site:
+      settings: {default_get: allow}
+      files:
+        - path: "${P}/page.html"
+          body: |
+            <!DOCTYPE html>
+            <html xmlns:p="https://pagelove.org/1.0">
+            <body><h1 id="title">Shop</h1><ul id="cart" p:transient><li>Default item</li></ul></body>
+            </html>
+      rules:
+        - {actor: "*", resource: "${P}/*", method: [GET, HEAD], action: Allow}
+    steps:
+      - as: anonymous
+        request:
+          method: GET
+          path: "${P}/page.html"
+          headers: {Range: "selector=#title"}
+        expect:
+          status: 206
+          body_contains: ["Shop"]
+          header_contains: {Cache-Control: private}
+
+  - id: comp.tr.write-response-private
+    title: Writes to a transient element answer Cache-Control private (the body is the session copy)
+    area: composing
+    feature: transient caching
+    evidence: inferred
+    source: "docs reference/composing-pages/Transient-Elements §Reading transient elements (snapshot 2026-09-28): responses built from a document with a transient element are private; docs/spec/apps.md ACC-SH-2 (pagelove-shop@d887054 basket GET then PUT, 'both responses Cache-Control: private')"
+    confidence: medium
+    requires: []
+    live: true
+    notes: "R-COMP-114 names reads; the PUT/POST answer echoes the writer's session copy, so it is treated the same way."
+    site:
+      settings: {default_get: allow}
+      files:
+        - path: "${P}/cart.html"
+          body: |
+            <!DOCTYPE html>
+            <html xmlns:p="https://pagelove.org/1.0">
+            <body><ul id="cart" p:transient><li>Default item</li></ul></body>
+            </html>
+      rules:
+        - {actor: "*", resource: "${P}/*", method: [GET, HEAD], action: Allow}
+        - {actor: "*", resource: "${P}/cart.html", method: [PUT, POST, DELETE], selector: "#cart", action: Allow}
+    steps:
+      - as: visitor
+        request:
+          method: PUT
+          path: "${P}/cart.html"
+          headers: {Range: "selector=#cart", Content-Type: text/html}
+          body: '<ul id="cart"><li>Mine</li></ul>'
+        expect:
+          status: 206
+          body_contains: ["Mine"]
+          header_contains: {Cache-Control: private}
+      - as: visitor
+        request:
+          method: POST
+          path: "${P}/cart.html"
+          headers: {Range: "selector=#cart", Content-Type: text/html}
+          body: '<li>More</li>'
+        expect:
+          status: 206
+          header_contains: {Cache-Control: private}
+      - as: visitor
+        request:
+          method: DELETE
+          path: "${P}/cart.html"
+          headers: {Range: "selector=#cart"}
+        expect:
+          status: 204
+          header_contains: {Cache-Control: private}
+
+  - id: comp.tr.put-session-only
+    title: A PUT to a transient element changes only the writer's session copy
+    area: composing
+    feature: transient writes
+    evidence: documented
+    source: "docs reference/composing-pages/Transient-Elements §Mutating transient elements (snapshot 2026-09-28); pagelove-shop/site/js/shop.mjs@d887054:56-78"
+    confidence: high
+    requires: []
+    live: true
+    site:
+      settings: {default_get: allow}
+      files:
+        - path: "${P}/cart.html"
+          body: |
+            <!DOCTYPE html>
+            <html xmlns:p="https://pagelove.org/1.0">
+            <body><ul id="cart" p:transient><li>Default item</li></ul></body>
+            </html>
+      rules:
+        - {actor: "*", resource: "${P}/*", method: [GET, HEAD], action: Allow}
+        - {actor: "*", resource: "${P}/cart.html", method: [PUT, POST, DELETE], selector: "#cart", action: Allow}
+    steps:
+      - name: establish the session
+        as: visitor
+        request: {method: GET, path: "${P}/cart.html"}
+        expect: {status: 200, body_contains: ["Default item"]}
+      - name: write the session copy
+        as: visitor
+        request:
+          method: PUT
+          path: "${P}/cart.html"
+          headers: {Range: "selector=#cart", Content-Type: "text/html"}
+          body: '<ul id="cart"><li>Session item</li></ul>'
+        expect: {status: [200, 204, 206]}
+      - name: same session sees its copy
+        as: visitor
+        request:
+          method: GET
+          path: "${P}/cart.html"
+          headers: {Range: "selector=#cart"}
+        expect:
+          status: 206
+          body_contains: ["Session item"]
+          body_not_contains: ["Default item"]
+      - name: the stored document keeps the default
+        as: author
+        plane: dav
+        request: {method: GET, path: "${P}/cart.html"}
+        expect:
+          status: 200
+          body_contains: ["Default item", "p:transient"]
+          body_not_contains: ["Session item"]
+
+  - id: comp.tr.identity-change-rejected-422
+    title: A PUT whose replacement no longer matches the selector is rejected with 422
+    area: composing
+    feature: transient writes
+    evidence: documented
+    source: "docs reference/composing-pages/Transient-Elements §PUT and POST, §Error responses (snapshot 2026-09-28)"
+    confidence: high
+    requires: []
+    live: true
+    site:
+      settings: {default_get: allow}
+      files:
+        - path: "${P}/cart.html"
+          body: |
+            <!DOCTYPE html>
+            <html xmlns:p="https://pagelove.org/1.0">
+            <body><ul id="cart" p:transient><li>Default item</li></ul></body>
+            </html>
+      rules:
+        - {actor: "*", resource: "${P}/*", method: [GET, HEAD, PUT], action: Allow}
+    steps:
+      - as: visitor
+        request: {method: GET, path: "${P}/cart.html"}
+        expect: {status: 200}
+      - as: visitor
+        request:
+          method: PUT
+          path: "${P}/cart.html"
+          headers: {Range: "selector=#cart", Content-Type: "text/html"}
+          body: '<ul id="different"><li>x</li></ul>'
+        expect: {status: 422}
+      - as: visitor
+        request: {method: GET, path: "${P}/cart.html"}
+        expect: {status: 200, body_contains: ["Default item"], body_not_contains: ["different"]}
+
+  - id: comp.tr.identity-preserved-tag-change-ok
+    title: A replacement that keeps the selector identity may change the tag, and the marker is preserved
+    area: composing
+    feature: transient writes
+    evidence: documented
+    source: "docs reference/composing-pages/Transient-Elements §PUT and POST ('<div id=\"cart\"> is permitted'; 'preserved automatically') (snapshot 2026-09-28)"
+    confidence: high
+    requires: []
+    live: true
+    site:
+      settings: {default_get: allow}
+      files:
+        - path: "${P}/cart.html"
+          body: |
+            <!DOCTYPE html>
+            <html xmlns:p="https://pagelove.org/1.0">
+            <body><ul id="cart" p:transient><li>Default item</li></ul></body>
+            </html>
+      rules:
+        - {actor: "*", resource: "${P}/*", method: [GET, HEAD, PUT], action: Allow}
+    steps:
+      - as: visitor
+        request: {method: GET, path: "${P}/cart.html"}
+        expect: {status: 200}
+      - name: change the tag, keep the id
+        as: visitor
+        request:
+          method: PUT
+          path: "${P}/cart.html"
+          headers: {Range: "selector=#cart", Content-Type: "text/html"}
+          body: '<div id="cart"><p>Div cart</p></div>'
+        expect: {status: [200, 204, 206]}
+      - as: visitor
+        request: {method: GET, path: "${P}/cart.html"}
+        expect: {status: 200, body_contains: ["Div cart"]}
+      - name: a second write still goes to the session (marker kept)
+        as: visitor
+        request:
+          method: PUT
+          path: "${P}/cart.html"
+          headers: {Range: "selector=#cart", Content-Type: "text/html"}
+          body: '<ul id="cart"><li>Again</li></ul>'
+        expect: {status: [200, 204, 206]}
+      - as: author
+        plane: dav
+        request: {method: GET, path: "${P}/cart.html"}
+        expect:
+          status: 200
+          body_contains: ["Default item"]
+          body_not_contains: ["Div cart", "Again"]
+
+  - id: comp.tr.delete-reverts
+    title: DELETE of a transient element drops the session copy and the default returns
+    area: composing
+    feature: transient writes
+    evidence: documented
+    source: "docs reference/composing-pages/Transient-Elements §DELETE (snapshot 2026-09-28); pagelove-shop/site/js/shop.mjs@d887054:93-97"
+    confidence: high
+    requires: []
+    live: true
+    site:
+      settings: {default_get: allow}
+      files:
+        - path: "${P}/cart.html"
+          body: |
+            <!DOCTYPE html>
+            <html xmlns:p="https://pagelove.org/1.0">
+            <body><ul id="cart" p:transient><li>Default item</li></ul></body>
+            </html>
+      rules:
+        - {actor: "*", resource: "${P}/*", method: [GET, HEAD, PUT, DELETE], action: Allow}
+    steps:
+      - as: visitor
+        request: {method: GET, path: "${P}/cart.html"}
+        expect: {status: 200}
+      - as: visitor
+        request:
+          method: PUT
+          path: "${P}/cart.html"
+          headers: {Range: "selector=#cart", Content-Type: "text/html"}
+          body: '<ul id="cart"><li>Session item</li></ul>'
+        expect: {status: [200, 204, 206]}
+      - as: visitor
+        request:
+          method: DELETE
+          path: "${P}/cart.html"
+          headers: {Range: "selector=#cart"}
+        expect: {status: [200, 204]}
+      - as: visitor
+        request: {method: GET, path: "${P}/cart.html"}
+        expect: {status: 200, body_contains: ["Default item"], body_not_contains: ["Session item"]}
+      - name: the stored default was not deleted
+        as: author
+        plane: dav
+        request: {method: GET, path: "${P}/cart.html"}
+        expect: {status: 200, body_contains: ['id="cart"', "Default item"]}
+
+  - id: comp.tr.child-mutation
+    title: A PUT to a child of a transient element is a session mutation of the ancestor
+    area: composing
+    feature: transient writes
+    evidence: documented
+    source: "docs reference/composing-pages/Transient-Elements §Child mutations (snapshot 2026-09-28)"
+    confidence: high
+    requires: []
+    live: true
+    site:
+      settings: {default_get: allow}
+      files:
+        - path: "${P}/cart.html"
+          body: |
+            <!DOCTYPE html>
+            <html xmlns:p="https://pagelove.org/1.0">
+            <body><ul id="cart" p:transient><li id="item1">Apples</li><li id="item2">Milk</li></ul></body>
+            </html>
+      rules:
+        - {actor: "*", resource: "${P}/*", method: [GET, HEAD, PUT], action: Allow}
+    steps:
+      - as: visitor
+        request: {method: GET, path: "${P}/cart.html"}
+        expect: {status: 200}
+      - as: visitor
+        request:
+          method: PUT
+          path: "${P}/cart.html"
+          headers: {Range: "selector=#item1", Content-Type: "text/html"}
+          body: '<li id="item1">Pears</li>'
+        expect: {status: [200, 204, 206]}
+      - as: visitor
+        request: {method: GET, path: "${P}/cart.html"}
+        expect: {status: 200, body_contains: ["Pears", "Milk"], body_not_contains: ["Apples"]}
+      - as: author
+        plane: dav
+        request: {method: GET, path: "${P}/cart.html"}
+        expect: {status: 200, body_contains: ["Apples"], body_not_contains: ["Pears"]}
+
+  - id: comp.tr.post-into-transient
+    title: A POST append into a transient element goes to the session copy
+    area: composing
+    feature: transient writes
+    evidence: documented
+    source: "docs reference/composing-pages/Transient-Elements §PUT and POST ('A PUT or POST targeting a transient element … writes to the session') (snapshot 2026-09-28)"
+    confidence: medium
+    requires: []
+    live: true
+    notes: "Contradiction C-9: pagelove-shop treats POST into transient elements as undocumented and avoids it."
+    site:
+      settings: {default_get: allow}
+      files:
+        - path: "${P}/cart.html"
+          body: |
+            <!DOCTYPE html>
+            <html xmlns:p="https://pagelove.org/1.0">
+            <body><ul id="cart" p:transient><li>Default item</li></ul></body>
+            </html>
+      rules:
+        - {actor: "*", resource: "${P}/*", method: [GET, HEAD, POST], action: Allow}
+    steps:
+      - as: visitor
+        request: {method: GET, path: "${P}/cart.html"}
+        expect: {status: 200}
+      - as: visitor
+        request:
+          method: POST
+          path: "${P}/cart.html"
+          headers: {Range: "selector=#cart", Content-Type: "text/html"}
+          body: "<li>Posted item</li>"
+        expect: {status: [200, 206]}
+      - as: visitor
+        request: {method: GET, path: "${P}/cart.html"}
+        expect: {status: 200, body_contains: ["Default item", "Posted item"]}
+      - as: author
+        plane: dav
+        request: {method: GET, path: "${P}/cart.html"}
+        expect: {status: 200, body_not_contains: ["Posted item"]}
+
+  - id: comp.tr.binding-sees-canonical
+    title: Resource bindings see the canonical document, never session content
+    area: composing
+    feature: transient isolation
+    evidence: documented
+    source: "docs reference/composing-pages/Transient-Elements §Reading transient elements ('not visible to Resource Binding') (snapshot 2026-09-28); pagelove-shop/README.md@d887054 §Transient elements hold each basket"
+    confidence: high
+    requires: [liquid]
+    live: true
+    site:
+      settings: {default_get: allow}
+      files:
+        - path: "${P}/cart.html"
+          body: |
+            <!DOCTYPE html>
+            <html xmlns:p="https://pagelove.org/1.0">
+            <body><ul id="cart" p:transient><li data-t="${P}">Default item</li></ul></body>
+            </html>
+        - path: "${P}/count.html"
+          body: |
+            <!DOCTYPE html>
+            <html xmlns:r="https://pagelove.org/Binding/CSS" xmlns:p="https://pagelove.org/1.0">
+            <body><p r:items="[data-t='${P}']" p:template="text/liquid">n={{ items.size }};</p></body>
+            </html>
+      rules:
+        - {actor: "*", resource: "${P}/*", method: [GET, HEAD, PUT], action: Allow}
+    steps:
+      - as: visitor
+        request: {method: GET, path: "${P}/cart.html"}
+        expect: {status: 200}
+      - as: visitor
+        request:
+          method: PUT
+          path: "${P}/cart.html"
+          headers: {Range: "selector=#cart", Content-Type: "text/html"}
+          body: '<ul id="cart"><li data-t="${P}">a</li><li data-t="${P}">b</li><li data-t="${P}">c</li></ul>'
+        expect: {status: [200, 204, 206]}
+      - name: the same session's binding still counts the canonical default
+        as: visitor
+        request: {method: GET, path: "${P}/count.html"}
+        expect: {status: 200, body_contains: ["n=1;"]}
+
+  - id: comp.tr.cross-session-isolation
+    title: One session's transient copy is invisible to another session
+    area: composing
+    feature: transient isolation
+    evidence: documented
+    source: "docs reference/composing-pages/Transient-Elements intro ('Each session sees its own version') (snapshot 2026-09-28)"
+    confidence: high
+    requires: [multi-actor]
+    live: true
+    site:
+      settings: {default_get: allow}
+      files:
+        - path: "${P}/cart.html"
+          body: |
+            <!DOCTYPE html>
+            <html xmlns:p="https://pagelove.org/1.0">
+            <body><ul id="cart" p:transient><li>Default item</li></ul></body>
+            </html>
+      rules:
+        - {actor: "*", resource: "${P}/*", method: [GET, HEAD, PUT], action: Allow}
+    actors:
+      alice: {sub: alice, email: alice@example.com, email_verified: true, roles: []}
+      bob: {sub: bob, email: bob@example.com, email_verified: true, roles: []}
+    steps:
+      - as: alice
+        request:
+          method: PUT
+          path: "${P}/cart.html"
+          headers: {Range: "selector=#cart", Content-Type: "text/html"}
+          body: '<ul id="cart"><li>Alice item</li></ul>'
+        expect: {status: [200, 204, 206]}
+      - as: bob
+        request: {method: GET, path: "${P}/cart.html"}
+        expect: {status: 200, body_contains: ["Default item"], body_not_contains: ["Alice item"]}
+      - as: alice
+        request: {method: GET, path: "${P}/cart.html"}
+        expect: {status: 200, body_contains: ["Alice item"]}

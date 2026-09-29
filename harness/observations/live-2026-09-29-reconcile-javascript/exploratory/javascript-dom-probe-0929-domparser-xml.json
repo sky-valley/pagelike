@@ -1,0 +1,35 @@
+{
+  "case": "javascript.dom.probe-0929.domparser-xml-type",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (PUT the page (public plane; registers inline declarations))",
+      "method": "PUT",
+      "path": "/_pl/javascript-dom-probe-0929-domparser-xml-fad18c/probe.html",
+      "status": 201,
+      "headers": {
+        "content-type": "text/html",
+        "etag": "\"54c4ff4383b6bf31f56dee100835d3420425de81b043edb3d0458020e766c7e2\"",
+        "last-modified": "Tue, 29 Sep 2026 01:31:45 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml xmlns:t=\"https://pagelike.test/_pl/javascript-dom-probe-0929-domparser-xml-fad18c/Pdomparserxmltype\"\u003e\u003cbody\u003e\n\u003cmain\u003e\n\u003ct:probe\u003e\u003c/t:probe\u003e\n\u003c/main\u003e\n\u003cdiv hidden itemscope itemtype=\"https://pagelove.org/Schema\"\u003e\n\u003cmeta itemprop=\"type\" content=\"https://pagelike.test/_pl/javascript-dom-probe-0929-domparser-xml-fad18c/Pdomparserxmltype\"\u003e\n\u003cul\u003e\n\u003cli itemprop=\"property\" itemscope itemtype=\"https://pagelove.org/Method\"\u003e\n\u003cmeta itemprop=\"name\" content=\"probe\"\u003e\n\u003cdiv itemprop=\"implementation\" itemscope itemtype=\"https://pagelove.org/JavaScript/Module\"\u003e\n\u003cscript itemprop=\"source\" type=\"module\"\u003e\nconst H = (x) =\u003e String(x).replace(/[\u003c\u003e\"]/g, (c) =\u003e ({ '\u003c': '[', '\u003e': ']', '\"': \"'\" })[c]);\nconst T = (f) =\u003e { try { return H(f()); } catch (e) { return 'E:' + e.name; } };\nconst J = (x) =\u003e JSON.stringify(x);\nconst X = (n) =\u003e new XMLSerializer().serializeToString(n);\nconst N = (n) =\u003e (n === null ? 'null' : n === undefined ? 'undef' : typeof n === 'object' ? 'node:' + n.nodeName : typeof n + ':' + n);\nexport default function () {\nconst P = new DOMParser();\nconst d5 = P.parseFromString('\u003cFoo a=\"1\"\u003e\u003cBar/\u003e\u003cbaz\u003et\u003c/baz\u003e\u003c/Foo\u003e', 'application/xml');\nconst f = [T(() =\u003e d5.documentElement.tagName), T(() =\u003e N(d5.body)), T(() =\u003e N(d5.head)), T(() =\u003e d5.documentElement.childNodes.length), T(() =\u003e X(d5))];\nconst d6 = P.parseFromString('\u003cp\u003ex\u003c/p\u003e', 'application/xml');\nconst g = [T(() =\u003e d6.documentElement.tagName), T(() =\u003e N(d6.head)), T(() =\u003e N(d6.body)), T(() =\u003e d6.childNodes.length), T(() =\u003e X(d6))];\nconst d9 = P.parseFromString('\u003csvg\u003e\u003cg/\u003e\u003c/svg\u003e', 'image/svg+xml');\nconst k = [T(() =\u003e d9.documentElement.tagName), T(() =\u003e N(d9.body)), T(() =\u003e X(d9))];\nreturn 'R:' + [f.join('|'), g.join('|'), k.join('|')].join(' ## ');\n}\n\u003c/script\u003e\n\u003c/div\u003e\n\u003c/li\u003e\n\u003c/ul\u003e\n\u003cmeta itemprop=\"@id\" content=\"https://schema.host/8qhlblj5\"\u003e\u003cmeta itemprop=\"path\" content=\"/Schemahttps://schema.host/8qhlblj5.html\"\u003e\u003c/div\u003e\n\n                \u003cdiv style=\"\n                            position: fixed;\n                            bottom: 0;\n                            left: 0;\n                            right: 0;\n                            padding: 8px;\n                            background: #f0f0f0;\n                            text-align: center;\n                            font-size: 12px;\n                            color: #666;\n                            z-index: 9999;\n                            opacity: 0.8;\n                            border-top: 1px solid #ddd;\n                        \"\u003e\n                    Powered by\n                    \u003ca href=\"https://pagelove.com/\" style=\"color: #4a90d9; text-decoration: none\"\u003ePagelove\u003c/a\u003e\n                \u003c/div\u003e\n            \u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 2 (GET \u003cmain\u003e: the method result is inserted as text)",
+      "method": "GET",
+      "path": "/_pl/javascript-dom-probe-0929-domparser-xml-fad18c/probe.html",
+      "status": 206,
+      "headers": {
+        "content-length": "130",
+        "content-range": "selector main",
+        "content-type": "text/html",
+        "etag": "\"58c42f05760e56d20c3fb2115e0e652ab0baf557c69124e636957440e5ea2a64-58c42f05760e56d20c3fb2115e0e652ab0baf557c69124e636957440e5ea2a64-1\"",
+        "vary": "Host, Range, Accept"
+      },
+      "body": "\u003cmain\u003e\nR:FOO|null|null|2|[foo a='1'][bar][/bar][baz]t[/baz][/foo] ## P|null|null|1|[p]x[/p] ## SVG|null|[svg][g][/g][/svg]\n\u003c/main\u003e"
+    }
+  ],
+  "outcome": "pass",
+  "target": "live"
+}

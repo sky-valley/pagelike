@@ -1,0 +1,72 @@
+{
+  "case": "modeling.write-paths.failed-write-changes-nothing",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (register declarations through the public plane (takes effect for the next request))",
+      "method": "PUT",
+      "path": "/_pl/modeling-write-paths-failed-write-change-5feaa6/schema.html",
+      "status": 201,
+      "headers": {
+        "content-type": "text/html",
+        "etag": "\"1972474a7b2bf8545d9a708270332f80cbd162f15a3083f79c5692bce32be092\"",
+        "last-modified": "Tue, 29 Sep 2026 02:10:04 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\n  \u003cdiv hidden itemscope itemtype=\"https://pagelove.org/Schema\"\u003e\n    \u003cmeta itemprop=\"type\" content=\"https://pagelike.test/_pl/modeling-write-paths-failed-write-change-5feaa6/Tag\"\u003e\n    \u003cdiv itemprop=\"property\" itemscope itemtype=\"https://pagelove.org/Property\"\u003e\n      \u003cmeta itemprop=\"name\" content=\"label\"\u003e\n      \u003cmeta itemprop=\"type\" content=\"https://schema.host/Text\"\u003e\n      \u003cmeta itemprop=\"cardinality\" content=\"1..1\"\u003e\n    \u003c/div\u003e\n  \u003cmeta itemprop=\"@id\" content=\"https://schema.host/dglk3ps0\"\u003e\u003cmeta itemprop=\"path\" content=\"/Schemahttps://schema.host/dglk3ps0.html\"\u003e\u003c/div\u003e\n\n                \u003cdiv style=\"\n                            position: fixed;\n                            bottom: 0;\n                            left: 0;\n                            right: 0;\n                            padding: 8px;\n                            background: #f0f0f0;\n                            text-align: center;\n                            font-size: 12px;\n                            color: #666;\n                            z-index: 9999;\n                            opacity: 0.8;\n                            border-top: 1px solid #ddd;\n                        \"\u003e\n                    Powered by\n                    \u003ca href=\"https://pagelove.com/\" style=\"color: #4a90d9; text-decoration: none\"\u003ePagelove\u003c/a\u003e\n                \u003c/div\u003e\n            \u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 2 (valid tag)",
+      "method": "PUT",
+      "path": "/_pl/modeling-write-paths-failed-write-change-5feaa6/t.html",
+      "status": 201,
+      "headers": {
+        "content-type": "text/html",
+        "etag": "\"f61c3a557ac65032ae80444167a4d9a9f38e770f5b1e10e66f8c7a3779733943\"",
+        "last-modified": "Tue, 29 Sep 2026 02:10:04 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\n  \u003cdiv itemscope itemtype=\"https://pagelike.test/_pl/modeling-write-paths-failed-write-change-5feaa6/Tag\" id=\"t1\"\u003e\n    \u003cmeta itemprop=\"label\" content=\"a\"\u003e\n  \u003c/div\u003e\n\n                \u003cdiv style=\"\n                            position: fixed;\n                            bottom: 0;\n                            left: 0;\n                            right: 0;\n                            padding: 8px;\n                            background: #f0f0f0;\n                            text-align: center;\n                            font-size: 12px;\n                            color: #666;\n                            z-index: 9999;\n                            opacity: 0.8;\n                            border-top: 1px solid #ddd;\n                        \"\u003e\n                    Powered by\n                    \u003ca href=\"https://pagelove.com/\" style=\"color: #4a90d9; text-decoration: none\"\u003ePagelove\u003c/a\u003e\n                \u003c/div\u003e\n            \u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 3 (read and capture the ETag)",
+      "method": "GET",
+      "path": "/_pl/modeling-write-paths-failed-write-change-5feaa6/t.html",
+      "status": 200,
+      "headers": {
+        "content-type": "text/html",
+        "etag": "\"f61c3a557ac65032ae80444167a4d9a9f38e770f5b1e10e66f8c7a3779733943\"",
+        "last-modified": "Tue, 29 Sep 2026 02:10:04 GMT",
+        "vary": "Host, Range, Accept"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\n  \u003cdiv itemscope itemtype=\"https://pagelike.test/_pl/modeling-write-paths-failed-write-change-5feaa6/Tag\" id=\"t1\"\u003e\n    \u003cmeta itemprop=\"label\" content=\"a\"\u003e\n  \u003c/div\u003e\n\n                \u003cdiv style=\"\n                            position: fixed;\n                            bottom: 0;\n                            left: 0;\n                            right: 0;\n                            padding: 8px;\n                            background: #f0f0f0;\n                            text-align: center;\n                            font-size: 12px;\n                            color: #666;\n                            z-index: 9999;\n                            opacity: 0.8;\n                            border-top: 1px solid #ddd;\n                        \"\u003e\n                    Powered by\n                    \u003ca href=\"https://pagelove.com/\" style=\"color: #4a90d9; text-decoration: none\"\u003ePagelove\u003c/a\u003e\n                \u003c/div\u003e\n            \u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 4 (invalid selector delete refused)",
+      "method": "DELETE",
+      "path": "/_pl/modeling-write-paths-failed-write-change-5feaa6/t.html",
+      "status": 422,
+      "headers": {
+        "content-length": "332",
+        "content-type": "text/html",
+        "vary": "Host, Range"
+      },
+      "body": "\u003cdiv itemscope itemtype=\"https://dombase.pagelove.team/ns/error/Cardinality\"\u003e\u003cul itemprop=\"problems\"\u003e\u003cli itemprop=\"problem\"\u003e\u003cspan itemprop=\"message\"\u003ehttps://pagelike.test/_pl/modeling-write-paths-failed-write-change-5feaa6/Tag /label: cardinality 1..1 violated: expected exactly 1 value, found 0 (cardinality)\u003c/span\u003e\u003c/li\u003e\u003c/ul\u003e\u003c/div\u003e"
+    },
+    {
+      "step": "step 5 (document unchanged)",
+      "method": "GET",
+      "path": "/_pl/modeling-write-paths-failed-write-change-5feaa6/t.html",
+      "status": 200,
+      "headers": {
+        "content-type": "text/html",
+        "etag": "\"f61c3a557ac65032ae80444167a4d9a9f38e770f5b1e10e66f8c7a3779733943\"",
+        "last-modified": "Tue, 29 Sep 2026 02:10:04 GMT",
+        "vary": "Host, Range, Accept"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\n  \u003cdiv itemscope itemtype=\"https://pagelike.test/_pl/modeling-write-paths-failed-write-change-5feaa6/Tag\" id=\"t1\"\u003e\n    \u003cmeta itemprop=\"label\" content=\"a\"\u003e\n  \u003c/div\u003e\n\n                \u003cdiv style=\"\n                            position: fixed;\n                            bottom: 0;\n                            left: 0;\n                            right: 0;\n                            padding: 8px;\n                            background: #f0f0f0;\n                            text-align: center;\n                            font-size: 12px;\n                            color: #666;\n                            z-index: 9999;\n                            opacity: 0.8;\n                            border-top: 1px solid #ddd;\n                        \"\u003e\n                    Powered by\n                    \u003ca href=\"https://pagelove.com/\" style=\"color: #4a90d9; text-decoration: none\"\u003ePagelove\u003c/a\u003e\n                \u003c/div\u003e\n            \u003c/body\u003e\u003c/html\u003e\n"
+    }
+  ],
+  "outcome": "pass",
+  "target": "live"
+}

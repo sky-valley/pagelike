@@ -1,0 +1,52 @@
+{
+  "case": "sse.subscribe.missing-document-404",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (sse open s1)",
+      "method": "GET",
+      "path": "/_pl/sse-subscribe-missing-document-404-29cb13/missing.html",
+      "status": 200,
+      "headers": {
+        "cache-control": "no-cache",
+        "content-type": "text/event-stream",
+        "x-accel-buffering": "no"
+      }
+    },
+    {
+      "step": "step 2",
+      "events": [
+        {
+          "event": "pagelove-connection",
+          "data": "a2a6ef1a-c94b-483f-bec5-998cc29e0049"
+        }
+      ]
+    },
+    {
+      "step": "step 3 (create the document)",
+      "method": "PUT",
+      "path": "/_pl/sse-subscribe-missing-document-404-29cb13/missing.html",
+      "status": 201,
+      "headers": {
+        "content-length": "56",
+        "content-type": "text/html",
+        "etag": "\"7da874f3b0564cbc802a7c7fdaf981806d0d7b2fcad9c0013348d1abfdca861a\"",
+        "last-modified": "Tue, 29 Sep 2026 02:41:01 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\u003chtml\u003e\u003cbody\u003e\u003cp\u003enow here\u003c/p\u003e\u003c/body\u003e\u003c/html\u003e"
+    },
+    {
+      "step": "step 4",
+      "events": [
+        {
+          "id": "v1~f1b7f149040f.1790649661714-1",
+          "event": "mutation",
+          "data": "\u003carticle itemscope itemtype=\"https://pagelove.org/Mutation\"\u003e\n  \u003cspan itemprop=\"method\"\u003ePUT\u003c/span\u003e\n  \u003cspan itemprop=\"selector\"\u003e\u003c/span\u003e\n  \u003cspan itemprop=\"etag\"\u003e7da874f3b0564cbc802a7c7fdaf981806d0d7b2fcad9c0013348d1abfdca861a\u003c/span\u003e\n  \u003cspan itemprop=\"path\"\u003e/_pl/sse-subscribe-missing-document-404-29cb13/missing.html\u003c/span\u003e\n  \u003cspan itemprop=\"host\"\u003et.localhost\u003c/span\u003e\n  \u003cdiv itemprop=\"body\"\u003e\u003c!DOCTYPE html\u003e\u003chtml\u003e\u003cbody\u003e\u003cp\u003enow here\u003c/p\u003e\u003c/body\u003e\u003c/html\u003e\u003c/div\u003e\n\u003c/article\u003e"
+        }
+      ]
+    }
+  ],
+  "outcome": "pass",
+  "target": "local"
+}

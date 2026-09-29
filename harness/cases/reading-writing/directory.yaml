@@ -1,0 +1,253 @@
+# Directory index and trailing-slash redirect rules.
+# Spec: docs/spec/reading-writing.md §1 (R-RW-3, R-RW-4).
+# The runner must NOT follow redirects.
+cases:
+  - id: rw.dir.trailing-slash-serves-index
+    title: A trailing-slash path is served from its index.html
+    area: reading-writing
+    feature: Directory index
+    evidence: documented
+    source: "docs reference/reading-and-writing/GET-method §Directory requests (snapshot 2026-09-28); demo-apps/scripts/check-live.py@c4dd883:12-20"
+    confidence: high
+    requires: []
+    live: true
+    site:
+      settings: {default_get: allow}
+      files:
+        - path: "${P}/blog/index.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body><h1>Blog index marker</h1></body></html>
+      rules:
+        - {actor: "*", resource: "${P}/*", method: [GET, HEAD], action: Allow}
+    steps:
+      - name: GET the directory
+        as: anonymous
+        request: {method: GET, path: "${P}/blog/"}
+        expect:
+          status: 200
+          header_matches: {Content-Type: "^text/html"}
+          body_contains: ["Blog index marker"]
+      - name: GET the index directly
+        as: anonymous
+        request: {method: GET, path: "${P}/blog/index.html"}
+        expect:
+          status: 200
+          body_contains: ["Blog index marker"]
+
+  - id: rw.dir.slashless-redirect
+    title: A slash-less directory with a readable index redirects 301 to the trailing-slash form
+    area: reading-writing
+    feature: Directory redirect
+    evidence: documented
+    source: "docs reference/reading-and-writing/GET-method §Directory requests (snapshot 2026-09-28)"
+    confidence: high
+    requires: []
+    live: true
+    notes: "Location may be path-absolute (docs) or absolute; the regexp accepts both after host normalization."
+    site:
+      settings: {default_get: allow}
+      files:
+        - path: "${P}/blog/index.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body><h1>Blog</h1></body></html>
+      rules:
+        - {actor: "*", resource: "${P}/*", method: [GET, HEAD], action: Allow}
+    steps:
+      - name: GET without trailing slash
+        as: anonymous
+        request: {method: GET, path: "${P}/blog"}
+        expect:
+          status: 301
+          header_matches:
+            Location: "^(https?://[^/]+)?${P}/blog/$"
+
+  - id: rw.dir.redirect-preserves-query
+    title: The directory redirect preserves the query string
+    area: reading-writing
+    feature: Directory redirect
+    evidence: documented
+    source: "docs reference/reading-and-writing/GET-method §Directory requests ('preserving any query string') (snapshot 2026-09-28)"
+    confidence: high
+    requires: []
+    live: true
+    site:
+      settings: {default_get: allow}
+      files:
+        - path: "${P}/blog/index.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body><h1>Blog</h1></body></html>
+      rules:
+        - {actor: "*", resource: "${P}/*", method: [GET, HEAD], action: Allow}
+    steps:
+      - name: GET with query, no slash
+        as: anonymous
+        request: {method: GET, path: "${P}/blog?x=1&y=two"}
+        expect:
+          status: 301
+          header_matches:
+            Location: "^(https?://[^/]+)?${P}/blog/\\?x=1&y=two$"
+
+  - id: rw.dir.head-redirect
+    title: HEAD on a slash-less directory also redirects
+    area: reading-writing
+    feature: Directory redirect
+    evidence: inferred
+    source: "RFC 9110 §9.3.2 (HEAD mirrors GET); docs GET-method §Directory requests"
+    confidence: medium
+    requires: []
+    live: true
+    site:
+      settings: {default_get: allow}
+      files:
+        - path: "${P}/docs/index.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body><h1>Docs</h1></body></html>
+      rules:
+        - {actor: "*", resource: "${P}/*", method: [GET, HEAD], action: Allow}
+    steps:
+      - name: HEAD without trailing slash
+        as: anonymous
+        request: {method: HEAD, path: "${P}/docs"}
+        expect:
+          status: 301
+          header_matches:
+            Location: "^(https?://[^/]+)?${P}/docs/$"
+
+  - id: rw.dir.no-index-404
+    title: Paths without a stored document or index are 404 (no redirect, no listing)
+    area: reading-writing
+    feature: Directory index
+    evidence: documented
+    source: "docs reference/reading-and-writing/GET-method §Directory requests ('no readable index.html is returned as a normal 404') (snapshot 2026-09-28)"
+    confidence: high
+    requires: []
+    live: true
+    notes: "The trailing-slash step (no directory listing) is inferred."
+    site:
+      settings: {default_get: allow}
+      files:
+        - path: "${P}/assets/other.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body><p>not an index</p></body></html>
+      rules:
+        - {actor: "*", resource: "${P}/*", method: [GET, HEAD], action: Allow}
+    steps:
+      - name: slash-less path with nothing behind it
+        as: anonymous
+        request: {method: GET, path: "${P}/nothing-here"}
+        expect: {status: 404}
+      - name: slash-less directory without index
+        as: anonymous
+        request: {method: GET, path: "${P}/assets"}
+        expect: {status: 404}
+      - name: directory without index, trailing slash
+        as: anonymous
+        request: {method: GET, path: "${P}/assets/"}
+        expect:
+          status: 404
+          body_not_contains: ["other.html"]
+
+  - id: rw.dir.dotted-segment-never-redirected
+    title: A final segment containing a dot is a file request and is never redirected
+    area: reading-writing
+    feature: Directory redirect
+    evidence: documented
+    source: "docs reference/reading-and-writing/GET-method §Directory requests ('contains a ., such as /style.css — is always treated as a file request, never redirected') (snapshot 2026-09-28)"
+    confidence: high
+    requires: []
+    live: true
+    site:
+      settings: {default_get: allow}
+      files:
+        - path: "${P}/v1.2/index.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body><h1>Version 1.2</h1></body></html>
+      rules:
+        - {actor: "*", resource: "${P}/*", method: [GET, HEAD], action: Allow}
+    steps:
+      - name: dotted slash-less path
+        as: anonymous
+        request: {method: GET, path: "${P}/v1.2"}
+        expect:
+          status: 404
+          headers_absent: [Location]
+      - name: dotted directory with trailing slash still serves its index
+        as: anonymous
+        request: {method: GET, path: "${P}/v1.2/"}
+        expect:
+          status: 200
+          body_contains: ["Version 1.2"]
+
+  - id: rw.dir.unreadable-index-404
+    title: A slash-less directory under a denied area is refused (401) as the path itself, never redirected
+    area: reading-writing
+    feature: Directory redirect
+    evidence: live-observed
+    source: "harness/observations/live-2026-09-28/rw-dir-unreadable-index-404.json (401, resource = the slash-less path); docs reference/reading-and-writing/GET-method §Directory requests (snapshot 2026-09-28) claims 404"
+    confidence: high
+    requires: []
+    live: true
+    notes: >-
+      The id keeps its original name. PageLove decides the slash-less path by the rules of the
+      directory it names ("${P}/private/*" governs "${P}/private"), so it is a denial, not a 404
+      (docs/compat/decisions.md; the trailing-slash step is the ordinary anonymous denial, R-RW-125).
+    site:
+      settings: {default_get: allow}
+      files:
+        - path: "${P}/private/index.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body><h1>Private index</h1></body></html>
+      rules:
+        - {actor: "*", resource: "${P}/*", method: [GET, HEAD], action: Allow}
+        - {actor: "*", resource: "${P}/private/*", method: [GET, HEAD], action: Deny}
+    steps:
+      - name: slash-less, unreadable index
+        as: anonymous
+        request: {method: GET, path: "${P}/private"}
+        expect:
+          status: 401
+          headers_absent: [Location]
+          body_not_contains: ["Private index"]
+          body_contains: ['<dd itemprop="resource">${P}/private</dd>']
+      - name: trailing slash is an ordinary denied read
+        as: anonymous
+        request: {method: GET, path: "${P}/private/"}
+        expect:
+          status: 401
+          body_not_contains: ["Private index"]
+
+  - id: rw.dir.selector-on-directory
+    title: A selector range on a trailing-slash path addresses the index document
+    area: reading-writing
+    feature: Directory index
+    evidence: inferred
+    source: "docs GET-method §Directory requests ('requesting /blog/ returns the document stored at /blog/index.html')"
+    confidence: high
+    requires: []
+    live: true
+    site:
+      settings: {default_get: allow}
+      files:
+        - path: "${P}/blog/index.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body><h1>Blog heading</h1><p>intro</p></body></html>
+      rules:
+        - {actor: "*", resource: "${P}/*", method: [GET, HEAD], action: Allow}
+    steps:
+      - name: selector read through the directory URL
+        as: anonymous
+        request:
+          method: GET
+          path: "${P}/blog/"
+          headers: {Range: "selector=h1"}
+        expect:
+          status: 206
+          body_html: "<h1>Blog heading</h1>"

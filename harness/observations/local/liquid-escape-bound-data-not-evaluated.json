@@ -1,0 +1,23 @@
+{
+  "case": "liquid.escape.bound-data-not-evaluated",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (read)",
+      "method": "GET",
+      "path": "/_pl/liquid-escape-bound-data-not-evaluated-5b61cb/show.html",
+      "status": 206,
+      "headers": {
+        "accept-ranges": "selector, bytes",
+        "content-length": "52",
+        "content-range": "selector #o",
+        "content-type": "text/html",
+        "etag": "\"6b13ce0d46e0bc5c8953b21c431e527acdae39972543ffaf450056654f906a0a-6b13ce0d46e0bc5c8953b21c431e527acdae39972543ffaf450056654f906a0a-1\"",
+        "vary": "Host, Range, Accept"
+      },
+      "body": "\u003cp id=\"o\"\u003e[{{ 6 | times: 7 }}{% assign z = 1 %}]\u003c/p\u003e"
+    }
+  ],
+  "outcome": "pass",
+  "target": "local"
+}

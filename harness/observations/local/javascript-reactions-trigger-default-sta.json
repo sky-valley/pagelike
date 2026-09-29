@@ -1,0 +1,33 @@
+{
+  "case": "javascript.reactions.trigger-default-status-500",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (register the trigger/processor (public plane))",
+      "method": "PUT",
+      "path": "/_pl/javascript-reactions-trigger-default-sta-8f63c9/reactions.html",
+      "status": 201,
+      "headers": {
+        "content-length": "505",
+        "content-type": "text/html",
+        "etag": "\"d380d47a544d99f3f2c054f30723878ebd61606d1b675ea93b659f305027f52d\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:43 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\n\u003cdiv itemscope itemtype=\"https://pagelove.org/Trigger\"\u003e\n\u003cmeta itemprop=\"resource\" content=\"/_pl/javascript-reactions-trigger-default-sta-8f63c9/guarded/*\"\u003e\n\u003cmeta itemprop=\"method\" content=\"PUT\"\u003e\n\u003cdiv itemprop=\"action\" itemscope itemtype=\"https://pagelove.org/JavaScript/Module\"\u003e\n\u003cscript itemprop=\"source\" type=\"module\"\u003e\nexport default function() { throw { schema_url: 'https://pagelove.org/HTTPResponse', message: 'no-status-given' }; }\n\u003c/script\u003e\n\u003c/div\u003e\n\u003c/div\u003e\n\u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 2 (default status)",
+      "method": "PUT",
+      "path": "/_pl/javascript-reactions-trigger-default-sta-8f63c9/guarded/a.html",
+      "status": 500,
+      "headers": {
+        "content-length": "15",
+        "content-type": "text/html; charset=utf-8"
+      },
+      "body": "no-status-given"
+    }
+  ],
+  "outcome": "pass",
+  "target": "local"
+}

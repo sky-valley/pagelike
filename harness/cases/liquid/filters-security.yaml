@@ -1,0 +1,156 @@
+# Hashing and security filters. Spec: docs/spec/liquid.md §16 (R-LIQ-180..183).
+defaults:
+  area: liquid
+  requires: [liquid]
+  evidence: documented
+  source: "docs languages/liquid/filters/security (snapshot 2026-09-28)"
+  confidence: high
+cases:
+  - id: liquid.filters-security.sha256
+    title: sha256 produces lower-case hex (docs example for "hello")
+    feature: security filters
+    live: true
+    notes: R-LIQ-180.
+    site:
+      settings: {default_get: allow}
+      files:
+        - path: "${P}/sha.html"
+          body: |
+            <!DOCTYPE html>
+            <html xmlns:p="https://pagelove.org/1.0"><body>
+              <div itemscope itemtype="urn:liquid:result" p:template="text/liquid">
+                <span itemprop="hello">{{ "hello" | sha256 }}</span>
+                <span itemprop="empty">{{ "" | sha256 }}</span>
+              </div>
+            </body></html>
+      rules: [{actor: "*", resource: "${P}/*", method: [GET, HEAD], action: Allow}]
+    steps:
+      - name: read
+        as: anonymous
+        request: {method: GET, path: "${P}/sha.html"}
+        expect:
+          status: 200
+          microdata: {hello: 2cf24dba5fb0a30e26e83b2ac5b9e29e1b161e5c1fa7425e73043362938b9824, empty: e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855}
+
+  - id: liquid.filters-security.bcrypt
+    title: bcrypt defaults to cost 12 and accepts a cost argument; output is a 60-char modular-crypt hash
+    feature: security filters
+    live: true
+    notes: R-LIQ-181. The 2a/2b/2y variant letter is not asserted.
+    site:
+      settings: {default_get: allow}
+      files:
+        - path: "${P}/bcrypt.html"
+          body: |
+            <!DOCTYPE html>
+            <html xmlns:p="https://pagelove.org/1.0"><body>
+              <p id="d" p:template="text/liquid">[{{ "password" | bcrypt }}]</p>
+              <p id="c" p:template="text/liquid">[{{ "password" | bcrypt: 10 }}]</p>
+              <p id="salted" p:template="text/liquid">{% assign a = "pw" | bcrypt: 4 %}{% assign b = "pw" | bcrypt: 4 %}{% if a != b %}salted{% endif %}</p>
+            </body></html>
+      rules: [{actor: "*", resource: "${P}/*", method: [GET, HEAD], action: Allow}]
+    steps:
+      - name: read
+        as: anonymous
+        request: {method: GET, path: "${P}/bcrypt.html"}
+        expect:
+          status: 200
+          body_matches: '(?s)<p id="d">\[\$2[aby]\$12\$[./A-Za-z0-9]{53}\]</p>.*<p id="c">\[\$2[aby]\$10\$[./A-Za-z0-9]{53}\]</p>.*<p id="salted">salted</p>'
+
+  - id: liquid.filters-security.argon2-phc
+    title: argon2 returns an Argon2id PHC string with the default or given memory/time parameters
+    feature: security filters
+    live: true
+    notes: R-LIQ-182. Parallelism p is not asserted (inferred 1).
+    site:
+      settings: {default_get: allow}
+      files:
+        - path: "${P}/argon.html"
+          body: |
+            <!DOCTYPE html>
+            <html xmlns:p="https://pagelove.org/1.0"><body>
+              <p id="d" p:template="text/liquid">[{{ "password" | argon2 }}]</p>
+              <p id="k" p:template="text/liquid">[{{ "password" | argon2: memory: 65536, time: 3 }}]</p>
+            </body></html>
+      rules: [{actor: "*", resource: "${P}/*", method: [GET, HEAD], action: Allow}]
+    steps:
+      - name: read
+        as: anonymous
+        request: {method: GET, path: "${P}/argon.html"}
+        expect:
+          status: 200
+          body_matches: '(?s)<p id="d">\[\$argon2id\$v=19\$m=19456,t=2,p=[0-9]+\$[A-Za-z0-9+/]+\$[A-Za-z0-9+/]+\]</p>.*<p id="k">\[\$argon2id\$v=19\$m=65536,t=3,p=[0-9]+\$[A-Za-z0-9+/]+\$[A-Za-z0-9+/]+\]</p>'
+
+  - id: liquid.filters-security.argon2-raw
+    title: argon2 raw mode with a salt is deterministic hex of the requested length
+    feature: security filters
+    live: true
+    notes: R-LIQ-182 (default length 32 bytes → 64 hex characters; length 16 → 32).
+    site:
+      settings: {default_get: allow}
+      files:
+        - path: "${P}/raw.html"
+          body: |
+            <!DOCTYPE html>
+            <html xmlns:p="https://pagelove.org/1.0"><body>
+              <p id="o" p:template="text/liquid">{% assign a = "password" | argon2: format: "raw", salt: "per-user-unique-salt" %}{% assign b = "password" | argon2: format: "raw", salt: "per-user-unique-salt" %}{% assign c = "password" | argon2: format: "raw", salt: "per-user-unique-salt", length: 16 %}{{ a.size }}|{% if a == b %}same{% endif %}|{{ c.size }}|[{{ a }}]</p>
+            </body></html>
+      rules: [{actor: "*", resource: "${P}/*", method: [GET, HEAD], action: Allow}]
+    steps:
+      - name: read
+        as: anonymous
+        request: {method: GET, path: "${P}/raw.html", headers: {Range: "selector=#o"}}
+        expect:
+          status: 206
+          body_matches: '>64\|same\|32\|\[[0-9a-f]{64}\]</p>$'
+
+  - id: liquid.filters-security.argon2-parameter-errors
+    title: "argon2 raw without salt, a short salt or an out-of-range length is a filter error (inline Error item)"
+    feature: security filters
+    live: true
+    notes: R-LIQ-182, R-LIQ-200 (a hashing filter given an out-of-range parameter is the docs' own error example).
+    site:
+      settings: {default_get: allow}
+      files:
+        - path: "${P}/argerr.html"
+          body: |
+            <!DOCTYPE html>
+            <html xmlns:p="https://pagelove.org/1.0"><body>
+              <p id="nosalt" p:template="text/liquid">{{ "password" | argon2: format: "raw" }}</p>
+              <p id="short" p:template="text/liquid">{{ "password" | argon2: format: "raw", salt: "abc" }}</p>
+              <p id="len" p:template="text/liquid">{{ "password" | argon2: length: 100 }}</p>
+              <p id="cost" p:template="text/liquid">{{ "password" | bcrypt: 99 }}</p>
+              <p id="after">ok</p>
+            </body></html>
+      rules: [{actor: "*", resource: "${P}/*", method: [GET, HEAD], action: Allow}]
+    steps:
+      - name: page still renders
+        as: anonymous
+        request: {method: GET, path: "${P}/argerr.html"}
+        expect:
+          status: 200
+          body_contains: ['<p id="after">ok</p>']
+      - name: missing salt
+        as: anonymous
+        request: {method: GET, path: "${P}/argerr.html", headers: {Range: "selector=#nosalt"}}
+        expect:
+          status: 206
+          body_matches: 'itemtype="https?://pagelove.org/(1\.0/)?Error"'
+      - name: short salt
+        as: anonymous
+        request: {method: GET, path: "${P}/argerr.html", headers: {Range: "selector=#short"}}
+        expect:
+          status: 206
+          body_matches: 'itemtype="https?://pagelove.org/(1\.0/)?Error"'
+      - name: length out of range
+        as: anonymous
+        request: {method: GET, path: "${P}/argerr.html", headers: {Range: "selector=#len"}}
+        expect:
+          status: 206
+          body_matches: 'itemtype="https?://pagelove.org/(1\.0/)?Error"'
+      - name: bcrypt cost out of range
+        as: anonymous
+        request: {method: GET, path: "${P}/argerr.html", headers: {Range: "selector=#cost"}}
+        expect:
+          status: 206
+          body_matches: 'itemtype="https?://pagelove.org/(1\.0/)?Error"'

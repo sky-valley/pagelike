@@ -1,0 +1,33 @@
+{
+  "case": "reacting.context.js-request-fields",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (install a JS echo trigger)",
+      "method": "PUT",
+      "path": "/_pl/reacting-context-js-request-fields-07b2dc/r/triggers.html",
+      "status": 201,
+      "headers": {
+        "content-type": "text/html",
+        "etag": "\"3df21d6071d0273e97ed325c71ad28565ac8e25823af0826dd18accf3dcb3cf3\"",
+        "last-modified": "Tue, 29 Sep 2026 00:49:10 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\n\u003cdiv hidden itemscope itemtype=\"https://pagelove.org/Trigger\"\u003e\n  \u003cmeta itemprop=\"resource\" content=\"/_pl/reacting-context-js-request-fields-07b2dc/d/*\"\u003e\n  \u003cmeta itemprop=\"method\" content=\"PUT\"\u003e\n  \u003cdiv itemprop=\"action\" itemscope itemtype=\"https://pagelove.org/JavaScript/Module\"\u003e\n    \u003cscript type=\"module\" itemprop=\"source\"\u003e\n      export default function(ctx) {\n        const r = ctx.request;\n        throw {\n          schema_url: \"https://pagelove.org/HTTPResponse\",\n          status: 409,\n          headers: { \"Content-Type\": \"application/json\" },\n          body: JSON.stringify({\n            m: r.method,\n            p: r.path,\n            h: r.headers[\"x-test\"] ?? null,\n            q: (r.query || {}).a ?? null,\n            b: r.body ?? null,\n            hostIsString: typeof r.host === \"string\" \u0026\u0026 r.host.length \u003e 0\n          })\n        };\n      }\n    \u003c/script\u003e\n  \u003c/div\u003e\n\u003c/div\u003e\n\n                \u003cdiv style=\"\n                            position: fixed;\n                            bottom: 0;\n                            left: 0;\n                            right: 0;\n                            padding: 8px;\n                            background: #f0f0f0;\n                            text-align: center;\n                            font-size: 12px;\n                            color: #666;\n                            z-index: 9999;\n                            opacity: 0.8;\n                            border-top: 1px solid #ddd;\n                        \"\u003e\n                    Powered by\n                    \u003ca href=\"https://pagelove.com/\" style=\"color: #4a90d9; text-decoration: none\"\u003ePagelove\u003c/a\u003e\n                \u003c/div\u003e\n            \u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 2 (every field is visible)",
+      "method": "PUT",
+      "path": "/_pl/reacting-context-js-request-fields-07b2dc/d/note.txt?a=1",
+      "status": 409,
+      "headers": {
+        "content-length": "130",
+        "content-type": "application/json",
+        "vary": "Host, Range"
+      },
+      "body": "{\"m\":\"PUT\",\"p\":\"/_pl/reacting-context-js-request-fields-07b2dc/d/note.txt\",\"h\":\"yes\",\"q\":\"1\",\"b\":\"hello-body\",\"hostIsString\":true}"
+    }
+  ],
+  "outcome": "pass",
+  "target": "live"
+}

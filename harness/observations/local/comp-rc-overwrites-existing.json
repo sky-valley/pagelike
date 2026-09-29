@@ -1,0 +1,33 @@
+{
+  "case": "comp.rc.overwrites-existing",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1",
+      "method": "POST",
+      "path": "/_pl/comp-rc-overwrites-existing-a6d1f9/templates/new-entry.html",
+      "status": 301,
+      "headers": {
+        "content-length": "0",
+        "location": "/_pl/comp-rc-overwrites-existing-a6d1f9/entries/taken.html",
+        "vary": "Host, Range"
+      }
+    },
+    {
+      "step": "step 2",
+      "method": "GET",
+      "path": "/_pl/comp-rc-overwrites-existing-a6d1f9/entries/taken.html",
+      "status": 200,
+      "headers": {
+        "accept-ranges": "bytes",
+        "content-length": "124",
+        "content-type": "text/html",
+        "etag": "\"be39eb3dc16b0835d8ac5adcf064b31a519b955305553090ae74a8b02835526f\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:42 GMT"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml lang=\"en\" xmlns:p=\"https://pagelove.org/1.0\"\u003e\n\u003chead\u003e\u003c/head\u003e\n\u003cbody\u003e\u003ch1\u003eNEW-CONTENT\u003c/h1\u003e\u003c/body\u003e\n\u003c/html\u003e\n"
+    }
+  ],
+  "outcome": "pass",
+  "target": "local"
+}

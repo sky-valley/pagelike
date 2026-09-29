@@ -1,0 +1,734 @@
+# WebDAV authoring plane: PROPFIND revalidation, ETag semantics, writes, errors
+# (spec: docs/spec/protocol.md §10, R-PROTO-110..124)
+cases:
+  - id: protocol.webdav.propfind-collection
+    title: PROPFIND on a collection is 207 with an ETag header, Vary Depth and getetag properties
+    area: protocol
+    feature: WebDAV PROPFIND
+    evidence: documented
+    source: "docs reference/protocol/WebDAV §Directory listings and revalidation (snapshot 2026-09-28)"
+    confidence: high
+    requires: [webdav]
+    live: true
+    notes: R-PROTO-117/118.
+    site:
+      files:
+        - path: "${P}/dav/a.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body><h1>A</h1></body></html>
+        - path: "${P}/dav/b.css"
+          content_type: text/css
+          body: "h1 { color: red; }"
+    steps:
+      - name: depth 1 listing
+        as: author
+        plane: dav
+        request:
+          method: PROPFIND
+          path: "${P}/dav/"
+          headers: {Depth: "1"}
+        expect:
+          status: 207
+          headers_present: [ETag]
+          header_matches: {Vary: '(?i)\bDepth\b'}
+          body_contains: ["getetag", "a.html", "b.css"]
+
+  - id: protocol.webdav.propfind-304
+    title: Sending a listing's ETag back as If-None-Match yields 304 with an empty body
+    area: protocol
+    feature: WebDAV PROPFIND revalidation
+    evidence: documented
+    source: "docs reference/protocol/WebDAV §Directory listings and revalidation (snapshot 2026-09-28)"
+    confidence: high
+    requires: [webdav]
+    live: true
+    notes: R-PROTO-118.
+    site:
+      files:
+        - path: "${P}/dav/a.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body><h1>A</h1></body></html>
+    steps:
+      - name: listing
+        as: author
+        plane: dav
+        request:
+          method: PROPFIND
+          path: "${P}/dav/"
+          headers: {Depth: "1"}
+        expect: {status: 207}
+        capture: {t1: header.ETag}
+      - name: revalidate
+        as: author
+        plane: dav
+        request:
+          method: PROPFIND
+          path: "${P}/dav/"
+          headers: {Depth: "1", If-None-Match: "${t1}"}
+        expect: {status: 304, body: ""}
+
+  - id: protocol.webdav.propfind-default-depth-is-1
+    title: A PROPFIND without Depth is the Depth 1 question
+    area: protocol
+    feature: WebDAV PROPFIND
+    evidence: documented
+    source: "docs reference/protocol/WebDAV §Directory listings and revalidation (\"Depth: 1 (the default when no Depth header is sent)\") (snapshot 2026-09-28)"
+    confidence: high
+    requires: [webdav]
+    live: true
+    notes: R-PROTO-117, C-21 (RFC 4918 and x/net/webdav default to infinity).
+    site:
+      files:
+        - path: "${P}/dav/a.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body><h1>A</h1></body></html>
+    steps:
+      - name: explicit depth 1
+        as: author
+        plane: dav
+        request:
+          method: PROPFIND
+          path: "${P}/dav/"
+          headers: {Depth: "1"}
+        expect: {status: 207}
+        capture: {t1: header.ETag}
+      - name: no Depth header answers the same question
+        as: author
+        plane: dav
+        request:
+          method: PROPFIND
+          path: "${P}/dav/"
+          headers: {If-None-Match: "${t1}"}
+        expect: {status: 304}
+
+  - id: protocol.webdav.depth-tags-differ
+    title: A Depth 0 tag never satisfies a Depth 1 request
+    area: protocol
+    feature: WebDAV PROPFIND revalidation
+    evidence: documented
+    source: "docs reference/protocol/WebDAV §Directory listings and revalidation (snapshot 2026-09-28)"
+    confidence: high
+    requires: [webdav]
+    live: true
+    notes: R-PROTO-118.
+    site:
+      files:
+        - path: "${P}/dav/a.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body><h1>A</h1></body></html>
+    steps:
+      - name: depth 0 answer
+        as: author
+        plane: dav
+        request:
+          method: PROPFIND
+          path: "${P}/dav/"
+          headers: {Depth: "0"}
+        expect:
+          status: 207
+          headers_present: [ETag]
+          header_matches: {Vary: '(?i)\bDepth\b'}
+        capture: {t0: header.ETag}
+      - name: depth 1 with the depth 0 tag is a full listing
+        as: author
+        plane: dav
+        request:
+          method: PROPFIND
+          path: "${P}/dav/"
+          headers: {Depth: "1", If-None-Match: "${t0}"}
+        expect:
+          status: 207
+          etag_differs: "${t0}"
+          body_contains: ["a.html"]
+
+  - id: protocol.webdav.tag-changes-on-child-add-edit-remove
+    title: A collection's listing tag changes when a child is added, edited or removed
+    area: protocol
+    feature: WebDAV PROPFIND revalidation
+    evidence: documented
+    source: "docs reference/protocol/WebDAV §Directory listings and revalidation (snapshot 2026-09-28)"
+    confidence: high
+    requires: [webdav]
+    live: true
+    notes: R-PROTO-118.
+    site:
+      files:
+        - path: "${P}/dav/a.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body><h1>A</h1></body></html>
+        - path: "${P}/dav/b.css"
+          content_type: text/css
+          body: "h1 { color: red; }"
+    steps:
+      - name: initial listing
+        as: author
+        plane: dav
+        request: {method: PROPFIND, path: "${P}/dav/", headers: {Depth: "1"}}
+        expect: {status: 207}
+        capture: {t1: header.ETag}
+      - name: add a child
+        as: author
+        plane: dav
+        request:
+          method: PUT
+          path: "${P}/dav/c.html"
+          headers: {Content-Type: "text/html"}
+          body: |
+            <!DOCTYPE html>
+            <html><body><h1>C</h1></body></html>
+        expect: {status: 201}
+      - name: listing changed after add
+        as: author
+        plane: dav
+        request: {method: PROPFIND, path: "${P}/dav/", headers: {Depth: "1", If-None-Match: "${t1}"}}
+        expect: {status: 207, etag_differs: "${t1}", body_contains: ["c.html"]}
+        capture: {t2: header.ETag}
+      - name: edit a child
+        as: author
+        plane: dav
+        request:
+          method: PUT
+          path: "${P}/dav/a.html"
+          headers: {Content-Type: "text/html"}
+          body: |
+            <!DOCTYPE html>
+            <html><body><h1>A edited</h1></body></html>
+        expect: {status: [200, 204]}
+      - name: listing changed after edit
+        as: author
+        plane: dav
+        request: {method: PROPFIND, path: "${P}/dav/", headers: {Depth: "1", If-None-Match: "${t2}"}}
+        expect: {status: 207, etag_differs: "${t2}"}
+        capture: {t3: header.ETag}
+      - name: remove a child
+        as: author
+        plane: dav
+        request: {method: DELETE, path: "${P}/dav/b.css"}
+        expect: {status: [200, 204]}
+      - name: listing changed after remove
+        as: author
+        plane: dav
+        request: {method: PROPFIND, path: "${P}/dav/", headers: {Depth: "1", If-None-Match: "${t3}"}}
+        expect: {status: 207, etag_differs: "${t3}", body_not_contains: ["b.css"]}
+
+  - id: protocol.webdav.tag-ignores-outside-changes
+    title: A change outside the collection does not invalidate its listing tag
+    area: protocol
+    feature: WebDAV PROPFIND revalidation
+    evidence: inferred
+    source: "docs reference/protocol/WebDAV §Directory listings and revalidation (\"if nothing in the directory has changed, the server answers 304\") (snapshot 2026-09-28)"
+    confidence: medium
+    requires: [webdav]
+    live: true
+    notes: R-PROTO-118. Guards against a host-wide generation counter used as the tag.
+    site:
+      files:
+        - path: "${P}/dav/a.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body><h1>A</h1></body></html>
+        - path: "${P}/elsewhere/x.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body><h1>X</h1></body></html>
+    steps:
+      - name: listing
+        as: author
+        plane: dav
+        request: {method: PROPFIND, path: "${P}/dav/", headers: {Depth: "1"}}
+        expect: {status: 207}
+        capture: {t1: header.ETag}
+      - name: change another collection
+        as: author
+        plane: dav
+        request:
+          method: PUT
+          path: "${P}/elsewhere/x.html"
+          headers: {Content-Type: "text/html"}
+          body: |
+            <!DOCTYPE html>
+            <html><body><h1>X changed</h1></body></html>
+        expect: {status: [200, 204]}
+      - name: still not modified
+        as: author
+        plane: dav
+        request: {method: PROPFIND, path: "${P}/dav/", headers: {Depth: "1", If-None-Match: "${t1}"}}
+        expect: {status: 304}
+
+  - id: protocol.webdav.file-propfind-304
+    title: A file's PROPFIND tag revalidates to 304 while nothing about the file changed
+    area: protocol
+    feature: WebDAV PROPFIND revalidation
+    evidence: documented
+    source: "docs reference/protocol/WebDAV §Directory listings and revalidation (\"Single files work the same way\") (snapshot 2026-09-28)"
+    confidence: high
+    requires: [webdav]
+    live: true
+    notes: R-PROTO-119.
+    site:
+      files:
+        - path: "${P}/dav/a.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body><h1>A</h1></body></html>
+    steps:
+      - name: file properties
+        as: author
+        plane: dav
+        request: {method: PROPFIND, path: "${P}/dav/a.html", headers: {Depth: "0"}}
+        expect: {status: 207, headers_present: [ETag], body_contains: ["getetag"]}
+        capture: {tf: header.ETag}
+      - name: revalidate
+        as: author
+        plane: dav
+        request: {method: PROPFIND, path: "${P}/dav/a.html", headers: {Depth: "0", If-None-Match: "${tf}"}}
+        expect: {status: 304, body: ""}
+      - name: after an edit the tag no longer matches
+        as: author
+        plane: dav
+        request:
+          method: PUT
+          path: "${P}/dav/a.html"
+          headers: {Content-Type: "text/html"}
+          body: |
+            <!DOCTYPE html>
+            <html><body><h1>A2</h1></body></html>
+        expect: {status: [200, 204]}
+      - name: full answer again
+        as: author
+        plane: dav
+        request: {method: PROPFIND, path: "${P}/dav/a.html", headers: {Depth: "0", If-None-Match: "${tf}"}}
+        expect: {status: 207, etag_differs: "${tf}"}
+
+  - id: protocol.webdav.file-header-tag-differs-from-content-tag
+    title: A file's PROPFIND header tag identifies the answer, not the contents
+    area: protocol
+    feature: WebDAV ETag semantics
+    evidence: documented
+    source: "docs reference/protocol/WebDAV §Directory listings and revalidation, last paragraph (snapshot 2026-09-28)"
+    confidence: medium
+    requires: [webdav]
+    live: true
+    notes: >-
+      R-PROTO-119. The content tag is taken from a dav GET, assumed equal to the body
+      getetag (medium, P-23).
+    site:
+      files:
+        - path: "${P}/dav/a.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body><h1>A</h1></body></html>
+    steps:
+      - name: content tag
+        as: author
+        plane: dav
+        request: {method: GET, path: "${P}/dav/a.html"}
+        expect: {status: 200, headers_present: [ETag]}
+        capture: {ctag: header.ETag}
+      - name: properties tag differs
+        as: author
+        plane: dav
+        request: {method: PROPFIND, path: "${P}/dav/a.html", headers: {Depth: "0"}}
+        expect: {status: 207, etag_differs: "${ctag}"}
+
+  - id: protocol.webdav.put-if-match-content-tag
+    title: If-Match with the content tag guards a dav PUT (success, then 412 once stale)
+    area: protocol
+    feature: WebDAV conditional writes
+    evidence: demo-source
+    source: "pagelove-dev/skills/pagelove-dev/SKILL.md@b489923:160-170; references/cross-platform-command-recipes.md@b489923:269-316"
+    confidence: high
+    requires: [webdav]
+    live: true
+    notes: R-PROTO-114/119.
+    site:
+      files:
+        - path: "${P}/dav/a.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body><h1>A</h1></body></html>
+    steps:
+      - name: content tag
+        as: author
+        plane: dav
+        request: {method: GET, path: "${P}/dav/a.html"}
+        expect: {status: 200}
+        capture: {ctag: header.ETag}
+      - name: guarded write succeeds
+        as: author
+        plane: dav
+        request:
+          method: PUT
+          path: "${P}/dav/a.html"
+          headers: {Content-Type: "text/html", If-Match: "${ctag}"}
+          body: |
+            <!DOCTYPE html>
+            <html><body><h1>A2</h1></body></html>
+        expect: {status: [200, 204]}
+      - name: same tag is now stale
+        as: author
+        plane: dav
+        request:
+          method: PUT
+          path: "${P}/dav/a.html"
+          headers: {Content-Type: "text/html", If-Match: "${ctag}"}
+          body: |
+            <!DOCTYPE html>
+            <html><body><h1>A3</h1></body></html>
+        expect: {status: 412}
+      - name: content is A2
+        as: author
+        plane: dav
+        request: {method: GET, path: "${P}/dav/a.html"}
+        expect: {status: 200, body_contains: ["A2"], body_not_contains: ["A3"]}
+
+  - id: protocol.webdav.put-if-match-properties-tag-rejected
+    title: The PROPFIND header tag does not satisfy If-Match on a write
+    area: protocol
+    feature: WebDAV ETag semantics
+    evidence: inferred
+    source: "docs reference/protocol/WebDAV §Directory listings and revalidation (\"two different tags for two different jobs\") (snapshot 2026-09-28)"
+    confidence: low
+    requires: [webdav]
+    live: true
+    notes: R-PROTO-119 (P-23).
+    site:
+      files:
+        - path: "${P}/dav/a.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body><h1>A</h1></body></html>
+    steps:
+      - name: properties tag
+        as: author
+        plane: dav
+        request: {method: PROPFIND, path: "${P}/dav/a.html", headers: {Depth: "0"}}
+        expect: {status: 207}
+        capture: {ptag: header.ETag}
+      - name: write guarded by the wrong tag
+        as: author
+        plane: dav
+        request:
+          method: PUT
+          path: "${P}/dav/a.html"
+          headers: {Content-Type: "text/html", If-Match: "${ptag}"}
+          body: |
+            <!DOCTYPE html>
+            <html><body><h1>A2</h1></body></html>
+        expect: {status: 412}
+
+  - id: protocol.webdav.put-create-and-replace
+    title: A dav PUT creates with 201 and replaces with 200 (or 204)
+    area: protocol
+    feature: WebDAV PUT
+    evidence: demo-source
+    source: "demo-apps/README.md@c4dd883:143"
+    confidence: high
+    requires: [webdav]
+    live: true
+    notes: R-PROTO-114.
+    steps:
+      - name: create
+        as: author
+        plane: dav
+        request:
+          method: PUT
+          path: "${P}/new.html"
+          headers: {Content-Type: "text/html"}
+          body: |
+            <!DOCTYPE html>
+            <html><body><h1>New</h1></body></html>
+        expect: {status: 201}
+      - name: replace
+        as: author
+        plane: dav
+        request:
+          method: PUT
+          path: "${P}/new.html"
+          headers: {Content-Type: "text/html"}
+          body: |
+            <!DOCTYPE html>
+            <html><body><h1>Newer</h1></body></html>
+        expect: {status: [200, 204]}
+
+  - id: protocol.webdav.put-if-none-match-star
+    title: "If-None-Match: * makes a dav PUT create-only (412 when the path exists)"
+    area: protocol
+    feature: WebDAV conditional writes
+    evidence: client-source
+    source: "beta-js/.github/scripts/sync-webdav.sh@c204746:129-137; pagelove-shop/ops/deploy-pagelove.sh@d887054:148-175"
+    confidence: high
+    requires: [webdav]
+    live: true
+    notes: R-PROTO-114.
+    site:
+      files:
+        - path: "${P}/seed.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body><h1>Seed</h1></body></html>
+    steps:
+      - name: existing path
+        as: author
+        plane: dav
+        request:
+          method: PUT
+          path: "${P}/seed.html"
+          headers: {Content-Type: "text/html", If-None-Match: "*"}
+          body: |
+            <!DOCTYPE html>
+            <html><body><h1>Overwrite</h1></body></html>
+        expect: {status: 412}
+      - name: content kept
+        as: author
+        plane: dav
+        request: {method: GET, path: "${P}/seed.html"}
+        expect: {status: 200, body_contains: ["Seed"], body_not_contains: ["Overwrite"]}
+      - name: new path is created
+        as: author
+        plane: dav
+        request:
+          method: PUT
+          path: "${P}/seed-2.html"
+          headers: {Content-Type: "text/html", If-None-Match: "*"}
+          body: |
+            <!DOCTYPE html>
+            <html><body><h1>Seed 2</h1></body></html>
+        expect: {status: 201}
+
+  - id: protocol.webdav.get-is-byte-exact
+    title: A WebDAV PUT of HTML stores and echoes PageLove's serialized form, and a dav GET returns exactly those bytes
+    area: protocol
+    feature: WebDAV GET
+    evidence: live-observed
+    source: "harness/observations/live-2026-09-28/protocol-webdav-get-is-byte-exact.json, harness/observations/live-2026-09-29-confirm/protocol-webdav-get-is-byte-exact-live.json, harness/observations/live-2026-09-29-serialize/ (host live-test-host); supersedes R-PROTO-113's byte-for-byte storage"
+    confidence: high
+    requires: [webdav]
+    live: true
+    notes: >-
+      LO-15 (adopt-live, docs/compat/decisions-2026-09-29/serialization.md). The markup is
+      deliberately irregular. The demo deploy scripts' cmp read-back (pagelove-shop
+      deploy-pagelove.sh, beta-js verify-deploy.sh) only holds for sources already in this form.
+      The former .live sibling is folded in.
+    steps:
+      - name: upload irregular markup
+        as: author
+        plane: dav
+        request:
+          method: PUT
+          path: "${P}/raw.html"
+          headers: {Content-Type: "text/html"}
+          body: "<HTML><Body class=x ><h1   id='a'>Hi</h1><p>{{ 1 | plus: 1 }}<!-- keep --></Body></HTML>"
+        expect:
+          status: 201
+          header_matches: {Content-Type: "^text/html$"}
+          body: '<html><body class="x"><h1 id="a">Hi</h1><p>{{ 1 | plus: 1 }}<!-- keep --></p></body></html>'
+      - name: read back
+        as: author
+        plane: dav
+        request: {method: GET, path: "${P}/raw.html"}
+        expect:
+          status: 200
+          body: '<html><body class="x"><h1 id="a">Hi</h1><p>{{ 1 | plus: 1 }}<!-- keep --></p></body></html>'
+
+  - id: protocol.webdav.put-creates-parents
+    title: A dav PUT into a missing collection creates the parents
+    area: protocol
+    feature: WebDAV PUT
+    evidence: demo-source
+    source: "demo-apps/README.md@c4dd883:143 (\"no directory creation is needed\")"
+    confidence: medium
+    requires: [webdav]
+    live: true
+    notes: R-PROTO-114, C-20 (RFC 4918 would answer 409).
+    steps:
+      - name: deep put
+        as: author
+        plane: dav
+        request:
+          method: PUT
+          path: "${P}/deep/er/doc.html"
+          headers: {Content-Type: "text/html"}
+          body: |
+            <!DOCTYPE html>
+            <html><body><h1>Deep</h1></body></html>
+        expect: {status: 201}
+      - name: parent collection lists it
+        as: author
+        plane: dav
+        request: {method: PROPFIND, path: "${P}/deep/er/", headers: {Depth: "1"}}
+        expect: {status: 207, body_contains: ["doc.html"]}
+
+  - id: protocol.webdav.mkcol
+    title: MKCOL creates a collection (201) under an existing parent (409 ParentDirectoryMissing otherwise); on an existing one it is 405 DirectoryAlreadyExists
+    area: protocol
+    feature: WebDAV MKCOL
+    evidence: demo-source
+    source: "pagelove-shop/ops/deploy-pagelove.sh@d887054:95-112; beta-js/.github/scripts/sync-webdav.sh@c204746:98-113; harness/observations/live-2026-09-28/protocol-webdav-mkcol.json (409 ParentDirectoryMissing when the parent is missing)"
+    confidence: high
+    requires: [webdav]
+    live: true
+    notes: >-
+      R-PROTO-115/120, C-19. The first live run failed because the case never created its own
+      prefix collection (a harness artifact): PageLove, like RFC 4918, needs the parent (409), and
+      a probe on 2026-09-29 showed MKCOL on an existing collection is 405, as RFC 4918 has it, not
+      the 409 the spec expected (docs/compat/decisions.md). The deploy scripts accept either.
+    steps:
+      - name: missing parent
+        as: author
+        plane: dav
+        request: {method: MKCOL, path: "${P}/newdir/"}
+        expect:
+          status: 409
+          body: '<article itemscope itemtype="https://pagelove.org/Error"><meta itemprop="status" content="409"><meta itemprop="kind" content="Conflict"><div itemprop="type" itemscope itemtype="https://dombase.pagelove.team/ns/error/Conflict"></div><div itemprop="detail"><div itemscope itemtype="https://dombase.pagelove.team/ns/error/ParentDirectoryMissing"><ul itemprop="problems"><li itemprop="problem"><span itemprop="message">Parent directory does not exist</span></li></ul></div></div></article>'
+      - name: the shared /_pl/ collection (may exist already)
+        as: author
+        plane: dav
+        request: {method: MKCOL, path: "/_pl/"}
+        expect: {status: [201, 405]}
+      - name: create the prefix collection
+        as: author
+        plane: dav
+        request: {method: MKCOL, path: "${P}/"}
+        expect: {status: 201}
+      - name: create
+        as: author
+        plane: dav
+        request: {method: MKCOL, path: "${P}/newdir/"}
+        expect:
+          status: 201
+          headers: {ETag: '"0000000000000000000000000000000000000000000000000000000000000000"'}
+      - name: already exists
+        as: author
+        plane: dav
+        request: {method: MKCOL, path: "${P}/newdir/"}
+        expect:
+          status: 405
+          headers: {Allow: "OPTIONS, GET, HEAD, PUT, POST, DELETE, COPY, MOVE, LOCK, UNLOCK, PROPFIND, QUERY"}
+          body: '<article itemscope itemtype="https://pagelove.org/Error"><meta itemprop="status" content="405"><meta itemprop="kind" content="Internal"><div itemprop="type" itemscope itemtype="https://dombase.pagelove.team/ns/error/Internal"></div><div itemprop="detail"><div itemscope itemtype="https://dombase.pagelove.team/ns/error/DirectoryAlreadyExists"><ul itemprop="problems"><li itemprop="problem"><span itemprop="message">Directory already exists</span></li></ul></div></div></article>'
+      - name: it is a collection
+        as: author
+        plane: dav
+        request: {method: PROPFIND, path: "${P}/newdir/", headers: {Depth: "0"}}
+        expect: {status: 207, body_contains: ["collection"]}
+
+  - id: protocol.webdav.missing-is-404
+    title: PROPFIND and GET of a missing path are 404; DELETE of it succeeds (204)
+    area: protocol
+    feature: WebDAV errors
+    evidence: live-observed
+    source: "harness/observations/live-2026-09-28/protocol-webdav-missing-is-404.json (DELETE: 204 with the ETag of empty content; PROPFIND/GET: 404 Error/NotFound article); beta-js/.github/scripts/sync-webdav.sh@c204746:170-174; docs reference/protocol/WebDAV §When something goes wrong"
+    confidence: high
+    requires: [webdav]
+    live: true
+    notes: "The id keeps its original name. R-PROTO-116's 404 for DELETE is superseded (docs/compat/decisions.md); R-PROTO-117/121 hold."
+    steps:
+      - name: delete missing
+        as: author
+        plane: dav
+        request: {method: DELETE, path: "${P}/gone.html"}
+        expect:
+          status: 204
+          headers: {ETag: '"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"'}
+      - name: propfind missing
+        as: author
+        plane: dav
+        request: {method: PROPFIND, path: "${P}/gone.html", headers: {Depth: "0"}}
+        expect:
+          status: 404
+          body: '<article itemscope itemtype="https://pagelove.org/Error/NotFound"><meta itemprop="status" content="404"><p itemprop="message">Not found: ${P}/gone.html</p></article>'
+      - name: get missing
+        as: author
+        plane: dav
+        request: {method: GET, path: "${P}/gone.html"}
+        expect:
+          status: 404
+          header_matches: {Content-Type: "^text/html; charset=utf-8$"}
+          body: '<article itemscope itemtype="https://pagelove.org/Error/NotFound"><meta itemprop="status" content="404"><p itemprop="message">Not found: ${P}/gone.html</p></article>'
+
+  - id: protocol.webdav.bypasses-authorization-rules
+    title: Authoring writes succeed even where AuthorizationRules deny everyone
+    area: protocol
+    feature: WebDAV authorization
+    evidence: demo-source
+    source: "demo-apps/README.md@c4dd883:146 (\"WebDAV bypasses rules\")"
+    confidence: high
+    requires: [webdav]
+    live: true
+    notes: R-PROTO-111.
+    site:
+      rules:
+        - {actor: "*", resource: "${P}/*", method: ["*"], action: Deny}
+    steps:
+      - name: author writes
+        as: author
+        plane: dav
+        request:
+          method: PUT
+          path: "${P}/locked.html"
+          headers: {Content-Type: "text/html"}
+          body: |
+            <!DOCTYPE html>
+            <html><body><h1>Written by the author</h1></body></html>
+        expect: {status: 201}
+      - name: author reads
+        as: author
+        plane: dav
+        request: {method: GET, path: "${P}/locked.html"}
+        expect: {status: 200, body_contains: ["Written by the author"]}
+      - name: the public plane still applies the rules
+        as: anonymous
+        request: {method: GET, path: "${P}/locked.html"}
+        expect: {status: 401}
+
+  - id: protocol.webdav.unauthenticated-401
+    title: A WebDAV request without the authoring key is 401
+    area: protocol
+    feature: WebDAV authorization
+    evidence: demo-source
+    source: "pagelove-dev/skills/pagelove-dev/SKILL.md@b489923:179-184 (\"401 Bearer token rejected\")"
+    confidence: high
+    requires: [webdav]
+    live: true
+    notes: >-
+      R-PROTO-111. The first live run answered these requests 207/200 only because the runner of
+      the day sent the authoring key on every WebDAV request, "as: anonymous" included (a harness
+      artifact, fixed since). The confirmation run of 2026-09-29
+      (harness/observations/live-2026-09-29-confirm/) shows PageLove refusing anonymous WebDAV
+      reads and writes with a short Error/Internal article and a Basic challenge, which pagelike
+      now reproduces (docs/compat/decisions.md).
+    site:
+      files:
+        - path: "${P}/doc.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body><h1>A</h1></body></html>
+    steps:
+      - name: anonymous PROPFIND
+        as: anonymous
+        plane: dav
+        request: {method: PROPFIND, path: "${P}/", headers: {Depth: "1"}}
+        expect:
+          status: 401
+          headers: {WWW-Authenticate: 'Basic realm="WebDAV"', DAV: "1, 2", MS-Author-Via: DAV}
+          header_matches: {Content-Type: "^text/html; charset=utf-8$"}
+          body: '<article itemscope itemtype="https://pagelove.org/Error/Internal"><meta itemprop="status" content="401"><p itemprop="message">Authentication required</p></article>'
+      - name: anonymous GET
+        as: anonymous
+        plane: dav
+        request: {method: GET, path: "${P}/doc.html"}
+        expect: {status: 401, body_not_contains: ["<h1>A</h1>"]}
+      - name: anonymous PUT
+        as: anonymous
+        plane: dav
+        request:
+          method: PUT
+          path: "${P}/anon.html"
+          headers: {Content-Type: "text/html"}
+          body: "<!DOCTYPE html><html><body><p>anonymous write</p></body></html>"
+        expect: {status: 401}

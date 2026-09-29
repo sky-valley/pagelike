@@ -1,0 +1,53 @@
+{
+  "case": "sse.mutation.table-row-body",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (sse open s1)",
+      "method": "GET",
+      "path": "/_pl/sse-mutation-table-row-body-04a4be/poll.html",
+      "status": 200,
+      "headers": {
+        "cache-control": "no-cache",
+        "content-type": "text/event-stream",
+        "x-accel-buffering": "no"
+      }
+    },
+    {
+      "step": "step 2",
+      "events": [
+        {
+          "event": "pagelove-connection",
+          "data": "3c75b4c9-5f33-4bec-89b0-ff76b51b86d8"
+        }
+      ]
+    },
+    {
+      "step": "step 3 (vote by appending a row)",
+      "method": "POST",
+      "path": "/_pl/sse-mutation-table-row-body-04a4be/poll.html",
+      "status": 206,
+      "headers": {
+        "content-length": "78",
+        "content-range": "selector #responses",
+        "content-type": "text/html",
+        "etag": "\"6b8576e154808d6e89eda8ccf63a614c9ca8419ff563df148022dbfc2fa4af99-6b8576e154808d6e89eda8ccf63a614c9ca8419ff563df148022dbfc2fa4af99-2\"",
+        "last-modified": "Tue, 29 Sep 2026 02:41:00 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003ctr id=\"r-abc12345\"\u003e\u003cth scope=\"row\"\u003eAnn\u003c/th\u003e\u003ctd data-option=\"o1\"\u003eyes\u003c/td\u003e\u003c/tr\u003e"
+    },
+    {
+      "step": "step 4",
+      "events": [
+        {
+          "id": "v1~120c89d3d0ee.1790649660069-1",
+          "event": "mutation",
+          "data": "\u003carticle itemscope itemtype=\"https://pagelove.org/Mutation\"\u003e\n  \u003cspan itemprop=\"method\"\u003ePOST\u003c/span\u003e\n  \u003cspan itemprop=\"selector\"\u003e#responses\u003c/span\u003e\n  \u003cspan itemprop=\"etag\"\u003e851edb53c356f5bed69119edbb1157e14bb2c84e067a6a3f43e7a2d853ca0c5c\u003c/span\u003e\n  \u003cspan itemprop=\"path\"\u003e/_pl/sse-mutation-table-row-body-04a4be/poll.html\u003c/span\u003e\n  \u003cspan itemprop=\"host\"\u003et.localhost\u003c/span\u003e\n  \u003cdiv itemprop=\"body\"\u003e\u003ctr id=\"r-abc12345\"\u003e\u003cth scope=\"row\"\u003eAnn\u003c/th\u003e\u003ctd data-option=\"o1\"\u003eyes\u003c/td\u003e\u003c/tr\u003e\u003c/div\u003e\n  \u003cspan itemprop=\"placement\"\u003eappend\u003c/span\u003e\n\u003c/article\u003e"
+        }
+      ]
+    }
+  ],
+  "outcome": "pass",
+  "target": "local"
+}

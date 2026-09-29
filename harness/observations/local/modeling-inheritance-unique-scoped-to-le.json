@@ -1,0 +1,50 @@
+{
+  "case": "modeling.inheritance.unique-scoped-to-leaf-type",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (register declarations through the public plane (takes effect for the next request))",
+      "method": "PUT",
+      "path": "/_pl/modeling-inheritance-unique-scoped-to-le-3803d2/schema.html",
+      "status": 201,
+      "headers": {
+        "content-length": "1668",
+        "content-type": "text/html",
+        "etag": "\"74d9ccfc137001f781db7e4da93efcfafd994881392dda763eac14ce21aaa000\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:44 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\n  \u003cdiv hidden itemscope itemtype=\"https://pagelove.org/Schema\"\u003e\n    \u003cmeta itemprop=\"type\" content=\"https://pagelike.test/_pl/modeling-inheritance-unique-scoped-to-le-3803d2/Entity\"\u003e\n    \u003cdiv itemprop=\"property\" itemscope itemtype=\"https://pagelove.org/Property\"\u003e\n      \u003cmeta itemprop=\"name\" content=\"identifier\"\u003e\n      \u003cmeta itemprop=\"type\" content=\"https://schema.host/Text\"\u003e\n      \u003cmeta itemprop=\"cardinality\" content=\"1..1\"\u003e\n      \u003cmeta itemprop=\"unique\" content=\"true\"\u003e\n    \u003c/div\u003e\n  \u003c/div\u003e\n  \u003cdiv hidden itemscope itemtype=\"https://pagelove.org/Schema\"\u003e\n    \u003cmeta itemprop=\"type\" content=\"https://pagelike.test/_pl/modeling-inheritance-unique-scoped-to-le-3803d2/Person\"\u003e\n    \u003cmeta itemprop=\"parent\" content=\"https://pagelike.test/_pl/modeling-inheritance-unique-scoped-to-le-3803d2/Entity\"\u003e\n    \u003cdiv itemprop=\"property\" itemscope itemtype=\"https://pagelove.org/Property\"\u003e\n      \u003cmeta itemprop=\"name\" content=\"email\"\u003e\n      \u003cmeta itemprop=\"type\" content=\"https://schema.host/Text\"\u003e\n      \u003cmeta itemprop=\"cardinality\" content=\"1..1\"\u003e\n    \u003c/div\u003e\n  \u003c/div\u003e\n  \u003cdiv hidden itemscope itemtype=\"https://pagelove.org/Schema\"\u003e\n    \u003cmeta itemprop=\"type\" content=\"https://pagelike.test/_pl/modeling-inheritance-unique-scoped-to-le-3803d2/Employee\"\u003e\n    \u003cmeta itemprop=\"parent\" content=\"https://pagelike.test/_pl/modeling-inheritance-unique-scoped-to-le-3803d2/Person\"\u003e\n    \u003cdiv itemprop=\"property\" itemscope itemtype=\"https://pagelove.org/Property\"\u003e\n      \u003cmeta itemprop=\"name\" content=\"staffNo\"\u003e\n      \u003cmeta itemprop=\"type\" content=\"https://schema.host/Text\"\u003e\n      \u003cmeta itemprop=\"cardinality\" content=\"0..1\"\u003e\n    \u003c/div\u003e\n  \u003c/div\u003e\n\u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 2 (Person with identifier x)",
+      "method": "PUT",
+      "path": "/_pl/modeling-inheritance-unique-scoped-to-le-3803d2/p.html",
+      "status": 201,
+      "headers": {
+        "content-length": "260",
+        "content-type": "text/html",
+        "etag": "\"1cd6aa14a136174c6dbb39e523fbd94d586387d8a8604a7b6eacee0dce230c19\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:44 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\n  \u003cdiv itemscope itemtype=\"https://pagelike.test/_pl/modeling-inheritance-unique-scoped-to-le-3803d2/Person\"\u003e\n    \u003cmeta itemprop=\"identifier\" content=\"x\"\u003e\n    \u003cmeta itemprop=\"email\" content=\"p@example.com\"\u003e\n  \u003c/div\u003e\n\u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 3 (Employee with identifier x)",
+      "method": "PUT",
+      "path": "/_pl/modeling-inheritance-unique-scoped-to-le-3803d2/e.html",
+      "status": 201,
+      "headers": {
+        "content-length": "262",
+        "content-type": "text/html",
+        "etag": "\"6d226113efabdd6e43e54fa9b24e18b53231f188f73b7e3705f62fd90bad4e65\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:44 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\n  \u003cdiv itemscope itemtype=\"https://pagelike.test/_pl/modeling-inheritance-unique-scoped-to-le-3803d2/Employee\"\u003e\n    \u003cmeta itemprop=\"identifier\" content=\"x\"\u003e\n    \u003cmeta itemprop=\"email\" content=\"e@example.com\"\u003e\n  \u003c/div\u003e\n\u003c/body\u003e\u003c/html\u003e\n"
+    }
+  ],
+  "outcome": "pass",
+  "target": "local"
+}

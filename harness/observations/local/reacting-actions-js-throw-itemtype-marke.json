@@ -1,0 +1,33 @@
+{
+  "case": "reacting.actions.js-throw-itemtype-marker",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (install)",
+      "method": "PUT",
+      "path": "/_pl/reacting-actions-js-throw-itemtype-marke-cd1b33/r/triggers.html",
+      "status": 201,
+      "headers": {
+        "content-length": "572",
+        "content-type": "text/html",
+        "etag": "\"872ce7ed85171cfdbe7d1d1b603f7c63faf6a3cf0134b43cb1b65c5ea4ae7b7e\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:48 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\n\u003cdiv hidden itemscope itemtype=\"https://pagelove.org/Trigger\"\u003e\n  \u003cmeta itemprop=\"resource\" content=\"/_pl/reacting-actions-js-throw-itemtype-marke-cd1b33/d/*\"\u003e\n  \u003cmeta itemprop=\"method\" content=\"PUT\"\u003e\n  \u003cdiv itemprop=\"action\" itemscope itemtype=\"https://pagelove.org/JavaScript/Module\"\u003e\n    \u003cscript type=\"module\" itemprop=\"source\"\u003e\n      export default function(ctx) {\n        throw { itemtype: \"https://pagelove.org/HTTPResponse\", status: 409, message: \"from-message\", body: \"from-body\" };\n      }\n    \u003c/script\u003e\n  \u003c/div\u003e\n\u003c/div\u003e\n\u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 2 (the thrown status and body are returned)",
+      "method": "PUT",
+      "path": "/_pl/reacting-actions-js-throw-itemtype-marke-cd1b33/d/x.html",
+      "status": 409,
+      "headers": {
+        "content-length": "9",
+        "content-type": "text/html; charset=utf-8"
+      },
+      "body": "from-body"
+    }
+  ],
+  "outcome": "pass",
+  "target": "local"
+}

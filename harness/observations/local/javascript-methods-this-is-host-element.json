@@ -1,0 +1,37 @@
+{
+  "case": "javascript.methods.this-is-host-element",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (PUT the page (public plane; registers inline declarations))",
+      "method": "PUT",
+      "path": "/_pl/javascript-methods-this-is-host-element-c58ee4/m.html",
+      "status": 201,
+      "headers": {
+        "content-length": "805",
+        "content-type": "text/html",
+        "etag": "\"aff816065c97b78cfa7c13ae6b1fa8b5096bf5f48adfa82bba8b8aaf0e245fc8\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:43 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml xmlns:t=\"https://pagelike.test/_pl/javascript-methods-this-is-host-element-c58ee4/Who\"\u003e\u003cbody\u003e\n\u003cmain\u003e\n\u003ct:who data-k=\"v1\"\u003e\u003c/t:who\u003e\n\u003c/main\u003e\n\u003cdiv hidden itemscope itemtype=\"https://pagelove.org/Schema\"\u003e\n\u003cmeta itemprop=\"type\" content=\"https://pagelike.test/_pl/javascript-methods-this-is-host-element-c58ee4/Who\"\u003e\n\u003cul\u003e\n\u003cli itemprop=\"property\" itemscope itemtype=\"https://pagelove.org/Method\"\u003e\n\u003cmeta itemprop=\"name\" content=\"who\"\u003e\n\u003cdiv itemprop=\"implementation\" itemscope itemtype=\"https://pagelove.org/JavaScript/Module\"\u003e\n\u003cscript itemprop=\"source\" type=\"module\"\u003e\nexport default function () { return 'WHO:' + (this !== undefined \u0026\u0026 this !== null) + ':' + (typeof this.getAttribute === 'function' ? this.getAttribute('data-k') : 'n/a'); }\n\u003c/script\u003e\n\u003c/div\u003e\n\u003c/li\u003e\n\u003c/ul\u003e\n\u003c/div\u003e\n\u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 2 (GET the composed page)",
+      "method": "GET",
+      "path": "/_pl/javascript-methods-this-is-host-element-c58ee4/m.html",
+      "status": 206,
+      "headers": {
+        "accept-ranges": "selector, bytes",
+        "content-length": "26",
+        "content-range": "selector main",
+        "content-type": "text/html",
+        "etag": "\"e49b2be275cc0c03301c2655e7a0862e320f6066f184100200f245d717d2671f-e49b2be275cc0c03301c2655e7a0862e320f6066f184100200f245d717d2671f-1\"",
+        "vary": "Host, Range, Accept"
+      },
+      "body": "\u003cmain\u003e\nWHO:true:v1\n\u003c/main\u003e"
+    }
+  ],
+  "outcome": "pass",
+  "target": "local"
+}

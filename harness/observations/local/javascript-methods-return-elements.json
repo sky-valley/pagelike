@@ -1,0 +1,37 @@
+{
+  "case": "javascript.methods.return-elements",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (PUT the page (public plane; registers inline declarations))",
+      "method": "PUT",
+      "path": "/_pl/javascript-methods-return-elements-8b52e6/m.html",
+      "status": 201,
+      "headers": {
+        "content-length": "1819",
+        "content-type": "text/html",
+        "etag": "\"43f12c9f7b0f17a1df70a071205271dd7754c7ff5f83a3c7c20d7d44ec09758c\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:43 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml xmlns:t=\"https://pagelike.test/_pl/javascript-methods-return-elements-8b52e6/RetEl\"\u003e\u003cbody\u003e\n\u003cmain\u003e\n\u003cdiv id=\"r-el\"\u003e\u003ct:el\u003e\u003c/t:el\u003e\u003c/div\u003e\u003cdiv id=\"r-arr\"\u003e\u003ct:arr\u003e\u003c/t:arr\u003e\u003c/div\u003e\u003cdiv id=\"r-nl\"\u003e\u003ct:nl\u003e\u003c/t:nl\u003e\u003c/div\u003e\n\u003c/main\u003e\n\u003cdiv hidden itemscope itemtype=\"https://pagelove.org/Schema\"\u003e\n\u003cmeta itemprop=\"type\" content=\"https://pagelike.test/_pl/javascript-methods-return-elements-8b52e6/RetEl\"\u003e\n\u003cul\u003e\n\u003cli itemprop=\"property\" itemscope itemtype=\"https://pagelove.org/Method\"\u003e\n\u003cmeta itemprop=\"name\" content=\"el\"\u003e\n\u003cmeta itemprop=\"returns\" content=\"https://pagelove.org/Element\"\u003e\n\u003cdiv itemprop=\"implementation\" itemscope itemtype=\"https://pagelove.org/JavaScript/Module\"\u003e\n\u003cscript itemprop=\"source\" type=\"module\"\u003e\nexport default () =\u003e new DOMParser().parseFromString('\u003cb\u003eEL\u003c/b\u003e', 'text/html').querySelector('b');\n\u003c/script\u003e\n\u003c/div\u003e\n\u003c/li\u003e\n\u003cli itemprop=\"property\" itemscope itemtype=\"https://pagelove.org/Method\"\u003e\n\u003cmeta itemprop=\"name\" content=\"arr\"\u003e\n\u003cmeta itemprop=\"returns\" content=\"https://pagelove.org/Element\"\u003e\n\u003cdiv itemprop=\"implementation\" itemscope itemtype=\"https://pagelove.org/JavaScript/Module\"\u003e\n\u003cscript itemprop=\"source\" type=\"module\"\u003e\nexport default () =\u003e { const d = new DOMParser().parseFromString('\u003ci\u003eA1\u003c/i\u003e\u003ci\u003eA2\u003c/i\u003e', 'text/html'); return [d.querySelectorAll('i').item(0), d.querySelectorAll('i').item(1)]; };\n\u003c/script\u003e\n\u003c/div\u003e\n\u003c/li\u003e\n\u003cli itemprop=\"property\" itemscope itemtype=\"https://pagelove.org/Method\"\u003e\n\u003cmeta itemprop=\"name\" content=\"nl\"\u003e\n\u003cmeta itemprop=\"returns\" content=\"https://pagelove.org/Element\"\u003e\n\u003cdiv itemprop=\"implementation\" itemscope itemtype=\"https://pagelove.org/JavaScript/Module\"\u003e\n\u003cscript itemprop=\"source\" type=\"module\"\u003e\nexport default () =\u003e new DOMParser().parseFromString('\u003ci\u003eN1\u003c/i\u003e\u003ci\u003eN2\u003c/i\u003e', 'text/html').querySelectorAll('i');\n\u003c/script\u003e\n\u003c/div\u003e\n\u003c/li\u003e\n\u003c/ul\u003e\n\u003c/div\u003e\n\u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 2 (GET the composed page)",
+      "method": "GET",
+      "path": "/_pl/javascript-methods-return-elements-8b52e6/m.html",
+      "status": 206,
+      "headers": {
+        "accept-ranges": "selector, bytes",
+        "content-length": "124",
+        "content-range": "selector main",
+        "content-type": "text/html",
+        "etag": "\"4e313a68383518390c669fca3e4c7122a6146e9145c3d86b007101df81d081ea-4e313a68383518390c669fca3e4c7122a6146e9145c3d86b007101df81d081ea-1\"",
+        "vary": "Host, Range, Accept"
+      },
+      "body": "\u003cmain\u003e\n\u003cdiv id=\"r-el\"\u003e\u003cb\u003eEL\u003c/b\u003e\u003c/div\u003e\u003cdiv id=\"r-arr\"\u003e\u003ci\u003eA1\u003c/i\u003e\u003ci\u003eA2\u003c/i\u003e\u003c/div\u003e\u003cdiv id=\"r-nl\"\u003e\u003ci\u003eN1\u003c/i\u003e\u003ci\u003eN2\u003c/i\u003e\u003c/div\u003e\n\u003c/main\u003e"
+    }
+  ],
+  "outcome": "pass",
+  "target": "local"
+}

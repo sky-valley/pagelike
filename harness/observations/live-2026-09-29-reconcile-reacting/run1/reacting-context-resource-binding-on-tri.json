@@ -1,0 +1,47 @@
+{
+  "case": "reacting.context.resource-binding-on-trigger",
+  "failures": [
+    "step 3 (right token) PUT ${P}/d/x.html: status 401, want [200 201 204] (body: token required)"
+  ],
+  "observations": [
+    {
+      "step": "step 1 (install a trigger whose gate uses r:secret)",
+      "method": "PUT",
+      "path": "/_pl/reacting-context-resource-binding-on-tri-4062c0/r/triggers.html",
+      "status": 201,
+      "headers": {
+        "content-type": "text/html",
+        "etag": "\"c0aa9b41e236899e79a2a58deab2d58d9534651a24ec297673bc4f0e7924f532\"",
+        "last-modified": "Tue, 29 Sep 2026 01:34:03 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml xmlns:p=\"https://pagelove.org/1.0\" xmlns:r=\"https://pagelove.org/Binding/CSS\"\u003e\u003cbody\u003e\n\u003cdiv hidden r:secret=\"[itemtype='https://pagelike.test/_pl/reacting-context-resource-binding-on-tri-4062c0/Secret'] [itemprop=token]\" itemscope itemtype=\"https://pagelove.org/Trigger\"\u003e\n  \u003cmeta itemprop=\"resource\" content=\"/_pl/reacting-context-resource-binding-on-tri-4062c0/d/*\"\u003e\n  \u003cmeta itemprop=\"method\" content=\"PUT\"\u003e\n  \u003cdiv itemprop=\"when\" itemscope itemtype=\"https://pagelove.org/Sessel\"\u003e\n    \u003cscript itemprop=\"source\" type=\"text/sessel\"\u003e\n      @schema Context url(\"https://pagelove.org/Context\");\n      (Context.request.headers[\"x-token\"] ?? \"\") == secret.first().value()\n    \u003c/script\u003e\n  \u003c/div\u003e\n  \u003cdiv itemprop=\"action\" itemscope itemtype=\"https://pagelove.org/Sessel\"\u003e\n    \u003cscript itemprop=\"source\" type=\"text/sessel\"\u003e1\u003c/script\u003e\n  \u003c/div\u003e\n  \u003cdiv itemprop=\"otherwise\" itemscope itemtype=\"https://pagelove.org/Sessel\"\u003e\n    \u003cscript itemprop=\"source\" type=\"text/sessel\"\u003e\n      @schema HTTPResponse url(\"https://pagelove.org/HTTPResponse\");\n      throw new HTTPResponse { status: 401, body: \"token required\" }\n    \u003c/script\u003e\n  \u003c/div\u003e\n\u003c/div\u003e\n\n                \u003cdiv style=\"\n                            position: fixed;\n                            bottom: 0;\n                            left: 0;\n                            right: 0;\n                            padding: 8px;\n                            background: #f0f0f0;\n                            text-align: center;\n                            font-size: 12px;\n                            color: #666;\n                            z-index: 9999;\n                            opacity: 0.8;\n                            border-top: 1px solid #ddd;\n                        \"\u003e\n                    Powered by\n                    \u003ca href=\"https://pagelove.com/\" style=\"color: #4a90d9; text-decoration: none\"\u003ePagelove\u003c/a\u003e\n                \u003c/div\u003e\n            \u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 2 (wrong token)",
+      "method": "PUT",
+      "path": "/_pl/reacting-context-resource-binding-on-tri-4062c0/d/x.html",
+      "status": 401,
+      "headers": {
+        "content-length": "14",
+        "content-type": "text/html",
+        "vary": "Host, Range"
+      },
+      "body": "token required"
+    },
+    {
+      "step": "step 3 (right token)",
+      "method": "PUT",
+      "path": "/_pl/reacting-context-resource-binding-on-tri-4062c0/d/x.html",
+      "status": 401,
+      "headers": {
+        "content-length": "14",
+        "content-type": "text/html",
+        "vary": "Host, Range"
+      },
+      "body": "token required"
+    }
+  ],
+  "outcome": "fail",
+  "target": "live"
+}

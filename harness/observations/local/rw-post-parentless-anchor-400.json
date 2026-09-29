@@ -1,0 +1,47 @@
+{
+  "case": "rw.post.parentless-anchor-400",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (before html)",
+      "method": "POST",
+      "path": "/_pl/rw-post-parentless-anchor-400-e8874c/root.html",
+      "status": 422,
+      "headers": {
+        "content-length": "236",
+        "content-type": "text/html",
+        "vary": "Host, Range"
+      },
+      "body": "\u003cdiv itemscope itemtype=\"https://pagelove.org/Error\"\u003e\u003cul itemprop=\"problems\"\u003e\u003cli itemprop=\"problem\"\u003e\u003cspan itemprop=\"message\"\u003eplacement=Before relative to the document root is not possible: the root has no siblings\u003c/span\u003e\u003c/li\u003e\u003c/ul\u003e\u003c/div\u003e"
+    },
+    {
+      "step": "step 2 (after html)",
+      "method": "POST",
+      "path": "/_pl/rw-post-parentless-anchor-400-e8874c/root.html",
+      "status": 422,
+      "headers": {
+        "content-length": "235",
+        "content-type": "text/html",
+        "vary": "Host, Range"
+      },
+      "body": "\u003cdiv itemscope itemtype=\"https://pagelove.org/Error\"\u003e\u003cul itemprop=\"problems\"\u003e\u003cli itemprop=\"problem\"\u003e\u003cspan itemprop=\"message\"\u003eplacement=After relative to the document root is not possible: the root has no siblings\u003c/span\u003e\u003c/li\u003e\u003c/ul\u003e\u003c/div\u003e"
+    },
+    {
+      "step": "step 3 (nothing was written)",
+      "method": "GET",
+      "path": "/_pl/rw-post-parentless-anchor-400-e8874c/root.html",
+      "status": 200,
+      "headers": {
+        "accept-ranges": "selector, bytes",
+        "content-length": "59",
+        "content-type": "text/html",
+        "etag": "\"1efc1effa345fa52970835f3b0d3df7c2c3b39646bce02abd3bedbc5db576a33\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:56 GMT",
+        "vary": "Host, Range, Accept"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\u003cp\u003eroot test\u003c/p\u003e\u003c/body\u003e\u003c/html\u003e\n"
+    }
+  ],
+  "outcome": "pass",
+  "target": "local"
+}

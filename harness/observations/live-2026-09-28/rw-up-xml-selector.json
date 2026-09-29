@@ -1,0 +1,24 @@
+{
+  "case": "rw.up.xml-selector",
+  "failures": [
+    "step 1 (select the entry) GET ${P}/feed.xml: status 422, want [206] (body: \u003c!DOCTYPE html\u003e\n\u003chtml\u003e\n  \u003chead\u003e\n    \u003ctitle\u003e422 Unprocessable Entity - Error\u003c/title\u003e\n  \u003c/head\u003e\n  \u003cbody itemscope itemtype=\"http://pagelove.org/Error\"\u003e\n    \u003ch1 itemprop=\"name\"\u003eUnprocessable Entity\u003c/h1\u003e\n    \u003cmeta itemprop=\"statusCode\" content=…)",
+    "step 1 (select the entry) GET ${P}/feed.xml: body does not contain \"\u003centry\u003e\" (body: \u003c!DOCTYPE html\u003e\n\u003chtml\u003e\n  \u003chead\u003e\n    \u003ctitle\u003e422 Unprocessable Entity - Error\u003c/title\u003e\n  \u003c/head\u003e\n  \u003cbody itemscope itemtype=\"http://pagelove.org/Error\"\u003e\n    \u003ch1 itemprop=\"name\"\u003eUnprocessable Entity\u003c/h1\u003e\n    \u003cmeta itemprop=\"statusCode\" content=\"422\"\u003e\n    \u003cp itemprop=\"description\"\u003eInvalid path: Selector operations require HTML documents, but /_pl/rw-up-xml-selector-a6e5a7/feed.xml has content type appl…)",
+    "step 1 (select the entry) GET ${P}/feed.xml: body does not contain \"urn:1\" (body: \u003c!DOCTYPE html\u003e\n\u003chtml\u003e\n  \u003chead\u003e\n    \u003ctitle\u003e422 Unprocessable Entity - Error\u003c/title\u003e\n  \u003c/head\u003e\n  \u003cbody itemscope itemtype=\"http://pagelove.org/Error\"\u003e\n    \u003ch1 itemprop=\"name\"\u003eUnprocessable Entity\u003c/h1\u003e\n    \u003cmeta itemprop=\"statusCode\" content=\"422\"\u003e\n    \u003cp itemprop=\"description\"\u003eInvalid path: Selector operations require HTML documents, but /_pl/rw-up-xml-selector-a6e5a7/feed.xml has content type appl…)"
+  ],
+  "observations": [
+    {
+      "step": "step 1 (select the entry)",
+      "method": "GET",
+      "path": "/_pl/rw-up-xml-selector-a6e5a7/feed.xml",
+      "status": 422,
+      "headers": {
+        "content-length": "438",
+        "content-type": "text/html",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\n  \u003chead\u003e\n    \u003ctitle\u003e422 Unprocessable Entity - Error\u003c/title\u003e\n  \u003c/head\u003e\n  \u003cbody itemscope itemtype=\"http://pagelove.org/Error\"\u003e\n    \u003ch1 itemprop=\"name\"\u003eUnprocessable Entity\u003c/h1\u003e\n    \u003cmeta itemprop=\"statusCode\" content=\"422\"\u003e\n    \u003cp itemprop=\"description\"\u003eInvalid path: Selector operations require HTML documents, but /_pl/rw-up-xml-selector-a6e5a7/feed.xml has content type application/atom+xml\u003c/p\u003e\n  \u003c/body\u003e\n\u003c/html\u003e"
+    }
+  ],
+  "outcome": "fail",
+  "target": "live"
+}

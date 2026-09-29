@@ -1,0 +1,62 @@
+{
+  "case": "modeling.shapes.delete-leaving-violation-is-409",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (register declarations through the public plane (takes effect for the next request))",
+      "method": "PUT",
+      "path": "/_pl/modeling-shapes-delete-leaving-violation-3b4c49/shapes.html",
+      "status": 201,
+      "headers": {
+        "content-length": "369",
+        "content-type": "text/html",
+        "etag": "\"abb10b5997972b1f3abf53558fc16eb8a154f682c9dae1562488dcbb53e6daaf\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:45 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\n  \u003cdiv hidden itemscope itemtype=\"https://pagelove.org/ShapeConstraint\"\u003e\n    \u003cmeta itemprop=\"resource\" content=\"/_pl/modeling-shapes-delete-leaving-violation-3b4c49/site/*\"\u003e\n    \u003ccode itemprop=\"selector\"\u003enav\u003c/code\u003e\n    \u003ccode itemprop=\"constraint\"\u003e:has(ul)\u003c/code\u003e\n    \u003ccode itemprop=\"constraint\"\u003e:has(ul li a)\u003c/code\u003e\n  \u003c/div\u003e\n\u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 2 (navigation with one link)",
+      "method": "PUT",
+      "path": "/_pl/modeling-shapes-delete-leaving-violation-3b4c49/site/n.html",
+      "status": 201,
+      "headers": {
+        "content-length": "126",
+        "content-type": "text/html",
+        "etag": "\"3945968955cb18cc3ab1c5546ea8648e9f9a3711fddacc398db20f286c152ba2\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:45 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\n  \u003cnav\u003e\n    \u003cul\u003e\n      \u003cli id=\"only\"\u003e\u003ca href=\"/\"\u003eHome\u003c/a\u003e\u003c/li\u003e\n    \u003c/ul\u003e\n  \u003c/nav\u003e\n\u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 3 (removing the only link is refused)",
+      "method": "DELETE",
+      "path": "/_pl/modeling-shapes-delete-leaving-violation-3b4c49/site/n.html",
+      "status": 409,
+      "headers": {
+        "content-length": "384",
+        "content-type": "text/html",
+        "vary": "Host, Range"
+      },
+      "body": "\u003cdiv itemscope itemtype=\"https://dombase.pagelove.team/ns/error/CascadeBlocked\"\u003e\u003cul itemprop=\"problems\"\u003e\u003cli itemprop=\"problem\"\u003e\u003cspan itemprop=\"message\"\u003eOperation refused by cascade constraint: Constraint violation: 1 violation(s):\n  - [https://pagelove.org/ShapeConstraint] nav (:has(ul li a)): Element matching 'nav' does not satisfy constraint ':has(ul li a)'\u003c/span\u003e\u003c/li\u003e\u003c/ul\u003e\u003c/div\u003e"
+    },
+    {
+      "step": "step 4 (stored state of n.html (authoring plane, raw))",
+      "method": "GET",
+      "path": "/_pl/modeling-shapes-delete-leaving-violation-3b4c49/site/n.html",
+      "status": 200,
+      "headers": {
+        "accept-ranges": "bytes",
+        "content-length": "126",
+        "content-type": "text/html",
+        "etag": "\"3945968955cb18cc3ab1c5546ea8648e9f9a3711fddacc398db20f286c152ba2\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:45 GMT"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\n  \u003cnav\u003e\n    \u003cul\u003e\n      \u003cli id=\"only\"\u003e\u003ca href=\"/\"\u003eHome\u003c/a\u003e\u003c/li\u003e\n    \u003c/ul\u003e\n  \u003c/nav\u003e\n\u003c/body\u003e\u003c/html\u003e\n"
+    }
+  ],
+  "outcome": "pass",
+  "target": "local"
+}

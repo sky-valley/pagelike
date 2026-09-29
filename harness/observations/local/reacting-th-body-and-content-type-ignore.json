@@ -1,0 +1,49 @@
+{
+  "case": "reacting.th.body-and-content-type-ignored",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (install a handler with body, content-type and a static header)",
+      "method": "PUT",
+      "path": "/_pl/reacting-th-body-and-content-type-ignore-55c62e/r/handlers.html",
+      "status": 201,
+      "headers": {
+        "content-length": "875",
+        "content-type": "text/html",
+        "etag": "\"e1c20a003ab4f115dc60a7675a7fa6f093a4cf5a4fc299adc279b7ea1d402bb5\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:53 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\n\u003cdiv itemscope itemtype=\"https://pagelove.org/TransitionHandler\"\u003e\n  \u003cmeta itemprop=\"selector\" content=\"[itemtype='https://pagelike.test/_pl/reacting-th-body-and-content-type-ignore-55c62e/Order']\"\u003e\n  \u003cmeta itemprop=\"property\" content=\"status\"\u003e\n  \u003cmeta itemprop=\"becomes\" content=\"processing\"\u003e\n  \u003cdiv itemprop=\"action\" itemscope itemtype=\"https://pagelove.org/HttpRequest\"\u003e\n    \u003cmeta itemprop=\"url\" content=\"http://127.0.0.1:53668/c-b49f9231/owned\"\u003e\n    \u003cmeta itemprop=\"method\" content=\"PUT\"\u003e\n    \u003cmeta itemprop=\"content-type\" content=\"application/json\"\u003e\n    \u003cmeta itemprop=\"body\" content=\"{\u0026quot;ignored\u0026quot;:true}\"\u003e\n    \u003cdiv itemprop=\"header\" itemscope itemtype=\"https://pagelove.org/Pair\"\u003e\n      \u003cmeta itemprop=\"key\" content=\"X-Worker-Token\"\u003e\n      \u003cmeta itemprop=\"value\" content=\"static-test-token\"\u003e\n    \u003c/div\u003e\n  \u003c/div\u003e\n\u003c/div\u003e\n\u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 2 (create an order at processing)",
+      "method": "PUT",
+      "path": "/_pl/reacting-th-body-and-content-type-ignore-55c62e/orders/o.html",
+      "status": 201,
+      "headers": {
+        "content-length": "198",
+        "content-type": "text/html",
+        "etag": "\"ddb1590f29361869f9f8c0146bc223ec5fe4fbb37cb73c9c6cdeade3ae3a24cc\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:53 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\u003chtml\u003e\u003cbody\u003e\u003cdiv itemscope itemtype=\"https://pagelike.test/_pl/reacting-th-body-and-content-type-ignore-55c62e/Order\"\u003e\u003cmeta itemprop=\"status\" content=\"processing\"\u003e\u003c/div\u003e\u003c/body\u003e\u003c/html\u003e"
+    },
+    {
+      "step": "step 3",
+      "method": "PUT",
+      "path": "${SINK}/owned",
+      "headers": {
+        "accept-encoding": "gzip",
+        "content-length": "570",
+        "content-type": "text/html",
+        "user-agent": "Go-http-client/1.1",
+        "x-worker-token": "static-test-token"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\n  \u003chead\u003e\u003ctitle\u003eTransition\u003c/title\u003e\u003c/head\u003e\n  \u003cbody itemscope itemtype=\"https://pagelove.org/Transition\"\u003e\n    \u003cmeta itemprop=\"path\" content=\"/_pl/reacting-th-body-and-content-type-ignore-55c62e/orders/o.html\"\u003e\n    \u003cmeta itemprop=\"selector\" content=\"[itemtype=\u0026quot;https://pagelike.test/_pl/reacting-th-body-and-content-type-ignore-55c62e/Order\u0026quot;]\"\u003e\n    \u003cdiv itemscope itemtype=\"https://pagelike.test/_pl/reacting-th-body-and-content-type-ignore-55c62e/Order\" itemprop=\"body\"\u003e\u003cmeta itemprop=\"status\" content=\"processing\"\u003e\u003c/div\u003e\n  \u003c/body\u003e\n\u003c/html\u003e\n"
+    }
+  ],
+  "outcome": "pass",
+  "target": "local"
+}

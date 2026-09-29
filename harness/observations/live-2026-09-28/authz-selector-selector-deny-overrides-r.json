@@ -1,0 +1,40 @@
+{
+  "case": "authz.selector.selector-deny-overrides-resource-allow-same-tier",
+  "failures": [
+    "step 1 (locked element refused) PUT ${P}/doc.html: status 206, want [401] (body: \u003cp id=\"l\" class=\"locked\"\u003ex\u003c/p\u003e)"
+  ],
+  "observations": [
+    {
+      "step": "step 1 (locked element refused)",
+      "method": "PUT",
+      "path": "/_pl/authz-selector-selector-deny-overrides-r-102fe3/doc.html",
+      "status": 206,
+      "headers": {
+        "content-length": "30",
+        "content-range": "selector #l",
+        "content-type": "text/html",
+        "etag": "\"7336f24a4ddb2a7df204ea1c41530520c1c60564dc644064250807108aa13f82-7336f24a4ddb2a7df204ea1c41530520c1c60564dc644064250807108aa13f82-2\"",
+        "last-modified": "Mon, 28 Sep 2026 22:40:46 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003cp id=\"l\" class=\"locked\"\u003ex\u003c/p\u003e"
+    },
+    {
+      "step": "step 2 (other element allowed)",
+      "method": "PUT",
+      "path": "/_pl/authz-selector-selector-deny-overrides-r-102fe3/doc.html",
+      "status": 206,
+      "headers": {
+        "content-length": "28",
+        "content-range": "selector #o",
+        "content-type": "text/html",
+        "etag": "\"8e2f19fc2e9db8a42cfdbcab0177c1b6c0ea4a9a6f05371957f4afda8b376d7b-8e2f19fc2e9db8a42cfdbcab0177c1b6c0ea4a9a6f05371957f4afda8b376d7b-3\"",
+        "last-modified": "Mon, 28 Sep 2026 22:40:47 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003cp id=\"o\" class=\"open\"\u003ex\u003c/p\u003e"
+    }
+  ],
+  "outcome": "fail",
+  "target": "live"
+}

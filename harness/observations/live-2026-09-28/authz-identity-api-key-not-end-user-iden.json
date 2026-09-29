@@ -1,0 +1,25 @@
+{
+  "case": "authz.identity.api-key-not-end-user-identity",
+  "failures": [
+    "step 1 (author key on the public plane) GET ${P}/members.html: status 200, want [401 403] (body: \u003c!DOCTYPE html\u003e\u003chtml\u003e\u003cbody\u003e\u003ch1\u003eMembers only\u003c/h1\u003e\u003c/body\u003e\u003c/html\u003e)",
+    "step 1 (author key on the public plane) GET ${P}/members.html: body contains \"Members only\""
+  ],
+  "observations": [
+    {
+      "step": "step 1 (author key on the public plane)",
+      "method": "GET",
+      "path": "/_pl/authz-identity-api-key-not-end-user-iden-efe546/members.html",
+      "status": 200,
+      "headers": {
+        "accept-ranges": "bytes",
+        "content-length": "62",
+        "content-type": "text/html",
+        "etag": "\"6e59922b2ada83e921e0713545ae0fda6dc292ce649a4ce26f63643aaa9ac9ad\"",
+        "last-modified": "Mon, 28 Sep 2026 22:38:48 GMT"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\u003chtml\u003e\u003cbody\u003e\u003ch1\u003eMembers only\u003c/h1\u003e\u003c/body\u003e\u003c/html\u003e"
+    }
+  ],
+  "outcome": "fail",
+  "target": "live"
+}

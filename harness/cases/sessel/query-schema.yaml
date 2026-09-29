@@ -1,0 +1,169 @@
+# @schema, Class objects, search(), construct(), Instances, schema methods and reflection through QUERY.
+# Spec: docs/spec/sessel.md §14 (R-SESSEL-280..296).
+# Type URLs embed ${P} so a live run never sees another run's instances. live: false because schema
+# registration goes through the host schema cache (propagation delays are undocumented); flip to
+# true once a live recording shows the cache is refreshed by the setup PUT.
+defaults:
+  area: sessel
+  evidence: documented
+  confidence: medium
+  requires: [sessel]
+  site:
+    files:
+      - path: "${P}/schemas.html"
+        body: |
+          <!DOCTYPE html>
+          <html><body>
+          <div hidden itemscope itemtype="https://pagelove.org/Schema"><meta itemprop="type" content="https://example.com${P}/UserConfig"><div itemprop="property" itemscope itemtype="https://pagelove.org/Property"><meta itemprop="name" content="org-id"></div><div itemprop="property" itemscope itemtype="https://pagelove.org/Property"><meta itemprop="name" content="theme"></div></div>
+          <div hidden itemscope itemtype="https://pagelove.org/Schema"><meta itemprop="type" content="https://example.com${P}/TeamConfig"><meta itemprop="parent" content="https://example.com${P}/UserConfig"></div>
+          <div hidden itemscope itemtype="https://pagelove.org/Schema"><meta itemprop="type" content="https://example.com${P}/Project"><div itemprop="property" itemscope itemtype="https://pagelove.org/Property"><meta itemprop="name" content="slug"></div><div itemprop="property" itemscope itemtype="https://pagelove.org/Property"><meta itemprop="name" content="name"></div><div itemprop="property" itemscope itemtype="https://pagelove.org/Property"><meta itemprop="name" content="status"></div></div>
+          <div hidden itemscope itemtype="https://pagelove.org/Schema"><meta itemprop="type" content="https://example.com${P}/DomainGroup"><meta itemprop="parent" content="https://pagelove.org/Group"><div itemprop="property" itemscope itemtype="https://pagelove.org/Property"><meta itemprop="name" content="domain"><meta itemprop="type" content="https://schema.host/Text"><meta itemprop="cardinality" content="1..1"></div><ul><li itemprop="property" itemscope itemtype="https://pagelove.org/Method"><meta itemprop="name" content="includes"><meta itemprop="returns" content="https://schema.host/Boolean"><ul><li itemprop="parameter" itemscope itemtype="https://pagelove.org/Parameter"><meta itemprop="name" content="email"><meta itemprop="type" content="https://schema.host/Text"></li></ul><div itemprop="implementation" itemscope itemtype="https://pagelove.org/Sessel"><script itemprop="source" type="text/sessel">email.endsWith(self.domain)</script></div></li></ul></div>
+          </body></html>
+      - path: "${P}/configs.html"
+        body: |
+          <!DOCTYPE html>
+          <html><body>
+          <div itemscope itemtype="https://example.com${P}/UserConfig"><meta itemprop="org-id" content="abc"><meta itemprop="theme" content="dark"><meta itemprop="hostname" content="foo.com"></div>
+          <div itemscope itemtype="https://example.com${P}/UserConfig"><meta itemprop="org-id" content="xyz"><meta itemprop="theme" content="light"><meta itemprop="alias" content="foo.com"></div>
+          <div itemscope itemtype="https://example.com${P}/TeamConfig"><meta itemprop="org-id" content="abc"><meta itemprop="theme" content="blue"></div>
+          <div itemscope itemtype="https://example.com${P}/DomainGroup"><span itemprop="name">sessel-case-staff</span><meta itemprop="domain" content="@example.com"></div>
+          </body></html>
+    rules:
+      - {actor: "*", resource: "${P}/*", method: [GET, QUERY], action: Allow}
+cases:
+  - id: sessel.query.schema.search
+    title: Class.search() finds instances site-wide with AND, OR and polymorphic criteria
+    feature: Class search
+    source: "docs languages/sessel/learn/querying §Typed search with Class objects; reference/types §.search() (snapshot 2026-09-28)"
+    live: false
+    notes: R-SESSEL-283.
+    steps:
+      - name: all, AND, OR, empty OR, isa
+        as: anonymous
+        request:
+          method: QUERY
+          path: "${P}/configs.html"
+          headers: {Content-Type: "text/sessel"}
+          body: |
+            @schema UserConfig url("https://example.com${P}/UserConfig");
+            [
+              UserConfig.search().count(),
+              UserConfig.search({ "org-id": "abc" }).map(c => c.theme),
+              UserConfig.search([{ hostname: "foo.com" }, { alias: "foo.com" }]).count(),
+              UserConfig.search([]).count(),
+              UserConfig.search({}, { "isa": true }).count(),
+              UserConfig.search([{ "org-id": "abc" }], { "isa": true }).map(c => c.theme)
+            ]
+        expect:
+          status: 200
+          body_json: [2, [dark], 2, 2, 3, [dark, blue]]
+
+  - id: sessel.query.schema.search-errors
+    title: Unknown search options are TypeErrors; isa must be quoted
+    feature: Class search
+    source: "docs languages/sessel/reference/types §.search() (\"Unknown keys raise a TypeError\") (snapshot 2026-09-28)"
+    live: false
+    notes: R-SESSEL-283, R-SESSEL-12.
+    steps:
+      - name: unknown option
+        as: anonymous
+        request:
+          method: QUERY
+          path: "${P}/configs.html"
+          headers: {Content-Type: "text/sessel"}
+          body: '@schema UserConfig url("https://example.com${P}/UserConfig"); try { UserConfig.search({}, { deep: true }) } catch (e) { e.type }'
+        expect:
+          status: 200
+          body_json: TypeError
+      - name: unquoted isa key is a parse error
+        as: anonymous
+        request:
+          method: QUERY
+          path: "${P}/configs.html"
+          headers: {Content-Type: "text/sessel"}
+          body: '@schema UserConfig url("https://example.com${P}/UserConfig"); UserConfig.search({}, { isa: true })'
+        expect: {status: 400}
+
+  - id: sessel.query.schema.instances
+    title: Instances from search, construct() and new are typed, readable and writable
+    feature: instances
+    source: "docs languages/sessel/reference/types §Instance, §Class (snapshot 2026-09-28)"
+    live: false
+    notes: R-SESSEL-284..287.
+    steps:
+      - name: property access, isa and construction
+        as: anonymous
+        request:
+          method: QUERY
+          path: "${P}/configs.html"
+          headers: {Content-Type: "text/sessel"}
+          body: |
+            @schema UserConfig url("https://example.com${P}/UserConfig");
+            @schema TeamConfig url("https://example.com${P}/TeamConfig");
+            @schema Project url("https://example.com${P}/Project");
+            let cls = UserConfig;
+            let c = cls.construct({ "org-id": "q", theme: "dark" });
+            let p = new Project { slug: "launch", name: "Product Launch", status: "active" };
+            p.status = "archived";
+            let t = UserConfig.search({ theme: "blue" }, { "isa": true }).first();
+            [UserConfig isa Class, c.theme, c isa UserConfig, p.name, p isa Project, p.status, t isa TeamConfig, t isa UserConfig, UserConfig.search({ "org-id": "xyz" }).first().org-id]
+        expect:
+          status: 200
+          body_json: [true, dark, true, Product Launch, true, archived, true, true, xyz]
+
+  - id: sessel.query.schema.method
+    title: A Sessel schema method runs with self bound to the instance and parameters as named locals
+    feature: instance methods
+    source: "docs reference/permissions/Group §Custom membership (email.endsWith(self.domain)) (snapshot 2026-09-28)"
+    live: false
+    notes: R-SESSEL-288.
+    steps:
+      - name: includes()
+        as: anonymous
+        request:
+          method: QUERY
+          path: "${P}/configs.html"
+          headers: {Content-Type: "text/sessel"}
+          body: '@schema DomainGroup url("https://example.com${P}/DomainGroup"); let g = DomainGroup.search().first(); [g.includes("a@example.com"), g.includes("b@other.org")]'
+        expect:
+          status: 200
+          body_json: [true, false]
+
+  - id: sessel.query.schema.reflection
+    title: The Sessel reflection schema reads raw itemprops, property names and itemtype
+    feature: reflection
+    source: "docs languages/sessel/reference/types §Reflection API (snapshot 2026-09-28)"
+    live: true
+    notes: R-SESSEL-289. Needs no user schema, so it is live-safe.
+    steps:
+      - name: stored, properties, schemaOf
+        as: anonymous
+        request:
+          method: QUERY
+          path: "${P}/configs.html"
+          headers: {Content-Type: "text/sessel"}
+          body: |
+            @schema Sessel url("https://pagelove.org/Sessel");
+            let el = (${[itemprop="theme"]} from self).first().parent();
+            [Sessel.stored(el, "theme"), Sessel.stored(el, "missing"), Sessel.properties(el), Sessel.schemaOf(el) == "https://example.com${P}/UserConfig"]
+        expect:
+          status: 200
+          body_json: [dark, null, [org-id, theme, hostname], true]
+
+  - id: sessel.query.schema.instance-element-shape
+    title: A constructed instance is an itemscope element whose scalar properties are element children
+    feature: instances
+    source: "docs languages/sessel/reference/types §Instance (snapshot 2026-09-28)"
+    live: true
+    notes: R-SESSEL-285. Construction of an undeclared URL needs no schema registry.
+    steps:
+      - name: parent of a scalar child
+        as: anonymous
+        request:
+          method: QUERY
+          path: "${P}/configs.html"
+          headers: {Content-Type: "text/sessel"}
+          body: '@schema Foo url("https://example.com/Foo"); [(new Foo { count: 5 }).children().first().parent().attr("itemtype"), (new Foo { new span { } }).children().first().parent().attr("itemtype")]'
+        expect:
+          status: 200
+          body_json: ["https://example.com/Foo", "https://example.com/Foo"]

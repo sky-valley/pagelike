@@ -1,0 +1,37 @@
+{
+  "case": "javascript.jbind.reads-resource-binding",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (PUT the page (public plane; registers inline declarations))",
+      "method": "PUT",
+      "path": "/_pl/javascript-jbind-reads-resource-binding-0a9921/j.html",
+      "status": 201,
+      "headers": {
+        "content-length": "544",
+        "content-type": "text/html",
+        "etag": "\"663a412094823e374a7da70db8e133e9b4ae064f27db53bf8dd342f22a1c2800\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:43 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml xmlns:j=\"https://pagelove.org/Binding/JavaScript\" xmlns:p=\"https://pagelove.org/1.0\" xmlns:r=\"https://pagelove.org/Binding/CSS\"\u003e\u003cbody\u003e\n\u003cmain\u003e\n\u003cul\u003e\u003cli data-k=\"/_pl/javascript-jbind-reads-resource-binding-0a9921\"\u003e1\u003c/li\u003e\u003cli data-k=\"/_pl/javascript-jbind-reads-resource-binding-0a9921\"\u003e2\u003c/li\u003e\u003cli data-k=\"/_pl/javascript-jbind-reads-resource-binding-0a9921\"\u003e3\u003c/li\u003e\u003c/ul\u003e\n\u003cdiv r:items=\"li[data-k='/_pl/javascript-jbind-reads-resource-binding-0a9921']\" j:n=\"'N=' + items.length\"\u003e\u003cp:stamp n\u003e\u003c/p:stamp\u003e\u003c/div\u003e\n\u003c/main\u003e\n\u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 2 (GET the composed page)",
+      "method": "GET",
+      "path": "/_pl/javascript-jbind-reads-resource-binding-0a9921/j.html",
+      "status": 206,
+      "headers": {
+        "accept-ranges": "selector, bytes",
+        "content-length": "252",
+        "content-range": "selector main",
+        "content-type": "text/html",
+        "etag": "\"5deafb39fc526910448779dcd993c545691e18ff1d9743471502b71f4caed301-5deafb39fc526910448779dcd993c545691e18ff1d9743471502b71f4caed301-1\"",
+        "vary": "Host, Range, Accept"
+      },
+      "body": "\u003cmain\u003e\n\u003cul\u003e\u003cli data-k=\"/_pl/javascript-jbind-reads-resource-binding-0a9921\"\u003e1\u003c/li\u003e\u003cli data-k=\"/_pl/javascript-jbind-reads-resource-binding-0a9921\"\u003e2\u003c/li\u003e\u003cli data-k=\"/_pl/javascript-jbind-reads-resource-binding-0a9921\"\u003e3\u003c/li\u003e\u003c/ul\u003e\n\u003cdiv\u003eN=3\u003c/div\u003e\n\u003c/main\u003e"
+    }
+  ],
+  "outcome": "pass",
+  "target": "local"
+}

@@ -1,0 +1,62 @@
+{
+  "case": "reacting.tc.key-pairing-rejects-with-key",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (register the Order schema with orderNumber as @key)",
+      "method": "PUT",
+      "path": "/_pl/reacting-tc-key-pairing-rejects-with-key-ac23f3/schema.html",
+      "status": 201,
+      "headers": {
+        "content-length": "562",
+        "content-type": "text/html",
+        "etag": "\"94f27d2951c2851e9db5dd18ce6496d86ba837b567c051aa19153e620a115488\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:55 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\n\u003cdiv hidden itemscope itemtype=\"https://pagelove.org/Schema\"\u003e\n  \u003cmeta itemprop=\"type\" content=\"https://pagelike.test/_pl/reacting-tc-key-pairing-rejects-with-key-ac23f3/Order\"\u003e\n  \u003cdiv itemprop=\"property\" itemscope itemtype=\"https://pagelove.org/Property\"\u003e\n    \u003cmeta itemprop=\"name\" content=\"orderNumber\"\u003e\n    \u003cmeta itemprop=\"type\" content=\"https://schema.host/Text\"\u003e\n    \u003cmeta itemprop=\"cardinality\" content=\"1..1\"\u003e\n    \u003cmeta itemprop=\"unique\" content=\"true\"\u003e\n    \u003cmeta itemprop=\"@key\" content=\"true\"\u003e\n  \u003c/div\u003e\n\u003c/div\u003e\n\u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 2 (install entry pending and step pending -\u003e processing)",
+      "method": "PUT",
+      "path": "/_pl/reacting-tc-key-pairing-rejects-with-key-ac23f3/transitions/rules.html",
+      "status": 201,
+      "headers": {
+        "content-length": "680",
+        "content-type": "text/html",
+        "etag": "\"16a44e141220e03b5fc31163b957b2c01ea0c71abc06978a780e0997e4040d70\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:55 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\n\u003cdiv itemscope itemtype=\"https://pagelove.org/TransitionConstraint\"\u003e\n  \u003cmeta itemprop=\"selector\" content=\"[itemtype='https://pagelike.test/_pl/reacting-tc-key-pairing-rejects-with-key-ac23f3/Order']\"\u003e\n  \u003cmeta itemprop=\"property\" content=\"status\"\u003e\n  \u003cmeta itemprop=\"to\" content=\"pending\"\u003e\n\u003c/div\u003e\n\u003cdiv itemscope itemtype=\"https://pagelove.org/TransitionConstraint\"\u003e\n  \u003cmeta itemprop=\"selector\" content=\"[itemtype='https://pagelike.test/_pl/reacting-tc-key-pairing-rejects-with-key-ac23f3/Order']\"\u003e\n  \u003cmeta itemprop=\"property\" content=\"status\"\u003e\n  \u003cmeta itemprop=\"from\" content=\"pending\"\u003e\n  \u003cmeta itemprop=\"to\" content=\"processing\"\u003e\n\u003c/div\u003e\n\u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 3 (seed SKU-A and SKU-B at pending in one document)",
+      "method": "PUT",
+      "path": "/_pl/reacting-tc-key-pairing-rejects-with-key-ac23f3/orders/batch.html",
+      "status": 201,
+      "headers": {
+        "content-length": "444",
+        "content-type": "text/html",
+        "etag": "\"796b206fcdc8cca1c68f954221cde34c79d4b794e8c4100b34f45efb8a22807e\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:55 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\n\u003cdiv itemscope itemtype=\"https://pagelike.test/_pl/reacting-tc-key-pairing-rejects-with-key-ac23f3/Order\"\u003e\u003cmeta itemprop=\"orderNumber\" content=\"SKU-A\"\u003e\u003cmeta itemprop=\"status\" content=\"pending\"\u003e\u003c/div\u003e\n\u003cdiv itemscope itemtype=\"https://pagelike.test/_pl/reacting-tc-key-pairing-rejects-with-key-ac23f3/Order\"\u003e\u003cmeta itemprop=\"orderNumber\" content=\"SKU-B\"\u003e\u003cmeta itemprop=\"status\" content=\"pending\"\u003e\u003c/div\u003e\n\u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 4 (SKU-B jumps from pending to shipped)",
+      "method": "PUT",
+      "path": "/_pl/reacting-tc-key-pairing-rejects-with-key-ac23f3/orders/batch.html",
+      "status": 422,
+      "headers": {
+        "content-length": "1247",
+        "content-type": "text/html; charset=utf-8",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\n  \u003chead\u003e\n    \u003ctitle\u003e422 Unprocessable Entity - Transition Constraint Violation\u003c/title\u003e\n  \u003c/head\u003e\n  \u003cbody itemscope itemtype=\"https://pagelove.org/ConstraintViolation\"\u003e\n    \u003ch1 itemprop=\"name\"\u003eUnprocessable Entity\u003c/h1\u003e\n    \u003cmeta itemprop=\"statusCode\" content=\"422\"\u003e\n    \u003cp itemprop=\"description\"\u003eTransition constraints violated\u003c/p\u003e\n    \u003cul\u003e\n      \u003cli itemprop=\"violations\" itemscope itemtype=\"https://pagelove.org/Violation\"\u003e\n        \u003cspan itemprop=\"constraintSelector\"\u003e[itemprop='status']\u003c/span\u003e\n        \u003cspan itemprop=\"failedConstraint\"\u003etransition(status)\u003c/span\u003e\n        \u003cspan itemprop=\"message\"\u003eTransition violation: 'https://pagelike.test/_pl/reacting-tc-key-pairing-rejects-with-key-ac23f3/Order' item 'SKU-B' property 'status' may not change from 'pending' to 'shipped' (constraint declared in '/_pl/reacting-tc-key-pairing-rejects-with-key-ac23f3/transitions/rules.html')\u003c/span\u003e\n        \u003cspan itemprop=\"itemtype\"\u003ehttps://pagelike.test/_pl/reacting-tc-key-pairing-rejects-with-key-ac23f3/Order\u003c/span\u003e\n        \u003cspan itemprop=\"property\"\u003estatus\u003c/span\u003e\n        \u003cspan itemprop=\"key\"\u003eSKU-B\u003c/span\u003e\n        \u003cspan itemprop=\"from\"\u003epending\u003c/span\u003e\n        \u003cspan itemprop=\"to\"\u003eshipped\u003c/span\u003e\n      \u003c/li\u003e\n    \u003c/ul\u003e\n  \u003c/body\u003e\n\u003c/html\u003e\n"
+    }
+  ],
+  "outcome": "pass",
+  "target": "local"
+}

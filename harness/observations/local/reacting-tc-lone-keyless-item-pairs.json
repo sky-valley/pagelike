@@ -1,0 +1,50 @@
+{
+  "case": "reacting.tc.lone-keyless-item-pairs",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (install entry pending and step pending -\u003e processing)",
+      "method": "PUT",
+      "path": "/_pl/reacting-tc-lone-keyless-item-pairs-945529/transitions/rules.html",
+      "status": 201,
+      "headers": {
+        "content-length": "670",
+        "content-type": "text/html",
+        "etag": "\"15d7408fe3e8c5abb6ae8e7553d05dcf79ccd91c3c475bd00608be0340965926\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:55 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\n\u003cdiv itemscope itemtype=\"https://pagelove.org/TransitionConstraint\"\u003e\n  \u003cmeta itemprop=\"selector\" content=\"[itemtype='https://pagelike.test/_pl/reacting-tc-lone-keyless-item-pairs-945529/Order']\"\u003e\n  \u003cmeta itemprop=\"property\" content=\"status\"\u003e\n  \u003cmeta itemprop=\"to\" content=\"pending\"\u003e\n\u003c/div\u003e\n\u003cdiv itemscope itemtype=\"https://pagelove.org/TransitionConstraint\"\u003e\n  \u003cmeta itemprop=\"selector\" content=\"[itemtype='https://pagelike.test/_pl/reacting-tc-lone-keyless-item-pairs-945529/Order']\"\u003e\n  \u003cmeta itemprop=\"property\" content=\"status\"\u003e\n  \u003cmeta itemprop=\"from\" content=\"pending\"\u003e\n  \u003cmeta itemprop=\"to\" content=\"processing\"\u003e\n\u003c/div\u003e\n\u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 2 (seed one keyless order)",
+      "method": "PUT",
+      "path": "/_pl/reacting-tc-lone-keyless-item-pairs-945529/orders/one.html",
+      "status": 201,
+      "headers": {
+        "content-length": "190",
+        "content-type": "text/html",
+        "etag": "\"35e4e793d2cdcf2b97a5cd22a21231ea4c384c7f967b3b659ecaea186c3c0306\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:55 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\u003chtml\u003e\u003cbody\u003e\u003cdiv itemscope itemtype=\"https://pagelike.test/_pl/reacting-tc-lone-keyless-item-pairs-945529/Order\"\u003e\u003cmeta itemprop=\"status\" content=\"pending\"\u003e\u003c/div\u003e\u003c/body\u003e\u003c/html\u003e"
+    },
+    {
+      "step": "step 3 (a whole-document PUT moves it to processing)",
+      "method": "PUT",
+      "path": "/_pl/reacting-tc-lone-keyless-item-pairs-945529/orders/one.html",
+      "status": 200,
+      "headers": {
+        "content-length": "212",
+        "content-type": "text/html",
+        "etag": "\"fd75cd27b4dd4cbe7c1d0f5340db415cdee10169df0d264986b5438ff7bcd764\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:55 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\u003chtml\u003e\u003cbody\u003e\u003csection\u003e\u003cdiv itemscope itemtype=\"https://pagelike.test/_pl/reacting-tc-lone-keyless-item-pairs-945529/Order\"\u003e\u003cmeta itemprop=\"status\" content=\"processing\"\u003e\u003c/div\u003e\u003c/section\u003e\u003c/body\u003e\u003c/html\u003e"
+    }
+  ],
+  "outcome": "pass",
+  "target": "local"
+}

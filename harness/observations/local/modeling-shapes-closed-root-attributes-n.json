@@ -1,0 +1,48 @@
+{
+  "case": "modeling.shapes-closed.root-attributes-need-coverage",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (register declarations through the public plane (takes effect for the next request))",
+      "method": "PUT",
+      "path": "/_pl/modeling-shapes-closed-root-attributes-n-c15081/shapes.html",
+      "status": 201,
+      "headers": {
+        "content-length": "937",
+        "content-type": "text/html",
+        "etag": "\"feec01e40a4fa8d23a883c0fdbf79fe06b60fd13cd9747a58ff734368dbeebcd\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:45 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\n  \u003cdiv hidden itemscope itemtype=\"https://pagelove.org/ShapeConstraint\"\u003e\n    \u003cmeta itemprop=\"resource\" content=\"/_pl/modeling-shapes-closed-root-attributes-n-c15081/strict/*\"\u003e\n    \u003ccode itemprop=\"selector\"\u003e[itemtype='https://pagelike.test/_pl/modeling-shapes-closed-root-attributes-n-c15081/Order']\u003c/code\u003e\n    \u003ccode itemprop=\"permit\"\u003emeta[itemprop][content]\u003c/code\u003e\n  \u003c/div\u003e\n  \u003cdiv hidden itemscope itemtype=\"https://pagelove.org/ShapeConstraint\"\u003e\n    \u003cmeta itemprop=\"resource\" content=\"/_pl/modeling-shapes-closed-root-attributes-n-c15081/fixed/*\"\u003e\n    \u003ccode itemprop=\"selector\"\u003e[itemtype='https://pagelike.test/_pl/modeling-shapes-closed-root-attributes-n-c15081/Order']\u003c/code\u003e\n    \u003ccode itemprop=\"permit\"\u003ediv[itemscope][itemtype=\"https://pagelike.test/_pl/modeling-shapes-closed-root-attributes-n-c15081/Order\"][id]\u003c/code\u003e\n    \u003ccode itemprop=\"permit\"\u003emeta[itemprop][content]\u003c/code\u003e\n  \u003c/div\u003e\n\u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 2 (root itemscope/id not covered: rejected)",
+      "method": "PUT",
+      "path": "/_pl/modeling-shapes-closed-root-attributes-n-c15081/strict/o.html",
+      "status": 422,
+      "headers": {
+        "content-length": "985",
+        "content-type": "text/html",
+        "vary": "Host, Range"
+      },
+      "body": "\u003cdiv itemscope itemtype=\"https://dombase.pagelove.team/ns/error/ShapeConstraint\"\u003e\u003cul itemprop=\"problems\"\u003e\u003cli itemprop=\"problem\"\u003e\u003cspan itemprop=\"message\"\u003eShape constraints violated\u003c/span\u003e\u003c/li\u003e\u003cli itemprop=\"problem\"\u003e\u003cspan itemprop=\"message\"\u003ehttps://pagelove.org/ShapeConstraint [itemtype='https://pagelike.test/_pl/modeling-shapes-closed-root-attributes-n-c15081/Order']: Attribute \u0026lt;itemscope\u0026gt; on \u0026lt;div\u0026gt; matched by '[itemtype='https://pagelike.test/_pl/modeling-shapes-closed-root-attributes-n-c15081/Order']' is not permitted by the selector or any matching permit\u003c/span\u003e\u003c/li\u003e\u003cli itemprop=\"problem\"\u003e\u003cspan itemprop=\"message\"\u003ehttps://pagelove.org/ShapeConstraint [itemtype='https://pagelike.test/_pl/modeling-shapes-closed-root-attributes-n-c15081/Order']: Attribute \u0026lt;id\u0026gt; on \u0026lt;div\u0026gt; matched by '[itemtype='https://pagelike.test/_pl/modeling-shapes-closed-root-attributes-n-c15081/Order']' is not permitted by the selector or any matching permit\u003c/span\u003e\u003c/li\u003e\u003c/ul\u003e\u003c/div\u003e"
+    },
+    {
+      "step": "step 3 (root covered by an explicit permit: accepted)",
+      "method": "PUT",
+      "path": "/_pl/modeling-shapes-closed-root-attributes-n-c15081/fixed/o.html",
+      "status": 201,
+      "headers": {
+        "content-length": "219",
+        "content-type": "text/html",
+        "etag": "\"724d92768c77ac92a56dcfd682b8c89820a9fe5ee20aeb55b3962a64817d878e\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:45 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\n  \u003cdiv itemscope itemtype=\"https://pagelike.test/_pl/modeling-shapes-closed-root-attributes-n-c15081/Order\" id=\"order-o1\"\u003e\n    \u003cmeta itemprop=\"orderId\" content=\"o1\"\u003e\n  \u003c/div\u003e\n\u003c/body\u003e\u003c/html\u003e\n"
+    }
+  ],
+  "outcome": "pass",
+  "target": "local"
+}

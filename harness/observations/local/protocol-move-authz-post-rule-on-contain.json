@@ -1,0 +1,45 @@
+{
+  "case": "protocol.move-authz.post-rule-on-container-covers-all-placements",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (before a card in another lane)",
+      "method": "MOVE",
+      "path": "/_pl/protocol-move-authz-post-rule-on-contain-edc1f7/board.html",
+      "status": 204,
+      "headers": {
+        "etag": "\"00b20680601cbe775f47aa6e8b5327f9a71425c6bc29e6c94cfe0f415e93ec82\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:47 GMT",
+        "vary": "Host, Range"
+      }
+    },
+    {
+      "step": "step 2 (after a card in the same lane)",
+      "method": "MOVE",
+      "path": "/_pl/protocol-move-authz-post-rule-on-contain-edc1f7/board.html",
+      "status": 204,
+      "headers": {
+        "etag": "\"62a67610eaf5c64a18f785a70d26ea76250d4740b848f4a53be038866c28df89\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:47 GMT",
+        "vary": "Host, Range"
+      }
+    },
+    {
+      "step": "step 3 (resulting order)",
+      "method": "GET",
+      "path": "/_pl/protocol-move-authz-post-rule-on-contain-edc1f7/board.html",
+      "status": 206,
+      "headers": {
+        "accept-ranges": "selector, bytes",
+        "content-length": "142",
+        "content-range": "selector #lane-done",
+        "content-type": "text/html",
+        "etag": "\"609d3c618195660dd842f5c7223c523af0d009b1fa4d5b536219be426ba985a7-609d3c618195660dd842f5c7223c523af0d009b1fa4d5b536219be426ba985a7-3\"",
+        "vary": "Host, Range, Accept"
+      },
+      "body": "\u003csection class=\"lane\" id=\"lane-done\"\u003e\u003carticle class=\"card\" id=\"card-1\"\u003eOne\u003c/article\u003e\u003carticle class=\"card\" id=\"card-4\"\u003eFour\u003c/article\u003e\u003c/section\u003e"
+    }
+  ],
+  "outcome": "pass",
+  "target": "local"
+}

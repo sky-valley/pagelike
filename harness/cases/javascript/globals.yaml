@@ -1,0 +1,463 @@
+# JavaScript area: global environment and language features (docs/spec/javascript.md A2, A5,
+# R-JS-5, R-JS-37..R-JS-39). Checks run either in a j: binding (surfaced with <p:stamp>) or in a
+# JavaScript method element whose string result is inserted into <main>.
+# Spec: docs/spec/javascript.md. Generated; edit by hand freely.
+defaults:
+  area: "javascript"
+  evidence: "documented"
+  confidence: "medium"
+  requires: ["server-js"]
+  site:
+    settings:
+      default_get: "allow"
+    rules:
+      - actor: "*"
+        resource: "${P}/*"
+        method: ["GET", "HEAD", "PUT", "POST", "DELETE", "MOVE"]
+        action: "Allow"
+      - actor: "*"
+        resource: "${P}/*/*"
+        method: ["GET", "HEAD", "PUT", "POST", "DELETE", "MOVE"]
+        action: "Allow"
+      - actor: "*"
+        resource: "${P}/*/*/*"
+        method: ["GET", "HEAD", "PUT", "POST", "DELETE", "MOVE"]
+        action: "Allow"
+cases:
+  - id: "javascript.globals.host-io-absent"
+    title: "fetch, process, require, setTimeout, setInterval and HTTPResponse are not defined"
+    feature: "globals"
+    source: "docs languages/javascript/server/javascript-in-schemas §Supported language features (Not supported), §Explaining why a value was rejected (snapshot 2026-09-28)"
+    confidence: "high"
+    live: true
+    notes: "spec: R-JS-38."
+    steps:
+      - name: "PUT the page (public plane; registers inline declarations)"
+        as: "anonymous"
+        request:
+          method: "PUT"
+          path: "${P}/j.html"
+          headers:
+            Content-Type: "text/html"
+          body: |
+            <!DOCTYPE html>
+            <html xmlns:j="https://pagelove.org/Binding/JavaScript" xmlns:p="https://pagelove.org/1.0"><body>
+            <main>
+            <div j:g="'G1:' + [typeof fetch, typeof process, typeof require, typeof setTimeout, typeof setInterval, typeof HTTPResponse].join('|')"><p:stamp g></p:stamp></div>
+            </main>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "GET the composed page"
+        as: "anonymous"
+        request:
+          method: "GET"
+          path: "${P}/j.html"
+          headers:
+            Range: "selector=main"
+        expect:
+          status: 206
+          body_contains: ["G1:undefined|undefined|undefined|undefined|undefined|undefined"]
+  - id: "javascript.globals.other-host-apis-absent"
+    title: "Other host and Web platform APIs are not defined (pagelike decision pending live probe)"
+    feature: "globals"
+    source: "inferred from docs languages/javascript/server/javascript-in-schemas §Supported language features ('no host I/O', 'Network and timers') (snapshot 2026-09-28)"
+    confidence: "low"
+    live: true
+    notes: "spec: R-JS-38 (inferred rows). Probe P-JS-5 settles console and the Web utility classes."
+    steps:
+      - name: "PUT the page (public plane; registers inline declarations)"
+        as: "anonymous"
+        request:
+          method: "PUT"
+          path: "${P}/j.html"
+          headers:
+            Content-Type: "text/html"
+          body: |
+            <!DOCTYPE html>
+            <html xmlns:j="https://pagelove.org/Binding/JavaScript" xmlns:p="https://pagelove.org/1.0"><body>
+            <main>
+            <div j:g="'G2:' + [typeof XMLHttpRequest, typeof WebSocket, typeof EventSource, typeof console, typeof queueMicrotask, typeof structuredClone, typeof clearTimeout, typeof setImmediate, typeof window, typeof navigator, typeof localStorage, typeof Buffer, typeof module, typeof exports].join('|')"><p:stamp g></p:stamp></div>
+            </main>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "GET the composed page"
+        as: "anonymous"
+        request:
+          method: "GET"
+          path: "${P}/j.html"
+          headers:
+            Range: "selector=main"
+        expect:
+          status: 206
+          body_contains: ["G2:undefined|undefined|undefined|undefined|undefined|undefined|undefined|undefined|undefined|undefined|undefined|undefined|undefined|undefined"]
+    evidence: "inferred"
+  - id: "javascript.globals.ecmascript-builtins"
+    title: "Standard ECMAScript built-in globals are available"
+    feature: "globals"
+    source: "docs languages/javascript/server/javascript-in-schemas §Supported language features ('Standard built-in globals') (snapshot 2026-09-28)"
+    confidence: "high"
+    live: true
+    notes: "spec: R-JS-37."
+    steps:
+      - name: "PUT the page (public plane; registers inline declarations)"
+        as: "anonymous"
+        request:
+          method: "PUT"
+          path: "${P}/j.html"
+          headers:
+            Content-Type: "text/html"
+          body: |
+            <!DOCTYPE html>
+            <html xmlns:j="https://pagelove.org/Binding/JavaScript" xmlns:p="https://pagelove.org/1.0"><body>
+            <main>
+            <div j:g="'G3:' + [typeof Math, typeof JSON, typeof Map, typeof Set, typeof WeakMap, typeof Promise, typeof RegExp, typeof Symbol, typeof Proxy, typeof Reflect, typeof BigInt, typeof Uint8Array, typeof globalThis, typeof encodeURIComponent, typeof Date].join('|')"><p:stamp g></p:stamp></div>
+            </main>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "GET the composed page"
+        as: "anonymous"
+        request:
+          method: "GET"
+          path: "${P}/j.html"
+          headers:
+            Range: "selector=main"
+        expect:
+          status: 206
+          body_contains: ["G3:object|object|function|function|function|function|function|function|function|object|function|function|object|function|function"]
+  - id: "javascript.globals.nondeterminism-allowed"
+    title: "Math.random() and Date.now() are permitted"
+    feature: "globals"
+    source: "docs languages/javascript/server/javascript-in-schemas §Supported language features ('Math.random() and Date.now() are permitted') (snapshot 2026-09-28)"
+    confidence: "high"
+    live: true
+    notes: "spec: R-JS-37."
+    steps:
+      - name: "PUT the page (public plane; registers inline declarations)"
+        as: "anonymous"
+        request:
+          method: "PUT"
+          path: "${P}/j.html"
+          headers:
+            Content-Type: "text/html"
+          body: |
+            <!DOCTYPE html>
+            <html xmlns:j="https://pagelove.org/Binding/JavaScript" xmlns:p="https://pagelove.org/1.0"><body>
+            <main>
+            <div j:g="'G4:' + [typeof Math.random(), Math.random() < 1, Date.now() > 1700000000000, typeof new Date().toISOString()].join('|')"><p:stamp g></p:stamp></div>
+            </main>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "GET the composed page"
+        as: "anonymous"
+        request:
+          method: "GET"
+          path: "${P}/j.html"
+          headers:
+            Range: "selector=main"
+        expect:
+          status: 206
+          body_contains: ["G4:number|true|true|string"]
+  - id: "javascript.globals.es2020-syntax-in-modules"
+    title: "ES2020+ syntax works in module bindings (destructuring, spread, optional chaining, ??, separators, tagged templates, defaults)"
+    feature: "language features"
+    source: "docs languages/javascript/server/javascript-in-schemas §Supported language features (snapshot 2026-09-28)"
+    confidence: "high"
+    live: true
+    notes: "spec: R-JS-37."
+    steps:
+      - name: "PUT the page (public plane; registers inline declarations)"
+        as: "anonymous"
+        request:
+          method: "PUT"
+          path: "${P}/probe.html"
+          headers:
+            Content-Type: "text/html"
+          body: |
+            <!DOCTYPE html>
+            <html xmlns:t="https://pagelike.test${P}/Lang"><body>
+            <main>
+            <t:probe></t:probe>
+            </main>
+            <div hidden itemscope itemtype="https://pagelove.org/Schema">
+            <meta itemprop="type" content="https://pagelike.test${P}/Lang">
+            <ul>
+            <li itemprop="property" itemscope itemtype="https://pagelove.org/Method">
+            <meta itemprop="name" content="probe">
+            <div itemprop="implementation" itemscope itemtype="https://pagelove.org/JavaScript/Module">
+            <script itemprop="source" type="module">
+            const S = (...a) => a.map(String).join('|');
+            const H = (x) => String(x).replace(/[<>"]/g, (c) => ({ '<': '[', '>': ']', '"': "'" })[c]);
+            const tryName = (f) => { try { f(); return 'ok'; } catch (e) { return e.name + ':' + e.code; } };
+            export default function () {
+            const { a, ...rest } = { a: 1, b: 2, c: 3 };
+            const arr = [...[1, 2], 3];
+            const o = null;
+            const tag = (s, ...v) => s.raw.join('+') + v.join(',');
+            const f = (x = 5) => x;
+            return 'ES:' + [a, Object.keys(rest).join(','), arr.length, o?.x ?? 'dflt', 1_000, tag`x$${1}y`, f(), `t$${1 + 1}`, [1, [2, [3]]].flat(2).length, Object.fromEntries([['k', 'v']]).k].join('|');
+            }
+            </script>
+            </div>
+            </li>
+            </ul>
+            </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "GET <main>: the method result is inserted as text"
+        as: "anonymous"
+        request:
+          method: "GET"
+          path: "${P}/probe.html"
+          headers:
+            Range: "selector=main"
+        expect:
+          status: 206
+          body_contains: ["ES:1|b,c|3|dflt|1000|x+y1|5|t2|3|v"]
+  - id: "javascript.globals.module-strict-mode"
+    title: "Modules run in strict mode: module-level this is undefined and assigning an undeclared name throws ReferenceError"
+    feature: "language features"
+    source: "docs languages/javascript/server/javascript-in-schemas §The export default contract ('ES modules always run in strict mode') (snapshot 2026-09-28)"
+    confidence: "high"
+    live: true
+    notes: "spec: R-JS-5, R-JS-7."
+    steps:
+      - name: "PUT the page (public plane; registers inline declarations)"
+        as: "anonymous"
+        request:
+          method: "PUT"
+          path: "${P}/probe.html"
+          headers:
+            Content-Type: "text/html"
+          body: |
+            <!DOCTYPE html>
+            <html xmlns:t="https://pagelike.test${P}/Strict"><body>
+            <main>
+            <t:probe></t:probe>
+            </main>
+            <div hidden itemscope itemtype="https://pagelove.org/Schema">
+            <meta itemprop="type" content="https://pagelike.test${P}/Strict">
+            <ul>
+            <li itemprop="property" itemscope itemtype="https://pagelove.org/Method">
+            <meta itemprop="name" content="probe">
+            <div itemprop="implementation" itemscope itemtype="https://pagelove.org/JavaScript/Module">
+            <script itemprop="source" type="module">
+            const S = (...a) => a.map(String).join('|');
+            const H = (x) => String(x).replace(/[<>"]/g, (c) => ({ '<': '[', '>': ']', '"': "'" })[c]);
+            const tryName = (f) => { try { f(); return 'ok'; } catch (e) { return e.name + ':' + e.code; } };
+            const topThis = this;
+            export default function () {
+            const inner = function () { return this; };
+            let r = 'no-throw';
+            try { undeclaredGlobalZ = 1; } catch (e) { r = e.name; }
+            return 'STRICT:' + [topThis === undefined, inner() === undefined, r].join('|');
+            }
+            </script>
+            </div>
+            </li>
+            </ul>
+            </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "GET <main>: the method result is inserted as text"
+        as: "anonymous"
+        request:
+          method: "GET"
+          path: "${P}/probe.html"
+          headers:
+            Range: "selector=main"
+        expect:
+          status: 206
+          body_contains: ["STRICT:true|true|ReferenceError"]
+  - id: "javascript.globals.fresh-context-per-evaluation"
+    title: "Each evaluation runs in a fresh context: module state does not survive between two dispatches"
+    feature: "module contract"
+    source: "docs languages/javascript/server/javascript-in-schemas §The export default contract ('Evaluates the module in a fresh context') (snapshot 2026-09-28)"
+    confidence: "high"
+    live: true
+    notes: "spec: R-JS-5."
+    steps:
+      - name: "PUT the page (public plane; registers inline declarations)"
+        as: "anonymous"
+        request:
+          method: "PUT"
+          path: "${P}/fresh.html"
+          headers:
+            Content-Type: "text/html"
+          body: |
+            <!DOCTYPE html>
+            <html xmlns:t="https://pagelike.test${P}/Fresh"><body>
+            <main>
+            <p id="a"><t:ctr></t:ctr></p><p id="b"><t:ctr></t:ctr></p>
+            </main>
+            <div hidden itemscope itemtype="https://pagelove.org/Schema">
+            <meta itemprop="type" content="https://pagelike.test${P}/Fresh">
+            <ul>
+            <li itemprop="property" itemscope itemtype="https://pagelove.org/Method">
+            <meta itemprop="name" content="ctr">
+            <div itemprop="implementation" itemscope itemtype="https://pagelove.org/JavaScript/Module">
+            <script itemprop="source" type="module">
+            let n = 0;
+            export default () => 'N' + (++n);
+            </script>
+            </div>
+            </li>
+            </ul>
+            </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "GET the composed page"
+        as: "anonymous"
+        request:
+          method: "GET"
+          path: "${P}/fresh.html"
+          headers:
+            Range: "selector=main"
+        expect:
+          status: 206
+          body_contains: ["<p id=\"a\">N1</p>", "<p id=\"b\">N1</p>"]
+          body_not_contains: ["N2"]
+  - id: "javascript.globals.dom-classes-present"
+    title: "DOMException, DOMParser, XMLSerializer and the node interface classes are globals"
+    feature: "globals"
+    source: "docs languages/javascript/server/dom §Interfaces and instanceof; docs .../dom/parsing; docs .../dom/dom-exception (snapshot 2026-09-28)"
+    confidence: "medium"
+    live: true
+    notes: "spec: R-JS-39; contradiction C-JS-6 (JSS says DOMException is the only sandbox global)."
+    steps:
+      - name: "PUT the page (public plane; registers inline declarations)"
+        as: "anonymous"
+        request:
+          method: "PUT"
+          path: "${P}/probe.html"
+          headers:
+            Content-Type: "text/html"
+          body: |
+            <!DOCTYPE html>
+            <html xmlns:t="https://pagelike.test${P}/Glob"><body>
+            <main>
+            <t:probe></t:probe>
+            </main>
+            <div hidden itemscope itemtype="https://pagelove.org/Schema">
+            <meta itemprop="type" content="https://pagelike.test${P}/Glob">
+            <ul>
+            <li itemprop="property" itemscope itemtype="https://pagelove.org/Method">
+            <meta itemprop="name" content="probe">
+            <div itemprop="implementation" itemscope itemtype="https://pagelove.org/JavaScript/Module">
+            <script itemprop="source" type="module">
+            const S = (...a) => a.map(String).join('|');
+            const H = (x) => String(x).replace(/[<>"]/g, (c) => ({ '<': '[', '>': ']', '"': "'" })[c]);
+            const tryName = (f) => { try { f(); return 'ok'; } catch (e) { return e.name + ':' + e.code; } };
+            export default function () {
+            return 'DG:' + [typeof DOMException, typeof DOMParser, typeof XMLSerializer, typeof Node, typeof Element, typeof HTMLElement, typeof HTMLAnchorElement, typeof HTMLMediaElement, typeof CharacterData, typeof Text, typeof Comment, typeof Document, typeof DocumentFragment].join('|');
+            }
+            </script>
+            </div>
+            </li>
+            </ul>
+            </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "GET <main>: the method result is inserted as text"
+        as: "anonymous"
+        request:
+          method: "GET"
+          path: "${P}/probe.html"
+          headers:
+            Range: "selector=main"
+        expect:
+          status: 206
+          body_contains: ["DG:function|function|function|function|function|function|function|function|function|function|function|function|function"]
+  - id: "javascript.globals.node-constants"
+    title: "The Node global carries the node-type constants"
+    feature: "globals"
+    source: "docs languages/javascript/server/dom/node §Node constants (snapshot 2026-09-28)"
+    confidence: "high"
+    live: true
+    notes: "spec: R-JS-66."
+    steps:
+      - name: "PUT the page (public plane; registers inline declarations)"
+        as: "anonymous"
+        request:
+          method: "PUT"
+          path: "${P}/probe.html"
+          headers:
+            Content-Type: "text/html"
+          body: |
+            <!DOCTYPE html>
+            <html xmlns:t="https://pagelike.test${P}/Consts"><body>
+            <main>
+            <t:probe></t:probe>
+            </main>
+            <div hidden itemscope itemtype="https://pagelove.org/Schema">
+            <meta itemprop="type" content="https://pagelike.test${P}/Consts">
+            <ul>
+            <li itemprop="property" itemscope itemtype="https://pagelove.org/Method">
+            <meta itemprop="name" content="probe">
+            <div itemprop="implementation" itemscope itemtype="https://pagelove.org/JavaScript/Module">
+            <script itemprop="source" type="module">
+            const S = (...a) => a.map(String).join('|');
+            const H = (x) => String(x).replace(/[<>"]/g, (c) => ({ '<': '[', '>': ']', '"': "'" })[c]);
+            const tryName = (f) => { try { f(); return 'ok'; } catch (e) { return e.name + ':' + e.code; } };
+            export default function () {
+            return 'NC:' + [Node.ELEMENT_NODE, Node.TEXT_NODE, Node.COMMENT_NODE, Node.DOCUMENT_NODE, Node.DOCUMENT_TYPE_NODE, Node.DOCUMENT_FRAGMENT_NODE].join('|');
+            }
+            </script>
+            </div>
+            </li>
+            </ul>
+            </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "GET <main>: the method result is inserted as text"
+        as: "anonymous"
+        request:
+          method: "GET"
+          path: "${P}/probe.html"
+          headers:
+            Range: "selector=main"
+        expect:
+          status: 206
+          body_contains: ["NC:1|3|8|9|10|11"]
+  - id: "javascript.globals.crypto-subtle-digest"
+    title: "crypto.subtle.digest is an awaitable built-in in j: expressions"
+    feature: "globals"
+    source: "docs reference/composing-pages/JavaScript-Expression-Binding §Sessel or JavaScript? ('awaiting a Promise-returning built-in (for example crypto.subtle)') (snapshot 2026-09-28)"
+    confidence: "low"
+    live: true
+    notes: "spec: R-JS-39a. The docs name crypto.subtle only as an example; TextEncoder is assumed. Probe P-JS-5."
+    steps:
+      - name: "PUT the page (public plane; registers inline declarations)"
+        as: "anonymous"
+        request:
+          method: "PUT"
+          path: "${P}/j.html"
+          headers:
+            Content-Type: "text/html"
+          body: |
+            <!DOCTYPE html>
+            <html xmlns:j="https://pagelove.org/Binding/JavaScript" xmlns:p="https://pagelove.org/1.0"><body>
+            <main>
+            <div j:h="'SHA:' + Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256', new TextEncoder().encode('abc')))).map((b) => b.toString(16).padStart(2, '0')).join('')"><p:stamp h></p:stamp></div>
+            </main>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "GET the composed page"
+        as: "anonymous"
+        request:
+          method: "GET"
+          path: "${P}/j.html"
+          headers:
+            Range: "selector=main"
+        expect:
+          status: 206
+          body_contains: ["SHA:ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad"]

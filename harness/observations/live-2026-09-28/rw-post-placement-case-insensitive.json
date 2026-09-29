@@ -1,0 +1,37 @@
+{
+  "case": "rw.post.placement-case-insensitive",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (upper-case PREPEND)",
+      "method": "POST",
+      "path": "/_pl/rw-post-placement-case-insensitive-5de185/case.html",
+      "status": 206,
+      "headers": {
+        "content-length": "10",
+        "content-range": "selector ul",
+        "content-type": "text/html",
+        "etag": "\"19236f25e50048986909e06f02813e94197d7cf7ae89cba5d5e3c01ce95bc3fa-19236f25e50048986909e06f02813e94197d7cf7ae89cba5d5e3c01ce95bc3fa-2\"",
+        "last-modified": "Mon, 28 Sep 2026 22:28:10 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003cli\u003ea\u003c/li\u003e"
+    },
+    {
+      "step": "step 2 (order)",
+      "method": "GET",
+      "path": "/_pl/rw-post-placement-case-insensitive-5de185/case.html",
+      "status": 206,
+      "headers": {
+        "content-length": "29",
+        "content-range": "selector ul",
+        "content-type": "text/html",
+        "etag": "\"dde7885c487caa414a1e37a8923588f1cd8b4cf89083a2316d687295e34fcf4a-dde7885c487caa414a1e37a8923588f1cd8b4cf89083a2316d687295e34fcf4a-2\"",
+        "vary": "Host, Range, Accept"
+      },
+      "body": "\u003cul\u003e\u003cli\u003ea\u003c/li\u003e\u003cli\u003eb\u003c/li\u003e\u003c/ul\u003e"
+    }
+  ],
+  "outcome": "pass",
+  "target": "live"
+}

@@ -1,0 +1,37 @@
+{
+  "case": "javascript.jbind.wrong-namespace-ignored",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (PUT the page (public plane; registers inline declarations))",
+      "method": "PUT",
+      "path": "/_pl/javascript-jbind-wrong-namespace-ignored-b84d0f/j.html",
+      "status": 201,
+      "headers": {
+        "content-length": "304",
+        "content-type": "text/html",
+        "etag": "\"9713542f378b485f094adaf607c1a8f73e713b9530a6cd988ec4ae666faabd58\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:43 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml xmlns:j=\"https://pagelove.org/Binding/Javascript\" xmlns:k=\"https://pagelove.org/Binding/JavaScript\" xmlns:p=\"https://pagelove.org/1.0\"\u003e\u003cbody\u003e\n\u003cmain\u003e\n\u003cdiv k:v=\"'RIGHT' + '-NS'\"\u003e\u003cp:stamp v\u003e\u003c/p:stamp\u003e\u003c/div\u003e\n\u003cdiv j:w=\"'WRONG' + '-NS'\"\u003e\u003cp:stamp w\u003e\u003c/p:stamp\u003e\u003c/div\u003e\n\u003c/main\u003e\n\u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 2 (GET the composed page)",
+      "method": "GET",
+      "path": "/_pl/javascript-jbind-wrong-namespace-ignored-b84d0f/j.html",
+      "status": 206,
+      "headers": {
+        "accept-ranges": "selector, bytes",
+        "content-length": "46",
+        "content-range": "selector main",
+        "content-type": "text/html",
+        "etag": "\"8193ab01bdda92a1c70f20d067a47c896bd0834ca8fab8bd13ab68d409aec135-8193ab01bdda92a1c70f20d067a47c896bd0834ca8fab8bd13ab68d409aec135-1\"",
+        "vary": "Host, Range, Accept"
+      },
+      "body": "\u003cmain\u003e\n\u003cdiv\u003eRIGHT-NS\u003c/div\u003e\n\u003cdiv\u003e\u003c/div\u003e\n\u003c/main\u003e"
+    }
+  ],
+  "outcome": "pass",
+  "target": "local"
+}

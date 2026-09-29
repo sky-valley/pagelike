@@ -1,0 +1,74 @@
+{
+  "case": "reacting.tc.uniqueness-before-transition",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (declare the Order schema with a unique sku)",
+      "method": "PUT",
+      "path": "/_pl/reacting-tc-uniqueness-before-transition-0ec4fd/schema.html",
+      "status": 201,
+      "headers": {
+        "content-length": "657",
+        "content-type": "text/html",
+        "etag": "\"28f1483a96511c850a35862a5e3dd36911a7fc10af0e3aed05c0b47c1f007019\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:49 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\n\u003cdiv hidden itemscope itemtype=\"https://pagelove.org/Schema\"\u003e\n  \u003cmeta itemprop=\"type\" content=\"https://pagelike.test/_pl/reacting-tc-uniqueness-before-transition-0ec4fd/Order\"\u003e\n  \u003cdiv itemprop=\"property\" itemscope itemtype=\"https://pagelove.org/Property\"\u003e\n    \u003cmeta itemprop=\"name\" content=\"sku\"\u003e\n    \u003cmeta itemprop=\"type\" content=\"https://schema.host/Text\"\u003e\n    \u003cmeta itemprop=\"unique\" content=\"true\"\u003e\n  \u003c/div\u003e\n  \u003cdiv itemprop=\"property\" itemscope itemtype=\"https://pagelove.org/Property\"\u003e\n    \u003cmeta itemprop=\"name\" content=\"status\"\u003e\n    \u003cmeta itemprop=\"type\" content=\"https://schema.host/Text\"\u003e\n  \u003c/div\u003e\n\u003c/div\u003e\n\u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 2 (allow only entries into pending)",
+      "method": "PUT",
+      "path": "/_pl/reacting-tc-uniqueness-before-transition-0ec4fd/transitions/rules.html",
+      "status": 201,
+      "headers": {
+        "content-length": "339",
+        "content-type": "text/html",
+        "etag": "\"97454057bc093bbad0ef9621b4c782409296bfb9d3d27a03a8c71a3535d29f32\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:49 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\n\u003cdiv itemscope itemtype=\"https://pagelove.org/TransitionConstraint\"\u003e\n  \u003cmeta itemprop=\"selector\" content=\"[itemtype='https://pagelike.test/_pl/reacting-tc-uniqueness-before-transition-0ec4fd/Order']\"\u003e\n  \u003cmeta itemprop=\"property\" content=\"status\"\u003e\n  \u003cmeta itemprop=\"to\" content=\"pending\"\u003e\n\u003c/div\u003e\n\u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 3 (the first order is a legal entry)",
+      "method": "PUT",
+      "path": "/_pl/reacting-tc-uniqueness-before-transition-0ec4fd/orders/a.html",
+      "status": 201,
+      "headers": {
+        "content-length": "230",
+        "content-type": "text/html",
+        "etag": "\"b9ce17ce190f6eb3574c224024f8a96e9d0c9b99c759f4f26dc4e66dfff3a673\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:49 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\u003chtml\u003e\u003cbody\u003e\u003cdiv itemscope itemtype=\"https://pagelike.test/_pl/reacting-tc-uniqueness-before-transition-0ec4fd/Order\"\u003e\u003cmeta itemprop=\"sku\" content=\"A-1\"\u003e\u003cmeta itemprop=\"status\" content=\"pending\"\u003e\u003c/div\u003e\u003c/body\u003e\u003c/html\u003e"
+    },
+    {
+      "step": "step 4 (a duplicate sku entering an undeclared state fails as a uniqueness violation)",
+      "method": "PUT",
+      "path": "/_pl/reacting-tc-uniqueness-before-transition-0ec4fd/orders/b.html",
+      "status": 422,
+      "headers": {
+        "content-length": "328",
+        "content-type": "text/html",
+        "vary": "Host, Range"
+      },
+      "body": "\u003cdiv itemscope itemtype=\"https://dombase.pagelove.team/ns/error/ConstraintViolation\"\u003e\u003cul itemprop=\"problems\"\u003e\u003cli itemprop=\"problem\"\u003e\u003cspan itemprop=\"message\"\u003eConstraint violation: 1 violation(s):\n  - [uniqueness] [itemprop='sku'] (unique(sku)): Uniqueness violation: value already exists for property 'sku'\u003c/span\u003e\u003c/li\u003e\u003c/ul\u003e\u003c/div\u003e"
+    },
+    {
+      "step": "step 5 (nothing was stored)",
+      "method": "GET",
+      "path": "/_pl/reacting-tc-uniqueness-before-transition-0ec4fd/orders/b.html",
+      "status": 404,
+      "headers": {
+        "content-length": "364",
+        "content-type": "text/html",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\n  \u003chead\u003e\n    \u003ctitle\u003e404 Not Found - Error\u003c/title\u003e\n  \u003c/head\u003e\n  \u003cbody itemscope itemtype=\"http://pagelove.org/Error\"\u003e\n    \u003ch1 itemprop=\"name\"\u003eNot Found\u003c/h1\u003e\n    \u003cmeta itemprop=\"statusCode\" content=\"404\"\u003e\n    \u003cp itemprop=\"description\"\u003eDocument not found: /_pl/reacting-tc-uniqueness-before-transition-0ec4fd/orders/b.html\u003c/p\u003e\n  \u003c/body\u003e\n\u003c/html\u003e\n"
+    }
+  ],
+  "outcome": "pass",
+  "target": "local"
+}

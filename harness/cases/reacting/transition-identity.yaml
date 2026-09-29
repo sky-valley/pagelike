@@ -1,0 +1,278 @@
+# Reacting: item identity and @key pairing for whole-document writes (spec R-REACT-68..70).
+# See discovery.yaml and transition-constraint.yaml for conventions.
+anchors:
+  open_rules: &open_rules
+    - {actor: "*", resource: "${P}/*", method: [GET, HEAD, PUT, POST, DELETE], action: Allow}
+  install_entry_and_step: &install_entry_and_step
+    name: install entry pending and step pending -> processing
+    as: anonymous
+    request:
+      method: PUT
+      path: "${P}/transitions/rules.html"
+      headers: {Content-Type: text/html}
+      body: |
+        <!DOCTYPE html>
+        <html><body>
+        <div itemscope itemtype="https://pagelove.org/TransitionConstraint">
+          <meta itemprop="selector" content="[itemtype='https://pagelike.test${P}/Order']">
+          <meta itemprop="property" content="status">
+          <meta itemprop="to" content="pending">
+        </div>
+        <div itemscope itemtype="https://pagelove.org/TransitionConstraint">
+          <meta itemprop="selector" content="[itemtype='https://pagelike.test${P}/Order']">
+          <meta itemprop="property" content="status">
+          <meta itemprop="from" content="pending">
+          <meta itemprop="to" content="processing">
+        </div>
+        </body></html>
+    expect: {status: [200, 201, 204]}
+  register_keyed_order: &register_keyed_order
+    name: register the Order schema with orderNumber as @key
+    as: anonymous
+    request:
+      method: PUT
+      path: "${P}/schema.html"
+      headers: {Content-Type: text/html}
+      body: |
+        <!DOCTYPE html>
+        <html><body>
+        <div hidden itemscope itemtype="https://pagelove.org/Schema">
+          <meta itemprop="type" content="https://pagelike.test${P}/Order">
+          <div itemprop="property" itemscope itemtype="https://pagelove.org/Property">
+            <meta itemprop="name" content="orderNumber">
+            <meta itemprop="type" content="https://schema.host/Text">
+            <meta itemprop="cardinality" content="1..1">
+            <meta itemprop="unique" content="true">
+            <meta itemprop="@key" content="true">
+          </div>
+        </div>
+        </body></html>
+    expect: {status: [200, 201, 204]}
+  seed_two_keyed: &seed_two_keyed
+    name: seed SKU-A and SKU-B at pending in one document
+    as: anonymous
+    request:
+      method: PUT
+      path: "${P}/orders/batch.html"
+      headers: {Content-Type: text/html}
+      body: |
+        <!DOCTYPE html>
+        <html><body>
+        <div itemscope itemtype="https://pagelike.test${P}/Order"><meta itemprop="orderNumber" content="SKU-A"><meta itemprop="status" content="pending"></div>
+        <div itemscope itemtype="https://pagelike.test${P}/Order"><meta itemprop="orderNumber" content="SKU-B"><meta itemprop="status" content="pending"></div>
+        </body></html>
+    expect: {status: [200, 201, 204]}
+  two_keyless_site: &two_keyless_site
+    settings: {default_get: allow}
+    rules: *open_rules
+    files:
+      - path: "${P}/orders/pair.html"
+        body: |
+          <!DOCTYPE html>
+          <html><body>
+          <div itemscope itemtype="https://pagelike.test${P}/Order"><meta itemprop="status" content="pending"><span itemprop="total">1</span></div>
+          <div itemscope itemtype="https://pagelike.test${P}/Order"><meta itemprop="status" content="pending"><span itemprop="total">2</span></div>
+          </body></html>
+defaults:
+  area: reacting
+  site:
+    settings: {default_get: allow}
+    rules: *open_rules
+cases:
+  - id: reacting.tc.lone-keyless-item-pairs
+    title: With one keyless item of a type on each side, a whole-document write pairs them and validates normally
+    feature: TransitionConstraint (identity)
+    evidence: documented
+    source: "docs reference/reacting-to-changes/TransitionConstraint §Item identity and @key ('A lone keyless item still pairs') (snapshot 2026-09-28)"
+    confidence: high
+    requires: []
+    live: true
+    notes: "spec: R-REACT-68."
+    steps:
+      - *install_entry_and_step
+      - name: seed one keyless order
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/orders/one.html"
+          headers: {Content-Type: text/html}
+          body: '<!DOCTYPE html><html><body><div itemscope itemtype="https://pagelike.test${P}/Order"><meta itemprop="status" content="pending"></div></body></html>'
+        expect: {status: [200, 201, 204]}
+      - name: a whole-document PUT moves it to processing
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/orders/one.html"
+          headers: {Content-Type: text/html}
+          body: '<!DOCTYPE html><html><body><section><div itemscope itemtype="https://pagelike.test${P}/Order"><meta itemprop="status" content="processing"></div></section></body></html>'
+        expect: {status: [200, 201, 204]}
+
+  - id: reacting.tc.two-keyless-items-ambiguous
+    title: Two keyless items of one type make a whole-document write that touches the state ambiguous (422, needs @key)
+    feature: TransitionConstraint (identity)
+    evidence: documented
+    source: "docs reference/reacting-to-changes/TransitionConstraint §Item identity and @key ('Ambiguity is rejected'); recipes/declaring-a-state-machine §The two-orders-in-one-document wedge (snapshot 2026-09-28)"
+    confidence: high
+    requires: []
+    live: true
+    notes: "spec: R-REACT-70. The wedged document was written before the rules (over WebDAV)."
+    site: *two_keyless_site
+    steps:
+      - *install_entry_and_step
+      - name: moving one of the two orders to processing is rejected
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/orders/pair.html"
+          headers: {Content-Type: text/html}
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+            <div itemscope itemtype="https://pagelike.test${P}/Order"><meta itemprop="status" content="processing"><span itemprop="total">1</span></div>
+            <div itemscope itemtype="https://pagelike.test${P}/Order"><meta itemprop="status" content="pending"><span itemprop="total">2</span></div>
+            </body></html>
+        expect:
+          status: 422
+          body_contains: ["@key"]
+
+  - id: reacting.tc.ambiguous-group-untouched-passes
+    title: A whole-document write that does not touch the constrained property of an ambiguous group passes
+    feature: TransitionConstraint (identity)
+    evidence: inferred
+    source: "spec R-REACT-70 (pagelike definition of 'touches'); docs recipes/declaring-a-state-machine ('Every write to that document that touches a constrained property is rejected')"
+    confidence: low
+    requires: []
+    live: true
+    notes: "Probe P-21."
+    site: *two_keyless_site
+    steps:
+      - *install_entry_and_step
+      - name: only totals change
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/orders/pair.html"
+          headers: {Content-Type: text/html}
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+            <div itemscope itemtype="https://pagelike.test${P}/Order"><meta itemprop="status" content="pending"><span itemprop="total">10</span></div>
+            <div itemscope itemtype="https://pagelike.test${P}/Order"><meta itemprop="status" content="pending"><span itemprop="total">20</span></div>
+            </body></html>
+        expect: {status: [200, 201, 204]}
+
+  - id: reacting.tc.key-pairing-allows-legal-step
+    title: Items pair by @key value, not by position, so a reordered document with one legal step passes
+    feature: TransitionConstraint (identity)
+    evidence: documented
+    source: "docs reference/reacting-to-changes/TransitionConstraint §Item identity and @key ('Two items of the same type are the same item when their key values match') (snapshot 2026-09-28)"
+    confidence: high
+    requires: []
+    live: true
+    notes: "spec: R-REACT-68. SKU-B comes first in the new document; positional pairing would see pending -> processing on SKU-B and processing -> pending on SKU-A."
+    steps:
+      - *register_keyed_order
+      - *install_entry_and_step
+      - *seed_two_keyed
+      - name: reorder and move SKU-A to processing
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/orders/batch.html"
+          headers: {Content-Type: text/html}
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+            <div itemscope itemtype="https://pagelike.test${P}/Order"><meta itemprop="orderNumber" content="SKU-B"><meta itemprop="status" content="pending"></div>
+            <div itemscope itemtype="https://pagelike.test${P}/Order"><meta itemprop="orderNumber" content="SKU-A"><meta itemprop="status" content="processing"></div>
+            </body></html>
+        expect: {status: [200, 201, 204]}
+
+  - id: reacting.tc.key-pairing-rejects-with-key
+    title: A keyed item's illegal step is rejected and the violation names its key
+    feature: TransitionConstraint (identity, 422 body)
+    evidence: documented
+    source: "docs reference/reacting-to-changes/TransitionConstraint §The 422 body (item 'SKU-B', key property) (snapshot 2026-09-28)"
+    confidence: high
+    requires: []
+    live: true
+    notes: "spec: R-REACT-68, R-REACT-72."
+    steps:
+      - *register_keyed_order
+      - *install_entry_and_step
+      - *seed_two_keyed
+      - name: SKU-B jumps from pending to shipped
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/orders/batch.html"
+          headers: {Content-Type: text/html}
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+            <div itemscope itemtype="https://pagelike.test${P}/Order"><meta itemprop="orderNumber" content="SKU-A"><meta itemprop="status" content="pending"></div>
+            <div itemscope itemtype="https://pagelike.test${P}/Order"><meta itemprop="orderNumber" content="SKU-B"><meta itemprop="status" content="shipped"></div>
+            </body></html>
+        expect:
+          status: 422
+          body_contains: ["SKU-B"]
+          microdata:
+            - type: https://pagelove.org/Violation
+              properties: {failedConstraint: "transition(status)", property: status, key: SKU-B, from: pending, to: shipped}
+
+  - id: reacting.tc.key-change-is-exit-plus-entry
+    title: Changing an item's key reads as an exit plus an entry, each needing its own rule
+    feature: TransitionConstraint (identity)
+    evidence: documented
+    source: "docs reference/reacting-to-changes/TransitionConstraint §Item identity and @key ('The key may not change … validates as an exit plus an entry') (snapshot 2026-09-28)"
+    confidence: high
+    requires: []
+    live: true
+    notes: "spec: R-REACT-68."
+    steps:
+      - *register_keyed_order
+      - *install_entry_and_step
+      - name: seed SKU-A at pending
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/orders/rekey.html"
+          headers: {Content-Type: text/html}
+          body: '<!DOCTYPE html><html><body><div itemscope itemtype="https://pagelike.test${P}/Order"><meta itemprop="orderNumber" content="SKU-A"><meta itemprop="status" content="pending"></div></body></html>'
+        expect: {status: [200, 201, 204]}
+      - name: renaming the key needs an exit from pending, which is not declared
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/orders/rekey.html"
+          headers: {Content-Type: text/html}
+          body: '<!DOCTYPE html><html><body><div itemscope itemtype="https://pagelike.test${P}/Order"><meta itemprop="orderNumber" content="SKU-C"><meta itemprop="status" content="pending"></div></body></html>'
+        expect:
+          status: 422
+          microdata:
+            - type: https://pagelove.org/Violation
+              properties: {property: status, key: SKU-A, from: pending, to: ""}
+      - name: declare an exit from pending
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/transitions/exit.html"
+          headers: {Content-Type: text/html}
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+            <div itemscope itemtype="https://pagelove.org/TransitionConstraint">
+              <meta itemprop="selector" content="[itemtype='https://pagelike.test${P}/Order']">
+              <meta itemprop="property" content="status">
+              <meta itemprop="from" content="pending">
+            </div>
+            </body></html>
+        expect: {status: [200, 201, 204]}
+      - name: now the rename passes (exit from pending + entry at pending)
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/orders/rekey.html"
+          headers: {Content-Type: text/html}
+          body: '<!DOCTYPE html><html><body><div itemscope itemtype="https://pagelike.test${P}/Order"><meta itemprop="orderNumber" content="SKU-C"><meta itemprop="status" content="pending"></div></body></html>'
+        expect: {status: [200, 201, 204]}

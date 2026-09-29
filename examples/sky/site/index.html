@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:p="https://pagelove.org/1.0">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Show me your sky</title>
+<link rel="stylesheet" href="/assets/sky.css">
+</head>
+<body>
+<header class="experience">
+  <h1 id="invitation">Show me your sky</h1>
+  <p id="prompt">Step outside, look up, and share what you see. One photo, a few words.</p>
+  <!-- Who is signed in, composed on the server from the request (per-visitor, never cached publicly). -->
+  <p class="me" id="me" p:template="text/liquid">{% if request.auth.username %}Signed in as <strong data-me="{{ request.auth.username }}">{{ request.auth.claims.name | default: request.auth.username }}</strong> · <a href="/auth/logout?redirect=/">sign out</a>{% else %}<a href="/auth/login?redirect=/">Sign in to take part</a>{% endif %}</p>
+</header>
+
+<main>
+  <form id="share" class="share" hidden>
+    <label class="pick">
+      <input id="photo" type="file" accept="image/*" required>
+      <span>Choose a photo of your sky</span>
+    </label>
+    <input id="caption" type="text" maxlength="140" placeholder="Where are you? What do you see?" required>
+    <button type="submit">Share my sky</button>
+    <p id="status" role="status"></p>
+  </form>
+
+  <!-- Participants' skies. Each entry is owned by the signed-in user who posted it;
+       the rules and constraints in /rules.html enforce that on the server. -->
+  <ul id="skies" class="skies"></ul>
+</main>
+
+<script type="module" src="/assets/sky.js"></script>
+</body>
+</html>

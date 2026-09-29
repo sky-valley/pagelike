@@ -1,0 +1,153 @@
+# Number filters: docs languages/liquid/filters/number examples plus edges.
+# Spec: docs/spec/liquid.md §12 (R-LIQ-130..137), R-LIQ-56 (rendering).
+defaults:
+  area: liquid
+  requires: [liquid]
+  evidence: documented
+  source: "docs languages/liquid/filters/number (snapshot 2026-09-28)"
+  confidence: high
+cases:
+  - id: liquid.filters-number.arithmetic
+    title: plus, minus, times, divided_by (integer and float) and modulo (docs examples)
+    feature: number filters
+    live: true
+    notes: R-LIQ-130..132.
+    site:
+      settings: {default_get: allow}
+      files:
+        - path: "${P}/arith.html"
+          body: |
+            <!DOCTYPE html>
+            <html xmlns:p="https://pagelove.org/1.0"><body>
+              <div itemscope itemtype="urn:liquid:result" p:template="text/liquid">
+                <span itemprop="plus">{{ 10 | plus: 5 }}</span>
+                <span itemprop="minus">{{ 10 | minus: 3 }}</span>
+                <span itemprop="times">{{ 6 | times: 7 }}</span>
+                <span itemprop="div_int">{{ 7 | divided_by: 2 }}</span>
+                <span itemprop="div_float">{{ 7 | divided_by: 2.0 }}</span>
+                <span itemprop="modulo">{{ 13 | modulo: 5 }}</span>
+              </div>
+            </body></html>
+      rules: [{actor: "*", resource: "${P}/*", method: [GET, HEAD], action: Allow}]
+    steps:
+      - name: read
+        as: anonymous
+        request: {method: GET, path: "${P}/arith.html"}
+        expect:
+          status: 200
+          microdata: {plus: "15", minus: "7", times: "42", div_int: "3", div_float: "3.5", modulo: "3"}
+
+  - id: liquid.filters-number.division-by-zero
+    title: divided_by 0 and modulo 0 return the input unchanged
+    feature: number filters
+    live: true
+    notes: R-LIQ-131, R-LIQ-132. Differs from Shopify (error) — documented PageLove behaviour.
+    site:
+      settings: {default_get: allow}
+      files:
+        - path: "${P}/zero.html"
+          body: |
+            <!DOCTYPE html>
+            <html xmlns:p="https://pagelove.org/1.0"><body>
+              <p id="o" p:template="text/liquid">{{ 7 | divided_by: 0 }}|{{ 13 | modulo: 0 }}|{{ 7 | divided_by: 0.0 }}</p>
+            </body></html>
+      rules: [{actor: "*", resource: "${P}/*", method: [GET, HEAD], action: Allow}]
+    steps:
+      - name: read
+        as: anonymous
+        request: {method: GET, path: "${P}/zero.html", headers: {Range: "selector=#o"}}
+        expect:
+          status: 206
+          body_contains: [">7|13|7</p>"]
+
+  - id: liquid.filters-number.rounding-bounds
+    title: abs, ceil, floor, round, round:2, at_least and at_most (docs examples)
+    feature: number filters
+    live: true
+    notes: R-LIQ-133..136. ceil/floor/round(0) return integers (no ".0").
+    site:
+      settings: {default_get: allow}
+      files:
+        - path: "${P}/round.html"
+          body: |
+            <!DOCTYPE html>
+            <html xmlns:p="https://pagelove.org/1.0"><body>
+              <div itemscope itemtype="urn:liquid:result" p:template="text/liquid">
+                <span itemprop="abs">{{ -8 | abs }}</span>
+                <span itemprop="ceil">{{ 3.2 | ceil }}</span>
+                <span itemprop="floor">{{ 3.8 | floor }}</span>
+                <span itemprop="round">{{ 3.14159 | round }}</span>
+                <span itemprop="round2">{{ 3.14159 | round: 2 }}</span>
+                <span itemprop="least_raise">{{ 3 | at_least: 5 }}</span>
+                <span itemprop="least_keep">{{ 8 | at_least: 5 }}</span>
+                <span itemprop="most_lower">{{ 8 | at_most: 5 }}</span>
+                <span itemprop="most_keep">{{ 3 | at_most: 5 }}</span>
+                <span itemprop="round_int_type">{{ 7.6 | round | divided_by: 3 }}</span>
+              </div>
+            </body></html>
+      rules: [{actor: "*", resource: "${P}/*", method: [GET, HEAD], action: Allow}]
+    steps:
+      - name: read
+        as: anonymous
+        request: {method: GET, path: "${P}/round.html"}
+        expect:
+          status: 200
+          microdata: {abs: "8", ceil: "4", floor: "3", round: "3", round2: "3.14", least_raise: "5", least_keep: "8", most_lower: "5", most_keep: "3", round_int_type: "2"}
+
+  - id: liquid.filters-number.to-integer
+    title: "to_integer: docs examples plus booleans, nil, non-numeric, negatives and saturation"
+    feature: number filters
+    live: true
+    notes: R-LIQ-137. All edge values are stated in the docs prose.
+    site:
+      settings: {default_get: allow}
+      files:
+        - path: "${P}/toint.html"
+          body: |
+            <!DOCTYPE html>
+            <html xmlns:p="https://pagelove.org/1.0"><body>
+              <div itemscope itemtype="urn:liquid:result" p:template="text/liquid">
+                <span itemprop="str">{{ "3.9" | to_integer }}</span>
+                <span itemprop="plus">{{ "42" | to_integer | plus: 8 }}</span>
+                <span itemprop="neg">{{ -3.9 | to_integer }}</span>
+                <span itemprop="t">{{ true | to_integer }}</span>
+                <span itemprop="f">{{ false | to_integer }}</span>
+                <span itemprop="nil">{{ nosuch | to_integer }}</span>
+                <span itemprop="word">{{ "abc" | to_integer }}</span>
+                <span itemprop="big">{{ "99999999999999999999" | to_integer }}</span>
+              </div>
+            </body></html>
+      rules: [{actor: "*", resource: "${P}/*", method: [GET, HEAD], action: Allow}]
+    steps:
+      - name: read
+        as: anonymous
+        request: {method: GET, path: "${P}/toint.html"}
+        expect:
+          status: 200
+          microdata: {str: "3", plus: "50", neg: "-3", t: "1", f: "0", nil: "0", word: "0", big: "9223372036854775807"}
+
+  - id: liquid.filters-number.numeric-strings-and-floats
+    title: Numeric strings take part in arithmetic; integral float results render with .0
+    feature: number filters
+    evidence: inferred
+    source: "docs reference/composing-pages/Expression-Binding §Count and sum (Sum: 100.0); languages/liquid/filters/number intro (integer only when both operands are integers); microdata values are strings (Property)"
+    confidence: low
+    live: true
+    notes: R-LIQ-56, R-LIQ-101, R-LIQ-130, P-LIQ-13.
+    site:
+      settings: {default_get: allow}
+      files:
+        - path: "${P}/numstr.html"
+          body: |
+            <!DOCTYPE html>
+            <html xmlns:p="https://pagelove.org/1.0"><body>
+              <p id="o" p:template="text/liquid">{{ "41" | plus: 1 }}|{{ 10 | plus: 5.0 }}|{{ "2.5" | times: 2 }}|{{ -7 | divided_by: 2 }}</p>
+            </body></html>
+      rules: [{actor: "*", resource: "${P}/*", method: [GET, HEAD], action: Allow}]
+    steps:
+      - name: read
+        as: anonymous
+        request: {method: GET, path: "${P}/numstr.html", headers: {Range: "selector=#o"}}
+        expect:
+          status: 206
+          body_contains: [">42|15.0|5.0|-4</p>"]

@@ -1,0 +1,230 @@
+# Composing: minimised live probes of p:paginate (2026-09-29 reconciliation,
+# docs/compat/decisions-2026-09-29/composing-liquid.md). Each asserts what live
+# PageLove served; pagelike follows it (adopt-live), except for the placement
+# of whitespace inside the paginated element, which no probe asserts.
+cases:
+  - id: comp.pag.probe-0929.single-with-id
+    title: "Probe: one paginator with an id reads paginate:<id>:* before paginate:*, and its links carry only paginate:<id>:page"
+    area: composing
+    feature: pagination links
+    status: live-divergence
+    evidence: live-observed
+    source: "harness/observations/live-2026-09-29-reconcile-composing-liquid/run1-probes/comp-pag-probe-0929-single-with-id.json (live 2026-09-29)"
+    confidence: high
+    requires: []
+    live: true
+    site:
+      settings: {default_get: allow}
+      files:
+        - path: "${P}/contacts.html"
+          body: |
+            <!DOCTYPE html>
+            <html><head><title>Contacts</title></head><body>
+            <ul id="contacts" xmlns:p="https://pagelove.org/1.0" p:paginate="3">
+            <li>Alice</li><li>Bob</li><li>Carol</li><li>Dave</li><li>Eve</li><li>Frank</li><li>Grace</li>
+            </ul>
+            </body></html>
+      rules:
+        - {actor: "*", resource: "${P}/*", method: [GET, HEAD], action: Allow}
+    steps:
+      - name: prefixed page and length with another parameter
+        as: anonymous
+        request: {method: GET, path: "${P}/contacts.html?q=smith&paginate:contacts:page=2&paginate:contacts:length=2"}
+        expect:
+          status: 200
+          body_contains:
+            - "<li>Carol</li><li>Dave</li>"
+            - '<title>Contacts</title><link rel="first" href="${P}/contacts.html?paginate:contacts:page=1" title="contacts"><link rel="last" href="${P}/contacts.html?paginate:contacts:page=4" title="contacts"><link rel="prev" href="${P}/contacts.html?paginate:contacts:page=1" title="contacts"><link rel="next" href="${P}/contacts.html?paginate:contacts:page=3" title="contacts"></head>'
+          body_not_contains: ["<li>Bob</li>", "<li>Eve</li>", "q=smith", "length"]
+          header_matches: {Link: '^<${P}/contacts\.html\?paginate:contacts:page=1>; rel="first"; title="contacts"'}
+      - name: unprefixed length only
+        as: anonymous
+        request: {method: GET, path: "${P}/contacts.html?paginate:length=2"}
+        expect:
+          status: 200
+          body_contains:
+            - "<li>Alice</li><li>Bob</li>"
+            - '<title>Contacts</title><link rel="first" href="${P}/contacts.html?paginate:contacts:page=1" title="contacts"><link rel="last" href="${P}/contacts.html?paginate:contacts:page=4" title="contacts"><link rel="next" href="${P}/contacts.html?paginate:contacts:page=2" title="contacts"></head>'
+          body_not_contains: ["<li>Carol</li>", 'rel="prev"', "length"]
+      - name: prefixed last page
+        as: anonymous
+        request: {method: GET, path: "${P}/contacts.html?paginate:contacts:page=3"}
+        expect:
+          status: 200
+          body_contains:
+            - "<li>Grace</li>"
+            - '<title>Contacts</title><link rel="first" href="${P}/contacts.html?paginate:contacts:page=1" title="contacts"><link rel="last" href="${P}/contacts.html?paginate:contacts:page=3" title="contacts"><link rel="prev" href="${P}/contacts.html?paginate:contacts:page=2" title="contacts"></head>'
+          body_not_contains: ["<li>Frank</li>", 'rel="next"']
+      - name: the prefixed page wins over the unprefixed one
+        as: anonymous
+        request: {method: GET, path: "${P}/contacts.html?paginate:page=2&paginate:contacts:page=3"}
+        expect:
+          status: 200
+          body_contains:
+            - "<li>Grace</li>"
+            - '<title>Contacts</title><link rel="first" href="${P}/contacts.html?paginate:contacts:page=1" title="contacts"><link rel="last" href="${P}/contacts.html?paginate:contacts:page=3" title="contacts"><link rel="prev" href="${P}/contacts.html?paginate:contacts:page=2" title="contacts"></head>'
+          body_not_contains: ["<li>Frank</li>", 'rel="next"']
+      - name: unprefixed last page
+        as: anonymous
+        request: {method: GET, path: "${P}/contacts.html?paginate:page=3"}
+        expect:
+          status: 200
+          body_contains:
+            - "<li>Grace</li>"
+            - '<title>Contacts</title><link rel="first" href="${P}/contacts.html?paginate:contacts:page=1" title="contacts"><link rel="last" href="${P}/contacts.html?paginate:contacts:page=3" title="contacts"><link rel="prev" href="${P}/contacts.html?paginate:contacts:page=2" title="contacts"></head>'
+          body_not_contains: ["<li>Frank</li>", 'rel="next"']
+      - name: another parameter, unprefixed page
+        as: anonymous
+        request: {method: GET, path: "${P}/contacts.html?q=smith&paginate:page=2"}
+        expect:
+          status: 200
+          body_contains:
+            - "<li>Dave</li><li>Eve</li><li>Frank</li>"
+            - '<title>Contacts</title><link rel="first" href="${P}/contacts.html?paginate:contacts:page=1" title="contacts"><link rel="last" href="${P}/contacts.html?paginate:contacts:page=3" title="contacts"><link rel="prev" href="${P}/contacts.html?paginate:contacts:page=1" title="contacts"><link rel="next" href="${P}/contacts.html?paginate:contacts:page=3" title="contacts"></head>'
+          body_not_contains: ["q=smith"]
+
+  - id: comp.pag.probe-0929.single-without-id
+    title: "Probe: one paginator without an id links with paginate:page only and no title"
+    area: composing
+    feature: pagination links
+    status: live-divergence
+    evidence: live-observed
+    source: "harness/observations/live-2026-09-29-reconcile-composing-liquid/run1-probes/comp-pag-probe-0929-single-without-id.json (live 2026-09-29)"
+    confidence: high
+    requires: []
+    live: true
+    site:
+      settings: {default_get: allow}
+      files:
+        - path: "${P}/list.html"
+          body: |
+            <!DOCTYPE html>
+            <html><head><title>L</title></head><body>
+            <ul xmlns:p="https://pagelove.org/1.0" p:paginate="3">
+            <li>Alice</li><li>Bob</li><li>Carol</li><li>Dave</li><li>Eve</li><li>Frank</li><li>Grace</li>
+            </ul>
+            </body></html>
+      rules:
+        - {actor: "*", resource: "${P}/*", method: [GET, HEAD], action: Allow}
+    steps:
+      - name: page 2 with another parameter and a length
+        as: anonymous
+        request: {method: GET, path: "${P}/list.html?x=1&paginate:page=2&paginate:length=2"}
+        expect:
+          status: 200
+          body_contains:
+            - "<li>Carol</li><li>Dave</li>"
+            - '<title>L</title><link rel="first" href="${P}/list.html?paginate:page=1"><link rel="last" href="${P}/list.html?paginate:page=4"><link rel="prev" href="${P}/list.html?paginate:page=1"><link rel="next" href="${P}/list.html?paginate:page=3"></head>'
+          body_not_contains: ["<li>Bob</li>", "<li>Eve</li>", "x=1", "length"]
+          header_matches: {Link: '^<${P}/list\.html\?paginate:page=1>; rel="first"(, |$)'}
+      - name: no query
+        as: anonymous
+        request: {method: GET, path: "${P}/list.html"}
+        expect:
+          status: 200
+          body_contains:
+            - "<li>Alice</li><li>Bob</li><li>Carol</li>"
+            - '<title>L</title><link rel="first" href="${P}/list.html?paginate:page=1"><link rel="last" href="${P}/list.html?paginate:page=3"><link rel="next" href="${P}/list.html?paginate:page=2"></head>'
+          body_not_contains: ["<li>Dave</li>", 'rel="prev"']
+
+  - id: comp.pag.probe-0929.two-with-ids
+    title: "Probe: two paginators with ids — each reads its own parameters, falls back to paginate:page, and links only its own page"
+    area: composing
+    feature: pagination
+    status: live-divergence
+    evidence: live-observed
+    source: "harness/observations/live-2026-09-29-reconcile-composing-liquid/run1-probes/comp-pag-probe-0929-two-with-ids.json (live 2026-09-29)"
+    confidence: high
+    requires: []
+    live: true
+    site:
+      settings: {default_get: allow}
+      files:
+        - path: "${P}/dashboard.html"
+          body: |
+            <!DOCTYPE html>
+            <html xmlns:p="https://pagelove.org/1.0"><head><title>Dashboard</title></head><body>
+            <section>
+              <ul id="users" p:paginate="2"><li>U1</li><li>U2</li><li>U3</li><li>U4</li><li>U5</li></ul>
+              <ul id="posts" p:paginate="2"><li>P1</li><li>P2</li><li>P3</li><li>P4</li><li>P5</li></ul>
+            </section>
+            </body></html>
+      rules:
+        - {actor: "*", resource: "${P}/*", method: [GET, HEAD], action: Allow}
+    steps:
+      - name: prefixed pages
+        as: anonymous
+        request: {method: GET, path: "${P}/dashboard.html?paginate:users:page=2&paginate:posts:page=3"}
+        expect:
+          status: 200
+          body_contains:
+            - '<ul id="users"><li>U3</li><li>U4</li></ul>'
+            - '<ul id="posts"><li>P5</li></ul>'
+            - '<title>Dashboard</title><link rel="first" href="${P}/dashboard.html?paginate:users:page=1" title="users"><link rel="last" href="${P}/dashboard.html?paginate:users:page=3" title="users"><link rel="prev" href="${P}/dashboard.html?paginate:users:page=1" title="users"><link rel="next" href="${P}/dashboard.html?paginate:users:page=3" title="users"><link rel="first" href="${P}/dashboard.html?paginate:posts:page=1" title="posts"><link rel="last" href="${P}/dashboard.html?paginate:posts:page=3" title="posts"><link rel="prev" href="${P}/dashboard.html?paginate:posts:page=2" title="posts"></head>'
+      - name: unprefixed page drives both
+        as: anonymous
+        request: {method: GET, path: "${P}/dashboard.html?paginate:page=2"}
+        expect:
+          status: 200
+          body_contains:
+            - '<ul id="users"><li>U3</li><li>U4</li></ul>'
+            - '<ul id="posts"><li>P3</li><li>P4</li></ul>'
+            - '<title>Dashboard</title><link rel="first" href="${P}/dashboard.html?paginate:users:page=1" title="users"><link rel="last" href="${P}/dashboard.html?paginate:users:page=3" title="users"><link rel="prev" href="${P}/dashboard.html?paginate:users:page=1" title="users"><link rel="next" href="${P}/dashboard.html?paginate:users:page=3" title="users"><link rel="first" href="${P}/dashboard.html?paginate:posts:page=1" title="posts"><link rel="last" href="${P}/dashboard.html?paginate:posts:page=3" title="posts"><link rel="prev" href="${P}/dashboard.html?paginate:posts:page=1" title="posts"><link rel="next" href="${P}/dashboard.html?paginate:posts:page=3" title="posts"></head>'
+
+  - id: comp.pag.probe-0929.without-ids
+    title: "Probe: several paginators without ids (and a mixed page) are served 200, sharing paginate:page"
+    area: composing
+    feature: pagination errors
+    status: live-divergence
+    evidence: live-observed
+    source: "harness/observations/live-2026-09-29-reconcile-composing-liquid/run1-probes/comp-pag-probe-0929-without-ids.json (live 2026-09-29)"
+    confidence: high
+    requires: []
+    live: true
+    site:
+      settings: {default_get: allow}
+      files:
+        - path: "${P}/two.html"
+          body: |
+            <!DOCTYPE html>
+            <html xmlns:p="https://pagelove.org/1.0"><head><title>Two</title></head><body>
+            <ul p:paginate="2"><li>a</li><li>b</li><li>c</li></ul>
+            <ul p:paginate="2"><li>d</li><li>e</li><li>f</li></ul>
+            </body></html>
+        - path: "${P}/mixed.html"
+          body: |
+            <!DOCTYPE html>
+            <html xmlns:p="https://pagelove.org/1.0"><head><title>Mixed</title></head><body>
+            <ul id="a" p:paginate="2"><li>a1</li><li>a2</li><li>a3</li></ul>
+            <ul p:paginate="2"><li>b1</li><li>b2</li><li>b3</li></ul>
+            </body></html>
+      rules:
+        - {actor: "*", resource: "${P}/*", method: [GET, HEAD], action: Allow}
+    steps:
+      - name: two without ids, page 2
+        as: anonymous
+        request: {method: GET, path: "${P}/two.html?paginate:page=2"}
+        expect:
+          status: 200
+          body_contains:
+            - "<ul><li>c</li></ul>"
+            - "<ul><li>f</li></ul>"
+            - '<title>Two</title><link rel="first" href="${P}/two.html?paginate:page=1"><link rel="last" href="${P}/two.html?paginate:page=2"><link rel="prev" href="${P}/two.html?paginate:page=1"><link rel="first" href="${P}/two.html?paginate:page=1"><link rel="last" href="${P}/two.html?paginate:page=2"><link rel="prev" href="${P}/two.html?paginate:page=1"></head>'
+      - name: mixed, unprefixed page 2
+        as: anonymous
+        request: {method: GET, path: "${P}/mixed.html?paginate:page=2"}
+        expect:
+          status: 200
+          body_contains:
+            - '<ul id="a"><li>a3</li></ul>'
+            - "<ul><li>b3</li></ul>"
+            - '<title>Mixed</title><link rel="first" href="${P}/mixed.html?paginate:a:page=1" title="a"><link rel="last" href="${P}/mixed.html?paginate:a:page=2" title="a"><link rel="prev" href="${P}/mixed.html?paginate:a:page=1" title="a"><link rel="first" href="${P}/mixed.html?paginate:page=1"><link rel="last" href="${P}/mixed.html?paginate:page=2"><link rel="prev" href="${P}/mixed.html?paginate:page=1"></head>'
+      - name: mixed, prefixed page 2
+        as: anonymous
+        request: {method: GET, path: "${P}/mixed.html?paginate:a:page=2"}
+        expect:
+          status: 200
+          body_contains:
+            - '<ul id="a"><li>a3</li></ul>'
+            - "<ul><li>b1</li><li>b2</li></ul>"
+            - '<title>Mixed</title><link rel="first" href="${P}/mixed.html?paginate:a:page=1" title="a"><link rel="last" href="${P}/mixed.html?paginate:a:page=2" title="a"><link rel="prev" href="${P}/mixed.html?paginate:a:page=1" title="a"><link rel="first" href="${P}/mixed.html?paginate:page=1"><link rel="last" href="${P}/mixed.html?paginate:page=2"><link rel="next" href="${P}/mixed.html?paginate:page=2"></head>'

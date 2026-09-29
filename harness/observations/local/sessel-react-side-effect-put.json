@@ -1,0 +1,37 @@
+{
+  "case": "sessel.react.side-effect-put",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (trigger fires on a write to the inbox)",
+      "method": "PUT",
+      "path": "/_pl/sessel-react-side-effect-put-5ee4a7/inbox/msg.html",
+      "status": 201,
+      "headers": {
+        "content-length": "52",
+        "content-type": "text/html",
+        "etag": "\"b64aac5b457e960612ef75532cafb83a48abed604c443cf91a6411adda027a80\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:56 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\u003cp\u003ehi\u003c/p\u003e\u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 2 (the side-effect document exists)",
+      "method": "GET",
+      "path": "/_pl/sessel-react-side-effect-put-5ee4a7/side-effects/record.html",
+      "status": 200,
+      "headers": {
+        "accept-ranges": "selector, bytes",
+        "content-length": "150",
+        "content-type": "text/html",
+        "etag": "\"1bf1534cb9049a56fa5053ea9870db34dcac0ce619a450b802d39cbe27fb5780\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:56 GMT",
+        "vary": "Host, Range, Accept"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\n\u003cdiv itemscope itemtype=\"https://schema.org/Thing\"\u003e\u003cmeta itemprop=\"name\" content=\"side-effect-doc\"\u003e\u003c/div\u003e\n\u003c/body\u003e\u003c/html\u003e\n"
+    }
+  ],
+  "outcome": "pass",
+  "target": "local"
+}

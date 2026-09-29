@@ -1,0 +1,34 @@
+{
+  "case": "liquid.compose.write-into-rendered-output",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (write to a generated element)",
+      "method": "PUT",
+      "path": "/_pl/liquid-compose-write-into-rendered-outpu-5a844b/w.html",
+      "status": 416,
+      "headers": {
+        "content-length": "592",
+        "content-type": "text/html",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\u003cdiv itemscope itemtype=\"http://pagelove.org/Error\"\u003e\u003cspan itemprop=\"statusCode\"\u003e416\u003c/span\u003e\u003cspan itemprop=\"message\"\u003e\u003cdiv itemscope itemtype=\"https://dombase.pagelove.team/ns/error/selector-no-match\"\u003e\u003cul itemprop=\"problems\"\u003e\u003cli itemprop=\"problem\"\u003e\u003cspan itemprop=\"message\"\u003eselector \"#i1\": selector matched no elements at the request path or any origin; composition surfaced: include failed: method 'template' failed: runtime error: Liquid syntax error: Liquid parse error at None (node None): expected RParen, got Dot\u003c/span\u003e\u003c/li\u003e\u003c/ul\u003e\u003c/div\u003e\u003c/span\u003e\u003c/div\u003e\u003c/body\u003e\u003c/html\u003e"
+    },
+    {
+      "step": "step 2 (template source untouched)",
+      "method": "GET",
+      "path": "/_pl/liquid-compose-write-into-rendered-outpu-5a844b/w.html",
+      "status": 200,
+      "headers": {
+        "accept-ranges": "bytes",
+        "content-length": "186",
+        "content-type": "text/html",
+        "etag": "\"d75d3362d68846cb339c118916e35631aa5810e916781d8d0beab16254590d58\"",
+        "last-modified": "Tue, 29 Sep 2026 00:47:14 GMT"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml xmlns:p=\"https://pagelove.org/1.0\"\u003e\u003cbody\u003e\n  \u003cul id=\"l\" p:template=\"text/liquid\"\u003e{% for i in (1..2) %}\u003cli id=\"i{{ i }}\"\u003e{{ i }}\u003c/li\u003e{% endfor %}\u003c/ul\u003e\n\u003c/body\u003e\u003c/html\u003e\n"
+    }
+  ],
+  "outcome": "pass",
+  "target": "live"
+}

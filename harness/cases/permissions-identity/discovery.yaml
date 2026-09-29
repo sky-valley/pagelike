@@ -1,0 +1,739 @@
+# Rule discovery and field extraction (spec R-PERM-1..6).
+# Rule documents are written as files so the Microdata form itself is under test.
+# NOTE for the runner: only ${P}, ${HOST}, ${SINK} and captured names are
+# substituted; any other ${...} must be left untouched.
+cases:
+  - id: authz.discovery.rule-in-same-document
+    title: A rule stored inside the document it governs grants a selector PUT (tutorial shopping list)
+    area: permissions-identity
+    feature: rule discovery (same document)
+    evidence: documented
+    source: "docs learn/your-first-app (AuthorizationRule in index.html body) (snapshot 2026-09-28)"
+    confidence: high
+    requires: []
+    live: true
+    site:
+      files:
+        - path: "${P}/list.html"
+          body: |
+            <!doctype html>
+            <html lang="en"><head><meta charset="UTF-8"><title>List</title></head>
+            <body>
+              <h1>Shopping List</h1>
+              <ul id="todo-list">
+                <li><input type="checkbox">Get Milk</li>
+                <li><input type="checkbox">Buy Eggs</li>
+              </ul>
+              <div hidden itemscope itemtype="https://pagelove.org/AuthorizationRule">
+                <meta itemprop="actor" content="*">
+                <meta itemprop="resource" content="${P}/list.html">
+                <meta itemprop="method" content="PUT">
+                <meta itemprop="selector" content="#todo-list li">
+                <meta itemprop="action" content="allow">
+              </div>
+            </body></html>
+    steps:
+      - name: anonymous PUT of the first list item is allowed
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/list.html"
+          headers: {Range: "selector=#todo-list li", Content-Type: text/html}
+          body: '<li><input type="checkbox" checked>Get Milk</li>'
+        expect:
+          status: 206
+      - name: the write persisted (read back over the authoring plane)
+        as: author
+        plane: dav
+        request: {method: GET, path: "${P}/list.html"}
+        expect:
+          status: 200
+          body_contains: ['checked']
+      - name: a PUT to an element the rule selector does not cover is refused
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/list.html"
+          headers: {Range: "selector=h1", Content-Type: text/html}
+          body: '<h1>Hijacked</h1>'
+        expect:
+          status: 401
+
+  - id: authz.discovery.rule-in-other-document
+    title: A rule stored in a separate rules page governs another document
+    area: permissions-identity
+    feature: rule discovery (host-wide)
+    evidence: documented
+    source: "docs learn/your-first-app ('or even in another file'); learn/build-a-blog (rules.html) (snapshot 2026-09-28)"
+    confidence: high
+    requires: []
+    live: true
+    site:
+      files:
+        - path: "${P}/doc.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body><h1>Title</h1><p id="p1">Text</p></body></html>
+        - path: "${P}/config/rules.html"
+          body: |
+            <!DOCTYPE html>
+            <html><head><meta charset="UTF-8"><title>rules</title></head><body>
+              <div hidden itemscope itemtype="https://pagelove.org/AuthorizationRule">
+                <meta itemprop="actor" content="*">
+                <meta itemprop="resource" content="${P}/doc.html">
+                <meta itemprop="method" content="PUT">
+                <meta itemprop="selector" content="#p1">
+                <meta itemprop="action" content="Allow">
+              </div>
+            </body></html>
+    steps:
+      - name: PUT #p1 is allowed by the rule in another document
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/doc.html"
+          headers: {Range: "selector=#p1", Content-Type: text/html}
+          body: '<p id="p1">Changed</p>'
+        expect:
+          status: 206
+
+  - id: authz.discovery.table-form-nested-lists
+    title: Table-row rule with multi-valued resource and method in nested list items, and a selector list
+    area: permissions-identity
+    feature: rule field extraction (table form)
+    evidence: documented
+    source: "docs reference/permissions/AuthorizationRule §Example: blog admin interface; pagelove-polls/site/admin/auth.html@c9270e5:28-70 (multi resource li); pagelove-ats/site/admin/auth.html@8f200fc:132 (selector list)"
+    confidence: high
+    requires: []
+    live: true
+    site:
+      files:
+        - path: "${P}/a.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body><ul id="list"><li id="a1">one</li></ul></body></html>
+        - path: "${P}/b.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body><ul id="list"><li id="b1">one</li><li id="b2">two</li></ul></body></html>
+        - path: "${P}/rules.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+            <table>
+              <thead><tr><th>Actor</th><th>Resource</th><th>Method</th><th>Selector</th><th>Action</th></tr></thead>
+              <tbody>
+                <tr itemscope itemtype="https://pagelove.org/AuthorizationRule">
+                  <td itemprop="actor">*</td>
+                  <td><ul><li itemprop="resource">${P}/a.html</li><li itemprop="resource">${P}/b.html</li></ul></td>
+                  <td><ul><li itemprop="method">POST</li><li itemprop="method">DELETE</li></ul></td>
+                  <td itemprop="selector">ul#list, ul#list &gt; li</td>
+                  <td itemprop="action">Allow</td>
+                </tr>
+              </tbody>
+            </table>
+            </body></html>
+    steps:
+      - name: POST into the list on the first resource
+        as: anonymous
+        request:
+          method: POST
+          path: "${P}/a.html"
+          headers: {Range: "selector=#list", Content-Type: text/html}
+          body: '<li id="a2">two</li>'
+        expect:
+          status: 206
+      - name: DELETE a list item on the second resource
+        as: anonymous
+        request:
+          method: DELETE
+          path: "${P}/b.html"
+          headers: {Range: "selector=#b2"}
+        expect:
+          status: 204
+      - name: PUT is not among the listed methods
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/b.html"
+          headers: {Range: "selector=#b1", Content-Type: text/html}
+          body: '<li id="b1">changed</li>'
+        expect:
+          status: 401
+
+  - id: authz.discovery.action-case-insensitive
+    title: Action values are case-insensitive (Allow/allow/Deny/deny all work)
+    area: permissions-identity
+    feature: rule field extraction (action)
+    evidence: demo-source
+    source: "docs use Allow/Deny (reference/permissions/AuthorizationRule); pagelove-polls/site/admin/auth.html@c9270e5:33, pagelove-shop/site/rules.html@d887054:37 use allow/deny"
+    confidence: high
+    requires: []
+    live: true
+    notes: >-
+      The first live run (harness/observations/live-2026-09-28/authz-discovery-action-case-insensitive.json)
+      failed only because the deny was selector-scoped against a resource-level Allow, which live
+      PageLove does not enforce (see authz.selector.selector-deny-overrides-resource-allow-same-tier);
+      the case now tests the action spellings with document-level rules only (docs/compat/decisions.md,
+      harness artifact).
+    site:
+      files:
+        - path: "${P}/doc.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body><h1>T</h1><p id="p1">x</p><p id="p2">y</p></body></html>
+        - path: "${P}/rules.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div itemscope itemtype="https://pagelove.org/AuthorizationRule">
+                <meta itemprop="actor" content="*"><meta itemprop="resource" content="${P}/doc.html">
+                <meta itemprop="method" content="PUT"><meta itemprop="selector" content="#p1">
+                <meta itemprop="action" content="allow">
+              </div>
+              <div itemscope itemtype="https://pagelove.org/AuthorizationRule">
+                <meta itemprop="actor" content="*"><meta itemprop="resource" content="${P}/doc.html">
+                <meta itemprop="method" content="DELETE">
+                <meta itemprop="action" content="Allow">
+              </div>
+              <div itemscope itemtype="https://pagelove.org/AuthorizationRule">
+                <meta itemprop="actor" content="*"><meta itemprop="resource" content="${P}/doc.html">
+                <meta itemprop="method" content="DELETE">
+                <meta itemprop="action" content="deny">
+              </div>
+              <div itemscope itemtype="https://pagelove.org/AuthorizationRule">
+                <meta itemprop="actor" content="*"><meta itemprop="resource" content="${P}/doc.html">
+                <meta itemprop="method" content="POST">
+                <meta itemprop="action" content="ALLOW">
+              </div>
+            </body></html>
+    steps:
+      - name: lowercase allow grants
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/doc.html"
+          headers: {Range: "selector=#p1", Content-Type: text/html}
+          body: '<p id="p1">changed</p>'
+        expect: {status: 206}
+      - name: lowercase deny beats capitalised Allow at the same tier
+        as: anonymous
+        request:
+          method: DELETE
+          path: "${P}/doc.html"
+          headers: {Range: "selector=#p2"}
+        expect: {status: 401}
+      - name: upper-case ALLOW grants
+        as: anonymous
+        request:
+          method: POST
+          path: "${P}/doc.html"
+          headers: {Range: "selector=body", Content-Type: text/html}
+          body: '<p id="p3">z</p>'
+        expect: {status: 206}
+
+  - id: authz.discovery.empty-selector-cell-means-document
+    title: An empty or whitespace-only selector cell makes the rule resource-level (whole-document PUT allowed)
+    area: permissions-identity
+    feature: rule field extraction (empty selector)
+    evidence: documented
+    source: "docs reference/permissions/AuthorizationRule §selector ('An empty or whitespace-only selector cell is fine'); pagelove-polls/site/admin/auth.html@c9270e5:32"
+    confidence: high
+    requires: []
+    live: true
+    site:
+      files:
+        - path: "${P}/one.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body><h1>One</h1></body></html>
+        - path: "${P}/two.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body><h1>Two</h1></body></html>
+        - path: "${P}/rules.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body><table><tbody>
+              <tr itemscope itemtype="https://pagelove.org/AuthorizationRule">
+                <td itemprop="actor">*</td><td itemprop="resource">${P}/one.html</td>
+                <td><ul><li itemprop="method">PUT</li></ul></td>
+                <td itemprop="selector"></td><td itemprop="action">allow</td>
+              </tr>
+              <tr itemscope itemtype="https://pagelove.org/AuthorizationRule">
+                <td itemprop="actor">*</td><td itemprop="resource">${P}/two.html</td>
+                <td><ul><li itemprop="method">PUT</li></ul></td>
+                <td itemprop="selector">
+                </td><td itemprop="action">allow</td>
+              </tr>
+            </tbody></table></body></html>
+    steps:
+      - name: whole-document PUT with an empty selector cell
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/one.html"
+          headers: {Content-Type: text/html}
+          body: |
+            <!DOCTYPE html>
+            <html><body><h1>One v2</h1></body></html>
+        expect: {status: [200, 201, 204]}
+      - name: whole-document PUT with a whitespace-only selector cell
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/two.html"
+          headers: {Content-Type: text/html}
+          body: |
+            <!DOCTYPE html>
+            <html><body><h1>Two v2</h1></body></html>
+        expect: {status: [200, 201, 204]}
+
+  - id: authz.discovery.whitespace-trimmed
+    title: Padded actor, resource, method and selector cells are trimmed; a padded action "allow" grants nothing, a padded "deny" still refuses
+    area: permissions-identity
+    feature: rule field extraction (trimming)
+    evidence: live-observed
+    source: "harness/observations/live-2026-09-28/authz-discovery-whitespace-trimmed.json (all cells padded: 401); per-field probe on host live-test-host, 2026-09-29 (padded actor/resource/method/selector: 206; padded action: 401); pagelove-cursor/plugins/pagelove/skills/pagelove-dev/SKILL.md@b97c3ef:107-126 (multi-line td values)"
+    confidence: high
+    requires: []
+    live: true
+    notes: >-
+      PageLove trims every rule field except the action. pagelike follows it for an Allow (adopt-live)
+      but keeps honouring a padded Deny, since ignoring a refusal the author wrote fails open
+      (docs/compat/decisions.md, keep-documented-security; authz.discovery.whitespace-trimmed.live
+      measures that half).
+    site:
+      files:
+        - path: "${P}/a.html"
+          body: '<!DOCTYPE html><html><body><p id="p1">a</p></body></html>'
+        - path: "${P}/b.html"
+          body: '<!DOCTYPE html><html><body><p id="p1">b</p></body></html>'
+        - path: "${P}/c.html"
+          body: '<!DOCTYPE html><html><body><p id="p1">c</p></body></html>'
+        - path: "${P}/d.html"
+          body: '<!DOCTYPE html><html><body><p id="p1">d</p></body></html>'
+        - path: "${P}/e.html"
+          body: '<!DOCTYPE html><html><body><p id="p1">e</p></body></html>'
+        - path: "${P}/f.html"
+          body: '<!DOCTYPE html><html><body><p id="p1">f</p></body></html>'
+        - path: "${P}/rules.html"
+          body: &padded_rules |
+            <!DOCTYPE html>
+            <html><body><table><tbody>
+              <tr itemscope itemtype="https://pagelove.org/AuthorizationRule">
+                <td itemprop="actor">
+                  *
+                </td>
+                <td itemprop="resource">${P}/a.html</td>
+                <td><ul><li itemprop="method">PUT</li></ul></td>
+                <td itemprop="selector">#p1</td>
+                <td itemprop="action">allow</td>
+              </tr>
+              <tr itemscope itemtype="https://pagelove.org/AuthorizationRule">
+                <td itemprop="actor">*</td>
+                <td itemprop="resource">
+                  ${P}/b.html
+                </td>
+                <td><ul><li itemprop="method">PUT</li></ul></td>
+                <td itemprop="selector">#p1</td>
+                <td itemprop="action">allow</td>
+              </tr>
+              <tr itemscope itemtype="https://pagelove.org/AuthorizationRule">
+                <td itemprop="actor">*</td>
+                <td itemprop="resource">${P}/c.html</td>
+                <td><ul><li itemprop="method">
+                  PUT
+                </li></ul></td>
+                <td itemprop="selector">#p1</td>
+                <td itemprop="action">allow</td>
+              </tr>
+              <tr itemscope itemtype="https://pagelove.org/AuthorizationRule">
+                <td itemprop="actor">*</td>
+                <td itemprop="resource">${P}/d.html</td>
+                <td><ul><li itemprop="method">PUT</li></ul></td>
+                <td itemprop="selector">
+                  #p1
+                </td>
+                <td itemprop="action">allow</td>
+              </tr>
+              <tr itemscope itemtype="https://pagelove.org/AuthorizationRule">
+                <td itemprop="actor">*</td>
+                <td itemprop="resource">${P}/e.html</td>
+                <td><ul><li itemprop="method">PUT</li></ul></td>
+                <td itemprop="selector">#p1</td>
+                <td itemprop="action">
+                  allow
+                </td>
+              </tr>
+              <tr itemscope itemtype="https://pagelove.org/AuthorizationRule">
+                <td itemprop="actor">*</td>
+                <td itemprop="resource">${P}/f.html</td>
+                <td><ul><li itemprop="method">PUT</li></ul></td>
+                <td itemprop="selector"></td>
+                <td itemprop="action">allow</td>
+              </tr>
+              <tr itemscope itemtype="https://pagelove.org/AuthorizationRule">
+                <td itemprop="actor">*</td>
+                <td itemprop="resource">${P}/f.html</td>
+                <td><ul><li itemprop="method">PUT</li></ul></td>
+                <td itemprop="selector"></td>
+                <td itemprop="action">
+                  deny
+                </td>
+              </tr>
+            </tbody></table></body></html>
+    steps:
+      - {name: padded actor trimmed, as: anonymous, request: {method: PUT, path: "${P}/a.html", headers: {Range: "selector=#p1", Content-Type: text/html}, body: '<p id="p1">A</p>'}, expect: {status: 206}}
+      - {name: padded resource trimmed, as: anonymous, request: {method: PUT, path: "${P}/b.html", headers: {Range: "selector=#p1", Content-Type: text/html}, body: '<p id="p1">B</p>'}, expect: {status: 206}}
+      - {name: padded method trimmed, as: anonymous, request: {method: PUT, path: "${P}/c.html", headers: {Range: "selector=#p1", Content-Type: text/html}, body: '<p id="p1">C</p>'}, expect: {status: 206}}
+      - {name: padded selector trimmed, as: anonymous, request: {method: PUT, path: "${P}/d.html", headers: {Range: "selector=#p1", Content-Type: text/html}, body: '<p id="p1">D</p>'}, expect: {status: 206}}
+      - {name: padded allow grants nothing, as: anonymous, request: {method: PUT, path: "${P}/e.html", headers: {Range: "selector=#p1", Content-Type: text/html}, body: '<p id="p1">E</p>'}, expect: {status: 401}}
+      - {name: padded deny still refuses, as: anonymous, request: {method: PUT, path: "${P}/f.html", headers: {Range: "selector=#p1", Content-Type: text/html}, body: '<p id="p1">F</p>'}, expect: {status: 401}}
+
+  - id: authz.discovery.whitespace-trimmed.live
+    title: Live PageLove ignores a padded deny action
+    area: permissions-identity
+    feature: rule field extraction (trimming)
+    status: live-divergence
+    evidence: live-observed
+    source: "per-field probe on host live-test-host, 2026-09-29 (padded action values are not recognized)"
+    confidence: medium
+    requires: []
+    live: true
+    notes: "Measures a deliberate divergence (docs/compat/decisions.md, keep-documented-security). Runs only against --target live."
+    site:
+      files:
+        - path: "${P}/f.html"
+          body: '<!DOCTYPE html><html><body><p id="p1">f</p></body></html>'
+        - path: "${P}/rules.html"
+          body: *padded_rules
+    steps:
+      - {name: padded deny ignored, as: anonymous, request: {method: PUT, path: "${P}/f.html", headers: {Range: "selector=#p1", Content-Type: text/html}, body: '<p id="p1">F</p>'}, expect: {status: 206}}
+
+  - id: authz.discovery.rule-in-xml-document
+    title: A rule embedded in a stored XML document is not discovered
+    area: permissions-identity
+    feature: rule discovery (XML documents)
+    evidence: live-observed
+    source: "harness/observations/live-2026-09-28/authz-discovery-rule-in-xml-document.json (401: the XML-hosted Allow grants nothing); docs reference/composing-pages/XML-Documents §Example (snapshot 2026-09-28) shows one"
+    confidence: high
+    requires: []
+    live: true
+    notes: >-
+      The id keeps its original name. PageLove treats XML documents like blobs (no selectors, no
+      rules), so the documented XML-hosted rule is superseded (docs/compat/decisions.md). The
+      documented example grants GET on /*; this case grants PUT so the result does not depend on
+      the host default-GET mode.
+    site:
+      files:
+        - path: "${P}/target.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body><h1>Target</h1></body></html>
+        - path: "${P}/feed.xml"
+          content_type: application/atom+xml
+          body: |
+            <?xml version="1.0" encoding="UTF-8"?>
+            <feed xmlns="http://www.w3.org/2005/Atom">
+              <title>Feed</title>
+              <div hidden="hidden" itemscope="itemscope" itemtype="https://pagelove.org/AuthorizationRule">
+                <meta itemprop="actor" content="*"></meta>
+                <meta itemprop="resource" content="${P}/target.html"></meta>
+                <meta itemprop="method" content="PUT"></meta>
+                <meta itemprop="selector" content="h1"></meta>
+                <meta itemprop="action" content="allow"></meta>
+              </div>
+            </feed>
+    steps:
+      - name: the XML-hosted rule grants nothing
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/target.html"
+          headers: {Range: "selector=h1", Content-Type: text/html}
+          body: '<h1>Changed</h1>'
+        expect: {status: 401}
+
+  - id: authz.discovery.itemtype-must-match
+    title: Items with a different itemtype are not rules
+    area: permissions-identity
+    feature: rule discovery (itemtype)
+    evidence: inferred
+    source: "docs reference/permissions/AuthorizationRule (itemtype https://pagelove.org/AuthorizationRule); a misspelt type is an unknown item"
+    confidence: high
+    requires: []
+    live: true
+    site:
+      files:
+        - path: "${P}/doc.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body><h1>T</h1></body></html>
+        - path: "${P}/rules.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div itemscope itemtype="https://pagelove.org/AuthorisationRule">
+                <meta itemprop="actor" content="*"><meta itemprop="resource" content="${P}/doc.html">
+                <meta itemprop="method" content="PUT"><meta itemprop="action" content="allow">
+              </div>
+            </body></html>
+    steps:
+      - name: whole-document PUT stays denied
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/doc.html"
+          headers: {Content-Type: text/html}
+          body: '<!DOCTYPE html><html><body><h1>X</h1></body></html>'
+        expect: {status: 401}
+
+  - id: authz.discovery.malformed-rule-ignored
+    title: Rules missing action or resource grant nothing
+    area: permissions-identity
+    feature: rule field extraction (required fields)
+    evidence: inferred
+    source: "docs reference/permissions/AuthorizationRule §resource ('At least one resource is required'); by analogy with reference/reacting-to-changes/Trigger §Error handling (malformed items skipped)"
+    confidence: medium
+    requires: []
+    live: true
+    site:
+      files:
+        - path: "${P}/doc.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body><h1>T</h1><p id="p1">x</p></body></html>
+        - path: "${P}/rules.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div itemscope itemtype="https://pagelove.org/AuthorizationRule">
+                <meta itemprop="actor" content="*"><meta itemprop="resource" content="${P}/doc.html">
+                <meta itemprop="method" content="PUT">
+              </div>
+              <div itemscope itemtype="https://pagelove.org/AuthorizationRule">
+                <meta itemprop="actor" content="*">
+                <meta itemprop="method" content="DELETE"><meta itemprop="action" content="allow">
+              </div>
+              <div itemscope itemtype="https://pagelove.org/AuthorizationRule">
+                <meta itemprop="actor" content="*"><meta itemprop="resource" content="${P}/doc.html">
+                <meta itemprop="method" content="POST"><meta itemprop="action" content="permit">
+              </div>
+            </body></html>
+    steps:
+      - name: rule without action does not grant PUT
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/doc.html"
+          headers: {Range: "selector=#p1", Content-Type: text/html}
+          body: '<p id="p1">y</p>'
+        expect: {status: 401}
+      - name: rule without resource does not grant DELETE
+        as: anonymous
+        request:
+          method: DELETE
+          path: "${P}/doc.html"
+          headers: {Range: "selector=#p1"}
+        expect: {status: 401}
+      - name: rule with an unknown action value does not grant POST
+        as: anonymous
+        request:
+          method: POST
+          path: "${P}/doc.html"
+          headers: {Range: "selector=body", Content-Type: text/html}
+          body: '<p>new</p>'
+        expect: {status: 401}
+
+  - id: authz.discovery.comma-separated-methods-not-split
+    title: A single method value "GET, PUT" is one token and does not grant PUT
+    area: permissions-identity
+    feature: rule field extraction (multi-valued method)
+    evidence: demo-source
+    source: "pagelove-cursor/plugins/pagelove/skills/pagelove-dev/SKILL.md@b97c3ef:84 ('Multiple methods use separate elements, NOT comma-separated')"
+    confidence: low
+    requires: []
+    live: true
+    notes: Older official skill; the current docs only ever show one method per element. Probe P-21.
+    site:
+      files:
+        - path: "${P}/doc.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body><h1>T</h1></body></html>
+        - path: "${P}/rules.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div itemscope itemtype="https://pagelove.org/AuthorizationRule">
+                <meta itemprop="actor" content="*"><meta itemprop="resource" content="${P}/doc.html">
+                <meta itemprop="method" content="GET, PUT"><meta itemprop="action" content="allow">
+              </div>
+            </body></html>
+    steps:
+      - name: PUT not granted
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/doc.html"
+          headers: {Range: "selector=h1", Content-Type: text/html}
+          body: '<h1>X</h1>'
+        expect: {status: 401}
+
+  - id: authz.discovery.rule-change-effective-next-request
+    title: A rule document rewritten through the public plane binds on the next request
+    area: permissions-identity
+    feature: rule freshness
+    evidence: documented
+    source: "docs recipes/declaring-a-state-machine line 232 and reference/reacting-to-changes/TransitionConstraint ('rules written through the serving path bind immediately'); recipes/group-based-permissions §Change membership"
+    confidence: medium
+    requires: []
+    live: true
+    notes: The initial rules document is written over WebDAV and may need the live runner's settle delay (up to 60 s) before step 1.
+    site:
+      files:
+        - path: "${P}/doc.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body><h1>T</h1></body></html>
+        - path: "${P}/rules.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div itemscope itemtype="https://pagelove.org/AuthorizationRule">
+                <meta itemprop="actor" content="*"><meta itemprop="resource" content="${P}/rules.html">
+                <meta itemprop="method" content="PUT"><meta itemprop="action" content="allow">
+              </div>
+            </body></html>
+    steps:
+      - name: no rule for doc.html yet
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/doc.html"
+          headers: {Range: "selector=h1", Content-Type: text/html}
+          body: '<h1>A</h1>'
+        expect: {status: 401}
+      - name: replace the rules document through the serving path
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/rules.html"
+          headers: {Content-Type: text/html}
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div itemscope itemtype="https://pagelove.org/AuthorizationRule">
+                <meta itemprop="actor" content="*"><meta itemprop="resource" content="${P}/rules.html">
+                <meta itemprop="method" content="PUT"><meta itemprop="action" content="allow">
+              </div>
+              <div itemscope itemtype="https://pagelove.org/AuthorizationRule">
+                <meta itemprop="actor" content="*"><meta itemprop="resource" content="${P}/doc.html">
+                <meta itemprop="method" content="PUT"><meta itemprop="selector" content="h1">
+                <meta itemprop="action" content="allow">
+              </div>
+            </body></html>
+        expect: {status: [200, 201, 204]}
+      - name: the new rule applies immediately
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/doc.html"
+          headers: {Range: "selector=h1", Content-Type: text/html}
+          body: '<h1>B</h1>'
+        expect: {status: 206}
+
+  - id: authz.discovery.table-item-rows-are-separate-rules
+    title: A table carrying itemscope with several rows (the docs' example form) yields one rule per row
+    area: permissions-identity
+    feature: rule field extraction (table item with rows)
+    evidence: documented
+    source: "docs reference/permissions/AuthorizationRule §Example: blog admin interface and reference/reading-and-writing/MOVE-method §Example (both put itemscope on <table> and one rule per <tr>)"
+    confidence: medium
+    requires: []
+    live: true
+    notes: >-
+      Plain HTML Microdata would merge all rows into one item. The docs present each
+      row as its own rule, so pagelike splits rows (spec R-PERM-2). Probe P-28 settled by the live
+      runs (2026-09-28/29): PageLove merges the rows into one rule with the first row's selector and
+      every row's methods, so row 2's DELETE is granted on row 1's h1 (an escalation the author
+      never wrote) and denied on the items it names. pagelike keeps splitting rows
+      (docs/compat/decisions.md, keep-documented-security);
+      authz.discovery.table-item-rows-are-separate-rules.live measures the divergence.
+    site:
+      files:
+        - path: "${P}/doc.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body><h1>T</h1><ul><li id="i1" class="item">a</li><li id="i2" class="item">b</li></ul></body></html>
+        - path: "${P}/rules.html"
+          body: &table_item_rules |
+            <!DOCTYPE html>
+            <html><body>
+            <table itemscope itemtype="https://pagelove.org/AuthorizationRule">
+              <thead><tr><th>Actor</th><th>Resource</th><th>Method(s)</th><th>Selector</th><th>Action</th></tr></thead>
+              <tbody>
+                <tr>
+                  <td itemprop="actor">*</td>
+                  <td itemprop="resource">${P}/doc.html</td>
+                  <td><ul><li itemprop="method">PUT</li></ul></td>
+                  <td itemprop="selector">h1</td>
+                  <td itemprop="action">Allow</td>
+                </tr>
+                <tr>
+                  <td itemprop="actor">*</td>
+                  <td itemprop="resource">${P}/doc.html</td>
+                  <td><ul><li itemprop="method">DELETE</li></ul></td>
+                  <td itemprop="selector">.item</td>
+                  <td itemprop="action">Allow</td>
+                </tr>
+              </tbody>
+            </table>
+            </body></html>
+    steps:
+      - name: first row grants PUT on h1
+        as: anonymous
+        request: {method: PUT, path: "${P}/doc.html", headers: {Range: "selector=h1", Content-Type: text/html}, body: '<h1>U</h1>'}
+        expect: {status: 206}
+      - name: second row grants DELETE on items
+        as: anonymous
+        request: {method: DELETE, path: "${P}/doc.html", headers: {Range: "selector=#i2"}}
+        expect: {status: 204}
+      - name: rows do not mix (no PUT on items)
+        as: anonymous
+        request: {method: PUT, path: "${P}/doc.html", headers: {Range: "selector=#i1", Content-Type: text/html}, body: '<li id="i1" class="item">z</li>'}
+        expect: {status: 401}
+      - name: rows do not mix (no DELETE on h1)
+        as: anonymous
+        request: {method: DELETE, path: "${P}/doc.html", headers: {Range: "selector=h1"}}
+        expect: {status: 401}
+
+  - id: authz.discovery.table-item-rows-are-separate-rules.live
+    title: Live PageLove merges a table item's rows, granting one row's method on another row's selector
+    area: permissions-identity
+    feature: rule field extraction (table item with rows)
+    status: live-divergence
+    evidence: live-observed
+    source: "harness/observations/live-2026-09-28/authz-discovery-table-item-rows-are-sepa.json and a probe on host live-test-host, 2026-09-29 (DELETE h1: 204, h1 removed)"
+    confidence: high
+    requires: []
+    live: true
+    notes: "Measures a deliberate divergence (docs/compat/decisions.md, keep-documented-security). Runs only against --target live."
+    site:
+      files:
+        - path: "${P}/doc.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body><h1>T</h1><ul><li id="i1" class="item">a</li><li id="i2" class="item">b</li></ul></body></html>
+        - path: "${P}/rules.html"
+          body: *table_item_rules
+    steps:
+      - name: row 2's DELETE is not granted on the items it names
+        as: anonymous
+        request: {method: DELETE, path: "${P}/doc.html", headers: {Range: "selector=#i2"}}
+        expect: {status: 401}
+      - name: row 2's DELETE is granted on row 1's h1
+        as: anonymous
+        request: {method: DELETE, path: "${P}/doc.html", headers: {Range: "selector=h1"}}
+        expect: {status: 204}

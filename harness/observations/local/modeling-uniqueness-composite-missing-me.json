@@ -1,0 +1,50 @@
+{
+  "case": "modeling.uniqueness.composite-missing-member",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (register declarations through the public plane (takes effect for the next request))",
+      "method": "PUT",
+      "path": "/_pl/modeling-uniqueness-composite-missing-me-46c810/schema.html",
+      "status": 201,
+      "headers": {
+        "content-length": "838",
+        "content-type": "text/html",
+        "etag": "\"0ae00a503d02e6c75d8dbf3ad26d2c9a5ff7abd0e00f302e1efae5050bcb2070\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:45 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\n  \u003cdiv hidden itemscope itemtype=\"https://pagelove.org/Schema\"\u003e\n    \u003cmeta itemprop=\"type\" content=\"https://pagelike.test/_pl/modeling-uniqueness-composite-missing-me-46c810/Membership\"\u003e\n    \u003cdiv itemprop=\"property\" itemscope itemtype=\"https://pagelove.org/Property\"\u003e\n      \u003cmeta itemprop=\"name\" content=\"user-id\"\u003e\n      \u003cmeta itemprop=\"type\" content=\"https://schema.host/Text\"\u003e\n      \u003cmeta itemprop=\"cardinality\" content=\"1..1\"\u003e\n      \u003cmeta itemprop=\"unique\" content=\"pair\"\u003e\n    \u003c/div\u003e\n    \u003cdiv itemprop=\"property\" itemscope itemtype=\"https://pagelove.org/Property\"\u003e\n      \u003cmeta itemprop=\"name\" content=\"org-id\"\u003e\n      \u003cmeta itemprop=\"type\" content=\"https://schema.host/Text\"\u003e\n      \u003cmeta itemprop=\"cardinality\" content=\"0..1\"\u003e\n      \u003cmeta itemprop=\"unique\" content=\"pair\"\u003e\n    \u003c/div\u003e\n  \u003c/div\u003e\n\u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 2 (alice without org)",
+      "method": "PUT",
+      "path": "/_pl/modeling-uniqueness-composite-missing-me-46c810/a.html",
+      "status": 201,
+      "headers": {
+        "content-length": "213",
+        "content-type": "text/html",
+        "etag": "\"54d98a5bef6923b451fb67f73d81448fa4d905392d648556c3c27ae005df62e1\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:45 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\n  \u003cdiv itemscope itemtype=\"https://pagelike.test/_pl/modeling-uniqueness-composite-missing-me-46c810/Membership\"\u003e\n    \u003cmeta itemprop=\"user-id\" content=\"alice\"\u003e\n  \u003c/div\u003e\n\u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 3 (alice without org again)",
+      "method": "PUT",
+      "path": "/_pl/modeling-uniqueness-composite-missing-me-46c810/b.html",
+      "status": 201,
+      "headers": {
+        "content-length": "213",
+        "content-type": "text/html",
+        "etag": "\"54d98a5bef6923b451fb67f73d81448fa4d905392d648556c3c27ae005df62e1\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:45 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\n  \u003cdiv itemscope itemtype=\"https://pagelike.test/_pl/modeling-uniqueness-composite-missing-me-46c810/Membership\"\u003e\n    \u003cmeta itemprop=\"user-id\" content=\"alice\"\u003e\n  \u003c/div\u003e\n\u003c/body\u003e\u003c/html\u003e\n"
+    }
+  ],
+  "outcome": "pass",
+  "target": "local"
+}

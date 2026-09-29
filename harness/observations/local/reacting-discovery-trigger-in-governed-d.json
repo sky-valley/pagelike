@@ -1,0 +1,48 @@
+{
+  "case": "reacting.discovery.trigger-in-governed-document",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (create a document that carries its own DELETE guard)",
+      "method": "PUT",
+      "path": "/_pl/reacting-discovery-trigger-in-governed-d-5f52c2/d/guarded.html",
+      "status": 201,
+      "headers": {
+        "content-length": "574",
+        "content-type": "text/html",
+        "etag": "\"41abcd8b8eb45650b3d6c279fbca5f49e232b7c4af2e2af7e2a2d8d17641d896\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:48 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\n\u003cp id=\"content\"\u003ekeep me\u003c/p\u003e\n\u003cdiv hidden itemscope itemtype=\"https://pagelove.org/Trigger\"\u003e\n  \u003cmeta itemprop=\"resource\" content=\"/_pl/reacting-discovery-trigger-in-governed-d-5f52c2/d/guarded.html\"\u003e\n  \u003cmeta itemprop=\"method\" content=\"DELETE\"\u003e\n  \u003cdiv itemprop=\"action\" itemscope itemtype=\"https://pagelove.org/Sessel\"\u003e\n    \u003cscript itemprop=\"source\" type=\"text/sessel\"\u003e\n      @schema HTTPResponse url(\"https://pagelove.org/HTTPResponse\");\n      throw new HTTPResponse { status: 423, message: \"locked\" }\n    \u003c/script\u003e\n  \u003c/div\u003e\n\u003c/div\u003e\n\u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 2 (deleting the document is refused)",
+      "method": "DELETE",
+      "path": "/_pl/reacting-discovery-trigger-in-governed-d-5f52c2/d/guarded.html",
+      "status": 423,
+      "headers": {
+        "content-length": "6",
+        "content-type": "text/html; charset=utf-8"
+      },
+      "body": "locked"
+    },
+    {
+      "step": "step 3 (the document still exists)",
+      "method": "GET",
+      "path": "/_pl/reacting-discovery-trigger-in-governed-d-5f52c2/d/guarded.html",
+      "status": 200,
+      "headers": {
+        "accept-ranges": "selector, bytes",
+        "content-length": "574",
+        "content-type": "text/html",
+        "etag": "\"41abcd8b8eb45650b3d6c279fbca5f49e232b7c4af2e2af7e2a2d8d17641d896\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:48 GMT",
+        "vary": "Host, Range, Accept"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\n\u003cp id=\"content\"\u003ekeep me\u003c/p\u003e\n\u003cdiv hidden itemscope itemtype=\"https://pagelove.org/Trigger\"\u003e\n  \u003cmeta itemprop=\"resource\" content=\"/_pl/reacting-discovery-trigger-in-governed-d-5f52c2/d/guarded.html\"\u003e\n  \u003cmeta itemprop=\"method\" content=\"DELETE\"\u003e\n  \u003cdiv itemprop=\"action\" itemscope itemtype=\"https://pagelove.org/Sessel\"\u003e\n    \u003cscript itemprop=\"source\" type=\"text/sessel\"\u003e\n      @schema HTTPResponse url(\"https://pagelove.org/HTTPResponse\");\n      throw new HTTPResponse { status: 423, message: \"locked\" }\n    \u003c/script\u003e\n  \u003c/div\u003e\n\u003c/div\u003e\n\u003c/body\u003e\u003c/html\u003e\n"
+    }
+  ],
+  "outcome": "pass",
+  "target": "local"
+}

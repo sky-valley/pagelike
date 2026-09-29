@@ -1,0 +1,45 @@
+{
+  "case": "authz.conflict.user-beats-wildcard-deny",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (alice allowed)",
+      "method": "PUT",
+      "path": "/_pl/authz-conflict-user-beats-wildcard-deny-03f0d1/doc.html",
+      "status": 206,
+      "headers": {
+        "content-length": "14",
+        "content-range": "selector h1",
+        "content-type": "text/html",
+        "etag": "\"d069df1c982b9e473571f229187948487391620181da9cc986f26f64d615d501-d069df1c982b9e473571f229187948487391620181da9cc986f26f64d615d501-2\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:46 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003ch1\u003ealice\u003c/h1\u003e"
+    },
+    {
+      "step": "step 2 (bob refused (authenticated, so 403))",
+      "method": "PUT",
+      "path": "/_pl/authz-conflict-user-beats-wildcard-deny-03f0d1/doc.html",
+      "status": 403,
+      "headers": {
+        "content-length": "471",
+        "content-type": "text/html; charset=utf-8"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\n\u003chead\u003e\n    \u003cmeta charset=\"UTF-8\"\u003e\n    \u003ctitle\u003e403 Forbidden\u003c/title\u003e\n\u003c/head\u003e\n\u003cbody itemscope itemtype=\"https://pagelove.org/1.0/Error\"\u003e\n    \u003ch1\u003e403 Forbidden\u003c/h1\u003e\n    \u003cp itemprop=\"message\"\u003eYou do not have permission to access this resource.\u003c/p\u003e\n    \u003cdl\u003e\n        \u003cdt\u003eResource\u003c/dt\u003e\n        \u003cdd itemprop=\"resource\"\u003e/_pl/authz-conflict-user-beats-wildcard-deny-03f0d1/doc.html\u003c/dd\u003e\n    \u003c/dl\u003e\n    \u003cp\u003e\u003ca href=\"/auth/logout\"\u003eLog out\u003c/a\u003e\u003c/p\u003e\n\u003c/body\u003e\n\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 3 (anonymous refused (401))",
+      "method": "PUT",
+      "path": "/_pl/authz-conflict-user-beats-wildcard-deny-03f0d1/doc.html",
+      "status": 401,
+      "headers": {
+        "content-length": "472",
+        "content-type": "text/html; charset=utf-8"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\n\u003chead\u003e\n    \u003cmeta charset=\"UTF-8\"\u003e\n    \u003ctitle\u003e401 Unauthorized\u003c/title\u003e\n\u003c/head\u003e\n\u003cbody itemscope itemtype=\"https://pagelove.org/1.0/Error\"\u003e\n    \u003ch1\u003e401 Unauthorized\u003c/h1\u003e\n    \u003cp itemprop=\"message\"\u003eAuthentication required to access this resource.\u003c/p\u003e\n    \u003cdl\u003e\n        \u003cdt\u003eResource\u003c/dt\u003e\n        \u003cdd itemprop=\"resource\"\u003e/_pl/authz-conflict-user-beats-wildcard-deny-03f0d1/doc.html\u003c/dd\u003e\n    \u003c/dl\u003e\n    \u003cp\u003e\u003ca href=\"/auth/login\"\u003eLog in\u003c/a\u003e\u003c/p\u003e\n\u003c/body\u003e\n\u003c/html\u003e\n"
+    }
+  ],
+  "outcome": "pass",
+  "target": "local"
+}

@@ -1,0 +1,36 @@
+{
+  "case": "protocol.query-dav.etag-depends-on-selector-text",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (selector h1)",
+      "method": "QUERY",
+      "path": "/_pl/protocol-query-dav-etag-depends-on-selec-905370/doc.html",
+      "status": 200,
+      "headers": {
+        "accept-ranges": "bytes",
+        "content-length": "500",
+        "content-type": "multipart/mixed; boundary=boundaryea3gXX3WbCFYlWv1o7EDX2ENkuWk8yUs",
+        "etag": "\"858c89f7c71ed8e5719d2d118d706766b872e0302188f7dffc7d55e3238bab9d\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:48 GMT"
+      },
+      "body": "--boundaryea3gXX3WbCFYlWv1o7EDX2ENkuWk8yUs\r\nContent-Type: text/html\r\nContent-Location: /_pl/protocol-query-dav-etag-depends-on-selec-905370/doc.html\r\nContent-Range: selector html:nth-child(1) \u003e body:nth-child(1) \u003e h1:nth-child(1)\r\nETag: \"1c32123f6761b73d83893fff7af936d13ce7da8411f4a35df11aaed4a7d36db1-1c32123f6761b73d83893fff7af936d13ce7da8411f4a35df11aaed4a7d36db1-1\"\r\nLast-Modified: Tue, 29 Sep 2026 02:40:48 GMT\r\nContent-Length: 14\r\n\r\n\u003ch1\u003eBenji\u003c/h1\u003e\r\n--boundaryea3gXX3WbCFYlWv1o7EDX2ENkuWk8yUs--"
+    },
+    {
+      "step": "step 2 (selector body h1 (same element) with the first ETag is not a 304)",
+      "method": "QUERY",
+      "path": "/_pl/protocol-query-dav-etag-depends-on-selec-905370/doc.html",
+      "status": 200,
+      "headers": {
+        "accept-ranges": "bytes",
+        "content-length": "500",
+        "content-type": "multipart/mixed; boundary=boundaryq7UhaLhYisrK6U9wyPAzx6SYqgNasYAq",
+        "etag": "\"9adafd2f3528326cf09791c7121e91b9b3fdc07d6b38ec8bb74ad31afb2af297\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:48 GMT"
+      },
+      "body": "--boundaryq7UhaLhYisrK6U9wyPAzx6SYqgNasYAq\r\nContent-Type: text/html\r\nContent-Location: /_pl/protocol-query-dav-etag-depends-on-selec-905370/doc.html\r\nContent-Range: selector html:nth-child(1) \u003e body:nth-child(1) \u003e h1:nth-child(1)\r\nETag: \"1c32123f6761b73d83893fff7af936d13ce7da8411f4a35df11aaed4a7d36db1-1c32123f6761b73d83893fff7af936d13ce7da8411f4a35df11aaed4a7d36db1-1\"\r\nLast-Modified: Tue, 29 Sep 2026 02:40:48 GMT\r\nContent-Length: 14\r\n\r\n\u003ch1\u003eBenji\u003c/h1\u003e\r\n--boundaryq7UhaLhYisrK6U9wyPAzx6SYqgNasYAq--"
+    }
+  ],
+  "outcome": "pass",
+  "target": "local"
+}

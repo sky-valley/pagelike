@@ -1,0 +1,47 @@
+{
+  "case": "authz.discovery.action-case-insensitive",
+  "failures": [
+    "step 2 (lowercase deny beats capitalised Allow at the same tier) DELETE ${P}/doc.html: status 204, want [401] (body: )"
+  ],
+  "observations": [
+    {
+      "step": "step 1 (lowercase allow grants)",
+      "method": "PUT",
+      "path": "/_pl/authz-discovery-action-case-insensitive-38dd0c/doc.html",
+      "status": 206,
+      "headers": {
+        "content-length": "22",
+        "content-range": "selector #p1",
+        "content-type": "text/html",
+        "etag": "\"d97ed27d262c5d5c91bbf86447cb464c2a76c02e6c3835df6af560775528cb4a-d97ed27d262c5d5c91bbf86447cb464c2a76c02e6c3835df6af560775528cb4a-2\"",
+        "last-modified": "Mon, 28 Sep 2026 22:38:17 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003cp id=\"p1\"\u003echanged\u003c/p\u003e"
+    },
+    {
+      "step": "step 2 (lowercase deny beats capitalised Allow at the same tier)",
+      "method": "DELETE",
+      "path": "/_pl/authz-discovery-action-case-insensitive-38dd0c/doc.html",
+      "status": 204,
+      "headers": {
+        "etag": "\"022e411c2267f17760b0d3a951f46d85d7ec3e7c8532f542c66c399586ab6d2e\"",
+        "last-modified": "Mon, 28 Sep 2026 22:38:17 GMT",
+        "vary": "Host, Range"
+      }
+    },
+    {
+      "step": "step 3 (DELETE of an element not covered by the deny is allowed)",
+      "method": "DELETE",
+      "path": "/_pl/authz-discovery-action-case-insensitive-38dd0c/doc.html",
+      "status": 204,
+      "headers": {
+        "etag": "\"7bc9ca7d932574b1bb32781bb80df20f3c367a72fa418faccd12e2f7624ac3ef\"",
+        "last-modified": "Mon, 28 Sep 2026 22:38:18 GMT",
+        "vary": "Host, Range"
+      }
+    }
+  ],
+  "outcome": "fail",
+  "target": "live"
+}

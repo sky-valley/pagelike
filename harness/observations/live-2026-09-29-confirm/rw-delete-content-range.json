@@ -1,0 +1,31 @@
+{
+  "case": "rw.delete.content-range",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (delete by id)",
+      "method": "DELETE",
+      "path": "/_pl/rw-delete-content-range-d72389/cr.html",
+      "status": 204,
+      "headers": {
+        "etag": "\"19ea03f72b14afab5c80d5de65fd798390dbfd264b453a8bec72ebafc24025ae\"",
+        "last-modified": "Tue, 29 Sep 2026 00:18:18 GMT",
+        "vary": "Host, Range"
+      }
+    },
+    {
+      "step": "step 2 (the tag is the document's)",
+      "method": "HEAD",
+      "path": "/_pl/rw-delete-content-range-d72389/cr.html",
+      "status": 200,
+      "headers": {
+        "content-type": "text/html",
+        "etag": "\"19ea03f72b14afab5c80d5de65fd798390dbfd264b453a8bec72ebafc24025ae\"",
+        "last-modified": "Tue, 29 Sep 2026 00:18:18 GMT",
+        "vary": "Host, Range, Accept"
+      }
+    }
+  ],
+  "outcome": "pass",
+  "target": "live"
+}

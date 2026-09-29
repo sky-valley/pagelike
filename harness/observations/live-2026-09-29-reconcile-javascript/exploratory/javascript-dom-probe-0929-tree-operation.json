@@ -1,0 +1,35 @@
+{
+  "case": "javascript.dom.probe-0929.tree-operations-steps",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (PUT the page (public plane; registers inline declarations))",
+      "method": "PUT",
+      "path": "/_pl/javascript-dom-probe-0929-tree-operation-739460/probe.html",
+      "status": 201,
+      "headers": {
+        "content-type": "text/html",
+        "etag": "\"84abe8c5bb2683dd273612c0e4d17f75e2f5d84212ff3b519833e04b5589828d\"",
+        "last-modified": "Tue, 29 Sep 2026 01:31:53 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml xmlns:t=\"https://pagelike.test/_pl/javascript-dom-probe-0929-tree-operation-739460/Ptreeoperationssteps\"\u003e\u003cbody\u003e\n\u003cmain\u003e\n\u003ct:probe\u003e\u003c/t:probe\u003e\n\u003c/main\u003e\n\u003cdiv hidden itemscope itemtype=\"https://pagelove.org/Schema\"\u003e\n\u003cmeta itemprop=\"type\" content=\"https://pagelike.test/_pl/javascript-dom-probe-0929-tree-operation-739460/Ptreeoperationssteps\"\u003e\n\u003cul\u003e\n\u003cli itemprop=\"property\" itemscope itemtype=\"https://pagelove.org/Method\"\u003e\n\u003cmeta itemprop=\"name\" content=\"probe\"\u003e\n\u003cdiv itemprop=\"implementation\" itemscope itemtype=\"https://pagelove.org/JavaScript/Module\"\u003e\n\u003cscript itemprop=\"source\" type=\"module\"\u003e\nconst H = (x) =\u003e String(x).replace(/[\u003c\u003e\"]/g, (c) =\u003e ({ '\u003c': '[', '\u003e': ']', '\"': \"'\" })[c]);\nconst T = (f) =\u003e { try { return H(f()); } catch (e) { return 'E:' + e.name; } };\nconst J = (x) =\u003e JSON.stringify(x);\nconst X = (n) =\u003e new XMLSerializer().serializeToString(n);\nconst N = (n) =\u003e (n === null ? 'null' : n === undefined ? 'undef' : typeof n === 'object' ? 'node:' + n.nodeName : typeof n + ':' + n);\nexport default function () {\nconst d = new DOMParser().parseFromString('\u003cdiv id=\"root\"\u003e\u003cul id=\"l\"\u003e\u003cli\u003ea\u003c/li\u003e\u003cli\u003eb\u003c/li\u003e\u003c/ul\u003e\u003c/div\u003e', 'text/html');\nconst l = d.querySelector('#l');\nconst n = d.createElement('li'); n.textContent = 'top';\nconst out = [T(() =\u003e l.insertBefore(n, l.firstChild) === n)];\nconst tail = d.createElement('li'); tail.textContent = 'tail';\nout.push(T(() =\u003e { l.insertBefore(tail, null); return l.lastChild.textContent; }));\nout.push(T(() =\u003e { const removed = l.removeChild(l.lastChild); return removed.parentNode === null \u0026\u0026 removed.textContent === 'tail'; }));\nconst repl = d.createElement('li'); repl.textContent = 'B';\nout.push(T(() =\u003e l.replaceChild(repl, l.children.item(2)).textContent));\nconst frag = d.createDocumentFragment(); ['x', 'y'].forEach((t) =\u003e { const e = d.createElement('li'); e.textContent = t; frag.appendChild(e); });\nout.push(T(() =\u003e { l.appendChild(frag); return frag.childNodes.length; }));\nout.push(T(() =\u003e Array.from(l.children, (e) =\u003e e.textContent).join(',')), T(() =\u003e l.cloneNode().hasChildNodes()), T(() =\u003e l.cloneNode(true).children.length), T(() =\u003e l.contains(l.firstChild)));\nconst other = new DOMParser().parseFromString('\u003cp\u003eq\u003c/p\u003e', 'text/html');\nout.push(T(() =\u003e l.contains(other.querySelector('p'))), T(() =\u003e { const box = d.createElement('div'); box.textContent = 'z'; box.textContent = ''; return box.hasChildNodes(); }));\nout.push(T(() =\u003e N(d.ownerDocument)), T(() =\u003e l.ownerDocument === d), T(() =\u003e l.firstElementChild.textContent), T(() =\u003e l.childElementCount), T(() =\u003e l.lastElementChild.previousElementSibling.textContent), T(() =\u003e N(l.parentElement)), T(() =\u003e l.firstChild === n), T(() =\u003e l.children.item(0) === n));\nreturn 'R:' + out.join('|');\n}\n\u003c/script\u003e\n\u003c/div\u003e\n\u003c/li\u003e\n\u003c/ul\u003e\n\u003cmeta itemprop=\"@id\" content=\"https://schema.host/v576hgb2\"\u003e\u003cmeta itemprop=\"path\" content=\"/Schemahttps://schema.host/v576hgb2.html\"\u003e\u003c/div\u003e\n\n                \u003cdiv style=\"\n                            position: fixed;\n                            bottom: 0;\n                            left: 0;\n                            right: 0;\n                            padding: 8px;\n                            background: #f0f0f0;\n                            text-align: center;\n                            font-size: 12px;\n                            color: #666;\n                            z-index: 9999;\n                            opacity: 0.8;\n                            border-top: 1px solid #ddd;\n                        \"\u003e\n                    Powered by\n                    \u003ca href=\"https://pagelove.com/\" style=\"color: #4a90d9; text-decoration: none\"\u003ePagelove\u003c/a\u003e\n                \u003c/div\u003e\n            \u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 2 (GET \u003cmain\u003e: the method result is inserted as text)",
+      "method": "GET",
+      "path": "/_pl/javascript-dom-probe-0929-tree-operation-739460/probe.html",
+      "status": 206,
+      "headers": {
+        "content-length": "112",
+        "content-range": "selector main",
+        "content-type": "text/html",
+        "etag": "\"a435825766d614614f85eaa1cb5b84fc8aa2ebc3164802c82a06ae60af108f6b-a435825766d614614f85eaa1cb5b84fc8aa2ebc3164802c82a06ae60af108f6b-1\"",
+        "vary": "Host, Range, Accept"
+      },
+      "body": "\u003cmain\u003e\nR:true|tail|true|b|0|top,a,B,x,y|false|5|true|false|false|null|false|top|5|x|node:DIV|false|false\n\u003c/main\u003e"
+    }
+  ],
+  "outcome": "pass",
+  "target": "live"
+}

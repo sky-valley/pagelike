@@ -1,0 +1,51 @@
+{
+  "case": "comp.stamp.write-through-post",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1",
+      "method": "POST",
+      "path": "/_pl/comp-stamp-write-through-post-7bd601/page.html",
+      "status": 206,
+      "headers": {
+        "content-length": "32",
+        "content-range": "selector #notes-1",
+        "content-type": "text/html",
+        "etag": "\"2f884cb0e733f15ddbd2b835fa5c47f3e04e6eacbd0490cca59fe62849ac40a2-2f884cb0e733f15ddbd2b835fa5c47f3e04e6eacbd0490cca59fe62849ac40a2-2\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:42 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003cli class=\"note\"\u003efirst note\u003c/li\u003e"
+    },
+    {
+      "step": "step 2",
+      "method": "GET",
+      "path": "/_pl/comp-stamp-write-through-post-7bd601/data/rec.html",
+      "status": 200,
+      "headers": {
+        "accept-ranges": "bytes",
+        "content-length": "265",
+        "content-type": "text/html",
+        "etag": "\"e9798d5343cb340d6b2780f4a212709e4d3a0c729f54fd360af14e79ad05bc05\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:42 GMT"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\n\u003carticle id=\"rec-1\" itemscope itemtype=\"https://example.test/_pl/comp-stamp-write-through-post-7bd601/Rec\"\u003e\u003ch1 itemprop=\"title\"\u003eRecord\u003c/h1\u003e\u003cul id=\"notes-1\" itemprop=\"notes\"\u003e\u003cli class=\"note\"\u003efirst note\u003c/li\u003e\u003c/ul\u003e\u003c/article\u003e\n\u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 3",
+      "method": "GET",
+      "path": "/_pl/comp-stamp-write-through-post-7bd601/page.html",
+      "status": 200,
+      "headers": {
+        "accept-ranges": "bytes",
+        "content-length": "260",
+        "content-type": "text/html",
+        "etag": "\"a108ebe6dc24b01d195da53412c1adebed479c8a310c8bca4ffb7a1f8af962b5\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:42 GMT"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml xmlns:e=\"https://pagelove.org/Binding/Sessel\" xmlns:p=\"https://pagelove.org/1.0\"\u003e\n\u003cbody e:rec=\"${[itemtype='https://example.test/_pl/comp-stamp-write-through-post-7bd601/Rec']}.first()\"\u003e\u003cmain\u003e\u003cp:stamp rec\u003e\u003c/p:stamp\u003e\u003c/main\u003e\u003c/body\u003e\n\u003c/html\u003e\n"
+    }
+  ],
+  "outcome": "pass",
+  "target": "local"
+}

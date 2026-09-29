@@ -1,0 +1,142 @@
+{
+  "case": "apps.polls.vote-edit-withdraw",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (home page count read: GET the responses tbody)",
+      "method": "GET",
+      "path": "/_pl/apps-polls-vote-edit-withdraw-914588/polls/p1.html",
+      "status": 206,
+      "headers": {
+        "accept-ranges": "selector, bytes",
+        "content-length": "276",
+        "content-range": "selector #responses",
+        "content-type": "text/html",
+        "etag": "\"160924ab2da6ce96182d9f1c41efa079e2c3b6ac220c9e3832bdefc179324c0f-160924ab2da6ce96182d9f1c41efa079e2c3b6ac220c9e3832bdefc179324c0f-1\"",
+        "vary": "Host, Range, Accept"
+      },
+      "body": "\u003ctbody id=\"responses\"\u003e\u003ctr id=\"r-test1\" itemscope itemtype=\"https://pagelove.org/PollResponse\"\u003e\u003cth scope=\"row\" itemprop=\"name\"\u003eAda Lovelace\u003c/th\u003e\u003ctd itemprop=\"vote\" data-option=\"o1\" data-vote=\"no\"\u003eno\u003c/td\u003e\u003ctd itemprop=\"vote\" data-option=\"o2\" data-vote=\"yes\"\u003eyes\u003c/td\u003e\u003c/tr\u003e\u003c/tbody\u003e"
+    },
+    {
+      "step": "step 2 (save availability (POST one row))",
+      "method": "POST",
+      "path": "/_pl/apps-polls-vote-edit-withdraw-914588/polls/p1.html",
+      "status": 206,
+      "headers": {
+        "content-length": "242",
+        "content-range": "selector #responses",
+        "content-type": "text/html",
+        "etag": "\"2e2b8ce7a63f177ec1414e4689f32515ca4f8bbac481bd93b4f50ca2173dc27a-2e2b8ce7a63f177ec1414e4689f32515ca4f8bbac481bd93b4f50ca2173dc27a-2\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:41 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003ctr id=\"r-abc12345\" itemscope itemtype=\"https://pagelove.org/PollResponse\"\u003e\u003cth scope=\"row\" itemprop=\"name\"\u003eGrace\u003c/th\u003e\u003ctd itemprop=\"vote\" data-option=\"o1\" data-vote=\"yes\"\u003eyes\u003c/td\u003e\u003ctd itemprop=\"vote\" data-option=\"o2\" data-vote=\"no\"\u003eno\u003c/td\u003e\u003c/tr\u003e"
+    },
+    {
+      "step": "step 3 (update my availability (PUT the row))",
+      "method": "PUT",
+      "path": "/_pl/apps-polls-vote-edit-withdraw-914588/polls/p1.html",
+      "status": 206,
+      "headers": {
+        "content-length": "254",
+        "content-range": "selector #r-abc12345",
+        "content-type": "text/html",
+        "etag": "\"6f4f5d24613241e1f8c379d2e9bca88224082cfae52dd5f30dcef82968c27fb0-6f4f5d24613241e1f8c379d2e9bca88224082cfae52dd5f30dcef82968c27fb0-3\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:41 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003ctr id=\"r-abc12345\" itemscope itemtype=\"https://pagelove.org/PollResponse\"\u003e\u003cth scope=\"row\" itemprop=\"name\"\u003eGrace\u003c/th\u003e\u003ctd itemprop=\"vote\" data-option=\"o1\" data-vote=\"ifneedbe\"\u003eifneedbe\u003c/td\u003e\u003ctd itemprop=\"vote\" data-option=\"o2\" data-vote=\"yes\"\u003eyes\u003c/td\u003e\u003c/tr\u003e"
+    },
+    {
+      "step": "step 4 (the edit is stored)",
+      "method": "GET",
+      "path": "/_pl/apps-polls-vote-edit-withdraw-914588/polls/p1.html",
+      "status": 206,
+      "headers": {
+        "accept-ranges": "selector, bytes",
+        "content-length": "254",
+        "content-range": "selector #r-abc12345",
+        "content-type": "text/html",
+        "etag": "\"6f4f5d24613241e1f8c379d2e9bca88224082cfae52dd5f30dcef82968c27fb0-6f4f5d24613241e1f8c379d2e9bca88224082cfae52dd5f30dcef82968c27fb0-3\"",
+        "vary": "Host, Range, Accept"
+      },
+      "body": "\u003ctr id=\"r-abc12345\" itemscope itemtype=\"https://pagelove.org/PollResponse\"\u003e\u003cth scope=\"row\" itemprop=\"name\"\u003eGrace\u003c/th\u003e\u003ctd itemprop=\"vote\" data-option=\"o1\" data-vote=\"ifneedbe\"\u003eifneedbe\u003c/td\u003e\u003ctd itemprop=\"vote\" data-option=\"o2\" data-vote=\"yes\"\u003eyes\u003c/td\u003e\u003c/tr\u003e"
+    },
+    {
+      "step": "step 5 (a row carrying an \u003cimg\u003e is refused by the closed shape)",
+      "method": "POST",
+      "path": "/_pl/apps-polls-vote-edit-withdraw-914588/polls/p1.html",
+      "status": 422,
+      "headers": {
+        "content-length": "529",
+        "content-type": "text/html",
+        "vary": "Host, Range"
+      },
+      "body": "\u003cdiv itemscope itemtype=\"https://dombase.pagelove.team/ns/error/ShapeConstraint\"\u003e\u003cul itemprop=\"problems\"\u003e\u003cli itemprop=\"problem\"\u003e\u003cspan itemprop=\"message\"\u003eShape constraints violated\u003c/span\u003e\u003c/li\u003e\u003cli itemprop=\"problem\"\u003e\u003cspan itemprop=\"message\"\u003ehttps://pagelove.org/ShapeConstraint tbody#responses \u0026gt; tr[id][itemscope][itemtype=\"https://pagelove.org/PollResponse\"]: Element \u0026lt;img\u0026gt; inside 'tbody#responses \u0026gt; tr[id][itemscope][itemtype=\"https://pagelove.org/PollResponse\"]' is not permitted by any permit\u003c/span\u003e\u003c/li\u003e\u003c/ul\u003e\u003c/div\u003e"
+    },
+    {
+      "step": "step 6 (a row with an event-handler attribute is refused)",
+      "method": "POST",
+      "path": "/_pl/apps-polls-vote-edit-withdraw-914588/polls/p1.html",
+      "status": 422,
+      "headers": {
+        "content-length": "558",
+        "content-type": "text/html",
+        "vary": "Host, Range"
+      },
+      "body": "\u003cdiv itemscope itemtype=\"https://dombase.pagelove.team/ns/error/ShapeConstraint\"\u003e\u003cul itemprop=\"problems\"\u003e\u003cli itemprop=\"problem\"\u003e\u003cspan itemprop=\"message\"\u003eShape constraints violated\u003c/span\u003e\u003c/li\u003e\u003cli itemprop=\"problem\"\u003e\u003cspan itemprop=\"message\"\u003ehttps://pagelove.org/ShapeConstraint tbody#responses \u0026gt; tr[id][itemscope][itemtype=\"https://pagelove.org/PollResponse\"]: Attribute \u0026lt;onclick\u0026gt; on \u0026lt;th\u0026gt; inside 'tbody#responses \u0026gt; tr[id][itemscope][itemtype=\"https://pagelove.org/PollResponse\"]' is not permitted by any matching permit\u003c/span\u003e\u003c/li\u003e\u003c/ul\u003e\u003c/div\u003e"
+    },
+    {
+      "step": "step 7 (a row without a name cell fails the row constraint)",
+      "method": "PUT",
+      "path": "/_pl/apps-polls-vote-edit-withdraw-914588/polls/p1.html",
+      "status": 422,
+      "headers": {
+        "content-length": "549",
+        "content-type": "text/html",
+        "vary": "Host, Range"
+      },
+      "body": "\u003cdiv itemscope itemtype=\"https://dombase.pagelove.team/ns/error/ShapeConstraint\"\u003e\u003cul itemprop=\"problems\"\u003e\u003cli itemprop=\"problem\"\u003e\u003cspan itemprop=\"message\"\u003eShape constraints violated\u003c/span\u003e\u003c/li\u003e\u003cli itemprop=\"problem\"\u003e\u003cspan itemprop=\"message\"\u003ehttps://pagelove.org/ShapeConstraint tbody#responses \u0026gt; tr[id][itemscope][itemtype=\"https://pagelove.org/PollResponse\"]: Element matching 'tbody#responses \u0026gt; tr[id][itemscope][itemtype=\"https://pagelove.org/PollResponse\"]' does not satisfy constraint ':has(\u0026gt; th[itemprop=\"name\"])'\u003c/span\u003e\u003c/li\u003e\u003c/ul\u003e\u003c/div\u003e"
+    },
+    {
+      "step": "step 8 (withdraw (DELETE the row))",
+      "method": "DELETE",
+      "path": "/_pl/apps-polls-vote-edit-withdraw-914588/polls/p1.html",
+      "status": 204,
+      "headers": {
+        "etag": "\"84c93aa142269158b51f03d874a1461c8fe1cc4f62e663f3d69ea8cfe1f5f548\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:41 GMT",
+        "vary": "Host, Range"
+      }
+    },
+    {
+      "step": "step 9 (withdrawing again: the row no longer exists (416))",
+      "method": "DELETE",
+      "path": "/_pl/apps-polls-vote-edit-withdraw-914588/polls/p1.html",
+      "status": 416,
+      "headers": {
+        "content-length": "363",
+        "content-type": "text/html",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\n  \u003chead\u003e\n    \u003ctitle\u003e416 Range Not Satisfiable - Error\u003c/title\u003e\n  \u003c/head\u003e\n  \u003cbody itemscope itemtype=\"http://pagelove.org/Error\"\u003e\n    \u003ch1 itemprop=\"name\"\u003eRange Not Satisfiable\u003c/h1\u003e\n    \u003cmeta itemprop=\"statusCode\" content=\"416\"\u003e\n    \u003cp itemprop=\"description\"\u003eHTML parsing error: No elements matched selector: #r-abc12345\u003c/p\u003e\n  \u003c/body\u003e\n\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 10 (final responses)",
+      "method": "GET",
+      "path": "/_pl/apps-polls-vote-edit-withdraw-914588/polls/p1.html",
+      "status": 206,
+      "headers": {
+        "accept-ranges": "selector, bytes",
+        "content-length": "276",
+        "content-range": "selector #responses",
+        "content-type": "text/html",
+        "etag": "\"160924ab2da6ce96182d9f1c41efa079e2c3b6ac220c9e3832bdefc179324c0f-160924ab2da6ce96182d9f1c41efa079e2c3b6ac220c9e3832bdefc179324c0f-4\"",
+        "vary": "Host, Range, Accept"
+      },
+      "body": "\u003ctbody id=\"responses\"\u003e\u003ctr id=\"r-test1\" itemscope itemtype=\"https://pagelove.org/PollResponse\"\u003e\u003cth scope=\"row\" itemprop=\"name\"\u003eAda Lovelace\u003c/th\u003e\u003ctd itemprop=\"vote\" data-option=\"o1\" data-vote=\"no\"\u003eno\u003c/td\u003e\u003ctd itemprop=\"vote\" data-option=\"o2\" data-vote=\"yes\"\u003eyes\u003c/td\u003e\u003c/tr\u003e\u003c/tbody\u003e"
+    }
+  ],
+  "outcome": "pass",
+  "target": "local"
+}

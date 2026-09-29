@@ -1,0 +1,159 @@
+# SSE: slow consumers, session resets and per-subscriber read filtering.
+# Spec: docs/spec/sse.md R-SSE-28, R-SSE-34, R-SSE-36.
+# These cases need runner/server hooks beyond plain HTTP (sse_pause,
+# sse_resume, sse_expect_closed, repeat, session_control, the pagelike-only
+# site setting sse_buffer_events); none is run live.
+cases:
+  - id: sse.flow.slow-consumer-disconnected-then-replayed
+    title: A stream that stops reading is closed once its buffer fills, and a reconnect with Last-Event-ID catches up
+    area: sse
+    feature: bounded send buffer
+    evidence: documented
+    source: "docs reference/reading-and-writing/Server-Sent-Events §If your client stops reading (snapshot 2026-09-28)"
+    confidence: medium
+    requires: [sse-control, slow]
+    live: false
+    notes: "R-SSE-36, R-SSE-31. Buffer size is implementation-defined; sse_buffer_events shrinks it for the local run and sse_pause must also stop the socket from draining (small receive buffer). The exact point of disconnection is not asserted."
+    site:
+      settings:
+        sse_buffer_events: 8
+      files:
+        - path: "${P}/doc.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body><ul id="log"></ul></body></html>
+      rules:
+        - {actor: "*", resource: "${P}/*", method: [GET, POST], action: Allow}
+    steps:
+      - sse_open: {name: slow, path: "${P}/doc.html", as: anonymous}
+      - sse_open: {name: healthy, path: "${P}/doc.html", as: anonymous}
+      - sse_expect: {name: slow, event: pagelove-connection, within_ms: 3000}
+      - sse_expect: {name: healthy, event: pagelove-connection, within_ms: 3000}
+      - name: marker write
+        as: anonymous
+        request:
+          method: POST
+          path: "${P}/doc.html"
+          headers: {Range: "selector=#log", Content-Type: "text/html"}
+          body: "<li>marker</li>"
+        expect: {status: 206}
+      - sse_expect: {name: slow, event: mutation, within_ms: 3000, data_contains: ["marker"], capture: {mark: id}}
+      - sse_pause: {name: slow}
+      - repeat:
+          count: 400
+          step:
+            name: flood
+            as: anonymous
+            request:
+              method: POST
+              path: "${P}/doc.html"
+              headers: {Range: "selector=#log", Content-Type: "text/html"}
+              body: "<li>flood entry with enough text to occupy a few hundred bytes of stream buffer per event, repeated many times so that a paused reader cannot keep up with the publisher</li>"
+            expect: {status: 206}
+      - name: last write
+        as: anonymous
+        request:
+          method: POST
+          path: "${P}/doc.html"
+          headers: {Range: "selector=#log", Content-Type: "text/html"}
+          body: "<li>final-entry</li>"
+        expect: {status: 206}
+      - sse_expect: {name: healthy, event: mutation, within_ms: 10000, data_contains: ["final-entry"]}
+      - sse_resume: {name: slow}
+      - sse_expect_closed: {name: slow, within_ms: 10000}
+      - sse_open: {name: again, path: "${P}/doc.html", as: anonymous, last_event_id: "${mark}"}
+      - sse_expect: {name: again, event: pagelove-connection, next: true, within_ms: 3000}
+      - sse_expect: {name: again, event: mutation, next: true, within_ms: 3000, data_contains: ["flood entry"]}
+      - sse_expect: {name: again, event: mutation, within_ms: 10000, data_contains: ["final-entry"]}
+      - sse_close: {name: again}
+      - sse_close: {name: healthy}
+
+  - id: sse.flow.session-invalidated-reset
+    title: When the subscriber's session is invalidated, the stream gets a session-invalidated reset and closes
+    area: sse
+    feature: reset events (session)
+    evidence: documented
+    source: "docs reference/reading-and-writing/Server-Sent-Events §Reset events (snapshot 2026-09-28)"
+    confidence: low
+    requires: [multi-actor, session-control]
+    live: false
+    notes: "R-SSE-34. The reason is documented; sending it at invalidation time and closing afterwards are inferred (Q20)."
+    site:
+      files:
+        - path: "${P}/doc.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body><h1>Original</h1></body></html>
+      rules:
+        - {actor: users, resource: "${P}/*", method: [GET], action: Allow}
+    actors:
+      alice: {sub: alice, email: alice@example.com, email_verified: true, roles: []}
+    steps:
+      - sse_open: {name: s1, path: "${P}/doc.html", as: alice}
+      - sse_expect: {name: s1, event: pagelove-connection, within_ms: 3000}
+      - session_control: {actor: alice, action: invalidate}
+      - sse_expect: {name: s1, event: reset, within_ms: 5000, data_microdata: {reason: session-invalidated}}
+      - sse_expect_closed: {name: s1, within_ms: 5000}
+
+  - id: sse.flow.session-expired-reset
+    title: When the subscriber's session reaches its expiry, the stream gets a session-expired reset and closes
+    area: sse
+    feature: reset events (session)
+    evidence: documented
+    source: "docs reference/reading-and-writing/Server-Sent-Events §Reset events (snapshot 2026-09-28)"
+    confidence: low
+    requires: [multi-actor, session-control]
+    live: false
+    notes: "R-SSE-34. session_control expire moves the session's expiry to now."
+    site:
+      files:
+        - path: "${P}/doc.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body><h1>Original</h1></body></html>
+      rules:
+        - {actor: users, resource: "${P}/*", method: [GET], action: Allow}
+    actors:
+      alice: {sub: alice, email: alice@example.com, email_verified: true, roles: []}
+    steps:
+      - sse_open: {name: s1, path: "${P}/doc.html", as: alice}
+      - sse_expect: {name: s1, event: pagelove-connection, within_ms: 3000}
+      - session_control: {actor: alice, action: expire}
+      - sse_expect: {name: s1, event: reset, within_ms: 5000, data_microdata: {reason: session-expired}}
+      - sse_expect_closed: {name: s1, within_ms: 5000}
+
+  - id: sse.flow.denied-element-not-streamed
+    title: A change to an element the subscriber may not read is not delivered to that subscriber
+    area: sse
+    feature: read authorization of events
+    evidence: inferred
+    source: "docs/spec/sse.md R-SSE-28 (without per-event checks a selector-level Deny would leak through the stream)"
+    confidence: low
+    requires: [multi-actor]
+    live: false
+    notes: "Probe Q22. Assumes the permissions area lets anonymous GET (and so subscribe to) a document that contains a selector-denied element. alice's actor-specific rules outrank the '*' Deny."
+    site:
+      files:
+        - path: "${P}/doc.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body><h1>Public</h1><p class="secret">old secret</p></body></html>
+      rules:
+        - {actor: "*", resource: "${P}/*", method: [GET], action: Allow}
+        - {actor: "*", resource: "${P}/doc.html", method: [GET], selector: ".secret", action: Deny}
+        - {actor: alice, resource: "${P}/doc.html", method: [GET, PUT], selector: ".secret", action: Allow}
+    actors:
+      alice: {sub: alice, email: alice@example.com, email_verified: true, roles: []}
+    steps:
+      - sse_open: {name: public, path: "${P}/doc.html", as: anonymous}
+      - sse_expect: {name: public, event: pagelove-connection, within_ms: 3000}
+      - name: alice updates the secret
+        as: alice
+        request:
+          method: PUT
+          path: "${P}/doc.html"
+          headers: {Range: "selector=.secret", Content-Type: "text/html"}
+          body: '<p class="secret">new secret 7781</p>'
+        expect: {status: 206}
+      - sse_expect_none: {name: public, event: mutation, for_ms: 2000}
+      - sse_close: {name: public}

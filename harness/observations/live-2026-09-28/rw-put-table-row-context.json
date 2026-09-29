@@ -1,0 +1,37 @@
+{
+  "case": "rw.put.table-row-context",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (edit the row)",
+      "method": "PUT",
+      "path": "/_pl/rw-put-table-row-context-ace97e/poll.html",
+      "status": 206,
+      "headers": {
+        "content-length": "68",
+        "content-range": "selector #r-1",
+        "content-type": "text/html",
+        "etag": "\"9ccb3deb35ff3144f2895e22a362f5040527d49d2a435ab84fed44e634a5d276-9ccb3deb35ff3144f2895e22a362f5040527d49d2a435ab84fed44e634a5d276-2\"",
+        "last-modified": "Mon, 28 Sep 2026 22:28:57 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003ctr id=\"r-1\"\u003e\u003cth scope=\"row\"\u003eAnn\u003c/th\u003e\u003ctd data-vote=\"no\"\u003eno\u003c/td\u003e\u003c/tr\u003e"
+    },
+    {
+      "step": "step 2 (the table section still contains a proper row)",
+      "method": "GET",
+      "path": "/_pl/rw-put-table-row-context-ace97e/poll.html",
+      "status": 206,
+      "headers": {
+        "content-length": "98",
+        "content-range": "selector #responses",
+        "content-type": "text/html",
+        "etag": "\"8296db930acf915a18d44f45a9f8a1a20030bc4764697927551f593ac7acbec6-8296db930acf915a18d44f45a9f8a1a20030bc4764697927551f593ac7acbec6-2\"",
+        "vary": "Host, Range, Accept"
+      },
+      "body": "\u003ctbody id=\"responses\"\u003e\u003ctr id=\"r-1\"\u003e\u003cth scope=\"row\"\u003eAnn\u003c/th\u003e\u003ctd data-vote=\"no\"\u003eno\u003c/td\u003e\u003c/tr\u003e\u003c/tbody\u003e"
+    }
+  ],
+  "outcome": "pass",
+  "target": "live"
+}

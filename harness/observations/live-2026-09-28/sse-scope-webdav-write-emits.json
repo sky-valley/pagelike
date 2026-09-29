@@ -1,0 +1,32 @@
+{
+  "case": "sse.scope.webdav-write-emits",
+  "failures": [
+    "step 4: no matching \"mutation\" event on s1 within 5s (1 events seen)"
+  ],
+  "observations": [
+    {
+      "step": "step 2",
+      "events": [
+        {
+          "event": "pagelove-connection",
+          "data": "13fec3d7-2d85-4142-9d26-c6b7e664dca8"
+        }
+      ]
+    },
+    {
+      "step": "step 3 (author saves the file over WebDAV)",
+      "method": "PUT",
+      "path": "/_pl/sse-scope-webdav-write-emits-aeb1c7/doc.html",
+      "status": 200,
+      "headers": {
+        "accept-ranges": "bytes",
+        "content-length": "69",
+        "content-type": "text/html",
+        "etag": "\"bac290e8020eab2425ab46b3c58fea17919f1703c52485956d6d32bc81610395\""
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\u003ch1\u003eAfter author edit\u003c/h1\u003e\u003c/body\u003e\u003c/html\u003e\n"
+    }
+  ],
+  "outcome": "fail",
+  "target": "live"
+}

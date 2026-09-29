@@ -1,0 +1,46 @@
+{
+  "case": "rw.delete.removes-descendants",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (delete the section)",
+      "method": "DELETE",
+      "path": "/_pl/rw-delete-removes-descendants-1727e2/tree.html",
+      "status": 204,
+      "headers": {
+        "etag": "\"42a465457714c8900b7089d7bf816a939a526d52fe5a26e16c6e4906d474de6c\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:55 GMT",
+        "vary": "Host, Range"
+      }
+    },
+    {
+      "step": "step 2 (descendants gone too)",
+      "method": "GET",
+      "path": "/_pl/rw-delete-removes-descendants-1727e2/tree.html",
+      "status": 416,
+      "headers": {
+        "content-length": "358",
+        "content-type": "text/html",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\n  \u003chead\u003e\n    \u003ctitle\u003e416 Range Not Satisfiable - Error\u003c/title\u003e\n  \u003c/head\u003e\n  \u003cbody itemscope itemtype=\"http://pagelove.org/Error\"\u003e\n    \u003ch1 itemprop=\"name\"\u003eRange Not Satisfiable\u003c/h1\u003e\n    \u003cmeta itemprop=\"statusCode\" content=\"416\"\u003e\n    \u003cp itemprop=\"description\"\u003eHTML parsing error: No elements matched selector: #inner\u003c/p\u003e\n  \u003c/body\u003e\n\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 3 (siblings kept)",
+      "method": "GET",
+      "path": "/_pl/rw-delete-removes-descendants-1727e2/tree.html",
+      "status": 206,
+      "headers": {
+        "accept-ranges": "selector, bytes",
+        "content-length": "18",
+        "content-range": "selector footer",
+        "content-type": "text/html",
+        "etag": "\"5ae4c78dde2eb17354747698c1294180d4fec8b89c6611bbcd95c2c72c452d3d-5ae4c78dde2eb17354747698c1294180d4fec8b89c6611bbcd95c2c72c452d3d-2\"",
+        "vary": "Host, Range, Accept"
+      },
+      "body": "\u003cfooter\u003ef\u003c/footer\u003e"
+    }
+  ],
+  "outcome": "pass",
+  "target": "local"
+}

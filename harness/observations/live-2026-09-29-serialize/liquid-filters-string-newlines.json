@@ -1,0 +1,23 @@
+{
+  "case": "liquid.filters-string.newlines",
+  "failures": [
+    "step 1 (read) GET ${P}/nl.html: body does not contain \"\u003cp id=\\\"br\\\"\u003ea\u003cbr /\u003e\\nb\u003c/p\u003e\" (body: \u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\n  \u003cdiv\u003e\u003cp id=\"sn\"\u003eabc\u003c/p\u003e\u003cp id=\"br\"\u003ea\u0026lt;br /\u0026gt;\nb\u003c/p\u003e\u003cp id=\"nw\"\u003e[a b c]\u003c/p\u003e\u003c/div\u003e\n\u003c/body\u003e\u003c/html\u003e\n)"
+  ],
+  "observations": [
+    {
+      "step": "step 1 (read)",
+      "method": "GET",
+      "path": "/_pl/liquid-filters-string-newlines-b10385/nl.html",
+      "status": 200,
+      "headers": {
+        "cache-control": "public, max-age=5",
+        "content-type": "text/html",
+        "etag": "W/\"19330823546c00893a0e6a90f52bd7fe522aca1f565bc8b1703c2df23e752df9\"",
+        "vary": "Host, Range, Accept"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\n  \u003cdiv\u003e\u003cp id=\"sn\"\u003eabc\u003c/p\u003e\u003cp id=\"br\"\u003ea\u0026lt;br /\u0026gt;\nb\u003c/p\u003e\u003cp id=\"nw\"\u003e[a b c]\u003c/p\u003e\u003c/div\u003e\n\n                \u003cdiv style=\"\n                            position: fixed;\n                            bottom: 0;\n                            left: 0;\n                            right: 0;\n                            padding: 8px;\n                            background: #f0f0f0;\n                            text-align: center;\n                            font-size: 12px;\n                            color: #666;\n                            z-index: 9999;\n                            opacity: 0.8;\n                            border-top: 1px solid #ddd;\n                        \"\u003e\n                    Powered by\n                    \u003ca href=\"https://pagelove.com/\" style=\"color: #4a90d9; text-decoration: none\"\u003ePagelove\u003c/a\u003e\n                \u003c/div\u003e\n            \u003c/body\u003e\u003c/html\u003e\n"
+    }
+  ],
+  "outcome": "fail",
+  "target": "live"
+}

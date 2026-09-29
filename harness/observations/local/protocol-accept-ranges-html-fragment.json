@@ -1,0 +1,37 @@
+{
+  "case": "protocol.accept-ranges.html-fragment",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (fragment response)",
+      "method": "GET",
+      "path": "/_pl/protocol-accept-ranges-html-fragment-1ce742/doc.html",
+      "status": 206,
+      "headers": {
+        "accept-ranges": "selector, bytes",
+        "content-length": "14",
+        "content-range": "selector h1",
+        "content-type": "text/html",
+        "etag": "\"49ce365fdc43599f6b7e21ade371739006905bdbedaba31d1a175f306e3305e4-49ce365fdc43599f6b7e21ade371739006905bdbedaba31d1a175f306e3305e4-1\"",
+        "vary": "Host, Range, Accept"
+      },
+      "body": "\u003ch1\u003eTitle\u003c/h1\u003e"
+    },
+    {
+      "step": "step 2 (HEAD carries the same advertisement)",
+      "method": "HEAD",
+      "path": "/_pl/protocol-accept-ranges-html-fragment-1ce742/doc.html",
+      "status": 200,
+      "headers": {
+        "accept-ranges": "selector, bytes",
+        "content-length": "68",
+        "content-type": "text/html",
+        "etag": "\"7f71417b9652f84adbead3ccea5ab56c0e56d618443f5b40ccbcb0ee4ac649c8\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:47 GMT",
+        "vary": "Host, Range, Accept"
+      }
+    }
+  ],
+  "outcome": "pass",
+  "target": "local"
+}

@@ -1,0 +1,37 @@
+{
+  "case": "rw.up.byte-fidelity",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (upload text with template-like content)",
+      "method": "PUT",
+      "path": "/_pl/rw-up-byte-fidelity-3e0319/raw.txt",
+      "status": 201,
+      "headers": {
+        "content-length": "74",
+        "content-type": "text/plain",
+        "etag": "\"c75266a90de1bb7f514e7edb101090629f35d6c44aa619e490616372eda28956\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:56 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "line one\r\nline two {{ 1 | plus: 1 }} \u003cp:include selector=\"#x\" /\u003e e:x=\"y\"\r\n"
+    },
+    {
+      "step": "step 2 (fetch unchanged)",
+      "method": "GET",
+      "path": "/_pl/rw-up-byte-fidelity-3e0319/raw.txt",
+      "status": 200,
+      "headers": {
+        "accept-ranges": "bytes",
+        "content-length": "74",
+        "content-type": "text/plain",
+        "etag": "\"c75266a90de1bb7f514e7edb101090629f35d6c44aa619e490616372eda28956\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:56 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "line one\r\nline two {{ 1 | plus: 1 }} \u003cp:include selector=\"#x\" /\u003e e:x=\"y\"\r\n"
+    }
+  ],
+  "outcome": "pass",
+  "target": "local"
+}

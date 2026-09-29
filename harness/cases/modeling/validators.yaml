@@ -1,0 +1,847 @@
+# Modeling: property-level and schema-level @validate (Sessel and JavaScript), HTTPResponse refusals,
+# compile failures, and validation stage order.
+# Spec: docs/spec/modeling.md §11 (R-MOD-45..R-MOD-48) and R-MOD-15.
+cases:
+  - id: modeling.validators.property-sessel-email
+    title: "A property-level Sessel @validate rejects values that fail the expression"
+    area: modeling
+    feature: validators
+    evidence: documented
+    source: "docs reference/modeling-data/Property §Validators (snapshot 2026-09-28); docs reference/modeling-data/Property §Shape (snapshot 2026-09-28)"
+    confidence: high
+    requires: [sessel]
+    live: true
+    notes: "spec: R-MOD-45."
+    site:
+      settings:
+        default_get: allow
+      rules:
+        - actor: "*"
+          resource: "${P}/*"
+          method: [GET, HEAD, PUT, POST, DELETE, MOVE]
+          action: Allow
+        - actor: "*"
+          resource: "${P}/*/*"
+          method: [GET, HEAD, PUT, POST, DELETE, MOVE]
+          action: Allow
+    steps:
+      - name: "register declarations through the public plane (takes effect for the next request)"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/schema.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div hidden itemscope itemtype="https://pagelove.org/Schema">
+                <meta itemprop="type" content="https://pagelike.test${P}/Account">
+                <div itemprop="property" itemscope itemtype="https://pagelove.org/Property">
+                  <meta itemprop="name" content="email">
+                  <meta itemprop="type" content="https://schema.host/Text">
+                  <meta itemprop="cardinality" content="1..1">
+                  <div itemprop="@validate" itemscope itemtype="https://pagelove.org/Sessel">
+                    <script itemprop="source" type="text/sessel">self.all((el) => el.text().matches("^[^@]+@[^@]+\\.[^@]+$"))</script>
+                  </div>
+                </div>
+              </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "valid email accepted"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/a.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div itemscope itemtype="https://pagelike.test${P}/Account">
+                <span itemprop="email">alice@example.com</span>
+              </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "invalid email rejected"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/b.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div itemscope itemtype="https://pagelike.test${P}/Account">
+                <span itemprop="email">not-an-email</span>
+              </div>
+            </body></html>
+        expect:
+          status: 422
+          header_matches:
+            Content-Type: "^text/html"
+          body_contains: ["https://pagelove.org/SchemaViolation", "@validate"]
+      - name: "b.html was not stored"
+        as: author
+        plane: dav
+        request:
+          method: GET
+          path: "${P}/b.html"
+        expect:
+          status: 404
+  - id: modeling.validators.property-js
+    title: "A property-level JavaScript @validate receives the value as its first argument"
+    area: modeling
+    feature: validators
+    evidence: documented
+    source: "docs reference/modeling-data/Property §Validators (snapshot 2026-09-28); docs languages/javascript/server/javascript-in-schemas §Slot semantics (snapshot 2026-09-28)"
+    confidence: high
+    requires: [server-js]
+    live: true
+    notes: "spec: R-MOD-45."
+    site:
+      settings:
+        default_get: allow
+      rules:
+        - actor: "*"
+          resource: "${P}/*"
+          method: [GET, HEAD, PUT, POST, DELETE, MOVE]
+          action: Allow
+        - actor: "*"
+          resource: "${P}/*/*"
+          method: [GET, HEAD, PUT, POST, DELETE, MOVE]
+          action: Allow
+    steps:
+      - name: "register declarations through the public plane (takes effect for the next request)"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/schema.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div hidden itemscope itemtype="https://pagelove.org/Schema">
+                <meta itemprop="type" content="https://pagelike.test${P}/Account">
+                <div itemprop="property" itemscope itemtype="https://pagelove.org/Property">
+                  <meta itemprop="name" content="email">
+                  <meta itemprop="type" content="https://schema.host/Text">
+                  <meta itemprop="cardinality" content="1..1">
+                  <div itemprop="@validate" itemscope itemtype="https://pagelove.org/JavaScript/Module">
+                    <script itemprop="source" type="module">export default (val) => typeof val === 'string' && val.includes('@');</script>
+                  </div>
+                </div>
+              </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "value with @ accepted"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/a.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div itemscope itemtype="https://pagelike.test${P}/Account">
+                <meta itemprop="email" content="a@b">
+              </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "value without @ rejected"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/b.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div itemscope itemtype="https://pagelike.test${P}/Account">
+                <meta itemprop="email" content="ab">
+              </div>
+            </body></html>
+        expect:
+          status: 422
+          header_matches:
+            Content-Type: "^text/html"
+          body_contains: ["https://pagelove.org/SchemaViolation", "@validate"]
+  - id: modeling.validators.js-throw-httpresponse
+    title: "A JS @validate that throws an HTTPResponse-shaped object chooses the status and message"
+    area: modeling
+    feature: validators
+    evidence: documented
+    source: "docs languages/javascript/server/javascript-in-schemas §Explaining why a value was rejected (snapshot 2026-09-28)"
+    confidence: high
+    requires: [server-js]
+    live: true
+    notes: "spec: R-MOD-47. The docs example uses a template literal; this case concatenates strings because the harness reserves ${...}."
+    site:
+      settings:
+        default_get: allow
+      rules:
+        - actor: "*"
+          resource: "${P}/*"
+          method: [GET, HEAD, PUT, POST, DELETE, MOVE]
+          action: Allow
+        - actor: "*"
+          resource: "${P}/*/*"
+          method: [GET, HEAD, PUT, POST, DELETE, MOVE]
+          action: Allow
+    steps:
+      - name: "register declarations through the public plane (takes effect for the next request)"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/schema.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div hidden itemscope itemtype="https://pagelove.org/Schema">
+                <meta itemprop="type" content="https://pagelike.test${P}/Site">
+                <div itemprop="property" itemscope itemtype="https://pagelove.org/Property">
+                  <meta itemprop="name" content="hostname">
+                  <meta itemprop="type" content="https://schema.host/Text">
+                  <meta itemprop="cardinality" content="1..1">
+                  <div itemprop="@validate" itemscope itemtype="https://pagelove.org/JavaScript/Module">
+                    <script itemprop="source" type="module">export default function (hostname) {
+                        const allowed = ["a.example.com"];
+                        if (!allowed.includes(hostname)) {
+                          throw { schema_url: "https://pagelove.org/HTTPResponse", status: 422, message: hostname + " is not on this platform" };
+                        }
+                        return true;
+                      }</script>
+                  </div>
+                </div>
+              </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "allowed hostname accepted"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/a.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div itemscope itemtype="https://pagelike.test${P}/Site">
+                <meta itemprop="hostname" content="a.example.com">
+              </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "other hostname rejected with the thrown message"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/b.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div itemscope itemtype="https://pagelike.test${P}/Site">
+                <meta itemprop="hostname" content="b.example.com">
+              </div>
+            </body></html>
+        expect:
+          status: 422
+          body_contains: ["b.example.com is not on this platform"]
+  - id: modeling.validators.js-throw-httpresponse-custom-status
+    title: "The thrown HTTPResponse status is used as the response status"
+    area: modeling
+    feature: validators
+    evidence: documented
+    source: "docs languages/javascript/server/javascript-in-schemas §Explaining why a value was rejected (snapshot 2026-09-28) ('status and message are yours')"
+    confidence: medium
+    requires: [server-js]
+    live: true
+    notes: "spec: R-MOD-47."
+    site:
+      settings:
+        default_get: allow
+      rules:
+        - actor: "*"
+          resource: "${P}/*"
+          method: [GET, HEAD, PUT, POST, DELETE, MOVE]
+          action: Allow
+        - actor: "*"
+          resource: "${P}/*/*"
+          method: [GET, HEAD, PUT, POST, DELETE, MOVE]
+          action: Allow
+    steps:
+      - name: "register declarations through the public plane (takes effect for the next request)"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/schema.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div hidden itemscope itemtype="https://pagelove.org/Schema">
+                <meta itemprop="type" content="https://pagelike.test${P}/Site">
+                <div itemprop="property" itemscope itemtype="https://pagelove.org/Property">
+                  <meta itemprop="name" content="hostname">
+                  <meta itemprop="type" content="https://schema.host/Text">
+                  <meta itemprop="cardinality" content="1..1">
+                  <div itemprop="@validate" itemscope itemtype="https://pagelove.org/JavaScript/Module">
+                    <script itemprop="source" type="module">export default function (hostname) {
+                        const allowed = ["a.example.com"];
+                        if (!allowed.includes(hostname)) {
+                          throw { schema_url: "https://pagelove.org/HTTPResponse", status: 409, message: hostname + " is not on this platform" };
+                        }
+                        return true;
+                      }</script>
+                  </div>
+                </div>
+              </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "other hostname rejected with 409"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/b.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div itemscope itemtype="https://pagelike.test${P}/Site">
+                <meta itemprop="hostname" content="b.example.com">
+              </div>
+            </body></html>
+        expect:
+          status: 409
+          body_contains: ["b.example.com is not on this platform"]
+      - name: "b.html was not stored"
+        as: author
+        plane: dav
+        request:
+          method: GET
+          path: "${P}/b.html"
+        expect:
+          status: 404
+  - id: modeling.validators.js-new-httpresponse-is-generic-rejection
+    title: "new HTTPResponse(...) in JS raises ReferenceError and yields the standard rejection"
+    area: modeling
+    feature: validators
+    evidence: documented
+    source: "docs languages/javascript/server/javascript-in-schemas §Explaining why a value was rejected (snapshot 2026-09-28) ('Throw a plain object')"
+    confidence: high
+    requires: [server-js]
+    live: true
+    notes: "spec: R-MOD-47."
+    site:
+      settings:
+        default_get: allow
+      rules:
+        - actor: "*"
+          resource: "${P}/*"
+          method: [GET, HEAD, PUT, POST, DELETE, MOVE]
+          action: Allow
+        - actor: "*"
+          resource: "${P}/*/*"
+          method: [GET, HEAD, PUT, POST, DELETE, MOVE]
+          action: Allow
+    steps:
+      - name: "register declarations through the public plane (takes effect for the next request)"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/schema.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div hidden itemscope itemtype="https://pagelove.org/Schema">
+                <meta itemprop="type" content="https://pagelike.test${P}/Site">
+                <div itemprop="property" itemscope itemtype="https://pagelove.org/Property">
+                  <meta itemprop="name" content="hostname">
+                  <meta itemprop="type" content="https://schema.host/Text">
+                  <meta itemprop="cardinality" content="1..1">
+                  <div itemprop="@validate" itemscope itemtype="https://pagelove.org/JavaScript/Module">
+                    <script itemprop="source" type="module">export default function (h) { throw new HTTPResponse(403, "nope"); }</script>
+                  </div>
+                </div>
+              </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "write gets the standard 422, not 403"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/b.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div itemscope itemtype="https://pagelike.test${P}/Site">
+                <meta itemprop="hostname" content="x">
+              </div>
+            </body></html>
+        expect:
+          status: 422
+          header_matches:
+            Content-Type: "^text/html"
+          body_contains: ["https://pagelove.org/SchemaViolation", "@validate"]
+  - id: modeling.validators.schema-level-sessel-dates
+    title: "Schema-level Sessel @validate: start date must be before end date (docs example)"
+    area: modeling
+    feature: validators
+    evidence: documented
+    source: "docs reference/modeling-data/Schema §Schema-level @validate (snapshot 2026-09-28)"
+    confidence: high
+    requires: [sessel]
+    live: true
+    notes: "spec: R-MOD-46."
+    site:
+      settings:
+        default_get: allow
+      rules:
+        - actor: "*"
+          resource: "${P}/*"
+          method: [GET, HEAD, PUT, POST, DELETE, MOVE]
+          action: Allow
+        - actor: "*"
+          resource: "${P}/*/*"
+          method: [GET, HEAD, PUT, POST, DELETE, MOVE]
+          action: Allow
+    steps:
+      - name: "register declarations through the public plane (takes effect for the next request)"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/schema.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div hidden itemscope itemtype="https://pagelove.org/Schema">
+                <meta itemprop="type" content="https://pagelike.test${P}/Event">
+                <div itemprop="property" itemscope itemtype="https://pagelove.org/Property">
+                  <meta itemprop="name" content="start-date">
+                  <meta itemprop="type" content="https://schema.host/Date">
+                  <meta itemprop="cardinality" content="1..1">
+                </div>
+                <div itemprop="property" itemscope itemtype="https://pagelove.org/Property">
+                  <meta itemprop="name" content="end-date">
+                  <meta itemprop="type" content="https://schema.host/Date">
+                  <meta itemprop="cardinality" content="1..1">
+                </div>
+                <script type="text/sessel" itemprop="@validate">
+                  let md = self.microdata();
+                  md["start-date"].first() < md["end-date"].first()
+                </script>
+              </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "start before end accepted"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/a.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div itemscope itemtype="https://pagelike.test${P}/Event">
+                <meta itemprop="start-date" content="2024-01-10">
+                <meta itemprop="end-date" content="2024-01-20">
+              </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "end before start rejected"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/b.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div itemscope itemtype="https://pagelike.test${P}/Event">
+                <meta itemprop="start-date" content="2024-01-20">
+                <meta itemprop="end-date" content="2024-01-10">
+              </div>
+            </body></html>
+        expect:
+          status: 422
+          header_matches:
+            Content-Type: "^text/html"
+          body_contains: ["https://pagelove.org/SchemaViolation", "@validate"]
+  - id: modeling.validators.schema-level-js-this-is-html
+    title: "Schema-level JS @validate: this is the serialized instance HTML (docs example)"
+    area: modeling
+    feature: validators
+    evidence: documented
+    source: "docs reference/modeling-data/Schema §Schema-level @validate (snapshot 2026-09-28); docs languages/javascript/server/javascript-in-schemas §Slot semantics (snapshot 2026-09-28)"
+    confidence: high
+    requires: [server-js]
+    live: true
+    notes: "spec: R-MOD-46."
+    site:
+      settings:
+        default_get: allow
+      rules:
+        - actor: "*"
+          resource: "${P}/*"
+          method: [GET, HEAD, PUT, POST, DELETE, MOVE]
+          action: Allow
+        - actor: "*"
+          resource: "${P}/*/*"
+          method: [GET, HEAD, PUT, POST, DELETE, MOVE]
+          action: Allow
+    steps:
+      - name: "register declarations through the public plane (takes effect for the next request)"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/schema.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div hidden itemscope itemtype="https://pagelove.org/Schema">
+                <meta itemprop="type" content="https://pagelike.test${P}/Event">
+                <div itemprop="property" itemscope itemtype="https://pagelove.org/Property">
+                  <meta itemprop="name" content="start-date">
+                  <meta itemprop="type" content="https://schema.host/Date">
+                  <meta itemprop="cardinality" content="0..1">
+                </div>
+                <div itemprop="@validate" itemscope itemtype="https://pagelove.org/JavaScript/Module">
+                  <script itemprop="source" type="module">
+                    export default function () {
+                      return this.includes('itemprop="start-date"');
+                    }
+                  </script>
+                </div>
+              </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "item with start-date accepted"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/a.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div itemscope itemtype="https://pagelike.test${P}/Event">
+                <meta itemprop="start-date" content="2024-01-10">
+              </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "item without start-date rejected"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/b.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div itemscope itemtype="https://pagelike.test${P}/Event"></div>
+            </body></html>
+        expect:
+          status: 422
+          header_matches:
+            Content-Type: "^text/html"
+          body_contains: ["https://pagelove.org/SchemaViolation", "@validate"]
+  - id: modeling.validators.compile-failure-rejects-every-write
+    title: "A @validate that fails to compile rejects every write to the governed type"
+    area: modeling
+    feature: validators
+    evidence: documented
+    source: "docs reference/modeling-data/Schema §Error cases (snapshot 2026-09-28); docs reference/modeling-data/Property §Error cases (snapshot 2026-09-28)"
+    confidence: high
+    requires: [sessel]
+    live: true
+    notes: "spec: R-MOD-48."
+    site:
+      settings:
+        default_get: allow
+      rules:
+        - actor: "*"
+          resource: "${P}/*"
+          method: [GET, HEAD, PUT, POST, DELETE, MOVE]
+          action: Allow
+        - actor: "*"
+          resource: "${P}/*/*"
+          method: [GET, HEAD, PUT, POST, DELETE, MOVE]
+          action: Allow
+    steps:
+      - name: "register declarations through the public plane (takes effect for the next request)"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/schema.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div hidden itemscope itemtype="https://pagelove.org/Schema">
+                <meta itemprop="type" content="https://pagelike.test${P}/Account">
+                <div itemprop="property" itemscope itemtype="https://pagelove.org/Property">
+                  <meta itemprop="name" content="email">
+                  <meta itemprop="type" content="https://schema.host/Text">
+                  <meta itemprop="cardinality" content="0..1">
+                </div>
+                <script type="text/sessel" itemprop="@validate">(((</script>
+              </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "even an empty instance is rejected"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/a.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div itemscope itemtype="https://pagelike.test${P}/Account"></div>
+            </body></html>
+        expect:
+          status: 422
+          header_matches:
+            Content-Type: "^text/html"
+          body_contains: ["https://pagelove.org/SchemaViolation"]
+  - id: modeling.validators.schema-validate-skipped-when-structure-fails
+    title: "Schema-level @validate does not run when cardinality fails"
+    area: modeling
+    feature: validators
+    evidence: documented
+    source: "docs reference/modeling-data/Schema §Schema-level @validate (snapshot 2026-09-28) ('runs only after cardinality, type, and property-level @validate have all passed')"
+    confidence: medium
+    requires: [sessel]
+    live: true
+    notes: "spec: R-MOD-15, R-MOD-46."
+    site:
+      settings:
+        default_get: allow
+      rules:
+        - actor: "*"
+          resource: "${P}/*"
+          method: [GET, HEAD, PUT, POST, DELETE, MOVE]
+          action: Allow
+        - actor: "*"
+          resource: "${P}/*/*"
+          method: [GET, HEAD, PUT, POST, DELETE, MOVE]
+          action: Allow
+    steps:
+      - name: "register declarations through the public plane (takes effect for the next request)"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/schema.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div hidden itemscope itemtype="https://pagelove.org/Schema">
+                <meta itemprop="type" content="https://pagelike.test${P}/Event">
+                <div itemprop="property" itemscope itemtype="https://pagelove.org/Property">
+                  <meta itemprop="name" content="start-date">
+                  <meta itemprop="type" content="https://schema.host/Date">
+                  <meta itemprop="cardinality" content="1..1">
+                </div>
+                <script type="text/sessel" itemprop="@validate">false</script>
+              </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "missing start-date reports cardinality only"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/a.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div itemscope itemtype="https://pagelike.test${P}/Event"></div>
+            </body></html>
+        expect:
+          status: 422
+          body_contains: [cardinality]
+          body_not_contains: ["@validate"]
+  - id: modeling.validators.order-schema-validate-before-group
+    title: "Schema-level @validate runs before group constraints"
+    area: modeling
+    feature: validators
+    evidence: documented
+    source: "docs reference/modeling-data/Schema §Schema-level @validate (snapshot 2026-09-28); docs reference/modeling-data/GroupConstraint §Error cases (snapshot 2026-09-28)"
+    confidence: medium
+    requires: [sessel]
+    live: true
+    notes: "spec: R-MOD-15. Contradiction C1; the losing claim is modeling.validators.order-group-before-schema-validate."
+    site:
+      settings:
+        default_get: allow
+      rules:
+        - actor: "*"
+          resource: "${P}/*"
+          method: [GET, HEAD, PUT, POST, DELETE, MOVE]
+          action: Allow
+        - actor: "*"
+          resource: "${P}/*/*"
+          method: [GET, HEAD, PUT, POST, DELETE, MOVE]
+          action: Allow
+    steps:
+      - name: "register declarations through the public plane (takes effect for the next request)"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/schema.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div hidden itemscope itemtype="https://pagelove.org/Schema">
+                <meta itemprop="type" content="https://pagelike.test${P}/UserAuth">
+                <div itemprop="property" itemscope itemtype="https://pagelove.org/Property">
+                  <meta itemprop="name" content="password">
+                  <meta itemprop="type" content="https://schema.host/Text">
+                  <meta itemprop="cardinality" content="0..1">
+                  <meta itemprop="group" content="auth-method">
+                </div>
+                <div itemprop="property" itemscope itemtype="https://pagelove.org/Property">
+                  <meta itemprop="name" content="oauth-token">
+                  <meta itemprop="type" content="https://schema.host/Text">
+                  <meta itemprop="cardinality" content="0..1">
+                  <meta itemprop="group" content="auth-method">
+                </div>
+                <div itemprop="constraint" itemscope itemtype="https://schema.host/GroupConstraint">
+                  <meta itemprop="group" content="auth-method">
+                  <meta itemprop="cardinality" content="1..1">
+                </div>
+                <script type="text/sessel" itemprop="@validate">false</script>
+              </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "both validator and group fail; @validate is reported"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/a.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div itemscope itemtype="https://pagelike.test${P}/UserAuth"></div>
+            </body></html>
+        expect:
+          status: 422
+          body_contains: ["@validate"]
+          body_not_contains: [auth-method]
+  - id: modeling.validators.order-group-before-schema-validate
+    title: "JS page claim: schema-level @validate runs after group constraints"
+    area: modeling
+    feature: validators
+    evidence: documented
+    source: "docs languages/javascript/server/javascript-in-schemas §Slot semantics (snapshot 2026-09-28)"
+    confidence: low
+    requires: [sessel]
+    live: true
+    status: disputed
+    notes: "spec: R-MOD-15. Contradiction C1."
+    site:
+      settings:
+        default_get: allow
+      rules:
+        - actor: "*"
+          resource: "${P}/*"
+          method: [GET, HEAD, PUT, POST, DELETE, MOVE]
+          action: Allow
+        - actor: "*"
+          resource: "${P}/*/*"
+          method: [GET, HEAD, PUT, POST, DELETE, MOVE]
+          action: Allow
+    steps:
+      - name: "register declarations through the public plane (takes effect for the next request)"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/schema.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div hidden itemscope itemtype="https://pagelove.org/Schema">
+                <meta itemprop="type" content="https://pagelike.test${P}/UserAuth">
+                <div itemprop="property" itemscope itemtype="https://pagelove.org/Property">
+                  <meta itemprop="name" content="password">
+                  <meta itemprop="type" content="https://schema.host/Text">
+                  <meta itemprop="cardinality" content="0..1">
+                  <meta itemprop="group" content="auth-method">
+                </div>
+                <div itemprop="property" itemscope itemtype="https://pagelove.org/Property">
+                  <meta itemprop="name" content="oauth-token">
+                  <meta itemprop="type" content="https://schema.host/Text">
+                  <meta itemprop="cardinality" content="0..1">
+                  <meta itemprop="group" content="auth-method">
+                </div>
+                <div itemprop="constraint" itemscope itemtype="https://schema.host/GroupConstraint">
+                  <meta itemprop="group" content="auth-method">
+                  <meta itemprop="cardinality" content="1..1">
+                </div>
+                <script type="text/sessel" itemprop="@validate">false</script>
+              </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "both fail; the group violation is reported"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/a.html"
+          headers:
+            Content-Type: text/html
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div itemscope itemtype="https://pagelike.test${P}/UserAuth"></div>
+            </body></html>
+        expect:
+          status: 422
+          body_contains: [auth-method]

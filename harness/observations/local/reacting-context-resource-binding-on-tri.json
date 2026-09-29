@@ -1,0 +1,46 @@
+{
+  "case": "reacting.context.resource-binding-on-trigger",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (install a trigger whose action reads r:secret)",
+      "method": "PUT",
+      "path": "/_pl/reacting-context-resource-binding-on-tri-7658b5/r/triggers.html",
+      "status": 201,
+      "headers": {
+        "content-length": "750",
+        "content-type": "text/html",
+        "etag": "\"f5b406fc9270783c6081978ce8b59813aafd069f3dd342639cd077bfc9eea04e\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:48 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml xmlns:p=\"https://pagelove.org/1.0\" xmlns:r=\"https://pagelove.org/Binding/CSS\"\u003e\u003cbody\u003e\n\u003cdiv hidden r:secret=\"[itemtype='https://pagelike.test/_pl/reacting-context-resource-binding-on-tri-7658b5/Secret'] [itemprop=token]\" itemscope itemtype=\"https://pagelove.org/Trigger\"\u003e\n  \u003cmeta itemprop=\"resource\" content=\"/_pl/reacting-context-resource-binding-on-tri-7658b5/d/*\"\u003e\n  \u003cmeta itemprop=\"method\" content=\"PUT\"\u003e\n  \u003cdiv itemprop=\"action\" itemscope itemtype=\"https://pagelove.org/Sessel\"\u003e\n    \u003cscript itemprop=\"source\" type=\"text/sessel\"\u003e\n      @schema HTTPResponse url(\"https://pagelove.org/HTTPResponse\");\n      throw new HTTPResponse { status: 409, body: \"v=\" + secret.first().value() }\n    \u003c/script\u003e\n  \u003c/div\u003e\n\u003c/div\u003e\n\u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 2 (the name is not bound, so the action fails the request)",
+      "method": "PUT",
+      "path": "/_pl/reacting-context-resource-binding-on-tri-7658b5/d/x.html",
+      "status": 500,
+      "headers": {
+        "content-length": "852",
+        "content-type": "text/html; charset=utf-8",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\n\u003chead\u003e\n\u003cmeta charset=\"UTF-8\"\u003e\n\u003ctitle\u003e500 Internal Server Error\u003c/title\u003e\n\u003c/head\u003e\n\u003cbody\u003e\n\u003carticle itemscope itemtype=\"https://pagelove.org/Error\"\u003e\n  \u003cmeta itemprop=\"status\" content=\"500\"\u003e\n  \u003cmeta itemprop=\"kind\" content=\"BindingFailure\"\u003e\n  \u003cdiv itemprop=\"type\" itemscope itemtype=\"https://dombase.pagelove.team/ns/error/BindingFailure\"\u003e\u003c/div\u003e\n  \u003cp itemprop=\"message\"\u003ea reaction failed: RuntimeError: unresolved variable: secret\u003c/p\u003e\n  \u003cmeta itemprop=\"resource\" content=\"/_pl/reacting-context-resource-binding-on-tri-7658b5/d/x.html\"\u003e\n  \u003cdiv itemprop=\"detail\"\u003e\u003cdiv itemscope itemtype=\"https://pagelove.org/BindingFailure\"\u003e\u003cmeta itemprop=\"language\" content=\"https://pagelove.org/Sessel\"\u003e\u003cmeta itemprop=\"variant\" content=\"threw\"\u003e\u003cp itemprop=\"message\"\u003eRuntimeError: unresolved variable: secret\u003c/p\u003e\u003c/div\u003e\u003c/div\u003e\n\u003c/article\u003e\n\u003c/body\u003e\n\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 3 (nothing was written)",
+      "method": "GET",
+      "path": "/_pl/reacting-context-resource-binding-on-tri-7658b5/d/x.html",
+      "status": 404,
+      "headers": {
+        "content-length": "359",
+        "content-type": "text/html",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\n  \u003chead\u003e\n    \u003ctitle\u003e404 Not Found - Error\u003c/title\u003e\n  \u003c/head\u003e\n  \u003cbody itemscope itemtype=\"http://pagelove.org/Error\"\u003e\n    \u003ch1 itemprop=\"name\"\u003eNot Found\u003c/h1\u003e\n    \u003cmeta itemprop=\"statusCode\" content=\"404\"\u003e\n    \u003cp itemprop=\"description\"\u003eDocument not found: /_pl/reacting-context-resource-binding-on-tri-7658b5/d/x.html\u003c/p\u003e\n  \u003c/body\u003e\n\u003c/html\u003e\n"
+    }
+  ],
+  "outcome": "pass",
+  "target": "local"
+}

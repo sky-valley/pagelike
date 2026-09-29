@@ -1,0 +1,33 @@
+{
+  "case": "protocol.move.before-example",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (move c before a)",
+      "method": "MOVE",
+      "path": "/_pl/protocol-move-before-example-2b6f4c/move-before-test.html",
+      "status": 204,
+      "headers": {
+        "etag": "\"e3e35c5d543730b43bb9bf53496f15ab7e6c9e5efd42c012260abe0e235c7d06\"",
+        "last-modified": "Mon, 28 Sep 2026 22:30:26 GMT",
+        "vary": "Host, Range"
+      }
+    },
+    {
+      "step": "step 2 (order is c, a, b)",
+      "method": "GET",
+      "path": "/_pl/protocol-move-before-example-2b6f4c/move-before-test.html",
+      "status": 206,
+      "headers": {
+        "content-length": "85",
+        "content-range": "selector #list",
+        "content-type": "text/html",
+        "etag": "\"3f5c8f54846c0ff071b494e47171874bb5b1dd0add22c5d8ef0a1c5edb918ac7-3f5c8f54846c0ff071b494e47171874bb5b1dd0add22c5d8ef0a1c5edb918ac7-2\"",
+        "vary": "Host, Range, Accept"
+      },
+      "body": "\u003cul id=\"list\"\u003e\u003cli id=\"item-c\"\u003eC\u003c/li\u003e\u003cli id=\"item-a\"\u003eA\u003c/li\u003e\u003cli id=\"item-b\"\u003eB\u003c/li\u003e\u003c/ul\u003e"
+    }
+  ],
+  "outcome": "pass",
+  "target": "live"
+}

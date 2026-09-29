@@ -1,0 +1,45 @@
+{
+  "case": "authz.selector.transient-element-rule",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (PUT the transient basket)",
+      "method": "PUT",
+      "path": "/_pl/authz-selector-transient-element-rule-ae40e3/basket.html",
+      "status": 206,
+      "headers": {
+        "cache-control": "private",
+        "content-length": "35",
+        "content-range": "selector #basket",
+        "content-type": "text/html",
+        "etag": "\"36616eb58f5c29d07576f79a51963bc75376dabb1b017714ba7e381d6d0b6957-36616eb58f5c29d07576f79a51963bc75376dabb1b017714ba7e381d6d0b6957-1\"",
+        "vary": "Host, Range"
+      },
+      "body": "\u003cul id=\"basket\"\u003e\u003cli\u003eapple\u003c/li\u003e\u003c/ul\u003e"
+    },
+    {
+      "step": "step 2 (other elements are not writable)",
+      "method": "PUT",
+      "path": "/_pl/authz-selector-transient-element-rule-ae40e3/basket.html",
+      "status": 401,
+      "headers": {
+        "content-length": "429",
+        "content-type": "text/html; charset=utf-8"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\n\u003chead\u003e\n    \u003cmeta charset=\"UTF-8\"\u003e\n    \u003ctitle\u003e401 Unauthorized\u003c/title\u003e\n\u003c/head\u003e\n\u003cbody itemscope itemtype=\"https://pagelove.org/1.0/Error\"\u003e\n    \u003ch1\u003e401 Unauthorized\u003c/h1\u003e\n    \u003cp itemprop=\"message\"\u003eAuthentication required to access this resource.\u003c/p\u003e\n    \u003cdl\u003e\n        \u003cdt\u003eResource\u003c/dt\u003e\n        \u003cdd itemprop=\"resource\"\u003e/_pl/authz-selector-transient-element-rule-ae40e3/basket.html\u003c/dd\u003e\n    \u003c/dl\u003e\n\u003c/body\u003e\n\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 3 (DELETE the transient basket)",
+      "method": "DELETE",
+      "path": "/_pl/authz-selector-transient-element-rule-ae40e3/basket.html",
+      "status": 204,
+      "headers": {
+        "cache-control": "private",
+        "content-range": "selector #basket",
+        "vary": "Host, Range"
+      }
+    }
+  ],
+  "outcome": "pass",
+  "target": "local"
+}

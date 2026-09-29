@@ -1,0 +1,53 @@
+{
+  "case": "rw.get.vary",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (fragment varies on Range)",
+      "method": "GET",
+      "path": "/_pl/rw-get-vary-82e189/vary.html",
+      "status": 206,
+      "headers": {
+        "accept-ranges": "selector, bytes",
+        "content-length": "13",
+        "content-range": "selector h1",
+        "content-type": "text/html",
+        "etag": "\"e8ecbdd31c6ff802cf536ef61f423acb0b8fc2a641da1148d7602e4c98311f0f-e8ecbdd31c6ff802cf536ef61f423acb0b8fc2a641da1148d7602e4c98311f0f-1\"",
+        "vary": "Host, Range, Accept"
+      },
+      "body": "\u003ch1\u003eVary\u003c/h1\u003e"
+    },
+    {
+      "step": "step 2 (fragment varies on Accept)",
+      "method": "GET",
+      "path": "/_pl/rw-get-vary-82e189/vary.html",
+      "status": 206,
+      "headers": {
+        "accept-ranges": "selector, bytes",
+        "content-length": "13",
+        "content-range": "selector h1",
+        "content-type": "text/html",
+        "etag": "\"e8ecbdd31c6ff802cf536ef61f423acb0b8fc2a641da1148d7602e4c98311f0f-e8ecbdd31c6ff802cf536ef61f423acb0b8fc2a641da1148d7602e4c98311f0f-1\"",
+        "vary": "Host, Range, Accept"
+      },
+      "body": "\u003ch1\u003eVary\u003c/h1\u003e"
+    },
+    {
+      "step": "step 3 (whole document varies on Accept)",
+      "method": "GET",
+      "path": "/_pl/rw-get-vary-82e189/vary.html",
+      "status": 200,
+      "headers": {
+        "accept-ranges": "selector, bytes",
+        "content-length": "56",
+        "content-type": "text/html",
+        "etag": "\"2768b526387bffbe54d43df451c96e07238d898b2878d677bf9211588a82d215\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:55 GMT",
+        "vary": "Host, Range, Accept"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\u003ch1\u003eVary\u003c/h1\u003e\u003c/body\u003e\u003c/html\u003e\n"
+    }
+  ],
+  "outcome": "pass",
+  "target": "local"
+}

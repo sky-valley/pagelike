@@ -1,0 +1,194 @@
+# Liquid: minimised live probes (2026-09-29 reconciliation,
+# docs/compat/decisions-2026-09-29/composing-liquid.md). The range and
+# template-source probes measure differences pagelike keeps, so they are
+# live-divergence cases (run only against --target live).
+defaults:
+  area: liquid
+  requires: [liquid]
+  evidence: live-observed
+  confidence: high
+cases:
+  - id: liquid.compose.probe-0929.range-literal-forms
+    title: "Probe: live PageLove's Liquid parser rejects every spelling of a range literal; a split list works"
+    feature: composition order
+    status: live-divergence
+    source: "harness/observations/live-2026-09-29-reconcile-composing-liquid/run1-probes/liquid-compose-probe-0929-range-literal.json (live 2026-09-29)"
+    live: true
+    notes: "keep-standard: pagelike accepts ranges (R-LIQ-70, R-LIQ-74)."
+    site:
+      settings: {default_get: allow}
+      files:
+        - path: "${P}/r1.html"
+          body: |
+            <!DOCTYPE html>
+            <html xmlns:p="https://pagelove.org/1.0"><body><p id="o" p:template="text/liquid">{% for i in (1..3) %}{{ i }}{% endfor %}</p></body></html>
+        - path: "${P}/r2.html"
+          body: |
+            <!DOCTYPE html>
+            <html xmlns:p="https://pagelove.org/1.0"><body><p id="o" p:template="text/liquid">{% for i in (1 .. 3) %}{{ i }}{% endfor %}</p></body></html>
+        - path: "${P}/r3.html"
+          body: |
+            <!DOCTYPE html>
+            <html xmlns:p="https://pagelove.org/1.0"><body><p id="o" p:template="text/liquid">{% assign a = 1 %}{% assign b = 3 %}{% for i in (a..b) %}{{ i }}{% endfor %}</p></body></html>
+        - path: "${P}/r4.html"
+          body: |
+            <!DOCTYPE html>
+            <html xmlns:p="https://pagelove.org/1.0"><body><p id="o" p:template="text/liquid">{% assign b = 3 %}{% for i in (1..b) %}{{ i }}{% endfor %}</p></body></html>
+        - path: "${P}/r5.html"
+          body: |
+            <!DOCTYPE html>
+            <html xmlns:p="https://pagelove.org/1.0"><body><p id="o" p:template="text/liquid">{% assign a = 1 %}{% for i in (a..3) %}{{ i }}{% endfor %}</p></body></html>
+        - path: "${P}/r6.html"
+          body: |
+            <!DOCTYPE html>
+            <html xmlns:p="https://pagelove.org/1.0"><body><p id="o" p:template="text/liquid">{{ (1..3) | join: "," }}</p></body></html>
+        - path: "${P}/gen.html"
+          body: |
+            <!DOCTYPE html>
+            <html xmlns:p="https://pagelove.org/1.0"><body>
+              <ul id="gen" p:template="text/liquid">{% assign ns = "1,2,3" | split: "," %}{% for i in ns %}<li class="n{{ i }}">item {{ i }}</li>{% endfor %}</ul>
+            </body></html>
+      rules: [{actor: "*", resource: "${P}/*", method: [GET, HEAD], action: Allow}]
+    steps:
+      - {name: "(1..3)", as: anonymous, request: {method: GET, path: "${P}/r1.html"}, expect: {status: 500, body_contains: ["Liquid parse error at None (node None): expected RParen, got Dot"]}}
+      - {name: "(1 .. 3)", as: anonymous, request: {method: GET, path: "${P}/r2.html"}, expect: {status: 500, body_contains: ["Liquid parse error at None (node None): expected RParen, got Dot"]}}
+      - {name: "(a..b)", as: anonymous, request: {method: GET, path: "${P}/r3.html"}, expect: {status: 500, body_contains: ["Liquid parse error at None (node None): expected field name after &#x27;.&#x27;, got Dot"]}}
+      - {name: "(1..b)", as: anonymous, request: {method: GET, path: "${P}/r4.html"}, expect: {status: 500, body_contains: ["Liquid parse error at None (node None): expected RParen, got Dot"]}}
+      - {name: "(a..3)", as: anonymous, request: {method: GET, path: "${P}/r5.html"}, expect: {status: 500, body_contains: ["Liquid parse error at None (node None): expected field name after &#x27;.&#x27;, got Dot"]}}
+      - {name: "output (1..3)", as: anonymous, request: {method: GET, path: "${P}/r6.html"}, expect: {status: 500, body_contains: ["Liquid parse error at None (node None): expected RParen, got Dot"]}}
+      - name: split list, first generated item
+        as: anonymous
+        request: {method: GET, path: "${P}/gen.html", headers: {Range: "selector=#gen li"}}
+        expect: {status: 206, body: '<li class="n1">item 1</li>'}
+      - name: split list, a later generated item
+        as: anonymous
+        request: {method: GET, path: "${P}/gen.html", headers: {Range: "selector=#gen .n3"}}
+        expect: {status: 206, body: '<li class="n3">item 3</li>'}
+
+  - id: liquid.escape.probe-0929.source-text
+    title: "Probe: live PageLove decodes character references inside Liquid markup only, re-serializes the output, and evaluates delimiters its storage decoded"
+    feature: escaping
+    status: live-divergence
+    source: "harness/observations/live-2026-09-29-reconcile-composing-liquid/run1-probes/liquid-escape-probe-0929-source-text.json and run2/liquid-escape-probe-0929-source-text.json (live 2026-09-29)"
+    live: true
+    notes: >-
+      pagelike adopts the decoding inside Liquid markup (R-LIQ-13 as reconciled; steps a & b, character
+      references, > in a tag, plain template text, attribute). It keeps its raw source (R-LIQ-10) and
+      emits the output bytes as rendered, so it serves &#39; and &quot; where PageLove re-serializes to
+      ' and " (steps microdata, quotes), and it leaves &#123;&#123; … &#125;&#125; as text where
+      PageLove's stored copy already reads {{ … }} (LO-9, re-serialization on write). Runs only against
+      --target live.
+    site:
+      settings: {default_get: allow}
+      files:
+        - path: "${P}/e1.html"
+          body: |
+            <!DOCTYPE html>
+            <html xmlns:p="https://pagelove.org/1.0"><body><p id="o" p:template="text/liquid">{{ "a & b" | escape }}</p></body></html>
+        - path: "${P}/e2.html"
+          body: |
+            <!DOCTYPE html>
+            <html xmlns:p="https://pagelove.org/1.0"><body><p id="o" p:template="text/liquid">{{ "&lt;a href='x'&gt;" | escape }}</p></body></html>
+        - path: "${P}/e3.html"
+          body: |
+            <!DOCTYPE html>
+            <html xmlns:p="https://pagelove.org/1.0"><body><p id="o" p:template="text/liquid">{% if 2 > 1 %}gt{% endif %}</p></body></html>
+        - path: "${P}/e4.html"
+          body: |
+            <!DOCTYPE html>
+            <html xmlns:p="https://pagelove.org/1.0" xmlns:r="https://pagelove.org/Binding/CSS"><body>
+              <div itemscope itemtype="https://example.test${P}/Str"><meta itemprop="v" content="<a href='x'>"><meta itemprop="w" content="a &amp; b"></div>
+              <p id="o" r:s="[itemtype='https://example.test${P}/Str']" p:template="text/liquid">{% for x in s %}{{ x.v | escape }}|{{ x.w | escape }}{% endfor %}</p>
+            </body></html>
+        - path: "${P}/e5.html"
+          body: |
+            <!DOCTYPE html>
+            <html xmlns:p="https://pagelove.org/1.0"><body><p id="o" p:template="text/liquid">{{ "it's" | escape }}|{{ 'say "hi"' | escape }}</p></body></html>
+        - path: "${P}/b1.html"
+          body: |
+            <!DOCTYPE html>
+            <html xmlns:p="https://pagelove.org/1.0"><body><p id="o" p:template="text/liquid">x &lt;i&gt;y&lt;/i&gt; [{{ "&amp;" | size }}]</p></body></html>
+        - path: "${P}/b2.html"
+          body: |
+            <!DOCTYPE html>
+            <html xmlns:p="https://pagelove.org/1.0"><body><p id="o" p:template="text/liquid"><a id="t" title="{{ 'a&amp;b' | size }}">t</a></p></body></html>
+        - path: "${P}/b3.html"
+          body: |
+            <!DOCTYPE html>
+            <html xmlns:p="https://pagelove.org/1.0"><body><p id="o" p:template="text/liquid">&#123;&#123; 1 | plus: 1 &#125;&#125;</p></body></html>
+      rules: [{actor: "*", resource: "${P}/*", method: [GET, HEAD], action: Allow}]
+    steps:
+      - {name: "a & b", as: anonymous, request: {method: GET, path: "${P}/e1.html", headers: {Range: "selector=#o"}}, expect: {status: 206, body: '<p id="o">a &amp; b</p>'}}
+      - {name: "character references in a Liquid string", as: anonymous, request: {method: GET, path: "${P}/e2.html", headers: {Range: "selector=#o"}}, expect: {status: 206, body: "<p id=\"o\">&lt;a href='x'&gt;</p>"}}
+      - {name: "> in a tag", as: anonymous, request: {method: GET, path: "${P}/e3.html", headers: {Range: "selector=#o"}}, expect: {status: 206, body: '<p id="o">gt</p>'}}
+      - {name: "value from microdata", as: anonymous, request: {method: GET, path: "${P}/e4.html", headers: {Range: "selector=#o"}}, expect: {status: 206, body: "<p id=\"o\">&lt;a href='x'&gt;|a &amp; b</p>"}}
+      - {name: "quotes are re-serialized", as: anonymous, request: {method: GET, path: "${P}/e5.html", headers: {Range: "selector=#o"}}, expect: {status: 206, body: "<p id=\"o\">it's|say \"hi\"</p>"}}
+      - {name: "stored source of e1", as: author, plane: dav, request: {method: GET, path: "${P}/e1.html"}, expect: {status: 200, body_contains: ['{{ "a &amp; b" | escape }}']}}
+      - {name: "character references in plain template text", as: anonymous, request: {method: GET, path: "${P}/b1.html", headers: {Range: "selector=#o"}}, expect: {status: 206, body: '<p id="o">x &lt;i&gt;y&lt;/i&gt; [1]</p>'}}
+      - {name: "character references in an attribute inside the template", as: anonymous, request: {method: GET, path: "${P}/b2.html", headers: {Range: "selector=#o"}}, expect: {status: 206, body: '<p id="o"><a id="t" title="3">t</a></p>'}}
+      - {name: "Liquid delimiters written as character references", as: anonymous, request: {method: GET, path: "${P}/b3.html", headers: {Range: "selector=#o"}}, expect: {status: 206, body: '<p id="o">2</p>'}}
+
+  - id: liquid.filters-exp.probe-0929.map-single-value
+    title: "Probe: find_exp returns the item; map over anything but an array gives []"
+    feature: expression filters
+    source: "harness/observations/live-2026-09-29-reconcile-composing-liquid/run1-probes/liquid-filters-exp-probe-0929-map-single.json and run2/liquid-filters-exp-probe-0929-map-single.json (live 2026-09-29)"
+    live: true
+    notes: >-
+      R-LIQ-145 as reconciled (adopt-live). kind_array, where_item, sort_item, concat_item and json_bare
+      are recorded but not asserted: live PageLove formats json: 0 with a newline per element, returns a
+      single item unchanged from where and sort (5 is the item's size), concatenates an array onto a
+      single item as the array alone, and fails json without an indent argument. Those differences are
+      outside the reconciled cases (docs/compat/decisions-2026-09-29/composing-liquid.md, open items).
+    site:
+      settings: {default_get: allow}
+      files:
+        - path: "${P}/edata.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div itemscope itemtype="https://example.test${P}/Event"><meta itemprop="name" content="Launch"><meta itemprop="kind" content="public"></div>
+              <div itemscope itemtype="https://example.test${P}/Event"><meta itemprop="name" content="Retro"><meta itemprop="kind" content="internal"><meta itemprop="cancelled" content="yes"></div>
+              <div itemscope itemtype="https://example.test${P}/Event"><meta itemprop="name" content="Demo"><meta itemprop="kind" content="public"></div>
+            </body></html>
+        - path: "${P}/m.html"
+          body: |
+            <!DOCTYPE html>
+            <html xmlns:p="https://pagelove.org/1.0" xmlns:r="https://pagelove.org/Binding/CSS"><body>
+              <div itemscope itemtype="urn:liquid:result" r:events="[itemtype='https://example.test${P}/Event']" p:template="text/liquid">{% assign events = events | sort: "name" %}{% assign f = events | find_exp: "e", "e.kind == 'internal'" %}{% assign g = events | group_by: "kind" | first %}
+                <span itemprop="fname">{{ f.name }}</span>
+                <span itemprop="fmap">[{{ f | map: "name" }}]</span>
+                <span itemprop="findmap">[{{ events | find: "kind", "internal" | map: "name" }}]</span>
+                <span itemprop="gname">{{ g.name }}</span>
+                <span itemprop="gmap">[{{ g | map: "name" }}]</span>
+                <span itemprop="arrmap">{{ events | map: "name" | join: "," }}</span>
+                <span itemprop="kind_item">{% assign m = f | map: "name" %}{% if m == nil %}nil{% elsif m == empty %}empty{% else %}other{% endif %}:{{ m.size }}:{{ m | json: 0 }}</span>
+                <span itemprop="kind_hash">{% assign m = g | map: "name" %}{% if m == nil %}nil{% elsif m == empty %}empty{% else %}other{% endif %}:{{ m.size }}:{{ m | json: 0 }}</span>
+                <span itemprop="kind_string">{% assign m = "abc" | map: "name" %}{% if m == nil %}nil{% elsif m == empty %}empty{% else %}other{% endif %}:{{ m.size }}:{{ m | json: 0 }}</span>
+                <span itemprop="kind_number">{% assign m = 5 | map: "name" %}{% if m == nil %}nil{% elsif m == empty %}empty{% else %}other{% endif %}:{{ m.size }}:{{ m | json: 0 }}</span>
+                <span itemprop="kind_nil">{% assign m = nothing | map: "name" %}{% if m == nil %}nil{% elsif m == empty %}empty{% else %}other{% endif %}:{{ m.size }}:{{ m | json: 0 }}</span>
+                <span itemprop="kind_array">{% assign m = events | map: "name" %}{% if m == nil %}nil{% elsif m == empty %}empty{% else %}other{% endif %}:{{ m.size }}:{{ m | json: 0 }}</span>
+                <span itemprop="where_item">{{ f | where: "kind", "internal" | size }}</span>
+                <span itemprop="sort_item">{{ f | sort: "name" | size }}</span>
+                <span itemprop="concat_item">{{ f | concat: events | size }}</span>
+                <span itemprop="json_bare">{{ events | map: "name" | json }}</span>
+              </div>
+            </body></html>
+      rules: [{actor: "*", resource: "${P}/*", method: [GET, HEAD], action: Allow}]
+    steps:
+      - name: read
+        as: anonymous
+        request: {method: GET, path: "${P}/m.html"}
+        expect:
+          status: 200
+          microdata:
+            fname: Retro
+            fmap: "[]"
+            findmap: "[]"
+            gname: public
+            gmap: "[]"
+            arrmap: "Demo,Launch,Retro"
+            kind_item: "empty:0:[]"
+            kind_hash: "empty:0:[]"
+            kind_string: "empty:0:[]"
+            kind_number: "empty:0:[]"
+            kind_nil: "empty:0:[]"

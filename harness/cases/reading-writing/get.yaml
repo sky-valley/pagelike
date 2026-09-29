@@ -1,0 +1,635 @@
+# GET / HEAD: whole documents and selector ranges.
+# Spec: docs/spec/reading-writing.md §3, §4 (R-RW-15..30).
+cases:
+  - id: rw.get.selector-first-match
+    title: GET with Range selector returns the matched element as 206
+    area: reading-writing
+    feature: GET selector range
+    evidence: documented
+    source: "docs reference/reading-and-writing/GET-method §Retrieve a single element (snapshot 2026-09-28)"
+    confidence: high
+    requires: []
+    live: true
+    site:
+      settings: {default_get: allow}
+      files:
+        - path: "${P}/get-selector-test.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <h1>Introduction</h1>
+              <p>Some body text.</p>
+            </body></html>
+      rules:
+        - {actor: "*", resource: "${P}/*", method: [GET, HEAD], action: Allow}
+    steps:
+      - name: read the heading alone
+        as: anonymous
+        request:
+          method: GET
+          path: "${P}/get-selector-test.html"
+          headers: {Range: "selector=h1"}
+        expect:
+          status: 206
+          body_html: "<h1>Introduction</h1>"
+          body_not_contains: ["Some body text."]
+          headers_present: [ETag, Content-Range]
+          header_matches:
+            Content-Type: "^text/html"
+            Content-Range: "^selector[ =]h1$"
+
+  - id: rw.get.content-range-space
+    title: Fragment Content-Range is spelled "selector <css>" (unit, space, selector)
+    area: reading-writing
+    feature: Content-Range wire format
+    evidence: live-observed
+    source: "read-probes.json case fragment, GET https://docs.pagelove.com/ Range selector=h1 -> content-range 'selector h1' (2026-09-28); pagelove-primitives/index.mjs@e73986d:131-137"
+    confidence: medium
+    requires: []
+    live: true
+    notes: "Docs show 'selector=h1' (see rw.get.content-range-equals, disputed). pagelike emits the space form."
+    site:
+      settings: {default_get: allow}
+      files:
+        - path: "${P}/cr.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body><h1>Heading</h1><p>Para</p></body></html>
+      rules:
+        - {actor: "*", resource: "${P}/*", method: [GET, HEAD], action: Allow}
+    steps:
+      - name: read heading and inspect Content-Range
+        as: anonymous
+        request:
+          method: GET
+          path: "${P}/cr.html"
+          headers: {Range: "selector=h1"}
+        expect:
+          status: 206
+          headers:
+            Content-Range: "selector h1"
+
+  - id: rw.get.content-range-equals
+    title: Fragment Content-Range spelled "selector=<css>" as in the docs examples
+    area: reading-writing
+    feature: Content-Range wire format
+    evidence: documented
+    source: "docs reference/reading-and-writing/GET-method §Retrieve a single element; docs index §A minimal example (snapshot 2026-09-28)"
+    confidence: low
+    status: disputed
+    requires: []
+    live: true
+    notes: "Contradicted by the live server ('selector h1') and by client comments stating the server emits the space form. Kept as the losing claim; see spec §23 C-1."
+    site:
+      settings: {default_get: allow}
+      files:
+        - path: "${P}/cr.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body><h1>Heading</h1><p>Para</p></body></html>
+      rules:
+        - {actor: "*", resource: "${P}/*", method: [GET, HEAD], action: Allow}
+    steps:
+      - name: read heading and inspect Content-Range
+        as: anonymous
+        request:
+          method: GET
+          path: "${P}/cr.html"
+          headers: {Range: "selector=h1"}
+        expect:
+          status: 206
+          headers:
+            Content-Range: "selector=h1"
+
+  - id: rw.get.whole-document
+    title: GET without a selector returns the whole document with an ETag
+    area: reading-writing
+    feature: GET whole document
+    evidence: documented
+    source: "docs reference/reading-and-writing/GET-method §When to reach for it, §Caching (snapshot 2026-09-28)"
+    confidence: high
+    requires: []
+    live: true
+    site:
+      settings: {default_get: allow}
+      files:
+        - path: "${P}/whole.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <h1>Whole Title</h1>
+              <p>Whole paragraph.</p>
+            </body></html>
+      rules:
+        - {actor: "*", resource: "${P}/*", method: [GET, HEAD], action: Allow}
+    steps:
+      - name: read the whole document
+        as: anonymous
+        request: {method: GET, path: "${P}/whole.html"}
+        expect:
+          status: 200
+          headers_present: [ETag]
+          header_matches: {Content-Type: "^text/html"}
+          body_contains: ["<h1>Whole Title</h1>", "<p>Whole paragraph.</p>"]
+
+  - id: rw.get.missing-document-404
+    title: A missing document is 404 with or without a selector (never 416)
+    area: reading-writing
+    feature: GET errors
+    evidence: documented
+    source: "docs reference/reading-and-writing/GET-method §Resource not found, §Error cases (snapshot 2026-09-28)"
+    confidence: high
+    requires: []
+    live: true
+    site:
+      settings: {default_get: allow}
+      rules:
+        - {actor: "*", resource: "${P}/*", method: [GET, HEAD], action: Allow}
+    steps:
+      - name: whole read of a missing page
+        as: anonymous
+        request: {method: GET, path: "${P}/get-nonexistent-page.html"}
+        expect: {status: 404}
+      - name: selector read of a missing page
+        as: anonymous
+        request:
+          method: GET
+          path: "${P}/get-nonexistent-page.html"
+          headers: {Range: "selector=h1"}
+        expect: {status: 404}
+
+  - id: rw.get.selector-no-match-416
+    title: A selector that matches nothing in an existing document is 416
+    area: reading-writing
+    feature: GET errors
+    evidence: documented
+    source: "docs reference/reading-and-writing/GET-method §Selector matches nothing (snapshot 2026-09-28)"
+    confidence: high
+    requires: []
+    live: true
+    site:
+      settings: {default_get: allow}
+      files:
+        - path: "${P}/get-no-match-test.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body><p>No heading here.</p></body></html>
+      rules:
+        - {actor: "*", resource: "${P}/*", method: [GET, HEAD], action: Allow}
+    steps:
+      - name: select a missing heading
+        as: anonymous
+        request:
+          method: GET
+          path: "${P}/get-no-match-test.html"
+          headers: {Range: "selector=h1"}
+        expect:
+          status: 416
+          headers_absent: [Content-Range]
+
+  - id: rw.get.416-error-document
+    title: The 416 response is an HTML error document without an ETag
+    area: reading-writing
+    feature: Error documents
+    evidence: live-observed
+    source: "read-probes.json case missing-fragment (GET https://docs.pagelove.com/ Range selector=#pagelove-research-nonexistent-element, 2026-09-28)"
+    confidence: medium
+    requires: []
+    live: true
+    notes: "Live body uses itemtype http://pagelove.org/Error (http, not https) with name/statusCode/description; see spec R-RW-130 and §23 C-3."
+    site:
+      settings: {default_get: allow}
+      files:
+        - path: "${P}/e416.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body><h1>Only heading</h1></body></html>
+      rules:
+        - {actor: "*", resource: "${P}/*", method: [GET, HEAD], action: Allow}
+    steps:
+      - name: select a missing id
+        as: anonymous
+        request:
+          method: GET
+          path: "${P}/e416.html"
+          headers: {Range: "selector=#pagelike-nonexistent-element"}
+        expect:
+          status: 416
+          headers_absent: [ETag]
+          header_matches:
+            Content-Type: "^text/html"
+            Vary: "(?i)range"
+          microdata:
+            - type: "http://pagelove.org/Error"
+              properties:
+                statusCode: "416"
+
+  - id: rw.get.multi-match-first
+    title: A selector matching several elements returns only the first in document order
+    area: reading-writing
+    feature: GET selector range
+    evidence: documented
+    source: "docs reference/glossary/selector-range-unit; reference/permissions/AuthorizationRule §Selectors that match several elements (snapshot 2026-09-28)"
+    confidence: high
+    requires: []
+    live: true
+    site:
+      settings: {default_get: allow}
+      files:
+        - path: "${P}/multi.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <ul>
+                <li>one</li>
+                <li>two</li>
+                <li>three</li>
+              </ul>
+            </body></html>
+      rules:
+        - {actor: "*", resource: "${P}/*", method: [GET, HEAD], action: Allow}
+    steps:
+      - name: select every li, get the first
+        as: anonymous
+        request:
+          method: GET
+          path: "${P}/multi.html"
+          headers: {Range: "selector=li"}
+        expect:
+          status: 206
+          body_html: "<li>one</li>"
+          body_not_contains: ["two", "three"]
+
+  - id: rw.get.selector-list-document-order
+    title: For a selector list the first match is by document order, not list order
+    area: reading-writing
+    feature: GET selector range
+    evidence: inferred
+    source: "docs reference/permissions/AuthorizationRule §Selectors that match several elements ('first match in document order'); CSS querySelector semantics"
+    confidence: medium
+    requires: []
+    live: true
+    site:
+      settings: {default_get: allow}
+      files:
+        - path: "${P}/order.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body><h1>First</h1><h2>Second</h2></body></html>
+      rules:
+        - {actor: "*", resource: "${P}/*", method: [GET, HEAD], action: Allow}
+    steps:
+      - name: selector list names h2 before h1
+        as: anonymous
+        request:
+          method: GET
+          path: "${P}/order.html"
+          headers: {Range: "selector=h2, h1"}
+        expect:
+          status: 206
+          body_html: "<h1>First</h1>"
+
+  - id: rw.get.head-elements-addressable
+    title: Elements inside <head> are selector-addressable
+    area: reading-writing
+    feature: GET selector range
+    evidence: inferred
+    source: "CSS selector semantics over the whole document; spec R-RW-15"
+    confidence: medium
+    requires: []
+    live: true
+    site:
+      settings: {default_get: allow}
+      files:
+        - path: "${P}/titled.html"
+          body: |
+            <!DOCTYPE html>
+            <html><head><title>Page Title</title></head><body><p>x</p></body></html>
+      rules:
+        - {actor: "*", resource: "${P}/*", method: [GET, HEAD], action: Allow}
+    steps:
+      - name: read the title element
+        as: anonymous
+        request:
+          method: GET
+          path: "${P}/titled.html"
+          headers: {Range: "selector=title"}
+        expect:
+          status: 206
+          body_html: "<title>Page Title</title>"
+
+  - id: rw.get.head-selector-etag
+    title: HEAD with a selector range returns the fragment ETag and no body (beta-js lazy ETag fetch)
+    area: reading-writing
+    feature: HEAD selector range
+    evidence: client-source
+    source: "beta-js/pagelove/primitives.mjs@c204746:474-501 (HEAD + Range selector, reads ETag header)"
+    confidence: high
+    requires: []
+    live: true
+    site:
+      settings: {default_get: allow}
+      files:
+        - path: "${P}/head.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body><article id="note-42"><h2>Note</h2></article></body></html>
+      rules:
+        - {actor: "*", resource: "${P}/*", method: [GET, HEAD], action: Allow}
+    steps:
+      - name: HEAD the element
+        as: anonymous
+        request:
+          method: HEAD
+          path: "${P}/head.html"
+          headers: {Range: "selector=#note-42"}
+        expect:
+          status: 206
+          headers_present: [ETag]
+          body: ""
+        capture: {h: header.ETag}
+      - name: GET the same element has the same ETag
+        as: anonymous
+        request:
+          method: GET
+          path: "${P}/head.html"
+          headers: {Range: "selector=#note-42"}
+        expect:
+          status: 206
+          etag_equals: "${h}"
+          body_html: '<article id="note-42"><h2>Note</h2></article>'
+
+  - id: rw.get.head-whole
+    title: HEAD of a whole document returns 200 with an ETag and no body
+    area: reading-writing
+    feature: HEAD whole document
+    evidence: inferred
+    source: "RFC 9110 §9.3.2; docs reference/reading-and-writing/GET-method §Caching"
+    confidence: high
+    requires: []
+    live: true
+    site:
+      settings: {default_get: allow}
+      files:
+        - path: "${P}/h.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body><p>head me</p></body></html>
+      rules:
+        - {actor: "*", resource: "${P}/*", method: [GET, HEAD], action: Allow}
+    steps:
+      - name: HEAD
+        as: anonymous
+        request: {method: HEAD, path: "${P}/h.html"}
+        expect:
+          status: 200
+          headers_present: [ETag]
+          header_matches: {Content-Type: "^text/html"}
+          body: ""
+        capture: {h: header.ETag}
+      - name: GET has the same validator
+        as: anonymous
+        request: {method: GET, path: "${P}/h.html"}
+        expect:
+          status: 200
+          etag_equals: "${h}"
+
+  - id: rw.get.query-string-ignored
+    title: A query string does not change which document a selector read addresses
+    area: reading-writing
+    feature: Path resolution
+    evidence: demo-source
+    source: "pagelove-kanban/site/app.js@85109ab:44 (GET path?v=<ts> with Range selector); pagelove-ats/site/index.html@8f200fc:413"
+    confidence: high
+    requires: []
+    live: true
+    site:
+      settings: {default_get: allow}
+      files:
+        - path: "${P}/board.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body><section id="lane"><p>card</p></section></body></html>
+      rules:
+        - {actor: "*", resource: "${P}/*", method: [GET, HEAD], action: Allow}
+    steps:
+      - name: cache-busted selector read
+        as: anonymous
+        request:
+          method: GET
+          path: "${P}/board.html?v=1727540000000"
+          headers: {Range: "selector=#lane"}
+        expect:
+          status: 206
+          body_html: '<section id="lane"><p>card</p></section>'
+
+  - id: rw.get.unknown-range-unit-ignored
+    title: An unrecognised Range unit is ignored and the whole resource is returned
+    area: reading-writing
+    feature: Range header parsing
+    evidence: documented
+    source: "docs reference/protocol/Accept-Ranges §Standard response ('an unrecognised range unit is ignored') (snapshot 2026-09-28)"
+    confidence: high
+    requires: []
+    live: true
+    site:
+      settings: {default_get: allow}
+      files:
+        - path: "${P}/unit.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body><h1>Unit</h1><p>Rest of page.</p></body></html>
+      rules:
+        - {actor: "*", resource: "${P}/*", method: [GET, HEAD], action: Allow}
+    steps:
+      - name: removed sessel unit
+        as: anonymous
+        request:
+          method: GET
+          path: "${P}/unit.html"
+          headers: {Range: "sessel=count()"}
+        expect:
+          status: 200
+          body_contains: ["<h1>Unit</h1>", "Rest of page."]
+          headers_absent: [Content-Range]
+
+  - id: rw.get.utf8-selector
+    title: Non-ASCII text in the Range selector is decoded as UTF-8
+    area: reading-writing
+    feature: Range header parsing
+    evidence: documented
+    source: "docs reference/composing-pages/Selector-Extensions §Non-ASCII text in selectors (snapshot 2026-09-28)"
+    confidence: high
+    requires: []
+    live: true
+    site:
+      settings: {default_get: allow}
+      files:
+        - path: "${P}/utf8.html"
+          body: |
+            <!DOCTYPE html>
+            <html><head><meta charset="utf-8"></head><body><p>plain tea</p><p>café au lait</p></body></html>
+      rules:
+        - {actor: "*", resource: "${P}/*", method: [GET, HEAD], action: Allow}
+    steps:
+      - name: raw UTF-8 in header
+        as: anonymous
+        request:
+          method: GET
+          path: "${P}/utf8.html"
+          headers: {Range: "selector=p:contains('café')"}
+        expect:
+          status: 206
+          body_contains: ["café au lait"]
+          body_not_contains: ["plain tea"]
+      - name: CSS escape equivalent
+        as: anonymous
+        request:
+          method: GET
+          path: "${P}/utf8.html"
+          headers: {Range: "selector=p:contains('caf\\E9 ')"}
+        expect:
+          status: 206
+          body_contains: ["café au lait"]
+
+  - id: rw.get.vary
+    title: Fragment responses vary on Range and Accept; whole responses vary on Accept
+    area: reading-writing
+    feature: Caching headers
+    evidence: documented
+    source: "docs reference/reading-and-writing/Content-Negotiation §Vary header; read-probes.json case fragment (vary 'Host, Range, Accept')"
+    confidence: medium
+    requires: []
+    live: true
+    site:
+      settings: {default_get: allow}
+      files:
+        - path: "${P}/vary.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body><h1>Vary</h1></body></html>
+      rules:
+        - {actor: "*", resource: "${P}/*", method: [GET, HEAD], action: Allow}
+    steps:
+      - name: fragment varies on Range
+        as: anonymous
+        request:
+          method: GET
+          path: "${P}/vary.html"
+          headers: {Range: "selector=h1"}
+        expect:
+          status: 206
+          header_matches: {Vary: "(?i)(^|[ ,])range([ ,]|$)"}
+      - name: fragment varies on Accept
+        as: anonymous
+        request:
+          method: GET
+          path: "${P}/vary.html"
+          headers: {Range: "selector=h1"}
+        expect:
+          status: 206
+          header_matches: {Vary: "(?i)(^|[ ,])accept([ ,]|$)"}
+      - name: whole document varies on Accept
+        as: anonymous
+        request: {method: GET, path: "${P}/vary.html"}
+        expect:
+          status: 200
+          header_matches: {Vary: "(?i)(^|[ ,])accept([ ,]|$)"}
+
+  - id: rw.get.fragment-bare-table-section
+    title: A table-section fragment is returned bare (no wrapping table)
+    area: reading-writing
+    feature: GET selector range
+    evidence: demo-source
+    source: "pagelove-polls/site/assets/create.js@c9270e5:91-104 (GET Range selector=#responses returns the <tbody>, client wraps it in <table>)"
+    confidence: high
+    requires: []
+    live: true
+    site:
+      settings: {default_get: allow}
+      files:
+        - path: "${P}/poll.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body><table id="grid"><tbody id="responses"><tr id="r-1"><th>Ann</th><td>yes</td></tr></tbody></table></body></html>
+      rules:
+        - {actor: "*", resource: "${P}/*", method: [GET, HEAD], action: Allow}
+    steps:
+      - name: read the tbody
+        as: anonymous
+        request:
+          method: GET
+          path: "${P}/poll.html"
+          headers: {Range: "selector=#responses"}
+        expect:
+          status: 206
+          body_contains: ['<tbody id="responses">', '<tr id="r-1">', "</tbody>"]
+          body_not_contains: ["<table"]
+
+  - id: rw.get.composed-before-select
+    title: Selector reads see the composed page (templates run before the selector extracts)
+    area: reading-writing
+    feature: GET selector range
+    evidence: documented
+    source: "docs reference/composing-pages/Pagination §With Range selectors ('the full document is composed first ... then the selector extracts') (snapshot 2026-09-28)"
+    confidence: high
+    requires: [liquid]
+    live: true
+    notes: "The QUERY page's composed example shows raw Liquid; see spec §23 C-11."
+    site:
+      settings: {default_get: allow}
+      files:
+        - path: "${P}/calc.html"
+          body: |
+            <!DOCTYPE html>
+            <html xmlns:p="https://pagelove.org/1.0"><body>
+              <main class="calc" p:template="text/liquid">{{ 2 | plus: 3 }}</main>
+            </body></html>
+      rules:
+        - {actor: "*", resource: "${P}/*", method: [GET, HEAD], action: Allow}
+    steps:
+      - name: select the templated element
+        as: anonymous
+        request:
+          method: GET
+          path: "${P}/calc.html"
+          headers: {Range: "selector=.calc"}
+        expect:
+          status: 206
+          body_contains: [">5</main>"]
+          body_not_contains: ["{{"]
+
+  - id: rw.get.malformed-selector
+    title: An unparsable or empty selector is a client error, never a 2xx
+    area: reading-writing
+    feature: Range header parsing
+    evidence: inferred
+    source: "docs reference/reading-and-writing/MOVE-method §Error cases (invalid Range selector 422); reference/protocol/QUERY §Errors (unparsable selector 422); pagelove prompts response_codes@deb2857 (400 invalid Range syntax)"
+    confidence: low
+    requires: []
+    live: true
+    notes: "Exact status unsettled (spec R-RW-17, Q-6); pagelike answers 422 for unparsable and 400 for empty selectors."
+    site:
+      settings: {default_get: allow}
+      files:
+        - path: "${P}/bad.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body><h1>x</h1></body></html>
+      rules:
+        - {actor: "*", resource: "${P}/*", method: [GET, HEAD], action: Allow}
+    steps:
+      - name: unbalanced attribute selector
+        as: anonymous
+        request:
+          method: GET
+          path: "${P}/bad.html"
+          headers: {Range: "selector=h1["}
+        expect: {status: [400, 416, 422]}
+      - name: empty selector
+        as: anonymous
+        request:
+          method: GET
+          path: "${P}/bad.html"
+          headers: {Range: "selector="}
+        expect: {status: [400, 416, 422]}

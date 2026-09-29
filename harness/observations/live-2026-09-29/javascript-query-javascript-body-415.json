@@ -1,0 +1,35 @@
+{
+  "case": "javascript.query.javascript-body-415",
+  "failures": [
+    "step 2 (QUERY text/javascript) QUERY ${P}/q.html: status 401, want [415] (body: \u003c!DOCTYPE html\u003e\n\u003chtml\u003e\n\u003chead\u003e\n    \u003cmeta charset=\"UTF-8\"\u003e\n    \u003ctitle\u003e401 Unauthorized\u003c/title\u003e\n\u003c/head\u003e\n\u003cbody itemscope itemtype=\"https://pagelove.org/1.0/Error\"\u003e\n    \u003ch1\u003e401 Unauthorized\u003c/h1\u003e\n    \u003cp itemprop=\"message\"\u003eAuthentication required …)",
+    "step 2 (QUERY text/javascript) QUERY ${P}/q.html: header Accept-Query missing"
+  ],
+  "observations": [
+    {
+      "step": "step 1 (store a page)",
+      "method": "PUT",
+      "path": "/_pl/javascript-query-javascript-body-415-621381/q.html",
+      "status": 201,
+      "headers": {
+        "content-type": "text/html",
+        "etag": "\"14b2a424d74ecf16e2a3b4d539388fee519779dbc6598253d06c6f940e7ad3a7\"",
+        "last-modified": "Tue, 29 Sep 2026 00:46:06 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\n\u003ch1\u003eq\u003c/h1\u003e\n\n                \u003cdiv style=\"\n                            position: fixed;\n                            bottom: 0;\n                            left: 0;\n                            right: 0;\n                            padding: 8px;\n                            background: #f0f0f0;\n                            text-align: center;\n                            font-size: 12px;\n                            color: #666;\n                            z-index: 9999;\n                            opacity: 0.8;\n                            border-top: 1px solid #ddd;\n                        \"\u003e\n                    Powered by\n                    \u003ca href=\"https://pagelove.com/\" style=\"color: #4a90d9; text-decoration: none\"\u003ePagelove\u003c/a\u003e\n                \u003c/div\u003e\n            \u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 2 (QUERY text/javascript)",
+      "method": "QUERY",
+      "path": "/_pl/javascript-query-javascript-body-415-621381/q.html",
+      "status": 401,
+      "headers": {
+        "content-length": "422",
+        "content-type": "text/html; charset=utf-8"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\n\u003chead\u003e\n    \u003cmeta charset=\"UTF-8\"\u003e\n    \u003ctitle\u003e401 Unauthorized\u003c/title\u003e\n\u003c/head\u003e\n\u003cbody itemscope itemtype=\"https://pagelove.org/1.0/Error\"\u003e\n    \u003ch1\u003e401 Unauthorized\u003c/h1\u003e\n    \u003cp itemprop=\"message\"\u003eAuthentication required to access this resource.\u003c/p\u003e\n    \u003cdl\u003e\n        \u003cdt\u003eResource\u003c/dt\u003e\n        \u003cdd itemprop=\"resource\"\u003e/_pl/javascript-query-javascript-body-415-621381/q.html\u003c/dd\u003e\n    \u003c/dl\u003e\n\u003c/body\u003e\n\u003c/html\u003e"
+    }
+  ],
+  "outcome": "fail",
+  "target": "live"
+}

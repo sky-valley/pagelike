@@ -1,0 +1,72 @@
+{
+  "case": "reacting.gates.shop-basic-auth-gate",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (install the admin gate)",
+      "method": "PUT",
+      "path": "/_pl/reacting-gates-shop-basic-auth-gate-3f7f1b/r/admin-auth.html",
+      "status": 201,
+      "headers": {
+        "content-length": "1200",
+        "content-type": "text/html",
+        "etag": "\"63b585c8b3697622ea1da8cc611e8b54c9bf03d9f0d2c9f2bfbd3c8ff1bd7ff3\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:48 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\n\u003cdiv itemscope itemtype=\"https://pagelove.org/Trigger\"\u003e\n  \u003cmeta itemprop=\"resource\" content=\"/_pl/reacting-gates-shop-basic-auth-gate-3f7f1b/admin/*\"\u003e\n  \u003cmeta itemprop=\"method\" content=\"GET\"\u003e\n  \u003cdiv itemprop=\"when\" itemscope itemtype=\"https://pagelove.org/Sessel\"\u003e\n    \u003cscript itemprop=\"source\" type=\"text/sessel\"\u003e\n@schema Context url(\"https://pagelove.org/Context\");\n(Context.request.headers[\"authorization\"] ?? \"\") == ${[itemtype=\"https://pagelike.test/_pl/reacting-gates-shop-basic-auth-gate-3f7f1b/AdminCredential\"] [itemprop=\"authorization\"]}.first().value()\n    \u003c/script\u003e\n  \u003c/div\u003e\n  \u003cdiv itemprop=\"action\" itemscope itemtype=\"https://pagelove.org/Sessel\"\u003e\n    \u003cscript itemprop=\"source\" type=\"text/sessel\"\u003e1\u003c/script\u003e\n  \u003c/div\u003e\n  \u003cdiv itemprop=\"otherwise\" itemscope itemtype=\"https://pagelove.org/Sessel\"\u003e\n    \u003cscript itemprop=\"source\" type=\"text/sessel\"\u003e\n@schema HTTPResponse url(\"https://pagelove.org/HTTPResponse\");\n@schema Pair url(\"https://pagelove.org/Pair\");\nthrow new HTTPResponse { status: 401, header: new Pair { key: \"WWW-Authenticate\", value: \"Basic realm=\\\"pagelike test\\\"\" }, body: \"Authorization required\" }\n    \u003c/script\u003e\n  \u003c/div\u003e\n\u003c/div\u003e\n\u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 2 (the credential document itself is not readable)",
+      "method": "GET",
+      "path": "/_pl/reacting-gates-shop-basic-auth-gate-3f7f1b/private/admin.html",
+      "status": 401,
+      "headers": {
+        "content-length": "434",
+        "content-type": "text/html; charset=utf-8"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\n\u003chead\u003e\n    \u003cmeta charset=\"UTF-8\"\u003e\n    \u003ctitle\u003e401 Unauthorized\u003c/title\u003e\n\u003c/head\u003e\n\u003cbody itemscope itemtype=\"https://pagelove.org/1.0/Error\"\u003e\n    \u003ch1\u003e401 Unauthorized\u003c/h1\u003e\n    \u003cp itemprop=\"message\"\u003eAuthentication required to access this resource.\u003c/p\u003e\n    \u003cdl\u003e\n        \u003cdt\u003eResource\u003c/dt\u003e\n        \u003cdd itemprop=\"resource\"\u003e/_pl/reacting-gates-shop-basic-auth-gate-3f7f1b/private/admin.html\u003c/dd\u003e\n    \u003c/dl\u003e\n\u003c/body\u003e\n\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 3 (no credential - 401 with a Basic challenge)",
+      "method": "GET",
+      "path": "/_pl/reacting-gates-shop-basic-auth-gate-3f7f1b/admin/index.html",
+      "status": 401,
+      "headers": {
+        "content-length": "22",
+        "content-type": "text/html; charset=utf-8",
+        "www-authenticate": "Basic realm=\"pagelike test\""
+      },
+      "body": "Authorization required"
+    },
+    {
+      "step": "step 4 (wrong credential - still 401)",
+      "method": "GET",
+      "path": "/_pl/reacting-gates-shop-basic-auth-gate-3f7f1b/admin/index.html",
+      "status": 401,
+      "headers": {
+        "content-length": "22",
+        "content-type": "text/html; charset=utf-8",
+        "www-authenticate": "Basic realm=\"pagelike test\""
+      },
+      "body": "Authorization required"
+    },
+    {
+      "step": "step 5 (matching credential - the page is served)",
+      "method": "GET",
+      "path": "/_pl/reacting-gates-shop-basic-auth-gate-3f7f1b/admin/index.html",
+      "status": 200,
+      "headers": {
+        "accept-ranges": "selector, bytes",
+        "content-length": "68",
+        "content-type": "text/html",
+        "etag": "\"dd3e0a3fd9dd111e0949320d48c02987c182bcc227977462aed8d77932003a5a\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:48 GMT",
+        "vary": "Host, Range, Accept"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\u003ch1\u003eOrders dashboard\u003c/h1\u003e\u003c/body\u003e\u003c/html\u003e\n"
+    }
+  ],
+  "outcome": "pass",
+  "target": "local"
+}

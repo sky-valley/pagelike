@@ -1,0 +1,94 @@
+{
+  "case": "protocol.webdav.tag-changes-on-child-add-edit-remove",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (initial listing)",
+      "method": "PROPFIND",
+      "path": "/_pl/protocol-webdav-tag-changes-on-child-add-5ecc3c/dav/",
+      "status": 207,
+      "headers": {
+        "content-length": "1509",
+        "content-type": "application/xml; charset=utf-8",
+        "etag": "\"sha256:f78bcbc1a229bac81037622c2d9266aee64ead21b553998d0077c1726b1a13b4\"",
+        "vary": "Depth"
+      },
+      "body": "\u003c?xml version=\"1.0\" encoding=\"utf-8\" ?\u003e\n\u003cD:multistatus xmlns:D=\"DAV:\"\u003e\n  \u003cD:response\u003e\n    \u003cD:href\u003e/_pl/protocol-webdav-tag-changes-on-child-add-5ecc3c/dav/\u003c/D:href\u003e\n    \u003cD:propstat\u003e\n      \u003cD:prop\u003e\n      \u003cD:resourcetype\u003e\u003cD:collection/\u003e\u003c/D:resourcetype\u003e\n      \u003cD:getetag\u003e\"sha256:f78bcbc1a229bac81037622c2d9266aee64ead21b553998d0077c1726b1a13b4\"\u003c/D:getetag\u003e\n      \u003c/D:prop\u003e\n      \u003cD:status\u003eHTTP/1.1 200 OK\u003c/D:status\u003e\n    \u003c/D:propstat\u003e\n  \u003c/D:response\u003e\n  \u003cD:response\u003e\n    \u003cD:href\u003e/_pl/protocol-webdav-tag-changes-on-child-add-5ecc3c/dav/a.html\u003c/D:href\u003e\n    \u003cD:propstat\u003e\n      \u003cD:prop\u003e\n      \u003cD:resourcetype/\u003e\n      \u003cD:getcontenttype\u003etext/html\u003c/D:getcontenttype\u003e\n      \u003cD:getcontentlength\u003e53\u003c/D:getcontentlength\u003e\n      \u003cD:getlastmodified\u003eTue, 29 Sep 2026 02:40:48 GMT\u003c/D:getlastmodified\u003e\n      \u003cD:getetag\u003e\"391106d5732638e3166bbe1da764f3efca05639b75ea5e8aacdf50502bf0b3f3\"\u003c/D:getetag\u003e\n      \u003c/D:prop\u003e\n      \u003cD:status\u003eHTTP/1.1 200 OK\u003c/D:status\u003e\n    \u003c/D:propstat\u003e\n  \u003c/D:response\u003e\n  \u003cD:response\u003e\n    \u003cD:href\u003e/_pl/protocol-webdav-tag-changes-on-child-add-5ecc3c/dav/b.css\u003c/D:href\u003e\n    \u003cD:propstat\u003e\n      \u003cD:prop\u003e\n      \u003cD:resourcetype/\u003e\n      \u003cD:getcontenttype\u003etext/css\u003c/D:getcontenttype\u003e\n      \u003cD:getcontentlength\u003e18\u003c/D:getcontentlength\u003e\n      \u003cD:getlastmodified\u003eTue, 29 Sep 2026 02:40:48 GMT\u003c/D:getlastmodified\u003e\n      \u003cD:getetag\u003e\"5404f0fc62350eec2f7b514627ecf7738830ba5a416dea06a350ea3b6d127713\"\u003c/D:getetag\u003e\n      \u003c/D:prop\u003e\n      \u003cD:status\u003eHTTP/1.1 200 OK\u003c/D:status\u003e\n    \u003c/D:propstat\u003e\n  \u003c/D:response\u003e\n\u003c/D:multistatus\u003e\n"
+    },
+    {
+      "step": "step 2 (add a child)",
+      "method": "PUT",
+      "path": "/_pl/protocol-webdav-tag-changes-on-child-add-5ecc3c/dav/c.html",
+      "status": 201,
+      "headers": {
+        "content-length": "53",
+        "content-type": "text/html",
+        "etag": "\"3e8e3892f13735e41e221c2fcd62fe6c6503d897e48de028c17490079c571f59\""
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\u003ch1\u003eC\u003c/h1\u003e\u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 3 (listing changed after add)",
+      "method": "PROPFIND",
+      "path": "/_pl/protocol-webdav-tag-changes-on-child-add-5ecc3c/dav/",
+      "status": 207,
+      "headers": {
+        "content-length": "2032",
+        "content-type": "application/xml; charset=utf-8",
+        "etag": "\"sha256:83d5a9fcf86518b655f8dd548f3e85c59c49bf3d26329369d4301a97f0cd4d8d\"",
+        "vary": "Depth"
+      },
+      "body": "\u003c?xml version=\"1.0\" encoding=\"utf-8\" ?\u003e\n\u003cD:multistatus xmlns:D=\"DAV:\"\u003e\n  \u003cD:response\u003e\n    \u003cD:href\u003e/_pl/protocol-webdav-tag-changes-on-child-add-5ecc3c/dav/\u003c/D:href\u003e\n    \u003cD:propstat\u003e\n      \u003cD:prop\u003e\n      \u003cD:resourcetype\u003e\u003cD:collection/\u003e\u003c/D:resourcetype\u003e\n      \u003cD:getetag\u003e\"sha256:83d5a9fcf86518b655f8dd548f3e85c59c49bf3d26329369d4301a97f0cd4d8d\"\u003c/D:getetag\u003e\n      \u003c/D:prop\u003e\n      \u003cD:status\u003eHTTP/1.1 200 OK\u003c/D:status\u003e\n    \u003c/D:propstat\u003e\n  \u003c/D:response\u003e\n  \u003cD:response\u003e\n    \u003cD:href\u003e/_pl/protocol-webdav-tag-changes-on-child-add-5ecc3c/dav/a.html\u003c/D:href\u003e\n    \u003cD:propstat\u003e\n      \u003cD:prop\u003e\n      \u003cD:resourcetype/\u003e\n      \u003cD:getcontenttype\u003etext/html\u003c/D:getcontenttype\u003e\n      \u003cD:getcontentlength\u003e53\u003c/D:getcontentlength\u003e\n      \u003cD:getlastmodified\u003eTue, 29 Sep 2026 02:40:48 GMT\u003c/D:getlastmodified\u003e\n      \u003cD:getetag\u003e\"391106d5732638e3166bbe1da764f3efca05639b75ea5e8aacdf50502bf0b3f3\"\u003c/D:getetag\u003e\n      \u003c/D:prop\u003e\n      \u003cD:status\u003eHTTP/1.1 200 OK\u003c/D:status\u003e\n    \u003c/D:propstat\u003e\n  \u003c/D:response\u003e\n  \u003cD:response\u003e\n    \u003cD:href\u003e/_pl/protocol-webdav-tag-changes-on-child-add-5ecc3c/dav/b.css\u003c/D:href\u003e\n    \u003cD:propstat\u003e\n      \u003cD:prop\u003e\n      \u003cD:resourcetype/\u003e\n      \u003cD:getcontenttype\u003etext/css\u003c/D:getcontenttype\u003e\n      \u003cD:getcontentlength\u003e18\u003c/D:getcontentlength\u003e\n      \u003cD:getlastmodified\u003eTue, 29 Sep 2026 02:40:48 GMT\u003c/D:getlastmodified\u003e\n      \u003cD:getetag\u003e\"5404f0fc62350eec2f7b514627ecf7738830ba5a416dea06a350ea3b6d127713\"\u003c/D:getetag\u003e\n      \u003c/D:prop\u003e\n      \u003cD:status\u003eHTTP/1.1 200 OK\u003c/D:status\u003e\n    \u003c/D:propstat\u003e\n  \u003c/D:response\u003e\n  \u003cD:response\u003e\n    \u003cD:href\u003e/_pl/protocol-webdav-tag-changes-on-child-add-5ecc3c/dav/c.html\u003c/D:href\u003e\n    \u003cD:propstat\u003e\n      \u003cD:prop\u003e\n      \u003cD:resourcetype/\u003e\n      \u003cD:getcontenttype\u003etext/html\u003c/D:getcontenttype\u003e\n      \u003cD:getcontentlength\u003e53\u003c/D:getcontentlength\u003e\n      \u003cD:getlastmodified\u003eTue, 29 Sep 2026 02:40:48 GMT\u003c/D:getlastmodified\u003e\n      \u003cD:getetag\u003e\"3e8e3892f13735e41e221c2fcd62fe6c6503d897e48de028c17490079c571f59\"\u003c/D:getetag\u003e\n      \u003c/D:prop\u003e\n      \u003cD:status\u003eHTTP/1.1 200 OK\u003c/D:status\u003e\n    \u003c/D:propstat\u003e\n  \u003c/D:response\u003e\n\u003c/D:multistatus\u003e\n"
+    },
+    {
+      "step": "step 4 (edit a child)",
+      "method": "PUT",
+      "path": "/_pl/protocol-webdav-tag-changes-on-child-add-5ecc3c/dav/a.html",
+      "status": 200,
+      "headers": {
+        "accept-ranges": "bytes",
+        "content-length": "60",
+        "content-type": "text/html",
+        "etag": "\"47247c4f03b7e93a569b06f81314b7da808eec4e6198d620c38628f4dd4e9267\""
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\u003ch1\u003eA edited\u003c/h1\u003e\u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 5 (listing changed after edit)",
+      "method": "PROPFIND",
+      "path": "/_pl/protocol-webdav-tag-changes-on-child-add-5ecc3c/dav/",
+      "status": 207,
+      "headers": {
+        "content-length": "2032",
+        "content-type": "application/xml; charset=utf-8",
+        "etag": "\"sha256:fa83d7aa7d5b4f184e227f10218fbc67e2f2f530b35af3f4061e3663b4f0ed86\"",
+        "vary": "Depth"
+      },
+      "body": "\u003c?xml version=\"1.0\" encoding=\"utf-8\" ?\u003e\n\u003cD:multistatus xmlns:D=\"DAV:\"\u003e\n  \u003cD:response\u003e\n    \u003cD:href\u003e/_pl/protocol-webdav-tag-changes-on-child-add-5ecc3c/dav/\u003c/D:href\u003e\n    \u003cD:propstat\u003e\n      \u003cD:prop\u003e\n      \u003cD:resourcetype\u003e\u003cD:collection/\u003e\u003c/D:resourcetype\u003e\n      \u003cD:getetag\u003e\"sha256:fa83d7aa7d5b4f184e227f10218fbc67e2f2f530b35af3f4061e3663b4f0ed86\"\u003c/D:getetag\u003e\n      \u003c/D:prop\u003e\n      \u003cD:status\u003eHTTP/1.1 200 OK\u003c/D:status\u003e\n    \u003c/D:propstat\u003e\n  \u003c/D:response\u003e\n  \u003cD:response\u003e\n    \u003cD:href\u003e/_pl/protocol-webdav-tag-changes-on-child-add-5ecc3c/dav/a.html\u003c/D:href\u003e\n    \u003cD:propstat\u003e\n      \u003cD:prop\u003e\n      \u003cD:resourcetype/\u003e\n      \u003cD:getcontenttype\u003etext/html\u003c/D:getcontenttype\u003e\n      \u003cD:getcontentlength\u003e60\u003c/D:getcontentlength\u003e\n      \u003cD:getlastmodified\u003eTue, 29 Sep 2026 02:40:48 GMT\u003c/D:getlastmodified\u003e\n      \u003cD:getetag\u003e\"47247c4f03b7e93a569b06f81314b7da808eec4e6198d620c38628f4dd4e9267\"\u003c/D:getetag\u003e\n      \u003c/D:prop\u003e\n      \u003cD:status\u003eHTTP/1.1 200 OK\u003c/D:status\u003e\n    \u003c/D:propstat\u003e\n  \u003c/D:response\u003e\n  \u003cD:response\u003e\n    \u003cD:href\u003e/_pl/protocol-webdav-tag-changes-on-child-add-5ecc3c/dav/b.css\u003c/D:href\u003e\n    \u003cD:propstat\u003e\n      \u003cD:prop\u003e\n      \u003cD:resourcetype/\u003e\n      \u003cD:getcontenttype\u003etext/css\u003c/D:getcontenttype\u003e\n      \u003cD:getcontentlength\u003e18\u003c/D:getcontentlength\u003e\n      \u003cD:getlastmodified\u003eTue, 29 Sep 2026 02:40:48 GMT\u003c/D:getlastmodified\u003e\n      \u003cD:getetag\u003e\"5404f0fc62350eec2f7b514627ecf7738830ba5a416dea06a350ea3b6d127713\"\u003c/D:getetag\u003e\n      \u003c/D:prop\u003e\n      \u003cD:status\u003eHTTP/1.1 200 OK\u003c/D:status\u003e\n    \u003c/D:propstat\u003e\n  \u003c/D:response\u003e\n  \u003cD:response\u003e\n    \u003cD:href\u003e/_pl/protocol-webdav-tag-changes-on-child-add-5ecc3c/dav/c.html\u003c/D:href\u003e\n    \u003cD:propstat\u003e\n      \u003cD:prop\u003e\n      \u003cD:resourcetype/\u003e\n      \u003cD:getcontenttype\u003etext/html\u003c/D:getcontenttype\u003e\n      \u003cD:getcontentlength\u003e53\u003c/D:getcontentlength\u003e\n      \u003cD:getlastmodified\u003eTue, 29 Sep 2026 02:40:48 GMT\u003c/D:getlastmodified\u003e\n      \u003cD:getetag\u003e\"3e8e3892f13735e41e221c2fcd62fe6c6503d897e48de028c17490079c571f59\"\u003c/D:getetag\u003e\n      \u003c/D:prop\u003e\n      \u003cD:status\u003eHTTP/1.1 200 OK\u003c/D:status\u003e\n    \u003c/D:propstat\u003e\n  \u003c/D:response\u003e\n\u003c/D:multistatus\u003e\n"
+    },
+    {
+      "step": "step 6 (remove a child)",
+      "method": "DELETE",
+      "path": "/_pl/protocol-webdav-tag-changes-on-child-add-5ecc3c/dav/b.css",
+      "status": 204,
+      "headers": {
+        "etag": "\"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855\""
+      }
+    },
+    {
+      "step": "step 7 (listing changed after remove)",
+      "method": "PROPFIND",
+      "path": "/_pl/protocol-webdav-tag-changes-on-child-add-5ecc3c/dav/",
+      "status": 207,
+      "headers": {
+        "content-length": "1511",
+        "content-type": "application/xml; charset=utf-8",
+        "etag": "\"sha256:d48f3e5267d1d20b6e4a6241d378a4fb62404a41f9422b3812b07b028e29966d\"",
+        "vary": "Depth"
+      },
+      "body": "\u003c?xml version=\"1.0\" encoding=\"utf-8\" ?\u003e\n\u003cD:multistatus xmlns:D=\"DAV:\"\u003e\n  \u003cD:response\u003e\n    \u003cD:href\u003e/_pl/protocol-webdav-tag-changes-on-child-add-5ecc3c/dav/\u003c/D:href\u003e\n    \u003cD:propstat\u003e\n      \u003cD:prop\u003e\n      \u003cD:resourcetype\u003e\u003cD:collection/\u003e\u003c/D:resourcetype\u003e\n      \u003cD:getetag\u003e\"sha256:d48f3e5267d1d20b6e4a6241d378a4fb62404a41f9422b3812b07b028e29966d\"\u003c/D:getetag\u003e\n      \u003c/D:prop\u003e\n      \u003cD:status\u003eHTTP/1.1 200 OK\u003c/D:status\u003e\n    \u003c/D:propstat\u003e\n  \u003c/D:response\u003e\n  \u003cD:response\u003e\n    \u003cD:href\u003e/_pl/protocol-webdav-tag-changes-on-child-add-5ecc3c/dav/a.html\u003c/D:href\u003e\n    \u003cD:propstat\u003e\n      \u003cD:prop\u003e\n      \u003cD:resourcetype/\u003e\n      \u003cD:getcontenttype\u003etext/html\u003c/D:getcontenttype\u003e\n      \u003cD:getcontentlength\u003e60\u003c/D:getcontentlength\u003e\n      \u003cD:getlastmodified\u003eTue, 29 Sep 2026 02:40:48 GMT\u003c/D:getlastmodified\u003e\n      \u003cD:getetag\u003e\"47247c4f03b7e93a569b06f81314b7da808eec4e6198d620c38628f4dd4e9267\"\u003c/D:getetag\u003e\n      \u003c/D:prop\u003e\n      \u003cD:status\u003eHTTP/1.1 200 OK\u003c/D:status\u003e\n    \u003c/D:propstat\u003e\n  \u003c/D:response\u003e\n  \u003cD:response\u003e\n    \u003cD:href\u003e/_pl/protocol-webdav-tag-changes-on-child-add-5ecc3c/dav/c.html\u003c/D:href\u003e\n    \u003cD:propstat\u003e\n      \u003cD:prop\u003e\n      \u003cD:resourcetype/\u003e\n      \u003cD:getcontenttype\u003etext/html\u003c/D:getcontenttype\u003e\n      \u003cD:getcontentlength\u003e53\u003c/D:getcontentlength\u003e\n      \u003cD:getlastmodified\u003eTue, 29 Sep 2026 02:40:48 GMT\u003c/D:getlastmodified\u003e\n      \u003cD:getetag\u003e\"3e8e3892f13735e41e221c2fcd62fe6c6503d897e48de028c17490079c571f59\"\u003c/D:getetag\u003e\n      \u003c/D:prop\u003e\n      \u003cD:status\u003eHTTP/1.1 200 OK\u003c/D:status\u003e\n    \u003c/D:propstat\u003e\n  \u003c/D:response\u003e\n\u003c/D:multistatus\u003e\n"
+    }
+  ],
+  "outcome": "pass",
+  "target": "local"
+}

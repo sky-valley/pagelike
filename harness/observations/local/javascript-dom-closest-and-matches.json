@@ -1,0 +1,37 @@
+{
+  "case": "javascript.dom.closest-and-matches",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (PUT the page (public plane; registers inline declarations))",
+      "method": "PUT",
+      "path": "/_pl/javascript-dom-closest-and-matches-0416b7/probe.html",
+      "status": 201,
+      "headers": {
+        "content-length": "1293",
+        "content-type": "text/html",
+        "etag": "\"e0495375c10911f2c36fbb7467fc5b81312c481c2ac6ef5f074a97b8fa51782c\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:42 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml xmlns:t=\"https://pagelike.test/_pl/javascript-dom-closest-and-matches-0416b7/Dclosestandmatches\"\u003e\u003cbody\u003e\n\u003cmain\u003e\n\u003ct:probe\u003e\u003c/t:probe\u003e\n\u003c/main\u003e\n\u003cdiv hidden itemscope itemtype=\"https://pagelove.org/Schema\"\u003e\n\u003cmeta itemprop=\"type\" content=\"https://pagelike.test/_pl/javascript-dom-closest-and-matches-0416b7/Dclosestandmatches\"\u003e\n\u003cul\u003e\n\u003cli itemprop=\"property\" itemscope itemtype=\"https://pagelove.org/Method\"\u003e\n\u003cmeta itemprop=\"name\" content=\"probe\"\u003e\n\u003cdiv itemprop=\"implementation\" itemscope itemtype=\"https://pagelove.org/JavaScript/Module\"\u003e\n\u003cscript itemprop=\"source\" type=\"module\"\u003e\nconst S = (...a) =\u003e a.map(String).join('|');\nconst H = (x) =\u003e String(x).replace(/[\u003c\u003e\"]/g, (c) =\u003e ({ '\u003c': '[', '\u003e': ']', '\"': \"'\" })[c]);\nconst tryName = (f) =\u003e { try { f(); return 'ok'; } catch (e) { return e.name + ':' + e.code; } };\nexport default function () {\nconst d = new DOMParser().parseFromString('\u003cform id=\"f\"\u003e\u003cdiv class=\"row\"\u003e\u003cbutton id=\"b\"\u003ex\u003c/button\u003e\u003c/div\u003e\u003c/form\u003e\u003ca href=\"https://e.com\"\u003ee\u003c/a\u003e', 'text/html');\nconst b = d.querySelector('#b');\nreturn 'R:' + S(b.closest('form').id, b.closest('button').id, b.closest('table'), d.querySelector('a').matches(\"a[href^='https://']\"), b.matches('.row \u003e button'), b.matches('form \u003e button'));\n}\n\u003c/script\u003e\n\u003c/div\u003e\n\u003c/li\u003e\n\u003c/ul\u003e\n\u003c/div\u003e\n\u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 2 (GET \u003cmain\u003e: the method result is inserted as text)",
+      "method": "GET",
+      "path": "/_pl/javascript-dom-closest-and-matches-0416b7/probe.html",
+      "status": 206,
+      "headers": {
+        "accept-ranges": "selector, bytes",
+        "content-length": "41",
+        "content-range": "selector main",
+        "content-type": "text/html",
+        "etag": "\"7e061654382d7cb82d0a10a61eb0be35d04fc5ec094be0e62204370fb193d949-7e061654382d7cb82d0a10a61eb0be35d04fc5ec094be0e62204370fb193d949-1\"",
+        "vary": "Host, Range, Accept"
+      },
+      "body": "\u003cmain\u003e\nR:f|b|null|true|true|false\n\u003c/main\u003e"
+    }
+  ],
+  "outcome": "pass",
+  "target": "local"
+}

@@ -1,0 +1,53 @@
+{
+  "case": "sse.subscribe.query-string-ignored",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (sse open s1)",
+      "method": "GET",
+      "path": "/_pl/sse-subscribe-query-string-ignored-0da8d9/doc.html?view=compact",
+      "status": 200,
+      "headers": {
+        "cache-control": "no-cache",
+        "content-type": "text/event-stream",
+        "x-accel-buffering": "no"
+      }
+    },
+    {
+      "step": "step 2",
+      "events": [
+        {
+          "event": "pagelove-connection",
+          "data": "7380e259-976d-4a04-a86a-aa41e40ef519"
+        }
+      ]
+    },
+    {
+      "step": "step 3 (write to the plain path)",
+      "method": "PUT",
+      "path": "/_pl/sse-subscribe-query-string-ignored-0da8d9/doc.html",
+      "status": 206,
+      "headers": {
+        "content-length": "16",
+        "content-range": "selector h1",
+        "content-type": "text/html",
+        "etag": "\"4d5fbcaf0f9562c758c3558cf61615a14764e932778e4d8c907dc21a2a505974-4d5fbcaf0f9562c758c3558cf61615a14764e932778e4d8c907dc21a2a505974-2\"",
+        "last-modified": "Tue, 29 Sep 2026 02:41:01 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003ch1\u003eQueried\u003c/h1\u003e"
+    },
+    {
+      "step": "step 4",
+      "events": [
+        {
+          "id": "v1~46596578292c.1790649661738-1",
+          "event": "mutation",
+          "data": "\u003carticle itemscope itemtype=\"https://pagelove.org/Mutation\"\u003e\n  \u003cspan itemprop=\"method\"\u003ePUT\u003c/span\u003e\n  \u003cspan itemprop=\"selector\"\u003eh1\u003c/span\u003e\n  \u003cspan itemprop=\"etag\"\u003ed71c5257975321c9b1bf48bc0ef580a11b299df29d889edb9a2886cfef9f632a\u003c/span\u003e\n  \u003cspan itemprop=\"path\"\u003e/_pl/sse-subscribe-query-string-ignored-0da8d9/doc.html\u003c/span\u003e\n  \u003cspan itemprop=\"host\"\u003et.localhost\u003c/span\u003e\n  \u003cdiv itemprop=\"body\"\u003e\u003ch1\u003eQueried\u003c/h1\u003e\u003c/div\u003e\n\u003c/article\u003e"
+        }
+      ]
+    }
+  ],
+  "outcome": "pass",
+  "target": "local"
+}

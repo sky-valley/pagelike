@@ -1,0 +1,52 @@
+{
+  "case": "sse.mutation.whole-document-put",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (sse open s1)",
+      "method": "GET",
+      "path": "/_pl/sse-mutation-whole-document-put-ec07f4/doc.html",
+      "status": 200,
+      "headers": {
+        "cache-control": "no-cache",
+        "content-type": "text/event-stream",
+        "x-accel-buffering": "no"
+      }
+    },
+    {
+      "step": "step 2",
+      "events": [
+        {
+          "event": "pagelove-connection",
+          "data": "942d9cec-24ab-47db-992b-780c57958a05"
+        }
+      ]
+    },
+    {
+      "step": "step 3 (replace the whole document)",
+      "method": "PUT",
+      "path": "/_pl/sse-mutation-whole-document-put-ec07f4/doc.html",
+      "status": 200,
+      "headers": {
+        "content-length": "61",
+        "content-type": "text/html",
+        "etag": "\"d0022d2a73c65ea10184b2f51da0390e6a9c768608544abcef6f216eb151b08b\"",
+        "last-modified": "Tue, 29 Sep 2026 02:41:00 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\u003ch1\u003eVersion 2\u003c/h1\u003e\u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 4",
+      "events": [
+        {
+          "id": "v1~0c458e1d2e91.1790649660081-1",
+          "event": "mutation",
+          "data": "\u003carticle itemscope itemtype=\"https://pagelove.org/Mutation\"\u003e\n  \u003cspan itemprop=\"method\"\u003ePUT\u003c/span\u003e\n  \u003cspan itemprop=\"selector\"\u003e\u003c/span\u003e\n  \u003cspan itemprop=\"etag\"\u003ed0022d2a73c65ea10184b2f51da0390e6a9c768608544abcef6f216eb151b08b\u003c/span\u003e\n  \u003cspan itemprop=\"path\"\u003e/_pl/sse-mutation-whole-document-put-ec07f4/doc.html\u003c/span\u003e\n  \u003cspan itemprop=\"host\"\u003et.localhost\u003c/span\u003e\n  \u003cdiv itemprop=\"body\"\u003e\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\u003ch1\u003eVersion 2\u003c/h1\u003e\u003c/body\u003e\u003c/html\u003e\n\u003c/div\u003e\n\u003c/article\u003e"
+        }
+      ]
+    }
+  ],
+  "outcome": "pass",
+  "target": "local"
+}

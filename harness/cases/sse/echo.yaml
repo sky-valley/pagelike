@@ -1,0 +1,356 @@
+# SSE: echo suppression by session and by Pagelove-Connection token.
+# Spec: docs/spec/sse.md R-SSE-37..41.
+# Identity model: a named actor has one fixed session, so two sse_open steps as
+# the same actor are two tabs of one session; `anonymous` has no cookie jar, so
+# every anonymous request is a separate session.
+cases:
+  - id: sse.echo.same-session-suppressed
+    title: A write is not delivered back to the writer's session but is delivered to other sessions
+    area: sse
+    feature: echo suppression (session)
+    evidence: documented
+    source: "docs reference/reading-and-writing/Server-Sent-Events §Echo suppression (snapshot 2026-09-28); pagelove-kanban/site/app.js@85109ab:243-253"
+    confidence: high
+    requires: [multi-actor]
+    live: false
+    notes: "R-SSE-37."
+    site:
+      files:
+        - path: "${P}/doc.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body><h1>Original</h1></body></html>
+      rules:
+        - {actor: "*", resource: "${P}/*", method: [GET, PUT, POST, DELETE, MOVE], action: Allow}
+    actors:
+      alice: {sub: alice, email: alice@example.com, email_verified: true, roles: []}
+      bob: {sub: bob, email: bob@example.com, email_verified: true, roles: []}
+    steps:
+      - sse_open: {name: alice_tab, path: "${P}/doc.html", as: alice}
+      - sse_open: {name: bob_tab, path: "${P}/doc.html", as: bob}
+      - sse_expect: {name: alice_tab, event: pagelove-connection, within_ms: 3000}
+      - sse_expect: {name: bob_tab, event: pagelove-connection, within_ms: 3000}
+      - name: alice writes without a token
+        as: alice
+        request:
+          method: PUT
+          path: "${P}/doc.html"
+          headers: {Range: "selector=h1", Content-Type: "text/html"}
+          body: "<h1>By alice</h1>"
+        expect: {status: 206}
+      - sse_expect: {name: bob_tab, event: mutation, within_ms: 3000, data_contains: ["By alice"]}
+      - sse_expect_none: {name: alice_tab, event: mutation, for_ms: 1500}
+      - sse_close: {name: alice_tab}
+      - sse_close: {name: bob_tab}
+
+  - id: sse.echo.all-tabs-of-session-suppressed
+    title: Without a token, every stream of the writer's session is skipped, not just the writing tab
+    area: sse
+    feature: echo suppression (session)
+    evidence: documented
+    source: "docs reference/reading-and-writing/Server-Sent-Events §Echo suppression — same-origin tabs are one unit (snapshot 2026-09-28); docs languages/javascript/client/server-sent-events §DOM mutations"
+    confidence: high
+    requires: [multi-actor]
+    live: false
+    notes: "R-SSE-37."
+    site:
+      files:
+        - path: "${P}/doc.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body><h1>Original</h1></body></html>
+      rules:
+        - {actor: "*", resource: "${P}/*", method: [GET, PUT], action: Allow}
+    actors:
+      alice: {sub: alice, email: alice@example.com, email_verified: true, roles: []}
+      bob: {sub: bob, email: bob@example.com, email_verified: true, roles: []}
+    steps:
+      - sse_open: {name: tab_a, path: "${P}/doc.html", as: alice}
+      - sse_open: {name: tab_b, path: "${P}/doc.html", as: alice}
+      - sse_open: {name: bob_tab, path: "${P}/doc.html", as: bob}
+      - sse_expect: {name: tab_a, event: pagelove-connection, within_ms: 3000}
+      - sse_expect: {name: tab_b, event: pagelove-connection, within_ms: 3000}
+      - sse_expect: {name: bob_tab, event: pagelove-connection, within_ms: 3000}
+      - name: alice writes without a token
+        as: alice
+        request:
+          method: PUT
+          path: "${P}/doc.html"
+          headers: {Range: "selector=h1", Content-Type: "text/html"}
+          body: "<h1>Tabless</h1>"
+        expect: {status: 206}
+      - sse_expect: {name: bob_tab, event: mutation, within_ms: 3000, data_contains: ["Tabless"]}
+      - sse_expect_none: {name: tab_a, event: mutation, for_ms: 1500}
+      - sse_expect_none: {name: tab_b, event: mutation, for_ms: 500}
+      - sse_close: {name: tab_a}
+      - sse_close: {name: tab_b}
+      - sse_close: {name: bob_tab}
+
+  - id: sse.echo.token-narrows-to-one-tab
+    title: With Pagelove-Connection set to tab A's token, only tab A is skipped and same-session tab B receives the write
+    area: sse
+    feature: echo suppression (connection token)
+    evidence: documented
+    source: "docs reference/reading-and-writing/Server-Sent-Events §Echo suppression (snapshot 2026-09-28); pagelove-polls/site/assets/poll.js@c9270e5:77-86,206"
+    confidence: high
+    requires: [multi-actor]
+    live: false
+    notes: "R-SSE-38."
+    site:
+      files:
+        - path: "${P}/doc.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body><h1>Original</h1></body></html>
+      rules:
+        - {actor: "*", resource: "${P}/*", method: [GET, PUT], action: Allow}
+    actors:
+      alice: {sub: alice, email: alice@example.com, email_verified: true, roles: []}
+    steps:
+      - sse_open: {name: tab_a, path: "${P}/doc.html", as: alice}
+      - sse_open: {name: tab_b, path: "${P}/doc.html", as: alice}
+      - sse_expect: {name: tab_a, event: pagelove-connection, within_ms: 3000, capture: {tok_a: data}}
+      - sse_expect: {name: tab_b, event: pagelove-connection, within_ms: 3000}
+      - name: tab A writes with its token
+        as: alice
+        request:
+          method: PUT
+          path: "${P}/doc.html"
+          headers: {Range: "selector=h1", Content-Type: "text/html", Pagelove-Connection: "${tok_a}"}
+          body: "<h1>From tab A</h1>"
+        expect: {status: 206}
+      - sse_expect: {name: tab_b, event: mutation, within_ms: 3000, data_contains: ["From tab A"]}
+      - sse_expect_none: {name: tab_a, event: mutation, for_ms: 1500}
+      - sse_close: {name: tab_a}
+      - sse_close: {name: tab_b}
+
+  - id: sse.echo.token-on-post-and-delete
+    title: The connection token narrows suppression for POST and DELETE too
+    area: sse
+    feature: echo suppression (connection token)
+    evidence: documented
+    source: "docs reference/reading-and-writing/Server-Sent-Events §Echo suppression — header on every mutating request (PUT/POST/DELETE/PATCH) (snapshot 2026-09-28)"
+    confidence: high
+    requires: [multi-actor]
+    live: false
+    notes: "R-SSE-38."
+    site:
+      files:
+        - path: "${P}/doc.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body><ul><li id="x">x</li></ul></body></html>
+      rules:
+        - {actor: "*", resource: "${P}/*", method: [GET, POST, DELETE], action: Allow}
+    actors:
+      alice: {sub: alice, email: alice@example.com, email_verified: true, roles: []}
+    steps:
+      - sse_open: {name: tab_a, path: "${P}/doc.html", as: alice}
+      - sse_open: {name: tab_b, path: "${P}/doc.html", as: alice}
+      - sse_expect: {name: tab_a, event: pagelove-connection, within_ms: 3000, capture: {tok_a: data}}
+      - sse_expect: {name: tab_b, event: pagelove-connection, within_ms: 3000}
+      - name: tab A appends
+        as: alice
+        request:
+          method: POST
+          path: "${P}/doc.html"
+          headers: {Range: "selector=ul", Content-Type: "text/html", Pagelove-Connection: "${tok_a}"}
+          body: '<li id="y">y</li>'
+        expect: {status: 206}
+      - sse_expect: {name: tab_b, event: mutation, next: true, within_ms: 3000, data_microdata: {method: POST}}
+      - name: tab A deletes
+        as: alice
+        request:
+          method: DELETE
+          path: "${P}/doc.html"
+          headers: {Range: "selector=#x", Pagelove-Connection: "${tok_a}"}
+        expect: {status: 204}
+      - sse_expect: {name: tab_b, event: mutation, next: true, within_ms: 3000, data_microdata: {method: DELETE, selector: "#x"}}
+      - sse_expect_none: {name: tab_a, event: mutation, for_ms: 1500}
+      - sse_close: {name: tab_a}
+      - sse_close: {name: tab_b}
+
+  - id: sse.echo.token-on-move
+    title: The connection token is honoured on MOVE as well
+    area: sse
+    feature: echo suppression (connection token)
+    evidence: inferred
+    source: "docs/spec/sse.md R-SSE-38, contradiction C9 (docs list PUT/POST/DELETE/PATCH but MOVE is a mutation)"
+    confidence: low
+    requires: [multi-actor]
+    live: false
+    notes: "Probe Q18."
+    site:
+      files:
+        - path: "${P}/list.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body><ul><li id="item-a">A</li><li id="item-b">B</li></ul></body></html>
+      rules:
+        - {actor: "*", resource: "${P}/*", method: [GET, POST, DELETE, MOVE], action: Allow}
+    actors:
+      alice: {sub: alice, email: alice@example.com, email_verified: true, roles: []}
+    steps:
+      - sse_open: {name: tab_a, path: "${P}/list.html", as: alice}
+      - sse_open: {name: tab_b, path: "${P}/list.html", as: alice}
+      - sse_expect: {name: tab_a, event: pagelove-connection, within_ms: 3000, capture: {tok_a: data}}
+      - sse_expect: {name: tab_b, event: pagelove-connection, within_ms: 3000}
+      - name: tab A reorders
+        as: alice
+        request:
+          method: MOVE
+          path: "${P}/list.html"
+          headers:
+            Range: "selector=#item-b"
+            Destination: "${P}/list.html"
+            Destination-Range: "selector=#item-a; placement=before"
+            Pagelove-Connection: "${tok_a}"
+        expect: {status: 204}
+      - sse_expect: {name: tab_b, event: mutation, within_ms: 3000, data_microdata: {method: MOVE}}
+      - sse_expect_none: {name: tab_a, event: mutation, for_ms: 1500}
+      - sse_close: {name: tab_a}
+      - sse_close: {name: tab_b}
+
+  - id: sse.echo.legacy-header-not-read
+    title: A token sent only in X-Pagelove-Connection is ignored, so the whole session is skipped
+    area: sse
+    feature: legacy connection channels
+    evidence: documented
+    source: "docs reference/reading-and-writing/Server-Sent-Events §Echo suppression, last paragraph (snapshot 2026-09-28)"
+    confidence: high
+    requires: [multi-actor]
+    live: false
+    notes: "R-SSE-39. If the legacy header were honoured, tab B would receive the write."
+    site:
+      files:
+        - path: "${P}/doc.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body><h1>Original</h1></body></html>
+      rules:
+        - {actor: "*", resource: "${P}/*", method: [GET, PUT], action: Allow}
+    actors:
+      alice: {sub: alice, email: alice@example.com, email_verified: true, roles: []}
+    steps:
+      - sse_open: {name: tab_a, path: "${P}/doc.html", as: alice}
+      - sse_open: {name: tab_b, path: "${P}/doc.html", as: alice}
+      - sse_expect: {name: tab_a, event: pagelove-connection, within_ms: 3000, capture: {tok_a: data}}
+      - sse_expect: {name: tab_b, event: pagelove-connection, within_ms: 3000}
+      - name: tab A writes with only the legacy header
+        as: alice
+        request:
+          method: PUT
+          path: "${P}/doc.html"
+          headers: {Range: "selector=h1", Content-Type: "text/html", X-Pagelove-Connection: "${tok_a}"}
+          body: "<h1>Legacy</h1>"
+        expect: {status: 206}
+      - sse_expect_none: {name: tab_b, event: mutation, for_ms: 1500}
+      - sse_expect_none: {name: tab_a, event: mutation, for_ms: 500}
+      - sse_close: {name: tab_a}
+      - sse_close: {name: tab_b}
+
+  - id: sse.echo.unknown-token-suppresses-nothing
+    title: A Pagelove-Connection value matching no stream suppresses nothing, even in the writer's session
+    area: sse
+    feature: echo suppression (connection token)
+    evidence: inferred
+    source: "docs/spec/sse.md R-SSE-38 (token compared literally)"
+    confidence: low
+    requires: [multi-actor]
+    live: false
+    notes: "Probe Q18. Alternative reading: an unrecognized token falls back to session suppression."
+    site:
+      files:
+        - path: "${P}/doc.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body><h1>Original</h1></body></html>
+      rules:
+        - {actor: "*", resource: "${P}/*", method: [GET, PUT], action: Allow}
+    actors:
+      alice: {sub: alice, email: alice@example.com, email_verified: true, roles: []}
+    steps:
+      - sse_open: {name: tab_a, path: "${P}/doc.html", as: alice}
+      - sse_expect: {name: tab_a, event: pagelove-connection, within_ms: 3000}
+      - name: write with a token no stream has
+        as: alice
+        request:
+          method: PUT
+          path: "${P}/doc.html"
+          headers: {Range: "selector=h1", Content-Type: "text/html", Pagelove-Connection: "no-such-connection-token"}
+          body: "<h1>Unknown token</h1>"
+        expect: {status: 206}
+      - sse_expect: {name: tab_a, event: mutation, within_ms: 3000, data_contains: ["Unknown token"]}
+      - sse_close: {name: tab_a}
+
+  - id: sse.echo.cross-session-token-not-honoured
+    title: A token suppresses delivery to the stream holding it, whichever session presents it
+    area: sse
+    feature: echo suppression (connection token)
+    evidence: live-observed
+    source: "harness/observations/live-2026-09-28/sse-echo-cross-session-token-not-honoure.json (s2 received the write, s1 did not); docs/spec/sse.md R-SSE-38"
+    confidence: high
+    requires: []
+    live: true
+    notes: >-
+      The id keeps its original name. Probe Q18 settled for the 'token alone' reading: the
+      anonymous writer (never s1's session) presenting s1's token suppressed s1's copy
+      (R-SSE-38 superseded, docs/compat/decisions.md). Tokens are unguessable UUIDs given only to
+      the stream's holder, so this lets a page hand its token to a helper writer.
+    site:
+      files:
+        - path: "${P}/doc.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body><h1>Original</h1></body></html>
+      rules:
+        - {actor: "*", resource: "${P}/*", method: [GET, PUT], action: Allow}
+    steps:
+      - sse_open: {name: s1, path: "${P}/doc.html", as: anonymous}
+      - sse_open: {name: s2, path: "${P}/doc.html", as: anonymous}
+      - sse_expect: {name: s1, event: pagelove-connection, within_ms: 3000, capture: {tok1: data}}
+      - sse_expect: {name: s2, event: pagelove-connection, within_ms: 3000}
+      - name: foreign session presents s1's token
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/doc.html"
+          headers: {Range: "selector=h1", Content-Type: "text/html", Pagelove-Connection: "${tok1}"}
+          body: "<h1>Foreign token</h1>"
+        expect: {status: 206}
+      - sse_expect: {name: s2, event: mutation, within_ms: 3000, data_contains: ["Foreign token"]}
+      - sse_expect_none: {name: s1, event: mutation, for_ms: 2000}
+      - sse_close: {name: s1}
+      - sse_close: {name: s2}
+
+  - id: sse.echo.anonymous-writer-not-suppressed
+    title: A cookie-less writer is its own session, so its write reaches a cookie-less subscriber
+    area: sse
+    feature: echo suppression (session)
+    evidence: inferred
+    source: "docs reference/composing-pages/Transient-Elements §Sessions and access control (session cookie established per visitor); docs/spec/sse.md R-SSE-37"
+    confidence: high
+    requires: []
+    live: true
+    notes: "Pins the harness identity model that the other live SSE cases depend on (Q28)."
+    site:
+      files:
+        - path: "${P}/doc.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body><h1>Original</h1></body></html>
+      rules:
+        - {actor: "*", resource: "${P}/*", method: [GET, PUT], action: Allow}
+    steps:
+      - sse_open: {name: s1, path: "${P}/doc.html", as: anonymous}
+      - sse_expect: {name: s1, event: pagelove-connection, within_ms: 3000}
+      - name: cookie-less write
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/doc.html"
+          headers: {Range: "selector=h1", Content-Type: "text/html"}
+          body: "<h1>No cookie</h1>"
+        expect: {status: 206}
+      - sse_expect: {name: s1, event: mutation, within_ms: 3000, data_contains: ["No cookie"]}
+      - sse_close: {name: s1}

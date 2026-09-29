@@ -1,0 +1,59 @@
+{
+  "case": "reacting.writes.transformation-discarded-on-throw",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (install a transformer (a.html))",
+      "method": "PUT",
+      "path": "/_pl/reacting-writes-transformation-discarded-3e9035/r/a.html",
+      "status": 201,
+      "headers": {
+        "content-length": "650",
+        "content-type": "text/html",
+        "etag": "\"69a3db40b573d33d51f1162ec02035336d04faab8b0f836ef8735f27d63aeb8c\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:55 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\n\u003cdiv hidden itemscope itemtype=\"https://pagelove.org/Trigger\"\u003e\n  \u003cmeta itemprop=\"resource\" content=\"/_pl/reacting-writes-transformation-discarded-3e9035/d/*\"\u003e\n  \u003cmeta itemprop=\"method\" content=\"PUT\"\u003e\n  \u003cdiv itemprop=\"action\" itemscope itemtype=\"https://pagelove.org/Sessel\"\u003e\n    \u003cscript itemprop=\"source\" type=\"text/sessel\"\u003e\n      @schema Context url(\"https://pagelove.org/Context\");\n      @schema Pagelove url(\"https://pagelove.org/1.0\");\n      @schema Article url(\"https://schema.org/Article\");\n      Pagelove.PUT(new Article { name: \"never-stored\" }, Context.request.path)\n    \u003c/script\u003e\n  \u003c/div\u003e\n\u003c/div\u003e\n\u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 2 (install a thrower (b.html))",
+      "method": "PUT",
+      "path": "/_pl/reacting-writes-transformation-discarded-3e9035/r/b.html",
+      "status": 201,
+      "headers": {
+        "content-length": "530",
+        "content-type": "text/html",
+        "etag": "\"379664c0e1127112bbed6262d39001edc30c2be0f34f50d545c54fd07a5fde40\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:55 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\n\u003cdiv hidden itemscope itemtype=\"https://pagelove.org/Trigger\"\u003e\n  \u003cmeta itemprop=\"resource\" content=\"/_pl/reacting-writes-transformation-discarded-3e9035/d/*\"\u003e\n  \u003cmeta itemprop=\"method\" content=\"PUT\"\u003e\n  \u003cdiv itemprop=\"action\" itemscope itemtype=\"https://pagelove.org/Sessel\"\u003e\n    \u003cscript itemprop=\"source\" type=\"text/sessel\"\u003e\n      @schema HTTPResponse url(\"https://pagelove.org/HTTPResponse\");\n      throw new HTTPResponse { status: 409, message: \"stop\" }\n    \u003c/script\u003e\n  \u003c/div\u003e\n\u003c/div\u003e\n\u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 3 (refused)",
+      "method": "PUT",
+      "path": "/_pl/reacting-writes-transformation-discarded-3e9035/d/new.html",
+      "status": 409,
+      "headers": {
+        "content-length": "4",
+        "content-type": "text/html; charset=utf-8"
+      },
+      "body": "stop"
+    },
+    {
+      "step": "step 4 (nothing was stored at the request path)",
+      "method": "GET",
+      "path": "/_pl/reacting-writes-transformation-discarded-3e9035/d/new.html",
+      "status": 404,
+      "headers": {
+        "content-length": "361",
+        "content-type": "text/html",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\n  \u003chead\u003e\n    \u003ctitle\u003e404 Not Found - Error\u003c/title\u003e\n  \u003c/head\u003e\n  \u003cbody itemscope itemtype=\"http://pagelove.org/Error\"\u003e\n    \u003ch1 itemprop=\"name\"\u003eNot Found\u003c/h1\u003e\n    \u003cmeta itemprop=\"statusCode\" content=\"404\"\u003e\n    \u003cp itemprop=\"description\"\u003eDocument not found: /_pl/reacting-writes-transformation-discarded-3e9035/d/new.html\u003c/p\u003e\n  \u003c/body\u003e\n\u003c/html\u003e\n"
+    }
+  ],
+  "outcome": "pass",
+  "target": "local"
+}

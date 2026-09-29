@@ -1,0 +1,50 @@
+{
+  "case": "modeling.defaults.default-satisfies-required",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (register declarations through the public plane (takes effect for the next request))",
+      "method": "PUT",
+      "path": "/_pl/modeling-defaults-default-satisfies-requ-6f459f/schema.html",
+      "status": 201,
+      "headers": {
+        "content-length": "534",
+        "content-type": "text/html",
+        "etag": "\"6c73c791937829b28024e39c62300a1b5c18f0e943f4473602758e4d8fcd4055\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:44 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\n  \u003cdiv hidden itemscope itemtype=\"https://pagelove.org/Schema\"\u003e\n    \u003cmeta itemprop=\"type\" content=\"https://pagelike.test/_pl/modeling-defaults-default-satisfies-requ-6f459f/Post\"\u003e\n    \u003cdiv itemprop=\"property\" itemscope itemtype=\"https://pagelove.org/Property\"\u003e\n      \u003cmeta itemprop=\"name\" content=\"status\"\u003e\n      \u003cmeta itemprop=\"type\" content=\"https://schema.host/Text\"\u003e\n      \u003cmeta itemprop=\"cardinality\" content=\"1..1\"\u003e\n      \u003cmeta itemprop=\"default\" content=\"draft\"\u003e\n    \u003c/div\u003e\n  \u003c/div\u003e\n\u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 2 (post without the required status)",
+      "method": "PUT",
+      "path": "/_pl/modeling-defaults-default-satisfies-requ-6f459f/p.html",
+      "status": 201,
+      "headers": {
+        "content-length": "198",
+        "content-type": "text/html",
+        "etag": "\"e3590cdb05d69aeb442df3b54eee6003d2ed69bedb79232e220b4284663b5b50\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:44 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\n  \u003cdiv itemscope itemtype=\"https://pagelike.test/_pl/modeling-defaults-default-satisfies-requ-6f459f/Post\"\u003e\u003cmeta itemprop=\"status\" content=\"draft\"\u003e\u003c/div\u003e\n\u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 3 (stored state of p.html (authoring plane, raw))",
+      "method": "GET",
+      "path": "/_pl/modeling-defaults-default-satisfies-requ-6f459f/p.html",
+      "status": 200,
+      "headers": {
+        "accept-ranges": "bytes",
+        "content-length": "198",
+        "content-type": "text/html",
+        "etag": "\"e3590cdb05d69aeb442df3b54eee6003d2ed69bedb79232e220b4284663b5b50\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:44 GMT"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\n  \u003cdiv itemscope itemtype=\"https://pagelike.test/_pl/modeling-defaults-default-satisfies-requ-6f459f/Post\"\u003e\u003cmeta itemprop=\"status\" content=\"draft\"\u003e\u003c/div\u003e\n\u003c/body\u003e\u003c/html\u003e\n"
+    }
+  ],
+  "outcome": "pass",
+  "target": "local"
+}

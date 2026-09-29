@@ -1,0 +1,124 @@
+{
+  "case": "apps.shop.transient-basket",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (a new session reads the default basket)",
+      "method": "GET",
+      "path": "/_pl/apps-shop-transient-basket-3eed77/basket.html",
+      "status": 206,
+      "headers": {
+        "accept-ranges": "selector, bytes",
+        "cache-control": "private",
+        "content-length": "21",
+        "content-range": "selector #basket",
+        "content-type": "text/html",
+        "etag": "\"077652c9b26ac645ee7cce7e228c5d034a001b7418ea0cb0e0799f6d788ed070-077652c9b26ac645ee7cce7e228c5d034a001b7418ea0cb0e0799f6d788ed070-1\"",
+        "vary": "Host, Range, Accept"
+      },
+      "body": "\u003cul id=\"basket\"\u003e\u003c/ul\u003e"
+    },
+    {
+      "step": "step 2 (add a tee (PUT of the whole basket element))",
+      "method": "PUT",
+      "path": "/_pl/apps-shop-transient-basket-3eed77/basket.html",
+      "status": 206,
+      "headers": {
+        "cache-control": "private",
+        "content-length": "159",
+        "content-range": "selector #basket",
+        "content-type": "text/html",
+        "etag": "\"b11f27162b043c2c1bd8ac3c1f25b72819aedc6d570e7b9ffc383f4ad907271d-b11f27162b043c2c1bd8ac3c1f25b72819aedc6d570e7b9ffc383f4ad907271d-1\"",
+        "vary": "Host, Range"
+      },
+      "body": "\u003cul id=\"basket\"\u003e\u003cli data-sku=\"PL-TEE\" data-slug=\"tee\" data-name=\"Pagelove T-shirt\" data-variant=\"M\" data-emoji=\"👕\" data-price=\"2800\" data-qty=\"2\"\u003e\u003c/li\u003e\u003c/ul\u003e"
+    },
+    {
+      "step": "step 3 (the same session sees its line)",
+      "method": "GET",
+      "path": "/_pl/apps-shop-transient-basket-3eed77/basket.html",
+      "status": 206,
+      "headers": {
+        "accept-ranges": "selector, bytes",
+        "cache-control": "private",
+        "content-length": "159",
+        "content-range": "selector #basket",
+        "content-type": "text/html",
+        "etag": "\"b11f27162b043c2c1bd8ac3c1f25b72819aedc6d570e7b9ffc383f4ad907271d-b11f27162b043c2c1bd8ac3c1f25b72819aedc6d570e7b9ffc383f4ad907271d-1\"",
+        "vary": "Host, Range, Accept"
+      },
+      "body": "\u003cul id=\"basket\"\u003e\u003cli data-sku=\"PL-TEE\" data-slug=\"tee\" data-name=\"Pagelove T-shirt\" data-variant=\"M\" data-emoji=\"👕\" data-price=\"2800\" data-qty=\"2\"\u003e\u003c/li\u003e\u003c/ul\u003e"
+    },
+    {
+      "step": "step 4 (another session does not)",
+      "method": "GET",
+      "path": "/_pl/apps-shop-transient-basket-3eed77/basket.html",
+      "status": 206,
+      "headers": {
+        "accept-ranges": "selector, bytes",
+        "cache-control": "private",
+        "content-length": "21",
+        "content-range": "selector #basket",
+        "content-type": "text/html",
+        "etag": "\"077652c9b26ac645ee7cce7e228c5d034a001b7418ea0cb0e0799f6d788ed070-077652c9b26ac645ee7cce7e228c5d034a001b7418ea0cb0e0799f6d788ed070-1\"",
+        "vary": "Host, Range, Accept"
+      },
+      "body": "\u003cul id=\"basket\"\u003e\u003c/ul\u003e"
+    },
+    {
+      "step": "step 5 (a replacement that no longer matches)",
+      "method": "PUT",
+      "path": "/_pl/apps-shop-transient-basket-3eed77/basket.html",
+      "status": 422,
+      "headers": {
+        "content-length": "596",
+        "content-type": "text/html; charset=utf-8",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\n\u003chead\u003e\n\u003cmeta charset=\"UTF-8\"\u003e\n\u003ctitle\u003e422 Unprocessable Content\u003c/title\u003e\n\u003c/head\u003e\n\u003cbody\u003e\n\u003carticle itemscope itemtype=\"https://pagelove.org/Error\"\u003e\n  \u003cmeta itemprop=\"status\" content=\"422\"\u003e\n  \u003cmeta itemprop=\"kind\" content=\"TransientIdentity\"\u003e\n  \u003cdiv itemprop=\"type\" itemscope itemtype=\"https://dombase.pagelove.team/ns/error/TransientIdentity\"\u003e\u003c/div\u003e\n  \u003cp itemprop=\"message\"\u003ethe replacement no longer matches #basket; a transient element keeps its identity\u003c/p\u003e\n  \u003cmeta itemprop=\"resource\" content=\"/_pl/apps-shop-transient-basket-3eed77/basket.html\"\u003e\n\u003c/article\u003e\n\u003c/body\u003e\n\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 6 (the stored document is untouched)",
+      "method": "GET",
+      "path": "/_pl/apps-shop-transient-basket-3eed77/basket.html",
+      "status": 200,
+      "headers": {
+        "accept-ranges": "bytes",
+        "content-length": "330",
+        "content-type": "text/html",
+        "etag": "\"43e29fd9f99ff3fd3f78da46cf09cba4906a912ae4f76e3db158f363d22630ed\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:42 GMT"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml lang=\"en\" xmlns:p=\"https://pagelove.org/1.0\"\u003e\n\u003chead\u003e\n  \u003cmeta charset=\"UTF-8\"\u003e\n  \u003ctitle\u003eYour basket — Pagelove Shop\u003c/title\u003e\n\u003c/head\u003e\n\u003cbody\u003e\n  \u003cmain class=\"wrap basket\" data-basket-page\u003e\n    \u003ch1\u003eYour basket\u003c/h1\u003e\n    \u003cul id=\"basket\" p:transient\u003e\u003c/ul\u003e\n    \u003cdiv data-basket-view\u003e\u003c/div\u003e\n  \u003c/main\u003e\n\u003c/body\u003e\n\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 7 (empty the basket (DELETE drops the session copy))",
+      "method": "DELETE",
+      "path": "/_pl/apps-shop-transient-basket-3eed77/basket.html",
+      "status": 204,
+      "headers": {
+        "cache-control": "private",
+        "content-range": "selector #basket",
+        "vary": "Host, Range"
+      }
+    },
+    {
+      "step": "step 8 (back to the default)",
+      "method": "GET",
+      "path": "/_pl/apps-shop-transient-basket-3eed77/basket.html",
+      "status": 206,
+      "headers": {
+        "accept-ranges": "selector, bytes",
+        "cache-control": "private",
+        "content-length": "21",
+        "content-range": "selector #basket",
+        "content-type": "text/html",
+        "etag": "\"077652c9b26ac645ee7cce7e228c5d034a001b7418ea0cb0e0799f6d788ed070-077652c9b26ac645ee7cce7e228c5d034a001b7418ea0cb0e0799f6d788ed070-1\"",
+        "vary": "Host, Range, Accept"
+      },
+      "body": "\u003cul id=\"basket\"\u003e\u003c/ul\u003e"
+    }
+  ],
+  "outcome": "pass",
+  "target": "local"
+}

@@ -1,0 +1,54 @@
+{
+  "case": "sse.scope.write-through-event-on-origin",
+  "failures": [
+    "step 6: no matching \"mutation\" event on partial within 3s (1 events seen)",
+    "step 7: unexpected mutation event on page: \u003carticle itemscope itemtype=\"https://pagelove.org/Mutation\"\u003e\n  \u003cspan itemprop=\"method\"\u003ePUT\u003c/span\u003e\n  \u003cspan itemprop=\"selector\"\u003eheader#nav\u003c/span\u003e\n  \u003cspan itemprop=\"etag\"\u003e30142120a24a70c041720b13e505a647fb5390458f00cc53799c33941da7583a\u003c/span\u003e\n  \u003cspan itemprop=\"path\"\u003e/_pl/sse-scope-write-through-event-o…"
+  ],
+  "observations": [
+    {
+      "step": "step 3",
+      "events": [
+        {
+          "event": "pagelove-connection",
+          "data": "001b3517-6eaf-4552-9f0d-1444fa3da8b4"
+        }
+      ]
+    },
+    {
+      "step": "step 4",
+      "events": [
+        {
+          "event": "pagelove-connection",
+          "data": "ea9bd753-8c13-4b84-b517-396e62415157"
+        }
+      ]
+    },
+    {
+      "step": "step 5 (write through the composed page)",
+      "method": "PUT",
+      "path": "/_pl/sse-scope-write-through-event-on-origin-ec8909/page.html",
+      "status": 206,
+      "headers": {
+        "content-length": "38",
+        "content-range": "selector header#nav",
+        "content-type": "text/html",
+        "etag": "\"cb8920743c363d1eedf5dd388f35535c95f95e6043aa8edd44dcbdd5e4001e5c-cb8920743c363d1eedf5dd388f35535c95f95e6043aa8edd44dcbdd5e4001e5c-2\"",
+        "last-modified": "Mon, 28 Sep 2026 22:35:43 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003cheader id=\"nav\"\u003eNav via page\u003c/header\u003e"
+    },
+    {
+      "step": "step 7",
+      "events": [
+        {
+          "id": "v1~2653b6b47dc8.1790634943730-0",
+          "event": "mutation",
+          "data": "\u003carticle itemscope itemtype=\"https://pagelove.org/Mutation\"\u003e\n  \u003cspan itemprop=\"method\"\u003ePUT\u003c/span\u003e\n  \u003cspan itemprop=\"selector\"\u003eheader#nav\u003c/span\u003e\n  \u003cspan itemprop=\"etag\"\u003e30142120a24a70c041720b13e505a647fb5390458f00cc53799c33941da7583a\u003c/span\u003e\n  \u003cspan itemprop=\"path\"\u003e/_pl/sse-scope-write-through-event-on-origin-ec8909/page.html\u003c/span\u003e\n  \u003cspan itemprop=\"host\"\u003elive-test-host.onpagelove.com\u003c/span\u003e\n  \u003cdiv itemprop=\"body\"\u003e\u003cheader id=\"nav\"\u003eNav via page\u003c/header\u003e\u003c/div\u003e\n\u003c/article\u003e"
+        }
+      ]
+    }
+  ],
+  "outcome": "fail",
+  "target": "live"
+}

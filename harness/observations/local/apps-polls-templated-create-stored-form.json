@@ -1,0 +1,33 @@
+{
+  "case": "apps.polls.templated-create-stored-form",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (create)",
+      "method": "POST",
+      "path": "/_pl/apps-polls-templated-create-stored-form-1cb417/templates/new-poll.html",
+      "status": 301,
+      "headers": {
+        "content-length": "0",
+        "location": "/_pl/apps-polls-templated-create-stored-form-1cb417/polls/cmsf1n0kzk.html",
+        "vary": "Host, Range"
+      }
+    },
+    {
+      "step": "step 2 (stored bytes over dav)",
+      "method": "GET",
+      "path": "/_pl/apps-polls-templated-create-stored-form-1cb417/polls/cmsf1n0kzk.html",
+      "status": 200,
+      "headers": {
+        "accept-ranges": "bytes",
+        "content-length": "861",
+        "content-type": "text/html",
+        "etag": "\"9c3f3e22f21ff5afc243ca0cd851f66760ecf96933060f7ce1ca5b8f4085870c\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:41 GMT"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml lang=\"en\" xmlns:p=\"https://pagelove.org/1.0\"\u003e\n\u003chead\u003e\n\u003cmeta charset=\"utf-8\"\u003e\n\u003ctitle\u003e\n\n\nBook club · Polls by Pagelove\u003c/title\u003e\n\n\u003c/head\u003e\n\u003cbody class=\"poll-page\"\u003e\n\n\n\n\n\u003carticle id=\"poll\" itemscope itemtype=\"https://pagelove.org/Poll\"\u003e\n  \u003ch1 itemprop=\"title\"\u003eBook club\u003c/h1\u003e\n  \u003cp class=\"meta\"\u003eOrganised by \u003cstrong itemprop=\"organizer\"\u003eBen\u003c/strong\u003e\u003c/p\u003e\n  \u003cmeta itemprop=\"listed\" content=\"true\"\u003e\n  \u003cmeta itemprop=\"optionCount\" content=\"1\"\u003e\n  \u003ctable id=\"grid\"\u003e\n    \u003cthead\u003e\u003ctr\u003e\u003cth class=\"corner\" scope=\"col\"\u003eParticipant\u003c/th\u003e\n      \u003cth scope=\"col\" id=\"o1\" data-option=\"o1\" itemprop=\"option\" itemscope itemtype=\"https://pagelove.org/PollOption\"\u003e\u003ctime itemprop=\"start\" datetime=\"2026-10-05\"\u003e\u003cspan class=\"dow\"\u003eMon\u003c/span\u003e\u003cspan class=\"day\"\u003e5 Oct\u003c/span\u003e\u003c/time\u003e\u003c/th\u003e\n    \u003c/tr\u003e\u003c/thead\u003e\n    \u003ctbody id=\"responses\"\u003e\u003c/tbody\u003e\n  \u003c/table\u003e\n\u003c/article\u003e\n\u003c/body\u003e\n\u003c/html\u003e\n"
+    }
+  ],
+  "outcome": "pass",
+  "target": "local"
+}

@@ -1,0 +1,50 @@
+{
+  "case": "reacting.outbound.ats-outbox-relay",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (install the outbox trigger)",
+      "method": "PUT",
+      "path": "/_pl/reacting-outbound-ats-outbox-relay-7071dc/outbox/index.html",
+      "status": 201,
+      "headers": {
+        "content-length": "1263",
+        "content-type": "text/html",
+        "etag": "\"ef9ecd585703f94c7acbda60a7cbceb160593bbf59ba04eae3b8a89d0f07e765\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:48 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml lang=\"en\" xmlns:p=\"https://pagelove.org/1.0\"\u003e\n\u003chead\u003e\u003cmeta charset=\"UTF-8\"\u003e\u003ctitle\u003eOutbox\u003c/title\u003e\u003c/head\u003e\n\u003cbody\u003e\n\u003cdiv itemscope itemtype=\"https://pagelove.org/Trigger\"\u003e\n  \u003cmeta itemprop=\"resource\" content=\"/_pl/reacting-outbound-ats-outbox-relay-7071dc/outbox/E-*.json\"\u003e\n  \u003cmeta itemprop=\"method\" content=\"PUT\"\u003e\n  \u003cdiv itemprop=\"action\" itemscope itemtype=\"https://pagelove.org/HttpRequest\"\u003e\n    \u003cmeta itemprop=\"url\" content=\"http://127.0.0.1:53429/c-3034dd91/email\"\u003e\n    \u003cmeta itemprop=\"method\" content=\"POST\"\u003e\n    \u003cmeta itemprop=\"content-type\" content=\"application/json\"\u003e\n    \u003cdiv itemprop=\"header\" itemscope itemtype=\"https://pagelove.org/Pair\"\u003e\n      \u003cmeta itemprop=\"key\" content=\"X-Postmark-Server-Token\"\u003e\n      \u003cmeta itemprop=\"value\" content=\"test-server-token\"\u003e\n    \u003c/div\u003e\n    \u003cdiv itemprop=\"header\" itemscope itemtype=\"https://pagelove.org/Pair\"\u003e\n      \u003cmeta itemprop=\"key\" content=\"Accept\"\u003e\n      \u003cmeta itemprop=\"value\" content=\"application/json\"\u003e\n    \u003c/div\u003e\n    \u003cdiv itemprop=\"body\" itemscope itemtype=\"https://pagelove.org/Sessel\"\u003e\n      \u003cscript itemprop=\"source\" type=\"text/sessel\"\u003e\n        @schema Context url(\"https://pagelove.org/Context\");\n        Context.request.body\n      \u003c/script\u003e\n    \u003c/div\u003e\n  \u003c/div\u003e\n\u003c/div\u003e\n\u003c/body\u003e\n\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 2 (queue an e-mail)",
+      "method": "PUT",
+      "path": "/_pl/reacting-outbound-ats-outbox-relay-7071dc/outbox/E-1.json",
+      "status": 201,
+      "headers": {
+        "content-length": "86",
+        "content-type": "application/json",
+        "etag": "\"48c9ef4a8e8f49096ef6caa7ed36c708b82ef1f2e66b321a653a6a779255bfe0\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:48 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "{\"From\":\"hello@example.com\",\"To\":\"cand@example.com\",\"Subject\":\"Hi\",\"TextBody\":\"Hello\"}"
+    },
+    {
+      "step": "step 3",
+      "method": "POST",
+      "path": "${SINK}/email",
+      "headers": {
+        "accept": "application/json",
+        "accept-encoding": "gzip",
+        "content-length": "86",
+        "content-type": "application/json",
+        "user-agent": "Go-http-client/1.1",
+        "x-postmark-server-token": "test-server-token"
+      },
+      "body": "{\"From\":\"hello@example.com\",\"To\":\"cand@example.com\",\"Subject\":\"Hi\",\"TextBody\":\"Hello\"}"
+    }
+  ],
+  "outcome": "pass",
+  "target": "local"
+}

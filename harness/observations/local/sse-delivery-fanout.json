@@ -1,0 +1,83 @@
+{
+  "case": "sse.delivery.fanout",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (sse open s1)",
+      "method": "GET",
+      "path": "/_pl/sse-delivery-fanout-ac9510/doc.html",
+      "status": 200,
+      "headers": {
+        "cache-control": "no-cache",
+        "content-type": "text/event-stream",
+        "x-accel-buffering": "no"
+      }
+    },
+    {
+      "step": "step 2 (sse open s2)",
+      "method": "GET",
+      "path": "/_pl/sse-delivery-fanout-ac9510/doc.html",
+      "status": 200,
+      "headers": {
+        "cache-control": "no-cache",
+        "content-type": "text/event-stream",
+        "x-accel-buffering": "no"
+      }
+    },
+    {
+      "step": "step 3",
+      "events": [
+        {
+          "event": "pagelove-connection",
+          "data": "9ae9656e-3514-41a1-a7cb-cff2093677f6"
+        }
+      ]
+    },
+    {
+      "step": "step 4",
+      "events": [
+        {
+          "event": "pagelove-connection",
+          "data": "ded4cd09-8223-4c79-a5a5-1f10d38a8859"
+        }
+      ]
+    },
+    {
+      "step": "step 5 (write once)",
+      "method": "PUT",
+      "path": "/_pl/sse-delivery-fanout-ac9510/doc.html",
+      "status": 206,
+      "headers": {
+        "content-length": "18",
+        "content-range": "selector h1",
+        "content-type": "text/html",
+        "etag": "\"f5cbda564bb7a3f4bdfd08b35b23d967808db9f927accc8a83e636b6824f87bc-f5cbda564bb7a3f4bdfd08b35b23d967808db9f927accc8a83e636b6824f87bc-2\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:56 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003ch1\u003eBroadcast\u003c/h1\u003e"
+    },
+    {
+      "step": "step 6",
+      "events": [
+        {
+          "id": "v1~ac9e9d402243.1790649656913-1",
+          "event": "mutation",
+          "data": "\u003carticle itemscope itemtype=\"https://pagelove.org/Mutation\"\u003e\n  \u003cspan itemprop=\"method\"\u003ePUT\u003c/span\u003e\n  \u003cspan itemprop=\"selector\"\u003eh1\u003c/span\u003e\n  \u003cspan itemprop=\"etag\"\u003e08f83173460063a99dadabfa865db31d2dde02e94155c324ad1118d3e6defbe6\u003c/span\u003e\n  \u003cspan itemprop=\"path\"\u003e/_pl/sse-delivery-fanout-ac9510/doc.html\u003c/span\u003e\n  \u003cspan itemprop=\"host\"\u003et.localhost\u003c/span\u003e\n  \u003cdiv itemprop=\"body\"\u003e\u003ch1\u003eBroadcast\u003c/h1\u003e\u003c/div\u003e\n\u003c/article\u003e"
+        }
+      ]
+    },
+    {
+      "step": "step 7",
+      "events": [
+        {
+          "id": "v1~ac9e9d402243.1790649656913-1",
+          "event": "mutation",
+          "data": "\u003carticle itemscope itemtype=\"https://pagelove.org/Mutation\"\u003e\n  \u003cspan itemprop=\"method\"\u003ePUT\u003c/span\u003e\n  \u003cspan itemprop=\"selector\"\u003eh1\u003c/span\u003e\n  \u003cspan itemprop=\"etag\"\u003e08f83173460063a99dadabfa865db31d2dde02e94155c324ad1118d3e6defbe6\u003c/span\u003e\n  \u003cspan itemprop=\"path\"\u003e/_pl/sse-delivery-fanout-ac9510/doc.html\u003c/span\u003e\n  \u003cspan itemprop=\"host\"\u003et.localhost\u003c/span\u003e\n  \u003cdiv itemprop=\"body\"\u003e\u003ch1\u003eBroadcast\u003c/h1\u003e\u003c/div\u003e\n\u003c/article\u003e"
+        }
+      ]
+    }
+  ],
+  "outcome": "pass",
+  "target": "local"
+}

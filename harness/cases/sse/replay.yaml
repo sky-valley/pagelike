@@ -1,0 +1,338 @@
+# SSE: event ids, Last-Event-ID replay, 10-minute retention, reset events.
+# Spec: docs/spec/sse.md R-SSE-29..33.
+cases:
+  - id: sse.replay.last-event-id
+    title: Reconnecting with Last-Event-ID replays exactly the events after that id, in order, after pagelove-connection
+    area: sse
+    feature: Last-Event-ID replay
+    evidence: documented
+    source: "docs reference/reading-and-writing/Server-Sent-Events §Reconnection, §Echo suppression (first event) (snapshot 2026-09-28)"
+    confidence: high
+    requires: []
+    live: true
+    notes: "R-SSE-31. The event matching the given id itself is not replayed."
+    site:
+      files:
+        - path: "${P}/doc.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body><p id="a">a</p><p id="b">b</p><p id="c">c</p></body></html>
+      rules:
+        - {actor: "*", resource: "${P}/*", method: [GET, PUT], action: Allow}
+    steps:
+      - sse_open: {name: s1, path: "${P}/doc.html", as: anonymous}
+      - sse_expect: {name: s1, event: pagelove-connection, within_ms: 3000}
+      - name: write seen live
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/doc.html"
+          headers: {Range: "selector=#a", Content-Type: "text/html"}
+          body: '<p id="a">seen-live</p>'
+        expect: {status: 206}
+      - sse_expect:
+          name: s1
+          event: mutation
+          within_ms: 3000
+          data_contains: ["seen-live"]
+          capture: {evt1: id}
+      - sse_close: {name: s1}
+      - name: missed write one
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/doc.html"
+          headers: {Range: "selector=#b", Content-Type: "text/html"}
+          body: '<p id="b">missed-one</p>'
+        expect: {status: 206}
+      - name: missed write two
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/doc.html"
+          headers: {Range: "selector=#c", Content-Type: "text/html"}
+          body: '<p id="c">missed-two</p>'
+        expect: {status: 206}
+      - sse_open: {name: s2, path: "${P}/doc.html", as: anonymous, last_event_id: "${evt1}"}
+      - sse_expect: {name: s2, event: pagelove-connection, next: true, within_ms: 3000}
+      - sse_expect: {name: s2, event: mutation, next: true, within_ms: 3000, data_contains: ["missed-one"]}
+      - sse_expect: {name: s2, event: mutation, next: true, within_ms: 3000, data_contains: ["missed-two"]}
+      - sse_expect_none: {name: s2, event: mutation, for_ms: 1500}
+      - sse_close: {name: s2}
+
+  - id: sse.replay.current-id-replays-nothing
+    title: Reconnecting with the newest id replays nothing and live events continue
+    area: sse
+    feature: Last-Event-ID replay
+    evidence: inferred
+    source: "docs/spec/sse.md R-SSE-31 ('replays any events that occurred after that ID')"
+    confidence: high
+    requires: []
+    live: true
+    notes: "Also checks there is no duplicate at the replay/live boundary."
+    site:
+      files:
+        - path: "${P}/doc.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body><h1>Original</h1></body></html>
+      rules:
+        - {actor: "*", resource: "${P}/*", method: [GET, PUT], action: Allow}
+    steps:
+      - sse_open: {name: s1, path: "${P}/doc.html", as: anonymous}
+      - sse_expect: {name: s1, event: pagelove-connection, within_ms: 3000}
+      - name: write
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/doc.html"
+          headers: {Range: "selector=h1", Content-Type: "text/html"}
+          body: "<h1>Latest</h1>"
+        expect: {status: 206}
+      - sse_expect: {name: s1, event: mutation, within_ms: 3000, capture: {last: id}}
+      - sse_close: {name: s1}
+      - sse_open: {name: s2, path: "${P}/doc.html", as: anonymous, last_event_id: "${last}"}
+      - sse_expect: {name: s2, event: pagelove-connection, next: true, within_ms: 3000}
+      - sse_expect_none: {name: s2, event: mutation, for_ms: 1500}
+      - sse_expect_none: {name: s2, event: reset, for_ms: 100}
+      - name: live write after reconnect
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/doc.html"
+          headers: {Range: "selector=h1", Content-Type: "text/html"}
+          body: "<h1>After reconnect</h1>"
+        expect: {status: 206}
+      - sse_expect: {name: s2, event: mutation, next: true, within_ms: 3000, data_contains: ["After reconnect"]}
+      - sse_close: {name: s2}
+
+  - id: sse.replay.ancient-id-resets
+    title: An old but well-formed Last-Event-ID replays every retained event after it (no reset while nothing was pruned)
+    area: sse
+    feature: reset events
+    evidence: live-observed
+    source: "harness/observations/live-2026-09-29-confirm/sse-replay-ancient-id-resets.json (the id from 1970 replayed the document's write; no reset); docs reference/reading-and-writing/Server-Sent-Events §Reconnection, §Reset events (snapshot 2026-09-28)"
+    confidence: high
+    requires: []
+    live: true
+    notes: >-
+      The id keeps its original name. The first live run sent the bare '1000-0', which PageLove
+      ignores because its ids are shaped v1~<hex>.<ms>-<n> (a harness artifact). Built from a real
+      id with its time part set to 1000 ms after the epoch, the id is replayed from rather than
+      reset: a reset (R-SSE-32) needs events after the id to have been pruned
+      (sse.replay.stream-continues-after-reset, sse.replay.expired-after-retention;
+      docs/compat/decisions.md).
+    site:
+      files:
+        - path: "${P}/doc.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body><h1>Original</h1></body></html>
+      rules:
+        - {actor: "*", resource: "${P}/*", method: [GET, PUT], action: Allow}
+    steps:
+      - sse_open: {name: s0, path: "${P}/doc.html", as: anonymous}
+      - sse_expect: {name: s0, event: pagelove-connection, within_ms: 3000}
+      - name: write, to learn this document's id prefix
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/doc.html"
+          headers: {Range: "selector=h1", Content-Type: "text/html"}
+          body: "<h1>Id source</h1>"
+        expect: {status: 206}
+      - sse_expect: {name: s0, event: mutation, within_ms: 3000, capture: {pfx: 'id|regex:^(.*\.)'}}
+      - sse_close: {name: s0}
+      - sse_open: {name: s1, path: "${P}/doc.html", as: anonymous, last_event_id: "${pfx}1000-0"}
+      - sse_expect: {name: s1, event: pagelove-connection, next: true, within_ms: 3000}
+      - sse_expect:
+          name: s1
+          event: mutation
+          next: true
+          within_ms: 3000
+          data_contains: ["Id source"]
+      - sse_expect_none: {name: s1, event: reset, for_ms: 1500}
+      - sse_close: {name: s1}
+
+  - id: sse.replay.stream-continues-after-reset
+    title: After an events-expired reset the same stream keeps delivering live mutations
+    area: sse
+    feature: reset events
+    evidence: inferred
+    source: "pagelove-kanban/site/app.js@85109ab:397-399 (handles reset by refetching and keeps the same EventSource); docs/spec/sse.md R-SSE-32"
+    confidence: medium
+    requires: [sse-control]
+    live: false
+    notes: >-
+      Probe Q15. Live PageLove resets only once events after the id have been pruned (an old id
+      replays otherwise, sse.replay.ancient-id-resets), which takes the ten-minute retention window
+      (sse.replay.expired-after-retention, slow); this case prunes the events locally instead
+      (prune_events) and so runs locally only.
+    site:
+      files:
+        - path: "${P}/doc.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body><h1>Original</h1></body></html>
+      rules:
+        - {actor: "*", resource: "${P}/*", method: [GET, PUT], action: Allow}
+    steps:
+      - sse_open: {name: s0, path: "${P}/doc.html", as: anonymous}
+      - sse_expect: {name: s0, event: pagelove-connection, within_ms: 3000}
+      - name: write, to get an id
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/doc.html"
+          headers: {Range: "selector=h1", Content-Type: "text/html"}
+          body: "<h1>Id source</h1>"
+        expect: {status: 206}
+      - sse_expect: {name: s0, event: mutation, within_ms: 3000, capture: {evt: id}}
+      - sse_close: {name: s0}
+      - name: missed write
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/doc.html"
+          headers: {Range: "selector=h1", Content-Type: "text/html"}
+          body: "<h1>Missed</h1>"
+        expect: {status: 206}
+      - prune_events: true
+      - sse_open: {name: s1, path: "${P}/doc.html", as: anonymous, last_event_id: "${evt}"}
+      - sse_expect: {name: s1, event: reset, within_ms: 3000, data_microdata: {reason: events-expired}}
+      - name: write after the reset
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/doc.html"
+          headers: {Range: "selector=h1", Content-Type: "text/html"}
+          body: "<h1>Post-reset</h1>"
+        expect: {status: 206}
+      - sse_expect: {name: s1, event: mutation, within_ms: 3000, data_contains: ["Post-reset"]}
+      - sse_close: {name: s1}
+
+  - id: sse.replay.malformed-id-resets
+    title: An unparseable Last-Event-ID is ignored (no reset; the stream is live)
+    area: sse
+    feature: reset events
+    evidence: live-observed
+    source: "harness/observations/live-2026-09-28/sse-replay-malformed-id-resets.json (only the connection event arrived); docs/spec/sse.md R-SSE-32"
+    confidence: high
+    requires: []
+    live: true
+    notes: >-
+      The id keeps its original name. Probe Q15 settled for 'ignore the header and stream live
+      only' (R-SSE-32 superseded for ids the server cannot parse, docs/compat/decisions.md).
+    site:
+      files:
+        - path: "${P}/doc.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body><h1>Original</h1></body></html>
+      rules:
+        - {actor: "*", resource: "${P}/*", method: [GET, PUT], action: Allow}
+    steps:
+      - sse_open: {name: s1, path: "${P}/doc.html", as: anonymous, last_event_id: "not-an-event-id"}
+      - sse_expect: {name: s1, event: pagelove-connection, next: true, within_ms: 3000}
+      - sse_expect_none: {name: s1, event: reset, for_ms: 2000}
+      - name: live write
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/doc.html"
+          headers: {Range: "selector=h1", Content-Type: "text/html"}
+          body: "<h1>Live</h1>"
+        expect: {status: 206}
+      - sse_expect: {name: s1, event: mutation, next: true, within_ms: 3000, data_contains: ["Live"]}
+      - sse_close: {name: s1}
+
+  - id: sse.replay.within-retention
+    title: Events are still replayed nine minutes after they were written
+    area: sse
+    feature: retention
+    evidence: documented
+    source: "docs reference/reading-and-writing/Server-Sent-Events §Reconnection — 'Events are retained for 10 minutes' (snapshot 2026-09-28)"
+    confidence: high
+    requires: [slow]
+    live: true
+    notes: "R-SSE-30. Takes about nine minutes."
+    site:
+      files:
+        - path: "${P}/doc.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body><p id="a">a</p><p id="b">b</p></body></html>
+      rules:
+        - {actor: "*", resource: "${P}/*", method: [GET, PUT], action: Allow}
+    steps:
+      - sse_open: {name: s1, path: "${P}/doc.html", as: anonymous}
+      - sse_expect: {name: s1, event: pagelove-connection, within_ms: 3000}
+      - name: write seen live
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/doc.html"
+          headers: {Range: "selector=#a", Content-Type: "text/html"}
+          body: '<p id="a">seen</p>'
+        expect: {status: 206}
+      - sse_expect: {name: s1, event: mutation, within_ms: 3000, capture: {evt1: id}}
+      - sse_close: {name: s1}
+      - name: write while disconnected
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/doc.html"
+          headers: {Range: "selector=#b", Content-Type: "text/html"}
+          body: '<p id="b">missed</p>'
+        expect: {status: 206}
+      - sleep_ms: 540000
+      - sse_open: {name: s2, path: "${P}/doc.html", as: anonymous, last_event_id: "${evt1}"}
+      - sse_expect: {name: s2, event: pagelove-connection, next: true, within_ms: 3000}
+      - sse_expect: {name: s2, event: mutation, next: true, within_ms: 3000, data_contains: ["missed"]}
+      - sse_close: {name: s2}
+
+  - id: sse.replay.expired-after-retention
+    title: An id older than ten minutes yields a reset with reason events-expired and no replay
+    area: sse
+    feature: retention
+    evidence: documented
+    source: "docs reference/reading-and-writing/Server-Sent-Events §Reconnection — expired id gets reset events-expired (snapshot 2026-09-28)"
+    confidence: high
+    requires: [slow]
+    live: true
+    notes: "R-SSE-30, R-SSE-32. Takes about eleven minutes."
+    site:
+      files:
+        - path: "${P}/doc.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body><p id="a">a</p><p id="b">b</p></body></html>
+      rules:
+        - {actor: "*", resource: "${P}/*", method: [GET, PUT], action: Allow}
+    steps:
+      - sse_open: {name: s1, path: "${P}/doc.html", as: anonymous}
+      - sse_expect: {name: s1, event: pagelove-connection, within_ms: 3000}
+      - name: write seen live
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/doc.html"
+          headers: {Range: "selector=#a", Content-Type: "text/html"}
+          body: '<p id="a">seen</p>'
+        expect: {status: 206}
+      - sse_expect: {name: s1, event: mutation, within_ms: 3000, capture: {evt1: id}}
+      - sse_close: {name: s1}
+      - name: write while disconnected
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/doc.html"
+          headers: {Range: "selector=#b", Content-Type: "text/html"}
+          body: '<p id="b">too-late</p>'
+        expect: {status: 206}
+      - sleep_ms: 660000
+      - sse_open: {name: s2, path: "${P}/doc.html", as: anonymous, last_event_id: "${evt1}"}
+      - sse_expect: {name: s2, event: pagelove-connection, next: true, within_ms: 3000}
+      - sse_expect: {name: s2, event: reset, next: true, within_ms: 3000, data_microdata: {reason: events-expired}}
+      - sse_expect_none: {name: s2, event: mutation, for_ms: 1500}
+      - sse_close: {name: s2}

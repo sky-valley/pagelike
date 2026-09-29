@@ -1,0 +1,80 @@
+{
+  "case": "reacting.processor.build-a-blog-status-rewrite",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (install the tutorial processor)",
+      "method": "PUT",
+      "path": "/_pl/reacting-processor-build-a-blog-status-r-e9c05c/r/processors.html",
+      "status": 201,
+      "headers": {
+        "content-length": "887",
+        "content-type": "text/html",
+        "etag": "\"cb2d83d7b0f2f6ebf1c1519bbd21ec84dfd368c754b3c7ac711602c18deaf6df\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:49 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml lang=\"en\"\u003e\n\u003chead\u003e\u003cmeta charset=\"UTF-8\"\u003e\u003ctitle\u003eprocessors\u003c/title\u003e\u003c/head\u003e\n\u003cbody\u003e\n  \u003cdiv itemscope itemtype=\"https://pagelove.org/Processor\"\u003e\n    \u003cmeta itemprop=\"resource\" content=\"/_pl/reacting-processor-build-a-blog-status-r-e9c05c/posts/*\"\u003e\n    \u003cmeta itemprop=\"method\" content=\"GET\"\u003e\n    \u003cmeta itemprop=\"status\" content=\"200\"\u003e\n    \u003cdiv itemprop=\"when\" itemscope itemtype=\"https://pagelove.org/Sessel\"\u003e\n      \u003cscript itemprop=\"source\" type=\"text/sessel\"\u003e\n@schema Context url(\"https://pagelove.org/Context\");\nContext.response.body.contains(\"pagelike.test/blog/Post\") == false\n      \u003c/script\u003e\n    \u003c/div\u003e\n    \u003cdiv itemprop=\"action\" itemscope itemtype=\"https://pagelove.org/Sessel\"\u003e\n      \u003cscript itemprop=\"source\" type=\"text/sessel\"\u003e\n@schema Context url(\"https://pagelove.org/Context\");\nContext.response.status = 404\n      \u003c/script\u003e\n    \u003c/div\u003e\n  \u003c/div\u003e\n\u003c/body\u003e\n\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 2 (the page without a Post becomes 404, body unchanged)",
+      "method": "GET",
+      "path": "/_pl/reacting-processor-build-a-blog-status-r-e9c05c/posts/nonsense.html",
+      "status": 404,
+      "headers": {
+        "accept-ranges": "selector, bytes",
+        "content-length": "93",
+        "content-type": "text/html",
+        "etag": "\"dccc169f05725efabaf84baf269dfbaeac9628d7190d7037cea2a0f4405d7dc2\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:49 GMT",
+        "vary": "Host, Range, Accept"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\u003cdiv class=\"post-missing\"\u003e\u003ch1\u003eNot found\u003c/h1\u003e\u003c/div\u003e\u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 3 (HEAD gives 404 too (curl -sI))",
+      "method": "HEAD",
+      "path": "/_pl/reacting-processor-build-a-blog-status-r-e9c05c/posts/nonsense.html",
+      "status": 404,
+      "headers": {
+        "accept-ranges": "selector, bytes",
+        "content-length": "93",
+        "content-type": "text/html",
+        "etag": "\"dccc169f05725efabaf84baf269dfbaeac9628d7190d7037cea2a0f4405d7dc2\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:49 GMT",
+        "vary": "Host, Range, Accept"
+      }
+    },
+    {
+      "step": "step 4 (a real post stays 200 on GET)",
+      "method": "GET",
+      "path": "/_pl/reacting-processor-build-a-blog-status-r-e9c05c/posts/hello.html",
+      "status": 200,
+      "headers": {
+        "accept-ranges": "selector, bytes",
+        "content-length": "146",
+        "content-type": "text/html",
+        "etag": "\"69871368d3736bc565d8a0657aa1e36bde4a9d8f2fe4689b31ff9836a7da9cbc\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:49 GMT",
+        "vary": "Host, Range, Accept"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\u003carticle itemscope itemtype=\"https://pagelike.test/blog/Post\"\u003e\u003ch1 itemprop=\"title\"\u003eHello\u003c/h1\u003e\u003c/article\u003e\u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 5 (and on HEAD, which proves processors see the body for HEAD)",
+      "method": "HEAD",
+      "path": "/_pl/reacting-processor-build-a-blog-status-r-e9c05c/posts/hello.html",
+      "status": 200,
+      "headers": {
+        "accept-ranges": "selector, bytes",
+        "content-length": "146",
+        "content-type": "text/html",
+        "etag": "\"69871368d3736bc565d8a0657aa1e36bde4a9d8f2fe4689b31ff9836a7da9cbc\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:49 GMT",
+        "vary": "Host, Range, Accept"
+      }
+    }
+  ],
+  "outcome": "pass",
+  "target": "local"
+}

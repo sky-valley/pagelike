@@ -1,0 +1,37 @@
+{
+  "case": "comp.me.element-args-by-name",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (store the page with its schema)",
+      "method": "PUT",
+      "path": "/_pl/comp-me-element-args-by-name-0cdbb6/greet.html",
+      "status": 201,
+      "headers": {
+        "content-length": "1103",
+        "content-type": "text/html",
+        "etag": "\"a0e01a586293cfb82b61e9d54dc167f28afcdefc3f7e47060b7121448cfae342\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:42 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml xmlns:t=\"urn:x-pagelike/_pl/comp-me-element-args-by-name-0cdbb6/Greet\"\u003e\n  \u003cbody\u003e\n    \u003cmain\u003e\u003ct:greet name=\"Ada\" other=\"ignored\"\u003e\u003c/t:greet\u003e\u003c/main\u003e\n    \u003cdiv hidden itemscope itemtype=\"https://pagelove.org/Schema\"\u003e\n      \u003cmeta itemprop=\"type\" content=\"urn:x-pagelike/_pl/comp-me-element-args-by-name-0cdbb6/Greet\"\u003e\n      \u003cul\u003e\n        \u003cli itemprop=\"property\" itemscope itemtype=\"https://pagelove.org/Method\"\u003e\n          \u003cmeta itemprop=\"name\" content=\"greet\"\u003e\n          \u003cmeta itemprop=\"returns\" content=\"https://pagelove.org/Element\"\u003e\n          \u003cul\u003e\n            \u003cli itemprop=\"parameter\" itemscope itemtype=\"https://pagelove.org/Parameter\"\u003e\n              \u003cmeta itemprop=\"name\" content=\"name\"\u003e\n              \u003cmeta itemprop=\"type\" content=\"https://schema.host/Text\"\u003e\n            \u003c/li\u003e\n          \u003c/ul\u003e\n          \u003cdiv itemprop=\"implementation\" itemscope itemtype=\"https://pagelove.org/Sessel\"\u003e\n            \u003cscript itemprop=\"source\" type=\"text/sessel\"\u003e\n              new p { \"Hello, \" + name + \"!\" }\n            \u003c/script\u003e\n          \u003c/div\u003e\n        \u003c/li\u003e\n      \u003c/ul\u003e\n    \u003c/div\u003e\n  \u003c/body\u003e\n\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 2",
+      "method": "GET",
+      "path": "/_pl/comp-me-element-args-by-name-0cdbb6/greet.html",
+      "status": 206,
+      "headers": {
+        "accept-ranges": "selector, bytes",
+        "content-length": "31",
+        "content-range": "selector main",
+        "content-type": "text/html",
+        "etag": "\"991b52b3143e90bc56a602edb82c149c5fcbf1f0838e5042c434637bb32a7985-991b52b3143e90bc56a602edb82c149c5fcbf1f0838e5042c434637bb32a7985-1\"",
+        "vary": "Host, Range, Accept"
+      },
+      "body": "\u003cmain\u003e\u003cp\u003eHello, Ada!\u003c/p\u003e\u003c/main\u003e"
+    }
+  ],
+  "outcome": "pass",
+  "target": "local"
+}

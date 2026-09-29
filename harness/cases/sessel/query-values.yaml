@@ -1,0 +1,360 @@
+# Sessel language end-to-end through QUERY (Content-Type: text/sessel), values and errors.
+# Spec: docs/spec/sessel.md §4-§6, §16 (R-SESSEL-60..97, 340..344); HTTP shell: protocol.md R-PROTO-70..75.
+# Every case grants GET+QUERY on ${P}/* (a Sessel QUERY is never default-granted, R-PROTO-74).
+# Programs never use bare site-wide selectors so they behave the same on a busy live host.
+# The runner expands ${P} in request bodies, body, body_html and body_contains but not in
+# body_json/body_matches, so path checks are done inside the program (`… == "${P}/…"`).
+defaults:
+  area: sessel
+  evidence: documented
+  confidence: medium
+  requires: [sessel]
+  site:
+    files:
+      - path: "${P}/doc.html"
+        body: |
+          <!DOCTYPE html>
+          <html lang="en"><body><h1>Welcome</h1><ul><li>3</li><li>12</li><li>7</li></ul></body></html>
+    rules:
+      - {actor: "*", resource: "${P}/*", method: [GET, QUERY], action: Allow}
+cases:
+  - id: sessel.query.values.precedence
+    title: Arithmetic follows the documented precedence and returns application/sessel+json
+    feature: operators
+    source: "docs languages/sessel/reference/syntax §Operator precedence (snapshot 2026-09-28)"
+    confidence: high
+    live: true
+    notes: R-SESSEL-41, R-SESSEL-97.
+    steps:
+      - name: 1 + 2 * 3
+        as: anonymous
+        request:
+          method: QUERY
+          path: "${P}/doc.html"
+          headers: {Content-Type: "text/sessel"}
+          body: "1 + 2 * 3"
+        expect:
+          status: 200
+          header_matches: {Content-Type: '^application/sessel\+json'}
+          body_json: 7
+
+  - id: sessel.query.values.integer-and-float-division
+    title: Integer division truncates, a float operand gives a float, and a Float's text has no trailing .0
+    feature: numbers
+    evidence: live-observed
+    source: "harness/observations/live-2026-09-29/sessel-query-values-integer-and-float-di.json; harness/observations/live-2026-09-29-reconcile-sessel/sessel-query-probe-0929-values.json (steps 1-4)"
+    live: true
+    notes: R-SESSEL-81, R-SESSEL-92. The docs' "42.0" text form is superseded (SP-7 settled); JSON keeps 42.0.
+    steps:
+      - name: division kinds
+        as: anonymous
+        request:
+          method: QUERY
+          path: "${P}/doc.html"
+          headers: {Content-Type: "text/sessel"}
+          body: '[10 / 4, 10.0 / 4, (10 / 4).String(), 42.Float().String(), 42.Float()]'
+        expect:
+          status: 200
+          body: '[2,2.5,"2","42",42.0]'
+
+  - id: sessel.query.values.interpolation-and-let
+    title: let bindings and #{} interpolation
+    feature: strings
+    source: "docs languages/sessel/reference/syntax §String interpolation (snapshot 2026-09-28)"
+    confidence: high
+    live: true
+    notes: R-SESSEL-14, R-SESSEL-32.
+    steps:
+      - name: interpolate
+        as: anonymous
+        request:
+          method: QUERY
+          path: "${P}/doc.html"
+          headers: {Content-Type: "text/sessel"}
+          body: 'let name = "Sessel"; let version = 1; "#{name} version #{version}"'
+        expect:
+          status: 200
+          body_json: "Sessel version 1"
+
+  - id: sessel.query.values.dictionary-assignment
+    title: A let-bound dictionary is built by dot and subscript assignment
+    feature: dictionaries
+    source: "docs languages/sessel/reference/dictionary §Property assignment (snapshot 2026-09-28)"
+    confidence: high
+    live: true
+    notes: R-SESSEL-71, R-SESSEL-182.
+    steps:
+      - name: build a dictionary
+        as: anonymous
+        request:
+          method: QUERY
+          path: "${P}/doc.html"
+          headers: {Content-Type: "text/sessel"}
+          body: |
+            let product = {};
+            product.name = "Widget";
+            product["Content-Type"] = "text/html";
+            product
+        expect:
+          status: 200
+          body_json: {name: Widget, "Content-Type": "text/html"}
+
+  - id: sessel.query.values.list-pipeline
+    title: filter/map/reduce over the current document's items
+    feature: lists
+    source: "docs languages/sessel/learn/collections §Filtering, §Reducing (snapshot 2026-09-28)"
+    confidence: high
+    live: true
+    notes: R-SESSEL-146, R-SESSEL-148, R-SESSEL-158.
+    steps:
+      - name: sum of items above 5
+        as: anonymous
+        request:
+          method: QUERY
+          path: "${P}/doc.html"
+          headers: {Content-Type: "text/sessel"}
+          body: '(${li} from self).filter(el => el.text().Integer() > 5).map(el => el.text().Integer()).reduce(0, (acc, el) => acc + el)'
+        expect:
+          status: 200
+          body_json: 19
+
+  - id: sessel.query.values.try-catch-message
+    title: try/catch binds { message, type }; the arithmetic TypeError names the operand
+    feature: errors
+    evidence: live-observed
+    source: "harness/observations/live-2026-09-29/sessel-query-values-try-catch-message.json; harness/observations/live-2026-09-29-reconcile-sessel/sessel-query-probe-0929-values.json (steps 5-15)"
+    confidence: high
+    live: true
+    notes: R-SESSEL-80, R-SESSEL-341, R-SESSEL-343. The docs' "Cannot add String and Integer" is superseded.
+    steps:
+      - name: message
+        as: anonymous
+        request:
+          method: QUERY
+          path: "${P}/doc.html"
+          headers: {Content-Type: "text/sessel"}
+          body: 'try { "a" + 1 } catch (e) { "Error: " + e.message }'
+        expect:
+          status: 200
+          body_json: "Error: type error: cannot use 'a' in arithmetic"
+      - name: type of division by zero
+        as: anonymous
+        request:
+          method: QUERY
+          path: "${P}/doc.html"
+          headers: {Content-Type: "text/sessel"}
+          body: 'try { 1 / 0 } catch (e) { e.type }'
+        expect:
+          status: 200
+          body_json: "RuntimeError"
+      - name: null propagation is not an error
+        as: anonymous
+        request:
+          method: QUERY
+          path: "${P}/doc.html"
+          headers: {Content-Type: "text/sessel"}
+          body: 'try { null.text() } catch (e) { "caught" }'
+        expect:
+          status: 200
+          body_json: null
+
+  - id: sessel.query.values.uncaught-runtime-error
+    title: An uncaught RuntimeError (division by zero) is a 500
+    feature: errors
+    source: "docs reference/protocol/QUERY §Sessel mode Errors; languages/sessel/reference/syntax §Try/Catch (snapshot 2026-09-28)"
+    live: true
+    notes: R-SESSEL-344 / R-PROTO-75 ("Expression raised a runtime error" → 500).
+    steps:
+      - name: 1 / 0
+        as: anonymous
+        request:
+          method: QUERY
+          path: "${P}/doc.html"
+          headers: {Content-Type: "text/sessel"}
+          body: "1 / 0"
+        expect: {status: 500}
+
+  - id: sessel.query.values.uncaught-type-error
+    title: An uncaught TypeError or unresolved variable fails with 400 or 500
+    feature: errors
+    source: "docs reference/protocol/QUERY §Sessel mode Errors (snapshot 2026-09-28)"
+    confidence: low
+    live: true
+    notes: SC-19 — the 400/500 boundary is not pinned down; recommended mapping is 400 (R-SESSEL-344). Probe SP-15.
+    steps:
+      - name: String + Integer
+        as: anonymous
+        request:
+          method: QUERY
+          path: "${P}/doc.html"
+          headers: {Content-Type: "text/sessel"}
+          body: '"a" + 1'
+        expect: {status: [400, 500]}
+      - name: unresolved variable
+        as: anonymous
+        request:
+          method: QUERY
+          path: "${P}/doc.html"
+          headers: {Content-Type: "text/sessel"}
+          body: "someVar"
+        expect: {status: [400, 500]}
+
+  - id: sessel.query.values.integer-conversion-throws
+    title: '"5.0".Integer() raises a TypeError'
+    feature: coercion
+    source: "docs languages/sessel/reference/number §How numbers arise; string §.Integer() (snapshot 2026-09-28)"
+    live: true
+    notes: Winning side of SC-1 (R-SESSEL-94).
+    steps:
+      - name: caught type
+        as: anonymous
+        request:
+          method: QUERY
+          path: "${P}/doc.html"
+          headers: {Content-Type: "text/sessel"}
+          body: 'try { "5.0".Integer() } catch (e) { e.type }'
+        expect:
+          status: 200
+          body_json: "TypeError"
+
+  - id: sessel.query.values.integer-conversion-null-disputed
+    title: '"5.0".Integer() returns null (Types page claim)'
+    feature: coercion
+    source: "docs languages/sessel/reference/types §Type coercion (snapshot 2026-09-28)"
+    confidence: low
+    status: disputed
+    live: true
+    notes: Losing side of SC-1.
+    steps:
+      - name: null result
+        as: anonymous
+        request:
+          method: QUERY
+          path: "${P}/doc.html"
+          headers: {Content-Type: "text/sessel"}
+          body: '"5.0".Integer()'
+        expect:
+          status: 200
+          body_json: null
+
+  - id: sessel.query.values.sha256
+    title: String.sha256() returns the documented lowercase hex digest
+    feature: crypto
+    source: "docs languages/sessel/reference/string §.sha256() (snapshot 2026-09-28)"
+    confidence: high
+    live: true
+    notes: R-SESSEL-118.
+    steps:
+      - name: hash hello
+        as: anonymous
+        request:
+          method: QUERY
+          path: "${P}/doc.html"
+          headers: {Content-Type: "text/sessel"}
+          body: '"hello".sha256()'
+        expect:
+          status: 200
+          body_json: "2cf24dba5fb0a30e26e83b2ac5b9e29e1b161e5c1fa7425e73043362938b9824"
+
+  - id: sessel.query.values.random-string
+    title: String.random(8) is 8 alphanumeric characters
+    feature: random
+    source: "docs languages/sessel/reference/string §String.random (snapshot 2026-09-28)"
+    confidence: high
+    live: true
+    notes: R-SESSEL-122.
+    steps:
+      - name: random
+        as: anonymous
+        request:
+          method: QUERY
+          path: "${P}/doc.html"
+          headers: {Content-Type: "text/sessel"}
+          body: 'String.random(8)'
+        expect:
+          status: 200
+          body_matches: '^\s*"[A-Za-z0-9]{8}"\s*$'
+
+  - id: sessel.query.values.temporal-format
+    title: Temporal values format with CLDR patterns and encode as ISO strings; accessors are methods
+    feature: temporal
+    evidence: live-observed
+    source: "docs languages/sessel/reference/temporal §PlainDate §Formatting (snapshot 2026-09-28); harness/observations/live-2026-09-29/sessel-query-values-temporal-format.json; harness/observations/live-2026-09-29-reconcile-sessel/sessel-query-probe-0929-values.json (steps 16-18)"
+    live: true
+    notes: >-
+      R-SESSEL-301, R-SESSEL-310; the ISO JSON encoding of a Temporal value is inferred (R-SESSEL-97). Live answers
+      accessors only as zero-argument methods (d.dayOfWeek()); the documented property form (d.dayOfWeek) is null
+      live and kept by pagelike (keep-standard, sessel.query.values.temporal-format.live).
+    steps:
+      - name: format
+        as: anonymous
+        request:
+          method: QUERY
+          path: "${P}/doc.html"
+          headers: {Content-Type: "text/sessel"}
+          body: 'let d = Temporal.PlainDate.from("2026-03-23"); [d.format("MMMM d, yyyy"), d.add(Temporal.Duration.from("P1M")).toString(), d.dayOfWeek()]'
+        expect:
+          status: 200
+          body_json: ["March 23, 2026", "2026-04-23", 1]
+
+  - id: sessel.query.values.temporal-format.live
+    title: Live PageLove answers null for Temporal accessor properties
+    feature: temporal
+    status: live-divergence
+    evidence: live-observed
+    source: "harness/observations/live-2026-09-29/sessel-query-values-temporal-format.json; harness/observations/live-2026-09-29-reconcile-sessel/sessel-query-values-temporal-format-live.json"
+    confidence: high
+    live: true
+    notes: "Measures a deliberate divergence (docs/compat/decisions-2026-09-29/sessel.md, keep-standard): pagelike keeps the documented date.year / date.dayOfWeek properties. Runs only against --target live."
+    steps:
+      - name: accessor properties
+        as: anonymous
+        request:
+          method: QUERY
+          path: "${P}/doc.html"
+          headers: {Content-Type: "text/sessel"}
+          body: 'let d = Temporal.PlainDate.from("2026-03-23"); let dt = Temporal.PlainDateTime.from("2026-03-23T14:30:45"); [d.year, d.month, d.dayOfWeek, dt.hour, d.dayOfWeek()]'
+        expect:
+          status: 200
+          body_json: [null, null, null, null, 1]
+
+  - id: sessel.query.values.float-json-encoding
+    title: An integral Float result keeps its decimal point in application/sessel+json
+    feature: numbers
+    evidence: inferred
+    source: "docs reference/composing-pages/Expression-Binding §Examples (\"Sum: 100.0\") (snapshot 2026-09-28)"
+    confidence: low
+    live: true
+    notes: R-SESSEL-97 SHOULD; probe SP-7. The JSON value equals 100 either way.
+    steps:
+      - name: 100.0
+        as: anonymous
+        request:
+          method: QUERY
+          path: "${P}/doc.html"
+          headers: {Content-Type: "text/sessel"}
+          body: "100.0"
+        expect:
+          status: 200
+          body_json: 100
+          body_matches: '^\s*100\.0\s*$'
+
+  - id: sessel.query.values.request-object
+    title: In a QUERY, request describes the QUERY request itself
+    feature: context variables
+    evidence: inferred
+    source: "docs languages/sessel/reference/syntax §Context variables (snapshot 2026-09-28)"
+    confidence: low
+    live: true
+    notes: R-SESSEL-1 (request is bound in QUERY is a pagelike inference).
+    steps:
+      - name: request fields
+        as: anonymous
+        request:
+          method: QUERY
+          path: "${P}/doc.html"
+          headers: {Content-Type: "text/sessel"}
+          body: '[request.method, request.path == "${P}/doc.html"]'
+        expect:
+          status: 200
+          body_json: [QUERY, true]

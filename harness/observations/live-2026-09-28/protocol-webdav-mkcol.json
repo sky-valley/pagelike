@@ -1,0 +1,46 @@
+{
+  "case": "protocol.webdav.mkcol",
+  "failures": [
+    "step 1 (create) MKCOL ${P}/newdir/: status 409, want [201] (body: \u003carticle itemscope itemtype=\"https://pagelove.org/Error\"\u003e\u003cmeta itemprop=\"status\" content=\"409\"\u003e\u003cmeta itemprop=\"kind\" content=\"Conflict\"\u003e\u003cdiv itemprop=\"type\" itemscope itemtype=\"https://dombase.pagelove.team/ns/error/Conflict\"\u003e\u003c/div\u003e\u003cdiv ite…)",
+    "step 2 (already exists) MKCOL ${P}/newdir/: body does not contain \"https://dombase.pagelove.team/ns/error/DirectoryAlreadyExists\" (body: \u003carticle itemscope itemtype=\"https://pagelove.org/Error\"\u003e\u003cmeta itemprop=\"status\" content=\"409\"\u003e\u003cmeta itemprop=\"kind\" content=\"Conflict\"\u003e\u003cdiv itemprop=\"type\" itemscope itemtype=\"https://dombase.pagelove.team/ns/error/Conflict\"\u003e\u003c/div\u003e\u003cdiv itemprop=\"detail\"\u003e\u003cdiv itemscope itemtype=\"https://dombase.pagelove.team/ns/error/ParentDirectoryMissing\"\u003e\u003cul itemprop=\"problems\"\u003e\u003cli itemprop=\"problem\"\u003e\u003cspan item…)",
+    "step 3 (it is a collection) PROPFIND ${P}/newdir/: status 404, want [207] (body: \u003carticle itemscope itemtype=\"https://pagelove.org/Error/NotFound\"\u003e\u003cmeta itemprop=\"status\" content=\"404\"\u003e\u003cp itemprop=\"message\"\u003eCollection not found: /_pl/protocol-webdav-mkcol-114004/newdir/\u003c/p\u003e\u003c/article\u003e)",
+    "step 3 (it is a collection) PROPFIND ${P}/newdir/: body does not contain \"collection\" (body: \u003carticle itemscope itemtype=\"https://pagelove.org/Error/NotFound\"\u003e\u003cmeta itemprop=\"status\" content=\"404\"\u003e\u003cp itemprop=\"message\"\u003eCollection not found: /_pl/protocol-webdav-mkcol-114004/newdir/\u003c/p\u003e\u003c/article\u003e)"
+  ],
+  "observations": [
+    {
+      "step": "step 1 (create)",
+      "method": "MKCOL",
+      "path": "/_pl/protocol-webdav-mkcol-114004/newdir/",
+      "status": 409,
+      "headers": {
+        "content-length": "485",
+        "content-type": "text/html; charset=utf-8"
+      },
+      "body": "\u003carticle itemscope itemtype=\"https://pagelove.org/Error\"\u003e\u003cmeta itemprop=\"status\" content=\"409\"\u003e\u003cmeta itemprop=\"kind\" content=\"Conflict\"\u003e\u003cdiv itemprop=\"type\" itemscope itemtype=\"https://dombase.pagelove.team/ns/error/Conflict\"\u003e\u003c/div\u003e\u003cdiv itemprop=\"detail\"\u003e\u003cdiv itemscope itemtype=\"https://dombase.pagelove.team/ns/error/ParentDirectoryMissing\"\u003e\u003cul itemprop=\"problems\"\u003e\u003cli itemprop=\"problem\"\u003e\u003cspan itemprop=\"message\"\u003eParent directory does not exist\u003c/span\u003e\u003c/li\u003e\u003c/ul\u003e\u003c/div\u003e\u003c/div\u003e\u003c/article\u003e"
+    },
+    {
+      "step": "step 2 (already exists)",
+      "method": "MKCOL",
+      "path": "/_pl/protocol-webdav-mkcol-114004/newdir/",
+      "status": 409,
+      "headers": {
+        "content-length": "485",
+        "content-type": "text/html; charset=utf-8"
+      },
+      "body": "\u003carticle itemscope itemtype=\"https://pagelove.org/Error\"\u003e\u003cmeta itemprop=\"status\" content=\"409\"\u003e\u003cmeta itemprop=\"kind\" content=\"Conflict\"\u003e\u003cdiv itemprop=\"type\" itemscope itemtype=\"https://dombase.pagelove.team/ns/error/Conflict\"\u003e\u003c/div\u003e\u003cdiv itemprop=\"detail\"\u003e\u003cdiv itemscope itemtype=\"https://dombase.pagelove.team/ns/error/ParentDirectoryMissing\"\u003e\u003cul itemprop=\"problems\"\u003e\u003cli itemprop=\"problem\"\u003e\u003cspan itemprop=\"message\"\u003eParent directory does not exist\u003c/span\u003e\u003c/li\u003e\u003c/ul\u003e\u003c/div\u003e\u003c/div\u003e\u003c/article\u003e"
+    },
+    {
+      "step": "step 3 (it is a collection)",
+      "method": "PROPFIND",
+      "path": "/_pl/protocol-webdav-mkcol-114004/newdir/",
+      "status": 404,
+      "headers": {
+        "content-length": "203",
+        "content-type": "text/html; charset=utf-8"
+      },
+      "body": "\u003carticle itemscope itemtype=\"https://pagelove.org/Error/NotFound\"\u003e\u003cmeta itemprop=\"status\" content=\"404\"\u003e\u003cp itemprop=\"message\"\u003eCollection not found: /_pl/protocol-webdav-mkcol-114004/newdir/\u003c/p\u003e\u003c/article\u003e"
+    }
+  ],
+  "outcome": "fail",
+  "target": "live"
+}

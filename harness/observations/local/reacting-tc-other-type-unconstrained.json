@@ -1,0 +1,62 @@
+{
+  "case": "reacting.tc.other-type-unconstrained",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (install the recipe's four rules (entry pending, pending-\u003eprocessing, processing-\u003esuccess, exit success))",
+      "method": "PUT",
+      "path": "/_pl/reacting-tc-other-type-unconstrained-a77651/transitions/rules.html",
+      "status": 201,
+      "headers": {
+        "content-length": "1302",
+        "content-type": "text/html",
+        "etag": "\"7e4ee6d14e99dc6034f386b0108fdbfa5599f87e5b499ec0cac207f3395117c9\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:49 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\n\u003cdiv itemscope itemtype=\"https://pagelove.org/TransitionConstraint\"\u003e\n  \u003cmeta itemprop=\"selector\" content=\"[itemtype='https://pagelike.test/_pl/reacting-tc-other-type-unconstrained-a77651/Order']\"\u003e\n  \u003cmeta itemprop=\"property\" content=\"status\"\u003e\n  \u003cmeta itemprop=\"to\" content=\"pending\"\u003e\n\u003c/div\u003e\n\u003cdiv itemscope itemtype=\"https://pagelove.org/TransitionConstraint\"\u003e\n  \u003cmeta itemprop=\"selector\" content=\"[itemtype='https://pagelike.test/_pl/reacting-tc-other-type-unconstrained-a77651/Order']\"\u003e\n  \u003cmeta itemprop=\"property\" content=\"status\"\u003e\n  \u003cmeta itemprop=\"from\" content=\"pending\"\u003e\n  \u003cmeta itemprop=\"to\" content=\"processing\"\u003e\n\u003c/div\u003e\n\u003cdiv itemscope itemtype=\"https://pagelove.org/TransitionConstraint\"\u003e\n  \u003cmeta itemprop=\"selector\" content=\"[itemtype='https://pagelike.test/_pl/reacting-tc-other-type-unconstrained-a77651/Order']\"\u003e\n  \u003cmeta itemprop=\"property\" content=\"status\"\u003e\n  \u003cmeta itemprop=\"from\" content=\"processing\"\u003e\n  \u003cmeta itemprop=\"to\" content=\"success\"\u003e\n\u003c/div\u003e\n\u003cdiv itemscope itemtype=\"https://pagelove.org/TransitionConstraint\"\u003e\n  \u003cmeta itemprop=\"selector\" content=\"[itemtype='https://pagelike.test/_pl/reacting-tc-other-type-unconstrained-a77651/Order']\"\u003e\n  \u003cmeta itemprop=\"property\" content=\"status\"\u003e\n  \u003cmeta itemprop=\"from\" content=\"success\"\u003e\n\u003c/div\u003e\n\u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 2 (create a Ticket in any state)",
+      "method": "PUT",
+      "path": "/_pl/reacting-tc-other-type-unconstrained-a77651/tickets/t1.html",
+      "status": 201,
+      "headers": {
+        "content-length": "199",
+        "content-type": "text/html",
+        "etag": "\"0eec6afcd83259b8bd8367c8ffa934b16ac64a80a4f6d818b1c60f3cdd0b3c37\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:49 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\u003cdiv id=\"t1\" itemscope itemtype=\"https://pagelike.test/_pl/reacting-tc-other-type-unconstrained-a77651/Ticket\"\u003e\u003cmeta itemprop=\"status\" content=\"open\"\u003e\u003c/div\u003e\u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 3 (jump it to any other state)",
+      "method": "PUT",
+      "path": "/_pl/reacting-tc-other-type-unconstrained-a77651/tickets/t1.html",
+      "status": 206,
+      "headers": {
+        "content-length": "160",
+        "content-range": "selector #t1",
+        "content-type": "text/html",
+        "etag": "\"551fe5111979106008de88c7f2228c169a8ad605b48a6a0a88bf13529aacd2d3-551fe5111979106008de88c7f2228c169a8ad605b48a6a0a88bf13529aacd2d3-2\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:49 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003cdiv id=\"t1\" itemscope itemtype=\"https://pagelike.test/_pl/reacting-tc-other-type-unconstrained-a77651/Ticket\"\u003e\u003cmeta itemprop=\"status\" content=\"archived\"\u003e\u003c/div\u003e"
+    },
+    {
+      "step": "step 4 (delete it without an exit rule)",
+      "method": "DELETE",
+      "path": "/_pl/reacting-tc-other-type-unconstrained-a77651/tickets/t1.html",
+      "status": 204,
+      "headers": {
+        "etag": "\"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:49 GMT",
+        "vary": "Host, Range"
+      }
+    }
+  ],
+  "outcome": "pass",
+  "target": "local"
+}

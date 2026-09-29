@@ -1,0 +1,45 @@
+{
+  "case": "authz.template.header-value-is-literal-in-resource",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (X-Slot star does not expand to other areas)",
+      "method": "PUT",
+      "path": "/_pl/authz-template-header-value-is-literal-i-132c3d/h/a/doc.html",
+      "status": 401,
+      "headers": {
+        "content-length": "432",
+        "content-type": "text/html; charset=utf-8"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\n\u003chead\u003e\n    \u003cmeta charset=\"UTF-8\"\u003e\n    \u003ctitle\u003e401 Unauthorized\u003c/title\u003e\n\u003c/head\u003e\n\u003cbody itemscope itemtype=\"https://pagelove.org/1.0/Error\"\u003e\n    \u003ch1\u003e401 Unauthorized\u003c/h1\u003e\n    \u003cp itemprop=\"message\"\u003eAuthentication required to access this resource.\u003c/p\u003e\n    \u003cdl\u003e\n        \u003cdt\u003eResource\u003c/dt\u003e\n        \u003cdd itemprop=\"resource\"\u003e/_pl/authz-template-header-value-is-literal-i-132c3d/h/a/doc.html\u003c/dd\u003e\n    \u003c/dl\u003e\n\u003c/body\u003e\n\u003c/html\u003e"
+    },
+    {
+      "step": "step 2 (X-Slot matching the area)",
+      "method": "PUT",
+      "path": "/_pl/authz-template-header-value-is-literal-i-132c3d/h/a/doc.html",
+      "status": 201,
+      "headers": {
+        "content-type": "text/html",
+        "etag": "\"169afd5b607149ba816f9a19b7399e282e0643e4d9af2c22150536d0d3e70e25\"",
+        "last-modified": "Mon, 28 Sep 2026 22:41:14 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\u003chtml\u003e\u003cbody\u003ex\n                \u003cdiv style=\"\n                            position: fixed;\n                            bottom: 0;\n                            left: 0;\n                            right: 0;\n                            padding: 8px;\n                            background: #f0f0f0;\n                            text-align: center;\n                            font-size: 12px;\n                            color: #666;\n                            z-index: 9999;\n                            opacity: 0.8;\n                            border-top: 1px solid #ddd;\n                        \"\u003e\n                    Powered by\n                    \u003ca href=\"https://pagelove.com/\" style=\"color: #4a90d9; text-decoration: none\"\u003ePagelove\u003c/a\u003e\n                \u003c/div\u003e\n            \u003c/body\u003e\u003c/html\u003e"
+    },
+    {
+      "step": "step 3 (the author's trailing star still works below the area)",
+      "method": "PUT",
+      "path": "/_pl/authz-template-header-value-is-literal-i-132c3d/h/a/deeper/doc.html",
+      "status": 201,
+      "headers": {
+        "content-type": "text/html",
+        "etag": "\"169afd5b607149ba816f9a19b7399e282e0643e4d9af2c22150536d0d3e70e25\"",
+        "last-modified": "Mon, 28 Sep 2026 22:41:14 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\u003chtml\u003e\u003cbody\u003ex\n                \u003cdiv style=\"\n                            position: fixed;\n                            bottom: 0;\n                            left: 0;\n                            right: 0;\n                            padding: 8px;\n                            background: #f0f0f0;\n                            text-align: center;\n                            font-size: 12px;\n                            color: #666;\n                            z-index: 9999;\n                            opacity: 0.8;\n                            border-top: 1px solid #ddd;\n                        \"\u003e\n                    Powered by\n                    \u003ca href=\"https://pagelove.com/\" style=\"color: #4a90d9; text-decoration: none\"\u003ePagelove\u003c/a\u003e\n                \u003c/div\u003e\n            \u003c/body\u003e\u003c/html\u003e"
+    }
+  ],
+  "outcome": "pass",
+  "target": "live"
+}

@@ -1,0 +1,77 @@
+{
+  "case": "comp.sx.time-and-missing-attr",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1",
+      "method": "GET",
+      "path": "/_pl/comp-sx-time-and-missing-attr-a96061/sx.html",
+      "status": 206,
+      "headers": {
+        "accept-ranges": "selector, bytes",
+        "content-length": "47",
+        "content-range": "selector time:value-equals('2026-01-02')",
+        "content-type": "text/html",
+        "etag": "\"6172427d33b1c0542246611a73c74cd21c2d0ca86658e18822af3ef3284c4c73-6172427d33b1c0542246611a73c74cd21c2d0ca86658e18822af3ef3284c4c73-1\"",
+        "vary": "Host, Range, Accept"
+      },
+      "body": "\u003ctime id=\"t1\" itemprop=\"when\"\u003e2026-01-02\u003c/time\u003e"
+    },
+    {
+      "step": "step 2",
+      "method": "GET",
+      "path": "/_pl/comp-sx-time-and-missing-attr-a96061/sx.html",
+      "status": 206,
+      "headers": {
+        "accept-ranges": "selector, bytes",
+        "content-length": "65",
+        "content-range": "selector time:value-equals('2026-03-04')",
+        "content-type": "text/html",
+        "etag": "\"920f8b0983348f476af02a520ce4870bbe66c300828dafdc47d69623ec29c8bf-920f8b0983348f476af02a520ce4870bbe66c300828dafdc47d69623ec29c8bf-1\"",
+        "vary": "Host, Range, Accept"
+      },
+      "body": "\u003ctime id=\"t2\" itemprop=\"when2\" datetime=\"2026-03-04\"\u003eMarch\u003c/time\u003e"
+    },
+    {
+      "step": "step 3",
+      "method": "GET",
+      "path": "/_pl/comp-sx-time-and-missing-attr-a96061/sx.html",
+      "status": 416,
+      "headers": {
+        "content-length": "377",
+        "content-type": "text/html",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\n  \u003chead\u003e\n    \u003ctitle\u003e416 Range Not Satisfiable - Error\u003c/title\u003e\n  \u003c/head\u003e\n  \u003cbody itemscope itemtype=\"http://pagelove.org/Error\"\u003e\n    \u003ch1 itemprop=\"name\"\u003eRange Not Satisfiable\u003c/h1\u003e\n    \u003cmeta itemprop=\"statusCode\" content=\"416\"\u003e\n    \u003cp itemprop=\"description\"\u003eHTML parsing error: No elements matched selector: #t2:value-equals('March')\u003c/p\u003e\n  \u003c/body\u003e\n\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 4 (img without src does not use alt)",
+      "method": "GET",
+      "path": "/_pl/comp-sx-time-and-missing-attr-a96061/sx.html",
+      "status": 416,
+      "headers": {
+        "content-length": "380",
+        "content-type": "text/html",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\n  \u003chead\u003e\n    \u003ctitle\u003e416 Range Not Satisfiable - Error\u003c/title\u003e\n  \u003c/head\u003e\n  \u003cbody itemscope itemtype=\"http://pagelove.org/Error\"\u003e\n    \u003ch1 itemprop=\"name\"\u003eRange Not Satisfiable\u003c/h1\u003e\n    \u003cmeta itemprop=\"statusCode\" content=\"416\"\u003e\n    \u003cp itemprop=\"description\"\u003eHTML parsing error: No elements matched selector: #i1:value-contains('source')\u003c/p\u003e\n  \u003c/body\u003e\n\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 5",
+      "method": "GET",
+      "path": "/_pl/comp-sx-time-and-missing-attr-a96061/sx.html",
+      "status": 206,
+      "headers": {
+        "accept-ranges": "selector, bytes",
+        "content-length": "44",
+        "content-range": "selector #i1:value-equals('')",
+        "content-type": "text/html",
+        "etag": "\"ab755e9a219068176088c14879dd02e2e4f63515b3308ef680478875da6159b8-ab755e9a219068176088c14879dd02e2e4f63515b3308ef680478875da6159b8-1\"",
+        "vary": "Host, Range, Accept"
+      },
+      "body": "\u003cimg id=\"i1\" itemprop=\"pic\" alt=\"no source\"\u003e"
+    }
+  ],
+  "outcome": "pass",
+  "target": "local"
+}

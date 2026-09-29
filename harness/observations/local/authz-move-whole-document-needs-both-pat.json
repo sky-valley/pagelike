@@ -1,0 +1,30 @@
+{
+  "case": "authz.move.whole-document-needs-both-paths",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (destination without a MOVE grant)",
+      "method": "MOVE",
+      "path": "/_pl/authz-move-whole-document-needs-both-pat-2aa9c9/src.html",
+      "status": 401,
+      "headers": {
+        "content-length": "429",
+        "content-type": "text/html; charset=utf-8"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\n\u003chead\u003e\n    \u003cmeta charset=\"UTF-8\"\u003e\n    \u003ctitle\u003e401 Unauthorized\u003c/title\u003e\n\u003c/head\u003e\n\u003cbody itemscope itemtype=\"https://pagelove.org/1.0/Error\"\u003e\n    \u003ch1\u003e401 Unauthorized\u003c/h1\u003e\n    \u003cp itemprop=\"message\"\u003eAuthentication required to access this resource.\u003c/p\u003e\n    \u003cdl\u003e\n        \u003cdt\u003eResource\u003c/dt\u003e\n        \u003cdd itemprop=\"resource\"\u003e/_pl/authz-move-whole-document-needs-both-pat-2aa9c9/src.html\u003c/dd\u003e\n    \u003c/dl\u003e\n\u003c/body\u003e\n\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 2 (destination with a MOVE grant)",
+      "method": "MOVE",
+      "path": "/_pl/authz-move-whole-document-needs-both-pat-2aa9c9/src.html",
+      "status": 204,
+      "headers": {
+        "etag": "\"e51c3eabe1f2127597e031e74eca0dcee22332150819fb60330628c2af8ff7ca\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:47 GMT",
+        "vary": "Host, Range"
+      }
+    }
+  ],
+  "outcome": "pass",
+  "target": "local"
+}

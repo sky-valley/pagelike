@@ -1,0 +1,34 @@
+{
+  "case": "protocol.move-authz.whole-document-needs-no-delete-post",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (allowed)",
+      "method": "MOVE",
+      "path": "/_pl/protocol-move-authz-whole-document-needs-4a5cb5/a.html",
+      "status": 204,
+      "headers": {
+        "etag": "\"75584ec48480049d860d8627f33f591ddef3345bdc64d0fdc577abd28772ce88\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:47 GMT",
+        "vary": "Host, Range"
+      }
+    },
+    {
+      "step": "step 2 (destination exists)",
+      "method": "GET",
+      "path": "/_pl/protocol-move-authz-whole-document-needs-4a5cb5/moved/a.html",
+      "status": 200,
+      "headers": {
+        "accept-ranges": "selector, bytes",
+        "content-length": "58",
+        "content-type": "text/html",
+        "etag": "\"75584ec48480049d860d8627f33f591ddef3345bdc64d0fdc577abd28772ce88\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:47 GMT",
+        "vary": "Host, Range, Accept"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\u003ch1\u003eSource\u003c/h1\u003e\u003c/body\u003e\u003c/html\u003e\n"
+    }
+  ],
+  "outcome": "pass",
+  "target": "local"
+}

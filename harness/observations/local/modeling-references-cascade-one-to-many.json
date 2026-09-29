@@ -1,0 +1,111 @@
+{
+  "case": "modeling.references.cascade-one-to-many",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (register declarations through the public plane (takes effect for the next request))",
+      "method": "PUT",
+      "path": "/_pl/modeling-references-cascade-one-to-many-a3f70c/schema.html",
+      "status": 201,
+      "headers": {
+        "content-length": "1155",
+        "content-type": "text/html",
+        "etag": "\"23155a8d7d08f65b6b70be7547e0d7faeb5df8eecb8c19462a7239e9494a9420\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:44 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\n  \u003cdiv hidden itemscope itemtype=\"https://pagelove.org/Schema\"\u003e\n    \u003cmeta itemprop=\"type\" content=\"https://pagelike.test/_pl/modeling-references-cascade-one-to-many-a3f70c/Org\"\u003e\n    \u003cdiv itemprop=\"property\" itemscope itemtype=\"https://pagelove.org/Property\"\u003e\n      \u003cmeta itemprop=\"name\" content=\"identifier\"\u003e\n      \u003cmeta itemprop=\"type\" content=\"https://schema.host/Text\"\u003e\n      \u003cmeta itemprop=\"cardinality\" content=\"1..1\"\u003e\n      \u003cmeta itemprop=\"unique\" content=\"true\"\u003e\n    \u003c/div\u003e\n  \u003c/div\u003e\n  \u003cdiv hidden itemscope itemtype=\"https://pagelove.org/Schema\"\u003e\n    \u003cmeta itemprop=\"type\" content=\"https://pagelike.test/_pl/modeling-references-cascade-one-to-many-a3f70c/Member\"\u003e\n    \u003cdiv itemprop=\"property\" itemscope itemtype=\"https://pagelove.org/Property\"\u003e\n      \u003cmeta itemprop=\"name\" content=\"orgs\"\u003e\n      \u003cmeta itemprop=\"type\" content=\"https://schema.host/Text\"\u003e\n      \u003cmeta itemprop=\"cardinality\" content=\"1..n\"\u003e\n      \u003cmeta itemprop=\"references\" content=\"https://pagelike.test/_pl/modeling-references-cascade-one-to-many-a3f70c/Org#identifier\"\u003e\n      \u003cmeta itemprop=\"cascade\" content=\"true\"\u003e\n    \u003c/div\u003e\n  \u003c/div\u003e\n\u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 2 (org acme)",
+      "method": "PUT",
+      "path": "/_pl/modeling-references-cascade-one-to-many-a3f70c/acme.html",
+      "status": 201,
+      "headers": {
+        "content-length": "207",
+        "content-type": "text/html",
+        "etag": "\"93a80a2b47ab8b44c170a85a1d500d483a9663a4f0be44c57b539a852088de59\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:44 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\n  \u003cdiv itemscope itemtype=\"https://pagelike.test/_pl/modeling-references-cascade-one-to-many-a3f70c/Org\"\u003e\n    \u003cmeta itemprop=\"identifier\" content=\"acme\"\u003e\n  \u003c/div\u003e\n\u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 3 (org globex)",
+      "method": "PUT",
+      "path": "/_pl/modeling-references-cascade-one-to-many-a3f70c/globex.html",
+      "status": 201,
+      "headers": {
+        "content-length": "209",
+        "content-type": "text/html",
+        "etag": "\"278e5bf8eb6e8f1968b9e93553ad89b909c69f89b991b0a31c9c0fa8509050cb\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:44 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\n  \u003cdiv itemscope itemtype=\"https://pagelike.test/_pl/modeling-references-cascade-one-to-many-a3f70c/Org\"\u003e\n    \u003cmeta itemprop=\"identifier\" content=\"globex\"\u003e\n  \u003c/div\u003e\n\u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 4 (member of both)",
+      "method": "PUT",
+      "path": "/_pl/modeling-references-cascade-one-to-many-a3f70c/m.html",
+      "status": 201,
+      "headers": {
+        "content-length": "248",
+        "content-type": "text/html",
+        "etag": "\"ecc97784472ecace3ca455eb6d23677817bd4596bdec3ff6231d4af4bbd01d97\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:44 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\n  \u003cdiv itemscope itemtype=\"https://pagelike.test/_pl/modeling-references-cascade-one-to-many-a3f70c/Member\"\u003e\n    \u003cmeta itemprop=\"orgs\" content=\"acme\"\u003e\n    \u003cmeta itemprop=\"orgs\" content=\"globex\"\u003e\n  \u003c/div\u003e\n\u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 5 (delete acme)",
+      "method": "DELETE",
+      "path": "/_pl/modeling-references-cascade-one-to-many-a3f70c/acme.html",
+      "status": 204,
+      "headers": {
+        "etag": "\"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:44 GMT",
+        "vary": "Host, Range"
+      }
+    },
+    {
+      "step": "step 6 (stored state of m.html (authoring plane, raw))",
+      "method": "GET",
+      "path": "/_pl/modeling-references-cascade-one-to-many-a3f70c/m.html",
+      "status": 200,
+      "headers": {
+        "accept-ranges": "bytes",
+        "content-length": "211",
+        "content-type": "text/html",
+        "etag": "\"e1d89ecb9572dc8e388c3a08bfeb8ffe636e7df55f567c1e2ddf3497f72b4125\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:44 GMT"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\n  \u003cdiv itemscope itemtype=\"https://pagelike.test/_pl/modeling-references-cascade-one-to-many-a3f70c/Member\"\u003e\n    \n    \u003cmeta itemprop=\"orgs\" content=\"globex\"\u003e\n  \u003c/div\u003e\n\u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 7 (delete globex)",
+      "method": "DELETE",
+      "path": "/_pl/modeling-references-cascade-one-to-many-a3f70c/globex.html",
+      "status": 204,
+      "headers": {
+        "etag": "\"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:44 GMT",
+        "vary": "Host, Range"
+      }
+    },
+    {
+      "step": "step 8 (the member document was deleted with its last value)",
+      "method": "GET",
+      "path": "/_pl/modeling-references-cascade-one-to-many-a3f70c/m.html",
+      "status": 404,
+      "headers": {
+        "content-length": "209",
+        "content-type": "text/html; charset=utf-8"
+      },
+      "body": "\u003carticle itemscope itemtype=\"https://pagelove.org/Error/NotFound\"\u003e\u003cmeta itemprop=\"status\" content=\"404\"\u003e\u003cp itemprop=\"message\"\u003eNot found: /_pl/modeling-references-cascade-one-to-many-a3f70c/m.html\u003c/p\u003e\u003c/article\u003e"
+    }
+  ],
+  "outcome": "pass",
+  "target": "local"
+}

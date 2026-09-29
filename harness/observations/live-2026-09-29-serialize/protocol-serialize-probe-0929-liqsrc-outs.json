@@ -1,0 +1,47 @@
+{
+ "case": "protocol.serialize.probe-0929.liqsrc-outside-tags",
+ "failures": null,
+ "observations": [
+  {
+   "step": "step 1 (put template)",
+   "method": "PUT",
+   "path": "/_pl/protocol-serialize-probe-0929-liquid-esc-49f14e/tpl2.html",
+   "status": 201,
+   "headers": {
+    "content-length": "220",
+    "content-type": "text/html",
+    "etag": "\"f291c1cacc5534464b4be453cc364859616c970608f8640e0305c83e0275756b\""
+   },
+   "body": "<!DOCTYPE html>\n<html xmlns:p=\"https://pagelove.org/1.0\"><body><div id=\"t\" p:template=\"text/liquid\">x &lt;i&gt;y&lt;/i&gt; a &amp;amp; b {{ 1 }}<a href=\"?a=1&amp;b={{ 2 }}\" title=\"&quot;q&quot;\">l</a></div></body></html>"
+  },
+  {
+   "step": "step 2 (dav read)",
+   "method": "GET",
+   "path": "/_pl/protocol-serialize-probe-0929-liquid-esc-49f14e/tpl2.html",
+   "status": 200,
+   "headers": {
+    "accept-ranges": "bytes",
+    "content-length": "220",
+    "content-type": "text/html",
+    "etag": "\"f291c1cacc5534464b4be453cc364859616c970608f8640e0305c83e0275756b\"",
+    "last-modified": "Tue, 29 Sep 2026 01:31:23 GMT"
+   },
+   "body": "<!DOCTYPE html>\n<html xmlns:p=\"https://pagelove.org/1.0\"><body><div id=\"t\" p:template=\"text/liquid\">x &lt;i&gt;y&lt;/i&gt; a &amp;amp; b {{ 1 }}<a href=\"?a=1&amp;b={{ 2 }}\" title=\"&quot;q&quot;\">l</a></div></body></html>"
+  },
+  {
+   "step": "step 3 (render)",
+   "method": "GET",
+   "path": "/_pl/protocol-serialize-probe-0929-liquid-esc-49f14e/tpl2.html",
+   "status": 200,
+   "headers": {
+    "cache-control": "public, max-age=5",
+    "content-type": "text/html",
+    "etag": "W/\"7970616b3d61868c6d0b6a773d79a6b2eeae5586985c5c4867e94e6f712a6b41\"",
+    "vary": "Host, Range, Accept"
+   },
+   "body": "<!DOCTYPE html>\n<html><body><div id=\"t\">x &lt;i&gt;y&lt;/i&gt; a &amp;amp; b 1<a href=\"?a=1&amp;b=2\" title=\"&quot;q&quot;\">l</a></div>\n                <div style=\"\n                            position: fixed;\n                            bottom: 0;\n                            left: 0;\n                            right: 0;\n                            padding: 8px;\n                            background: #f0f0f0;\n                            text-align: center;\n                            font-size: 12px;\n                            color: #666;\n                            z-index: 9999;\n                            opacity: 0.8;\n                            border-top: 1px solid #ddd;\n                        \">\n                    Powered by\n                    <a href=\"https://pagelove.com/\" style=\"color: #4a90d9; text-decoration: none\">Pagelove</a>\n                </div>\n            </body></html>"
+  }
+ ],
+ "outcome": "pass",
+ "target": "live"
+}

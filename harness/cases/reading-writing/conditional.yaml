@@ -1,0 +1,724 @@
+# ETags, If-Match / If-None-Match, 304 and 412.
+# Spec: docs/spec/reading-writing.md §12, §13 (R-RW-85..100).
+# etag_equals / etag_differs compare the response ETag header with the given value.
+cases:
+  - id: rw.cond.get-if-none-match-304
+    title: GET with If-None-Match of the current ETag is 304 with no body
+    area: reading-writing
+    feature: Conditional GET
+    evidence: documented
+    source: "docs reference/reading-and-writing/GET-method §Caching (snapshot 2026-09-28)"
+    confidence: high
+    requires: []
+    live: true
+    site:
+      settings: {default_get: allow}
+      files:
+        - path: "${P}/c.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body><p>cache me</p></body></html>
+      rules:
+        - {actor: "*", resource: "${P}/*", method: [GET, HEAD], action: Allow}
+    steps:
+      - name: first read
+        as: anonymous
+        request: {method: GET, path: "${P}/c.html"}
+        expect: {status: 200, headers_present: [ETag]}
+        capture: {e: header.ETag}
+      - name: revalidate
+        as: anonymous
+        request:
+          method: GET
+          path: "${P}/c.html"
+          headers: {If-None-Match: "${e}"}
+        expect:
+          status: 304
+          body: ""
+          etag_equals: "${e}"
+      - name: list form containing the current tag
+        as: anonymous
+        request:
+          method: GET
+          path: "${P}/c.html"
+          headers: {If-None-Match: '"pagelike-not-a-tag", ${e}'}
+        expect: {status: 304}
+      - name: non-matching tag returns the full representation
+        as: anonymous
+        request:
+          method: GET
+          path: "${P}/c.html"
+          headers: {If-None-Match: '"pagelike-not-a-tag"'}
+        expect:
+          status: 200
+          body_contains: ["cache me"]
+
+  - id: rw.cond.get-if-none-match-star
+    title: GET with If-None-Match * on an existing document is 304
+    area: reading-writing
+    feature: Conditional GET
+    evidence: inferred
+    source: "RFC 9110 §13.1.2; docs GET-method §Caching"
+    confidence: medium
+    requires: []
+    live: true
+    site:
+      settings: {default_get: allow}
+      files:
+        - path: "${P}/star.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body><p>star</p></body></html>
+      rules:
+        - {actor: "*", resource: "${P}/*", method: [GET, HEAD], action: Allow}
+    steps:
+      - name: star
+        as: anonymous
+        request:
+          method: GET
+          path: "${P}/star.html"
+          headers: {If-None-Match: "*"}
+        expect: {status: 304}
+
+  - id: rw.cond.get-weak-if-none-match
+    title: If-None-Match uses weak comparison (W/ prefix of the current tag still matches)
+    area: reading-writing
+    feature: Conditional GET
+    evidence: inferred
+    source: "RFC 9110 §13.1.2 (weak comparison for If-None-Match)"
+    confidence: low
+    requires: []
+    live: true
+    site:
+      settings: {default_get: allow}
+      files:
+        - path: "${P}/weak.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body><p>weak</p></body></html>
+      rules:
+        - {actor: "*", resource: "${P}/*", method: [GET, HEAD], action: Allow}
+    steps:
+      - name: read
+        as: anonymous
+        request: {method: GET, path: "${P}/weak.html"}
+        expect: {status: 200}
+        capture: {e: header.ETag}
+      - name: weak form
+        as: anonymous
+        request:
+          method: GET
+          path: "${P}/weak.html"
+          headers: {If-None-Match: "W/${e}"}
+        expect: {status: 304}
+
+  - id: rw.cond.fragment-304
+    title: A selector GET revalidates against the fragment ETag
+    area: reading-writing
+    feature: Conditional GET
+    evidence: inferred
+    source: "docs GET-method §Caching; fragment ETag on 206 (read-probes.json case fragment); spec R-RW-88"
+    confidence: medium
+    requires: []
+    live: true
+    site:
+      settings: {default_get: allow}
+      files:
+        - path: "${P}/frag.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body><h1>Fragment</h1><p>other</p></body></html>
+      rules:
+        - {actor: "*", resource: "${P}/*", method: [GET, HEAD], action: Allow}
+    steps:
+      - name: fragment read
+        as: anonymous
+        request:
+          method: GET
+          path: "${P}/frag.html"
+          headers: {Range: "selector=h1"}
+        expect: {status: 206}
+        capture: {f: header.ETag}
+      - name: fragment revalidation
+        as: anonymous
+        request:
+          method: GET
+          path: "${P}/frag.html"
+          headers: {Range: "selector=h1", If-None-Match: "${f}"}
+        expect:
+          status: 304
+          body: ""
+
+  - id: rw.cond.put-if-match-current
+    title: A whole-document PUT with the current ETag in If-Match succeeds and changes the ETag
+    area: reading-writing
+    feature: Conditional PUT
+    evidence: documented
+    source: "docs reference/reading-and-writing/PUT-method §Concurrency (snapshot 2026-09-28)"
+    confidence: high
+    requires: []
+    live: true
+    site:
+      settings: {default_get: allow}
+      files:
+        - path: "${P}/doc.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body><p>version 1</p></body></html>
+      rules:
+        - {actor: "*", resource: "${P}/*", method: [GET, HEAD, PUT], action: Allow}
+    steps:
+      - name: read
+        as: anonymous
+        request: {method: GET, path: "${P}/doc.html"}
+        expect: {status: 200}
+        capture: {e1: header.ETag}
+      - name: conditional write
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/doc.html"
+          headers: {If-Match: "${e1}", Content-Type: "text/html"}
+          body: |
+            <!DOCTYPE html>
+            <html><body><p>version 2</p></body></html>
+        expect: {status: [200, 201, 204]}
+      - name: new version, new tag
+        as: anonymous
+        request: {method: GET, path: "${P}/doc.html"}
+        expect:
+          status: 200
+          etag_differs: "${e1}"
+          body_contains: ["version 2"]
+
+  - id: rw.cond.put-if-match-stale-412
+    title: A PUT with a stale If-Match is 412, carries the current ETag, and writes nothing
+    area: reading-writing
+    feature: Conditional PUT
+    evidence: documented
+    source: "docs reference/reading-and-writing/PUT-method §Concurrency ('The 412 response carries the document's current ETag') (snapshot 2026-09-28)"
+    confidence: high
+    requires: []
+    live: true
+    site:
+      settings: {default_get: allow}
+      files:
+        - path: "${P}/doc.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body><p>version 1</p></body></html>
+      rules:
+        - {actor: "*", resource: "${P}/*", method: [GET, HEAD, PUT], action: Allow}
+    steps:
+      - name: client A reads
+        as: anonymous
+        request: {method: GET, path: "${P}/doc.html"}
+        expect: {status: 200}
+        capture: {e1: header.ETag}
+      - name: client B saves first
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/doc.html"
+          headers: {Content-Type: "text/html"}
+          body: |
+            <!DOCTYPE html>
+            <html><body><p>version B</p></body></html>
+        expect: {status: [200, 201, 204]}
+      - name: current tag
+        as: anonymous
+        request: {method: GET, path: "${P}/doc.html"}
+        expect: {status: 200}
+        capture: {e2: header.ETag}
+      - name: client A's conditional save is rejected
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/doc.html"
+          headers: {If-Match: "${e1}", Content-Type: "text/html"}
+          body: |
+            <!DOCTYPE html>
+            <html><body><p>version A</p></body></html>
+        expect:
+          status: 412
+          headers_present: [ETag]
+          etag_equals: "${e2}"
+      - name: B's version survived
+        as: anonymous
+        request: {method: GET, path: "${P}/doc.html"}
+        expect:
+          status: 200
+          body_contains: ["version B"]
+          body_not_contains: ["version A"]
+
+  - id: rw.cond.put-if-match-list
+    title: If-Match with a list succeeds when any listed tag is current
+    area: reading-writing
+    feature: Conditional PUT
+    evidence: documented
+    source: "docs reference/reading-and-writing/PUT-method §Concurrency (comma-separated list form) (snapshot 2026-09-28)"
+    confidence: high
+    requires: []
+    live: true
+    site:
+      settings: {default_get: allow}
+      files:
+        - path: "${P}/doc.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body><p>v1</p></body></html>
+      rules:
+        - {actor: "*", resource: "${P}/*", method: [GET, HEAD, PUT], action: Allow}
+    steps:
+      - name: read
+        as: anonymous
+        request: {method: GET, path: "${P}/doc.html"}
+        expect: {status: 200}
+        capture: {e: header.ETag}
+      - name: list containing a bogus and the current tag
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/doc.html"
+          headers: {If-Match: '"pagelike-bogus-tag", ${e}', Content-Type: "text/html"}
+          body: |
+            <!DOCTYPE html>
+            <html><body><p>v2 via list</p></body></html>
+        expect: {status: [200, 201, 204]}
+      - name: list of only bogus tags fails
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/doc.html"
+          headers: {If-Match: '"pagelike-bogus-1", "pagelike-bogus-2"', Content-Type: "text/html"}
+          body: |
+            <!DOCTYPE html>
+            <html><body><p>never</p></body></html>
+        expect: {status: 412}
+      - name: content is the list write
+        as: anonymous
+        request: {method: GET, path: "${P}/doc.html"}
+        expect:
+          status: 200
+          body_contains: ["v2 via list"]
+          body_not_contains: ["never"]
+
+  - id: rw.cond.put-if-match-star
+    title: If-Match * succeeds when the document exists and fails with 412 (no create) when it does not
+    area: reading-writing
+    feature: Conditional PUT
+    evidence: documented
+    source: "docs reference/reading-and-writing/PUT-method §Concurrency (wildcard form) (snapshot 2026-09-28)"
+    confidence: high
+    requires: []
+    live: true
+    site:
+      settings: {default_get: allow}
+      files:
+        - path: "${P}/exists.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body><p>old</p></body></html>
+      rules:
+        - {actor: "*", resource: "${P}/*", method: [GET, HEAD, PUT], action: Allow}
+    steps:
+      - name: star on an existing document
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/exists.html"
+          headers: {If-Match: "*", Content-Type: "text/html"}
+          body: |
+            <!DOCTYPE html>
+            <html><body><p>new</p></body></html>
+        expect: {status: [200, 201, 204]}
+      - name: star on an absent path
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/absent.html"
+          headers: {If-Match: "*", Content-Type: "text/html"}
+          body: |
+            <!DOCTYPE html>
+            <html><body><p>should not exist</p></body></html>
+        expect: {status: 412}
+      - name: the absent path was not created
+        as: anonymous
+        request: {method: GET, path: "${P}/absent.html"}
+        expect: {status: 404}
+
+  - id: rw.cond.put-if-none-match-star
+    title: If-None-Match * makes PUT create-only
+    area: reading-writing
+    feature: Conditional PUT
+    evidence: documented
+    source: "docs reference/reading-and-writing/PUT-method §Concurrency ('use If-None-Match: * for create-only semantics') (snapshot 2026-09-28); pagelove-dev cross-platform-command-recipes.md@b489923:301-311"
+    confidence: high
+    requires: []
+    live: true
+    site:
+      settings: {default_get: allow}
+      rules:
+        - {actor: "*", resource: "${P}/*", method: [GET, HEAD, PUT], action: Allow}
+    steps:
+      - name: create-only on a free path
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/fresh.html"
+          headers: {If-None-Match: "*", Content-Type: "text/html"}
+          body: |
+            <!DOCTYPE html>
+            <html><body><p>first writer</p></body></html>
+        expect: {status: 201}
+      - name: create-only on a taken path
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/fresh.html"
+          headers: {If-None-Match: "*", Content-Type: "text/html"}
+          body: |
+            <!DOCTYPE html>
+            <html><body><p>second writer</p></body></html>
+        expect: {status: 412}
+      - name: first writer kept
+        as: anonymous
+        request: {method: GET, path: "${P}/fresh.html"}
+        expect:
+          status: 200
+          body_contains: ["first writer"]
+          body_not_contains: ["second writer"]
+
+  - id: rw.cond.put-if-none-match-etag
+    title: If-None-Match listing the current tag blocks a write; a different tag does not
+    area: reading-writing
+    feature: Conditional PUT
+    evidence: documented
+    source: "docs reference/reading-and-writing/PUT-method §Concurrency ('If-None-Match blocks a write when a listed ETag ... matches the current version') (snapshot 2026-09-28)"
+    confidence: high
+    requires: []
+    live: true
+    site:
+      settings: {default_get: allow}
+      files:
+        - path: "${P}/inm.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body><p>one</p></body></html>
+      rules:
+        - {actor: "*", resource: "${P}/*", method: [GET, HEAD, PUT], action: Allow}
+    steps:
+      - name: read
+        as: anonymous
+        request: {method: GET, path: "${P}/inm.html"}
+        expect: {status: 200}
+        capture: {e: header.ETag}
+      - name: blocked
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/inm.html"
+          headers: {If-None-Match: "${e}", Content-Type: "text/html"}
+          body: |
+            <!DOCTYPE html>
+            <html><body><p>blocked</p></body></html>
+        expect: {status: 412}
+      - name: not blocked
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/inm.html"
+          headers: {If-None-Match: '"pagelike-other-tag"', Content-Type: "text/html"}
+          body: |
+            <!DOCTYPE html>
+            <html><body><p>two</p></body></html>
+        expect: {status: [200, 201, 204]}
+      - name: result
+        as: anonymous
+        request: {method: GET, path: "${P}/inm.html"}
+        expect:
+          status: 200
+          body_contains: ["two"]
+          body_not_contains: ["blocked"]
+
+  - id: rw.cond.delete-if-match
+    title: A whole DELETE with a stale If-Match is 412 with the current ETag; with the current tag it deletes
+    area: reading-writing
+    feature: Conditional DELETE
+    evidence: documented
+    source: "docs reference/reading-and-writing/DELETE-method §Concurrency (snapshot 2026-09-28)"
+    confidence: high
+    requires: []
+    live: true
+    site:
+      settings: {default_get: allow}
+      files:
+        - path: "${P}/del.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body><p>v1</p></body></html>
+      rules:
+        - {actor: "*", resource: "${P}/*", method: [GET, HEAD, PUT, DELETE], action: Allow}
+    steps:
+      - name: read
+        as: anonymous
+        request: {method: GET, path: "${P}/del.html"}
+        expect: {status: 200}
+        capture: {e1: header.ETag}
+      - name: someone else edits
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/del.html"
+          headers: {Content-Type: "text/html"}
+          body: |
+            <!DOCTYPE html>
+            <html><body><p>v2</p></body></html>
+        expect: {status: [200, 201, 204]}
+      - name: current tag
+        as: anonymous
+        request: {method: GET, path: "${P}/del.html"}
+        expect: {status: 200}
+        capture: {e2: header.ETag}
+      - name: stale delete refused
+        as: anonymous
+        request:
+          method: DELETE
+          path: "${P}/del.html"
+          headers: {If-Match: "${e1}"}
+        expect:
+          status: 412
+          etag_equals: "${e2}"
+      - name: still there
+        as: anonymous
+        request: {method: GET, path: "${P}/del.html"}
+        expect: {status: 200, body_contains: ["v2"]}
+      - name: current delete succeeds
+        as: anonymous
+        request:
+          method: DELETE
+          path: "${P}/del.html"
+          headers: {If-Match: "${e2}"}
+        expect: {status: 204}
+      - name: gone
+        as: anonymous
+        request: {method: GET, path: "${P}/del.html"}
+        expect: {status: 404}
+
+  - id: rw.cond.post-if-match-document-tag
+    title: A conditional append is compared with the anchor's tag; the document's tag is 412
+    area: reading-writing
+    feature: Conditional POST
+    evidence: live-observed
+    source: "harness/observations/live-2026-09-28/rw-cond-post-if-match-document-tag.json (a document tag on a selector POST is 412 carrying the anchor #l's tag); docs reference/reading-and-writing/POST-method §Concurrency (snapshot 2026-09-28)"
+    confidence: high
+    requires: []
+    live: true
+    notes: >-
+      Q-1 settled by the live run of 2026-09-28: PageLove compares a selector write's If-Match with
+      the addressed element's tag only (the anchor for POST), so R-RW-89's "document or element tag"
+      is superseded (docs/compat/decisions.md). Element tags change with every write to the document.
+    site:
+      settings: {default_get: allow}
+      files:
+        - path: "${P}/cpost.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body><ul id="l"><li>base</li></ul></body></html>
+      rules:
+        - {actor: "*", resource: "${P}/*", method: [GET, HEAD, POST], action: Allow}
+    steps:
+      - name: read the document
+        as: anonymous
+        request: {method: GET, path: "${P}/cpost.html"}
+        expect: {status: 200}
+        capture: {d: header.ETag}
+      - name: read the anchor's tag
+        as: anonymous
+        request:
+          method: HEAD
+          path: "${P}/cpost.html"
+          headers: {Range: "selector=#l"}
+        expect: {status: 206, headers_present: [ETag]}
+        capture: {a: header.ETag}
+      - name: the document tag is stale for a selector write
+        as: anonymous
+        request:
+          method: POST
+          path: "${P}/cpost.html"
+          headers: {Range: "selector=#l", If-Match: "${d}", Content-Type: "text/html"}
+          body: "<li>document-tag append</li>"
+        expect:
+          status: 412
+          etag_equals: "${a}"
+          header_matches: {Content-Type: "^text/html$"}
+          body_contains: ['<span itemprop="message">Precondition Failed: ETag does not match</span>']
+      - name: conditional append with the anchor's tag
+        as: anonymous
+        request:
+          method: POST
+          path: "${P}/cpost.html"
+          headers: {Range: "selector=#l", If-Match: "${a}", Content-Type: "text/html"}
+          body: "<li>first conditional</li>"
+        expect: {status: 206}
+      - name: same tag again is stale
+        as: anonymous
+        request:
+          method: POST
+          path: "${P}/cpost.html"
+          headers: {Range: "selector=#l", If-Match: "${a}", Content-Type: "text/html"}
+          body: "<li>second conditional</li>"
+        expect: {status: 412}
+      - name: only the first landed
+        as: anonymous
+        request:
+          method: GET
+          path: "${P}/cpost.html"
+          headers: {Range: "selector=#l"}
+        expect:
+          status: 206
+          body_contains: ["first conditional"]
+          body_not_contains: ["second conditional", "document-tag append"]
+
+  - id: rw.cond.selector-put-element-etag
+    title: beta-js flow - HEAD element tag, conditional selector PUTs chain via response ETags, stale tag is 412
+    area: reading-writing
+    feature: Conditional selector PUT
+    evidence: client-source
+    source: "beta-js/pagelove/primitives.mjs@c204746:258-273 (If-Match element.etag), :296-297 (response ETag replaces element.etag), :474-501 (HEAD for tags)"
+    confidence: medium
+    requires: []
+    live: true
+    notes: "pagelove-kanban/site/app.js@85109ab:29-38 reports conditional writes failing on an older build (spec §23 C-2)."
+    site:
+      settings: {default_get: allow}
+      files:
+        - path: "${P}/notes.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body><article id="note-42"><h2>Draft</h2></article><article id="note-43"><h2>Other</h2></article></body></html>
+      rules:
+        - {actor: "*", resource: "${P}/*", method: [GET, HEAD, PUT], action: Allow}
+    steps:
+      - name: lazy tag fetch
+        as: anonymous
+        request:
+          method: HEAD
+          path: "${P}/notes.html"
+          headers: {Range: "selector=#note-42"}
+        expect: {status: 206, headers_present: [ETag]}
+        capture: {e1: header.ETag}
+      - name: first edit
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/notes.html"
+          headers:
+            Range: "selector=#note-42"
+            If-Match: "${e1}"
+            Content-Type: "text/html;charset=UTF-8"
+          body: '<article id="note-42"><h2>Edit one</h2></article>'
+        expect: {status: 206, headers_present: [ETag]}
+        capture: {e2: header.ETag}
+      - name: second edit chained on the response tag
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/notes.html"
+          headers:
+            Range: "selector=#note-42"
+            If-Match: "${e2}"
+            Content-Type: "text/html;charset=UTF-8"
+          body: '<article id="note-42"><h2>Edit two</h2></article>'
+        expect: {status: 206, headers_present: [ETag]}
+        capture: {e3: header.ETag}
+      - name: stale tag
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/notes.html"
+          headers:
+            Range: "selector=#note-42"
+            If-Match: "${e1}"
+            Content-Type: "text/html;charset=UTF-8"
+          body: '<article id="note-42"><h2>Lost update</h2></article>'
+        expect:
+          status: 412
+          headers_present: [ETag]
+      - name: edit two survived
+        as: anonymous
+        request:
+          method: GET
+          path: "${P}/notes.html"
+          headers: {Range: "selector=#note-42"}
+        expect:
+          status: 206
+          etag_equals: "${e3}"
+          body_contains: ["Edit two"]
+          body_not_contains: ["Lost update"]
+
+  - id: rw.cond.preconditions-after-404-and-416
+    title: A failed precondition does not mask 404 or 416
+    area: reading-writing
+    feature: Conditional requests ordering
+    evidence: inferred
+    source: "RFC 9110 §13.2.1 (preconditions ignored when the unconditional response would not be 2xx/412)"
+    confidence: medium
+    requires: []
+    live: true
+    site:
+      settings: {default_get: allow}
+      files:
+        - path: "${P}/order.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body><h1>present</h1></body></html>
+      rules:
+        - {actor: "*", resource: "${P}/*", method: [GET, HEAD, PUT], action: Allow}
+    steps:
+      - name: selector PUT to missing doc with a bogus If-Match
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/nowhere.html"
+          headers: {Range: "selector=h1", If-Match: '"pagelike-bogus"', Content-Type: "text/html"}
+          body: "<h1>x</h1>"
+        expect: {status: 404}
+      - name: selector PUT to missing element with a bogus If-Match
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/order.html"
+          headers: {Range: "selector=#nope", If-Match: '"pagelike-bogus"', Content-Type: "text/html"}
+          body: "<p>x</p>"
+        expect: {status: 416}
+
+  - id: rw.cond.get-if-match-stale
+    title: If-Match on a GET (as beta-js sends it) is ignored
+    area: reading-writing
+    feature: Conditional GET
+    evidence: live-observed
+    source: "harness/observations/live-2026-09-28/rw-cond-get-if-match-stale.json (206 despite a stale If-Match); beta-js/pagelove/primitives.mjs@c204746:265-268 (If-Match also on GET)"
+    confidence: high
+    requires: []
+    live: true
+    notes: "Superseded inference (RFC 9110 §13.1.1 would answer 412); pagelike follows PageLove (docs/compat/decisions.md)."
+    site:
+      settings: {default_get: allow}
+      files:
+        - path: "${P}/gim.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body><p id="x">x</p></body></html>
+      rules:
+        - {actor: "*", resource: "${P}/*", method: [GET, HEAD], action: Allow}
+    steps:
+      - name: stale If-Match on a fragment GET
+        as: anonymous
+        request:
+          method: GET
+          path: "${P}/gim.html"
+          headers: {Range: "selector=#x", If-Match: '"pagelike-stale"'}
+        expect:
+          status: 206
+          body_html: '<p id="x">x</p>'

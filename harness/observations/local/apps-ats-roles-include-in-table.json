@@ -1,0 +1,96 @@
+{
+  "case": "apps.ats.roles-include-in-table",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (careers page read: GET /roles.html?t=… with Range #roles-body)",
+      "method": "GET",
+      "path": "/_pl/apps-ats-roles-include-in-table-be2f9b/roles.html?t=1789423173000",
+      "status": 206,
+      "headers": {
+        "accept-ranges": "selector, bytes",
+        "content-length": "1034",
+        "content-range": "selector #roles-body",
+        "content-type": "text/html",
+        "etag": "\"d057fc4fe85d1856adc4688e333a22cab61292aaf4c6d6702cb3bcd9ce8bd866-d057fc4fe85d1856adc4688e333a22cab61292aaf4c6d6702cb3bcd9ce8bd866-1\"",
+        "vary": "Host, Range, Accept"
+      },
+      "body": "\u003ctbody id=\"roles-body\"\u003e\n    \u003ctr id=\"R-001\" itemscope itemtype=\"https://pagelove.org/Role\"\u003e\n      \u003ctd class=\"id\" itemprop=\"id\"\u003eR-001\u003c/td\u003e\n      \u003ctd\u003e\u003cdiv class=\"name\" itemprop=\"title\"\u003eFounding Engineer\u003c/div\u003e\u003c/td\u003e\n      \u003ctd itemprop=\"department\"\u003eEngineering\u003c/td\u003e\n      \u003ctd itemprop=\"hiringManager\"\u003eAlex\u003c/td\u003e\n      \u003ctd itemprop=\"employmentType\"\u003eFull-time\u003c/td\u003e\n      \u003ctd itemprop=\"status\"\u003eOpen\u003c/td\u003e\n      \u003ctd hidden itemprop=\"location\"\u003eGlobal\u003c/td\u003e\n      \u003ctd hidden itemprop=\"slug\"\u003efounding-engineer\u003c/td\u003e\n      \u003ctd hidden itemprop=\"tldr\"\u003eJoin us as one of the first three engineers.\u003c/td\u003e\n    \u003c/tr\u003e\n    \u003ctr id=\"R-003\" itemscope itemtype=\"https://pagelove.org/Role\"\u003e\n      \u003ctd class=\"id\" itemprop=\"id\"\u003eR-003\u003c/td\u003e\n      \u003ctd\u003e\u003cdiv class=\"name\" itemprop=\"title\"\u003eProduct Designer\u003c/div\u003e\u003c/td\u003e\n      \u003ctd itemprop=\"department\"\u003eDesign\u003c/td\u003e\n      \u003ctd itemprop=\"hiringManager\"\u003eAlex\u003c/td\u003e\n      \u003ctd itemprop=\"employmentType\"\u003eFull-time\u003c/td\u003e\n      \u003ctd itemprop=\"status\"\u003eOn Hold\u003c/td\u003e\n      \u003ctd hidden itemprop=\"slug\"\u003eproduct-designer\u003c/td\u003e\n    \u003c/tr\u003e\n  \u003c/tbody\u003e"
+    },
+    {
+      "step": "step 2 (the included tbody sits inside the table)",
+      "method": "GET",
+      "path": "/_pl/apps-ats-roles-include-in-table-be2f9b/roles.html",
+      "status": 206,
+      "headers": {
+        "accept-ranges": "selector, bytes",
+        "content-length": "1034",
+        "content-range": "selector table \u003e tbody#roles-body",
+        "content-type": "text/html",
+        "etag": "\"d057fc4fe85d1856adc4688e333a22cab61292aaf4c6d6702cb3bcd9ce8bd866-d057fc4fe85d1856adc4688e333a22cab61292aaf4c6d6702cb3bcd9ce8bd866-1\"",
+        "vary": "Host, Range, Accept"
+      },
+      "body": "\u003ctbody id=\"roles-body\"\u003e\n    \u003ctr id=\"R-001\" itemscope itemtype=\"https://pagelove.org/Role\"\u003e\n      \u003ctd class=\"id\" itemprop=\"id\"\u003eR-001\u003c/td\u003e\n      \u003ctd\u003e\u003cdiv class=\"name\" itemprop=\"title\"\u003eFounding Engineer\u003c/div\u003e\u003c/td\u003e\n      \u003ctd itemprop=\"department\"\u003eEngineering\u003c/td\u003e\n      \u003ctd itemprop=\"hiringManager\"\u003eAlex\u003c/td\u003e\n      \u003ctd itemprop=\"employmentType\"\u003eFull-time\u003c/td\u003e\n      \u003ctd itemprop=\"status\"\u003eOpen\u003c/td\u003e\n      \u003ctd hidden itemprop=\"location\"\u003eGlobal\u003c/td\u003e\n      \u003ctd hidden itemprop=\"slug\"\u003efounding-engineer\u003c/td\u003e\n      \u003ctd hidden itemprop=\"tldr\"\u003eJoin us as one of the first three engineers.\u003c/td\u003e\n    \u003c/tr\u003e\n    \u003ctr id=\"R-003\" itemscope itemtype=\"https://pagelove.org/Role\"\u003e\n      \u003ctd class=\"id\" itemprop=\"id\"\u003eR-003\u003c/td\u003e\n      \u003ctd\u003e\u003cdiv class=\"name\" itemprop=\"title\"\u003eProduct Designer\u003c/div\u003e\u003c/td\u003e\n      \u003ctd itemprop=\"department\"\u003eDesign\u003c/td\u003e\n      \u003ctd itemprop=\"hiringManager\"\u003eAlex\u003c/td\u003e\n      \u003ctd itemprop=\"employmentType\"\u003eFull-time\u003c/td\u003e\n      \u003ctd itemprop=\"status\"\u003eOn Hold\u003c/td\u003e\n      \u003ctd hidden itemprop=\"slug\"\u003eproduct-designer\u003c/td\u003e\n    \u003c/tr\u003e\n  \u003c/tbody\u003e"
+    },
+    {
+      "step": "step 3 (the whole feed page has no include element left)",
+      "method": "GET",
+      "path": "/_pl/apps-ats-roles-include-in-table-be2f9b/roles.html",
+      "status": 200,
+      "headers": {
+        "accept-ranges": "selector, bytes",
+        "cache-control": "public, max-age=5",
+        "content-length": "1181",
+        "content-type": "text/html",
+        "etag": "W/\"2448fbb1227f229e828d7bb9114d34bcf106412446b3fa1983c576abc59aa962\"",
+        "vary": "Host, Range, Accept"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml lang=\"en\"\u003e\n\u003chead\u003e\n\u003cmeta charset=\"UTF-8\"\u003e\n\u003ctitle\u003eOpen roles - data\u003c/title\u003e\n\u003c/head\u003e\n\u003cbody\u003e\n\u003ctable\u003e\n  \u003ctbody id=\"roles-body\"\u003e\n    \u003ctr id=\"R-001\" itemscope itemtype=\"https://pagelove.org/Role\"\u003e\n      \u003ctd class=\"id\" itemprop=\"id\"\u003eR-001\u003c/td\u003e\n      \u003ctd\u003e\u003cdiv class=\"name\" itemprop=\"title\"\u003eFounding Engineer\u003c/div\u003e\u003c/td\u003e\n      \u003ctd itemprop=\"department\"\u003eEngineering\u003c/td\u003e\n      \u003ctd itemprop=\"hiringManager\"\u003eAlex\u003c/td\u003e\n      \u003ctd itemprop=\"employmentType\"\u003eFull-time\u003c/td\u003e\n      \u003ctd itemprop=\"status\"\u003eOpen\u003c/td\u003e\n      \u003ctd hidden itemprop=\"location\"\u003eGlobal\u003c/td\u003e\n      \u003ctd hidden itemprop=\"slug\"\u003efounding-engineer\u003c/td\u003e\n      \u003ctd hidden itemprop=\"tldr\"\u003eJoin us as one of the first three engineers.\u003c/td\u003e\n    \u003c/tr\u003e\n    \u003ctr id=\"R-003\" itemscope itemtype=\"https://pagelove.org/Role\"\u003e\n      \u003ctd class=\"id\" itemprop=\"id\"\u003eR-003\u003c/td\u003e\n      \u003ctd\u003e\u003cdiv class=\"name\" itemprop=\"title\"\u003eProduct Designer\u003c/div\u003e\u003c/td\u003e\n      \u003ctd itemprop=\"department\"\u003eDesign\u003c/td\u003e\n      \u003ctd itemprop=\"hiringManager\"\u003eAlex\u003c/td\u003e\n      \u003ctd itemprop=\"employmentType\"\u003eFull-time\u003c/td\u003e\n      \u003ctd itemprop=\"status\"\u003eOn Hold\u003c/td\u003e\n      \u003ctd hidden itemprop=\"slug\"\u003eproduct-designer\u003c/td\u003e\n    \u003c/tr\u003e\n  \u003c/tbody\u003e\n\u003c/table\u003e\n\u003c/body\u003e\n\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 4 (one route answers every role page (directory form))",
+      "method": "GET",
+      "path": "/_pl/apps-ats-roles-include-in-table-be2f9b/roles/founding-engineer/",
+      "status": 200,
+      "headers": {
+        "accept-ranges": "selector, bytes",
+        "cache-control": "public, max-age=5",
+        "content-length": "1383",
+        "content-type": "text/html",
+        "etag": "W/\"84c4059753febc5877c86bfbd2676d4b606c1d45b1b61af6e28d6d4e0f29e6c0\"",
+        "route-parameters": "role_name=founding-engineer",
+        "vary": "Host, Range, Accept"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml lang=\"en\"\u003e\n\u003chead\u003e\u003cmeta charset=\"UTF-8\"\u003e\u003ctitle\u003eCareers · Example Co\u003c/title\u003e\u003c/head\u003e\n\u003cbody\u003e\n\u003ctable id=\"all-roles-data\" hidden\u003e\u003ctbody id=\"roles-body\"\u003e\n    \u003ctr id=\"R-001\" itemscope itemtype=\"https://pagelove.org/Role\"\u003e\n      \u003ctd class=\"id\" itemprop=\"id\"\u003eR-001\u003c/td\u003e\n      \u003ctd\u003e\u003cdiv class=\"name\" itemprop=\"title\"\u003eFounding Engineer\u003c/div\u003e\u003c/td\u003e\n      \u003ctd itemprop=\"department\"\u003eEngineering\u003c/td\u003e\n      \u003ctd itemprop=\"hiringManager\"\u003eAlex\u003c/td\u003e\n      \u003ctd itemprop=\"employmentType\"\u003eFull-time\u003c/td\u003e\n      \u003ctd itemprop=\"status\"\u003eOpen\u003c/td\u003e\n      \u003ctd hidden itemprop=\"location\"\u003eGlobal\u003c/td\u003e\n      \u003ctd hidden itemprop=\"slug\"\u003efounding-engineer\u003c/td\u003e\n      \u003ctd hidden itemprop=\"tldr\"\u003eJoin us as one of the first three engineers.\u003c/td\u003e\n    \u003c/tr\u003e\n    \u003ctr id=\"R-003\" itemscope itemtype=\"https://pagelove.org/Role\"\u003e\n      \u003ctd class=\"id\" itemprop=\"id\"\u003eR-003\u003c/td\u003e\n      \u003ctd\u003e\u003cdiv class=\"name\" itemprop=\"title\"\u003eProduct Designer\u003c/div\u003e\u003c/td\u003e\n      \u003ctd itemprop=\"department\"\u003eDesign\u003c/td\u003e\n      \u003ctd itemprop=\"hiringManager\"\u003eAlex\u003c/td\u003e\n      \u003ctd itemprop=\"employmentType\"\u003eFull-time\u003c/td\u003e\n      \u003ctd itemprop=\"status\"\u003eOn Hold\u003c/td\u003e\n      \u003ctd hidden itemprop=\"slug\"\u003eproduct-designer\u003c/td\u003e\n    \u003c/tr\u003e\n  \u003c/tbody\u003e\u003c/table\u003e\n\u003cmain id=\"role-view\"\u003e\u003cdiv class=\"not-found\" id=\"role-loading\"\u003e\u003ch2\u003eLoading role…\u003c/h2\u003e\u003c/div\u003e\u003c/main\u003e\n\u003cfooter\u003eEXAMPLE CO · CAREERS\u003ca href=\"/auth/login\"\u003eStaff sign-in\u003c/a\u003e\u003c/footer\u003e\n\u003c/body\u003e\n\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 5 (an unknown slug still gets the page (the script shows Role not found))",
+      "method": "GET",
+      "path": "/_pl/apps-ats-roles-include-in-table-be2f9b/roles/nope/",
+      "status": 200,
+      "headers": {
+        "accept-ranges": "selector, bytes",
+        "cache-control": "public, max-age=5",
+        "content-length": "1383",
+        "content-type": "text/html",
+        "etag": "W/\"84c4059753febc5877c86bfbd2676d4b606c1d45b1b61af6e28d6d4e0f29e6c0\"",
+        "route-parameters": "role_name=nope",
+        "vary": "Host, Range, Accept"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml lang=\"en\"\u003e\n\u003chead\u003e\u003cmeta charset=\"UTF-8\"\u003e\u003ctitle\u003eCareers · Example Co\u003c/title\u003e\u003c/head\u003e\n\u003cbody\u003e\n\u003ctable id=\"all-roles-data\" hidden\u003e\u003ctbody id=\"roles-body\"\u003e\n    \u003ctr id=\"R-001\" itemscope itemtype=\"https://pagelove.org/Role\"\u003e\n      \u003ctd class=\"id\" itemprop=\"id\"\u003eR-001\u003c/td\u003e\n      \u003ctd\u003e\u003cdiv class=\"name\" itemprop=\"title\"\u003eFounding Engineer\u003c/div\u003e\u003c/td\u003e\n      \u003ctd itemprop=\"department\"\u003eEngineering\u003c/td\u003e\n      \u003ctd itemprop=\"hiringManager\"\u003eAlex\u003c/td\u003e\n      \u003ctd itemprop=\"employmentType\"\u003eFull-time\u003c/td\u003e\n      \u003ctd itemprop=\"status\"\u003eOpen\u003c/td\u003e\n      \u003ctd hidden itemprop=\"location\"\u003eGlobal\u003c/td\u003e\n      \u003ctd hidden itemprop=\"slug\"\u003efounding-engineer\u003c/td\u003e\n      \u003ctd hidden itemprop=\"tldr\"\u003eJoin us as one of the first three engineers.\u003c/td\u003e\n    \u003c/tr\u003e\n    \u003ctr id=\"R-003\" itemscope itemtype=\"https://pagelove.org/Role\"\u003e\n      \u003ctd class=\"id\" itemprop=\"id\"\u003eR-003\u003c/td\u003e\n      \u003ctd\u003e\u003cdiv class=\"name\" itemprop=\"title\"\u003eProduct Designer\u003c/div\u003e\u003c/td\u003e\n      \u003ctd itemprop=\"department\"\u003eDesign\u003c/td\u003e\n      \u003ctd itemprop=\"hiringManager\"\u003eAlex\u003c/td\u003e\n      \u003ctd itemprop=\"employmentType\"\u003eFull-time\u003c/td\u003e\n      \u003ctd itemprop=\"status\"\u003eOn Hold\u003c/td\u003e\n      \u003ctd hidden itemprop=\"slug\"\u003eproduct-designer\u003c/td\u003e\n    \u003c/tr\u003e\n  \u003c/tbody\u003e\u003c/table\u003e\n\u003cmain id=\"role-view\"\u003e\u003cdiv class=\"not-found\" id=\"role-loading\"\u003e\u003ch2\u003eLoading role…\u003c/h2\u003e\u003c/div\u003e\u003c/main\u003e\n\u003cfooter\u003eEXAMPLE CO · CAREERS\u003ca href=\"/auth/login\"\u003eStaff sign-in\u003c/a\u003e\u003c/footer\u003e\n\u003c/body\u003e\n\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 6 (the source stays private)",
+      "method": "GET",
+      "path": "/_pl/apps-ats-roles-include-in-table-be2f9b/admin/index.html",
+      "status": 401,
+      "headers": {
+        "content-length": "428",
+        "content-type": "text/html; charset=utf-8"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\n\u003chead\u003e\n    \u003cmeta charset=\"UTF-8\"\u003e\n    \u003ctitle\u003e401 Unauthorized\u003c/title\u003e\n\u003c/head\u003e\n\u003cbody itemscope itemtype=\"https://pagelove.org/1.0/Error\"\u003e\n    \u003ch1\u003e401 Unauthorized\u003c/h1\u003e\n    \u003cp itemprop=\"message\"\u003eAuthentication required to access this resource.\u003c/p\u003e\n    \u003cdl\u003e\n        \u003cdt\u003eResource\u003c/dt\u003e\n        \u003cdd itemprop=\"resource\"\u003e/_pl/apps-ats-roles-include-in-table-be2f9b/admin/index.html\u003c/dd\u003e\n    \u003c/dl\u003e\n\u003c/body\u003e\n\u003c/html\u003e\n"
+    }
+  ],
+  "outcome": "pass",
+  "target": "local"
+}

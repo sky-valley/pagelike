@@ -1,0 +1,72 @@
+{
+  "case": "protocol.move.if-match-current",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (read document ETag)",
+      "method": "GET",
+      "path": "/_pl/protocol-move-if-match-current-b46adc/board.html",
+      "status": 200,
+      "headers": {
+        "accept-ranges": "selector, bytes",
+        "content-length": "331",
+        "content-type": "text/html",
+        "etag": "\"cc761173d18644decace0c4764f7abc75ef31f9fe18225d17db7ac9f51b828da\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:48 GMT",
+        "vary": "Host, Range, Accept"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\n\u003csection class=\"lane\" id=\"lane-todo\"\u003e\u003carticle class=\"card\" id=\"card-1\"\u003eOne\u003c/article\u003e\u003carticle class=\"card\" id=\"card-2\"\u003eTwo\u003c/article\u003e\u003carticle class=\"card\" id=\"card-3\"\u003eThree\u003c/article\u003e\u003c/section\u003e\n\u003csection class=\"lane\" id=\"lane-done\"\u003e\u003carticle class=\"card\" id=\"card-4\"\u003eFour\u003c/article\u003e\u003c/section\u003e\n\u003c/body\u003e\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 2 (read the source element's tag)",
+      "method": "HEAD",
+      "path": "/_pl/protocol-move-if-match-current-b46adc/board.html",
+      "status": 206,
+      "headers": {
+        "accept-ranges": "selector, bytes",
+        "content-length": "49",
+        "content-range": "selector #card-3",
+        "content-type": "text/html",
+        "etag": "\"8fc199dfe88bd859db172be3b70f1dade97ee98fa1a150bcf0120692507a9343-8fc199dfe88bd859db172be3b70f1dade97ee98fa1a150bcf0120692507a9343-1\"",
+        "vary": "Host, Range, Accept"
+      }
+    },
+    {
+      "step": "step 3 (the document tag is stale for an element MOVE)",
+      "method": "MOVE",
+      "path": "/_pl/protocol-move-if-match-current-b46adc/board.html",
+      "status": 412,
+      "headers": {
+        "content-length": "172",
+        "content-type": "text/html",
+        "etag": "\"8fc199dfe88bd859db172be3b70f1dade97ee98fa1a150bcf0120692507a9343-8fc199dfe88bd859db172be3b70f1dade97ee98fa1a150bcf0120692507a9343-1\"",
+        "vary": "Host, Range"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\u003cdiv itemscope itemtype=\"http://pagelove.org/Error\"\u003e\u003cspan itemprop=\"message\"\u003ePrecondition Failed: ETag does not match\u003c/span\u003e\u003c/div\u003e\u003c/body\u003e\u003c/html\u003e"
+    },
+    {
+      "step": "step 4 (conditional move with the source element's tag)",
+      "method": "MOVE",
+      "path": "/_pl/protocol-move-if-match-current-b46adc/board.html",
+      "status": 204,
+      "headers": {
+        "etag": "\"8a22fdb199535a23fff56ebff097c96b08138fdaaec51653d67efb194e88d446\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:48 GMT",
+        "vary": "Host, Range"
+      }
+    },
+    {
+      "step": "step 5 (conditional move with If-Match star)",
+      "method": "MOVE",
+      "path": "/_pl/protocol-move-if-match-current-b46adc/board.html",
+      "status": 204,
+      "headers": {
+        "etag": "\"7a832d336631fcb92d46d9c098c9b0bfe419190cc2463fa45493fcb363b8e4df\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:48 GMT",
+        "vary": "Host, Range"
+      }
+    }
+  ],
+  "outcome": "pass",
+  "target": "local"
+}

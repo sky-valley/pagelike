@@ -1,0 +1,33 @@
+{
+  "case": "protocol.move.destination-absolute-url",
+  "failures": [
+    "step 2 (absolute URL with a query string) MOVE ${P}/board.html?view=board: status 501, want [204] (body: \u003cdiv itemscope itemtype=\"https://dombase.pagelove.team/ns/error/MoveCrossResource\"\u003e\u003cul itemprop=\"problems\"\u003e\u003cli itemprop=\"problem\"\u003e\u003cspan itemprop=\"message\"\u003eCross-resource MOVE is not supported\u003c/span\u003e\u003c/li\u003e\u003c/ul\u003e\u003c/div\u003e)"
+  ],
+  "observations": [
+    {
+      "step": "step 1 (absolute URL)",
+      "method": "MOVE",
+      "path": "/_pl/protocol-move-destination-absolute-url-151956/board.html",
+      "status": 204,
+      "headers": {
+        "etag": "\"31a8775f79a4ddc0484ae6d39f6c1c621f5edc2c658090254d4a7f140a3d4407\"",
+        "last-modified": "Mon, 28 Sep 2026 22:31:12 GMT",
+        "vary": "Host, Range"
+      }
+    },
+    {
+      "step": "step 2 (absolute URL with a query string)",
+      "method": "MOVE",
+      "path": "/_pl/protocol-move-destination-absolute-url-151956/board.html?view=board",
+      "status": 501,
+      "headers": {
+        "content-length": "214",
+        "content-type": "text/html",
+        "vary": "Host, Range"
+      },
+      "body": "\u003cdiv itemscope itemtype=\"https://dombase.pagelove.team/ns/error/MoveCrossResource\"\u003e\u003cul itemprop=\"problems\"\u003e\u003cli itemprop=\"problem\"\u003e\u003cspan itemprop=\"message\"\u003eCross-resource MOVE is not supported\u003c/span\u003e\u003c/li\u003e\u003c/ul\u003e\u003c/div\u003e"
+    }
+  ],
+  "outcome": "fail",
+  "target": "live"
+}

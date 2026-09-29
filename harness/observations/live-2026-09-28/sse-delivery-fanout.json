@@ -1,0 +1,61 @@
+{
+  "case": "sse.delivery.fanout",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 3",
+      "events": [
+        {
+          "event": "pagelove-connection",
+          "data": "67212bd3-0e63-4fa8-91c9-189d1cb74021"
+        }
+      ]
+    },
+    {
+      "step": "step 4",
+      "events": [
+        {
+          "event": "pagelove-connection",
+          "data": "1aec3b32-4595-471f-a88c-73f07f63ad76"
+        }
+      ]
+    },
+    {
+      "step": "step 5 (write once)",
+      "method": "PUT",
+      "path": "/_pl/sse-delivery-fanout-13bc67/doc.html",
+      "status": 206,
+      "headers": {
+        "content-length": "18",
+        "content-range": "selector h1",
+        "content-type": "text/html",
+        "etag": "\"f5cbda564bb7a3f4bdfd08b35b23d967808db9f927accc8a83e636b6824f87bc-f5cbda564bb7a3f4bdfd08b35b23d967808db9f927accc8a83e636b6824f87bc-2\"",
+        "last-modified": "Mon, 28 Sep 2026 22:33:57 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003ch1\u003eBroadcast\u003c/h1\u003e"
+    },
+    {
+      "step": "step 6",
+      "events": [
+        {
+          "id": "v1~3718b2b72bae.1790634837536-0",
+          "event": "mutation",
+          "data": "\u003carticle itemscope itemtype=\"https://pagelove.org/Mutation\"\u003e\n  \u003cspan itemprop=\"method\"\u003ePUT\u003c/span\u003e\n  \u003cspan itemprop=\"selector\"\u003eh1\u003c/span\u003e\n  \u003cspan itemprop=\"etag\"\u003e358e7e988769fec1e0fb6c235f8fd64df70c06cd33bfd8f90375d4f50ae0ac2f\u003c/span\u003e\n  \u003cspan itemprop=\"path\"\u003e/_pl/sse-delivery-fanout-13bc67/doc.html\u003c/span\u003e\n  \u003cspan itemprop=\"host\"\u003elive-test-host.onpagelove.com\u003c/span\u003e\n  \u003cdiv itemprop=\"body\"\u003e\u003ch1\u003eBroadcast\u003c/h1\u003e\u003c/div\u003e\n\u003c/article\u003e"
+        }
+      ]
+    },
+    {
+      "step": "step 7",
+      "events": [
+        {
+          "id": "v1~3718b2b72bae.1790634837536-0",
+          "event": "mutation",
+          "data": "\u003carticle itemscope itemtype=\"https://pagelove.org/Mutation\"\u003e\n  \u003cspan itemprop=\"method\"\u003ePUT\u003c/span\u003e\n  \u003cspan itemprop=\"selector\"\u003eh1\u003c/span\u003e\n  \u003cspan itemprop=\"etag\"\u003e358e7e988769fec1e0fb6c235f8fd64df70c06cd33bfd8f90375d4f50ae0ac2f\u003c/span\u003e\n  \u003cspan itemprop=\"path\"\u003e/_pl/sse-delivery-fanout-13bc67/doc.html\u003c/span\u003e\n  \u003cspan itemprop=\"host\"\u003elive-test-host.onpagelove.com\u003c/span\u003e\n  \u003cdiv itemprop=\"body\"\u003e\u003ch1\u003eBroadcast\u003c/h1\u003e\u003c/div\u003e\n\u003c/article\u003e"
+        }
+      ]
+    }
+  ],
+  "outcome": "pass",
+  "target": "live"
+}

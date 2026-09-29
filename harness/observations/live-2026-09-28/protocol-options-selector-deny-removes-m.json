@@ -1,0 +1,32 @@
+{
+  "case": "protocol.options.selector-deny-removes-method",
+  "failures": [
+    "step 1 (PUT not allowed at the locked selector) OPTIONS ${P}/doc.html: header Allow = \"HEAD, GET, PUT, OPTIONS\", want match \"^(?:(?:GET|HEAD|DELETE|POST|OPTIONS)(?:, ?|$))+$\"",
+    "step 2 (multipart lists the locked selector as its own part) OPTIONS ${P}/doc.html: status 204, want [207] (body: )",
+    "step 2 (multipart lists the locked selector as its own part) OPTIONS ${P}/doc.html: body does not contain \"h1.locked\" (body: )"
+  ],
+  "observations": [
+    {
+      "step": "step 1 (PUT not allowed at the locked selector)",
+      "method": "OPTIONS",
+      "path": "/_pl/protocol-options-selector-deny-removes-m-1c607c/doc.html",
+      "status": 200,
+      "headers": {
+        "allow": "HEAD, GET, PUT, OPTIONS",
+        "vary": "Authorization, Accept"
+      }
+    },
+    {
+      "step": "step 2 (multipart lists the locked selector as its own part)",
+      "method": "OPTIONS",
+      "path": "/_pl/protocol-options-selector-deny-removes-m-1c607c/doc.html",
+      "status": 204,
+      "headers": {
+        "allow": "GET, HEAD, PUT, OPTIONS",
+        "vary": "Authorization, Accept"
+      }
+    }
+  ],
+  "outcome": "fail",
+  "target": "live"
+}

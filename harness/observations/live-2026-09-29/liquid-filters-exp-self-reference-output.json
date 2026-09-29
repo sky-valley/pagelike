@@ -1,0 +1,21 @@
+{
+  "case": "liquid.filters-exp.self-reference-output-degrades",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (read)",
+      "method": "GET",
+      "path": "/_pl/liquid-filters-exp-self-reference-output-ce7b94/selfref.html",
+      "status": 200,
+      "headers": {
+        "cache-control": "public, max-age=5",
+        "content-type": "text/html",
+        "etag": "W/\"4c91865207b06cc04c79e775c89a03df16375281853593b80bbffb5f1df98761\"",
+        "vary": "Host, Range, Accept"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\u003cbody\u003e\n  \u003cdiv\u003e\u003cp id=\"bad\"\u003e\u003cspan itemscope itemtype=\"https://pagelove.org/Error\"\u003e\u003cmeta itemprop=\"status\" content=\"500\"\u003e\u003cmeta itemprop=\"reason\" content=\"filter-error\"\u003e\u003cspan itemprop=\"message\"\u003eLiquid render error at None (node None): where_exp: expression-filter nesting exceeded 32 levels — a predicate that refers to itself recurses without bound\u003c/span\u003e\u003c/span\u003e\u003c/p\u003e\u003cp id=\"after\"\u003estill here\u003c/p\u003e\u003c/div\u003e\n\n                \u003cdiv style=\"\n                            position: fixed;\n                            bottom: 0;\n                            left: 0;\n                            right: 0;\n                            padding: 8px;\n                            background: #f0f0f0;\n                            text-align: center;\n                            font-size: 12px;\n                            color: #666;\n                            z-index: 9999;\n                            opacity: 0.8;\n                            border-top: 1px solid #ddd;\n                        \"\u003e\n                    Powered by\n                    \u003ca href=\"https://pagelove.com/\" style=\"color: #4a90d9; text-decoration: none\"\u003ePagelove\u003c/a\u003e\n                \u003c/div\u003e\n            \u003c/body\u003e\u003c/html\u003e\n"
+    }
+  ],
+  "outcome": "pass",
+  "target": "live"
+}

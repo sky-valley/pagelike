@@ -1,0 +1,94 @@
+{
+  "case": "apps.first-app.shopping-list-crud",
+  "failures": null,
+  "observations": [
+    {
+      "step": "step 1 (the page is readable)",
+      "method": "GET",
+      "path": "/_pl/apps-first-app-shopping-list-crud-441551/index.html",
+      "status": 200,
+      "headers": {
+        "accept-ranges": "selector, bytes",
+        "content-length": "1392",
+        "content-type": "text/html",
+        "etag": "\"b7b4338b47520d01c0fcc0ad033b31f679e1a7a80ef1dacc013a305d4ded6b2d\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:41 GMT",
+        "vary": "Host, Range, Accept"
+      },
+      "body": "\u003c!DOCTYPE html\u003e\n\u003chtml lang=\"en\"\u003e\n    \u003chead\u003e\n        \u003cmeta charset=\"UTF-8\"\u003e\n        \u003ctitle\u003eSimple Todo List\u003c/title\u003e\n    \u003c/head\u003e\n    \u003cbody\u003e\n        \u003ch1\u003eShopping List\u003c/h1\u003e\n        \u003cul id=\"todo-list\"\u003e\n            \u003cli\u003e\u003cinput type=\"checkbox\"\u003eGet Milk \u003cbutton class=\"delete\"\u003e🗑\u003c/button\u003e\u003c/li\u003e\n            \u003cli\u003e\u003cinput type=\"checkbox\"\u003eBuy Eggs \u003cbutton class=\"delete\"\u003e🗑\u003c/button\u003e\u003c/li\u003e\n            \u003cli\u003e\u003cinput type=\"checkbox\"\u003eMake pancakes \u003cbutton class=\"delete\"\u003e🗑\u003c/button\u003e\u003c/li\u003e\n        \u003c/ul\u003e\n        \u003cdiv hidden itemscope itemtype=\"https://pagelove.org/AuthorizationRule\"\u003e\n            \u003cmeta itemprop=\"actor\" content=\"*\"\u003e\n            \u003cmeta itemprop=\"resource\" content=\"/_pl/apps-first-app-shopping-list-crud-441551/index.html\"\u003e\n            \u003cmeta itemprop=\"method\" content=\"PUT\"\u003e\n            \u003cmeta itemprop=\"method\" content=\"DELETE\"\u003e\n            \u003cmeta itemprop=\"selector\" content=\"#todo-list li\"\u003e\n            \u003cmeta itemprop=\"action\" content=\"allow\"\u003e\n        \u003c/div\u003e\n        \u003cdiv hidden itemscope itemtype=\"https://pagelove.org/AuthorizationRule\"\u003e\n            \u003cmeta itemprop=\"actor\" content=\"*\"\u003e\n            \u003cmeta itemprop=\"resource\" content=\"/_pl/apps-first-app-shopping-list-crud-441551/index.html\"\u003e\n            \u003cmeta itemprop=\"method\" content=\"POST\"\u003e\n            \u003cmeta itemprop=\"selector\" content=\"#todo-list\"\u003e\n            \u003cmeta itemprop=\"action\" content=\"allow\"\u003e\n        \u003c/div\u003e\n    \u003c/body\u003e\n\u003c/html\u003e\n"
+    },
+    {
+      "step": "step 2 (tick the first item (li.PUT() sends the element's outerHTML))",
+      "method": "PUT",
+      "path": "/_pl/apps-first-app-shopping-list-crud-441551/index.html",
+      "status": 206,
+      "headers": {
+        "content-length": "85",
+        "content-range": "selector #todo-list \u003e li:nth-child(1)",
+        "content-type": "text/html",
+        "etag": "\"2cf5102f7c6de3c08d2fd7fb116f24ced40747f5c8f3b5182c37ce1736928b7d-2cf5102f7c6de3c08d2fd7fb116f24ced40747f5c8f3b5182c37ce1736928b7d-2\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:41 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003cli\u003e\u003cinput type=\"checkbox\" checked\u003eGet Milk \u003cbutton class=\"delete\"\u003e🗑\u003c/button\u003e\u003c/li\u003e"
+    },
+    {
+      "step": "step 3 (the tick persisted)",
+      "method": "GET",
+      "path": "/_pl/apps-first-app-shopping-list-crud-441551/index.html",
+      "status": 206,
+      "headers": {
+        "accept-ranges": "selector, bytes",
+        "content-length": "85",
+        "content-range": "selector #todo-list \u003e li:nth-child(1)",
+        "content-type": "text/html",
+        "etag": "\"2cf5102f7c6de3c08d2fd7fb116f24ced40747f5c8f3b5182c37ce1736928b7d-2cf5102f7c6de3c08d2fd7fb116f24ced40747f5c8f3b5182c37ce1736928b7d-2\"",
+        "vary": "Host, Range, Accept"
+      },
+      "body": "\u003cli\u003e\u003cinput type=\"checkbox\" checked\u003eGet Milk \u003cbutton class=\"delete\"\u003e🗑\u003c/button\u003e\u003c/li\u003e"
+    },
+    {
+      "step": "step 4 (add an item (ul.POST(...)); the client appends the response body)",
+      "method": "POST",
+      "path": "/_pl/apps-first-app-shopping-list-crud-441551/index.html",
+      "status": 206,
+      "headers": {
+        "content-length": "74",
+        "content-range": "selector #todo-list",
+        "content-type": "text/html",
+        "etag": "\"f9922dc41b27372bbc38409b602365812b9c96abf1690f43e8fc1878c3019eaa-f9922dc41b27372bbc38409b602365812b9c96abf1690f43e8fc1878c3019eaa-3\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:41 GMT",
+        "vary": "Host, Range"
+      },
+      "body": "\u003cli\u003e\u003cinput type=\"checkbox\"\u003eBread \u003cbutton class=\"delete\"\u003e🗑\u003c/button\u003e\u003c/li\u003e"
+    },
+    {
+      "step": "step 5 (delete \"Buy Eggs\" (li.DELETE()))",
+      "method": "DELETE",
+      "path": "/_pl/apps-first-app-shopping-list-crud-441551/index.html",
+      "status": 204,
+      "headers": {
+        "etag": "\"8ba8e5425f558675add60c86e291f6bb3d312e8445ee94e050087c7ffaf897f2\"",
+        "last-modified": "Tue, 29 Sep 2026 02:40:41 GMT",
+        "vary": "Host, Range"
+      }
+    },
+    {
+      "step": "step 6 (the list now holds Get Milk, Make pancakes, Bread)",
+      "method": "GET",
+      "path": "/_pl/apps-first-app-shopping-list-crud-441551/index.html",
+      "status": 206,
+      "headers": {
+        "accept-ranges": "selector, bytes",
+        "content-length": "313",
+        "content-range": "selector #todo-list",
+        "content-type": "text/html",
+        "etag": "\"168dd82147e6d0d7b79705c0030b2f9037cc1cc576ba9d1d2aff829ab2839617-168dd82147e6d0d7b79705c0030b2f9037cc1cc576ba9d1d2aff829ab2839617-4\"",
+        "vary": "Host, Range, Accept"
+      },
+      "body": "\u003cul id=\"todo-list\"\u003e\n            \u003cli\u003e\u003cinput type=\"checkbox\" checked\u003eGet Milk \u003cbutton class=\"delete\"\u003e🗑\u003c/button\u003e\u003c/li\u003e\n            \n            \u003cli\u003e\u003cinput type=\"checkbox\"\u003eMake pancakes \u003cbutton class=\"delete\"\u003e🗑\u003c/button\u003e\u003c/li\u003e\n        \u003cli\u003e\u003cinput type=\"checkbox\"\u003eBread \u003cbutton class=\"delete\"\u003e🗑\u003c/button\u003e\u003c/li\u003e\u003c/ul\u003e"
+    }
+  ],
+  "outcome": "pass",
+  "target": "local"
+}
