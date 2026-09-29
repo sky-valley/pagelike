@@ -21,10 +21,10 @@ jobs:
         run: test -z "$(gofmt -l cmd internal harness test tools)"
       - name: go vet
         run: go vet ./...
+      # Includes every local compatibility-harness case (harness.TestLocalCases)
+      # and the crash/durability tests.
       - name: go test
         run: go test ./...
-      - name: harness (local target)
-        run: go run ./harness/cmd/harness run
 
   e2e:
     name: browser suites (Chrome)
