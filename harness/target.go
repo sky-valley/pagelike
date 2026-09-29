@@ -29,6 +29,7 @@ import (
 
 // Env is a prepared environment for one case run.
 type Env struct {
+	Publish    func(context.Context, *PublishedBundle, map[string][]byte) error
 	Prefix     string
 	PublicURL  string // scheme://host[:port] clients connect to
 	PublicHost string // Host header value for the public plane
@@ -172,6 +173,9 @@ func (s *swapHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 // Setup creates a fresh site "t" with the case's files, rules and actors.
 func (t *LocalTarget) Setup(ctx context.Context, c *Case) (*Env, error) {
+	if c.Hosted {
+		return setupHosted(ctx, c)
+	}
 	dir, err := os.MkdirTemp("", "pagelike-case-*")
 	if err != nil {
 		return nil, err
@@ -222,6 +226,13 @@ func (t *LocalTarget) Setup(ctx context.Context, c *Case) (*Env, error) {
 	env.Sink = st.sink
 	env.Vars["SINK"] = st.sink.URL()
 	env.Restart = func() error { return st.restart(t.Quiet) }
+	env.Publish = func(ctx context.Context, bundle *PublishedBundle, files map[string][]byte) error {
+		sp, err := st.reg.Get(ctx, "t")
+		if err != nil {
+			return err
+		}
+		return sp.InstallPublished(ctx, bundle.Version, bundle.Generation, files)
+	}
 	env.PruneEvents = func() error {
 		sp, err := st.reg.Get(context.Background(), "t")
 		if err != nil {
@@ -318,6 +329,10 @@ var localStates sync.Map // *Env → *localState
 
 // Teardown removes the case's data.
 func (t *LocalTarget) Teardown(ctx context.Context, env *Env) {
+	if cleanup, ok := hostedCleanup.LoadAndDelete(env); ok {
+		cleanup.(func())()
+		return
+	}
 	if v, ok := localStates.LoadAndDelete(env); ok {
 		st := v.(*localState)
 		if st.srv != nil {

@@ -24,6 +24,7 @@ type Case struct {
 	Requires   []string          `yaml:"requires"`
 	Live       bool              `yaml:"live"`
 	Root       bool              `yaml:"root"`
+	Hosted     bool              `yaml:"hosted"` // native managed-host boundary, local only
 	Status     string            `yaml:"status"` // "disputed", "skip", …
 	Notes      string            `yaml:"notes"`
 	Site       SiteSetup         `yaml:"site"`
@@ -69,6 +70,7 @@ type Actor struct {
 
 // Step is one action in a case.
 type Step struct {
+	Publish *PublishedBundle  `yaml:"publish"` // local managed-host installation
 	Name    string            `yaml:"name"`
 	As      string            `yaml:"as"`
 	Plane   string            `yaml:"plane"`
@@ -101,6 +103,14 @@ type Step struct {
 
 	// Extra captures unknown keys so unsupported step kinds fail loudly.
 	Extra map[string]any `yaml:",inline"`
+}
+
+type PublishedBundle struct {
+	Participation bool              `yaml:"participation"`
+	Deleted       bool              `yaml:"deleted"`
+	Version       string            `yaml:"version"`
+	Generation    int64             `yaml:"generation"`
+	Files         map[string]string `yaml:"files"`
 }
 
 // Request is an HTTP request.

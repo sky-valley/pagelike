@@ -57,6 +57,9 @@ func (p *Public) authEndpoint(w http.ResponseWriter, r *http.Request, rc *reqCtx
 // first contact and whenever the presented session is expired or no longer
 // valid (R-PERM-64, R-PERM-65).
 func (p *Public) principal(w http.ResponseWriter, r *http.Request, s *site.Site) *identity.Principal {
+	if p.ResolvePrincipal != nil {
+		return p.ResolvePrincipal(w, r, s)
+	}
 	if pr := p.devPrincipal(r, s); pr != nil {
 		return pr
 	}

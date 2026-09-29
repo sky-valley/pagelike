@@ -31,6 +31,7 @@ const usage = `pagelike — a PageLove-compatible document runtime
 Usage:
   pagelike serve   [--data DIR] [--listen ADDR] [--domain DOMAIN] [--trust-proxy] [--dev-insecure-auth]
                    [--outbound-allow-private] [--outbound-allow LIST]
+  pagelike host    [--data DIR] [--listen 127.0.0.1:8788] (managed hosting; see docs/hosting.md)
   pagelike site    create NAME [--default-get allow|deny] | list | delete NAME
   pagelike key     create [--site NAME|*] [--label TEXT] [--ttl 720h] | list | revoke ID
 ` + identityUsage + `  pagelike export  --site NAME --out DIR
@@ -58,6 +59,8 @@ func main() {
 	switch os.Args[1] {
 	case "serve":
 		err = cmdServe(os.Args[2:])
+	case "host":
+		err = cmdHost(os.Args[2:])
 	case "site":
 		err = cmdSite(os.Args[2:])
 	case "key":

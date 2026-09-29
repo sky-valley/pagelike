@@ -39,7 +39,7 @@ func (w *WriteCtx) SideEffectPut(path, contentType string, body []byte) (*store.
 // DELETE mutation event.
 func (w *WriteCtx) SideEffectDelete(path string) error {
 	sw := w.sideEffectCtx(path, "DELETE")
-	if err := w.Tx.Delete(path); err != nil {
+	if err := w.Engine.remove(sw, path); err != nil {
 		return err
 	}
 	if w.Op.Plane == Authoring {

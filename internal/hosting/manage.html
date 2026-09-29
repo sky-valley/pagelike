@@ -1,0 +1,18 @@
+<!doctype html><html lang="en"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Your participation</title>
+<style>body{font:16px/1.5 system-ui;background:#fffaec;color:#222;margin:0;padding:24px}h1{font-size:26px}button,input,textarea{font:inherit}button{min-height:44px;padding:8px 16px;background:#222;color:#fffaec;border:0;border-radius:10px;cursor:pointer}input,textarea{box-sizing:border-box;width:100%;padding:10px;border:1px solid #aaa;border-radius:8px}li{padding:16px 0;border-bottom:1px solid #ddd;overflow-wrap:anywhere}ul{list-style:none;padding:0}a{color:inherit}label{display:block;margin:12px 0}small{display:block;color:#555}#all{margin-top:16px}section{margin-top:32px;border-top:1px solid #ccc}button:disabled{opacity:.5}</style>
+<h1>Your participation</h1><p>Remove something you contributed, or send a report.</p><p id="status" role="status"></p><button id="join">Sign in to continue</button><button id="all" hidden>Manage all contributions</button><ul id="items"></ul>
+<section><h2>Report a concern</h2><form id="report"><label>Contribution ID (optional)<input name="contribution" maxlength="32" pattern="[a-f0-9]{32}"></label><label>What happened?<textarea name="reason" required maxlength="1000" rows="3"></textarea></label><button>Send report</button></form></section>
+<script src="/-/client.js"></script><script>
+const status=document.querySelector('#status'),items=document.querySelector('#items'),join=document.querySelector('#join'),all=document.querySelector('#all');let moderate=false;
+async function load(){
+ const me=await fetch('/-/me',{cache:'no-store'}).then(r=>r.json());join.hidden=me.authenticated;all.hidden=!me.moderator;
+ if(!me.authenticated){status.textContent='Sign in through the player to manage participation.';return}
+ const response=await fetch('/-/contributions'+(moderate?'?all=1':''),{cache:'no-store'});if(!response.ok)throw Error('Could not load contributions. Try again.');
+ const list=await response.json();items.replaceChildren();status.textContent=list.length?'':'No contributions yet.';
+ for(const item of list){const row=document.createElement('li'),link=document.createElement('a'),id=document.createElement('small'),remove=document.createElement('button');link.textContent=item.path;link.href=item.path;link.target='_blank';link.rel='noopener noreferrer';id.textContent='ID: '+item.id;remove.textContent='Remove';remove.onclick=async()=>{remove.disabled=true;try{const r=await fetch('/-/contributions/'+item.id+(moderate?'?all=1':''),{method:'DELETE'});if(!r.ok)throw Error(r.status===409?'This contribution has later participation. Ask the creator to remove it.':'Removal failed. Try again.');await load()}catch(e){status.textContent=e.message;remove.disabled=false}};row.append(link,id,remove);items.append(row)}
+}
+join.onclick=async()=>{try{await pagelike.participate();await load()}catch(e){status.textContent=e.message}};
+all.onclick=()=>{moderate=!moderate;all.textContent=moderate?'Show my contributions':'Manage all contributions';load().catch(e=>status.textContent=e.message)};
+document.querySelector('#report').onsubmit=async e=>{e.preventDefault();try{await pagelike.participate();const data=new FormData(e.target);const r=await fetch('/-/reports',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(Object.fromEntries(data))});if(!r.ok)throw Error('Report could not be sent. Try again.');status.textContent='Report received.';e.target.reset()}catch(e){status.textContent=e.message}};
+load().catch(e=>status.textContent=e.message);
+</script></html>

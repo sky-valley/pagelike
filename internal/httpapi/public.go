@@ -40,11 +40,15 @@ type QueryHandler func(ctx context.Context, s *site.Site, snap *site.Snapshot, o
 
 // Public serves the public plane of every site.
 type Public struct {
-	Engine  *engine.Engine
-	Compose engine.Composer
-	Route   Router
-	Queries map[string]QueryHandler // extra QUERY content types
-	Log     *slog.Logger
+	// ResolvePrincipal and CheckSession let a managed host bind its identity
+	// authority without exposing authoring credentials to public requests.
+	ResolvePrincipal func(http.ResponseWriter, *http.Request, *site.Site) *identity.Principal
+	CheckSession     func(context.Context, *site.Site, string) bool
+	Engine           *engine.Engine
+	Compose          engine.Composer
+	Route            Router
+	Queries          map[string]QueryHandler // extra QUERY content types
+	Log              *slog.Logger
 	// TrustProxy honours X-Forwarded-Proto for cookie security decisions.
 	TrustProxy bool
 	// DevAuth enables the X-Pagelike-Dev-User impersonation header. It is

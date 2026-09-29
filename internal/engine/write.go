@@ -465,7 +465,7 @@ func (e *Engine) deleteDocument(ctx context.Context, w *WriteCtx) (*Result, erro
 	if err := e.validate(ctx, w); err != nil {
 		return nil, err
 	}
-	if err := w.Tx.Delete(op.Path); err != nil {
+	if err := e.remove(w, op.Path); err != nil {
 		return nil, err
 	}
 	if op.Plane == Authoring {

@@ -219,7 +219,7 @@ func (e *Engine) moveDocument(ctx context.Context, w *WriteCtx, dest string) (*R
 	if err != nil {
 		return nil, err
 	}
-	if err := w.Tx.Delete(op.Path); err != nil {
+	if err := e.remove(w, op.Path); err != nil {
 		return nil, err
 	}
 	if op.Plane == Authoring {

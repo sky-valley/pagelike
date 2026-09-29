@@ -148,6 +148,9 @@ func (p *Public) subscribe(w http.ResponseWriter, r *http.Request, rc *reqCtx, c
 				return
 			}
 		case <-sessionTick:
+			if p.CheckSession != nil && !p.CheckSession(ctx, s, rc.principal.Session) {
+				return
+			}
 			if reason := sessionReset(ctx, s, rc.principal.Session); reason != "" {
 				sse.WriteEvent(w, "", "reset", sse.Reset(reason))
 				return
@@ -203,6 +206,9 @@ func (st *stream) deliver(ctx context.Context, ev store.Event) bool {
 // elements, so they are withheld whenever the subscriber's access depends
 // on elements at all (fail closed).
 func (st *stream) readable(ctx context.Context, ev store.Event) (ok, keep bool) {
+	if st.rc.principal.Authenticated && st.p.CheckSession != nil && !st.p.CheckSession(ctx, st.rc.site, st.rc.principal.Session) {
+		return false, false
+	}
 	snap, err := st.rc.site.Index(ctx)
 	if err != nil {
 		return false, false

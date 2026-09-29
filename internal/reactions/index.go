@@ -133,6 +133,7 @@ const extKey = "reactions.index"
 
 // indexFor returns the reaction items of a snapshot (cached per generation).
 func indexFor(snap *site.Snapshot) *index {
+	snap = snap.Configuration()
 	return snap.Ext(extKey, func(s *site.Snapshot) any { return buildIndex(s) }).(*index)
 }
 

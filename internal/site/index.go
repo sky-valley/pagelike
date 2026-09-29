@@ -2,6 +2,7 @@ package site
 
 import (
 	"context"
+	"sort"
 	"strings"
 	"sync"
 
@@ -26,15 +27,26 @@ type ParsedDoc struct {
 
 // Snapshot is an immutable view of host-wide derived data at one generation.
 type Snapshot struct {
-	Generation  int64
-	settingsRev int64                 // settings revision the snapshot was built with
-	Docs        map[string]*ParsedDoc // markup documents by path
-	Paths       []string              // sorted markup document paths
-	Policy      *authz.Policy
-	byType      map[string][]TypedItem
+	configuration *Snapshot
+	Generation    int64
+	settingsRev   int64                 // settings revision the snapshot was built with
+	Docs          map[string]*ParsedDoc // markup documents by path
+	Paths         []string              // sorted markup document paths
+	Policy        *authz.Policy
+	byType        map[string][]TypedItem
 
 	extMu sync.Mutex
 	ext   map[string]any // lazily derived structures keyed by owner package
+}
+
+// Configuration excludes mutable participant documents on hosted sites. Data
+// remains queryable through the original snapshot but cannot define authority,
+// schemas, or server reactions.
+func (s *Snapshot) Configuration() *Snapshot {
+	if s.configuration != nil {
+		return s.configuration
+	}
+	return s
 }
 
 // TypedItem is an item located in a document.
@@ -92,6 +104,10 @@ func IsXML(ct string) bool {
 
 // Get returns the snapshot for the current generation.
 func (ix *Index) Get(ctx context.Context) (*Snapshot, error) {
+	// Authorization and schema discovery always use the current authored rules,
+	// including requests rendering an older immutable published document.
+	version := store.PublishedVersion(ctx)
+	ctx = store.WithPublishedVersion(ctx, "")
 	gen, err := ix.site.Store.Generation(ctx)
 	if err != nil {
 		return nil, err
@@ -100,7 +116,7 @@ func (ix *Index) Get(ctx context.Context) (*Snapshot, error) {
 	defer ix.mu.Unlock()
 	rev := ix.site.SettingsRevision()
 	if ix.cur != nil && ix.cur.Generation == gen && ix.cur.settingsRev == rev {
-		return ix.cur, nil
+		return ix.view(ctx, ix.cur, version)
 	}
 	metas, err := ix.site.Store.List(ctx, "/", false)
 	if err != nil {
@@ -130,19 +146,73 @@ func (ix *Index) Get(ctx context.Context) (*Snapshot, error) {
 				snap.byType[t] = append(snap.byType[t], TypedItem{Path: pd.Path, Item: it})
 			}
 		}
-		rules, groups := authz.ExtractRules(pd.Path, pd.Root)
-		pol.Rules = append(pol.Rules, rules...)
-		pol.Groups = append(pol.Groups, groups...)
+		if !ix.site.Settings().Hosted || !store.LivePath(pd.Path) {
+			rules, groups := authz.ExtractRules(pd.Path, pd.Root)
+			pol.Rules = append(pol.Rules, rules...)
+			pol.Groups = append(pol.Groups, groups...)
+		}
 	}
 	for p := range ix.docs {
 		if !live[p] {
 			delete(ix.docs, p)
 		}
 	}
-	pol.RunHooks(snap) // schema: Group subtypes, rule subtypes (authz.Hook)
+	if ix.site.Settings().Hosted {
+		c := &Snapshot{Generation: gen, settingsRev: rev, Docs: map[string]*ParsedDoc{}, byType: map[string][]TypedItem{}, ext: map[string]any{}}
+		for _, p := range snap.Paths {
+			if store.LivePath(p) {
+				continue
+			}
+			pd := snap.Docs[p]
+			c.Docs[p] = pd
+			c.Paths = append(c.Paths, p)
+			for _, it := range pd.Items {
+				for _, typ := range it.Types {
+					c.byType[typ] = append(c.byType[typ], TypedItem{Path: p, Item: it})
+				}
+			}
+		}
+		snap.configuration = c
+	}
+	pol.RunHooks(snap.Configuration()) // schema: Group subtypes, rule subtypes (authz.Hook)
 	snap.Policy = pol
+	snap.Configuration().Policy = pol
 	ix.cur = snap
-	return snap, nil
+	return ix.view(ctx, snap, version)
+}
+
+// Composition sees one authored version in includes, bindings and host queries.
+// Its policy, schema and reactions still come from current authored rules.
+func (ix *Index) view(ctx context.Context, current *Snapshot, version string) (*Snapshot, error) {
+	if version == "" {
+		return current, nil
+	}
+	docs, err := ix.site.Store.PublishedDocuments(ctx, version)
+	if err != nil {
+		return nil, err
+	}
+	view := &Snapshot{Generation: current.Generation, settingsRev: current.settingsRev, Policy: current.Policy, configuration: current.Configuration(), Docs: map[string]*ParsedDoc{}, byType: map[string][]TypedItem{}, ext: map[string]any{}}
+	add := func(p *ParsedDoc) {
+		view.Docs[p.Path] = p
+		view.Paths = append(view.Paths, p.Path)
+		for _, it := range p.Items {
+			for _, typ := range it.Types {
+				view.byType[typ] = append(view.byType[typ], TypedItem{Path: p.Path, Item: it})
+			}
+		}
+	}
+	for _, d := range docs {
+		if !d.IsBlob() && IsMarkup(d.ContentType) {
+			add(Parse(d))
+		}
+	}
+	for _, p := range current.Paths {
+		if store.LivePath(p) {
+			add(current.Docs[p])
+		}
+	}
+	sort.Strings(view.Paths)
+	return view, nil
 }
 
 // ParseMarkup parses a stored markup document of content type ct: XML-family

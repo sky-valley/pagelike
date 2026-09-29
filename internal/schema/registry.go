@@ -178,6 +178,7 @@ func For(snap *site.Snapshot) *Registry {
 	if snap == nil {
 		return emptyRegistry
 	}
+	snap = snap.Configuration()
 	return snap.Ext(extKey, func(s *site.Snapshot) any { return build(s) }).(*Registry)
 }
 

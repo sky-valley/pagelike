@@ -1,0 +1,35 @@
+cases:
+  - id: HOST.install.preserve
+    area: hosting
+    evidence: inferred
+    source: "docs/hosting.md: ordered publication and seed preservation"
+    live: false
+    root: true
+    steps:
+      - publish:
+          version: first
+          generation: 1
+          files:
+            index.html: '<h1>First</h1>'
+            data/votes.html: '<ul id="votes"></ul>'
+      - plane: dav
+        request:
+          method: PUT
+          path: /data/votes.html
+          headers: {Content-Type: text/html}
+          body: '<ul id="votes"><li>Real vote</li></ul>'
+        expect: {status: [200, 201, 204]}
+      - publish:
+          version: second
+          generation: 2
+          files:
+            index.html: '<h1>Second</h1>'
+            data/votes.html: '<ul id="votes"><li>Replacement seed</li></ul>'
+      - request: {method: GET, path: /data/votes.html}
+        expect:
+          status: 200
+          body_contains: Real vote
+          body_not_contains: Replacement seed
+      - restart: true
+      - request: {method: GET, path: /data/votes.html}
+        expect: {status: 200, body_contains: Real vote}

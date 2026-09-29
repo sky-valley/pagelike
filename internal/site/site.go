@@ -31,6 +31,8 @@ func ValidName(s string) bool { return nameRE.MatchString(s) && !strings.HasPref
 
 // Settings are per-site configuration, stored in the site database.
 type Settings struct {
+	// Hosted separates authored runtime configuration from participant data.
+	Hosted bool `json:"hosted,omitempty"`
 	// DefaultGet is the host default-GET mode: "allow" grants GET/HEAD
 	// requests that no rule matches; "deny" refuses them.
 	DefaultGet string `json:"default_get"`

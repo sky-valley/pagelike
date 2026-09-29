@@ -266,6 +266,18 @@ func (rn *run) step(ctx context.Context, st *Step, i int) {
 		return
 	}
 	switch {
+	case st.Publish != nil:
+		if rn.env.Publish == nil {
+			rn.fail("%s: target cannot install published bundles", lbl)
+			return
+		}
+		files := map[string][]byte{}
+		for p, b := range st.Publish.Files {
+			files[rn.expand(p)] = []byte(rn.expand(b))
+		}
+		if err := rn.env.Publish(ctx, st.Publish, files); err != nil {
+			rn.fail("%s: publish: %v", lbl, err)
+		}
 	case st.SleepMS > 0 && st.Request == nil:
 		select {
 		case <-time.After(time.Duration(st.SleepMS) * time.Millisecond):

@@ -1,0 +1,85 @@
+cases:
+  - id: HOST.http.lifecycle
+    area: hosting
+    evidence: inferred
+    source: "docs/hosting.md: native hosting identity, ordered publication, removal and inert data contracts"
+    live: false
+    root: true
+    hosted: true
+    actors: {alice: {}, bob: {}}
+    steps:
+      - publish:
+          version: one
+          generation: 1
+          participation: true
+          files:
+            index.html: '<html xmlns:p="https://pagelove.org/1.0"><body><p:include resource="/part.html" selector="h1"></p:include><p:include resource="/data/list.html" selector="#items"></p:include></body></html>'
+            part.html: '<h1>First version</h1>'
+            data/list.html: '<ul id="items"></ul>'
+            rules.html: '<div itemscope itemtype="https://pagelove.org/AuthorizationRule"><meta itemprop="actor" content="users"><meta itemprop="resource" content="/data/*"><meta itemprop="method" content="POST"><meta itemprop="action" content="Allow"></div>'
+      - request: {method: GET, path: /-/client.js}
+        expect: {status: 200, body_contains: 'pagelike:participate'}
+      - request: {method: GET, path: /-pagelike/me}
+        expect: {status: 404}
+      - request: {method: GET, path: /v/one/-pagelike/me}
+        expect: {status: 404}
+      - request: {method: POST, path: /data/list.html, headers: {Origin: '${ORIGIN}', Content-Type: text/html, Range: 'selector=#items'}, body: '<li>Anonymous</li>'}
+        expect: {status: 401}
+      - as: alice
+        request: {method: POST, path: /-/session, headers: {Origin: 'https://other.example'}, body: '{"ticket":"alice"}'}
+        expect: {status: 403}
+      - as: alice
+        request: {method: POST, path: /-/session, headers: {Origin: '${ORIGIN}'}, body: '{"ticket":"alice"}'}
+        expect: {status: 200, header_matches: {Set-Cookie: '__Host-session=.*HttpOnly.*Secure.*SameSite=None.*Partitioned'}}
+      - as: bob
+        request: {method: POST, path: /-/session, headers: {Origin: '${ORIGIN}'}, body: '{"ticket":"alice"}'}
+        expect: {status: 401}
+      - as: alice
+        request: {method: POST, path: /data/list.html, headers: {Origin: '${ORIGIN}', Content-Type: text/html, Range: 'selector=#items'}, body: '<li onclick="bad()">Unsafe</li>'}
+        expect: {status: 422}
+      - as: alice
+        request: {method: POST, path: /data/list.html, headers: {Origin: '${ORIGIN}', Content-Type: text/html, Range: 'selector=#items'}, body: '<li>A real contribution</li>'}
+        expect: {status: 206}
+      - request: {method: GET, path: /v/one/index.html}
+        expect: {status: 200, body_contains: ['First version', 'A real contribution'], body_not_contains: Unsafe}
+      - as: alice
+        request: {method: PUT, path: /index.html, headers: {Origin: '${ORIGIN}', Content-Type: text/html}, body: '<p>Overwrite</p>'}
+        expect: {status: 403}
+      - publish:
+          version: two
+          generation: 2
+          participation: true
+          files:
+            index.html: '<html xmlns:p="https://pagelove.org/1.0"><body><p:include resource="/part.html" selector="h1"></p:include><p:include resource="/data/list.html" selector="#items"></p:include></body></html>'
+            part.html: '<h1>Second version</h1>'
+            data/list.html: '<ul id="items"><li>Replacement seed</li></ul>'
+            rules.html: '<p>New participation closed.</p>'
+      - restart: true
+      - request: {method: GET, path: /v/one/index.html}
+        expect: {status: 200, body_contains: ['First version', 'A real contribution'], body_not_contains: ['Second version', 'Replacement seed']}
+      - request: {method: GET, path: /v/two/index.html}
+        expect: {status: 200, body_contains: ['Second version', 'A real contribution'], body_not_contains: 'Replacement seed'}
+      - as: alice
+        request: {method: POST, path: /data/list.html, headers: {Origin: '${ORIGIN}', Content-Type: text/html, Range: 'selector=#items'}, body: '<li>Too late</li>'}
+        expect: {status: 403}
+      - as: alice
+        request: {method: GET, path: /-/contributions}
+        expect: {status: 200}
+        capture: {contribution: 'body|regex:"id":"([a-f0-9]+)"'}
+      - as: bob
+        request: {method: POST, path: /-/session, headers: {Origin: '${ORIGIN}'}, body: '{"ticket":"bob"}'}
+        expect: {status: 200}
+      - as: bob
+        request: {method: DELETE, path: '/-/contributions/${contribution}', headers: {Origin: '${ORIGIN}'}}
+        expect: {status: 404}
+      - as: alice
+        request: {method: DELETE, path: '/-/contributions/${contribution}', headers: {Origin: '${ORIGIN}'}}
+        expect: {status: 204}
+      - request: {method: GET, path: /v/one/index.html}
+        expect: {status: 200, body_not_contains: 'A real contribution'}
+      - publish: {version: two, generation: 3, deleted: true}
+      - request: {method: GET, path: /v/one/index.html}
+        expect: {status: 410}
+      - restart: true
+      - request: {method: GET, path: /v/two/index.html}
+        expect: {status: 410}

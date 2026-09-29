@@ -177,6 +177,24 @@ CREATE TABLE IF NOT EXISTS dirs (
 	path       TEXT PRIMARY KEY,
 	created_ms INTEGER NOT NULL
 );
+CREATE TABLE IF NOT EXISTS published_bundles (
+ id TEXT PRIMARY KEY,
+ digest TEXT NOT NULL
+);
+CREATE TABLE IF NOT EXISTS published_documents (
+ revision TEXT NOT NULL,
+ path TEXT NOT NULL,
+ content_type TEXT NOT NULL,
+ body BLOB,
+ blob_sha TEXT NOT NULL DEFAULT '',
+ size INTEGER NOT NULL,
+ version INTEGER NOT NULL,
+ etag TEXT NOT NULL,
+ created_ms INTEGER NOT NULL,
+ modified_ms INTEGER NOT NULL,
+ PRIMARY KEY (revision,path)
+);
+CREATE TABLE IF NOT EXISTS published_seeds (path TEXT PRIMARY KEY);
 INSERT OR IGNORE INTO meta(key, value) VALUES ('generation', '0');
 `
 
@@ -231,6 +249,9 @@ func scanDoc(row interface{ Scan(...any) error }) (*Document, error) {
 
 // Get returns the document at path.
 func (s *Site) Get(ctx context.Context, path string) (*Document, error) {
+	if version, _ := ctx.Value(publishedVersionKey{}).(string); version != "" && !LivePath(path) {
+		return scanDoc(s.db.QueryRowContext(ctx, `SELECT `+docCols+` FROM published_documents WHERE revision = ? AND path = ?`, version, path))
+	}
 	return scanDoc(s.db.QueryRowContext(ctx, `SELECT `+docCols+` FROM documents WHERE path = ?`, path))
 }
 
@@ -322,7 +343,7 @@ func (s *Site) sweepBlobs() error {
 		return err
 	}
 	refs := map[string]bool{}
-	rows, err := s.db.Query(`SELECT blob_sha FROM documents WHERE blob_sha != '' UNION SELECT blob_sha FROM authored WHERE blob_sha != ''`)
+	rows, err := s.db.Query(`SELECT blob_sha FROM documents WHERE blob_sha != '' UNION SELECT blob_sha FROM authored WHERE blob_sha != '' UNION SELECT blob_sha FROM published_documents WHERE blob_sha != ''`)
 	if err != nil {
 		return err
 	}

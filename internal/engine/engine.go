@@ -87,6 +87,10 @@ type Result struct {
 // validation and reactions register TransitionConstraints in Validate,
 // reactions register Processors and the outbox in AfterWrite.
 type Hooks struct {
+	// GuardStore checks every final document change, including schema cascades
+	// and processors that bypass the ordinary write pipeline. A nil document
+	// means deletion. It cannot change the write.
+	GuardStore func(w *WriteCtx, path string, document *store.Document) error
 	// BeforeWrite runs before the mutation is applied (triggers). It may
 	// rewrite op.Body or refuse with an *errdoc.Error.
 	BeforeWrite []func(ctx context.Context, w *WriteCtx) error
@@ -583,6 +587,11 @@ func (e *Engine) canonicalHost(w *WriteCtx) string {
 // put stores a document and, for authoring-plane writes, its authored
 // baseline (the state a fork copies).
 func (e *Engine) put(w *WriteCtx, nd *store.Document) (*store.Document, error) {
+	if e.Hooks.GuardStore != nil {
+		if err := e.Hooks.GuardStore(w, nd.Path, nd); err != nil {
+			return nil, err
+		}
+	}
 	stored, err := w.Tx.Put(nd)
 	if err != nil {
 		return nil, err
@@ -593,6 +602,15 @@ func (e *Engine) put(w *WriteCtx, nd *store.Document) (*store.Document, error) {
 		}
 	}
 	return stored, nil
+}
+
+func (e *Engine) remove(w *WriteCtx, path string) error {
+	if e.Hooks.GuardStore != nil {
+		if err := e.Hooks.GuardStore(w, path, nil); err != nil {
+			return err
+		}
+	}
+	return w.Tx.Delete(path)
 }
 
 // markupType is the Content-Type of fragments cut from a document: exactly
