@@ -23,11 +23,12 @@ start with evidence about what PageLove does.
 ## Before you open a pull request
 
 ```bash
-gofmt -l cmd internal harness test tools   # must print nothing
-go vet ./...
-go test ./...                              # includes every local harness case and the durability tests
-cd e2e && npm ci && npx playwright test    # if you touched anything a browser sees
+scripts/check.sh           # gofmt, vet, go test ./... (every local harness case, durability), public-content scan, browser suites
+scripts/check.sh --quick   # without the browser suites
 ```
+
+See docs/development.md for the test tiers, and docs/decisions/0005 for how
+differences from PageLove are decided.
 
 ## Layout
 

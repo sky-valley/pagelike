@@ -1,6 +1,6 @@
 # 0002: Liquid engine for PageLove-compatible templates
 
-- Status: proposed (spike complete, 2026-09-28)
+- Status: accepted (implemented; spike 2026-09-28)
 - Spike: `research/spikes/liquid/` (exploratory; not part of the public repository — its results are recorded here).
 - Scope: `pagelove:template="text/liquid"` rendering (stage 5, `internal/liquid`)
 

@@ -1,6 +1,6 @@
 # 0001: Server-side JavaScript engine and isolation
 
-- **Status:** proposed
+- **Status:** accepted (implemented)
 - **Date:** 2026-09-28
 - **Spike:** `research/spikes/js-engine/` (exploratory; not part of the public repository — its results are recorded here).
   - `all.jsonl`: the full matrix, where modernc's "configured" stack is 262,144 slots;

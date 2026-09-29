@@ -1,6 +1,6 @@
 # 0003: HTML parsing, serialization, XML and CSS selectors
 
-- **Status:** proposed
+- **Status:** partly superseded by [0004](0004-pagelove-document-model.md) (tree construction and source preservation); the selector engine, serializer and XML decisions stand
 - **Date:** 2026-09-28
 - **Spike:** `research/spikes/html-selectors/` (exploratory; not part of the public repository — its results are recorded here).
 - **Evidence snapshot:** docs 2026-09-28 (`research/docs/2026-09-28/md`), upstream apps listed in `research/COMMITS.txt`

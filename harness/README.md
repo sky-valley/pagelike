@@ -26,7 +26,10 @@ printed). It must hold:
 - `PAGELOVE_DAV_URL`;
 - `PAGELOVE_DISPOSABLE=yes`.
 
-Live runs refuse to start without them, and rate-limit to 3 req/s.
+Live runs refuse to start without them, and rate-limit to 3 req/s. Prefer
+`scripts/live-run.sh <label> --ids …`, which also caps a run at 40 cases and
+records the observation directory in `harness/observations/ORDER` for
+`scripts/matrix.sh`.
 
 ## Case files
 

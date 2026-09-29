@@ -19,6 +19,8 @@ jobs:
           go-version-file: go.mod
       - name: gofmt
         run: test -z "$(gofmt -l cmd internal harness test tools)"
+      - name: public-content scan
+        run: scripts/scan-public.sh
       - name: go vet
         run: go vet ./...
       # Includes every local compatibility-harness case (harness.TestLocalCases)

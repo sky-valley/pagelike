@@ -248,17 +248,18 @@ request; they live under `/-pagelike/` and in the CLI.
 ## Development
 
 ```bash
-go test ./...                                   # unit, integration, durability and every local harness case
-go run ./harness/cmd/harness run                # the compatibility harness (add --slow for retention cases)
-cd e2e && npm ci && npx playwright test         # browser suites (system Chrome)
+scripts/check.sh                                # everything: gofmt, vet, go test ./... (every local harness case), scan, browser suites
+go run ./harness/cmd/harness run --filter rw    # iterate on one area (add --slow for retention cases)
 tools/research/clone_upstream.sh                # optional: PageLove's apps, for the release acceptance suite
 ```
 
-`go run ./harness/cmd/harness run --target live` runs cases against a PageLove
-host that **you** create for testing. It refuses hosts not marked disposable
-and limits itself to 3 requests/s. See [harness/README.md](harness/README.md).
+`scripts/live-run.sh <label> --ids …` runs cases against a PageLove host
+that **you** create for testing. It refuses hosts not marked disposable and
+caps a run at 40 cases, and the harness limits itself to 3 requests/s. See
+[harness/README.md](harness/README.md).
 
 **Where to read next:**
+- How we work (test tiers, lessons, parallel agents): [docs/development.md](docs/development.md). Coding agents start at [AGENTS.md](AGENTS.md); repeatable procedures are in [.claude/skills/](.claude/skills/).
 - Design: [docs/design.md](docs/design.md) and [docs/architecture.md](docs/architecture.md).
 - Specification by area, with an evidence level for every requirement: [docs/spec/](docs/spec/).
 - Decisions: [docs/decisions/](docs/decisions/).
