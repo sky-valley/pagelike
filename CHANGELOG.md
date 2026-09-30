@@ -1,5 +1,14 @@
 # Changelog
 
+## v0.2.1 — 2026-09-30
+
+- Fix Linux worker memory accounting: a fresh JavaScript worker no longer
+  inherits the host's old peak for its own memory limit. The worker's actual
+  memory ceiling remains enforced. A subprocess regression test reproduces the
+  failure before the fix.
+- Includes the managed-identity changes below. The v0.2.0 tag's release job was
+  blocked by this existing Linux issue; v0.2.1 is the published release.
+
 ## v0.2.0 — 2026-09-30
 
 - Closing a site registry now prevents a late background scan from reopening

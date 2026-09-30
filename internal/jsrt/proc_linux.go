@@ -13,6 +13,26 @@ import (
 
 const rssPollInterval = 20 * time.Millisecond
 
+// VmHWM belongs to the current executable's address space. getrusage retains
+// the parent's pre-exec peak on Linux and can kill a fresh, small worker merely
+// because the host used more memory before starting it (getrusage(2), NOTES).
+func peakRSS() int64 {
+	b, err := os.ReadFile("/proc/self/status")
+	if err != nil {
+		return processRSS(os.Getpid())
+	}
+	for _, line := range strings.Split(string(b), "\n") {
+		fields := strings.Fields(line)
+		if len(fields) == 3 && fields[0] == "VmHWM:" && fields[2] == "kB" {
+			kb, err := strconv.ParseInt(fields[1], 10, 64)
+			if err == nil {
+				return kb * 1024
+			}
+		}
+	}
+	return processRSS(os.Getpid())
+}
+
 // platformLockdown bounds the address space and sets no_new_privs, both
 // installable from pure Go.
 func platformLockdown(cfg workerConfig) []string {

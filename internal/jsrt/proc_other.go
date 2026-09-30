@@ -4,8 +4,10 @@ package jsrt
 
 import (
 	"os/exec"
+	"runtime"
 	"strconv"
 	"strings"
+	"syscall"
 	"time"
 )
 
@@ -16,6 +18,18 @@ import (
 const rssPollInterval = 200 * time.Millisecond
 
 func platformLockdown(workerConfig) []string { return nil }
+
+// peakRSS is this process's peak resident set size in bytes.
+func peakRSS() int64 {
+	var ru syscall.Rusage
+	if err := syscall.Getrusage(syscall.RUSAGE_SELF, &ru); err != nil {
+		return 0
+	}
+	if runtime.GOOS == "darwin" {
+		return int64(ru.Maxrss)
+	}
+	return int64(ru.Maxrss) * 1024
+}
 
 func processRSS(pid int) int64 {
 	out, err := exec.Command("ps", "-o", "rss=", "-p", strconv.Itoa(pid)).Output()

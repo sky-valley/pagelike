@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
-	"runtime"
 	"syscall"
 )
 
@@ -22,18 +21,6 @@ func killGroup(cmd *exec.Cmd) {
 	}
 	_ = syscall.Kill(-cmd.Process.Pid, syscall.SIGKILL)
 	_ = cmd.Process.Kill()
-}
-
-// peakRSS is this process's peak resident set size in bytes.
-func peakRSS() int64 {
-	var ru syscall.Rusage
-	if err := syscall.Getrusage(syscall.RUSAGE_SELF, &ru); err != nil {
-		return 0
-	}
-	if runtime.GOOS == "darwin" {
-		return int64(ru.Maxrss) // bytes
-	}
-	return int64(ru.Maxrss) * 1024 // KiB elsewhere
 }
 
 // setLimit assigns an rlimit field, whose type is uint64 on most systems
