@@ -37,15 +37,22 @@ scripts/check.sh            # definition of done: gofmt, vet, go test ./... (eve
 scripts/check.sh --quick    # skip the browser suites
 go run ./harness/cmd/harness run --filter <area>     # iterate on one area
 go run ./harness/cmd/harness run --slow --ids <id>   # slow cases (SSE retention, keepalives)
+scripts/build-docs.sh       # build the docs site to site/public and run scan-public
+go run ./cmd/site build     # rebuild site/public (alternative invocation)
+go run ./cmd/site serve     # local preview on 127.0.0.1:9000
 ```
 
 ## Where knowledge lives
 
 | Need | Go to |
 |---|---|
+| Published docs site | `https://sky-valley.github.io/pagelike/` (built by `cmd/site`, deployed by `.github/workflows/docs.yml`) |
+| Agent entry point | `llms.txt` at the repo root and `/llms.txt` on the docs site; full dump at `/llms-full.txt`; structured catalog at `/index.json` |
+| Build / serve the site | `cmd/site/` (render.go, build.go, agent.go, spec.go); template + CSS embedded into the binary |
+| Site content additions | `site/content/` (for-agents.md, commands.md, build/, examples/) |
 | Subsystem rules | `internal/dom/AGENTS.md`, `harness/AGENTS.md`, `e2e/AGENTS.md` |
 | Repeatable procedures | `.claude/skills/`: `implement-behaviour`, `probe-pagelove`, `reconcile-live`, `acceptance-run`, `release` |
-| Deterministic steps | `scripts/`: `check`, `live-run`, `divergences`, `matrix`, `perf`, `scan-public`, `release` |
+| Deterministic steps | `scripts/`: `check`, `live-run`, `divergences`, `matrix`, `perf`, `scan-public`, `release`, `build-docs` |
 | Multi-agent runs | `.claude/workflows/reconcile-live.js` (started by the `reconcile-live` skill) |
 | Why things are the way they are | `docs/decisions/` (ADRs), `docs/compat/decisions*.md`, `docs/compat/live-observations.md` (LO-n) |
 | What PageLove specifies | `docs/spec/<area>.md` (requirements `R-…` with evidence levels) |

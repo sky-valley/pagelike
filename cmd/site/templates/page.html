@@ -1,0 +1,32 @@
+{{define "page.html"}}<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{{.Title}}{{if not .IsIndex}} · pagelike{{end}}</title>
+  <meta name="description" content="{{.Description}}">
+  {{.OpenGraphTags}}
+  {{.CanonicalLink}}
+  <link rel="stylesheet" href="/style.css">
+  <script type="application/ld+json">{{.JSONLD}}</script>
+</head>
+<body>
+  <header class="site-head">
+    <a class="site-name" href="{{.Site.URL}}">pagelike</a>
+    <nav>
+      <a href="/agents/">Agents</a>
+      <a href="/spec/">Spec</a>
+      <a href="/commands/">CLI</a>
+      <a href="/compat/report/">Compat</a>
+      <a href="/llms.txt">llms.txt</a>
+    </nav>
+  </header>
+  <main id="content">
+    {{.Body}}
+  </main>
+  <footer class="site-foot">
+    <p>Apache-2.0 · <a href="/llms.txt">llms.txt</a> · <a href="/llms-full.txt">llms-full.txt</a> · <a href="/index.json">index.json</a> · <a href="/sitemap.xml">sitemap.xml</a></p>
+  </footer>
+</body>
+</html>
+{{end}}

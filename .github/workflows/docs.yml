@@ -1,0 +1,91 @@
+# Build and publish the docs site to GitHub Pages.
+#
+# Triggers:
+#   - push to main that touches a build-affecting file
+#   - manual dispatch via the Actions UI (workflow_dispatch)
+#
+# Deploy: builds site/public under the workflow, then pushes it to the
+# `gh-pages` branch using peaceiris/actions-gh-pages@v4. GitHub Pages
+# serves the resulting tree at https://sky-valley.github.io/pagelike/
+# (or the configured custom domain).
+
+name: docs
+
+on:
+  push:
+    branches: [main]
+    paths:
+      # Anything that affects what's published.
+      - 'cmd/site/**'
+      - 'cmd/site/templates/**'
+      - 'cmd/site/static/**'
+      - 'site/content/**'
+      - 'docs/**'
+      - 'README.md'
+      - 'AGENTS.md'
+      - 'CONTRIBUTING.md'
+      - 'SECURITY.md'
+      - 'LICENSE'
+      - 'llms.txt'
+      - '.github/workflows/docs.yml'
+      - 'scripts/build-docs.sh'
+  workflow_dispatch:
+
+permissions:
+  contents: write   # gh-pages branch push
+
+concurrency:
+  group: docs
+  cancel-in-progress: true
+
+jobs:
+  build:
+    name: Build site
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+          cache: true
+
+      - name: Build site/public
+        run: go run ./cmd/site build --src . --out site/public --base-url "$PAGES_URL"
+
+      - name: Run public-content scan
+        env:
+          PAGES_URL: ${{ vars.PAGES_URL || format('https://{0}.github.io/{1}', github.repository_owner, github.event.repository.name) }}
+        run: sh scripts/scan-public.sh
+
+      - name: Verify site tree
+        run: |
+          set -eu
+          test -f site/public/llms.txt
+          test -f site/public/index.json
+          test -f site/public/sitemap.xml
+          test -f site/public/robots.txt
+          test -f site/public/index.html
+          echo "site tree OK"
+
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: site/public
+
+  deploy:
+    name: Deploy to GitHub Pages
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    permissions:
+      pages: write
+      id-token: write
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4

@@ -1,0 +1,159 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "binary": "pagelike",
+  "license": "Apache-2.0",
+  "version_flag": "pagelike version",
+  "common_flag": {
+    "name": "--data",
+    "type": "path",
+    "default": "./data",
+    "env_override": "PAGELIKE_DATA",
+    "meaning": "data directory"
+  },
+  "commands": [
+    {
+      "name": "serve",
+      "summary": "Start the HTTP server.",
+      "usage": "pagelike serve [--data DIR] [--listen ADDR] [--domain DOMAIN] [--trust-proxy] [--dev-insecure-auth] [--outbound-allow-private] [--outbound-allow LIST] [--js-workers N]",
+      "flags": [
+        {"name": "--data", "type": "path", "default": "./data"},
+        {"name": "--listen", "type": "addr", "default": "127.0.0.1:8787"},
+        {"name": "--domain", "type": "string", "default": "localhost"},
+        {"name": "--trust-proxy", "type": "bool", "default": false},
+        {"name": "--dev-insecure-auth", "type": "bool", "default": false,
+         "note": "DEVELOPMENT ONLY; refuses to start on non-loopback addresses"},
+        {"name": "--outbound-allow-private", "type": "bool", "default": false},
+        {"name": "--outbound-allow", "type": "csv", "default": ""},
+        {"name": "--js-workers", "type": "int", "default": 0}
+      ]
+    },
+    {
+      "name": "site",
+      "summary": "Manage sites (each site is its own SQLite database plus blobs).",
+      "subcommands": [
+        {"name": "create", "args": ["NAME"], "flags": [
+          {"name": "--default-get", "type": "enum", "values": ["allow", "deny"], "default": "allow"}
+        ]},
+        {"name": "list"},
+        {"name": "delete", "args": ["NAME"]}
+      ]
+    },
+    {
+      "name": "key",
+      "summary": "Mint, list and revoke authoring keys.",
+      "subcommands": [
+        {"name": "create", "flags": [
+          {"name": "--site", "type": "csv", "default": "*"},
+          {"name": "--label", "type": "string", "default": ""},
+          {"name": "--ttl", "type": "duration", "default": "0s"}
+        ], "note": "The secret is printed once and is not recoverable."},
+        {"name": "list"},
+        {"name": "revoke", "args": ["ID"]}
+      ]
+    },
+    {
+      "name": "user",
+      "summary": "Manage local accounts.",
+      "subcommands": [
+        {"name": "add", "args": ["--site", "NAME", "USER"], "flags": [
+          {"name": "--name", "type": "string"},
+          {"name": "--email", "type": "email"},
+          {"name": "--verified", "type": "bool"},
+          {"name": "--password-stdin", "type": "bool"}
+        ]},
+        {"name": "list", "args": ["--site", "NAME"]},
+        {"name": "set", "args": ["--site", "NAME", "USER"], "flags": [
+          {"name": "--verified", "type": "bool"},
+          {"name": "--password-stdin", "type": "bool"}
+        ]},
+        {"name": "rm", "args": ["--site", "NAME", "USER"]}
+      ]
+    },
+    {
+      "name": "identity",
+      "summary": "Configure per-site OIDC.",
+      "url_doc": "/identity/",
+      "subcommands": [
+        {"name": "set", "flags": [
+          {"name": "--site", "type": "string", "required": true},
+          {"name": "--issuer", "type": "url"},
+          {"name": "--client-id", "type": "string"},
+          {"name": "--client-secret-stdin", "type": "bool"},
+          {"name": "--cookies", "type": "enum", "values": ["default", "partitioned"]},
+          {"name": "--embed-origins", "type": "csv"},
+          {"name": "--default", "type": "enum", "values": ["strict", "cool", "loose"]}
+        ]},
+        {"name": "show", "flags": [{"name": "--site", "type": "string", "required": true}]},
+        {"name": "clear", "flags": [{"name": "--site", "type": "string", "required": true}]}
+      ]
+    },
+    {
+      "name": "events",
+      "summary": "Maintain stored stream events.",
+      "subcommands": [
+        {"name": "prune", "flags": [
+          {"name": "--site", "type": "string", "required": true},
+          {"name": "--older-than", "type": "duration", "default": "10m"}
+        ], "note": "Clients reconnecting from before the prune receive a reset event."}
+      ]
+    },
+    {
+      "name": "export",
+      "summary": "Export a site as plain files.",
+      "flags": [
+        {"name": "--site", "type": "string", "required": true},
+        {"name": "--out", "type": "path", "required": true},
+        {"name": "--state", "type": "enum", "values": ["live", "authored"], "default": "live"}
+      ]
+    },
+    {
+      "name": "import",
+      "summary": "Import a flat export directory into a site.",
+      "flags": [
+        {"name": "--site", "type": "string", "required": true},
+        {"name": "--in", "type": "path", "required": true},
+        {"name": "--create", "type": "bool"},
+        {"name": "--authored-from-live", "type": "bool"}
+      ]
+    },
+    {
+      "name": "fork",
+      "summary": "Copy a site's authored baseline into a new site (no participants).",
+      "flags": [
+        {"name": "--from", "type": "string", "required": true},
+        {"name": "--to", "type": "string", "required": true},
+        {"name": "--note", "type": "string"}
+      ],
+      "note": "Recorded as /-pagelike/participations lineage."
+    },
+    {
+      "name": "backup",
+      "summary": "Write an online-consistent backup directory (VACUUM INTO).",
+      "flags": [
+        {"name": "--out", "type": "path", "required": true}
+      ]
+    },
+    {
+      "name": "migrate",
+      "summary": "Copy a PageLove WebDAV host into pagelike.",
+      "flags": [
+        {"name": "--from-dav", "type": "url", "required": true},
+        {"name": "--key-file", "type": "path", "required": true},
+        {"name": "--out", "type": "path", "required": true},
+        {"name": "--import", "type": "bool"},
+        {"name": "--site", "type": "string"}
+      ],
+      "doc": "/compat/migration/"
+    },
+    {
+      "name": "version",
+      "summary": "Print the build version (release, module, or dev).",
+      "variants": ["version", "--version", "-v"]
+    },
+    {
+      "name": "jsrt-worker",
+      "summary": "Internal: a server-JavaScript worker on stdin/stdout.",
+      "internal": true
+    }
+  ]
+}
