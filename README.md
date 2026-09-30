@@ -227,6 +227,13 @@ directory.
 
 See [docs/identity.md](docs/identity.md).
 
+For a platform that embeds sites and owns sign-in, `pagelike host` provides
+immutable authored versions, isolated live data, and a ticket-based parent
+bridge. `pagelike.identity()` quietly restores returning participants on a new
+device; `pagelike.participate()` remains the deliberate action. See
+[managed hosting](docs/hosting.md) and the
+[identity tutorial](https://sky-valley.github.io/pagelike/build/managed-identity/).
+
 ## pagelike extensions
 
 These are additions PageLove doesn't have. They never change a PageLove

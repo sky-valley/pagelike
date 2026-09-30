@@ -37,12 +37,66 @@ development. Public post origins always use HTTPS. The trusted edge sends the
 original public authority, including an explicit port, in `X-Pagelike-Host`.
 
 The parent bridge is served at `/-/client.js`. A post calls
-`pagelike.participate()` to request participation through its approved parent. The
-parent exchanges a site-scoped ticket via the SDK protocol; only the runtime
+`pagelike.identity()` on load to restore an existing participant, and
+`pagelike.participate()` when someone chooses to contribute. Only the runtime
 can read the resulting session cookie. `/-/manage` exposes the caller's own
 contributions, removal and reports. Creators may moderate all contributions.
 Reports go to the configured authority's `/report` endpoint. Authentication
 and instance administration routes from standalone mode are unavailable.
+
+## Restoring a returning participant
+
+```html
+<script src="/-/client.js"></script>
+<script type="module">
+  const person = await pagelike.identity();
+  if (person) {
+    const response = await fetch('/-/contributions', { cache: 'no-store' });
+    if (response.ok) console.log('Your existing contributions:', await response.json());
+  }
+</script>
+```
+
+`identity()` returns the opaque site identity or `null`. It checks `/-/me`
+first; without a valid session it asks the approved parent to restore an
+existing identity. The parent must check its signed-in person has previously
+joined this site before issuing a ticket. A first-time or signed-out visitor
+stays anonymous. No sign-in UI or contribution write happens during restoration.
+A session is authority to act under the site's rules, not evidence of a saved
+contribution; the app must read its own data or `/-/contributions` to show that.
+
+The SDK returns `null` on refusal, network failure or a parent that does not
+answer within five seconds. The initial session check is also bounded to five
+seconds. Browsing remains usable. Results are not cached across calls, so a
+later lookup observes logout. Simultaneous lookups share a request; deliberate
+participation waits for an in-progress restoration. Missing browser support for
+partitioned cookies is not bypassed by exposing the session reference to script.
+
+### Parent bridge protocol
+
+The parent validates the frame's exact window, origin and the exact request
+shape before acting:
+
+| Request from frame | Parent behavior |
+|---|---|
+| `{type: 'pagelike:ready'}` | Optional readiness notification; does not request identity |
+| `{type: 'pagelike:identity', id}` | Quietly restore an existing site identity; never enroll or prompt |
+| `{type: 'pagelike:participate', id}` | Deliberate participation, including sign-in when needed |
+
+`id` is a fresh UUID. Reply to the requesting frame's exact origin with
+`{type: 'pagelike:participation', id, ticket}` or
+`{type: 'pagelike:participation', id, error: 'anonymous'}` when restoration is
+inapplicable (`'unavailable'` for a failed lookup). The SDK accepts only its
+configured parent origin, parent window and matching request ID. It redeems
+the ticket with `POST /-/session` and returns the participant string, never
+the server-only session reference. Deliberate participation rejects missing
+identity; restoration resolves to `null`. Parent navigation/unmount must cancel
+pending work, while the initial iframe `load` event must not cancel a request
+its startup script already sent.
+
+See the [managed identity tutorial](../site/content/build/managed-identity.md),
+the [native contract](spec/hosting.md), and `e2e/tests/hosting*.spec.mjs` for
+executable parent, two-browser, revocation and message-boundary examples.
 
 Each site allows 10,000 live documents and 256 MiB of live bytes, with 100,000
 contribution records. Removals and size reductions work at capacity. HTML data

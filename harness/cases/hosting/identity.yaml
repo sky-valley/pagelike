@@ -1,0 +1,19 @@
+cases:
+  - id: HOST.identity.sdk
+    area: hosting
+    evidence: inferred
+    source: "docs/spec/hosting.md R-HOST-1: native restoration API; browser behavior covered by e2e/tests/hosting.spec.mjs"
+    live: false
+    root: true
+    hosted: true
+    steps:
+      - publish:
+          version: one
+          generation: 1
+          participation: true
+          files:
+            index.html: '<p>Identity is optional.</p>'
+      - request: {method: GET, path: /-/client.js}
+        expect: {status: 200, headers: {Cache-Control: no-store}, body_contains: ['pagelike:identity', 'identity, participate']}
+      - request: {method: GET, path: /-/me}
+        expect: {status: 200, body_contains: '"authenticated":false'}

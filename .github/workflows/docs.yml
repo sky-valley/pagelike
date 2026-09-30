@@ -53,11 +53,11 @@ jobs:
           cache: true
 
       - name: Build site/public
+        env:
+          PAGES_URL: ${{ vars.PAGES_URL || format('https://{0}.github.io/{1}', github.repository_owner, github.event.repository.name) }}
         run: go run ./cmd/site build --src . --out site/public --base-url "$PAGES_URL"
 
       - name: Run public-content scan
-        env:
-          PAGES_URL: ${{ vars.PAGES_URL || format('https://{0}.github.io/{1}', github.repository_owner, github.event.repository.name) }}
         run: sh scripts/scan-public.sh
 
       - name: Verify site tree

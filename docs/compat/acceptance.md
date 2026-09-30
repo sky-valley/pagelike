@@ -18,6 +18,12 @@ Changes made to apps are recorded in `docs/compat/app-changes.md`.
   document model and the 2026-09-29 reconciliations were merged (82 passed,
   3 skipped: the opt-in live migration demo). Rows changed by that rerun say
   so.
+- Release verification on 2026-09-30: `scripts/check.sh` passed all Go and
+  local harness checks and 84 browser tests; the three live migration tests
+  remained skipped. The app scenarios below still pass with the same recorded
+  deviations. The additional managed-host tests cover second-browser identity
+  restoration without a contribution, session revocation, forged parent replies,
+  concurrent calls and quiet timeouts; these are pagelike-native contracts.
 
 ## Summary
 

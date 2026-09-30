@@ -1,5 +1,22 @@
 # Changelog
 
+## v0.2.0 — 2026-09-30
+
+- Closing a site registry now prevents a late background scan from reopening
+  its databases during shutdown or test cleanup.
+- Managed hosting separates immutable authored versions from live participation,
+  with site-scoped tickets, partitioned private sessions, current authorization,
+  contribution management, ordered publication and bounded runtime resources.
+- `pagelike.identity()` quietly restores an existing participant through an
+  approved parent, including on another device. First-time visitors stay
+  anonymous. Restoration adds no contribution and remains usable on identity
+  outages; `participate()` remains the deliberate join path.
+- Browser coverage includes real cross-device cookie/session behavior, forged
+  parent replies, concurrent calls, logout and missing parent responses.
+- Published documentation now includes managed-host identity and its parent
+  protocol, plus native specification and harness coverage. This is a pagelike
+  extension, not a new PageLove compatibility claim.
+
 ## v0.1.0 — 2026-09-29
 
 First public release.

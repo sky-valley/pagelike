@@ -76,7 +76,10 @@ func Register(s *server.Server) {
 	s.Public.Intercept = x
 	s.Engine.Hooks.AddValidate(engine.PhaseTransition, x.validate)
 	s.Engine.Hooks.AfterWrite = append(s.Engine.Hooks.AfterWrite, x.afterWrite)
-	go x.out.resumeAll()
+	// Finish opening/scanning existing databases before returning the server.
+	// A detached startup scan can still hold a SQLite connection when the caller
+	// closes the registry. Individual outbox workers remain asynchronous.
+	x.out.resumeAll()
 }
 
 // Request phases.

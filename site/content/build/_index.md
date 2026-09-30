@@ -18,6 +18,7 @@ example under [`/examples/<name>/`](/examples/).
 | [Schemas](/build/schema/) | modelled data: properties, types, constraints, transitions | [`/examples/board/`](/examples/board/) |
 | [Liquid templates](/build/liquid/) | bindings, includes, stamps, server-rendered HTML | [`/examples/board/`](/examples/board/) |
 | [Live updates](/build/sse/) | SSE subscribe, replay with `Last-Event-ID`, reset semantics | [`/examples/poll/`](/examples/poll/) |
+| [Remember participants](/build/managed-identity/) | managed hosting, quiet identity restoration across devices | browser hosting tests |
 | [Migrate from PageLove](/build/migrate/) | moving a PageLove host to pagelike byte-for-byte | n/a |
 
 Each tutorial starts with the assumption that you can install the

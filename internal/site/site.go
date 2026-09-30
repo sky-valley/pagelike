@@ -232,9 +232,10 @@ func (s *Site) Index(ctx context.Context) (*Snapshot, error) { return s.index.Ge
 
 // Registry opens and tracks sites under a data directory.
 type Registry struct {
-	dir   string
-	mu    sync.Mutex
-	sites map[string]*Site
+	dir    string
+	mu     sync.Mutex
+	sites  map[string]*Site
+	closed bool
 }
 
 // NewRegistry returns a registry rooted at dataDir.
@@ -286,6 +287,9 @@ func (r *Registry) Get(ctx context.Context, name string) (*Site, error) {
 func (r *Registry) Open(ctx context.Context, name string, create bool) (*Site, error) {
 	r.mu.Lock()
 	defer r.mu.Unlock()
+	if r.closed {
+		return nil, ErrNoSite
+	}
 	if s, ok := r.sites[name]; ok {
 		return s, nil
 	}
@@ -364,6 +368,7 @@ func (r *Registry) ByAlias(ctx context.Context, host string) (*Site, error) {
 func (r *Registry) Close() {
 	r.mu.Lock()
 	defer r.mu.Unlock()
+	r.closed = true
 	for n, s := range r.sites {
 		s.Broker.CloseAll()
 		s.Store.Close()
