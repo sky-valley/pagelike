@@ -184,6 +184,10 @@ func (h *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	current, err := state(r.Context(), s)
+	if errors.Is(err, sql.ErrNoRows) {
+		fail(w, 404) // never installed: nothing is published here
+		return
+	}
 	if err != nil {
 		h.fault("hosting: reading installation state", err)
 		fail(w, 503)

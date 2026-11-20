@@ -2,7 +2,9 @@ package hosting
 
 import (
 	"context"
+	"database/sql"
 	"errors"
+	"fmt"
 	"time"
 )
 
@@ -22,16 +24,21 @@ func (h *Server) PruneTemporary(ctx context.Context, now time.Time) error {
 		}
 		s, err := h.core.Sites.Get(ctx, name)
 		if err != nil {
-			failures = append(failures, err)
+			failures = append(failures, fmt.Errorf("site %s: %w", name, err))
 			continue
 		}
 		current, err := state(ctx, s)
+		if errors.Is(err, sql.ErrNoRows) {
+			continue // never installed: not a hosted site, nothing to prune
+		}
 		if err != nil {
-			failures = append(failures, err)
+			failures = append(failures, fmt.Errorf("site %s: %w", name, err))
 			continue
 		}
 		if current.Temporary && current.ExpiresAt > 0 && current.ExpiresAt <= now.UnixMilli() {
-			failures = append(failures, h.core.Sites.Delete(name))
+			if err := h.core.Sites.Delete(name); err != nil {
+				failures = append(failures, fmt.Errorf("site %s: %w", name, err))
+			}
 		}
 	}
 	return errors.Join(failures...)

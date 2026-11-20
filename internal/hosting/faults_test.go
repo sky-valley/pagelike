@@ -9,6 +9,7 @@ import (
 	"strings"
 	"sync"
 	"testing"
+	"time"
 
 	"github.com/sky-valley/pagelike/internal/server"
 	"github.com/sky-valley/pagelike/internal/site"
@@ -96,15 +97,14 @@ func TestIdentityFaultsAreReportedOnlyWhenControlBreaksContract(t *testing.T) {
 	}
 }
 
-// Every 503 the runtime gives for its own storage is reported; a site that
-// exists without an installation is our broken state, not the visitor's.
+// Every 503 the runtime gives for its own storage is reported.
 func TestStorageFaultsAreReported(t *testing.T) {
 	h, records, call := faultHost(t, func(w http.ResponseWriter, _ *http.Request) { w.WriteHeader(204) })
 	s, err := h.core.Sites.Get(context.Background(), "example")
 	if err != nil {
 		t.Fatal(err)
 	}
-	if _, err := s.Store.DB().Exec(`DELETE FROM meta WHERE key='hosting'`); err != nil {
+	if _, err := s.Store.DB().Exec(`DROP TABLE meta`); err != nil {
 		t.Fatal(err)
 	}
 	if code := call("GET", "/", "edge-secret", ""); code != 503 {
@@ -123,6 +123,35 @@ func TestClientErrorsAreNotReported(t *testing.T) {
 		{"PUT", "/v1/sites/example", "admin-secret"}, {"GET", "/-/nothing", "edge-secret"},
 	} {
 		call(c.method, c.path, c.token, "{}")
+	}
+	if got := records.got(); got != "" {
+		t.Fatalf("error records = %q, want none", got)
+	}
+}
+
+// A site that exists without an installation (one opened and never
+// installed) is not a hosted site: pruning skips it and reads answer 404.
+// Before, every minute's prune failed on it, and its reads answered 503.
+func TestSiteWithoutInstallationIsNotAFault(t *testing.T) {
+	h, records, call := faultHost(t, func(w http.ResponseWriter, _ *http.Request) { w.WriteHeader(204) })
+	s, err := h.core.Sites.Open(context.Background(), "uninstalled", true)
+	if err != nil {
+		t.Fatal(err)
+	}
+	_ = s
+	if err := h.PruneTemporary(context.Background(), time.Now()); err != nil {
+		t.Fatalf("prune: %v", err)
+	}
+	r := httptest.NewRequest("GET", "https://uninstalled.content.example/", nil)
+	r.Header.Set("Authorization", "Bearer edge-secret")
+	r.Header.Set("X-Pagelike-Host", "uninstalled.content.example")
+	w := httptest.NewRecorder()
+	h.ServeHTTP(w, r)
+	if w.Code != 404 {
+		t.Fatalf("read of an uninstalled site: %d", w.Code)
+	}
+	if code := call("GET", "/", "edge-secret", ""); code != 200 {
+		t.Fatalf("installed site: %d", code)
 	}
 	if got := records.got(); got != "" {
 		t.Fatalf("error records = %q, want none", got)

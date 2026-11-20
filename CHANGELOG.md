@@ -9,6 +9,9 @@
 - Optional Sentry error reporting for `serve` and `host` via `SENTRY_DSN`
   (see docs/hosting.md). Managed hosting now logs its own storage and identity
   contract failures, which it previously answered with a bare 503.
+- Managed hosting skips a site that was opened but never installed: temporary
+  site pruning no longer fails on it every minute, and its reads answer 404,
+  not 503. Pruning failures now name the site in the log.
 
 ## v0.2.1 — 2026-09-30
 
