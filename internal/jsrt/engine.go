@@ -11,6 +11,7 @@ import (
 	"errors"
 	"fmt"
 	"hash"
+	"reflect"
 	"regexp"
 	"strings"
 	"sync"
@@ -114,10 +115,18 @@ func (e *engine) start() {
 	}()
 }
 
-// vmContext reads the JSContext pointer, the first field of quickjs.VM
-// (modernc.org/quickjs v0.24.2), to reach JS_ComputeMemoryUsage and
-// JS_SetStripInfo, which the wrapper does not expose (ADR 0001 Risk 4).
-func vmContext(vm *quickjs.VM) uintptr { return *(*uintptr)(unsafe.Pointer(vm)) }
+// vmContext reads quickjs.VM's unexported cContext, the JSContext pointer,
+// to reach JS_ComputeMemoryUsage and JS_SetStripInfo, which the wrapper does
+// not expose (ADR 0001 Risk 4). The field is found by name, not offset: v0.26
+// moved it behind an embedded struct. If a wrapper upgrade renames it, this
+// panics and TestVMContextIsTheVMsLiveContext fails.
+func vmContext(vm *quickjs.VM) uintptr {
+	f := reflect.ValueOf(vm).Elem().FieldByName("cContext")
+	if !f.IsValid() || f.Kind() != reflect.Uintptr {
+		panic("jsrt: quickjs.VM has no cContext field")
+	}
+	return *(*uintptr)(unsafe.Pointer(f.UnsafeAddr()))
+}
 
 // heapSize is the runtime's current malloc size.
 func (m *meter) heapSize(vm *quickjs.VM) int64 {
