@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## v0.3.0 — 2026-11-20
 
 - Build with Go 1.27.4 and current dependencies. Go 1.26.0 left 38
   standard-library vulnerabilities reachable; govulncheck now finds none.
