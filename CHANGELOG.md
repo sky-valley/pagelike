@@ -1,5 +1,15 @@
 # Changelog
 
+## Unreleased
+
+- Build with Go 1.27.4 and current dependencies. Go 1.26.0 left 38
+  standard-library vulnerabilities reachable; govulncheck now finds none.
+- Fix server JavaScript with modernc.org/quickjs v0.26 and later, which moved
+  the VM's context pointer.
+- Optional Sentry error reporting for `serve` and `host` via `SENTRY_DSN`
+  (see docs/hosting.md). Managed hosting now logs its own storage and identity
+  contract failures, which it previously answered with a bare 503.
+
 ## v0.2.1 — 2026-09-30
 
 - Fix Linux worker memory accounting: a fresh JavaScript worker no longer

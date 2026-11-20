@@ -36,6 +36,20 @@ requires HTTPS except on loopback; parent origins may use loopback HTTP for
 development. Public post origins always use HTTPS. The trusted edge sends the
 original public authority, including an explicit port, in `X-Pagelike-Host`.
 
+### Error reporting
+
+`pagelike serve` and `pagelike host` send their own faults to Sentry when
+`SENTRY_DSN` is set (`SENTRY_ENVIRONMENT` optional): Error-level log records,
+handler panics with their stack, and the command exiting with an error. A
+site author's mistakes (composition, templates, schemas, server JavaScript and
+its budgets) are error documents for the author, not faults, and visitors' and
+the edge's refusals are never reported. In managed hosting that includes the
+identity authority being down or refusing a ticket; an answer outside its
+contract is reported. An event carries fixed words only: the log message, the
+Go type of the error or panic, and the request method. Paths, hosts, site
+names, error text, headers and bodies stay in the local log. One fault is sent
+at most once a minute.
+
 The parent bridge is served at `/-/client.js`. A post calls
 `pagelike.identity()` on load to restore an existing participant, and
 `pagelike.participate()` when someone chooses to contribute. Only the runtime
