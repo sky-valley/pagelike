@@ -10,6 +10,7 @@ import (
 	"encoding/json"
 	"errors"
 	"io"
+	"log/slog"
 	"net/http"
 	"net/url"
 	"strings"
@@ -94,6 +95,16 @@ func New(cfg Config, core *server.Server) (*Server, error) {
 	return h, nil
 }
 
+// fault logs a failure of the runtime itself at Error, which reaches the
+// operator's error reporting; what visitors and the edge get wrong does not.
+func (h *Server) fault(msg string, err error) {
+	log := h.core.Log
+	if log == nil {
+		log = slog.Default()
+	}
+	log.Error(msg, "err", err)
+}
+
 func token(r *http.Request, want string) bool {
 	return subtle.ConstantTimeCompare([]byte(r.Header.Get("Authorization")), []byte("Bearer "+want)) == 1
 }
@@ -173,7 +184,12 @@ func (h *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	current, err := state(r.Context(), s)
+	if errors.Is(err, sql.ErrNoRows) {
+		fail(w, 404) // never installed: nothing is published here
+		return
+	}
 	if err != nil {
+		h.fault("hosting: reading installation state", err)
 		fail(w, 503)
 		return
 	}
@@ -322,11 +338,13 @@ func (h *Server) install(w http.ResponseWriter, r *http.Request) {
 	defer h.installMu.Unlock()
 	s, err := h.core.Sites.Open(r.Context(), name, true)
 	if err != nil {
+		h.fault("hosting: opening site", err)
 		fail(w, 503)
 		return
 	}
 	prev, err := state(r.Context(), s)
 	if err != nil && !errors.Is(err, sql.ErrNoRows) {
+		h.fault("hosting: reading installation state", err)
 		fail(w, 503)
 		return
 	}
@@ -341,6 +359,7 @@ func (h *Server) install(w http.ResponseWriter, r *http.Request) {
 	if prev.Generation > input.Generation {
 		if !input.Deleted {
 			if err := s.InstallPublished(r.Context(), input.Version, input.Generation, input.Files); err != nil {
+				h.fault("hosting: installing published bundle", err)
 				fail(w, 409)
 				return
 			}
@@ -358,6 +377,7 @@ func (h *Server) install(w http.ResponseWriter, r *http.Request) {
 			}
 		}
 		if err := s.InstallPublished(r.Context(), input.Version, input.Generation, input.Files); err != nil {
+			h.fault("hosting: installing published bundle", err)
 			fail(w, 409)
 			return
 		}
@@ -365,6 +385,7 @@ func (h *Server) install(w http.ResponseWriter, r *http.Request) {
 	input.Files = nil
 	b, _ := json.Marshal(input)
 	if _, err := s.Store.DB().ExecContext(r.Context(), `INSERT INTO meta(key,value) VALUES ('hosting',?) ON CONFLICT(key) DO UPDATE SET value=excluded.value`, string(b)); err != nil {
+		h.fault("hosting: recording installation state", err)
 		fail(w, 503)
 		return
 	}
@@ -374,14 +395,17 @@ func (h *Server) install(w http.ResponseWriter, r *http.Request) {
 		cfg.MaxBodyBytes = 10 << 20
 		cfg.EmbedOrigins = h.cfg.FrameOrigins
 	}); err != nil {
+		h.fault("hosting: updating site settings", err)
 		fail(w, 503)
 		return
 	}
 	if _, err := s.Store.DB().ExecContext(r.Context(), `CREATE TABLE IF NOT EXISTS hosted_sessions(id TEXT PRIMARY KEY,remote_session TEXT NOT NULL)`); err != nil {
+		h.fault("hosting: preparing session table", err)
 		fail(w, 503)
 		return
 	}
 	if _, err := s.Store.DB().ExecContext(r.Context(), contributionSchema); err != nil {
+		h.fault("hosting: preparing contribution table", err)
 		fail(w, 503)
 		return
 	}
@@ -423,7 +447,8 @@ func (h *Server) identity(ctx context.Context, action string, body any, out any)
 	if out != nil {
 		d := json.NewDecoder(io.LimitReader(resp.Body, 4097))
 		d.DisallowUnknownFields()
-		if d.Decode(out) != nil || d.Decode(&struct{}{}) != io.EOF {
+		if err := d.Decode(out); err != nil || d.Decode(&struct{}{}) != io.EOF {
+			h.fault("hosting: identity answer malformed", err)
 			return 503
 		}
 	}
@@ -449,6 +474,7 @@ func (h *Server) exchange(w http.ResponseWriter, r *http.Request, s *site.Site) 
 	}
 	ttl := time.Until(time.UnixMilli(grant.ExpiresAt))
 	if grant.Subject == "" || len(grant.Subject) > 128 || len(grant.Session) < 1 || len(grant.Session) > 256 || ttl <= 0 || ttl > 31*24*time.Hour {
+		h.fault("hosting: identity grant invalid", nil)
 		fail(w, 503)
 		return
 	}
@@ -458,10 +484,12 @@ func (h *Server) exchange(w http.ResponseWriter, r *http.Request, s *site.Site) 
 	}
 	sid, err := s.Users.Login(r.Context(), "", &identity.Identity{Sub: grant.Subject, Issuer: "hosted", Roles: roles}, ttl)
 	if err != nil {
+		h.fault("hosting: starting participant session", err)
 		fail(w, 503)
 		return
 	}
 	if _, err := s.Store.DB().ExecContext(r.Context(), `INSERT INTO hosted_sessions(id,remote_session) VALUES (?,?)`, sid, grant.Session); err != nil {
+		h.fault("hosting: recording participant session", err)
 		s.Users.EndSession(r.Context(), sid)
 		fail(w, 503)
 		return
@@ -481,6 +509,7 @@ func (h *Server) resolve(ctx context.Context, s *site.Site, sid string) (*identi
 	}
 	var remote string
 	if err := s.Store.DB().QueryRowContext(ctx, `SELECT remote_session FROM hosted_sessions WHERE id=?`, sid).Scan(&remote); err != nil {
+		h.fault("hosting: reading participant session", err)
 		return nil, 503
 	}
 	statusCode := h.identity(ctx, "validate", map[string]string{"site": s.Name, "session": remote}, nil)

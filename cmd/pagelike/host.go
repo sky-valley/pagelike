@@ -34,7 +34,7 @@ func cmdHost(args []string) error {
 		return err
 	}
 	defer reg.Close()
-	log := slog.New(slog.NewTextHandler(os.Stderr, nil))
+	log := newLogger(slog.LevelInfo)
 	cfg := hosting.Config{Domain: os.Getenv("PAGELIKE_DOMAIN"), AdminToken: os.Getenv("PAGELIKE_ADMIN_TOKEN"), EdgeToken: os.Getenv("PAGELIKE_EDGE_TOKEN"), IdentityURL: os.Getenv("PAGELIKE_IDENTITY_URL"), IdentityToken: os.Getenv("PAGELIKE_IDENTITY_TOKEN"), FrameOrigins: strings.Fields(os.Getenv("PAGELIKE_FRAME_ORIGINS"))}
 	core := server.New(server.Config{Domain: cfg.Domain, TrustProxy: true}, reg, nil, log)
 	handler, err := hosting.New(cfg, core)
@@ -58,13 +58,13 @@ func cmdHost(args []string) error {
 				return
 			case <-ticker.C:
 				if err := handler.PruneTemporary(ctx, time.Now()); err != nil {
-					log.Warn("temporary site cleanup incomplete")
+					log.Error("host: temporary site cleanup incomplete", "err", err)
 				}
 			}
 		}
 	}()
 	defer func() { stop(); <-done }()
-	hs := &http.Server{Addr: *listen, Handler: handler, ReadHeaderTimeout: 10 * time.Second, ReadTimeout: 30 * time.Second, IdleTimeout: 60 * time.Second, MaxHeaderBytes: 32 << 10}
+	hs := &http.Server{Addr: *listen, Handler: reporter.Recover(handler), ReadHeaderTimeout: 10 * time.Second, ReadTimeout: 30 * time.Second, IdleTimeout: 60 * time.Second, MaxHeaderBytes: 32 << 10}
 	go func() {
 		<-ctx.Done()
 		deadline, cancel := context.WithTimeout(context.Background(), 5*time.Second)

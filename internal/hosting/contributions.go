@@ -93,6 +93,7 @@ func (h *Server) contributions(w http.ResponseWriter, r *http.Request, s *site.S
 		query += ` ORDER BY id LIMIT 1000`
 		rows, err := s.Store.DB().QueryContext(r.Context(), query, args...)
 		if err != nil {
+			h.fault("hosting: listing contributions", err)
 			fail(w, 503)
 			return
 		}
@@ -100,13 +101,15 @@ func (h *Server) contributions(w http.ResponseWriter, r *http.Request, s *site.S
 		out := []contribution{}
 		for rows.Next() {
 			var c contribution
-			if rows.Scan(&c.ID, &c.Owner, &c.Path, &c.Selector) != nil {
+			if err := rows.Scan(&c.ID, &c.Owner, &c.Path, &c.Selector); err != nil {
+				h.fault("hosting: listing contributions", err)
 				fail(w, 503)
 				return
 			}
 			out = append(out, c)
 		}
-		if rows.Err() != nil {
+		if err := rows.Err(); err != nil {
+			h.fault("hosting: listing contributions", err)
 			fail(w, 503)
 			return
 		}
@@ -129,6 +132,7 @@ func (h *Server) contributions(w http.ResponseWriter, r *http.Request, s *site.S
 		return
 	}
 	if err != nil {
+		h.fault("hosting: removing contribution", err)
 		fail(w, 503)
 		return
 	}
@@ -227,6 +231,7 @@ func (h *Server) adminContributions(w http.ResponseWriter, r *http.Request, part
 	if err != nil {
 		// Missing site storage is not proof that a contribution was removed.
 		// The operator must repair/reconcile storage before acknowledging it.
+		h.fault("hosting: opening site for moderation", err)
 		fail(w, 503)
 		return
 	}

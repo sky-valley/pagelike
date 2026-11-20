@@ -34,7 +34,8 @@ func (h *Server) report(w http.ResponseWriter, r *http.Request, s *site.Site, si
 		return
 	}
 	var remote string
-	if s.Store.DB().QueryRowContext(r.Context(), `SELECT remote_session FROM hosted_sessions WHERE id=?`, sid).Scan(&remote) != nil {
+	if err := s.Store.DB().QueryRowContext(r.Context(), `SELECT remote_session FROM hosted_sessions WHERE id=?`, sid).Scan(&remote); err != nil {
+		h.fault("hosting: reading participant session", err)
 		fail(w, 503)
 		return
 	}

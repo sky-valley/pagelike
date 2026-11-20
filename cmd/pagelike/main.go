@@ -22,6 +22,7 @@ import (
 	"github.com/sky-valley/pagelike/internal/jsglue"
 	"github.com/sky-valley/pagelike/internal/jsrt"
 	"github.com/sky-valley/pagelike/internal/reactions"
+	"github.com/sky-valley/pagelike/internal/report"
 	"github.com/sky-valley/pagelike/internal/server"
 	"github.com/sky-valley/pagelike/internal/site"
 )
@@ -56,6 +57,13 @@ func main() {
 		os.Exit(2)
 	}
 	var err error
+	if os.Args[1] == "serve" || os.Args[1] == "host" {
+		if reporter, err = report.FromEnv(buildVersion()); err != nil {
+			fmt.Fprintln(os.Stderr, "pagelike:", err)
+			os.Exit(1)
+		}
+		slog.SetDefault(newLogger(slog.LevelInfo))
+	}
 	switch os.Args[1] {
 	case "serve":
 		err = cmdServe(os.Args[2:])
@@ -86,8 +94,20 @@ func main() {
 	}
 	if err != nil {
 		fmt.Fprintln(os.Stderr, "pagelike:", err)
+		reporter.Failure(os.Args[1], err)
+		reporter.Flush()
 		os.Exit(1)
 	}
+	reporter.Flush()
+}
+
+// reporter sends the long-running commands' own faults to Sentry when
+// SENTRY_DSN is set; nil (off) otherwise. See internal/report.
+var reporter *report.Reporter
+
+// newLogger logs to stderr; its Error records also reach the reporter.
+func newLogger(level slog.Level) *slog.Logger {
+	return slog.New(reporter.Handler(slog.NewTextHandler(os.Stderr, &slog.HandlerOptions{Level: level})))
 }
 
 func defaultData() string {
@@ -120,7 +140,7 @@ func cmdServe(args []string) error {
 		}
 	}
 	reactions.SetOutboundPolicy(*allowPrivate, allow)
-	log := slog.New(slog.NewTextHandler(os.Stderr, &slog.HandlerOptions{Level: slog.LevelInfo}))
+	log := newLogger(slog.LevelInfo)
 	reg, err := site.NewRegistry(*data)
 	if err != nil {
 		return err
@@ -135,7 +155,7 @@ func cmdServe(args []string) error {
 	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	defer stop()
 	srv.StartJanitor(ctx)
-	hs := &http.Server{Addr: *listen, Handler: srv, ReadHeaderTimeout: 15 * time.Second}
+	hs := &http.Server{Addr: *listen, Handler: reporter.Recover(srv), ReadHeaderTimeout: 15 * time.Second}
 	if *dev {
 		log.Warn("DEVELOPMENT AUTH BYPASS ENABLED: X-Pagelike-Dev-User is honoured from loopback clients")
 	}
