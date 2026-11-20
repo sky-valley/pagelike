@@ -18,6 +18,7 @@ import (
 	"time"
 
 	"github.com/sky-valley/pagelike/internal/control"
+	"github.com/sky-valley/pagelike/internal/errreport"
 	_ "github.com/sky-valley/pagelike/internal/features"
 	"github.com/sky-valley/pagelike/internal/jsglue"
 	"github.com/sky-valley/pagelike/internal/jsrt"
@@ -85,9 +86,11 @@ func main() {
 		err = fmt.Errorf("unknown command %q", os.Args[1])
 	}
 	if err != nil {
+		errreport.CaptureFatal(err)
 		fmt.Fprintln(os.Stderr, "pagelike:", err)
 		os.Exit(1)
 	}
+	errreport.Flush()
 }
 
 func defaultData() string {
@@ -120,7 +123,10 @@ func cmdServe(args []string) error {
 		}
 	}
 	reactions.SetOutboundPolicy(*allowPrivate, allow)
-	log := slog.New(slog.NewTextHandler(os.Stderr, &slog.HandlerOptions{Level: slog.LevelInfo}))
+	log, err := serverLogger(slog.NewTextHandler(os.Stderr, &slog.HandlerOptions{Level: slog.LevelInfo}))
+	if err != nil {
+		return err
+	}
 	reg, err := site.NewRegistry(*data)
 	if err != nil {
 		return err
@@ -135,7 +141,7 @@ func cmdServe(args []string) error {
 	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	defer stop()
 	srv.StartJanitor(ctx)
-	hs := &http.Server{Addr: *listen, Handler: srv, ReadHeaderTimeout: 15 * time.Second}
+	hs := &http.Server{Addr: *listen, Handler: errreport.Recover(srv), ReadHeaderTimeout: 15 * time.Second}
 	if *dev {
 		log.Warn("DEVELOPMENT AUTH BYPASS ENABLED: X-Pagelike-Dev-User is honoured from loopback clients")
 	}
@@ -150,6 +156,23 @@ func cmdServe(args []string) error {
 		return err
 	}
 	return nil
+}
+
+// serverLogger starts error reporting when SENTRY_DSN asks for it
+// (internal/errreport) and returns the process logger, which reports
+// Error-level records. It also becomes slog's default so packages that log
+// through slog directly are covered.
+func serverLogger(h slog.Handler) (*slog.Logger, error) {
+	on, err := errreport.Init(buildVersion())
+	if err != nil {
+		return nil, err
+	}
+	log := slog.New(errreport.Handler(h))
+	slog.SetDefault(log)
+	if on {
+		log.Info("error reporting enabled")
+	}
+	return log, nil
 }
 
 func openRegistry(data string) (*site.Registry, error) { return site.NewRegistry(data) }

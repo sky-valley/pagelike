@@ -1,5 +1,15 @@
 # Changelog
 
+## Unreleased
+
+- Optional error reporting: set `SENTRY_DSN` and `host`/`serve` send Error-level
+  log records, escaped panics and fatal errors to Sentry, without request
+  headers, cookies, queries, bodies or identities. Off by default.
+- Build with Go 1.27.4 (fixes a reachable `net/http` crash, GO-2026-6859) and
+  current `golang.org/x` modules, `modernc.org/sqlite` and `go-oidc`'s JOSE
+  dependency. `govulncheck` reports nothing. `modernc.org/quickjs` stays at
+  v0.24.2 because v0.27.0 breaks every server-JavaScript prepare.
+
 ## v0.2.1 — 2026-09-30
 
 - Fix Linux worker memory accounting: a fresh JavaScript worker no longer

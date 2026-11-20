@@ -12,6 +12,7 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/sky-valley/pagelike/internal/errreport"
 	"github.com/sky-valley/pagelike/internal/hosting"
 	"github.com/sky-valley/pagelike/internal/jsglue"
 	"github.com/sky-valley/pagelike/internal/reactions"
@@ -29,12 +30,15 @@ func cmdHost(args []string) error {
 	if err := server.CheckListen(*listen, true); err != nil {
 		return errors.New("host requires a loopback listener behind an authenticated TLS edge")
 	}
+	log, err := serverLogger(slog.NewTextHandler(os.Stderr, nil))
+	if err != nil {
+		return err
+	}
 	reg, err := site.NewRegistry(*data)
 	if err != nil {
 		return err
 	}
 	defer reg.Close()
-	log := slog.New(slog.NewTextHandler(os.Stderr, nil))
 	cfg := hosting.Config{Domain: os.Getenv("PAGELIKE_DOMAIN"), AdminToken: os.Getenv("PAGELIKE_ADMIN_TOKEN"), EdgeToken: os.Getenv("PAGELIKE_EDGE_TOKEN"), IdentityURL: os.Getenv("PAGELIKE_IDENTITY_URL"), IdentityToken: os.Getenv("PAGELIKE_IDENTITY_TOKEN"), FrameOrigins: strings.Fields(os.Getenv("PAGELIKE_FRAME_ORIGINS"))}
 	core := server.New(server.Config{Domain: cfg.Domain, TrustProxy: true}, reg, nil, log)
 	handler, err := hosting.New(cfg, core)
@@ -64,7 +68,7 @@ func cmdHost(args []string) error {
 		}
 	}()
 	defer func() { stop(); <-done }()
-	hs := &http.Server{Addr: *listen, Handler: handler, ReadHeaderTimeout: 10 * time.Second, ReadTimeout: 30 * time.Second, IdleTimeout: 60 * time.Second, MaxHeaderBytes: 32 << 10}
+	hs := &http.Server{Addr: *listen, Handler: errreport.Recover(handler), ReadHeaderTimeout: 10 * time.Second, ReadTimeout: 30 * time.Second, IdleTimeout: 60 * time.Second, MaxHeaderBytes: 32 << 10}
 	go func() {
 		<-ctx.Done()
 		deadline, cancel := context.WithTimeout(context.Background(), 5*time.Second)
