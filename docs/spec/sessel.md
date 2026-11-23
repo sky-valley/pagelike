@@ -1008,6 +1008,11 @@ with a fresh random salt. Options: `memory` (KiB), `time` (iterations),
   runs server-side. No verify method is documented (SP-38); pagelike MAY add
   `.bcrypt_verify(hash)`/`.argon2_verify(hash)` only under a pagelike-namespaced
   name.
+- **Time and capacity (120–121):** the same rules as Liquid's filters
+  ([LIQ] R-LIQ-184, docs snapshot 2026-11-23): a hash whose estimated time
+  exceeds what is left of the budget fails with a timeout error before it
+  starts; Argon2 memory counts against the memory budget; a refused hashing
+  slot answers 503 with `Retry-After: 1` and cannot be caught by `try`.
 
 ### R-SESSEL-122 — `String.random(length[, options])`
 Cryptographically random string of `length` code points.

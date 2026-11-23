@@ -1,0 +1,53 @@
+# Hashing filters after the 2026-11-23 docs: bcrypt's 72-byte rule and the
+# time estimate. Spec: docs/spec/liquid.md R-LIQ-181, R-LIQ-184.
+defaults:
+  area: liquid
+  evidence: documented
+  source: "docs languages/liquid/filters/security §bcrypt, §How long hashing takes (snapshot 2026-11-23)"
+  confidence: high
+  requires: [liquid]
+  site:
+    settings: {default_get: allow}
+    rules: [{actor: "*", resource: "${P}/*", method: [GET, HEAD], action: Allow}]
+cases:
+  - id: liquid.security1123.bcrypt-long-input
+    title: bcrypt hashes an input longer than 72 bytes (it reads only the first 72)
+    feature: security filters
+    live: true
+    notes: R-LIQ-181.
+    site:
+      files:
+        - path: "${P}/long.html"
+          body: |
+            <!DOCTYPE html>
+            <html xmlns:p="https://pagelove.org/1.0"><body>
+              <p id="h" p:template="text/liquid">[{{ "0123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789" | bcrypt: 4 }}]</p>
+            </body></html>
+    steps:
+      - as: anonymous
+        request: {method: GET, path: "${P}/long.html"}
+        expect:
+          status: 200
+          body_matches: '<p id="h">\[\$2[aby]\$04\$[./A-Za-z0-9]{53}\]</p>'
+
+  - id: liquid.security1123.bcrypt-over-time-fails-locally
+    title: A bcrypt cost that cannot finish in the time left fails that filter only
+    feature: security filters
+    live: true
+    notes: R-LIQ-184. Cost 31 takes days; the page still composes.
+    site:
+      files:
+        - path: "${P}/slow.html"
+          body: |
+            <!DOCTYPE html>
+            <html xmlns:p="https://pagelove.org/1.0"><body>
+              <p id="h" p:template="text/liquid">{{ "pw" | bcrypt: 31 }}</p>
+              <p id="after">after</p>
+            </body></html>
+    steps:
+      - as: anonymous
+        request: {method: GET, path: "${P}/slow.html"}
+        expect:
+          status: 200
+          body_contains: ['<p id="after">after</p>']
+          body_matches: '<p id="h"><[a-z]+ [^>]*itemtype="https?://pagelove.org/(1\.0/)?Error"'

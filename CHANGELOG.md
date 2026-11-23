@@ -21,6 +21,12 @@ Liquid (docs snapshot 2026-11-23):
   parsed JSON, or the raw text; an empty body is `{}`.
 - New `request.rawBody`, `request.host` and `request.queryString`;
   `request.authentication` and `request.authn` alias `request.auth`.
+- `bcrypt` hashes input longer than 72 bytes by its first 72 bytes instead
+  of failing.
+- bcrypt and argon2 (Liquid and Sessel) check their estimated time against
+  the budget before starting, and share the server's cores and Argon2
+  memory fairly between sites: a site may use half the hashing slots and
+  512 MiB; a refusal answers 503 with `Retry-After: 1`.
 
 MOVE:
 

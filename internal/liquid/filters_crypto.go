@@ -6,17 +6,23 @@ import (
 	"encoding/base64"
 	"encoding/binary"
 	"encoding/hex"
+	"errors"
 	"fmt"
 	"io"
 	"strings"
+	"time"
+
+	"github.com/sky-valley/pagelike/internal/errdoc"
+	"github.com/sky-valley/pagelike/internal/hashgate"
 
 	"golang.org/x/crypto/argon2"
 	"golang.org/x/crypto/bcrypt"
 )
 
 // Hashing and random filters (R-LIQ-180 … R-LIQ-187). Randomness comes from
-// Options.Rand (the OS CSPRNG by default); costly parameters are capped so
-// one filter call cannot eat a request's budget.
+// Options.Rand (the OS CSPRNG by default). bcrypt and argon2 cannot be
+// interrupted, so they first check that their estimated time fits what is
+// left of the budget, then take a slot of the shared hashing gate (R-LIQ-184).
 
 //go:embed wordlist.txt
 var wordListText string
@@ -56,13 +62,16 @@ func bcryptFilter(c *fcall) (any, error) {
 	if cost < int64(bcrypt.MinCost) || cost > int64(bcrypt.MaxCost) {
 		return nil, filterError("cost %d is out of range [%d, %d]", cost, bcrypt.MinCost, bcrypt.MaxCost)
 	}
-	if limit := int64(c.st.opts.MaxBcryptCost); cost > limit {
-		return nil, filterError("cost %d exceeds this server's maximum of %d", cost, limit)
-	}
+	// bcrypt reads only the first 72 bytes (docs snapshot 2026-11-23).
 	pw := []byte(toString(c.in))
 	if len(pw) > 72 {
-		return nil, filterError("input is longer than 72 bytes")
+		pw = pw[:72]
 	}
+	release, err := c.st.hashSlot(0, hashgate.BcryptEstimate(int(cost)))
+	if err != nil {
+		return nil, err
+	}
+	defer release()
 	h, err := bcrypt.GenerateFromPassword(pw, int(cost))
 	if err != nil {
 		return nil, filterError("%v", err)
@@ -124,6 +133,11 @@ func argon2Filter(c *fcall) (any, error) {
 	if err := c.st.charge(memory * time / 64); err != nil {
 		return nil, err
 	}
+	release, err := c.st.hashSlot(memory, hashgate.Argon2Estimate(memory, time))
+	if err != nil {
+		return nil, err
+	}
+	defer release()
 	h := argon2.IDKey([]byte(toString(c.in)), salt, uint32(time), uint32(memory), 1, uint32(length))
 	if format == "raw" {
 		return hex.EncodeToString(h), nil
@@ -305,4 +319,21 @@ func randInt(r io.Reader, n int) (int, error) {
 			return int(v % uint64(n)), nil
 		}
 	}
+}
+
+// hashSlot checks that a hash estimated to take est fits the time left in
+// the render's budget (a filter error otherwise) and takes a slot of the
+// shared hashing gate. A refused slot is an *errdoc.Error that fails the
+// whole render with 503 (R-LIQ-184).
+func (st *renderState) hashSlot(memKiB int64, est time.Duration) (func(), error) {
+	deadline := st.budget.Deadline()
+	if time.Now().Add(est).After(deadline) {
+		return nil, filterError("hashing would take about %v, more than the %v left in the request's budget; lower the cost, memory or time", est.Round(time.Millisecond), time.Until(deadline).Round(time.Millisecond))
+	}
+	release, err := hashgate.Default().Acquire(st.ctx, memKiB, est, deadline)
+	var ed *errdoc.Error
+	if errors.As(err, &ed) {
+		st.refused = ed
+	}
+	return release, err
 }

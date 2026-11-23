@@ -37,6 +37,7 @@ type Error struct {
 	Line int
 
 	err error
+	doc *errdoc.Error // served as is (a refused hashing slot)
 }
 
 func (e *Error) Error() string {
@@ -53,6 +54,9 @@ func (e *Error) Unwrap() error { return e.err }
 // Status is the HTTP status composition answers with: 503 for budget
 // exhaustion, 500 otherwise (R-LIQ-206, R-LIQ-212).
 func (e *Error) Status() int {
+	if e.doc != nil {
+		return e.doc.Status
+	}
 	if e.Kind == KindBudget {
 		return http.StatusServiceUnavailable
 	}
@@ -61,6 +65,9 @@ func (e *Error) Status() int {
 
 // ErrDoc is the error document composition serves for the failure.
 func (e *Error) ErrDoc() *errdoc.Error {
+	if e.doc != nil {
+		return e.doc
+	}
 	msg := e.Message
 	if e.Line > 0 {
 		msg = fmt.Sprintf("line %d: %s", e.Line, msg)

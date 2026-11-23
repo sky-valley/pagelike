@@ -1216,7 +1216,7 @@ output still follows R-LIQ-64 for caching. PageLove documents no
 
 ---
 
-## 16. Hashing and security filters (R-LIQ-180 … R-LIQ-183)
+## 16. Hashing and security filters (R-LIQ-180 … R-LIQ-184)
 
 **R-LIQ-180 `sha256`.** The lower-case hex SHA-256 of the input's UTF-8 bytes,
 after string coercion. Docs example: `"hello" | sha256` →
@@ -1230,19 +1230,21 @@ after string coercion. Docs example: `"hello" | sha256` →
 - `cost` must be an integer from 4 to 31. Outside that range, or non-integer,
   it is a filter error; the docs give an out-of-range hashing parameter as an
   error example.
-- pagelike MAY refuse costs above a configured ceiling (default 16) with a
-  filter error, to protect the budget (decision).
-- An input longer than 72 bytes is a filter error (decision, low).
+- A cost whose estimated time does not fit the time left is a filter error
+  (R-LIQ-184).
+- bcrypt reads only the first 72 bytes of the input; longer input is hashed
+  as its first 72 bytes (docs snapshot 2026-11-23, superseding pagelike's
+  earlier filter error).
 - Docs examples: `"password" | bcrypt`, `"password" | bcrypt: 10`.
 - Evidence: documented.
-- Confidence: high (format, default), low (the `2b` prefix, the 72-byte rule).
+- Confidence: high (format, default, the 72-byte rule), low (the `2b` prefix).
 
 **R-LIQ-182 `argon2`.** Argon2id with version `v=19` and parallelism 1
 (inferred). Keyword arguments:
 - `format`: `"phc"` (default) or `"raw"`. Any other value is a filter error.
 - `salt`: required for `raw`, at least 8 bytes of UTF-8. It is ignored in PHC
   mode, which uses a random 16-byte salt.
-- `memory`: KiB, default `19456`, minimum 8.
+- `memory`: KiB, default `19456`, from 8 to 262144 (256 MiB).
 - `time`: default `2`, minimum 1.
 - `length`: bytes, default `32`, range 4–64.
 
@@ -1252,14 +1254,37 @@ Outputs:
   input, salt and parameters.
 
 Errors: `raw` without a salt, a salt under 8 bytes, a parameter out of range,
-an unknown keyword. pagelike MAY cap `memory` (default cap 262144 KiB) and
-`time` (default cap 10) with a filter error (decision).
+an unknown keyword. pagelike MAY cap `time` (default cap 10) with a filter
+error (decision).
 - Docs examples: `"password" | argon2`;
   `argon2: memory: 65536, time: 3`;
   `argon2: format: "raw", salt: "per-user-unique-salt"`.
 - Evidence: documented ([F-SEC] parameter table).
 - Confidence: high (parameters, defaults, errors), low (`p=1`, the salt
   length).
+
+**R-LIQ-184 How long hashing takes.** bcrypt and argon2 cannot be stopped
+once started, so:
+- Before hashing, the time is estimated (bcrypt about 50 ms at cost 10,
+  doubling per step; argon2 about 1 µs per KiB per pass). If it exceeds the
+  time left in the request's budget, the filter fails (R-LIQ-200: an inline
+  marker, the page still composes). Without a time budget each use gets
+  5 seconds.
+- The server runs as many hashes at once as it has cores. One site may use
+  at most half of those slots, and at least one. A site already at its share
+  is refused at once; otherwise a hash waits for a slot only while the time
+  left still covers it.
+- Argon2 memory in flight is capped at 1 GiB per process and 512 MiB per
+  site.
+- A refusal fails the whole render, in an attribute value too: 503 with
+  `Retry-After: 1`.
+- Sessel's `bcrypt()`/`argon2()` share the gate (R-SESSEL-120/121).
+- pagelike does not charge Argon2 memory to Liquid's memory budget, whose
+  16 MiB default is below the default filter's 19 MiB (decision; the
+  process and site caps above still apply).
+- Evidence: documented ([F-SEC] §How long hashing takes, docs snapshot
+  2026-11-23). The estimate constants are pagelike's.
+- Confidence: high (policy), low (the estimate constants).
 
 **R-LIQ-183 Security filters are not safe-marked.** No security filter's output
 is marked safe. Their alphabets contain no HTML-special characters, so this
@@ -1804,6 +1829,7 @@ unless stated otherwise. Each probe is a runnable harness case (§26).
 | `filters-expressions.yaml` | R-LIQ-160…166 |
 | `filters-date.yaml` | R-LIQ-170…178 |
 | `filters-security.yaml` | R-LIQ-180…183 |
+| `security-1123.yaml` | R-LIQ-181 (72 bytes), R-LIQ-184 (time estimate) |
 | `filters-random-data.yaml` | R-LIQ-185…192 |
 | `errors.yaml` | R-LIQ-200…209 |
 | `limits.yaml` | R-LIQ-210…216 (`live: false`, opt-in) |

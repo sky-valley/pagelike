@@ -16,6 +16,7 @@ import (
 	"github.com/osteele/liquid/render"
 	"golang.org/x/net/html"
 
+	"github.com/sky-valley/pagelike/internal/errdoc"
 	"github.com/sky-valley/pagelike/internal/xmldom"
 )
 
@@ -33,8 +34,6 @@ type Options struct {
 	MaxExpDepth int
 	// MaxRandomLength caps `random`'s length; default 4096.
 	MaxRandomLength int
-	// MaxBcryptCost caps bcrypt's cost; default 16.
-	MaxBcryptCost int
 	// MaxArgon2Memory (KiB) and MaxArgon2Time cap argon2's parameters;
 	// defaults 262144 and 10.
 	MaxArgon2Memory int64
@@ -64,9 +63,6 @@ func (o *Options) defaults() {
 	}
 	if o.MaxRandomLength == 0 {
 		o.MaxRandomLength = 4096
-	}
-	if o.MaxBcryptCost == 0 {
-		o.MaxBcryptCost = 16
 	}
 	if o.MaxArgon2Memory == 0 {
 		o.MaxArgon2Memory = 262144
@@ -161,6 +157,8 @@ type renderState struct {
 	cycles   map[string]int
 	counters map[string]int
 	stored   map[string]int64 // bytes charged per assigned variable
+
+	refused *errdoc.Error // a refused hashing slot fails the render (R-LIQ-184)
 }
 
 // charge spends work units; the request context is checked every 64
@@ -192,8 +190,11 @@ func (st *renderState) store(name string, size int64) error {
 }
 
 // fatal returns the error that must fail the render, if any: budget
-// exhaustion or a cancelled request.
+// exhaustion, a refused hashing slot or a cancelled request.
 func (st *renderState) fatal(err error) error {
+	if st.refused != nil {
+		return st.refused
+	}
 	if berr := st.budget.Err(); berr != nil {
 		return berr
 	}
@@ -269,6 +270,9 @@ func (e *Engine) RenderFor(ctx context.Context, host Host, src string, vars map[
 	if berr := budget.Err(); berr != nil {
 		return "", e.fail(st, berr)
 	}
+	if st.refused != nil {
+		return "", e.fail(st, st.refused)
+	}
 	return buf.String(), nil
 }
 
@@ -281,6 +285,9 @@ func (e *Engine) fail(st *renderState, err error) *Error {
 	}
 	if berr := st.budget.Err(); berr != nil {
 		return &Error{Kind: KindBudget, Message: berr.Error(), Line: line, err: berr}
+	}
+	if ed := st.refused; ed != nil { // a refused hashing slot (R-LIQ-184)
+		return &Error{Kind: ed.Kind, Message: ed.Message, Line: line, err: ed, doc: ed}
 	}
 	if errors.Is(err, context.DeadlineExceeded) {
 		return &Error{Kind: KindBudget, Message: "time limit exceeded", Line: line, err: fmt.Errorf("%w: %w", ErrBudget, err)}

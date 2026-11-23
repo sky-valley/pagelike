@@ -8,6 +8,7 @@ import (
 
 	"github.com/sky-valley/pagelike/internal/engine"
 	"github.com/sky-valley/pagelike/internal/errdoc"
+	"github.com/sky-valley/pagelike/internal/hashgate"
 	"github.com/sky-valley/pagelike/internal/sessel"
 	"github.com/sky-valley/pagelike/internal/site"
 	"github.com/sky-valley/pagelike/internal/store"
@@ -86,6 +87,9 @@ func ApplyRead(ctx context.Context, s *site.Site, snap *site.Snapshot, path stri
 }
 
 func readFailure(err error) error {
+	if ed := hashgate.Refused(err); ed != nil {
+		return ed
+	}
 	f := failureOf(err)
 	status := http.StatusInternalServerError
 	switch err.(type) {

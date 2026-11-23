@@ -21,6 +21,7 @@ import (
 	"github.com/sky-valley/pagelike/internal/budget"
 	"github.com/sky-valley/pagelike/internal/engine"
 	"github.com/sky-valley/pagelike/internal/errdoc"
+	"github.com/sky-valley/pagelike/internal/hashgate"
 	"github.com/sky-valley/pagelike/internal/identity"
 	"github.com/sky-valley/pagelike/internal/site"
 	"github.com/sky-valley/pagelike/internal/store"
@@ -64,7 +65,8 @@ func (p *Public) Serve(w http.ResponseWriter, r *http.Request, s *site.Site) {
 	w = engine.ConventionalHeaders(w)
 	// One budget per request, shared by every runtime that serves it.
 	b := budget.New()
-	r = r.WithContext(budget.With(r.Context(), b))
+	// Password hashes are charged to the site's share of the server (R-LIQ-184).
+	r = r.WithContext(hashgate.WithSite(budget.With(r.Context(), b), s))
 	w = &budgetWriter{ResponseWriter: w, b: b}
 	rc := &reqCtx{site: s, host: hostOnly(r.Host)}
 	rc.principal = p.principal(w, r, s)
