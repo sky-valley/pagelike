@@ -336,7 +336,7 @@ func (st *evalState) run() *resultMsg {
 	cfg := map[string]any{
 		"entry": st.entry, "doc": docHandle, "handles": handles, "hasContext": call.HasContext,
 		"expr": call.Expr, "scope": call.Scope, "this": call.This, "args": call.Args, "interfaces": st.needsInterfaces(),
-		"context": call.Context, "request": call.Request,
+		"context": call.Context, "request": call.Request, "saves": call.Saves,
 	}
 	if call.Expr {
 		cfg["params"] = params
@@ -969,6 +969,24 @@ func (st *evalState) sys(op string, a []any) (any, error) {
 			return nil, errors.New(r.Error)
 		}
 		return st.replyJSON(r)
+	case "save":
+		// save(verb, [item] payload, elems, path, selector|null, placement)
+		elems, err := st.resultElems(toStr(arg(a, 2)))
+		if err != nil {
+			return nil, err
+		}
+		cb := &cbMsg{Op: "save", Method: toStr(arg(a, 0)), Value: toStr(arg(a, 1)), Elements: elems, Name: toStr(arg(a, 3)), Placement: toStr(arg(a, 5))}
+		if s, ok := arg(a, 4).(string); ok {
+			cb.Selector, cb.HasSelector = s, true
+		}
+		r, err := st.callback(cb)
+		if err != nil {
+			return nil, err
+		}
+		if r.Error != "" {
+			return nil, errors.New(r.Error)
+		}
+		return nil, nil
 	case "context":
 		name := toStr(arg(a, 0))
 		deleted, _ := arg(a, 3).(bool)

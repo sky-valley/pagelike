@@ -1,0 +1,176 @@
+# Reacting: saving from JavaScript actions with the Pagelove global (docs
+# snapshot 2026-11-23; spec R-JS-23b).
+anchors:
+  open_rules: &open_rules
+    - {actor: "*", resource: "${P}/*", method: [GET, HEAD, PUT, POST, DELETE], action: Allow}
+defaults:
+  area: reacting
+  evidence: documented
+  confidence: medium
+  requires: [server-js]
+  live: true
+  site:
+    settings: {default_get: allow}
+    rules: *open_rules
+cases:
+  - id: reacting.jss1123.action-saves
+    title: "A JavaScript trigger action saves with Pagelove.PUT, POST and DELETE"
+    feature: JavaScript saves
+    source: "docs languages/javascript/server/saving-data §Where you can save, §What you can save (snapshot 2026-11-23)"
+    notes: "spec: R-JS-23b. Before this snapshot a JavaScript action had no Pagelove global."
+    steps:
+      - name: a page to change
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/notes.html"
+          headers: {Content-Type: text/html}
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+            <ul id="notes"><li>Old</li></ul>
+            <b id="t">before</b>
+            <i id="gone">x</i>
+            </body></html>
+        expect: {status: [200, 201, 204]}
+      - name: install the trigger
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/r/triggers.html"
+          headers: {Content-Type: text/html}
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+            <div hidden itemscope itemtype="https://pagelove.org/Trigger">
+              <meta itemprop="resource" content="${P}/d/*">
+              <meta itemprop="method" content="PUT">
+              <div itemprop="action" itemscope itemtype="https://pagelove.org/JavaScript/Module">
+                <script type="module" itemprop="source">
+                  export default function(ctx) {
+                    Pagelove.PUT('<p id="side">made</p>', "${P}/side.html");
+                    Pagelove.POST("<li>Newest</li>", "${P}/notes.html", "#notes", " Prepend ");
+                    Pagelove.POST("<li>Last</li>", "${P}/notes.html", "#notes");
+                    Pagelove.PUT('<b id="t">after</b>', "${P}/notes.html", "#t");
+                    const gone = Pagelove.DELETE("${P}/notes.html", "#gone");
+                    Pagelove.POST('<u id="tail">' + gone + '</u>', "${P}/notes.html");
+                  }
+                </script>
+              </div>
+            </div>
+            </body></html>
+        expect: {status: [200, 201, 204]}
+      - name: a write that fires it
+        as: anonymous
+        request: {method: PUT, path: "${P}/d/x.html", headers: {Content-Type: text/html}, body: "<p>x</p>"}
+        expect: {status: [200, 201, 204]}
+      - name: the new document exists
+        as: anonymous
+        request: {method: GET, path: "${P}/side.html"}
+        expect: {status: 200, body_contains: ['<p id="side">made</p>']}
+      - name: the page was changed in place
+        as: anonymous
+        request: {method: GET, path: "${P}/notes.html"}
+        expect:
+          status: 200
+          body_contains: ['<li>Newest</li><li>Old</li><li>Last</li>', '<b id="t">after</b>', '<u id="tail">true</u>']
+          body_not_contains: ['id="gone"', "before"]
+  - id: reacting.jss1123.refused-save-throws
+    title: "A refused save throws an Error the action can catch; a bad placement posts nothing"
+    feature: JavaScript saves
+    source: "docs languages/javascript/server/saving-data §When a save is refused, §POST (snapshot 2026-11-23)"
+    notes: "spec: R-JS-23b."
+    steps:
+      - name: a page to change
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/notes.html"
+          headers: {Content-Type: text/html}
+          body: "<!DOCTYPE html>\n<html><body><ul id=\"notes\"></ul></body></html>\n"
+        expect: {status: [200, 201, 204]}
+      - name: install the trigger
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/r/triggers.html"
+          headers: {Content-Type: text/html}
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+            <div hidden itemscope itemtype="https://pagelove.org/Trigger">
+              <meta itemprop="resource" content="${P}/d/*">
+              <meta itemprop="method" content="PUT">
+              <div itemprop="action" itemscope itemtype="https://pagelove.org/JavaScript/Module">
+                <script type="module" itemprop="source">
+                  export default function(ctx) {
+                    const out = [];
+                    const tryIt = (f) => { try { f(); out.push("ok"); } catch (e) { out.push((e instanceof TypeError ? "TypeError " : "Error ") + e.message); } };
+                    tryIt(() => Pagelove.POST("<li>x</li>", "${P}/notes.html", "#nope"));
+                    tryIt(() => Pagelove.POST("<li>x</li>", "${P}/notes.html", "#notes", "sideways"));
+                    tryIt(() => Pagelove.POST("<li>x</li>", "${P}/notes.html", null, "before"));
+                    tryIt(() => Pagelove.POST("<li>x</li>", "${P}/notes.html", "#notes", 7));
+                    tryIt(() => Pagelove.DELETE("${P}/notes.html", "#nope"));
+                    tryIt(() => Pagelove.PUT(42, "${P}/n.html"));
+                    Pagelove.PUT("<pre>" + out.join("\n").replace(/</g, "[") + "</pre>", "${P}/log.html");
+                  }
+                </script>
+              </div>
+            </div>
+            </body></html>
+        expect: {status: [200, 201, 204]}
+      - name: a write that fires it
+        as: anonymous
+        request: {method: PUT, path: "${P}/d/x.html", headers: {Content-Type: text/html}, body: "<p>x</p>"}
+        expect: {status: [200, 201, 204]}
+      - name: each refusal was thrown with its reason
+        as: anonymous
+        request: {method: GET, path: "${P}/log.html"}
+        expect:
+          status: 200
+          body_contains:
+            - "Error POST returned 416 Range Not Satisfiable"
+            - 'Error POST: unknown placement "sideways"; use append, prepend, before or after'
+            - 'Error POST: placement "before" needs a selector; with no selector the item goes inside the page''s body'
+            - "TypeError Pagelove.POST's placement must be a string"
+            - "Error DELETE returned 416"
+            - "TypeError "
+      - name: nothing was posted
+        as: anonymous
+        request: {method: GET, path: "${P}/notes.html"}
+        expect: {status: 200, body_contains: ['<ul id="notes"></ul>']}
+  - id: reacting.jss1123.js-gate-has-no-pagelove
+    title: "A JavaScript when gate has no Pagelove object"
+    feature: JavaScript saves
+    source: "docs languages/javascript/server/saving-data §Where you can save ('A JavaScript gate has no Pagelove object at all') (snapshot 2026-11-23)"
+    notes: "spec: R-JS-23b."
+    steps:
+      - name: install a trigger whose gate looks for Pagelove
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/r/triggers.html"
+          headers: {Content-Type: text/html}
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+            <div hidden itemscope itemtype="https://pagelove.org/Trigger">
+              <meta itemprop="resource" content="${P}/d/*">
+              <meta itemprop="method" content="PUT">
+              <div itemprop="when" itemscope itemtype="https://pagelove.org/JavaScript/Module">
+                <script type="module" itemprop="source">
+                  export default function(ctx) { return typeof Pagelove === "undefined"; }
+                </script>
+              </div>
+              <div itemprop="action" itemscope itemtype="https://pagelove.org/JavaScript/Module">
+                <script type="module" itemprop="source">
+                  export default function(ctx) { throw { schema_url: "https://pagelove.org/HTTPResponse", status: 418, message: "gate passed" }; }
+                </script>
+              </div>
+            </div>
+            </body></html>
+        expect: {status: [200, 201, 204]}
+      - name: the gate passed, so the action answered
+        as: anonymous
+        request: {method: PUT, path: "${P}/d/x.html", headers: {Content-Type: text/html}, body: "<p>x</p>"}
+        expect: {status: 418}

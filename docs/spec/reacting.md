@@ -857,8 +857,7 @@ For each public-plane request (the steps before 3 belong to other areas):
   D-PROC §Error handling; D-JSS §Errors. **Confidence:** high (fails with
   microdata body), low (500, envelope).
 - **Cases:** `reacting.actions.js-plain-error-is-runtime-error`,
-  `reacting.gates.when-runtime-error-fails-request`,
-  `reacting.writes.js-action-has-no-write-provider`.
+  `reacting.gates.when-runtime-error-fails-request`.
 
 ---
 
@@ -969,14 +968,16 @@ For each public-plane request (the steps before 3 belong to other areas):
 - **Evidence:** inferred. **Confidence:** low. Probe P-10.
 - **Cases:** `reacting.writes.side-effect-denied-writes-nothing`.
 
-### R-REACT-41 — JavaScript actions cannot write
-- **Behavior:** JavaScript `when`/`action` code has no `Pagelove` object. A
-  reference to it is a `ReferenceError`, which is a runtime error. To write,
-  JavaScript must queue an HttpRequest back to the host (R-REACT-49).
-- **Evidence:** documented. **Source:** D-TRIG §Writing from triggers ("a
-  Sessel-only capability … without a write provider"); D-PROC §Writing from
-  processors. **Confidence:** high (no capability), medium (ReferenceError).
-- **Cases:** `reacting.writes.js-action-has-no-write-provider`.
+### R-REACT-41 — JavaScript actions save with the Pagelove global
+- **Behavior:** A JavaScript `action` or `otherwise` has a global `Pagelove`
+  object with `PUT`, `POST` and `DELETE` (javascript.md R-JS-23b). A
+  JavaScript `when` gate has none. The 2026-09-28 docs gave JavaScript no
+  write provider; the 2026-11-23 snapshot supersedes that.
+- **Evidence:** documented. **Source:** docs languages/javascript/server
+  /saving-data (snapshot 2026-11-23). **Confidence:** medium.
+- **Cases:** `reacting.jss1123.action-saves`,
+  `reacting.jss1123.refused-save-throws`,
+  `reacting.jss1123.js-gate-has-no-pagelove`.
 
 ### R-REACT-42 — Transient elements
 - **Behavior:** Triggers "can write to transient elements". The mechanism is

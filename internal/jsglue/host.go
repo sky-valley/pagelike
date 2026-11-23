@@ -21,6 +21,16 @@ type host struct {
 	// cx receives Context assignments (nil: they are only reported in the
 	// result).
 	cx *sessel.Dict
+	// save performs the saves of the Pagelove global (nil: none).
+	save func(ctx context.Context, c *jsrt.SaveCall) error
+}
+
+// Save implements jsrt.Saver.
+func (h *host) Save(ctx context.Context, c *jsrt.SaveCall) error {
+	if h.save == nil {
+		return fmt.Errorf("%s: saving is not available here", c.Verb)
+	}
+	return h.save(ctx, c)
 }
 
 // LookupSchema implements jsrt.Host: the descriptor of a registered schema

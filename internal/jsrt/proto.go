@@ -41,6 +41,7 @@ type callMsg struct {
 	ArgCount   int                 `json:"argc"` // -1 = any
 	DocMode    docMode             `json:"doc"`  // ambient document mode
 	HasContext bool                `json:"hasContext,omitempty"`
+	Saves      bool                `json:"saves,omitempty"`
 	HTTPResp   bool                `json:"httpResponse,omitempty"`
 	This       string              `json:"this,omitempty"` // wire JSON; "" = undefined
 	Args       string              `json:"args"`           // wire JSON array
@@ -105,7 +106,7 @@ type wireContextWrite struct {
 // cbMsg is a callback from the worker.
 type cbMsg struct {
 	ID       int          `json:"id"`
-	Op       string       `json:"op"` // schema | method | context
+	Op       string       `json:"op"` // schema | method | context | save
 	Type     string       `json:"type,omitempty"`
 	Method   string       `json:"method,omitempty"`
 	Static   bool         `json:"static,omitempty"`
@@ -113,6 +114,10 @@ type cbMsg struct {
 	Elements []resultElem `json:"elements,omitempty"`
 	Name     string       `json:"name,omitempty"`
 	Deleted  bool         `json:"deleted,omitempty"`
+	// save: Method is the verb, Value [item], Name the path.
+	Selector    string `json:"selector,omitempty"`
+	HasSelector bool   `json:"hasSelector,omitempty"`
+	Placement   string `json:"placement,omitempty"`
 }
 
 // replyMsg answers a callback. Value and the Context values are in the

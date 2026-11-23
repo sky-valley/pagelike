@@ -364,13 +364,13 @@ cases:
             </body></html>
         expect:
           status: [200, 201, 204]
-  - id: "javascript.reactions.trigger-no-pagelove-global"
-    title: "JavaScript actions have no Pagelove write API: referencing it is a runtime error that fails the request"
+  - id: "javascript.reactions.trigger-save-plain-object-fails"
+    title: "Pagelove.PUT of a plain object in a JavaScript action throws, which fails the request"
     feature: "triggers (JavaScript)"
-    source: "docs reference/reacting-to-changes/Trigger §Writing from triggers ('This is a Sessel-only capability'), §Error handling (snapshot 2026-09-28)"
+    source: "docs languages/javascript/server/saving-data §What you can save ('Anything else throws a TypeError') (snapshot 2026-11-23); the 2026-09-28 docs gave JavaScript actions no Pagelove object"
     confidence: "medium"
     live: true
-    notes: "spec: R-JS-21, R-JS-38 (500 is pagelike's number for 'an HTML Microdata error body')."
+    notes: "spec: R-JS-21, R-JS-23b (500 is pagelike's number for 'an HTML Microdata error body'). Was javascript.reactions.trigger-no-pagelove-global."
     steps:
       - name: "register the trigger/processor (public plane)"
         as: "anonymous"

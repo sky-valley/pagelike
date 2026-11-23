@@ -175,8 +175,32 @@ type CallRequest struct {
 	Schemas []*SchemaDescriptor
 	// Host serves callbacks; nil uses Options.Host.
 	Host Host
+	// Saves gives the evaluation the Pagelove global (R-JS-23b); the Host
+	// must then implement Saver.
+	Saves bool
 	// Budget bounds the evaluation.
 	Budget Budget
+}
+
+// Saver is implemented by a Host whose evaluations may save with the
+// Pagelove global (R-JS-23b).
+type Saver interface {
+	// Save performs one Pagelove.PUT, POST or DELETE. A returned error is
+	// thrown into JavaScript as an Error with its message.
+	Save(ctx context.Context, call *SaveCall) error
+}
+
+// SaveCall is one save made by JavaScript.
+type SaveCall struct {
+	Verb string // PUT, POST or DELETE
+	// Item is what to save: a string of HTML, an *Element or an *Instance
+	// (nil for DELETE).
+	Item        Value
+	Path        string
+	Selector    string
+	HasSelector bool
+	// Placement is append, prepend, before or after (POST).
+	Placement string
 }
 
 // ExprRequest evaluates one j: expression binding (R-JS-30..36).

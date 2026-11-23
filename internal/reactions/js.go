@@ -54,6 +54,16 @@ type JSCall struct {
 	Source string
 	Arg    map[string]any
 	Budget *budget.Request // the request's shared budget
+	// Saver performs the saves of the Pagelove global; nil gives the code
+	// no Pagelove object (gates, bindings; R-JS-23b).
+	Saver JSSaver
+}
+
+// JSSaver performs one save made by JavaScript: verb is PUT, POST or
+// DELETE; item is a string of HTML or a *sessel.Element (nil for DELETE);
+// placement is append, prepend, before or after (POST).
+type JSSaver interface {
+	Save(ctx context.Context, verb string, item any, path, selector string, hasSelector bool, placement string) error
 }
 
 // ThrownResponse is an HTTPResponse thrown by JavaScript (R-REACT-30).
@@ -93,12 +103,12 @@ func SetJSRunner(r JSRunner) {
 }
 
 // runJS calls a JavaScript module's default export in the given slot.
-func runJS(ctx context.Context, s *site.Site, snap *site.Snapshot, slot, src string, arg map[string]any) (sessel.Value, error) {
+func runJS(ctx context.Context, s *site.Site, snap *site.Snapshot, slot, src string, arg map[string]any, saver JSSaver) (sessel.Value, error) {
 	r := jsRunner.Load()
 	if r == nil {
 		return nil, ErrNoJavaScript
 	}
-	v, err := (*r).CallDefault(ctx, &JSCall{Site: s, Snap: snap, Slot: slot, Source: src, Arg: arg, Budget: budget.From(ctx)})
+	v, err := (*r).CallDefault(ctx, &JSCall{Site: s, Snap: snap, Slot: slot, Source: src, Arg: arg, Budget: budget.From(ctx), Saver: saver})
 	if err != nil {
 		return nil, err
 	}
