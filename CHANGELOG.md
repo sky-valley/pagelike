@@ -74,6 +74,8 @@ Reactions (docs snapshot 2026-11-23):
 
 - A `when` written as plain text is a Sessel gate. A trigger with one used
   to be skipped, so its guard did not run.
+- A page that reads the values out of a copy of `Context` is served
+  `Cache-Control: private`.
 - A `when` gate is read-only: a save inside it fails the request.
 - Transition handler notifications are delivered at least once: a failed
   delivery is tried again with growing delay, up to 36 attempts, and is

@@ -1289,6 +1289,20 @@ keeps the response shareable (then reading-writing R-RW-102 applies).
 - Taint is per response, propagated from any nested composition (includes,
   stamps, templates inside included fragments).
 
+**R-COMP-150b A copy of Context.** A copy of `Context` carries the privacy
+of the identity in it: `let c = Context; c.request.auth.username` makes the
+page private, and so does reading the copy's values out (`c.values()`,
+`c.entries()`). Copying `Context`, or passing it to a method, does not by
+itself. pagelike's check is static and conservative, like R-COMP-150's: a
+source that uses `Context` as a whole value and reads a dictionary's values
+is private. The docs also name `c.json()` and `c.String()`, which the
+dictionary reference does not document and pagelike does not have, and
+putting the copy in a constructed element or a search, which a static
+check does not see unless the source names `auth` or `headers`.
+- Evidence: documented ([SES] §Authenticated identity in composition,
+  snapshot 2026-11-23). Confidence: medium.
+- Cases: `comp.eb.context-copy-private`.
+
 **R-COMP-151 Other headers.** Composed HTML: `Content-Type: text/html`
 (live sends no charset), `Vary: Host, Range, Accept` (live), `ETag`
 (live composed whole pages carry **weak** tags `W/"<64 hex>"`, C-14), no

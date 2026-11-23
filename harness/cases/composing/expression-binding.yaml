@@ -366,3 +366,50 @@ cases:
         expect:
           status: 200
           body_contains: ["[ORDER-OK]"]
+
+  - id: comp.eb.context-copy-private
+    title: A copy of Context carries the privacy of the identity in it; copying alone does not make the page private
+    area: composing
+    feature: request object
+    evidence: documented
+    source: "docs languages/sessel/reference/syntax §Authenticated identity in composition (snapshot 2026-11-23) ('A copy of Context carries it too … So does turning the copy into text or markup … Copying Context … does not by itself')"
+    confidence: medium
+    requires: [sessel, liquid]
+    live: true
+    notes: "R-COMP-150b. The docs also name c.json() and c.String(); the dictionary reference documents neither, and pagelike has neither."
+    site:
+      settings: {default_get: allow}
+      files:
+        - path: "${P}/read.html"
+          body: |
+            <!DOCTYPE html>
+            <html xmlns:e="https://pagelove.org/Binding/Sessel" xmlns:p="https://pagelove.org/1.0">
+            <body e:who="let c = Context; c.request.auth.username"><div id="w" p:template="text/liquid">[{{ who }}]</div></body>
+            </html>
+        - path: "${P}/values.html"
+          body: |
+            <!DOCTYPE html>
+            <html xmlns:e="https://pagelove.org/Binding/Sessel" xmlns:p="https://pagelove.org/1.0">
+            <body e:n="let c = Context; c.values().count()"><div id="w" p:template="text/liquid">[{{ n }}]</div></body>
+            </html>
+        - path: "${P}/copy.html"
+          body: |
+            <!DOCTYPE html>
+            <html xmlns:e="https://pagelove.org/Binding/Sessel" xmlns:p="https://pagelove.org/1.0">
+            <body e:n="let c = Context; 1"><div id="w" p:template="text/liquid">[{{ n }}]</div></body>
+            </html>
+      rules:
+        - {actor: "*", resource: "${P}/*", method: [GET, HEAD], action: Allow}
+    steps:
+      - name: reading identity through the copy
+        as: anonymous
+        request: {method: GET, path: "${P}/read.html"}
+        expect: {status: 200, body_contains: ['<div id="w">[]</div>'], header_contains: {Cache-Control: private}}
+      - name: the copy's values
+        as: anonymous
+        request: {method: GET, path: "${P}/values.html"}
+        expect: {status: 200, header_contains: {Cache-Control: private}}
+      - name: copying alone
+        as: anonymous
+        request: {method: GET, path: "${P}/copy.html"}
+        expect: {status: 200, body_contains: ['<div id="w">[1]</div>'], header_matches: {Cache-Control: "^public"}}
