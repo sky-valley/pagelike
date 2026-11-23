@@ -484,18 +484,17 @@ cases:
             Range: "selector=#item-gone"
         expect:
           status: 416
-  - id: "javascript.query.javascript-body-415"
-    title: "QUERY with a JavaScript body is not a supported query type (the Sessel path's 400, no Accept-Query)"
+  - id: "javascript.query.javascript-body-405"
+    title: "The public site refuses a QUERY with a JavaScript body (405)"
     feature: "QUERY"
-    evidence: "live-observed"
-    source: "harness/observations/live-2026-09-28/protocol-query-sessel-415-unsupported-type.json and protocol-query-edge-415-unsupported-type.json (a non-css type is authorized as QUERY, then 400 'QUERY method requires Content-Type: text/sessel'); docs languages/javascript/server/javascript-in-schemas §When to reach for it ('HTTP queries' are Sessel-only); docs reference/protocol/QUERY (snapshot 2026-09-28) claims 415"
+    evidence: "documented"
+    source: "docs reference/protocol/QUERY §JavaScript mode (\"The public site answers 405 Method Not Allowed\") (snapshot 2026-11-23)"
     confidence: "medium"
     requires: ["server-js"]
     live: true
     notes: >-
-      spec: R-JS-4; protocol R-PROTO-43 as reconciled with live PageLove (C-9 reversed,
-      docs/compat/decisions.md). The id keeps its original name. The rules grant QUERY, because
-      without that grant the answer is the QUERY denial (401).
+      spec: R-JS-4; protocol R-PROTO-144. Supersedes the 2026-09-28 live 400 (Sessel path). The rules
+      grant QUERY, to show the refusal does not depend on authorization.
     site:
       settings:
         default_get: "allow"
@@ -528,6 +527,7 @@ cases:
             Content-Type: "text/javascript"
           body: "document.querySelector('h1')"
         expect:
-          status: 400
-          headers_absent: ["Accept-Query"]
-          body_contains: ["QUERY method requires Content-Type: text/sessel"]
+          status: 405
+          headers: {Accept-Query: "text/css-selector"}
+          header_matches: {Allow: "QUERY"}
+          body_contains: ["https://pagelove.org/Error/MethodNotAllowed"]

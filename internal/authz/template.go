@@ -97,6 +97,32 @@ func substitute(s string, req *Request, quote func(string) string) string {
 
 func identityQuote(s string) string { return s }
 
+// SelectorQuote makes a substituted value literal text inside a CSS
+// selector, quoted or not (docs AuthorizationRule §A substituted value in a
+// selector is a literal, snapshot 2026-11-23; R-PERM-120). Every character
+// that could end a string, start a new compound or combinator, or change
+// the parse is escaped; letters, digits, '_' and non-ASCII stay as they
+// are. Whitespace, control characters and a leading digit use hex escapes
+// (followed by the space that ends them), so the escaped text means the
+// same characters in an identifier and in a string.
+func SelectorQuote(s string) string {
+	var b strings.Builder
+	for i, r := range s {
+		switch {
+		case r == 0:
+			b.WriteString("\\fffd ")
+		case r < 0x20 || r == 0x7f || r == ' ' || i == 0 && r >= '0' && r <= '9':
+			fmt.Fprintf(&b, "\\%x ", r)
+		case r >= 0x80 || r == '_' || r >= 'a' && r <= 'z' || r >= 'A' && r <= 'Z' || r >= '0' && r <= '9':
+			b.WriteRune(r)
+		default:
+			b.WriteByte('\\')
+			b.WriteRune(r)
+		}
+	}
+	return b.String()
+}
+
 // validLookupPath reports whether p is a dotted lookup path: segments of
 // letters, digits, '_' and '-'.
 func validLookupPath(p string) bool {

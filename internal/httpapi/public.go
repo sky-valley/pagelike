@@ -30,14 +30,6 @@ import (
 // parameterized route template (supplied by the composition layer).
 type Router func(snap *site.Snapshot, reqPath string) (storedPath string, params map[string]string, ok bool)
 
-// QueryHandler evaluates a QUERY body of a given content type (e.g. Sessel).
-// For text/sessel the public plane has already authorized the request as
-// method QUERY on its path (docs/spec/protocol.md R-PROTO-74), rejected an
-// empty body (400) and a missing target (404); op.Path is the request path
-// (a directory path keeps its trailing slash, leaving self unbound) and
-// op.Method is "QUERY".
-type QueryHandler func(ctx context.Context, s *site.Site, snap *site.Snapshot, op *engine.ReadOp, body []byte, w http.ResponseWriter) error
-
 // Public serves the public plane of every site.
 type Public struct {
 	// ResolvePrincipal and CheckSession let a managed host bind its identity
@@ -47,7 +39,6 @@ type Public struct {
 	Engine           *engine.Engine
 	Compose          engine.Composer
 	Route            Router
-	Queries          map[string]QueryHandler // extra QUERY content types
 	Log              *slog.Logger
 	// TrustProxy honours X-Forwarded-Proto for cookie security decisions.
 	TrustProxy bool
@@ -93,10 +84,25 @@ func (p *Public) Serve(w http.ResponseWriter, r *http.Request, s *site.Site) {
 		p.pagelikeAPI(w, r, rc)
 		return
 	}
+	if err := engine.CheckCanonical(rawPath(r)); err != nil {
+		p.fail(w, r, rc, err)
+		return
+	}
 	clean, err := engine.NormalizePath(r.URL.Path)
 	if err != nil {
 		p.fail(w, r, rc, err)
 		return
+	}
+	if rc.principal != nil && rc.principal.Authenticated {
+		// A failed Group lookup refuses the request rather than letting a
+		// Deny that names the group be skipped (R-PERM-127).
+		if snap, err := s.Index(r.Context()); err == nil {
+			if gerr := snap.Policy.GroupFault(rc.principal); gerr != nil {
+				p.logger().Warn("group lookup failed", "err", gerr, "path", clean)
+				p.fail(w, r, rc, errdoc.New(http.StatusBadGateway, "GroupLookupFailed", "Group membership could not be looked up"))
+				return
+			}
+		}
 	}
 	if p.Intercept != nil {
 		p.Intercept.Intercept(w, r, p.call(r, rc, clean))
@@ -266,19 +272,16 @@ func (p *Public) respond(w http.ResponseWriter, r *http.Request, rc *reqCtx, res
 	}
 	body := res.Body
 	status := res.Status
-	if status == http.StatusOK && rng.Unit == "bytes" && ifRange(r, etag, lastMod) {
-		start, end, ok, unsatisfiable := byteRange(rng.Raw, int64(len(body)))
-		switch {
-		case unsatisfiable:
-			err := errdoc.New(http.StatusRequestedRangeNotSatisfiable, "RangeNotSatisfiable", "byte range %s cannot be satisfied", rng.Raw)
-			err.WithHeader("Content-Range", fmt.Sprintf("bytes */%d", len(body)))
-			err.WithHeader("Vary", res.Header.Get("Vary"))
-			err.WithHeader("Accept-Ranges", res.Header.Get("Accept-Ranges"))
-			p.fail(w, r, rc, err)
+	if r.Method != http.MethodHead && status == http.StatusOK && rng.Unit == "bytes" && ifRange(r, etag, lastMod) {
+		spans, mode := parseByteRanges(rng.Raw, int64(len(body)))
+		switch mode {
+		case rangeUnsatisfiable:
+			p.fail(w, r, rc, rangeNotSatisfiable(rng.Raw, int64(len(body)), res.Header.Get("Vary")))
 			return
-		case ok:
-			res.Header.Set("Content-Range", fmt.Sprintf("bytes %d-%d/%d", start, end, len(body)))
-			body, status = body[start:end+1], http.StatusPartialContent
+		case rangeParts:
+			copyHeader(w.Header(), res.Header)
+			writeByteRanges(w, bytes.NewReader(body), int64(len(body)), res.Header.Get("Content-Type"), spans)
+			return
 		}
 	}
 	copyHeader(w.Header(), res.Header)
@@ -287,6 +290,19 @@ func (p *Public) respond(w http.ResponseWriter, r *http.Request, rc *reqCtx, res
 	if r.Method != http.MethodHead {
 		w.Write(body)
 	}
+}
+
+// rangeNotSatisfiable is the 416 of a byte range no part of which can be
+// met: Content-Range bytes */<length> and an error item (R-PROTO-142).
+func rangeNotSatisfiable(raw string, size int64, vary string) *errdoc.Error {
+	err := errdoc.Problems(http.StatusRequestedRangeNotSatisfiable, "RangeNotSatisfiable", "byte range %s cannot be satisfied", raw)
+	err.ItemType = "https://pagelove.org/Error/RangeNotSatisfiable"
+	err.WithHeader("Content-Range", fmt.Sprintf("bytes */%d", size))
+	err.WithHeader("Accept-Ranges", acceptRanges)
+	if vary != "" {
+		err.WithHeader("Vary", vary)
+	}
+	return err
 }
 
 // evalPreconditions returns 412, 304 or 0 (proceed) for a read. If-Match is
@@ -331,55 +347,13 @@ func ifRange(r *http.Request, etag string, lastMod time.Time) bool {
 		return true
 	}
 	if strings.HasPrefix(ir, `"`) {
-		return ir == etag
+		return ir == etag && !strings.HasPrefix(etag, "W/")
+	}
+	if strings.HasPrefix(ir, "W/") {
+		return false // a weak tag never matches (R-PROTO-143)
 	}
 	t, err := http.ParseTime(ir)
 	return err == nil && !lastMod.IsZero() && lastMod.Truncate(time.Second).Equal(t)
-}
-
-// byteRange interprets a single "bytes=" range over size bytes. ok is false
-// for syntax pagelike ignores (invalid or multiple ranges: the full
-// representation is served).
-func byteRange(h string, size int64) (start, end int64, ok, unsatisfiable bool) {
-	unit, spec, _ := strings.Cut(h, "=")
-	if !strings.EqualFold(strings.TrimSpace(unit), "bytes") || strings.Contains(spec, ",") {
-		return 0, 0, false, false
-	}
-	a, b, found := strings.Cut(strings.TrimSpace(spec), "-")
-	if !found {
-		return 0, 0, false, false
-	}
-	a, b = strings.TrimSpace(a), strings.TrimSpace(b)
-	if a == "" {
-		n, err := strconv.ParseInt(b, 10, 64)
-		if err != nil || n < 0 {
-			return 0, 0, false, false
-		}
-		if n == 0 || size == 0 {
-			return 0, 0, false, true
-		}
-		if n > size {
-			n = size
-		}
-		return size - n, size - 1, true, false
-	}
-	first, err := strconv.ParseInt(a, 10, 64)
-	if err != nil || first < 0 {
-		return 0, 0, false, false
-	}
-	last := size - 1
-	if b != "" {
-		if last, err = strconv.ParseInt(b, 10, 64); err != nil || last < first {
-			return 0, 0, false, false
-		}
-		if last >= size {
-			last = size - 1
-		}
-	}
-	if first >= size {
-		return 0, 0, false, true
-	}
-	return first, last, true, false
 }
 
 // staticAsset reports whether a content type is a cacheable static asset:
@@ -426,26 +400,12 @@ func (p *Public) serveBlob(w http.ResponseWriter, r *http.Request, rc *reqCtx, s
 		notModified(w)
 		return
 	}
+	h.Set("Accept-Ranges", acceptRanges)
 	size := doc.Size
 	if !doc.IsBlob() {
 		size = int64(len(doc.Body))
 	}
-	if op.Range.Unit == "bytes" && ifRange(r, doc.ETag, mod) {
-		if _, _, _, unsatisfiable := byteRange(op.Range.Raw, size); unsatisfiable {
-			// Answered here so the 416 is an error document too.
-			for _, k := range []string{"Content-Type", "Last-Modified", "Cache-Control"} {
-				h.Del(k)
-			}
-			p.fail(w, r, rc, errdoc.New(http.StatusRequestedRangeNotSatisfiable, "RangeNotSatisfiable", "byte range %s cannot be satisfied", op.Range.Raw).
-				WithHeader("Content-Range", fmt.Sprintf("bytes */%d", size)).WithHeader("Accept-Ranges", "bytes"))
-			return
-		}
-	}
-	// Conditions are settled; let ServeContent do ranges only.
-	r2 := r.Clone(r.Context())
-	for _, k := range []string{"If-Match", "If-None-Match", "If-Modified-Since", "If-Unmodified-Since"} {
-		r2.Header.Del(k)
-	}
+	var content io.ReaderAt = bytes.NewReader(doc.Body)
 	if doc.IsBlob() {
 		f, err := rc.site.Store.OpenBlob(doc.BlobSHA)
 		if err != nil {
@@ -453,10 +413,27 @@ func (p *Public) serveBlob(w http.ResponseWriter, r *http.Request, rc *reqCtx, s
 			return
 		}
 		defer f.Close()
-		http.ServeContent(w, r2, "", mod, f)
-		return
+		content = f
 	}
-	http.ServeContent(w, r2, "", mod, bytes.NewReader(doc.Body))
+	if r.Method != http.MethodHead && op.Range.Unit == "bytes" && ifRange(r, doc.ETag, mod) {
+		spans, mode := parseByteRanges(op.Range.Raw, size)
+		switch mode {
+		case rangeUnsatisfiable:
+			for _, k := range []string{"Content-Type", "Last-Modified", "Cache-Control"} {
+				h.Del(k)
+			}
+			p.fail(w, r, rc, rangeNotSatisfiable(op.Range.Raw, size, ""))
+			return
+		case rangeParts:
+			writeByteRanges(w, content, size, doc.ContentType, spans)
+			return
+		}
+	}
+	h.Set("Content-Length", strconv.FormatInt(size, 10))
+	w.WriteHeader(http.StatusOK)
+	if r.Method != http.MethodHead {
+		io.Copy(w, io.NewSectionReader(content, 0, size))
+	}
 }
 
 // readBody reads a request body under the site's cap (R-RW-120..122): a
@@ -531,6 +508,11 @@ func destinationPath(r *http.Request) (string, error) {
 	if u.Path == "" {
 		return "/", nil
 	}
+	// The Destination's path, query and fragment dropped, must be
+	// canonical like the request path (R-RW-154).
+	if err := engine.CheckCanonical(u.EscapedPath()); err != nil {
+		return "", err
+	}
 	return u.Path, nil
 }
 
@@ -600,4 +582,15 @@ func isLoopback(r *http.Request) bool {
 
 func htmlAttr(s string) string {
 	return strings.NewReplacer("&", "&amp;", `"`, "&quot;", "<", "&lt;").Replace(s)
+}
+
+// rawPath is the request path as the client sent it, still percent-encoded.
+func rawPath(r *http.Request) string {
+	if u := r.RequestURI; strings.HasPrefix(u, "/") {
+		if i := strings.IndexAny(u, "?#"); i >= 0 {
+			u = u[:i]
+		}
+		return u
+	}
+	return r.URL.EscapedPath()
 }

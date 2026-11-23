@@ -1,0 +1,221 @@
+# An element Deny narrows a page-wide Allow (docs snapshot 2026-11-23,
+# AuthorizationRule §An element deny narrows a page-wide allow; spec
+# R-PERM-122..124).
+cases:
+  - id: authz.narrow.selector-writes
+    title: An element Deny takes the element, its ancestors and its descendants back from a page-wide Allow
+    area: permissions-identity
+    feature: element deny narrowing
+    evidence: documented
+    source: "docs reference/permissions/AuthorizationRule §An element deny narrows a page-wide allow (snapshot 2026-11-23)"
+    confidence: high
+    requires: []
+    live: true
+    site:
+      files: &profile
+        - path: "${P}/doc.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body><div itemscope id="card"><span itemprop="name">Al</span> <span itemprop="role"><b>admin</b></span></div><p id="other">x</p></body></html>
+        - path: "${P}/rules.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div hidden itemscope itemtype="https://pagelove.org/AuthorizationRule">
+                <meta itemprop="actor" content="*"><meta itemprop="resource" content="${P}/*">
+                <meta itemprop="method" content="*"><meta itemprop="action" content="allow">
+              </div>
+              <div hidden itemscope itemtype="https://pagelove.org/AuthorizationRule">
+                <meta itemprop="actor" content="*"><meta itemprop="resource" content="${P}/*.html">
+                <meta itemprop="method" content="*"><meta itemprop="selector" content="[itemprop=role]">
+                <meta itemprop="action" content="deny">
+              </div>
+            </body></html>
+    steps:
+      - name: an unprotected element can be written
+        as: anonymous
+        request: {method: PUT, path: "${P}/doc.html", headers: {Range: "selector=[itemprop=name]", Content-Type: text/html}, body: '<span itemprop="name">Bo</span>'}
+        expect: {status: 206}
+      - name: the protected element cannot
+        as: anonymous
+        request: {method: PUT, path: "${P}/doc.html", headers: {Range: "selector=[itemprop=role]", Content-Type: text/html}, body: '<span itemprop="role">owner</span>'}
+        expect: {status: 401}
+      - name: nor the element that holds it
+        as: anonymous
+        request: {method: PUT, path: "${P}/doc.html", headers: {Range: "selector=#card", Content-Type: text/html}, body: '<div itemscope id="card">gone</div>'}
+        expect: {status: 401}
+      - name: nor an element inside it
+        as: anonymous
+        request: {method: PUT, path: "${P}/doc.html", headers: {Range: "selector=[itemprop=role] b", Content-Type: text/html}, body: '<b>owner</b>'}
+        expect: {status: 401}
+      - name: a POST into the element that holds it is refused when it adds a second protected element
+        as: anonymous
+        request: {method: POST, path: "${P}/doc.html", headers: {Range: "selector=#other", Content-Type: text/html}, body: '<span itemprop="role">owner</span>'}
+        expect: {status: 401}
+      - name: a POST of an unprotected element is allowed
+        as: anonymous
+        request: {method: POST, path: "${P}/doc.html", headers: {Range: "selector=#other", Content-Type: text/html}, body: '<i>note</i>'}
+        expect: {status: [200, 201, 204, 206]}
+      - name: nothing protected changed
+        as: anonymous
+        request: {method: GET, path: "${P}/doc.html"}
+        expect: {status: 200, body_contains: ['<span itemprop="role"><b>admin</b></span>', '<span itemprop="name">Bo</span>']}
+
+  - id: authz.narrow.whole-page
+    title: A whole-page write under an element Deny must leave the protected elements exactly as they were
+    area: permissions-identity
+    feature: element deny narrowing
+    evidence: documented
+    source: "docs reference/permissions/AuthorizationRule §Whole-page writes (snapshot 2026-11-23)"
+    confidence: high
+    requires: []
+    live: true
+    site:
+      files: *profile
+    steps:
+      - name: a save that keeps the role is allowed
+        as: anonymous
+        request: {method: PUT, path: "${P}/doc.html", headers: {Content-Type: text/html}, body: '<!DOCTYPE html><html><body><div itemscope id="card"><span itemprop="name">Cy</span> <span itemprop="role"><b>admin</b></span></div></body></html>'}
+        expect: {status: [200, 201, 204]}
+      - name: a save that changes the role is refused
+        as: anonymous
+        request: {method: PUT, path: "${P}/doc.html", headers: {Content-Type: text/html}, body: '<!DOCTYPE html><html><body><div itemscope id="card"><span itemprop="name">Cy</span> <span itemprop="role"><b>owner</b></span></div></body></html>'}
+        expect: {status: 401}
+      - name: a save that removes the role is refused
+        as: anonymous
+        request: {method: PUT, path: "${P}/doc.html", headers: {Content-Type: text/html}, body: '<!DOCTYPE html><html><body><div itemscope id="card"><span itemprop="name">Cy</span></div></body></html>'}
+        expect: {status: 401}
+      - name: a save that adds a second role is refused
+        as: anonymous
+        request: {method: PUT, path: "${P}/doc.html", headers: {Content-Type: text/html}, body: '<!DOCTYPE html><html><body><div itemscope id="card"><span itemprop="name">Cy</span> <span itemprop="role"><b>admin</b></span><span itemprop="role">x</span></div></body></html>'}
+        expect: {status: 401}
+      - name: a POST with no selector is judged like a whole-page PUT
+        as: anonymous
+        request: {method: POST, path: "${P}/doc.html", headers: {Content-Type: text/html}, body: '<span itemprop="role">x</span>'}
+        expect: {status: 401}
+      - name: a new page holding a protected element is refused
+        as: anonymous
+        request: {method: PUT, path: "${P}/new.html", headers: {Content-Type: text/html}, body: '<!DOCTYPE html><html><body><span itemprop="role">x</span></body></html>'}
+        expect: {status: 401}
+      - name: a new page without one is created
+        as: anonymous
+        request: {method: PUT, path: "${P}/new.html", headers: {Content-Type: text/html}, body: '<!DOCTYPE html><html><body><p>hi</p></body></html>'}
+        expect: {status: 201}
+      - name: a file saved over the page is refused
+        as: anonymous
+        request: {method: PUT, path: "${P}/doc.html", headers: {Content-Type: text/plain}, body: 'plain'}
+        expect: {status: 401}
+      - name: moving a page without the role over it is refused
+        as: anonymous
+        request: {method: MOVE, path: "${P}/new.html", headers: {Destination: "${P}/doc.html"}}
+        expect: {status: 401}
+      - name: the role survived
+        as: anonymous
+        request: {method: GET, path: "${P}/doc.html"}
+        expect: {status: 200, body_contains: ['<span itemprop="role"><b>admin</b></span>']}
+
+  - id: authz.narrow.specific-actor
+    title: The page-wide allow is the least specific rule, whatever its actor; a more specific element Allow frees the element
+    area: permissions-identity
+    feature: element deny narrowing
+    evidence: documented
+    source: "docs reference/permissions/AuthorizationRule §An element deny narrows a page-wide allow (snapshot 2026-11-23)"
+    confidence: high
+    requires: [multi-actor]
+    live: false
+    site:
+      files:
+        - path: "${P}/doc.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body><div itemscope id="card"><span itemprop="name">Al</span> <span itemprop="role">admin</span></div></body></html>
+        - path: "${P}/rules.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div hidden itemscope itemtype="https://pagelove.org/AuthorizationRule">
+                <meta itemprop="actor" content="alice@example.com"><meta itemprop="actor" content="bob@example.com">
+                <meta itemprop="resource" content="${P}/doc.html"><meta itemprop="method" content="PUT">
+                <meta itemprop="action" content="allow">
+              </div>
+              <div hidden itemscope itemtype="https://pagelove.org/AuthorizationRule">
+                <meta itemprop="actor" content="*"><meta itemprop="resource" content="${P}/doc.html">
+                <meta itemprop="method" content="PUT"><meta itemprop="selector" content="[itemprop=role]">
+                <meta itemprop="action" content="deny">
+              </div>
+              <div hidden itemscope itemtype="https://pagelove.org/AuthorizationRule">
+                <meta itemprop="actor" content="alice@example.com"><meta itemprop="resource" content="${P}/doc.html">
+                <meta itemprop="method" content="PUT"><meta itemprop="selector" content="[itemprop=role]">
+                <meta itemprop="action" content="allow">
+              </div>
+            </body></html>
+    actors:
+      alice: {sub: sub-alice, email: alice@example.com, email_verified: true, roles: []}
+      bob: {sub: sub-bob, email: bob@example.com, email_verified: true, roles: []}
+    steps:
+      - name: bob's own page-wide allow does not reach the role
+        as: bob
+        request: {method: PUT, path: "${P}/doc.html", headers: {Range: "selector=[itemprop=role]", Content-Type: text/html}, body: '<span itemprop="role">owner</span>'}
+        expect: {status: 403}
+      - name: nor the element holding it
+        as: bob
+        request: {method: PUT, path: "${P}/doc.html", headers: {Range: "selector=#card", Content-Type: text/html}, body: '<div itemscope id="card"></div>'}
+        expect: {status: 403}
+      - name: bob may still write the name
+        as: bob
+        request: {method: PUT, path: "${P}/doc.html", headers: {Range: "selector=[itemprop=name]", Content-Type: text/html}, body: '<span itemprop="name">Bo</span>'}
+        expect: {status: 206}
+      - name: alice's element allow is more specific and frees the role for her
+        as: alice
+        request: {method: PUT, path: "${P}/doc.html", headers: {Range: "selector=[itemprop=role]", Content-Type: text/html}, body: '<span itemprop="role">owner</span>'}
+        expect: {status: 206}
+      - name: and the element around it
+        as: alice
+        request: {method: PUT, path: "${P}/doc.html", headers: {Range: "selector=#card", Content-Type: text/html}, body: '<div itemscope id="card"><span itemprop="role">chief</span></div>'}
+        expect: {status: 206}
+
+  - id: authz.narrow.allow-inside-deny
+    title: An element Allow does not open an element inside a denied one
+    area: permissions-identity
+    feature: element deny narrowing
+    evidence: documented
+    source: "docs reference/permissions/AuthorizationRule §An element deny narrows a page-wide allow (snapshot 2026-11-23)"
+    confidence: high
+    requires: [multi-actor]
+    live: false
+    site:
+      files:
+        - path: "${P}/doc.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body><div itemscope id="card"><span itemprop="name">Al</span></div><p id="free">x</p></body></html>
+        - path: "${P}/rules.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div hidden itemscope itemtype="https://pagelove.org/AuthorizationRule">
+                <meta itemprop="actor" content="alice@example.com"><meta itemprop="resource" content="${P}/doc.html">
+                <meta itemprop="method" content="PUT"><meta itemprop="action" content="allow">
+              </div>
+              <div hidden itemscope itemtype="https://pagelove.org/AuthorizationRule">
+                <meta itemprop="actor" content="*"><meta itemprop="resource" content="${P}/doc.html">
+                <meta itemprop="method" content="PUT"><meta itemprop="selector" content="[itemscope]">
+                <meta itemprop="action" content="deny">
+              </div>
+              <div hidden itemscope itemtype="https://pagelove.org/AuthorizationRule">
+                <meta itemprop="actor" content="alice@example.com"><meta itemprop="resource" content="${P}/doc.html">
+                <meta itemprop="method" content="PUT"><meta itemprop="selector" content="[itemprop=name]">
+                <meta itemprop="action" content="allow">
+              </div>
+            </body></html>
+    actors:
+      alice: {sub: sub-alice, email: alice@example.com, email_verified: true, roles: []}
+    steps:
+      - name: the name sits inside the denied card
+        as: alice
+        request: {method: PUT, path: "${P}/doc.html", headers: {Range: "selector=[itemprop=name]", Content-Type: text/html}, body: '<span itemprop="name">Bo</span>'}
+        expect: {status: 403}
+      - name: an element outside it is still hers
+        as: alice
+        request: {method: PUT, path: "${P}/doc.html", headers: {Range: "selector=#free", Content-Type: text/html}, body: '<p id="free">y</p>'}
+        expect: {status: 206}

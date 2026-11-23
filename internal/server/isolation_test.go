@@ -68,8 +68,10 @@ func TestSitesAreIsolated(t *testing.T) {
 	if st, _, b := do("GET", "alpha.localhost", "/probe.html", nil, ""); st != 200 || strings.Contains(b, "beta-private") || !strings.Contains(b, "found 0") {
 		t.Fatalf("alpha binding saw another site's data: %d %s", st, b)
 	}
-	// 3. A Sessel query on alpha cannot reach beta either.
-	if _, _, b := do("QUERY", "alpha.localhost", "/probe.html", map[string]string{"Content-Type": "text/sessel"}, `${[itemtype='https://ex/Secret']}.count()`); strings.Contains(b, "beta-private") || strings.TrimSpace(b) != "0" {
+	// 3. A Sessel query on alpha (authoring plane only, R-PROTO-144) cannot reach beta either.
+	sessel := bearer(alphaKey)
+	sessel["Content-Type"] = "text/sessel"
+	if _, _, b := do("QUERY", "dav-alpha.localhost", "/probe.html", sessel, `${[itemtype='https://ex/Secret']}.count()`); strings.Contains(b, "beta-private") || strings.TrimSpace(b) != "0" {
 		t.Fatalf("alpha Sessel query result %q", b)
 	}
 

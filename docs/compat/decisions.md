@@ -211,6 +211,7 @@ only with `--target live`, where they assert what PageLove does.
 | `authz.multimatch.all-matches-read-denied-if-any-denied.live` | Every match served | `authz.multimatch.all-matches-read-denied-if-any-denied` | keep-documented-security |
 | `authz.multimatch.single-read-first-match-denied.live` | The denied first match served | `authz.multimatch.single-read-first-match-denied` | keep-documented-security |
 | `authz.selector.selector-deny-overrides-resource-allow-same-tier.live` | The write goes through | `authz.selector.selector-deny-overrides-resource-allow-same-tier` | keep-documented-security |
+| `protocol.query-dav.sessel-served.live` | 415 to a `text/sessel` QUERY on the authoring plane | `protocol.query-dav.sessel-served` | D-4 |
 
 All 14 passed against live on 2026-09-29. Four of the nine
 keep-documented-security cases share one root cause: PageLove does not let a
@@ -361,3 +362,17 @@ per-area specs under `docs/spec/` keep their own contradiction tables.
   catches names no schema of the chain declares. This is what composition
   did before it dispatched through the schema registry
   (`schema.Registry.FindMethod`), so no case changes outcome.
+
+### D-4 (2026-11-23) Sessel QUERY moves to the authoring plane
+
+- Claims: the 2026-11-23 docs refuse every non-selector QUERY on the public
+  site with 405 and send Sessel, JavaScript and multipart queries to the
+  database directly, which applies no authorization; PageLove's authoring
+  server answers them 415 (reference/protocol/QUERY).
+- Decision: the public site follows the docs (R-PROTO-144). pagelike has no
+  database endpoint, so its authoring plane, reachable only with the
+  authoring key, answers `text/sessel` QUERY in the database's place.
+  Requests there skip authorization rules, as the database does. The
+  existing Sessel cases now run as `author` and are `live: false`; the
+  `.live` sibling of `protocol.query-dav.sessel-served` measures PageLove's
+  415.

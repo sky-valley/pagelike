@@ -41,6 +41,7 @@ func (x *Reactions) runRules(ctx context.Context, st *reqState, rules []*rule, r
 // runRule evaluates one Trigger or Processor: gates, then the selected
 // actions in document order (R-REACT-17, R-REACT-18).
 func (x *Reactions) runRule(ctx context.Context, st *reqState, ru *rule, resp *response) outcome {
+	st.shaped.Store(true)
 	e := x.newEval(ctx, st, ru, resp)
 	if resp != nil {
 		e.exposeResponse() // gates, actions and dynamic values read it (R-REACT-26)

@@ -1,7 +1,7 @@
 # JavaScript area: imported schema classes and cross-language method calls
 # (docs/spec/javascript.md R-JS-9, R-JS-16, R-JS-17, R-JS-85..R-JS-87). Class behaviour is
 # observed through a JavaScript default whose string result is stored; computed properties and
-# methods are observed through an edge Sessel QUERY (needs a QUERY grant and a named actor).
+# methods are observed through an edge Sessel QUERY (runs on the authoring plane, R-PROTO-144).
 # Spec: docs/spec/javascript.md. Generated; edit by hand freely.
 defaults:
   area: "javascript"
@@ -255,7 +255,7 @@ cases:
     confidence: "medium"
     requires: ["server-js", "sessel", "multi-actor"]
     live: false
-    notes: "spec: R-JS-16. Sessel QUERY needs a QUERY grant (protocol R-PROTO-74); live runs need an actor cookie."
+    notes: "spec: R-JS-16. Sessel QUERY runs on the authoring plane (protocol R-PROTO-144)."
     site:
       settings:
         default_get: "allow"
@@ -365,7 +365,7 @@ cases:
         expect:
           status: [200, 201, 204]
       - name: "QUERY"
-        as: "alice"
+        as: "author"
         request:
           method: "QUERY"
           path: "${P}/a.html"
@@ -384,7 +384,7 @@ cases:
     confidence: "medium"
     requires: ["server-js", "sessel", "multi-actor"]
     live: false
-    notes: "spec: R-JS-17. Sessel QUERY needs a QUERY grant (protocol R-PROTO-74); live runs need an actor cookie."
+    notes: "spec: R-JS-17. Sessel QUERY runs on the authoring plane (protocol R-PROTO-144)."
     site:
       settings:
         default_get: "allow"
@@ -494,7 +494,7 @@ cases:
         expect:
           status: [200, 201, 204]
       - name: "QUERY"
-        as: "alice"
+        as: "author"
         request:
           method: "QUERY"
           path: "${P}/a.html"
@@ -513,7 +513,7 @@ cases:
     confidence: "low"
     requires: ["server-js", "sessel", "multi-actor"]
     live: false
-    notes: "spec: R-JS-17, R-JS-63. Sessel QUERY needs a QUERY grant (protocol R-PROTO-74); live runs need an actor cookie."
+    notes: "spec: R-JS-17, R-JS-63. Sessel QUERY runs on the authoring plane (protocol R-PROTO-144)."
     site:
       settings:
         default_get: "allow"
@@ -623,7 +623,7 @@ cases:
         expect:
           status: [200, 201, 204]
       - name: "QUERY"
-        as: "alice"
+        as: "author"
         request:
           method: "QUERY"
           path: "${P}/a.html"
@@ -642,7 +642,7 @@ cases:
     confidence: "low"
     requires: ["server-js", "sessel", "multi-actor"]
     live: false
-    notes: "spec: R-JS-17, R-JS-85. Sessel QUERY needs a QUERY grant (protocol R-PROTO-74); live runs need an actor cookie."
+    notes: "spec: R-JS-17, R-JS-85. Sessel QUERY runs on the authoring plane (protocol R-PROTO-144)."
     site:
       settings:
         default_get: "allow"
@@ -752,7 +752,7 @@ cases:
         expect:
           status: [200, 201, 204]
       - name: "QUERY"
-        as: "alice"
+        as: "author"
         request:
           method: "QUERY"
           path: "${P}/a.html"

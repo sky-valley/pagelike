@@ -60,7 +60,7 @@ Rules:
 | `engine.SelectorFunctions` (`engine.ExpandRange`) | engine | compose (`count()`/`text-of()`/`value-of()`/`attr-of()` in `Range` selectors) |
 | `compose.SetJSRunner` (`compose.JSRunner`) | compose | jsglue → jsrt (`j:` bindings, JavaScript methods; without it they answer 501 `JavaScriptUnavailable`) |
 | `compose.SetMethodDispatcher` (`compose.MethodDispatcher`) | compose | jsglue → `schema.DispatchMethod` (method elements/attributes over the schema registry; the fallback `compose.SchemaMethods` reads Schema items) |
-| `httpapi.Public.Queries["text/sessel"]` | httpapi | `internal/query` (Sessel QUERY; `engine.ReadOp.Target` keeps the directory slash) |
+| `dav.Handler.SesselQuery` | dav | `internal/query` (Sessel QUERY on the authoring plane only, R-PROTO-144; `engine.ReadOp.Target` keeps the directory slash) |
 | `query.SetClassSource` | query | schema (supplies `sessel.Class` registries; default is `sessel.MicrodataClasses`) |
 | `sessel.Host`, `sessel.Class`, `sessel.Writer` | sessel | query (`query.Host`, read-only over a snapshot), schema (Classes), reactions/compose (hosts with `WriteProvider`, Context, bindings) |
 | `site.Snapshot.Ext(key, build)` | site | every feature package caches its per-generation index here (schema registry, rule/trigger lists, route table) |

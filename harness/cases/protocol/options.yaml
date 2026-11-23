@@ -151,17 +151,17 @@ cases:
           headers: {Allow: "GET, HEAD, PUT, POST, OPTIONS", Vary: "Authorization, Accept"}
 
   - id: protocol.options.wildcard-document-expansion
-    title: A document-level wildcard method grant is reported as the seven concrete methods plus OPTIONS
+    title: A document-level wildcard method grant is reported as the six concrete methods plus OPTIONS
     area: protocol
     feature: OPTIONS wildcard expansion
     evidence: documented
-    source: "docs reference/protocol/OPTIONS-method §When to reach for it; reference/permissions/AuthorizationRule §method (snapshot 2026-09-28)"
+    source: "docs reference/protocol/OPTIONS-method §When to reach for it (\"GET, HEAD, PUT, DELETE, POST, MOVE for a whole document\") (snapshot 2026-11-23)"
     confidence: high
     requires: []
     live: true
     notes: >-
-      R-PROTO-12/13. Exactly GET, HEAD, PUT, DELETE, POST, MOVE, PATCH, OPTIONS in any
-      order; never a literal star (C-1). Whether PageLove also lists QUERY is P-1.
+      R-PROTO-12/13. Exactly GET, HEAD, PUT, DELETE, POST, MOVE, OPTIONS in any
+      order; never a literal star (C-1). PATCH left the list in the 2026-11-23 docs.
     site:
       files:
         - path: "${P}/doc.html"
@@ -171,12 +171,12 @@ cases:
       rules:
         - {actor: "*", resource: "${P}/*", method: ["*"], action: Allow}
     steps:
-      - name: eight concrete tokens, no star
+      - name: seven concrete tokens, no star
         as: anonymous
         request: {method: OPTIONS, path: "${P}/doc.html"}
         expect:
           status: 200
-          header_matches: {Allow: '^(?:(?:GET|HEAD|PUT|DELETE|POST|MOVE|PATCH|OPTIONS)(?:, ?|$)){8}$'}
+          header_matches: {Allow: '^(?:(?:GET|HEAD|PUT|DELETE|POST|MOVE|OPTIONS)(?:, ?|$)){7}$'}
 
   - id: protocol.options.wildcard-selector-expansion
     title: A selector-scoped wildcard grant is reported without MOVE and PATCH
@@ -578,16 +578,16 @@ cases:
           headers: {Accept-Ranges: "selector"}
 
   - id: protocol.options.accept-query
-    title: OPTIONS on the public plane advertises the accepted QUERY media types
+    title: OPTIONS on the public plane advertises only the CSS-selector QUERY type
     area: protocol
     feature: Accept-Query
     evidence: documented
-    source: "docs reference/protocol/QUERY intro (snapshot 2026-09-28)"
+    source: "docs reference/protocol/QUERY §CSS-selector mode (the public site's 405 carries \"Accept-Query: text/css-selector\") (snapshot 2026-11-23)"
     confidence: medium
     requires: []
     live: false
     notes: >-
-      R-PROTO-42. Live OPTIONS on docs.pagelove.com carried no Accept-Query (C-4); kept
+      R-PROTO-42, R-PROTO-144. Live OPTIONS on docs.pagelove.com carried no Accept-Query (C-4); kept
       local-only.
     site:
       files:
@@ -598,12 +598,12 @@ cases:
       rules:
         - {actor: "*", resource: "${P}/*", method: [GET], action: Allow}
     steps:
-      - name: Accept-Query lists both modes
+      - name: Accept-Query names the selector form only
         as: anonymous
         request: {method: OPTIONS, path: "${P}/doc.html"}
         expect:
           status: 200
-          header_matches: {Accept-Query: '^(?:.*text/css-selector.*text/sessel.*|.*text/sessel.*text/css-selector.*)$'}
+          headers: {Accept-Query: "text/css-selector"}
 
   - id: protocol.options.does-not-modify
     title: OPTIONS does not modify the document

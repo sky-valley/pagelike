@@ -1,0 +1,92 @@
+# The public site refuses every QUERY body but a CSS selector (R-PROTO-144).
+cases:
+  - id: protocol.query-public.non-css-405
+    title: The public site answers 405 to a Sessel, JavaScript, multipart, other or untyped QUERY
+    area: protocol
+    feature: QUERY (public plane)
+    evidence: documented
+    source: "docs reference/protocol/QUERY §CSS-selector mode (\"The public site accepts no other QUERY body … gets 405 Method Not Allowed. The response carries Allow (it still lists QUERY …) and Accept-Query: text/css-selector\") (snapshot 2026-11-23)"
+    confidence: high
+    requires: []
+    live: true
+    notes: >-
+      R-PROTO-144. The rules grant QUERY to everyone, so a refusal here is not an authorization
+      answer. Before 2026-11-23 a Sessel body ran on the public site for a QUERY grant.
+    site:
+      files:
+        - path: "${P}/doc.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body><h1>Benji</h1></body></html>
+      rules:
+        - {actor: "*", resource: "${P}/*", method: [GET, HEAD, QUERY], action: Allow}
+    steps:
+      - name: sessel
+        as: anonymous
+        request:
+          method: QUERY
+          path: "${P}/doc.html"
+          headers: {Content-Type: "text/sessel"}
+          body: "1 + 1"
+        expect:
+          status: 405
+          headers: {Accept-Query: "text/css-selector"}
+          header_matches: {Allow: "QUERY", Content-Type: "^text/html"}
+          body_contains: ["https://pagelove.org/Error/MethodNotAllowed"]
+      - name: javascript
+        as: anonymous
+        request:
+          method: QUERY
+          path: "${P}/doc.html"
+          headers: {Content-Type: "text/javascript"}
+          body: "export default () => 1"
+        expect:
+          status: 405
+          headers: {Accept-Query: "text/css-selector"}
+          header_matches: {Allow: "QUERY", Content-Type: "^text/html"}
+          body_contains: ["https://pagelove.org/Error/MethodNotAllowed"]
+      - name: multipart
+        as: anonymous
+        request:
+          method: QUERY
+          path: "${P}/doc.html"
+          headers: {Content-Type: "multipart/query; boundary=b; combine=union"}
+          body: "--b\r\nContent-Type: text/css-selector\r\n\r\nh1\r\n--b--"
+        expect:
+          status: 405
+          headers: {Accept-Query: "text/css-selector"}
+          header_matches: {Allow: "QUERY", Content-Type: "^text/html"}
+          body_contains: ["https://pagelove.org/Error/MethodNotAllowed"]
+      - name: plain
+        as: anonymous
+        request:
+          method: QUERY
+          path: "${P}/doc.html"
+          headers: {Content-Type: "text/plain"}
+          body: "h1"
+        expect:
+          status: 405
+          headers: {Accept-Query: "text/css-selector"}
+          header_matches: {Allow: "QUERY", Content-Type: "^text/html"}
+          body_contains: ["https://pagelove.org/Error/MethodNotAllowed"]
+      - name: none
+        as: anonymous
+        request:
+          method: QUERY
+          path: "${P}/doc.html"
+          body: "h1"
+        expect:
+          status: 405
+          headers: {Accept-Query: "text/css-selector"}
+          header_matches: {Allow: "QUERY", Content-Type: "^text/html"}
+          body_contains: ["https://pagelove.org/Error/MethodNotAllowed"]
+      - name: the selector form is still served
+        as: anonymous
+        request:
+          method: QUERY
+          path: "${P}/doc.html"
+          headers: {Content-Type: "text/css-selector"}
+          body: "h1"
+        expect:
+          status: [200, 206]
+          body_contains: ["Benji"]

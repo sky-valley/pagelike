@@ -207,6 +207,23 @@ func (e *Engine) moveDocument(ctx context.Context, w *WriteCtx, dest string) (*R
 	if err == nil && prev != nil && strings.EqualFold(strings.TrimSpace(op.Overwrite), "F") {
 		return nil, errdoc.New(http.StatusPreconditionFailed, "DestinationExists", "%s exists and Overwrite is F", dest)
 	}
+	if op.Plane == Public {
+		// The moved page must hold exactly the protected elements the
+		// destination holds (R-PERM-124); a destination that does not exist
+		// holds none. Only a Deny whose method covers MOVE with a selector
+		// (that is, "*") applies: one naming MOVE has lost its selector.
+		req := w.authzReq("MOVE")
+		req.Path = dest
+		if pol := w.Snap.Policy; pol.ElementDenyApplies(req) {
+			var destPage *html.Node
+			if err == nil {
+				destPage = parsedPage(prev)
+			}
+			if !sameProtected(pol.Protected(req, w.Before), pol.Protected(req, destPage)) {
+				return nil, Denied(op.Principal, op.Path)
+			}
+		}
+	}
 	if err := e.runBefore(ctx, w); err != nil {
 		return nil, err
 	}

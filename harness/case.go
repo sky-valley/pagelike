@@ -120,6 +120,9 @@ type Request struct {
 	Headers  map[string]string `yaml:"headers"`
 	Body     string            `yaml:"body"`
 	BodyFile string            `yaml:"body_file"`
+	// RawPath sends Path as written, without percent-encoding it, for
+	// cases about how the server reads an encoded path.
+	RawPath bool `yaml:"raw_path"`
 }
 
 // Expect lists assertions on a response.

@@ -39,6 +39,7 @@ import (
 	"net/http"
 	"strings"
 	"sync"
+	"sync/atomic"
 
 	"github.com/sky-valley/pagelike/internal/engine"
 	"github.com/sky-valley/pagelike/internal/httpapi"
@@ -94,6 +95,9 @@ const (
 // reqState is the reactions state of one public-plane request. It travels
 // in the request context so the engine hooks can find it.
 type reqState struct {
+	// shaped is set once a trigger or processor runs on the request, so a
+	// GET or HEAD it answers is not cached by shared caches (R-RW-155).
+	shaped    atomic.Bool
 	x         *Reactions
 	site      *site.Site
 	call      *httpapi.Call

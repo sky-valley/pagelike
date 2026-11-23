@@ -1,0 +1,113 @@
+# A GET your own code shaped is not cached by shared caches (docs
+# reference/reading-and-writing/GET-method §Caching, snapshot 2026-11-23;
+# spec R-RW-155).
+anchors:
+  open_rules: &open_rules
+    - {actor: "*", resource: "${P}/*", method: [GET, HEAD, PUT, POST, DELETE], action: Allow}
+  module_site: &module_site
+    settings: {default_get: allow}
+    rules: *open_rules
+    files:
+      - path: "${P}/lib/mod.mjs"
+        content_type: text/javascript
+        body: "export const f = 1;"
+      - path: "${P}/lib/plain.css"
+        content_type: text/css
+        body: "p{}"
+defaults:
+  area: reacting
+cases:
+  - id: reacting.cache.processor-private
+    title: A response a processor ran on is private, no-store; a thrown HTTPResponse may opt back into shared caching
+    feature: caching of shaped responses
+    evidence: documented
+    source: "docs reference/reading-and-writing/GET-method §Caching (snapshot 2026-11-23)"
+    confidence: high
+    requires: [server-js]
+    live: true
+    site: *module_site
+    steps:
+      - name: an untouched static asset is shared-cacheable
+        as: anonymous
+        request: {method: GET, path: "${P}/lib/plain.css"}
+        expect: {status: 200, headers: {Cache-Control: "public, max-age=300"}}
+      - name: install a pass-through processor on mod.mjs and a caching one on plain.css
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/r/p.html"
+          headers: {Content-Type: text/html}
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+            <div itemscope itemtype="https://pagelove.org/Processor">
+              <meta itemprop="resource" content="${P}/lib/mod.mjs">
+              <meta itemprop="method" content="GET">
+              <div itemprop="action" itemscope itemtype="https://pagelove.org/JavaScript/Module">
+                <script type="module" itemprop="source">export default function (ctx) {}</script>
+              </div>
+            </div>
+            <div itemscope itemtype="https://pagelove.org/Processor">
+              <meta itemprop="resource" content="${P}/lib/plain.css">
+              <meta itemprop="method" content="GET">
+              <div itemprop="action" itemscope itemtype="https://pagelove.org/JavaScript/Module">
+                <script type="module" itemprop="source">
+                  export default function (ctx) {
+                    throw {schema_url: "https://pagelove.org/HTTPResponse", status: 200, body: "p{}",
+                      headers: {"Content-Type": "text/css", "Cache-Control": "public, max-age=60"}};
+                  }
+                </script>
+              </div>
+            </div>
+            </body></html>
+        expect: {status: [200, 201, 204]}
+      - name: a processor ran, so the response is private, no-store
+        as: anonymous
+        request: {method: GET, path: "${P}/lib/mod.mjs"}
+        expect: {status: 200, headers: {Cache-Control: "private, no-store"}}
+      - name: a visitor's first request sets their session cookie, so it is never shared
+        as: visitor
+        request: {method: GET, path: "${P}/lib/plain.css"}
+        expect: {status: 200, headers: {Cache-Control: "private, no-store"}}
+      - name: once the session exists, a thrown response keeps its own public Cache-Control
+        as: visitor
+        request: {method: GET, path: "${P}/lib/plain.css"}
+        expect: {status: 200, headers: {Cache-Control: "public, max-age=60"}}
+
+  - id: reacting.cache.thrown-private-max-age
+    title: A thrown private max-age is rewritten to private, no-store
+    feature: caching of shaped responses
+    evidence: documented
+    source: "docs reference/reading-and-writing/GET-method §Caching (snapshot 2026-11-23)"
+    confidence: high
+    requires: [server-js]
+    live: true
+    site: *module_site
+    steps:
+      - name: install
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/r/p.html"
+          headers: {Content-Type: text/html}
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+            <div itemscope itemtype="https://pagelove.org/Processor">
+              <meta itemprop="resource" content="${P}/lib/plain.css">
+              <meta itemprop="method" content="GET">
+              <div itemprop="action" itemscope itemtype="https://pagelove.org/JavaScript/Module">
+                <script type="module" itemprop="source">
+                  export default function (ctx) {
+                    throw {schema_url: "https://pagelove.org/HTTPResponse", status: 200, body: "p{}",
+                      headers: {"Content-Type": "text/css", "Cache-Control": "private, max-age=600"}};
+                  }
+                </script>
+              </div>
+            </div>
+            </body></html>
+        expect: {status: [200, 201, 204]}
+      - name: rewritten
+        as: anonymous
+        request: {method: GET, path: "${P}/lib/plain.css"}
+        expect: {status: 200, headers: {Cache-Control: "private, no-store"}}

@@ -179,6 +179,9 @@ func (e *Engine) runBefore(ctx context.Context, w *WriteCtx) error {
 }
 
 func (e *Engine) validate(ctx context.Context, w *WriteCtx) error {
+	if err := e.protectedFor(w); err != nil {
+		return err
+	}
 	for _, f := range e.Hooks.Validate {
 		if err := f(ctx, w); err != nil {
 			return err
@@ -334,10 +337,73 @@ func (e *Engine) authorize(w *WriteCtx, method string, target *html.Node) error 
 	if w.Op.Plane == Authoring || w.preauth {
 		return nil
 	}
-	if !w.Snap.Policy.Decide(w.authzReq(method), target).Allowed {
+	req := w.authzReq(method)
+	if !w.Snap.Policy.Decide(req, target).Allowed {
+		return Denied(w.Op.Principal, w.Op.Path)
+	}
+	// An element Deny narrows a page-wide allow: the element written, an
+	// element it sits inside and (except for POST, which only adds to its
+	// container) an element inside it (R-PERM-122).
+	if w.Snap.Policy.NarrowedWrite(req, target, method != "POST") {
 		return Denied(w.Op.Principal, w.Op.Path)
 	}
 	return nil
+}
+
+// protectedFor runs checkProtected for the write in w, by its shape.
+func (e *Engine) protectedFor(w *WriteCtx) error {
+	op := w.Op
+	if op == nil {
+		return nil
+	}
+	sel := op.Range.Selector != ""
+	switch op.Method {
+	case "PUT", "POST":
+		return e.checkProtected(w, op.Method, w.Before, w.After)
+	case "MOVE":
+		if sel {
+			// An element MOVE lands like a POST at its destination.
+			return e.checkProtected(w, "POST", w.Before, w.After)
+		}
+	}
+	return nil
+}
+
+// checkProtected refuses a write that adds, changes, reorders or removes
+// an element an element Deny protects for the requester (R-PERM-123/124):
+// the outermost protected elements of the page before and after the write
+// must serialize the same, in the same order. It runs once the write's
+// result is known, before validation. A whole-page DELETE and a selector
+// DELETE are decided by the rules alone (the latter by the narrowed
+// authorize above); writes on another's behalf, the authoring plane and
+// writes routed from a composed page (authorized there) are not checked.
+// Server triggers have run by now, so a change a trigger makes counts.
+func (e *Engine) checkProtected(w *WriteCtx, method string, before, after *html.Node) error {
+	op := w.Op
+	if op.Plane != Public || w.preauth || w.sideEffect {
+		return nil
+	}
+	req := w.authzReq(method)
+	pol := w.Snap.Policy
+	if !pol.ElementDenyApplies(req) {
+		return nil
+	}
+	if !sameProtected(pol.Protected(req, before), pol.Protected(req, after)) {
+		return Denied(op.Principal, op.Path)
+	}
+	return nil
+}
+
+func sameProtected(a, b []*html.Node) bool {
+	if len(a) != len(b) {
+		return false
+	}
+	for i := range a {
+		if dom.OuterHTML(a[i]) != dom.OuterHTML(b[i]) {
+			return false
+		}
+	}
+	return true
 }
 
 // authorizeAny refuses a write whose method no rule could grant on the path.
@@ -421,8 +487,14 @@ func checkRequest(op *Op) error {
 		// An unknown POST placement is an append (live 2026-09-28,
 		// superseding R-RW-71); postSelector maps it.
 		if op.Method != "DELETE" && dom.TrimHTMLSpace(string(op.Body)) == "" {
-			// Compat decision (spec R-RW-67, Q-3): nothing to write.
-			return errdoc.New(http.StatusBadRequest, "EmptyBody", "a selector %s needs markup in the request body", op.Method)
+			// Compat decision (spec R-RW-67, Q-3): nothing to write. A
+			// POST is 422: a body of only whitespace creates no element
+			// (docs POST-method, snapshot 2026-11-23; R-RW-152).
+			status := http.StatusBadRequest
+			if op.Method == "POST" {
+				status = http.StatusUnprocessableEntity
+			}
+			return errdoc.New(status, "EmptyBody", "a selector %s needs markup in the request body", op.Method)
 		}
 	case op.Range.Present():
 		// Only selector ranges address part of a document on writes; any

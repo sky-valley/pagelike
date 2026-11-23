@@ -51,6 +51,44 @@ func notHTML(d *store.Document) *errdoc.Error {
 	return errdoc.Problems(http.StatusUnprocessableEntity, "InvalidPath", "Selector operations require HTML documents, but %s has content type %s", d.Path, d.ContentType)
 }
 
+// isTemplate reports whether the stored document is a template for
+// resource creation: an HTML page with a p:template host (an element
+// carrying a prefixed "template" attribute).
+func isTemplate(w *WriteCtx) bool {
+	if w.Doc == nil || w.Doc.IsBlob() || !site.IsMarkup(w.Doc.ContentType) || w.Before == nil {
+		return false
+	}
+	found := false
+	dom.Walk(w.Before, func(n *html.Node) bool {
+		if found {
+			return false
+		}
+		if n.Type == html.ElementNode {
+			for _, a := range n.Attr {
+				if a.Namespace != "" && a.Key == "template" || strings.HasSuffix(a.Key, ":template") {
+					found = true
+					return false
+				}
+			}
+		}
+		return true
+	})
+	return found
+}
+
+// parsedPage parses d as a page, or returns nil when d is absent or is
+// not stored as a page (a file holds no elements).
+func parsedPage(d *store.Document) *html.Node {
+	if !htmlDocument(d) {
+		return nil
+	}
+	n, err := site.ParseMarkup(d.ContentType, d.Body)
+	if err != nil {
+		return nil
+	}
+	return n
+}
+
 // htmlDocument reports whether selector operations apply to d.
 func htmlDocument(d *store.Document) bool {
 	return d != nil && !d.IsBlob() && site.IsMarkup(d.ContentType) && !site.IsXML(d.ContentType)
@@ -105,8 +143,15 @@ func (e *Engine) docGrants(w *WriteCtx, method string) bool {
 }
 
 func (e *Engine) putDocument(ctx context.Context, w *WriteCtx) (*Result, error) {
+	return e.saveWhole(ctx, w, "PUT")
+}
+
+// saveWhole stores the request body as the whole document, authorized as
+// method: a whole-document PUT, or a POST with no selector to a page that
+// is not a template (R-RW-153).
+func (e *Engine) saveWhole(ctx context.Context, w *WriteCtx, method string) (*Result, error) {
 	op := w.Op
-	if err := e.authorize(w, "PUT", nil); err != nil {
+	if err := e.authorize(w, method, nil); err != nil {
 		return nil, err
 	}
 	cur := ""
@@ -488,10 +533,19 @@ func (e *Engine) postCreate(ctx context.Context, w *WriteCtx) (*Result, error) {
 	if err := e.authorizeAny(w, "POST"); err != nil {
 		return nil, err
 	}
-	if w.Doc == nil {
-		return nil, missingDocument(op.Path)
+	if !isTemplate(w) {
+		// A page that does not exist, or is not a template: the body is
+		// saved as the whole page (docs POST-method §POST with no
+		// selector, snapshot 2026-11-23; R-RW-153).
+		return e.saveWhole(ctx, w, "POST")
 	}
-	if TemplateCreate != nil && site.IsMarkup(w.Doc.ContentType) && !w.Doc.IsBlob() {
+	if TemplateCreate != nil {
+		// Judged like a whole-page PUT of the body to the request path,
+		// before the page is composed (R-PERM-124).
+		body, _ := site.ParseMarkup(ResolveContentType(op.Path, op.ContentType), op.Body)
+		if err := e.checkProtected(w, "POST", w.Before, body); err != nil {
+			return nil, err
+		}
 		return TemplateCreate(ctx, e, w)
 	}
 	return nil, errdoc.New(http.StatusNotImplemented, "NotImplemented", "POST without a selector range (resource creation) is not implemented for %s", op.Path)

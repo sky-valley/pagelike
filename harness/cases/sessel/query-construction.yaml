@@ -20,11 +20,11 @@ cases:
     feature: construction
     source: "docs languages/sessel/learn/construction §ID and classes (snapshot 2026-09-28)"
     confidence: high
-    live: true
+    live: false
     notes: R-SESSEL-260, R-SESSEL-261.
     steps:
       - name: paragraph
-        as: anonymous
+        as: author
         request:
           method: QUERY
           path: "${P}/product.html"
@@ -40,11 +40,11 @@ cases:
     feature: construction
     source: "docs languages/sessel/learn/construction §Attributes, §Namespaced attributes, §Void elements (snapshot 2026-09-28)"
     confidence: high
-    live: true
+    live: false
     notes: R-SESSEL-262, R-SESSEL-264.
     steps:
       - name: input
-        as: anonymous
+        as: author
         request:
           method: QUERY
           path: "${P}/product.html"
@@ -54,7 +54,7 @@ cases:
           status: [200, 206]
           body_html: '<input type="text" name="email" required>'
       - name: namespaced attributes
-        as: anonymous
+        as: author
         request:
           method: QUERY
           path: "${P}/product.html"
@@ -69,11 +69,11 @@ cases:
     feature: construction
     source: "docs languages/sessel/learn/construction §Children, §Null skipping, §List flattening (snapshot 2026-09-28)"
     confidence: high
-    live: true
+    live: false
     notes: R-SESSEL-263.
     steps:
       - name: conditional and mapped children
-        as: anonymous
+        as: author
         request:
           method: QUERY
           path: "${P}/product.html"
@@ -94,11 +94,11 @@ cases:
     feature: construction
     source: "docs languages/sessel/learn/construction §A complete example (snapshot 2026-09-28)"
     confidence: high
-    live: true
+    live: false
     notes: R-SESSEL-262 (dynamic attribute), R-SESSEL-222 (value rules).
     steps:
       - name: card
-        as: anonymous
+        as: author
         request:
           method: QUERY
           path: "${P}/product.html"
@@ -120,11 +120,11 @@ cases:
     feature: construction
     source: "docs languages/sessel/learn/construction §Mixing queried and constructed elements (snapshot 2026-09-28)"
     confidence: high
-    live: true
+    live: false
     notes: R-SESSEL-263.
     steps:
       - name: wrapper
-        as: anonymous
+        as: author
         request:
           method: QUERY
           path: "${P}/product.html"
@@ -139,13 +139,13 @@ cases:
     feature: element setters
     evidence: live-observed
     source: "harness/observations/live-2026-09-29/sessel-query-new-setters-and-mutation.json; harness/observations/live-2026-09-29-reconcile-sessel/sessel-query-probe-0929-mutation-and-sel.json (steps 1-6)"
-    live: true
+    live: false
     notes: >-
       R-SESSEL-234..240. The docs pass `el.${ li }` results to insertBefore; live refuses them (a sub-select yields
       stored, immutable elements even under a constructed element), while children() handles are live and mutable.
     steps:
       - name: setter chain
-        as: anonymous
+        as: author
         request:
           method: QUERY
           path: "${P}/product.html"
@@ -155,7 +155,7 @@ cases:
           status: [200, 206]
           body_html: '<img src="/images/banner.jpg" alt="Banner">'
       - name: prepend, insertBefore, getHTML
-        as: anonymous
+        as: author
         request:
           method: QUERY
           path: "${P}/product.html"
@@ -169,7 +169,7 @@ cases:
           status: 200
           body_json: "<li>a</li><li>b</li><li>c</li>"
       - name: a sub-selected reference is a stored element
-        as: anonymous
+        as: author
         request:
           method: QUERY
           path: "${P}/product.html"
@@ -187,11 +187,11 @@ cases:
     feature: construction
     source: "docs reference/protocol/QUERY §Sessel mode (application/sessel+json) (snapshot 2026-09-28)"
     confidence: high
-    live: true
+    live: false
     notes: R-SESSEL-97.
     steps:
       - name: two constructed elements
-        as: anonymous
+        as: author
         request:
           method: QUERY
           path: "${P}/product.html"
@@ -208,11 +208,11 @@ cases:
     title: Element.fromString and Document.parse build constructed trees
     feature: element parsing
     source: "docs languages/sessel/reference/element §Element.fromString; reference/types §Document (snapshot 2026-09-28)"
-    live: true
+    live: false
     notes: R-SESSEL-243, R-SESSEL-244.
     steps:
       - name: parse helpers
-        as: anonymous
+        as: author
         request:
           method: QUERY
           path: "${P}/product.html"
@@ -224,7 +224,7 @@ cases:
           status: 200
           body_json: [hello, Hello, card]
       - name: empty fromString is a TypeError
-        as: anonymous
+        as: author
         request:
           method: QUERY
           path: "${P}/product.html"
@@ -240,11 +240,11 @@ cases:
     evidence: inferred
     source: "docs languages/sessel/reference/syntax §Construction syntax example (snapshot 2026-09-28)"
     confidence: low
-    live: true
+    live: false
     notes: SC-2 / SP-2.
     steps:
       - name: checkbox
-        as: anonymous
+        as: author
         request:
           method: QUERY
           path: "${P}/product.html"

@@ -1,0 +1,103 @@
+# Byte ranges (docs reference/protocol/Byte-Ranges and Accept-Ranges,
+# snapshot 2026-11-23; spec R-PROTO-140..).
+anchors:
+  bytes_site: &bytes_site
+    settings: {default_get: allow}
+    files:
+      - path: "${P}/abc.txt"
+        content_type: text/plain
+        body: "abcdefghijklmnopqrstuvwxyz0123456789abcdefghijklmnopqrstuvwxyz0123456789abcdefghijklmnopqrstuvwxyz0123456789abcdefghijklmnopqrstuvwxyz0123456789abcdefghijklmnopqrstuvwxyz0123456789abcdefghijklmnopqrstuvwxyz0123456789abcdefghijklmnopqrstuvwxyz0123456789abcdefghijklmnopqrstuvwxyz0123456789abcdefghijklmnopqrstuvwxyz0123456789abcdefghijklmnopqrstuvwxyz0123456789"
+      - path: "${P}/page.html"
+        body: '<!DOCTYPE html><html><body><h1>Hello bytes</h1><p>Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur.</p></body></html>'
+    rules:
+      - {actor: "*", resource: "${P}/*", method: [GET, HEAD], action: Allow}
+defaults:
+  area: protocol
+cases:
+  - id: protocol.bytes.file
+    title: A file honours single, multiple and conditional byte ranges and advertises selector, bytes
+    feature: byte ranges
+    evidence: documented
+    source: "docs reference/protocol/Byte-Ranges; Accept-Ranges (snapshot 2026-11-23)"
+    confidence: high
+    requires: []
+    live: true
+    site: *bytes_site
+    steps:
+      - name: a whole read advertises both units
+        as: anonymous
+        request: {method: GET, path: "${P}/abc.txt"}
+        expect: {status: 200, headers: {Accept-Ranges: "selector, bytes"}}
+      - name: one range
+        as: anonymous
+        request: {method: GET, path: "${P}/abc.txt", headers: {Range: "bytes=0-3"}}
+        expect: {status: 206, headers: {Content-Range: "bytes 0-3/360", Accept-Ranges: "selector, bytes"}, body: "abcd"}
+      - name: a range past the end is cut back
+        as: anonymous
+        request: {method: GET, path: "${P}/abc.txt", headers: {Range: "bytes=355-999"}}
+        expect: {status: 206, headers: {Content-Range: "bytes 355-359/360"}, body: "56789"}
+      - name: two ranges are multipart/byteranges
+        as: anonymous
+        request: {method: GET, path: "${P}/abc.txt", headers: {Range: "bytes=0-1, 10-11"}}
+        expect:
+          status: 206
+          header_matches: {Content-Type: "^multipart/byteranges; boundary="}
+          body_contains: ["Content-Range: bytes 0-1/360", "Content-Range: bytes 10-11/360", "Content-Type: text/plain", "ab", "kl"]
+      - name: overlapping ranges get the whole file
+        as: anonymous
+        request: {method: GET, path: "${P}/abc.txt", headers: {Range: "bytes=0-5, 3-8"}}
+        expect: {status: 200, headers_absent: [Content-Range]}
+      - name: ranges out of order get the whole file
+        as: anonymous
+        request: {method: GET, path: "${P}/abc.txt", headers: {Range: "bytes=10-11, 0-1"}}
+        expect: {status: 200, headers_absent: [Content-Range]}
+      - name: ranges that cost more than the file get the whole file
+        as: anonymous
+        request: {method: GET, path: "${P}/abc.txt", headers: {Range: "bytes=0-99, 100-199, 200-299"}}
+        expect: {status: 200, headers_absent: [Content-Range]}
+      - name: more than 16 ranges get the whole file
+        as: anonymous
+        request: {method: GET, path: "${P}/abc.txt", headers: {Range: "bytes=0-0,2-2,4-4,6-6,8-8,10-10,12-12,14-14,16-16,18-18,20-20,22-22,24-24,26-26,28-28,30-30,32-32"}}
+        expect: {status: 200, headers_absent: [Content-Range]}
+      - name: a malformed range gets the whole file
+        as: anonymous
+        request: {method: GET, path: "${P}/abc.txt", headers: {Range: "bytes=5-2"}}
+        expect: {status: 200, headers_absent: [Content-Range]}
+      - name: every range past the end is 416
+        as: anonymous
+        request: {method: GET, path: "${P}/abc.txt", headers: {Range: "bytes=500-600, 700-"}}
+        expect: {status: 416, headers: {Content-Range: "bytes */360", Accept-Ranges: "selector, bytes"}, body_contains: ["RangeNotSatisfiable"]}
+      - name: the last zero bytes is 416
+        as: anonymous
+        request: {method: GET, path: "${P}/abc.txt", headers: {Range: "bytes=-0"}}
+        expect: {status: 416, headers: {Content-Range: "bytes */360"}}
+      - name: HEAD ignores Range
+        as: anonymous
+        request: {method: HEAD, path: "${P}/abc.txt", headers: {Range: "bytes=0-3"}}
+        expect: {status: 200, headers: {Accept-Ranges: "selector, bytes"}, headers_absent: [Content-Range]}
+      - name: a weak If-Range never matches
+        as: anonymous
+        request: {method: GET, path: "${P}/abc.txt", headers: {Range: "bytes=0-3", If-Range: 'W/"x"'}}
+        expect: {status: 200, headers_absent: [Content-Range]}
+
+  - id: protocol.bytes.page
+    title: A page honours several byte ranges too
+    feature: byte ranges
+    evidence: documented
+    source: "docs reference/protocol/Byte-Ranges §Several ranges (snapshot 2026-11-23)"
+    confidence: high
+    requires: []
+    live: true
+    site: *bytes_site
+    steps:
+      - name: two ranges of a page
+        as: anonymous
+        request: {method: GET, path: "${P}/page.html", headers: {Range: "bytes=0-8, 20-23"}}
+        expect:
+          status: 206
+          header_matches: {Content-Type: "^multipart/byteranges; boundary="}
+          body_contains: ["Content-Type: text/html", "<!DOCTYPE", "Content-Range: bytes 0-8/"]
+      - name: HEAD of a page ignores Range
+        as: anonymous
+        request: {method: HEAD, path: "${P}/page.html", headers: {Range: "bytes=0-3"}}
+        expect: {status: 200, headers: {Accept-Ranges: "selector, bytes"}, headers_absent: [Content-Range]}

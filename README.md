@@ -129,7 +129,7 @@ uploads, live updates, iframe embedding and remixing, see
 | Area | Highlights |
 |---|---|
 | Reading and writing | selector ranges, placements (`append`, `before`, …), PUT, POST, DELETE, MOVE, conditional requests with fragment ETags, microdata and JSON-LD, the Request Document |
-| Protocol | OPTIONS (flat, 207 and 204), `QUERY` in css and Sessel modes, WebDAV authoring plane, uploads, directory index, error documents |
+| Protocol | OPTIONS (flat, 207 and 204), `QUERY` (css on the public site, css and Sessel on the authoring plane), WebDAV authoring plane, uploads, directory index, error documents |
 | Live updates | server-sent events with connection tokens (no echo to the writer), replay with `Last-Event-ID`, reset, keepalive, slow-consumer protection |
 | Permissions and identity | AuthorizationRule tiers, deny-wins, templated values (`${request.auth.username}`), groups; local accounts; OpenID Connect with PKCE; partitioned cookies for iframes |
 | Modeling | schemas, properties, cardinality, types, enums, defaults, `@write` resolvers, validators, uniqueness, references and cascades, shape constraints, transitions |

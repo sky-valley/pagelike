@@ -1,5 +1,45 @@
 # Changelog
 
+## Unreleased
+
+Authorization hardening PageLove documented after the port (docs snapshot
+2026-11-23):
+
+- A value substituted into a rule's selector is literal text and can no longer
+  add selectors or break out of a quoted string.
+- A Deny rule missing its actor, resource or method refuses broadly instead of
+  being dropped.
+- An element Deny narrows a page-wide Allow: selector writes to the protected
+  element, an element around it or inside it are refused, and whole-page PUT,
+  MOVE and POST must leave protected elements exactly as they were.
+- A failed group lookup (`includes` erroring or over budget) refuses the
+  request with 502 instead of treating the person as in no group.
+
+Reading and writing:
+
+- Request paths must be canonical (no `//`, `.` segments, backslashes or
+  needless percent-escapes); others are 400 InvalidPath before any rule runs.
+- A Range header naming more than one `selector=` is 400.
+- POST placement is parsed strictly; anything but `; placement=<keyword>` is
+  ignored and the body appended.
+- A POST whose body is only whitespace is 422.
+- A POST with no selector to a page that is not a template saves the body as
+  the page instead of failing.
+- A GET a trigger or processor ran on is `Cache-Control: private, no-store`
+  unless a thrown HTTPResponse opts back in.
+- Byte ranges: several ranges come back as `multipart/byteranges`, HEAD
+  ignores `Range`, a weak `If-Range` never matches, unsatisfiable ranges get
+  an error item, and pages and files advertise `Accept-Ranges: selector,
+  bytes`.
+
+QUERY (breaking):
+
+- The public site runs no client-supplied query code. A `text/sessel`,
+  `text/javascript`, `multipart/query`, other or untyped QUERY is 405 with
+  `Accept-Query: text/css-selector`; a selector QUERY still works. Sessel
+  QUERY moved to the authoring plane, which needs the authoring key.
+- A wildcard method grant no longer lists PATCH in `Allow`.
+
 ## v0.3.0 — 2026-11-20
 
 - Build with Go 1.27.4 and current dependencies. Go 1.26.0 left 38

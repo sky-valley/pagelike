@@ -1,0 +1,335 @@
+# Authorization hardening PageLove documented after the port (docs snapshot
+# 2026-11-23; spec R-PERM-120..128).
+# NOTE for the runner: rule bodies contain PageLove lookups such as
+# ${request.headers.x-owner}; only ${P}, ${HOST}, ${SINK} and captured names
+# are substituted by the harness.
+cases:
+  - id: authz.harden.selector-value-literal
+    title: "A value filled into a rule's selector is literal text and cannot add selectors"
+    area: permissions-identity
+    feature: templated selector
+    evidence: documented
+    source: "docs reference/permissions/AuthorizationRule §A substituted value in a selector is a literal (snapshot 2026-11-23)"
+    confidence: high
+    requires: []
+    live: true
+    site:
+      files:
+        - path: "${P}/doc.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body><p id="a" data-owner="bob">bob's row</p><p id="b" data-owner="carol">carol's row</p></body></html>
+        - path: "${P}/rules.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div hidden itemscope itemtype="https://pagelove.org/AuthorizationRule">
+                <meta itemprop="actor" content="*"><meta itemprop="resource" content="${P}/doc.html">
+                <meta itemprop="method" content="PUT">
+                <meta itemprop="selector" content='[data-owner="${request.headers.x-owner}"]'>
+                <meta itemprop="action" content="allow">
+              </div>
+            </body></html>
+    steps:
+      - name: the owner may edit their own row
+        as: anonymous
+        request: {method: PUT, path: "${P}/doc.html", headers: {Range: "selector=#a", Content-Type: text/html, X-Owner: bob}, body: '<p id="a" data-owner="bob">edited</p>'}
+        expect: {status: 206}
+      - name: a value that tries to widen the selector matches nothing
+        as: anonymous
+        request: {method: PUT, path: "${P}/doc.html", headers: {Range: "selector=#b", Content-Type: text/html, X-Owner: 'x"], *, [data-x="'}, body: '<p id="b" data-owner="carol">taken</p>'}
+        expect: {status: 401}
+
+  - id: authz.harden.deny-blank-actor
+    title: A Deny rule with an empty actor refuses everyone instead of being dropped
+    area: permissions-identity
+    feature: incomplete rules
+    evidence: documented
+    source: "docs reference/permissions/AuthorizationRule §A rule with a missing actor, resource or method (snapshot 2026-11-23)"
+    confidence: high
+    requires: []
+    live: true
+    site:
+      files:
+        - path: "${P}/doc.html"
+          body: '<!DOCTYPE html><html><body><h1>T</h1></body></html>'
+        - path: "${P}/rules.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div hidden itemscope itemtype="https://pagelove.org/AuthorizationRule">
+                <meta itemprop="actor" content="*"><meta itemprop="resource" content="${P}/doc.html">
+                <meta itemprop="method" content="PUT"><meta itemprop="action" content="allow">
+              </div>
+              <div hidden itemscope itemtype="https://pagelove.org/AuthorizationRule">
+                <meta itemprop="actor" content=""><meta itemprop="resource" content="${P}/doc.html">
+                <meta itemprop="method" content="PUT"><meta itemprop="action" content="deny">
+              </div>
+            </body></html>
+    steps:
+      - name: the wildcard allow is outweighed by the deny
+        as: anonymous
+        request: {method: PUT, path: "${P}/doc.html", headers: {Range: "selector=h1", Content-Type: text/html}, body: '<h1>X</h1>'}
+        expect: {status: 401}
+
+  - id: authz.harden.deny-no-resource
+    title: A Deny rule with no resource covers every path
+    area: permissions-identity
+    feature: incomplete rules
+    evidence: documented
+    source: "docs reference/permissions/AuthorizationRule §A rule with a missing actor, resource or method; §resource (snapshot 2026-11-23)"
+    confidence: high
+    requires: []
+    live: true
+    site:
+      files:
+        - path: "${P}/doc.html"
+          body: '<!DOCTYPE html><html><body><h1>T</h1></body></html>'
+        - path: "${P}/rules.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div hidden itemscope itemtype="https://pagelove.org/AuthorizationRule">
+                <meta itemprop="actor" content="*"><meta itemprop="resource" content="${P}/doc.html">
+                <meta itemprop="method" content="PUT"><meta itemprop="action" content="allow">
+              </div>
+              <div hidden itemscope itemtype="https://pagelove.org/AuthorizationRule">
+                <meta itemprop="actor" content="*"><meta itemprop="method" content="PUT">
+                <meta itemprop="action" content="deny">
+              </div>
+            </body></html>
+    steps:
+      - name: refused
+        as: anonymous
+        request: {method: PUT, path: "${P}/doc.html", headers: {Range: "selector=h1", Content-Type: text/html}, body: '<h1>X</h1>'}
+        expect: {status: 401}
+
+  - id: authz.harden.deny-no-method
+    title: A Deny rule with no method covers every method
+    area: permissions-identity
+    feature: incomplete rules
+    evidence: documented
+    source: "docs reference/permissions/AuthorizationRule §A rule with a missing actor, resource or method (snapshot 2026-11-23)"
+    confidence: high
+    requires: []
+    live: true
+    site:
+      files:
+        - path: "${P}/doc.html"
+          body: '<!DOCTYPE html><html><body><h1>T</h1></body></html>'
+        - path: "${P}/rules.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div hidden itemscope itemtype="https://pagelove.org/AuthorizationRule">
+                <meta itemprop="actor" content="*"><meta itemprop="resource" content="${P}/doc.html">
+                <meta itemprop="method" content="PUT"><meta itemprop="action" content="allow">
+              </div>
+              <div hidden itemscope itemtype="https://pagelove.org/AuthorizationRule">
+                <meta itemprop="actor" content="*"><meta itemprop="resource" content="${P}/doc.html">
+                <meta itemprop="action" content="deny">
+              </div>
+            </body></html>
+    steps:
+      - name: refused
+        as: anonymous
+        request: {method: PUT, path: "${P}/doc.html", headers: {Range: "selector=h1", Content-Type: text/html}, body: '<h1>X</h1>'}
+        expect: {status: 401}
+
+  - id: authz.harden.allow-blank-field
+    title: An Allow rule with an empty actor grants nothing
+    area: permissions-identity
+    feature: incomplete rules
+    evidence: documented
+    source: "docs reference/permissions/AuthorizationRule §A rule with a missing actor, resource or method (snapshot 2026-11-23)"
+    confidence: high
+    requires: []
+    live: true
+    site:
+      files:
+        - path: "${P}/doc.html"
+          body: '<!DOCTYPE html><html><body><h1>T</h1></body></html>'
+        - path: "${P}/rules.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div hidden itemscope itemtype="https://pagelove.org/AuthorizationRule">
+                <meta itemprop="actor" content=" "><meta itemprop="resource" content="${P}/doc.html">
+                <meta itemprop="method" content="PUT"><meta itemprop="action" content="allow">
+              </div>
+            </body></html>
+    steps:
+      - name: refused
+        as: anonymous
+        request: {method: PUT, path: "${P}/doc.html", headers: {Range: "selector=h1", Content-Type: text/html}, body: '<h1>X</h1>'}
+        expect: {status: 401}
+
+  - id: authz.harden.deny-bad-selector
+    title: A Deny rule whose selector cannot be parsed covers the whole resource
+    area: permissions-identity
+    feature: selector scope
+    evidence: documented
+    source: "docs reference/permissions/AuthorizationRule §A deny with a selector that cannot be read refuses (snapshot 2026-11-23)"
+    confidence: high
+    requires: []
+    live: true
+    site:
+      files:
+        - path: "${P}/doc.html"
+          body: '<!DOCTYPE html><html><body><h1>T</h1><p id="a">A</p></body></html>'
+        - path: "${P}/rules.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div hidden itemscope itemtype="https://pagelove.org/AuthorizationRule">
+                <meta itemprop="actor" content="*"><meta itemprop="resource" content="${P}/doc.html">
+                <meta itemprop="method" content="PUT"><meta itemprop="action" content="allow">
+              </div>
+              <div hidden itemscope itemtype="https://pagelove.org/AuthorizationRule">
+                <meta itemprop="actor" content="*"><meta itemprop="resource" content="${P}/doc.html">
+                <meta itemprop="method" content="PUT"><meta itemprop="selector" content="p[[[">
+                <meta itemprop="action" content="deny">
+              </div>
+            </body></html>
+    steps:
+      - name: an element write is refused
+        as: anonymous
+        request: {method: PUT, path: "${P}/doc.html", headers: {Range: "selector=#a", Content-Type: text/html}, body: '<p id="a">B</p>'}
+        expect: {status: 401}
+      - name: a whole-page write is refused
+        as: anonymous
+        request: {method: PUT, path: "${P}/doc.html", headers: {Content-Type: text/html}, body: '<!DOCTYPE html><html><body><h1>X</h1></body></html>'}
+        expect: {status: 401}
+
+  - id: authz.harden.actor-value-literal
+    title: "A value filled into an Allow actor matches only that literal name, never a built-in group"
+    area: permissions-identity
+    feature: templated actor
+    evidence: documented
+    source: "docs reference/permissions/AuthorizationRule §A substituted value in an actor of an Allow rule matches only as that name (snapshot 2026-11-23)"
+    confidence: high
+    requires: [multi-actor]
+    live: false
+    site:
+      files:
+        - path: "${P}/doc.html"
+          body: '<!DOCTYPE html><html><body><h1>T</h1></body></html>'
+        - path: "${P}/rules.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div hidden itemscope itemtype="https://pagelove.org/AuthorizationRule">
+                <meta itemprop="actor" content="${request.headers.x-who}"><meta itemprop="resource" content="${P}/doc.html">
+                <meta itemprop="method" content="PUT"><meta itemprop="action" content="allow">
+              </div>
+            </body></html>
+    actors:
+      alice: {sub: alice, email: alice@example.com, email_verified: true, roles: []}
+    steps:
+      - name: own name matches
+        as: alice
+        request: {method: PUT, path: "${P}/doc.html", headers: {Range: "selector=h1", Content-Type: text/html, X-Who: alice}, body: '<h1>A</h1>'}
+        expect: {status: 206}
+      - name: users does not act as the built-in group
+        as: alice
+        request: {method: PUT, path: "${P}/doc.html", headers: {Range: "selector=h1", Content-Type: text/html, X-Who: users}, body: '<h1>B</h1>'}
+        expect: {status: 403}
+      - name: authenticated does not act as the built-in group
+        as: alice
+        request: {method: PUT, path: "${P}/doc.html", headers: {Range: "selector=h1", Content-Type: text/html, X-Who: authenticated}, body: '<h1>C</h1>'}
+        expect: {status: 403}
+
+  - id: authz.harden.group-lookup-fails-closed
+    title: A Group whose includes() fails refuses the request with 502 instead of treating the person as in no group
+    area: permissions-identity
+    feature: Group subtype includes()
+    evidence: documented
+    source: "docs reference/permissions/Group §When the group lookup fails (snapshot 2026-11-23)"
+    confidence: medium
+    requires: [multi-actor, sessel]
+    live: false
+    site:
+      files:
+        - path: "${P}/doc.html"
+          body: '<!DOCTYPE html><html><body><h1>T</h1></body></html>'
+        - path: "${P}/schemas.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+            <div itemscope itemtype="https://pagelove.org/Schema">
+              <meta itemprop="type" content="https://example.com/BrokenGroup">
+              <meta itemprop="name" content="BrokenGroup">
+              <meta itemprop="parent" content="https://pagelove.org/Group">
+              <div itemprop="property" itemscope itemtype="https://pagelove.org/Method">
+                <meta itemprop="name" content="includes">
+                <meta itemprop="returns" content="https://schema.host/Boolean">
+                <div itemprop="parameter" itemscope itemtype="https://pagelove.org/Parameter">
+                  <meta itemprop="name" content="email">
+                  <meta itemprop="type" content="https://schema.host/Text">
+                </div>
+                <div itemprop="implementation" itemscope itemtype="https://pagelove.org/Sessel">
+                  <script itemprop="source" type="text/sessel">email.noSuchMethod()</script>
+                </div>
+              </div>
+            </div>
+            </body></html>
+        - path: "${P}/groups.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div itemscope itemtype="https://example.com/BrokenGroup"><span itemprop="name">banned</span></div>
+            </body></html>
+        - path: "${P}/rules.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div itemscope itemtype="https://pagelove.org/AuthorizationRule">
+                <meta itemprop="actor" content="users"><meta itemprop="resource" content="${P}/doc.html">
+                <meta itemprop="method" content="PUT"><meta itemprop="action" content="Allow">
+              </div>
+              <div itemscope itemtype="https://pagelove.org/AuthorizationRule">
+                <meta itemprop="actor" content="banned"><meta itemprop="resource" content="${P}/doc.html">
+                <meta itemprop="method" content="PUT"><meta itemprop="action" content="Deny">
+              </div>
+            </body></html>
+    actors:
+      alice: {sub: alice, email: alice@example.com, email_verified: true, roles: []}
+    steps:
+      - name: refused with 502, nothing stored
+        as: alice
+        request: {method: PUT, path: "${P}/doc.html", headers: {Range: "selector=h1", Content-Type: text/html}, body: '<h1>A</h1>'}
+        expect: {status: 502}
+      - name: unchanged
+        as: author
+        plane: dav
+        request: {method: GET, path: "${P}/doc.html"}
+        expect: {status: 200, body_contains: ["<h1>T</h1>"]}
+
+  - id: authz.harden.sse-needs-page-get
+    title: A GET grant limited to a selector does not open an event stream
+    area: permissions-identity
+    feature: SSE authorization
+    evidence: documented
+    source: "docs reference/reading-and-writing/Server-Sent-Events ('Subscribing needs a GET allow for the whole page') (snapshot 2026-11-23)"
+    confidence: high
+    requires: []
+    live: true
+    site:
+      files:
+        - path: "${P}/doc.html"
+          body: '<!DOCTYPE html><html><body><h1>T</h1><p id="a">A</p></body></html>'
+        - path: "${P}/rules.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div hidden itemscope itemtype="https://pagelove.org/AuthorizationRule">
+                <meta itemprop="actor" content="*"><meta itemprop="resource" content="${P}/doc.html">
+                <meta itemprop="method" content="GET"><meta itemprop="selector" content="#a">
+                <meta itemprop="action" content="allow">
+              </div>
+            </body></html>
+    steps:
+      - name: subscribe refused
+        as: anonymous
+        request: {method: GET, path: "${P}/doc.html", headers: {Accept: text/event-stream}}
+        expect: {status: 401}

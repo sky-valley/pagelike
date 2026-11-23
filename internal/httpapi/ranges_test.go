@@ -6,27 +6,40 @@ import (
 	"time"
 )
 
-func TestByteRange(t *testing.T) {
+func TestParseByteRanges(t *testing.T) {
 	for _, c := range []struct {
-		h                 string
-		size              int64
-		start, end        int64
-		ok, unsatisfiable bool
+		h     string
+		size  int64
+		spans []byteSpan
+		mode  int
 	}{
-		{"bytes=0-3", 10, 0, 3, true, false},
-		{"bytes=4-", 10, 4, 9, true, false},
-		{"bytes=-3", 10, 7, 9, true, false},
-		{"bytes=-30", 10, 0, 9, true, false},
-		{"bytes=5-100", 10, 5, 9, true, false},
-		{"bytes=10-", 10, 0, 0, false, true},
-		{"bytes=-0", 10, 0, 0, false, true},
-		{"bytes=3-1", 10, 0, 0, false, false}, // invalid: ignored
-		{"bytes=0-1,4-5", 10, 0, 0, false, false},
-		{"bytes=x-", 10, 0, 0, false, false},
+		{"bytes=0-3", 10, []byteSpan{{0, 3}}, rangeParts},
+		{"bytes=4-", 10, []byteSpan{{4, 9}}, rangeParts},
+		{"bytes=-3", 10, []byteSpan{{7, 9}}, rangeParts},
+		{"bytes=-30", 10, []byteSpan{{0, 9}}, rangeParts},
+		{"bytes=5-100", 10, []byteSpan{{5, 9}}, rangeParts},
+		{"bytes=10-", 10, nil, rangeUnsatisfiable},
+		{"bytes=-0", 10, nil, rangeUnsatisfiable},
+		{"bytes=3-1", 10, nil, rangeWhole},
+		{"bytes=x-", 10, nil, rangeWhole},
+		{"bytes=0-1", 0, nil, rangeWhole},                                       // empty body
+		{"bytes=0-1,4-5", 10, nil, rangeWhole},                                  // costlier than the body
+		{"bytes=0-1,400-401", 1000, []byteSpan{{0, 1}, {400, 401}}, rangeParts}, // two parts
+		{"bytes=0-1, 2000-", 1000, []byteSpan{{0, 1}}, rangeParts},              // one dropped
+		{"bytes=400-401,0-1", 1000, nil, rangeWhole},                            // not ascending
+		{"bytes=0-5,3-8", 1000, nil, rangeWhole},                                // overlapping
+		{"bytes=0-0,,,", 1000, []byteSpan{{0, 0}}, rangeParts},                  // empty elements
+		{"foo=0-1", 10, nil, rangeWhole},
 	} {
-		s, e, ok, un := byteRange(c.h, c.size)
-		if s != c.start || e != c.end || ok != c.ok || un != c.unsatisfiable {
-			t.Errorf("byteRange(%q, %d) = %d %d %v %v", c.h, c.size, s, e, ok, un)
+		spans, mode := parseByteRanges(c.h, c.size)
+		if mode != c.mode || len(spans) != len(c.spans) {
+			t.Errorf("parseByteRanges(%q, %d) = %v %d, want %v %d", c.h, c.size, spans, mode, c.spans, c.mode)
+			continue
+		}
+		for i := range spans {
+			if spans[i] != c.spans[i] {
+				t.Errorf("parseByteRanges(%q, %d) = %v, want %v", c.h, c.size, spans, c.spans)
+			}
 		}
 	}
 }

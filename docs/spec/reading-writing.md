@@ -1633,3 +1633,58 @@ sibling measures PageLove:
 | Q-14 | `public, max-age=5` on composed pages. |
 | Q-21 | The Location is path-absolute and keeps the query. |
 | Q-23 | `If-Match` on GET is ignored. |
+
+## 26. Documented after the port (docs snapshot 2026-11-23)
+
+Each requirement was first shown missing from pagelike by a failing case in
+`harness/cases/reading-writing/sweep-1123.yaml`. Where it replaces an earlier
+live observation, PageLove's newer docs are the evidence.
+
+### R-RW-150 — A Range header naming more than one `selector=` is 400
+- **Behavior:** a second `selector=` item, after `;` or `,` outside quotes and
+  brackets, makes a write's range malformed: 400 `InvalidRange`, nothing written.
+- **Source:** DOCS PUT-method, POST-method and DELETE-method error tables.
+- **Cases:** `rw.s1123.two-selectors-400`.
+
+### R-RW-151 — Placement is read strictly
+- **Behavior:** the selector ends at the first `;` outside quotes and brackets.
+  What follows must be exactly `placement=<keyword>`: the name lower case with
+  no space before `=`, the keyword in any case. Anything else (another
+  sub-field, a second placement, `Placement`, `placement =`) is ignored and the
+  body is appended. Supersedes the lenient parse of R-RW-10.
+- **Source:** DOCS POST-method §Placement. **Cases:** `rw.s1123.placement-strict`.
+
+### R-RW-152 — A POST whose body is only whitespace is 422
+- **Behavior:** it creates no element: 422, nothing stored, no ETag. A selector
+  PUT with such a body stays 400 (R-RW-67).
+- **Source:** DOCS POST-method §What the response contains.
+- **Cases:** `rw.s1123.post-whitespace-422`.
+
+### R-RW-153 — A POST with no selector to a page that is not a template saves the page
+- **Behavior:** to a missing page, or an existing page with no `p:template`
+  host, the body is saved as the whole page (authorized as POST), like a
+  whole-page PUT. A template still creates a resource at its `<base href>`
+  (422 without one).
+- **Source:** DOCS POST-method §POST with no selector; Resource-Creation §Error cases.
+- **Cases:** `rw.s1123.post-no-selector-saves-page`.
+
+### R-RW-154 — Request paths must be canonical
+- **Behavior:** before any rule is read, a request path (and a MOVE
+  Destination's path) with an empty segment (one trailing `/` aside), a `.` or
+  `..` segment, a backslash, an encoded `/`, `\` or `.`, an encoded letter,
+  digit, `-`, `_` or `~`, NUL raw or encoded, a raw control byte, or escapes
+  that are not UTF-8 is 400 with an `https://pagelove.org/Error/InvalidPath`
+  item whose message names the reason, never the path. `%20`, non-ASCII UTF-8,
+  reserved punctuation and double encodings stay valid. The authoring plane is
+  not checked.
+- **Source:** DOCS reference/permissions/AuthorizationRule §resource.
+- **Cases:** `rw.s1123.canonical-path-400`.
+
+### R-RW-155 — A GET your own code shaped is not cached by shared caches
+- **Behavior:** a GET or HEAD that a trigger or processor ran on, or that a
+  thrown HTTPResponse answered, is sent with `Cache-Control: private,
+  no-store` (a `private, max-age` is rewritten). Only a thrown HTTPResponse can
+  opt back in, with its own `public`, `max-age` or `s-maxage`, and never when
+  the response sets a cookie (a visitor's first request sets their session
+  cookie).
+- **Source:** DOCS GET-method §Caching. **Cases:** `reacting.cache.*`.

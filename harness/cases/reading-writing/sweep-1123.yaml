@@ -1,0 +1,204 @@
+# Reading and writing behaviour PageLove documented after the port (docs
+# snapshot 2026-11-23; spec R-RW-150..).
+cases:
+  - id: rw.s1123.two-selectors-400
+    title: A Range header with more than one selector= is 400
+    area: reading-writing
+    feature: Range parsing
+    evidence: documented
+    source: "docs reference/reading-and-writing/PUT-method, POST-method, DELETE-method error tables (snapshot 2026-11-23)"
+    confidence: high
+    requires: []
+    live: true
+    site:
+      files:
+        - path: "${P}/doc.html"
+          body: '<!DOCTYPE html><html><body><h1>T</h1><p>a</p></body></html>'
+      rules:
+        - {actor: "*", resource: "${P}/*", method: ["*"], action: Allow}
+    steps:
+      - name: put
+        as: anonymous
+        request: {method: PUT, path: "${P}/doc.html", headers: {Range: "selector=h1, selector=p", Content-Type: text/html}, body: '<h1>X</h1>'}
+        expect: {status: 400}
+      - name: post
+        as: anonymous
+        request: {method: POST, path: "${P}/doc.html", headers: {Range: "selector=h1; selector=p", Content-Type: text/html}, body: '<b>X</b>'}
+        expect: {status: 400}
+      - name: delete
+        as: anonymous
+        request: {method: DELETE, path: "${P}/doc.html", headers: {Range: "selector=p; selector=h1"}}
+        expect: {status: 400}
+      - name: nothing changed
+        as: anonymous
+        request: {method: GET, path: "${P}/doc.html"}
+        expect: {status: 200, body_contains: ['<h1>T</h1><p>a</p>']}
+
+  - id: rw.s1123.placement-strict
+    title: A placement that is not exactly "; placement=<keyword>" is ignored and the body is appended
+    area: reading-writing
+    feature: POST placement
+    evidence: documented
+    source: "docs reference/reading-and-writing/POST-method §Placement (snapshot 2026-11-23)"
+    confidence: high
+    requires: []
+    live: true
+    site:
+      files:
+        - path: "${P}/doc.html"
+          body: '<!DOCTYPE html><html><body><ul><li>a</li></ul></body></html>'
+      rules:
+        - {actor: "*", resource: "${P}/*", method: ["*"], action: Allow}
+    steps:
+      - name: keyword in any case is honoured
+        as: anonymous
+        request: {method: POST, path: "${P}/doc.html", headers: {Range: "selector=ul; placement=PREPEND", Content-Type: text/html}, body: '<li>p</li>'}
+        expect: {status: [200, 201, 206]}
+      - name: a second placement is ignored
+        as: anonymous
+        request: {method: POST, path: "${P}/doc.html", headers: {Range: "selector=ul; placement=prepend; placement=prepend", Content-Type: text/html}, body: '<li>q</li>'}
+        expect: {status: [200, 201, 206]}
+      - name: an upper-case name is ignored
+        as: anonymous
+        request: {method: POST, path: "${P}/doc.html", headers: {Range: "selector=ul; Placement=prepend", Content-Type: text/html}, body: '<li>r</li>'}
+        expect: {status: [200, 201, 206]}
+      - name: a space before = is ignored
+        as: anonymous
+        request: {method: POST, path: "${P}/doc.html", headers: {Range: "selector=ul; placement =prepend", Content-Type: text/html}, body: '<li>s</li>'}
+        expect: {status: [200, 201, 206]}
+      - name: order
+        as: anonymous
+        request: {method: GET, path: "${P}/doc.html"}
+        expect: {status: 200, body_contains: ['<ul><li>p</li><li>a</li><li>q</li><li>r</li><li>s</li></ul>']}
+
+  - id: rw.s1123.post-whitespace-422
+    title: A POST whose body is only whitespace creates nothing and is 422
+    area: reading-writing
+    feature: POST body
+    evidence: documented
+    source: "docs reference/reading-and-writing/POST-method §What the response contains (snapshot 2026-11-23)"
+    confidence: high
+    requires: []
+    live: true
+    site:
+      files:
+        - path: "${P}/doc.html"
+          body: '<!DOCTYPE html><html><body><ul><li>a</li></ul></body></html>'
+      rules:
+        - {actor: "*", resource: "${P}/*", method: ["*"], action: Allow}
+    steps:
+      - name: refused
+        as: anonymous
+        request: {method: POST, path: "${P}/doc.html", headers: {Range: "selector=ul", Content-Type: text/html}, body: "  \n "}
+        expect: {status: 422, headers_absent: [ETag]}
+
+  - id: rw.s1123.response-trimmed
+    title: A selector PUT and a POST answer with their markup without surrounding whitespace
+    area: reading-writing
+    feature: write responses
+    evidence: documented
+    source: "docs reference/reading-and-writing/PUT-method and POST-method §What the response contains (snapshot 2026-11-23)"
+    confidence: high
+    requires: []
+    live: true
+    site:
+      files:
+        - path: "${P}/doc.html"
+          body: '<!DOCTYPE html><html><body><h1>T</h1><ul><li>a</li></ul></body></html>'
+      rules:
+        - {actor: "*", resource: "${P}/*", method: ["*"], action: Allow}
+    steps:
+      - name: put
+        as: anonymous
+        request: {method: PUT, path: "${P}/doc.html", headers: {Range: "selector=h1", Content-Type: text/html}, body: "<h1>X</h1>\n"}
+        expect: {status: 206, body: '<h1>X</h1>', body_not_contains: ["\n"]}
+      - name: post
+        as: anonymous
+        request: {method: POST, path: "${P}/doc.html", headers: {Range: "selector=ul", Content-Type: text/html}, body: "\n<li>b</li>\n"}
+        expect: {status: [200, 201, 206], body: '<li>b</li>', body_not_contains: ["\n"]}
+
+  - id: rw.s1123.post-no-selector-saves-page
+    title: A POST with no selector to a page that is not a template saves the body as the page
+    area: reading-writing
+    feature: POST with no selector
+    evidence: documented
+    source: "docs reference/reading-and-writing/POST-method §POST with no selector (snapshot 2026-11-23)"
+    confidence: high
+    requires: []
+    live: true
+    site:
+      files:
+        - path: "${P}/doc.html"
+          body: '<!DOCTYPE html><html><body><h1>T</h1></body></html>'
+      rules:
+        - {actor: "*", resource: "${P}/*", method: ["*"], action: Allow}
+    steps:
+      - name: existing page
+        as: anonymous
+        request: {method: POST, path: "${P}/doc.html", headers: {Content-Type: text/html}, body: '<!DOCTYPE html><html><body><h1>N</h1></body></html>'}
+        expect: {status: [200, 201, 204]}
+      - name: missing page
+        as: anonymous
+        request: {method: POST, path: "${P}/new.html", headers: {Content-Type: text/html}, body: '<!DOCTYPE html><html><body><h1>M</h1></body></html>'}
+        expect: {status: [200, 201, 204]}
+      - name: existing page holds the body
+        as: anonymous
+        request: {method: GET, path: "${P}/doc.html"}
+        expect: {status: 200, body_contains: ['<h1>N</h1>']}
+      - name: new page holds the body
+        as: anonymous
+        request: {method: GET, path: "${P}/new.html"}
+        expect: {status: 200, body_contains: ['<h1>M</h1>']}
+
+  - id: rw.s1123.canonical-path-400
+    title: A request path that is not canonical is 400 InvalidPath before any rule is read
+    area: reading-writing
+    feature: canonical paths
+    evidence: documented
+    source: "docs reference/permissions/AuthorizationRule §resource (snapshot 2026-11-23)"
+    confidence: high
+    requires: []
+    live: true
+    site:
+      files:
+        - path: "${P}/doc.html"
+          body: '<!DOCTYPE html><html><body><h1>T</h1></body></html>'
+      rules:
+        - {actor: "*", resource: "${P}/*", method: ["*"], action: Allow}
+    steps:
+      - name: empty segment
+        as: anonymous
+        request: {method: GET, path: "${P}//doc.html"}
+        expect: {status: 400, body_contains: ['InvalidPath']}
+      - name: trailing double slash
+        as: anonymous
+        request: {method: GET, path: "${P}/x//"}
+        expect: {status: 400, body_contains: ['InvalidPath']}
+      - name: dot segment
+        as: anonymous
+        request: {method: GET, path: "${P}/./doc.html"}
+        expect: {status: 400, body_contains: ['InvalidPath']}
+      - name: percent-encoded slash
+        as: anonymous
+        request: {method: GET, path: "${P}%2Fdoc.html", raw_path: true}
+        expect: {status: 400, body_contains: ['InvalidPath']}
+      - name: invalid utf-8
+        as: anonymous
+        request: {method: GET, path: "${P}/%FF.html", raw_path: true}
+        expect: {status: 400, body_contains: ['InvalidPath']}
+      - name: encoded unreserved letter
+        as: anonymous
+        request: {method: GET, path: "${P}/%64oc.html", raw_path: true}
+        expect: {status: 400, body_contains: ['InvalidPath']}
+      - name: a MOVE Destination is checked too
+        as: anonymous
+        request: {method: MOVE, path: "${P}/doc.html", headers: {Destination: "${P}//moved.html"}}
+        expect: {status: 400, body_contains: ['InvalidPath']}
+      - name: an encoded space is canonical
+        as: anonymous
+        request: {method: GET, path: "${P}/a%20b.html", raw_path: true}
+        expect: {status: 404}
+      - name: double encoding is a different, canonical name
+        as: anonymous
+        request: {method: GET, path: "${P}/%2570rivate", raw_path: true}
+        expect: {status: 404}
