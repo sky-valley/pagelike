@@ -350,6 +350,12 @@ Nested instances are validated independently against their own schema, whether o
 property values of the outer item. For example, OrderLine `<li>` items in a plain `<ul itemprop="lines">`
 are validated by the OrderLine schema.
 
+- An item's properties follow the microdata rule (docs snapshot 2026-11-23, Schema §Which elements are
+  an item's properties): its `itemprop` descendants outside nested items, through wrapper elements, plus
+  the elements its `itemref` names anywhere in the document; `<template>` contents are not walked. A
+  property several items name through `itemref` belongs to each. Case
+  `modeling.multi1123.itemref-property-counts`. pagelike gap: a selector write to an element reached
+  only through `itemref` does not make the naming item affected.
 - Evidence: inferred from the MOVE doc ("checked at both the source ancestor (after removal) and the
   destination ancestor"), the cascade section ("Removing the only value of a `1..1` property ... is
   rejected with 422") and demo-source pagelove-shop/site/schemas.html@d887054:249-256 ("each nested
@@ -1587,7 +1593,7 @@ requirements it pins (`spec: R-MOD-…`).
 | `keys.yaml` | 6 | R-MOD-33..35 |
 | `uniqueness.yaml` | 9 | R-MOD-30, 32 |
 | `uniqueness-1123.yaml` | 7 | R-MOD-30, 31 as of the 2026-11-23 docs (groups as one value set, descendants in scope, no path disclosed) |
-| `multitype-1123.yaml` | 5 | R-MOD-9 as of the 2026-11-23 docs (items with several types) |
+| `multitype-1123.yaml` | 6 | R-MOD-9, R-MOD-14 as of the 2026-11-23 docs (items with several types, itemref) |
 | `validators-1123.yaml` | 9 | R-MOD-45..47 as of the 2026-11-23 docs |
 | `references.yaml` | 16 | R-MOD-37..43 |
 | `computed.yaml` | 4 | R-MOD-44 |

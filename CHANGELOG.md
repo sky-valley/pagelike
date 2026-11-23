@@ -23,6 +23,8 @@ Schemas (docs snapshot 2026-11-23):
 - An item whose `itemtype` names several types is governed by every one
   that has a schema; the first type wins where one answer is needed, and
   two schemas typing one property incompatibly refuse the item.
+- Elements an item names through `itemref` are its properties when it is
+  validated.
 - `@key` needs a declared cardinality of `1..1`.
 - A Sessel `@validate` accepts only with the Boolean `true`. A property's
   validators at every level of the inheritance chain run.

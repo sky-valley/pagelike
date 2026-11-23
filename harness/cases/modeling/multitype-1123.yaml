@@ -263,3 +263,51 @@ cases:
         expect:
           status: 422
           body_contains: ['niqueness']
+
+  - id: modeling.multi1123.itemref-property-counts
+    title: "An element named in the item's itemref is one of its properties"
+    feature: item properties
+    source: "docs reference/modeling-data/Schema §Which elements are an item's properties (snapshot 2026-11-23) ('An element named in the item's itemref is one of its properties too, wherever it is on the page')"
+    notes: "R-MOD-14. Before this snapshot pagelike did not follow itemref when validating."
+    steps:
+      - name: "schema"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/schema.html"
+          headers: {Content-Type: text/html}
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div hidden itemscope itemtype="https://pagelove.org/Schema"><meta itemprop="type" content="https://pagelike.test${P}/R"><div itemprop="property" itemscope itemtype="https://pagelove.org/Property"><meta itemprop="name" content="name"><meta itemprop="type" content="https://schema.host/Integer"><meta itemprop="cardinality" content="1..1"></div></div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "the required property sits outside the item"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/a.html"
+          headers: {Content-Type: text/html}
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div itemscope itemtype="https://pagelike.test${P}/R" itemref="n1"></div>
+              <p><span id="n1"><meta itemprop="name" content="4"></span></p>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "and it is checked like any other value"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/b.html"
+          headers: {Content-Type: text/html}
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div itemscope itemtype="https://pagelike.test${P}/R" itemref="n1"></div>
+              <meta id="n1" itemprop="name" content="four">
+            </body></html>
+        expect:
+          status: 422
