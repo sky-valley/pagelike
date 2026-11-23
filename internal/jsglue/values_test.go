@@ -77,6 +77,11 @@ func TestValueRoundTrips(t *testing.T) {
 	if v, err := fromSessel(sessel.Instant{NS: 0}, nil); err != nil || v.(jsrt.Temporal).Kind != "Instant" {
 		t.Errorf("temporal: %#v %v", v, err)
 	}
+	// A temporal value keeps its type both ways (R-JS-42).
+	md := sessel.PlainMonthDay{M: 9, D: 30}
+	if v, _ := fromSessel(md, nil); v != (jsrt.Temporal{Kind: "PlainMonthDay", ISO: "09-30"}) || toSessel(v, nil) != sessel.Value(md) || toGo(v) != any(md) || fromGo(md) != v {
+		t.Errorf("temporal round trip: %#v", v)
+	}
 	if _, err := fromSessel(&sessel.Lambda{}, nil); err == nil {
 		t.Error("a lambda has no JavaScript form")
 	}

@@ -97,6 +97,9 @@ func sesselFailure(err error) error {
 
 // jsFailure classifies a JavaScript runner error.
 func jsFailure(err error) error {
+	if ed := hashgate.Refused(err); ed != nil {
+		return ed // a refused password hash fails the request (R-JS-39d)
+	}
 	var tr *JSThrownResponse
 	if errors.As(err, &tr) {
 		// A missing status stays 0: responseError answers 500 for it, and a

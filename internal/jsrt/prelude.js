@@ -38,6 +38,7 @@ const __pagelike = (() => {
   const wmGet = uncurry(WeakMap.prototype.get);
   const wmSet = uncurry(WeakMap.prototype.set);
   const wmHas = uncurry(WeakMap.prototype.has);
+  const wmDelete = uncurry(WeakMap.prototype.delete);
   const mapGet = uncurry(Map.prototype.get);
   const mapSet = uncurry(Map.prototype.set);
   const mapHas = uncurry(Map.prototype.has);
@@ -148,7 +149,222 @@ const __pagelike = (() => {
     if (r === ERR) throw new ErrorFn(SYS("err"));
     return r;
   };
+  // WebCrypto public keys and signature checks (R-JS-39c; docs snapshot
+  // 2026-11-23). A failure is a DOMException named for its cause; a wrong
+  // argument type is a TypeError, as in browsers.
+  const csys = (...a) => {
+    try {
+      return sys(...a);
+    } catch (e) {
+      const m = StringFn(e && e.message);
+      const i = m.indexOf("|");
+      if (i > 0) throw new DOMException(m.slice(i + 1), m.slice(0, i));
+      throw e;
+    }
+  };
+  const KEY_USAGES = ["encrypt", "decrypt", "sign", "verify", "deriveKey", "deriveBits", "wrapKey", "unwrapKey"];
+  const ALG_NAMES = ["ECDSA", "RSASSA-PKCS1-v1_5", "RSA-PSS", "Ed25519", "Argon2id", "Argon2i", "Argon2d", "bcrypt", "PBKDF2", "HKDF"];
+  // Secret-key algorithms (R-JS-39d) and the usages their keys may have.
+  const ARGON = ["Argon2id", "Argon2i", "Argon2d"];
+  const secretUsages = (name) => (name === "bcrypt" ? ["deriveBits", "verify"]
+    : ARGON.includes(name) || name === "PBKDF2" || name === "HKDF" ? ["deriveBits", "deriveKey"] : null);
+  const U32 = 4294967295;
+  // uint reads a WebIDL [EnforceRange] unsigned number: a missing, negative,
+  // non-numeric or too large value is a TypeError; a fraction is cut.
+  const uint = (v, what, max) => {
+    if (v === undefined || v === null) throw new TypeErrorFn(what + " is required");
+    const n = MathTrunc(NumberFn(v));
+    if (!NumberIsFinite(n) || n < 0 || n > max) throw new TypeErrorFn(what + " must be a number from 0 to " + max);
+    return n;
+  };
+  const needBytes = (v, what) => {
+    if (v === undefined || v === null) throw new TypeErrorFn(what + " is required");
+    return bytesOf(v);
+  };
+  const opError = (m) => new DOMException(m, "OperationError");
+  const HASH_NAMES = ["SHA-1", "SHA-256", "SHA-384", "SHA-512"];
+  const HASH_BYTES = { "SHA-1": 20, "SHA-256": 32, "SHA-384": 48, "SHA-512": 64 };
+  const canonName = (list, n) => {
+    const up = StringFn(n).toUpperCase();
+    for (const k of list) if (k.toUpperCase() === up) return k;
+    return null;
+  };
+  // algOf reads an AlgorithmIdentifier: a name, or an object with a name.
+  const algOf = (alg) => {
+    let o = {};
+    let n = alg;
+    if (typeof alg !== "string") {
+      if (alg === null || typeof alg !== "object") throw new TypeErrorFn("the algorithm must be a name or an object with a name");
+      o = alg;
+      n = alg.name;
+      if (n === undefined) throw new TypeErrorFn("the algorithm has no name");
+    }
+    const name = canonName(ALG_NAMES, n);
+    if (name === null) throw new DOMException("Unrecognized algorithm name", "NotSupportedError");
+    return { name, o };
+  };
+  const hashOf = (o, what) => {
+    let h = o.hash;
+    if (h === undefined || h === null) throw new TypeErrorFn(what + " needs a hash");
+    if (typeof h === "object") h = h.name;
+    const name = canonName(HASH_NAMES, h);
+    if (name === null) throw new DOMException("Unrecognized hash name", "NotSupportedError");
+    return name;
+  };
+  const usagesOf = (usages) => {
+    if (usages === null || typeof usages !== "object" || typeof usages[Symbol.iterator] !== "function") {
+      throw new TypeErrorFn("the key usages must be a list");
+    }
+    const out = [];
+    for (const u of usages) {
+      if (typeof u !== "string" || !KEY_USAGES.includes(u)) throw new TypeErrorFn("'" + StringFn(u) + "' is not a key usage");
+      if (!out.includes(u)) arrayPush(out, u);
+    }
+    return out;
+  };
+  let keyState;
+  class CryptoKey {
+    #s;
+    constructor(key, s) {
+      if (key !== KEY) throw new TypeErrorFn("Illegal constructor");
+      this.#s = s;
+    }
+    static { keyState = (k) => (k !== null && typeof k === "object" && #s in k ? k.#s : null); }
+    get type() { return this.#s.type; }
+    get extractable() { return this.#s.extractable; }
+    get algorithm() { return { ...this.#s.algorithm }; }
+    get usages() { return [...this.#s.usages]; }
+  }
+  const keyOf = (k) => {
+    const s = keyState(k);
+    if (s === null) throw new TypeErrorFn("the key is not a CryptoKey made by crypto.subtle");
+    return s;
+  };
+  const importKey = (format, keyData, algorithm, extractable, usages) => {
+    const { name, o } = algOf(algorithm);
+    const use = usagesOf(usages);
+    const allowed = secretUsages(name);
+    if (allowed !== null) {
+      const sfmt = StringFn(format);
+      const sformats = name === "PBKDF2" || name === "HKDF" ? ["raw", "raw-secret"] : ["raw-secret"];
+      if (!sformats.includes(sfmt)) throw new DOMException("a " + name + " key is imported as " + sformats.join(" or "), "NotSupportedError");
+      if (extractable) throw new DOMException("a " + name + " key cannot be extractable", "SyntaxError");
+      if (use.length === 0) throw new DOMException("a " + name + " key needs a usage", "SyntaxError");
+      for (const u of use) {
+        if (!allowed.includes(u)) throw new DOMException("a " + name + " key can only have the usages " + allowed.join(" and "), "SyntaxError");
+      }
+      return new CryptoKey(KEY, { type: "secret", extractable: false, algorithm: { name }, usages: use, data: latin1(bytesOf(keyData)) });
+    }
+    const algo = { name };
+    let curve = "";
+    if (name === "ECDSA") {
+      if (o.namedCurve === undefined || o.namedCurve === null) throw new TypeErrorFn("ECDSA needs a namedCurve");
+      curve = StringFn(o.namedCurve);
+      if (curve !== "P-256" && curve !== "P-384") throw new DOMException("only the curves P-256 and P-384 are supported", "NotSupportedError");
+      algo.namedCurve = curve;
+    } else if (name !== "Ed25519") {
+      const h = hashOf(o, name);
+      if (h === "SHA-1") throw new DOMException("RSA signatures use SHA-256, SHA-384 or SHA-512", "NotSupportedError");
+      algo.hash = { name: h };
+    }
+    const fmt = StringFn(format);
+    const formats = name === "ECDSA" || name === "Ed25519" ? ["spki", "raw"] : ["spki"];
+    if (!formats.includes(fmt)) throw new DOMException("a " + name + " public key is imported as " + formats.join(" or "), "NotSupportedError");
+    for (const u of use) if (u !== "verify") throw new DOMException("a public key can only have the verify usage", "SyntaxError");
+    const data = latin1(bytesOf(keyData));
+    csys("wc.import", name, curve, fmt, data);
+    return new CryptoKey(KEY, { type: "public", extractable: !!extractable, algorithm: algo, usages: use, format: fmt, data });
+  };
+  const verifySig = (algorithm, key, signature, data) => {
+    const { name, o } = algOf(algorithm);
+    if (name !== "bcrypt" && secretUsages(name) !== null) throw new DOMException(name + " does not verify", "NotSupportedError");
+    const k = keyOf(key);
+    if (k.algorithm.name !== name) throw new DOMException("the key was imported for " + k.algorithm.name, "InvalidAccessError");
+    if (!k.usages.includes("verify")) throw new DOMException("the key does not have the verify usage", "InvalidAccessError");
+    if (name === "bcrypt") {
+      // The stored $2a$, $2b$ or $2y$ string is the signature; the password
+      // is the key, so the data must be empty.
+      const stored = latin1(bytesOf(signature));
+      if (bytesOf(data).length !== 0) throw opError("bcrypt verify takes no data: the password comes from the key");
+      return csys("wc.pwhash", JSONstringify({ alg: "bcrypt-verify", password: btoa(k.data), stored: btoa(stored) }));
+    }
+    let hash = "";
+    if (name === "ECDSA") {
+      hash = hashOf(o, "ECDSA");
+      if (hash !== (k.algorithm.namedCurve === "P-256" ? "SHA-256" : "SHA-384")) {
+        throw new DOMException("ECDSA " + k.algorithm.namedCurve + " is supported with its own hash only", "NotSupportedError");
+      }
+    } else if (name !== "Ed25519") {
+      hash = k.algorithm.hash.name;
+      if (name === "RSA-PSS" && o.saltLength !== undefined) {
+        const n = o.saltLength;
+        if (typeof n !== "number" || !NumberIsFinite(n) || n < 0 || MathTrunc(n) !== n) throw new TypeErrorFn("saltLength must be a non-negative whole number");
+        if (n !== HASH_BYTES[hash]) throw new DOMException("RSA-PSS supports only a salt as long as the hash", "NotSupportedError");
+      }
+    }
+    const sig = latin1(bytesOf(signature));
+    return csys("wc.verify", name, k.algorithm.namedCurve || "", hash, k.format, k.data, sig, latin1(bytesOf(data)));
+  };
+  const deriveBits = (algorithm, key, length) => {
+    const { name, o } = algOf(algorithm);
+    if (secretUsages(name) === null) throw new DOMException(name + " does not derive bits", "NotSupportedError");
+    const k = keyOf(key);
+    if (k.algorithm.name !== name) throw new DOMException("the key was imported for " + k.algorithm.name, "InvalidAccessError");
+    if (!k.usages.includes("deriveBits")) throw new DOMException("the key does not have the deriveBits usage", "InvalidAccessError");
+    const noLength = length === undefined || length === null;
+    if (name === "bcrypt") {
+      const salt = needBytes(o.salt, "salt");
+      const cost = uint(o.cost, "cost", 255);
+      if (!noLength && uint(length, "length", U32) !== 480) throw opError("bcrypt gives 480 bits: leave out the length or pass 480");
+      if (salt.length !== 16) throw opError("the bcrypt salt is 16 bytes");
+      if (cost < 4 || cost > 31) throw opError("the bcrypt cost is from 4 to 31");
+      return fromHex(csys("wc.pwhash", JSONstringify({ alg: name, password: btoa(k.data), salt: btoa(latin1(salt)), cost }))).buffer;
+    }
+    if (ARGON.includes(name)) {
+      const nonce = needBytes(o.nonce, "nonce");
+      const lanes = uint(o.parallelism, "parallelism", U32);
+      const memory = uint(o.memory, "memory", U32);
+      const passes = uint(o.passes, "passes", U32);
+      const version = o.version === undefined ? 19 : uint(o.version, "version", 255);
+      const secret = o.secretValue === undefined ? null : bytesOf(o.secretValue);
+      const ad = o.associatedData === undefined ? null : bytesOf(o.associatedData);
+      if (noLength) throw opError("Argon2 needs a length in bits");
+      const bits = uint(length, "length", U32);
+      if (bits % 8 !== 0 || bits < 32 || bits > 524288) throw opError("the length is a multiple of 8 from 32 to 524288 bits");
+      if (version !== 19) throw opError("the only Argon2 version is 19");
+      if (nonce.length < 8) throw opError("the nonce is at least 8 bytes");
+      if (lanes < 1 || lanes > 255) throw opError("parallelism is from 1 to 255");
+      if (passes < 1) throw opError("passes is 1 or more");
+      if (memory < 8 * lanes || memory > 262144) throw opError("memory is at least 8 KiB for each lane and at most 262144 KiB");
+      if (ad !== null && ad.length > 32) throw opError("associatedData is at most 32 bytes");
+      const job = { alg: name, password: btoa(k.data), salt: btoa(latin1(nonce)), passes, memory, lanes, length: bits / 8 };
+      if (secret !== null) job.secret = btoa(latin1(secret));
+      if (ad !== null) job.data = btoa(latin1(ad));
+      return fromHex(csys("wc.pwhash", JSONstringify(job))).buffer;
+    }
+    // PBKDF2 and HKDF read their parameters as browsers do.
+    const hash = hashOf(o, name);
+    const salt = needBytes(o.salt, "salt");
+    let info = "";
+    let iterations = 0;
+    if (name === "HKDF") info = latin1(needBytes(o.info, "info"));
+    else iterations = uint(o.iterations, "iterations", U32);
+    if (noLength) throw opError(name + " needs a length in bits");
+    const bits = uint(length, "length", U32);
+    if (bits % 8 !== 0) throw opError("the length is a multiple of 8");
+    return fromHex(csys("wc.derive", name, hash, k.data, latin1(salt), info, iterations, bits / 8)).buffer;
+  };
+  const promised = (f) => (...a) => {
+    try {
+      return PromiseResolve(f(...a));
+    } catch (e) {
+      return PromiseReject(e);
+    }
+  };
   const subtle = {
+    importKey: promised(importKey),
+    verify: promised(verifySig),
+    deriveBits: promised(deriveBits),
     digest(alg, data) {
       try {
         let name = typeof alg === "string" ? alg : alg && alg.name;
@@ -205,6 +421,189 @@ const __pagelike = (() => {
       configurable: true, enumerable: false,
     });
   };
+  // ---------------------------------------------------------------- Temporal (R-JS-43)
+  // The Temporal global (docs snapshot 2026-11-23). The classes hold a
+  // value's type and text and nothing else: every constructor, static and
+  // method is one "temporal" request to the worker, which runs it on the
+  // date and time engine Sessel uses. Built on first use.
+  const RangeErrorFn = RangeError;
+  const BigIntFn = BigInt;
+  const DateFn = Date;
+  const dateGetTime = uncurry(Date.prototype.getTime);
+  const dateToISO = uncurry(Date.prototype.toISOString);
+  const isProtoOf = uncurry(Object.prototype.isPrototypeOf);
+  const SymToPrimitive = Symbol.toPrimitive;
+  const SymToStringTag = Symbol.toStringTag;
+  // An exact time is kept for the years 1678 to 2261 (R-JS-43).
+  const MIN_EXACT_MS = Date.UTC(1678, 0, 1);
+  const MAX_EXACT_MS = Date.UTC(2262, 0, 1);
+  let T = null;
+  const temporal = () => T || (T = buildTemporal());
+  const buildTemporal = () => {
+    const state = new WeakMap(); // Temporal object -> { k: type, s: text, f: getters or undefined }
+    const classes = ObjCreate(null);
+    const make = (k, s, f) => {
+      const o = ObjCreate(classes[k].prototype);
+      wmSet(state, o, { k, s, f });
+      return o;
+    };
+    const fix = (f) => {
+      for (const k of ObjKeys(f)) {
+        const v = f[k];
+        if (v !== null && typeof v === "object") f[k] = BigIntFn(v.$big);
+      }
+      return f;
+    };
+    const revive = (v) => {
+      if (v === null || typeof v !== "object") return v;
+      if (typeof v.$t === "string") return make(v.$t, v.s, fix(v.f));
+      if (typeof v.$big === "string") return BigIntFn(v.$big);
+      return fix(v);
+    };
+    const enc = (v, depth) => {
+      switch (typeof v) {
+        case "undefined": return null;
+        case "string": case "boolean": return v;
+        case "number": return NumberIsFinite(v) ? v : { $n: StringFn(v) };
+        case "bigint": return { $big: StringFn(v) };
+        case "symbol": return { $x: "symbol" };
+        case "function": return { $x: "function" };
+      }
+      if (v === null) return null;
+      const st = wmGet(state, v);
+      if (st !== undefined) return { $t: st.k, s: st.s };
+      const o = ObjCreate(null);
+      if (depth < 3) {
+        let n = 0;
+        for (const k in v) {
+          if (++n > 64) break;
+          const x = v[k];
+          if (x !== undefined) o[k] = enc(x, depth + 1);
+        }
+      }
+      return { $o: o };
+    };
+    const tsys = (k, m, s, a) => {
+      const args = [];
+      for (let i = 0; i < a.length; i++) arrayPush(args, enc(a[i], 0));
+      let out;
+      try {
+        out = sys("temporal", JSONstringify({ k, m, s, a: args }));
+      } catch (e) {
+        const msg = StringFn(e && e.message);
+        const i = msg.indexOf("|");
+        if (i > 0) throw new (msg.slice(0, i) === "RangeError" ? RangeErrorFn : TypeErrorFn)(msg.slice(i + 1));
+        throw e;
+      }
+      return revive(JSONparse(out));
+    };
+    // An object where an Instant is expected is read through its primitive
+    // value, which must be a string.
+    const instantArg = (v) => {
+      if (v === null || typeof v !== "object") return v;
+      const st = wmGet(state, v);
+      if (st !== undefined) return st.k === "Instant" || st.k === "ZonedDateTime" ? v : st.s;
+      let p = v;
+      const exotic = v[SymToPrimitive];
+      if (exotic !== undefined && exotic !== null) {
+        p = ReflectApply(exotic, v, ["string"]);
+      } else {
+        for (const name of ["toString", "valueOf"]) {
+          const f = v[name];
+          if (typeof f !== "function") continue;
+          const r = ReflectApply(f, v, []);
+          if (r === null || typeof r !== "object") { p = r; break; }
+        }
+      }
+      if (typeof p !== "string") throw new TypeErrorFn("an Instant is made from a string, an Instant or a ZonedDateTime");
+      return p;
+    };
+    const prep = (k, m, a) => {
+      if (k !== "Instant") return a;
+      if (m === "from" || m === "equals" || m === "until" || m === "since") a[0] = instantArg(a[0]);
+      if (m === "compare") { a[0] = instantArg(a[0]); a[1] = instantArg(a[1]); }
+      return a;
+    };
+    const hidden = (o, name, value) => ObjDefine(o, name, { value, writable: true, configurable: true, enumerable: false });
+    const define = (k, getters, methods, statics) => {
+      const self = (o) => {
+        const st = o !== null && typeof o === "object" ? wmGet(state, o) : undefined;
+        if (st === undefined || st.k !== k) throw new TypeErrorFn("this is not a Temporal." + k);
+        return st;
+      };
+      const C = class {
+        constructor(...a) {
+          // Reflect.construct with a new target that is not the type or a
+          // subclass of it is refused.
+          if (new.target !== C && !isProtoOf(C, new.target)) throw new TypeErrorFn("Temporal." + k + " is constructed as itself or a subclass");
+          wmSet(state, this, wmGet(state, tsys(k, "new", null, a)));
+        }
+      };
+      ObjDefine(C, "name", { value: k, configurable: true });
+      const P = C.prototype;
+      for (const g of getters) {
+        ObjDefine(P, g, {
+          get() {
+            const st = self(this);
+            if (st.f === undefined) st.f = tsys(k, "fields", st.s, []);
+            return st.f[g];
+          },
+          configurable: true, enumerable: false,
+        });
+      }
+      for (const m of methods) {
+        hidden(P, m, { [m](...a) { return tsys(k, m, self(this).s, prep(k, m, a)); } }[m]);
+      }
+      hidden(P, "toJSON", { toJSON() { return self(this).s; } }.toJSON);
+      hidden(P, "valueOf", { valueOf() { throw new TypeErrorFn("a Temporal." + k + " has no primitive value: compare with compare() or equals()"); } }.valueOf);
+      ObjDefine(P, SymToStringTag, { value: "Temporal." + k, configurable: true });
+      for (const m of statics) {
+        hidden(C, m, { [m](...a) { return tsys(k, m, null, prep(k, m, a)); } }[m]);
+      }
+      classes[k] = C;
+    };
+    const DATE = ["calendarId", "year", "month", "monthCode", "day", "dayOfWeek", "dayOfYear", "weekOfYear", "yearOfWeek",
+      "daysInWeek", "daysInMonth", "daysInYear", "monthsInYear", "inLeapYear"];
+    const TIME = ["hour", "minute", "second", "millisecond", "microsecond", "nanosecond"];
+    const TEXT = ["toString", "toLocaleString"];
+    const MATH = ["add", "subtract", "until", "since", "with", "equals"];
+    define("PlainDate", DATE, [...TEXT, ...MATH, "toPlainDateTime", "toZonedDateTime", "toPlainYearMonth", "toPlainMonthDay"], ["from", "compare"]);
+    define("PlainTime", TIME, [...TEXT, ...MATH], ["from", "compare"]);
+    define("PlainDateTime", [...DATE, ...TIME], [...TEXT, ...MATH, "toPlainDate", "toPlainTime", "toZonedDateTime"], ["from", "compare"]);
+    define("ZonedDateTime", [...DATE, ...TIME, "timeZoneId", "offset", "epochMilliseconds", "epochNanoseconds"],
+      [...TEXT, ...MATH, "withTimeZone", "toInstant", "toPlainDate", "toPlainTime", "toPlainDateTime"], ["from", "compare"]);
+    define("Instant", ["epochMilliseconds", "epochNanoseconds"], [...TEXT, "add", "subtract", "until", "since", "equals", "toZonedDateTimeISO"],
+      ["from", "compare", "fromEpochMilliseconds", "fromEpochNanoseconds"]);
+    define("Duration", ["years", "months", "weeks", "days", "hours", "minutes", "seconds", "milliseconds", "microseconds", "nanoseconds", "sign", "blank"],
+      [...TEXT, "with", "negated", "abs", "add", "subtract", "total"], ["from", "compare"]);
+    define("PlainYearMonth", ["calendarId", "year", "month", "monthCode", "daysInMonth", "daysInYear", "monthsInYear", "inLeapYear"],
+      [...TEXT, ...MATH, "toPlainDate"], ["from", "compare"]);
+    define("PlainMonthDay", ["calendarId", "monthCode", "day"], [...TEXT, "with", "equals", "toPlainDate"], ["from"]);
+    const Now = {};
+    for (const m of ["instant", "timeZoneId", "plainDateISO", "plainTimeISO", "plainDateTimeISO", "zonedDateTimeISO"]) {
+      hidden(Now, m, { [m](...a) { return tsys("Now", m, null, a); } }[m]);
+    }
+    ObjDefine(Now, SymToStringTag, { value: "Temporal.Now", configurable: true });
+    const ns = {};
+    for (const k of ObjKeys(classes)) hidden(ns, k, classes[k]);
+    hidden(ns, "Now", Now);
+    ObjDefine(ns, SymToStringTag, { value: "Temporal", configurable: true });
+    return {
+      ns, make,
+      stateOf: (o) => wmGet(state, o),
+      instantOfMs: (ms) => tsys("Instant", "fromEpochMilliseconds", null, [ms]),
+    };
+  };
+  ObjDefine(Date.prototype, "toTemporalInstant", {
+    value: { toTemporalInstant() {
+      const ms = dateGetTime(this);
+      if (ms !== ms) throw new RangeErrorFn("Invalid Date");
+      return temporal().instantOfMs(ms);
+    } }.toTemporalInstant,
+    writable: true, configurable: true, enumerable: false,
+  });
+  defineLazyGlobal("Temporal", () => temporal().ns);
+
   // ---------------------------------------------------------------- base64 (R-JS-39b)
   // btoa and atob as HTML defines them: btoa takes characters U+0000 to
   // U+00FF; atob is forgiving about ASCII white space and padding.
@@ -253,6 +652,13 @@ const __pagelike = (() => {
     return out;
   }
 
+  // Only the documented base64 helpers of Uint8Array exist (R-JS-39b; docs
+  // snapshot 2026-11-23: fromHex, toHex, setFromBase64 and setFromHex are
+  // not available).
+  delete Uint8Array.fromHex;
+  delete Uint8Array.prototype.toHex;
+  delete Uint8Array.prototype.setFromBase64;
+  delete Uint8Array.prototype.setFromHex;
   const globals = { DOMException, crypto, TextEncoder, TextDecoder, btoa, atob };
   for (const k of ObjKeys(globals)) defineGlobal(k, globals[k]);
   for (const name of ["DOMParser", "XMLSerializer", "Node", "Document", "DocumentFragment", "CharacterData", "Text",
@@ -414,7 +820,7 @@ const __pagelike = (() => {
       case "element": return dom().wrap(inputHandles[v.$i]);
       case "instance": return makeInstance(v.$itemtype, v.$props, v.$entries);
       case "class": return mapGet(classes, v.$itemtype) ?? null;
-      case "date": return new Date(v.$ms);
+      case "temporal": return temporal().make(v.$k, v.$s, undefined);
       case "headers": return makeHeaders(v.$entries);
       case "request": return makeRequest(v.shared, v.private);
       case "dict": {
@@ -479,6 +885,18 @@ const __pagelike = (() => {
           const out = [];
           for (let i = 0; i < nl.length; i++) arrayPush(out, enc(D.wrap(nl[i]), level + 1));
           return out;
+        }
+        // A Temporal object crosses as its type and text, a Date as the
+        // Instant it stands for (R-JS-42).
+        if (T !== null) {
+          const st = T.stateOf(v);
+          if (st !== undefined) return { $type: "temporal", $k: st.k, $s: st.s };
+        }
+        if (v instanceof DateFn) {
+          const ms = dateGetTime(v);
+          if (ms !== ms) throw rt("an invalid Date cannot be returned");
+          if (ms < MIN_EXACT_MS || ms >= MAX_EXACT_MS) throw rt("a Date outside the years 1678 to 2261 cannot be returned");
+          return { $type: "temporal", $k: "Instant", $s: dateToISO(v) };
         }
         const C = wmGet(instanceClass, v);
         if (C !== undefined) {
@@ -572,13 +990,40 @@ const __pagelike = (() => {
     }
   };
   const optSelector = (s) => (s === null || s === undefined ? null : StringFn(s));
+  // Where an instance a PUT gave back was saved: { path, selector|null }.
+  // Only those instances have an address; an item a POST added has none,
+  // so saving it again cannot replace the container it went into.
+  const savedAt = new WeakMap();
+  // What a save gives back. Handing the item back never fails a save
+  // that worked: anything that goes wrong here gives undefined.
+  const givenBack = (reply, keepAddress) => {
+    if (typeof reply !== "string") return undefined;
+    try {
+      const r = JSONparse(reply);
+      const v = decodeWith(r.value, r.handles);
+      if (v === null || v === undefined) return undefined;
+      if (keepAddress && typeof r.path === "string" && wmHas(instanceClass, v)) {
+        wmSet(savedAt, v, { path: r.path, selector: typeof r.selector === "string" ? r.selector : null });
+      }
+      return v;
+    } catch (e) {
+      return undefined;
+    }
+  };
   const Pagelove = {
     PUT(item, path, selector) {
       const elems = [];
       const payload = saveItem("PUT", item, elems);
-      if (typeof path !== "string") throw new ErrorFn('PUT: Instance has no source path. Use PUT(instance, "/path.html")');
-      sys("save", "PUT", payload, JSONstringify(elems), path, optSelector(selector), "");
-      return undefined;
+      let sel = optSelector(selector);
+      if (typeof path !== "string") {
+        // Only a string counts as a path: without one the instance goes
+        // back where it came from.
+        const at = wmGet(savedAt, item);
+        if (!at) throw new ErrorFn('PUT: Instance has no source path. Use PUT(instance, "/path.html")');
+        path = at.path;
+        sel = at.selector;
+      }
+      return givenBack(sys("save", "PUT", payload, JSONstringify(elems), path, sel, ""), true);
     },
     POST(item, path, selector, placement) {
       const elems = [];
@@ -594,12 +1039,23 @@ const __pagelike = (() => {
       if (sel === null && (p === "before" || p === "after")) {
         throw new ErrorFn('POST: placement "' + p + '" needs a selector; with no selector the item goes inside the page\'s body');
       }
-      sys("save", "POST", payload, JSONstringify(elems), path, sel, p);
-      return undefined;
+      return givenBack(sys("save", "POST", payload, JSONstringify(elems), path, sel, p), false);
     },
     DELETE(target, selector) {
-      if (typeof target !== "string") throw new TypeErrorFn("Pagelove.DELETE() takes a path");
-      sys("save", "DELETE", "", "[]", target, optSelector(selector), "");
+      const sel = optSelector(selector);
+      if (typeof target !== "string") {
+        const at = target !== null && typeof target === "object" ? wmGet(savedAt, target) : undefined;
+        if (!at) {
+          if (target !== null && typeof target === "object" && wmHas(instanceClass, target)) {
+            throw new ErrorFn('DELETE: Instance has no source path. Use DELETE("/path.html")');
+          }
+          throw new TypeErrorFn("Pagelove.DELETE() takes a path or an instance a save gave back");
+        }
+        sys("save", "DELETE", "", "[]", at.path, at.selector, "");
+        wmDelete(savedAt, target);
+        return true;
+      }
+      sys("save", "DELETE", "", "[]", target, sel, "");
       return true;
     },
   };

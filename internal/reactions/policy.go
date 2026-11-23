@@ -1,6 +1,7 @@
 package reactions
 
 import (
+	"errors"
 	"fmt"
 	"net"
 	"net/netip"
@@ -130,11 +131,16 @@ func (p *policy) checkHost(u *url.URL) error {
 	return p.checkAddr(a.Unmap(), port)
 }
 
+// errRefusedDestination marks a destination the policy will never allow:
+// a transition notification to it is parked at once (R-REACT-82). Its text
+// is empty so the message reads as before.
+var errRefusedDestination = errors.New("")
+
 func (p *policy) checkAddr(a netip.Addr, port string) error {
 	if !privateAddr(a) || p.addrAllowed(a, port) {
 		return nil
 	}
-	return fmt.Errorf("outbound destination %s is a private address and is not allowed (R-REACT-61)", net.JoinHostPort(a.String(), port))
+	return fmt.Errorf("outbound destination %s is a private address and is not allowed (R-REACT-61)%w", net.JoinHostPort(a.String(), port), errRefusedDestination)
 }
 
 // control checks every address the dialer connects to.

@@ -174,38 +174,43 @@ func (e *evalEnv) slot(trigger, processor string) string {
 
 // code evaluates a Sessel program or a JavaScript module in the given slot.
 func (e *evalEnv) code(ctx context.Context, slot, lang, src string) (sessel.Value, error) {
+	gate := slot == SlotTriggerWhen || slot == SlotProcessorWhen
 	switch lang {
 	case langSessel:
 		env, err := e.sesselEnv(ctx)
 		if err != nil {
 			return nil, err
 		}
-		if (slot == SlotTriggerWhen || slot == SlotProcessorWhen) && e.host != nil {
-			// A gate is read-only (R-REACT-17, docs snapshot 2026-11-23).
-			ro := *e.host
-			ro.WriteProvider = readOnlyGate{}
-			env.Host = &ro
+		if gate && e.host != nil {
+			env.Host = e.gateHost()
 		}
 		return sessel.Eval(ctx, src, env)
 	case langJS:
-		// An action saves with the Pagelove global; a gate has none
-		// (R-JS-23b, docs snapshot 2026-11-23).
+		// An action saves with the Pagelove global; a gate has none, and
+		// the methods it calls are refused (R-JS-23b, docs snapshot
+		// 2026-11-23).
 		var saver JSSaver
-		if slot != SlotTriggerWhen && slot != SlotProcessorWhen {
-			saver = &writer{x: e.x, st: e.st, env: e}
+		var host sessel.Host
+		if e.host != nil {
+			host = e.host
 		}
-		return runJS(ctx, e.st.site, e.snap(), slot, src, e.jsArg(), saver)
+		if !gate {
+			saver = &writer{x: e.x, st: e.st, env: e}
+		} else if e.host != nil {
+			host = e.gateHost()
+		}
+		return runJS(ctx, e.st.site, e.snap(), slot, src, e.jsArg(), saver, host)
 	}
 	return nil, fmt.Errorf("unsupported language")
 }
 
-// readOnlyGate refuses the saves of a when gate.
-type readOnlyGate struct{}
-
-var errGateReadOnly = &sessel.Error{Type: sessel.RuntimeErrorType, Message: "a when gate is read-only and cannot save; put writes in the action or otherwise"}
-
-func (readOnlyGate) Put(context.Context, *sessel.Element, string) error { return errGateReadOnly }
-func (readOnlyGate) Delete(context.Context, sessel.Value) error         { return errGateReadOnly }
+// gateHost is the rule's host with saves refused: a gate is read-only
+// (R-REACT-17, docs snapshot 2026-11-23).
+func (e *evalEnv) gateHost() sessel.Host {
+	ro := *e.host
+	ro.WriteProvider = sessel.NoSaves{Why: "a when gate is read-only and cannot save; put writes in the action or otherwise"}
+	return &ro
+}
 
 // value evaluates a property value to a string (R-REACT-3, R-REACT-55): a
 // null result counts as absent, other values use their string form.
@@ -393,7 +398,7 @@ func (e *evalEnv) bindings(ctx context.Context) (map[string]sessel.Value, error)
 			env := &sessel.Env{Host: e.host, Context: e.st.cctx, Request: e.st.req, Vars: vars, Budget: budget.From(ctx).Sessel()}
 			v, err = sessel.Eval(ctx, b.src, env)
 		case "js":
-			v, err = runJS(ctx, e.st.site, e.snap(), SlotBinding, "export default function(ctx) { return ("+b.src+"); }", e.jsArg(), nil)
+			v, err = runJS(ctx, e.st.site, e.snap(), SlotBinding, "export default function(ctx) { return ("+b.src+"); }", e.jsArg(), nil, nil)
 		}
 		if err != nil {
 			e.verr = fmt.Errorf("binding %s: %w", b.name, err)

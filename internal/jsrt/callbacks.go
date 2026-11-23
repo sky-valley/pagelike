@@ -61,6 +61,13 @@ func serveCallback(ctx context.Context, host Host, cb *cbMsg) *replyMsg {
 			r.Context = append(r.Context, in)
 		}
 		r.Elements = enc.elems
+	case "pwhash":
+		v, err := servePwhash(ctx, host, cb.Value)
+		if err != nil {
+			r.Error = err.Error()
+			return r
+		}
+		r.Value = v
 	case "save":
 		sv, ok := host.(Saver)
 		if host == nil || !ok {
@@ -78,8 +85,18 @@ func serveCallback(ctx context.Context, host Host, cb *cbMsg) *replyMsg {
 				c.Item = list[0]
 			}
 		}
-		if err := sv.Save(ctx, c); err != nil {
+		res, err := sv.Save(ctx, c)
+		if err != nil {
 			r.Error = err.Error()
+			return r
+		}
+		if res != nil && res.Value != nil {
+			// A value that cannot be handed back is dropped: the save counts.
+			var enc valueEncoder
+			if enc.encode(res.Value, 0) == nil {
+				r.Value, r.Elements = enc.buf.String(), enc.elems
+				r.Name, r.Selector, r.HasSelector = res.Path, res.Selector, res.HasSelector
+			}
 		}
 	case "context":
 		w := ContextWrite{Name: cb.Name, Deleted: cb.Deleted}

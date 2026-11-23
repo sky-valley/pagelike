@@ -82,8 +82,8 @@ func fromSessel(v sessel.Value, reg *schema.Registry) (jsrt.Value, error) {
 	case *sessel.SelectorValue:
 		return x.Source, nil
 	}
-	if t := sessel.TypeName(v); strings.HasPrefix(t, "Temporal.") {
-		return jsrt.Temporal{Kind: strings.TrimPrefix(t, "Temporal."), ISO: sessel.TextOf(v)}, nil
+	if kind, text, ok := sessel.JSTemporalText(v); ok {
+		return jsrt.Temporal{Kind: kind, ISO: text}, nil
 	}
 	return nil, &errNoForm{sessel.TypeName(v)}
 }
@@ -193,6 +193,9 @@ func fromGo(v any) jsrt.Value {
 	case sessel.List, *sessel.Dict, *sessel.Element, *sessel.SelectorValue:
 		return fromSesselLenient(x, nil)
 	}
+	if kind, text, ok := sessel.JSTemporalText(v); ok {
+		return jsrt.Temporal{Kind: kind, ISO: text}
+	}
 	return v
 }
 
@@ -240,6 +243,12 @@ func toGo(v jsrt.Value) any {
 			return nil
 		}
 		return map[string]any{"$type": "element", "$html": instanceMarkup(x, "")}
+	case jsrt.Temporal:
+		// A Temporal object, or a Date as its Instant (R-JS-42).
+		if t, err := sessel.JSTemporalValue(x.Kind, x.ISO); err == nil {
+			return t
+		}
+		return x.ISO
 	}
 	return v
 }
@@ -297,6 +306,12 @@ func toSessel(v jsrt.Value, reg *schema.Registry) sessel.Value {
 			}
 		}
 		return nil
+	case jsrt.Temporal:
+		// A Temporal object, or a Date as its Instant (R-JS-42).
+		if t, err := sessel.JSTemporalValue(x.Kind, x.ISO); err == nil {
+			return t
+		}
+		return x.ISO
 	}
 	return sessel.FromGo(v)
 }
@@ -396,4 +411,56 @@ func parseElement(markup string) *xhtml.Node {
 		}
 	}
 	return nil
+}
+
+// savedValue is what a save hands back for the element it stored
+// (R-JS-23b): an instance when the element is an item of a registered
+// type, a plain object of its properties when it is any other typed item,
+// nothing otherwise. It never fails: a value that cannot be built is nil.
+func savedValue(reg *schema.Registry, n *xhtml.Node, path string) (v jsrt.Value) {
+	defer func() {
+		if recover() != nil {
+			v = nil
+		}
+	}()
+	if n == nil || !dom.HasAttr(n, "itemscope") {
+		return nil
+	}
+	t := itemTypeOf(n)
+	if t == "" {
+		return nil
+	}
+	if reg != nil && reg.Schema(t) != nil {
+		return instanceOf(reg, t, n, path)
+	}
+	return plainItem(microdata.Parse(n))
+}
+
+// plainItem is an item of no registered type as a plain object: each
+// property's value, a list when it has several, nested items as objects.
+func plainItem(it *microdata.Item) *jsrt.Dict {
+	d := jsrt.NewDict()
+	if it == nil {
+		return d
+	}
+	seen := map[string][]jsrt.Value{}
+	var order []string
+	for _, p := range it.Props {
+		var v jsrt.Value = p.Value
+		if p.Item != nil {
+			v = plainItem(p.Item)
+		}
+		if _, ok := seen[p.Name]; !ok {
+			order = append(order, p.Name)
+		}
+		seen[p.Name] = append(seen[p.Name], v)
+	}
+	for _, name := range order {
+		if vs := seen[name]; len(vs) == 1 {
+			d.Set(name, vs[0])
+		} else {
+			d.Set(name, vs)
+		}
+	}
+	return d
 }

@@ -164,7 +164,31 @@ func readsIdentity(src string) bool {
 	if !strings.Contains(src, "request") && !strings.Contains(src, "Context") {
 		return false
 	}
-	return identityRE.MatchString(src)
+	return identityRE.MatchString(src) || spillsContext(src)
+}
+
+// contextUseRE finds each use of the name Context with what follows it;
+// spillRE finds the calls that turn a dictionary into its values.
+var (
+	contextUseRE = regexp.MustCompile(`\bContext\b\s*(.?)`)
+	spillRE      = regexp.MustCompile(`\.\s*(?:values|entries)\s*\(`)
+)
+
+// spillsContext reports whether source may read identity out of a copy of
+// Context (R-COMP-150b, docs snapshot 2026-11-23): it uses Context as a
+// whole value, not through a member, and reads a dictionary's values.
+// Copying Context alone does not make the page private. Like
+// readsIdentity the check is static and conservative.
+func spillsContext(src string) bool {
+	if !spillRE.MatchString(src) {
+		return false
+	}
+	for _, m := range contextUseRE.FindAllStringSubmatch(src, -1) {
+		if m[1] != "." && m[1] != "[" {
+			return true
+		}
+	}
+	return false
 }
 
 // ReadsIdentity is readsIdentity for method dispatchers installed with

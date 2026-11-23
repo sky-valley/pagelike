@@ -30,6 +30,13 @@ func (schemaRunner) Run(ctx context.Context, call *schema.JSCall) (*schema.JSRes
 	}
 	h := &host{reg: call.Classes, sessel: call.Host, budget: call.Budget, cx: call.Context}
 	req := jsrt.CallRequest{Source: call.Source, Slot: slot, Host: h}
+	if call.Slot == schema.JSSlotMethod {
+		// A method body saves where a Sessel method in its place could; a
+		// binding has no Pagelove object (R-JS-23b).
+		if sv := methodSaver(call.Host); sv != nil {
+			h.save, req.Saves = saveVia(sv, call.Classes), true
+		}
+	}
 	switch {
 	case call.HostNode != nil:
 		// Composition dispatch (R-JS-18): this is the dispatching element and
@@ -101,6 +108,9 @@ func receiver(v sessel.Value, reg *schema.Registry) (jsrt.Value, *jsrt.Document)
 // schemaFailure maps a jsrt failure onto the schema error model: a thrown
 // HTTPResponse the slot honours (R-JS-53), else a BindingFailure (R-JS-50).
 func schemaFailure(f *jsrt.Failure) error {
+	if ed := busyRefusal(f); ed != nil {
+		return ed
+	}
 	if f.Response != nil {
 		return &schema.JSThrownResponse{Status: f.Response.Status, Message: f.Response.Message, Body: f.Response.Body, HasBody: true, Headers: f.Response.Headers}
 	}

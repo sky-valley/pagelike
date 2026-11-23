@@ -26,6 +26,7 @@ import (
 	"modernc.org/quickjs"
 
 	"github.com/sky-valley/pagelike/internal/dom"
+	"github.com/sky-valley/pagelike/internal/sessel"
 )
 
 //go:embed prelude.js
@@ -932,6 +933,37 @@ func (st *evalState) sys(op string, a []any) (any, error) {
 		}
 		h.Write(latin1Bytes(toStr(arg(a, 1))))
 		return hex.EncodeToString(h.Sum(nil)), nil
+	case "temporal":
+		// temporal(request JSON): one call of the Temporal global (R-JS-43).
+		out, err := sessel.JSTemporal([]byte(toStr(arg(a, 0))), time.Now())
+		if err != nil {
+			var te *sessel.JSTemporalError
+			if errors.As(err, &te) {
+				return nil, errors.New(te.Name + "|" + te.Message)
+			}
+			return nil, err
+		}
+		return string(out), nil
+	case "wc.import":
+		// wc.import(alg, curve, format, key)
+		_, err := parsePublicKey(toStr(arg(a, 0)), toStr(arg(a, 1)), toStr(arg(a, 2)), latin1Bytes(toStr(arg(a, 3))))
+		return nil, err
+	case "wc.verify":
+		// wc.verify(alg, curve, hash, format, key, signature, data)
+		return verifySignature(toStr(arg(a, 0)), toStr(arg(a, 1)), toStr(arg(a, 2)), toStr(arg(a, 3)),
+			latin1Bytes(toStr(arg(a, 4))), latin1Bytes(toStr(arg(a, 5))), latin1Bytes(toStr(arg(a, 6))))
+	case "wc.derive":
+		// wc.derive(alg, hash, key, salt, info, iterations, bytes)
+		iter, _ := toInt(arg(a, 5))
+		n, _ := toInt(arg(a, 6))
+		rem := time.Hour
+		if !st.deadline.IsZero() {
+			rem = time.Until(st.deadline)
+		}
+		return derive(toStr(arg(a, 0)), toStr(arg(a, 1)), latin1Bytes(toStr(arg(a, 2))), latin1Bytes(toStr(arg(a, 3))),
+			latin1Bytes(toStr(arg(a, 4))), int64(iter), n, rem)
+	case "wc.pwhash":
+		return st.pwhash(toStr(arg(a, 0)))
 	case "random":
 		n, _ := toInt(arg(a, 0))
 		if n < 0 || n > 65536 {
@@ -986,7 +1018,15 @@ func (st *evalState) sys(op string, a []any) (any, error) {
 		if r.Error != "" {
 			return nil, errors.New(r.Error)
 		}
-		return nil, nil
+		if r.Value == "" {
+			return nil, nil
+		}
+		// Handing the item back never fails a save that worked.
+		out, err := st.replyJSON(r)
+		if err != nil {
+			return nil, nil
+		}
+		return out, nil
 	case "context":
 		name := toStr(arg(a, 0))
 		deleted, _ := arg(a, 3).(bool)
@@ -1043,10 +1083,15 @@ func (st *evalState) replyJSON(r *replyMsg) (string, error) {
 		Deleted bool   `json:"deleted"`
 	}
 	out := struct {
-		Value   string   `json:"value"`
-		Handles []int    `json:"handles"`
-		Context []ctxOut `json:"context"`
-	}{Value: r.Value, Handles: hs}
+		Value    string   `json:"value"`
+		Handles  []int    `json:"handles"`
+		Context  []ctxOut `json:"context"`
+		Path     string   `json:"path,omitempty"`
+		Selector *string  `json:"selector,omitempty"`
+	}{Value: r.Value, Handles: hs, Path: r.Name}
+	if r.HasSelector {
+		out.Selector = &r.Selector
+	}
 	if out.Value == "" {
 		out.Value = "null"
 	}

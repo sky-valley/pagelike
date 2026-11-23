@@ -2,6 +2,7 @@ package reactions_test
 
 import (
 	"context"
+	"fmt"
 	"io"
 	"log/slog"
 	"net/http"
@@ -461,7 +462,7 @@ func TestTransitionHandlerDelivery(t *testing.T) {
 <meta itemprop="selector" content="[itemtype='https://t.test/Order']"><meta itemprop="property" content="status"><meta itemprop="becomes" content="processing">
 <div itemprop="action" itemscope itemtype="https://pagelove.org/HttpRequest"><meta itemprop="url" content="`+in.sink.srv.URL+`/payments"><meta itemprop="retry" content="3"></div></div>`)
 	in.sink.mu.Lock()
-	in.sink.status["/payments"] = []int{500}
+	in.sink.status["/payments"] = []int{500, 200}
 	in.sink.mu.Unlock()
 	if st, _, b := in.pub("PUT", "/orders/o.html", nil, "<!DOCTYPE html><html><body>"+order("o1", "pending")+"</body></html>"); st >= 300 {
 		t.Fatalf("seed: %d %s", st, b)
@@ -479,13 +480,17 @@ func TestTransitionHandlerDelivery(t *testing.T) {
 			t.Fatalf("transition document lacks %q:\n%s", want, b)
 		}
 	}
-	// At most once: a failed delivery is not retried whatever retry says.
-	if got := in.sink.wait(t, "/payments", 2, 3*time.Second); len(got) != 1 {
-		t.Fatalf("delivery retried: %d", len(got))
+	// At least once (docs snapshot 2026-11-23): a failed delivery is tried
+	// again until it is answered 2xx, and then no more.
+	if got := in.sink.wait(t, "/payments", 2, 6*time.Second); len(got) != 2 || got[1].body != b {
+		t.Fatalf("failed delivery not tried again: %d", len(got))
+	}
+	if got := in.sink.wait(t, "/payments", 3, 3*time.Second); len(got) != 2 {
+		t.Fatalf("delivered notification sent again: %d", len(got))
 	}
 	// WebDAV edits never fire handlers.
 	in.dav("PUT", "/orders/w.html", "<!DOCTYPE html><html><body>"+order("w1", "processing")+"</body></html>")
-	if got := in.sink.wait(t, "/payments", 2, 1500*time.Millisecond); len(got) != 1 {
+	if got := in.sink.wait(t, "/payments", 3, 1500*time.Millisecond); len(got) != 2 {
 		t.Fatalf("WebDAV write fired a handler")
 	}
 }
@@ -505,4 +510,56 @@ Context.response.headers["x-probe"] = "1"`)))
 	if st, _, _ := in.pub("GET", "/d/b.html", nil, ""); st != 500 {
 		t.Fatalf("index assignment: %d, want a runtime error", st)
 	}
+}
+
+// A notification that can never be sent is parked at once and holds up the
+// later ones for its item and destination; once it is dropped they move on
+// (R-REACT-82, docs snapshot 2026-11-23).
+func TestParkedNotificationHoldsUpLaterOnes(t *testing.T) {
+	in := newInstance(t)
+	in.install("/r/h.html", `<div itemscope itemtype="https://pagelove.org/TransitionHandler">
+<meta itemprop="selector" content="[itemtype='https://t.test/Order']"><meta itemprop="property" content="status">
+<meta itemprop="becomes" content="processing"><meta itemprop="becomes" content="shipped">
+<div itemprop="action" itemscope itemtype="https://pagelove.org/HttpRequest"><meta itemprop="url" content="http://127.0.0.1:1/never"></div></div>`)
+	for _, state := range []string{"processing", "shipped"} {
+		if st, _, b := in.pub("PUT", "/orders/o.html", nil, "<!DOCTYPE html><html><body>"+order("o1", state)+"</body></html>"); st >= 300 {
+			t.Fatalf("%s: %d %s", state, st, b)
+		}
+	}
+	s, err := in.reg.Get(context.Background(), "t")
+	if err != nil {
+		t.Fatal(err)
+	}
+	states := func() string {
+		rows, err := s.Store.DB().Query(`SELECT state, attempts FROM outbox WHERE kind = 'transition' ORDER BY id`)
+		if err != nil {
+			t.Fatal(err)
+		}
+		defer rows.Close()
+		var out []string
+		for rows.Next() {
+			var st string
+			var n int
+			rows.Scan(&st, &n)
+			out = append(out, fmt.Sprintf("%s/%d", st, n))
+		}
+		return strings.Join(out, " ")
+	}
+	waitFor := func(want string) {
+		t.Helper()
+		deadline := time.Now().Add(6 * time.Second)
+		for states() != want {
+			if time.Now().After(deadline) {
+				t.Fatalf("outbox is %q, want %q", states(), want)
+			}
+			time.Sleep(50 * time.Millisecond)
+		}
+	}
+	waitFor("parked/1 pending/0")
+	time.Sleep(1500 * time.Millisecond) // a poll passes: the later one still waits
+	waitFor("parked/1 pending/0")
+	if _, err := s.Store.DB().Exec(`UPDATE outbox SET next_ms = 0 WHERE state = 'parked'`); err != nil {
+		t.Fatal(err)
+	}
+	waitFor("failed/1 parked/1")
 }

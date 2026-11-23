@@ -387,3 +387,15 @@ per-area specs under `docs/spec/` keep their own contradiction tables.
   `sse.scope.write-through-event-on-origin` and
   `sse.scope.trigger-side-effect-emits` now assert it, citing the docs; a
   later live run settles whether PageLove does it yet.
+
+### D-6 (2026-11-23) Temporal in server JavaScript keeps the engine's limits
+
+- Claims: the 2026-11-23 docs give server JavaScript's Temporal years from
+  -9999 to 9999 for every type, ICU text for `toLocaleString`, and a date
+  from `Temporal.PlainDate.call(Temporal.PlainDate, …)`.
+- Decision: follow the docs everywhere else (R-JS-43) and keep three
+  limits of pagelike's engine. An exact time is kept for the years 1678 to
+  2261 and refused with a `RangeError` outside them, never wrapped;
+  `toLocaleString` has the documented shape but its own text; a
+  constructor called without `new` always throws, as the standard says.
+  None stores a wrong value. Not yet observed live.

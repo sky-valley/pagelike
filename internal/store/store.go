@@ -146,7 +146,8 @@ CREATE TABLE IF NOT EXISTS outbox (
 	max_attempts INTEGER NOT NULL DEFAULT 1,
 	next_ms     INTEGER NOT NULL,
 	state       TEXT NOT NULL DEFAULT 'pending',
-	last_error  TEXT NOT NULL DEFAULT ''
+	last_error  TEXT NOT NULL DEFAULT '',
+	okey        TEXT NOT NULL DEFAULT ''
 );
 CREATE TABLE IF NOT EXISTS authored (
 	path         TEXT PRIMARY KEY,
@@ -209,6 +210,17 @@ func Open(dir string) (*Site, error) {
 	if _, err := db.Exec(schemaSQL); err != nil {
 		db.Close()
 		return nil, fmt.Errorf("store: init schema: %w", err)
+	}
+	// outbox.okey (the ordering key of a transition notification) was
+	// added after sites existed: add it to an older database. The index
+	// needs the column, so it is created here and not in schemaSQL.
+	if _, err := db.Exec(`ALTER TABLE outbox ADD COLUMN okey TEXT NOT NULL DEFAULT ''`); err != nil && !strings.Contains(err.Error(), "duplicate column") {
+		db.Close()
+		return nil, fmt.Errorf("store: add outbox.okey: %w", err)
+	}
+	if _, err := db.Exec(`CREATE INDEX IF NOT EXISTS outbox_okey ON outbox(okey, id) WHERE okey != ''`); err != nil {
+		db.Close()
+		return nil, fmt.Errorf("store: index outbox.okey: %w", err)
 	}
 	s := &Site{dir: dir, db: db}
 	if err := s.sweepBlobs(); err != nil {

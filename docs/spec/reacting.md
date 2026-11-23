@@ -979,6 +979,20 @@ For each public-plane request (the steps before 3 belong to other areas):
   `reacting.jss1123.refused-save-throws`,
   `reacting.jss1123.js-gate-has-no-pagelove`.
 
+### R-REACT-41b — Sessel `Pagelove.POST`
+- **Behavior:** `Pagelove.POST(item, path, selector, placement)` adds an
+  item (an element, an instance or a string of HTML) to the document at
+  `path`, as a client's POST would: `placement` is `append` (default),
+  `prepend`, `before` or `after`, in any case with spaces ignored; without
+  a selector the item goes inside the page's body. An unknown placement is
+  an error and nothing is posted. A refused save is an error `try … catch`
+  catches, whose message is the verb, the status and the reason (`POST
+  returned 416 Range Not Satisfiable: …`). The docs say a caught Sessel
+  message starts `runtime error: `; pagelike's is the refusal alone.
+- **Evidence:** documented (docs snapshot 2026-11-23, Trigger §Writing from
+  triggers, Processor §Writing from processors). **Confidence:** medium.
+- **Cases:** `reacting.jss1123.sessel-post`.
+
 ### R-REACT-42 — Transient elements
 - **Behavior:** Triggers "can write to transient elements". The mechanism is
   not documented. pagelike applies a `Pagelove.PUT` whose target is a document
@@ -1232,7 +1246,7 @@ For each public-plane request (the steps before 3 belong to other areas):
   pending retries survive a restart. On restart, an entry whose attempt was in
   flight is retried if attempts remain. That is at-least-once within the retry
   budget, which is stronger than the docs promise, and harmless. Transition
-  handler deliveries are **at-most-once** and use a different rule
+  handler deliveries are **at-least-once** and use a different rule
   (R-REACT-82).
 - **Evidence:** inferred (plan §site.db `outbox`). **Confidence:** n/a (design).
 
@@ -1675,15 +1689,27 @@ and each watched property p:
   `reacting.th.keyless-selector-by-type`.
 
 ### R-REACT-82 — Delivery guarantees
-- **Behavior:** Delivery runs in the background after the commit (and after the
-  response, R-REACT-8 step 9). It is **at-most-once**: a single attempt, never
-  retried, whatever `retry` says. A failed attempt, or a restart at the wrong
-  moment, loses the notification. pagelike MAY persist pending deliveries, but
-  it MUST mark a delivery as consumed **before** starting the attempt and MUST
-  never re-send after a restart. The destination policy R-REACT-61 applies.
-- **Evidence:** documented. **Source:** D-TH §Delivery; D-SM §Notify a worker.
-  **Confidence:** high.
-- **Cases:** `reacting.th.at-most-once-no-retry`,
+- **Behavior:** A notification is stored with the save that causes it, in
+  the same transaction, and sent in the background after the commit (and
+  after the response, R-REACT-8 step 9). Delivery is **at least once**: a
+  restart mid-attempt sends it again, and a failed attempt (anything but a
+  2xx; a 3xx is not followed) is tried again with growing delay, up to 36
+  attempts, whatever `retry` says. After that the notification is
+  **parked**: it stays stored and holds up the later notifications for the
+  same item and destination, which are otherwise sent in order. A
+  destination the policy R-REACT-61 refuses is parked at once. A parked
+  notification is dropped 30 days after it parked, and the ones behind it
+  are then sent. The 2026-09-28 docs said at most once, a single attempt;
+  the 2026-11-23 snapshot supersedes that.
+- pagelike decisions: the delay before attempt k is min(2^(k-1) s, 1 h)
+  (the docs give no schedule). Not implemented: moving parked notifications
+  to an operator's `/deliveries/<host>.html` document and acting on them
+  there, and "a failure response that says your save was stored is not
+  tried again" (the docs do not say how a response says so).
+- **Evidence:** documented. **Source:** D-TH §Delivery, §Parked
+  notifications (snapshot 2026-11-23). **Confidence:** medium.
+- **Cases:** `reacting.th.failed-delivery-is-retried`,
+  `reacting.th.later-notifications-wait`,
   `reacting.th.failed-delivery-does-not-affect-write`.
 
 ### R-REACT-83 — Delivering to a PageLove host
@@ -1736,6 +1762,24 @@ and each watched property p:
   These limits are pagelike decisions (PageLove's are unknown).
 - **Evidence:** documented (shared budget), inferred (numbers). **Source:**
   D-JSS §Resource limits. **Confidence:** medium / n/a.
+
+### R-REACT-86b — Limits on what a save may notify
+- **Behavior:** A save is refused with 422, and nothing is stored, if it
+  would owe a notification over 256 KiB (its delivery header and the
+  Transition document together), a delivery header over 64 KiB,
+  notifications over 1 MiB in all, or more than 1,000 notifications. The
+  body is an `https://pagelove.org/Error/ValidationFailed` item with an
+  `https://pagelove.org/Problem/TransitionLimit` problem: `limit`
+  (`notification`, `header`, `save-bytes` or `save-count`), `max`, `size`
+  and, for the first two, the item's `selector`. The limit named is the
+  first one the save reached. The problem names no handler; the log does.
+- pagelike decision: the delivery header's size is the method, the URL and
+  each header's name and value plus four bytes (the docs do not define it).
+  The messages for `header`, `save-bytes` and `save-count` are pagelike's
+  wording; the docs show only the `notification` one.
+- **Evidence:** documented. **Source:** D-TH §Limits on what a save may
+  notify (snapshot 2026-11-23). **Confidence:** medium.
+- **Cases:** `reacting.th.oversized-notification-refuses-save`.
 
 ---
 

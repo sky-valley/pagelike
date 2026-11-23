@@ -637,8 +637,8 @@ are allowed. `retry` cannot be an expression.
 ### R-JS-23b: Saving from JavaScript (`Pagelove.PUT`, `POST`, `DELETE`)
 
 - A trigger or processor action (and `otherwise`) has a global `Pagelove`
-  object; nothing is imported. A JavaScript `when` gate, a `j:` binding and
-  schema bindings have none.
+  object; nothing is imported, and so has a method body (see below). A
+  JavaScript `when` gate, a `j:` binding and schema bindings have none.
 - `Pagelove.PUT(item, path)` saves the whole document at `path`, creating
   it; `Pagelove.PUT(item, path, selector)` replaces the element `selector`
   matches. `Pagelove.POST(item, path, selector, placement)` adds the item:
@@ -659,11 +659,33 @@ are allowed. `retry` cannot be an expression.
   event is streamed. A refused save throws an `Error` the code can catch,
   whose message is the verb, the status and the reason: `POST returned 416
   Range Not Satisfiable: …`. Uncaught, it fails the action.
-- pagelike differences: `PUT` and `POST` give back `undefined` (the docs
-  allow that outcome; an instance is not handed back with its address);
-  `PUT(instance)` without a path always throws `PUT: Instance has no source
-  path`; a Sessel method called from the action cannot save; saves from
-  resolvers and the 3-deep nested-save limit are not implemented.
+- Every save gives back what it saved. An item whose outer element has
+  `itemscope` and an `itemtype` comes back as an instance of its class when
+  the site has a schema for the type (with the `@default`s the save filled
+  in), else as a plain object of its properties; other HTML gives back
+  `undefined`. A whole-document save gives back the document's item: its
+  root element when that is an item, else the first element of its body.
+  If the item cannot be handed back the save still counts and the call
+  gives back `undefined`; it never throws.
+- An instance a `PUT` gave back knows its address (the path, and the
+  element it replaced). `Pagelove.PUT(instance)` with anything but a string
+  as the path saves it there again, and `Pagelove.DELETE(instance)` deletes
+  it. Any other instance throws `PUT: Instance has no source path. Use
+  PUT(instance, "/path.html")`. An item a `POST` added has no address, so a
+  second save cannot replace the container it went into.
+- A method saves wherever a Sessel method in its place could: a JavaScript
+  method body has the `Pagelove` object when the code that called it may
+  save (an action, or a Sessel or JavaScript method an action calls), and a
+  Sessel method a JavaScript action calls saves too. In a `when` gate a
+  method's saves throw `PUT: a when gate is read-only …`, and while a page
+  is built `PUT: composition methods may not persist data` (the verb is the
+  one called), which is also what a Sessel method gets there.
+- pagelike differences: saves from `@read` and `@write` resolvers are not
+  implemented (they would write on a reader's behalf without a permission
+  check; a save here is always made as the requesting principal), nor is
+  the 3-deep nested-save limit that goes with them. `DELETE` of an instance
+  with no address throws `DELETE: Instance has no source path` (inferred
+  wording).
 - Evidence: documented (docs snapshot 2026-11-23, JavaScript §Saving data).
   Confidence: medium.
 
@@ -855,8 +877,8 @@ implementations (j: is a dispatched `doesNotUnderstand`).
   `InternalError` exists (it is what stack overflow throws).
 - `Math.random()` and `Date.now()` / `new Date()` are allowed and are not made
   deterministic; the server's value is the stored one.
-- Not guaranteed: `Intl` (ECMA-402) and `Temporal`. pagelike does not provide
-  them (probe P-JS-6).
+- Not guaranteed: `Intl` (ECMA-402); pagelike does not provide it (probe
+  P-JS-6). `Temporal` is R-JS-43 since the 2026-11-23 docs.
 - Evidence: documented. Source: JSS §Supported language features.
   Confidence: high (listed), medium (the rest of the ECMAScript library),
   low (`Intl`, `Temporal`).
@@ -898,7 +920,8 @@ U+00FF and `atob` input that is not base64 with a `DOMException` named
 `InvalidCharacterError`; either called with no argument is a `TypeError`;
 `atob` ignores ASCII white space. `Uint8Array.fromBase64` and
 `Uint8Array.prototype.toBase64` (alphabets `base64` and `base64url`,
-`omitPadding`) come with the engine.
+`omitPadding`) come with the engine. `Uint8Array.fromHex`, `toHex`,
+`setFromBase64` and `setFromHex` are not available.
 - Evidence: documented. Source: docs languages/javascript/server/base64
   (snapshot 2026-11-23; absent from the 2026-09-28 docs, where pagelike
   left them undefined). Case: `javascript.g1123.btoa-atob`.
@@ -908,7 +931,8 @@ U+00FF and `atob` input that is not base64 with a `DOMException` named
 (SHA-1, SHA-256, SHA-384, SHA-512; returns `Promise<ArrayBuffer>`),
 `crypto.getRandomValues(typedArray)` and `crypto.randomUUID()`, plus
 `TextEncoder`/`TextDecoder` (UTF-8 only), which a digest of a string needs.
-Other `crypto.subtle` methods are absent.
+`importKey` and `verify` are R-JS-39c, `deriveBits` R-JS-39d. Other `crypto.subtle` methods are
+absent.
 - Contradiction C-JS-6: JSS §Explaining why says "the only global the sandbox
   defines is `DOMException`"; DOM pages document `DOMParser`, `XMLSerializer`,
   `Node` and the node classes as available, and JEB mentions `crypto.subtle`.
@@ -918,6 +942,80 @@ Other `crypto.subtle` methods are absent.
 - Evidence: documented (DOM globals), inferred (crypto details, encoders).
   Source: DOM §Interfaces and instanceof; DPARSE; DEX; JEB §Sessel or
   JavaScript?. Confidence: high (DOM), low (crypto shape).
+
+**R-JS-39c (public keys and signature checks).**
+`crypto.subtle.importKey(format, keyData, algorithm, extractable, usages)`
+imports a public key made elsewhere and
+`crypto.subtle.verify(algorithm, key, signature, data)` checks a signature
+with it; both return promises.
+
+| Algorithm | `algorithm` | Formats | Signature |
+|---|---|---|---|
+| ECDSA | `{name: "ECDSA", namedCurve: "P-256"}` or `"P-384"` | `spki`, `raw` (uncompressed point) | r then s, 64 or 96 bytes |
+| RSASSA-PKCS1-v1_5 | `{name, hash: "SHA-256"}` (or SHA-384, SHA-512) | `spki`, modulus 2048 to 8192 bits | as long as the modulus |
+| RSA-PSS | as above | `spki` | salt as long as the hash |
+| Ed25519 | `"Ed25519"` | `spki`, `raw` (32 bytes) | 64 bytes |
+
+- Each ECDSA curve verifies with its own hash only (SHA-256 with P-256,
+  SHA-384 with P-384); `verify` needs the hash. RSA-PSS takes only a salt as
+  long as the hash; `saltLength` may be left out.
+- A signature that does not match or is in the wrong form (an ASN.1 DER
+  ECDSA signature, a wrong length) is `false`, not an error.
+- A failure rejects with a `DOMException`: `DataError` for a malformed key
+  (not DER, trailing bytes, a compressed point, a point off the curve, an
+  SPKI for another curve or algorithm, an RSA modulus outside 2048 to 8192
+  bits, an even modulus or exponent, an Ed25519 key that is not a point);
+  `NotSupportedError` for another curve, JWK, raw RSA, an ECDSA hash that
+  does not match the curve or another RSA-PSS salt length; `SyntaxError` for
+  a usage other than `verify`; `InvalidAccessError` for `verify` with an
+  algorithm other than the key's. A wrong argument type rejects with a
+  `TypeError`: a key that `crypto.subtle` did not make, a missing
+  `namedCurve` or hash, a usage that is not a key usage, a `saltLength` that
+  is not a non-negative whole number.
+- Not ported: `generateKey`, `sign`, `deriveKey` and the other key kinds the
+  docs name without describing.
+- Evidence: documented. Source: docs languages/javascript/server/webcrypto
+  (snapshot 2026-11-23). Confidence: high. Cases:
+  `javascript.wc1123.import-and-verify`; `internal/jsrt/webcrypto_test.go`.
+
+
+**R-JS-39d (password hashing and key derivation).**
+`crypto.subtle.deriveBits(algorithm, key, length)` hashes a password with
+Argon2 or bcrypt and derives bytes with PBKDF2 or HKDF; `verify` with
+`"bcrypt"` checks a password against a stored bcrypt string. The password
+is imported with `importKey("raw-secret", bytes, name, false, usages)`
+(`"raw"` also for PBKDF2 and HKDF); such a key is never extractable.
+
+| Algorithm | Parameters | `length` (bits) | Usages |
+|---|---|---|---|
+| `Argon2id`, `Argon2i`, `Argon2d` | `nonce` (8 bytes or more), `parallelism` (1 to 255), `memory` (KiB, 8 for each lane up to 262144), `passes` (1 or more); optional `version` (19 only), `secretValue`, `associatedData` (32 bytes at most) | a multiple of 8 from 32 to 524288 | `deriveBits`, `deriveKey` |
+| `bcrypt` | `cost` (4 to 31), `salt` (16 bytes) | none; the result is the 60-byte `$2b$` string | `deriveBits`, `verify` |
+| `PBKDF2` | `hash`, `salt`, `iterations` (1 or more) | a multiple of 8 | `deriveBits`, `deriveKey` |
+| `HKDF` | `hash`, `salt`, `info` | a multiple of 8, at most 255 hash blocks | `deriveBits`, `deriveKey` |
+
+- bcrypt hashes the first 72 bytes of the password. `verify("bcrypt", key,
+  stored, ignored)` reads the cost and salt from `stored` (`$2a$`, `$2b$` or
+  `$2y$`) and answers `true` or `false`; a malformed string or the legacy
+  `$2x$` form rejects with `OperationError`.
+- Argon2 and bcrypt run under the hashing gate Sessel and Liquid share
+  (R-LIQ-184): a hash estimated to outlast the request's remaining time, a
+  server at its concurrent hashes or a site at its share rejects with
+  `OperationError`, the busy ones with a message ending "try again
+  shortly". A script may catch it; uncaught, the request answers 503 with
+  `Retry-After: 1`. Argon2's memory counts against the request's memory
+  budget. PBKDF2 whose iterations would outlast the remaining time rejects
+  with `OperationError`.
+- Errors: a parameter outside its range is `OperationError`; a missing or
+  non-numeric parameter is a `TypeError`; an unknown algorithm or hash is
+  `NotSupportedError`; a usage the algorithm does not have, or
+  `extractable: true`, is `SyntaxError`; a key of another algorithm, or one
+  without the `deriveBits` usage, is `InvalidAccessError`.
+- Not ported: `deriveKey` (no key kind to derive into is described).
+- Evidence: documented. Source: docs languages/javascript/server/
+  password-hashing and webcrypto (snapshot 2026-11-23). Confidence: high;
+  the time estimates are pagelike's own. Cases:
+  `javascript.wc1123.password-hashing`; `internal/argon2x`,
+  `internal/pwhash`, `internal/jsglue/busy_test.go`.
 
 ---
 
@@ -979,20 +1077,90 @@ level 65 or deeper fails. Shared, non-cyclic references are allowed.
 
 ### R-JS-42: Temporal values and `Date`
 
-- A JavaScript `Date` returned from a binding does **not** become a temporal
-  value. It becomes a Dictionary of the Date object's own properties (normally
-  empty). Bindings that need a temporal value must return an ISO 8601 string.
-- A dombase Temporal passed into JavaScript: the docs say it "currently
-  unmarshalls" through the same Date-to-Map path. pagelike maps
-  `Temporal.Instant`, `ZonedDateTime`, `PlainDateTime` and `PlainDate` to a
-  JavaScript `Date` (UTC; a PlainDate is midnight UTC), and `PlainTime`,
-  `PlainYearMonth`, `PlainMonthDay` and `Duration` to their ISO 8601 string
-  (pagelike decision). Passing that Date back out yields the empty
-  Dictionary, as documented.
-- In practice schema values reach JavaScript as strings (property values are
-  text), so this only matters for values produced by Sessel.
-- Evidence: documented (Date → Map quirk, ISO advice). Source: JSS
-  §Marshalling. Confidence: high (Date out), low (Temporal in).
+Docs snapshot 2026-11-23 (supersedes the 2026-09-28 marshalling page, where
+a returned Date was an empty Dictionary and a temporal value reached
+JavaScript as a Date):
+
+| From | To | Becomes |
+|---|---|---|
+| Sessel temporal value (`this`, a context entry, an argument) | JavaScript | the matching `Temporal` object |
+| `Temporal` object returned or passed back | Sessel | the matching temporal value |
+| `Date` returned or passed back | Sessel | the `Temporal.Instant` it stands for |
+| an invalid `Date`, or one outside the years an exact time is kept for (R-JS-43) | Sessel | refused: `return-type` |
+
+- A stored value is written in its ISO 8601 form (`2026-10-30`,
+  `1970-01-01T00:00:00Z`); a `PlainMonthDay` is stored as `--09-30`, the
+  form Sessel writes, though its `toString()` gives `09-30`.
+- An object made with `Object.create(Temporal.PlainDate.prototype)` is not
+  a date: its getters throw a `TypeError` and it goes back as a plain map.
+- Not ported: the `search()` row of the docs' table (server JavaScript has
+  no `search()` here).
+- Evidence: documented. Source: docs languages/javascript/server/temporal
+  §Values that cross between Sessel and JavaScript (snapshot 2026-11-23).
+  Confidence: high. Cases: `javascript.t1123.values-are-stored-as-iso`;
+  `internal/jsrt/contract_test.go`.
+
+### R-JS-43: The `Temporal` global
+
+Server JavaScript has `Temporal`: `PlainDate`, `PlainTime`,
+`PlainDateTime`, `ZonedDateTime`, `Instant`, `Duration`, `PlainYearMonth`,
+`PlainMonthDay` and `Temporal.Now` (`instant`, `timeZoneId`,
+`plainDateISO`, `plainTimeISO`, `plainDateTimeISO`, `zonedDateTimeISO`; the
+server's zone is UTC), and `Date.prototype.toTemporalInstant()`. It runs on
+the date and time engine Sessel uses (`internal/sessel/temporal_script.go`).
+
+- Each type has the standard's constructor, `from`, `toString`, `toJSON`,
+  `toLocaleString` and, where the standard gives the type one, `compare`,
+  `equals`, `add`, `subtract`, `until`, `since`, `with` and the
+  conversions. `valueOf` throws a `TypeError`. An `Instant` refuses to add
+  years, months, weeks or days.
+- Where the docs say the server differs from a browser, pagelike follows
+  the docs:
+  - a duration's hours and smaller fields are one balanced length
+    (`{minutes: 90}` is `PT1H30M`); `Instant` differences are in hours;
+    `Duration.compare` gives 0 for durations equal once balanced;
+  - `ZonedDateTime.with` resolves a repeated hour to the earlier offset,
+    ignores `offset` and refuses a bag with only an offset;
+  - `from()`, `with()` and the conversions refuse an out-of-range field
+    (`overflow: "reject"` only); `add` and `subtract` clamp the day
+    (`"constrain"` only);
+  - years run from -9999 to 9999; a duration's years, months, weeks and
+    days fit 32 bits, its days and time are under 2^53 seconds, every
+    field is at most 2^53 - 1 and a duration field is a whole number;
+  - a `ZonedDateTime` string with an offset or `Z` and no zone takes that
+    offset as its zone (an offset with seconds is refused); a time zone
+    argument is a name, not an offset; a duration has a fraction only in
+    its seconds; a calendar other than ISO 8601 is refused;
+  - the fourth constructor argument of `PlainYearMonth` and
+    `PlainMonthDay` is checked and dropped;
+  - not available: `round`, `withCalendar`, `era`, `eraYear`, the rounding
+    and `largestUnit` options, the `toString` options, `disambiguation`
+    and `offset` options, `relativeTo`, a `ZonedDateTime` property bag,
+    `hoursInDay`, `offsetNanoseconds`, `startOfDay`, `withPlainTime`,
+    `getTimeZoneTransition`;
+  - `toLocaleString` takes `dateStyle` and `timeStyle` only, is medium by
+    default, treats `full` as `long`, writes the time with seconds when
+    both are given and a `Duration` as its ISO form.
+- Errors: a string that is not a date, time or duration, a field or value
+  out of range and an unsupported option are `RangeError`; a wrong
+  argument type, a bag missing a required field, a method on the wrong
+  type, a constructor without `new` and `new Temporal.Instant(1000)` are
+  `TypeError`. An object where an `Instant` is expected is read through
+  its primitive value.
+- pagelike's own limits (decision D-6):
+  - an exact time (`Instant`, `ZonedDateTime`) is kept for the years 1678
+    to 2261, the reach of the engine's 64-bit nanoseconds; outside it is a
+    `RangeError`;
+  - a duration's time fields together fit 64-bit nanoseconds (about 292
+    years);
+  - `Temporal.PlainDate.call(Temporal.PlainDate, …)` throws a `TypeError`,
+    as a browser does, where the docs say PageLove makes a date;
+  - `toLocaleString` writes English month names for `en` and `en-US` and
+    Sessel's numeric forms for other locales; it does not use ICU data.
+- Evidence: documented. Source: docs languages/javascript/server/temporal
+  (snapshot 2026-11-23). Confidence: high (the listed behaviour), low
+  (locale text). Cases: `javascript.t1123.types`,
+  `javascript.t1123.differences`; `internal/jsrt/temporal_test.go`.
 
 ---
 
@@ -2594,7 +2762,7 @@ Requirement → cases (ids without the `javascript.` prefix):
 | R-JS-19 | `methods.dnu-element-form`, `methods.dnu-attribute-form` |
 | R-JS-21 | `reactions.trigger-docs-when-and-action`, `reactions.trigger-ctx-request-shape`, `reactions.trigger-when-truthiness`, `reactions.trigger-return-value-discarded`, `reactions.trigger-save-plain-object-fails` |
 | R-JS-22 | `reactions.processor-docs-custom-404`, `reactions.processor-rethrow-with-headers`, `reactions.processor-response-assignment-ignored` |
-| R-JS-23b | `reacting.jss1123.action-saves`, `reacting.jss1123.refused-save-throws`, `reacting.jss1123.js-gate-has-no-pagelove`, `reactions.trigger-save-plain-object-fails` |
+| R-JS-23b | `reacting.jss1123.action-saves`, `reacting.jss1123.refused-save-throws`, `reacting.jss1123.js-gate-has-no-pagelove`, `reacting.jss1123.save-gives-back`, `reacting.jss1123.methods-save`, `reacting.jss1123.refused-in-gates-and-pages`, `reactions.trigger-save-plain-object-fails` |
 | R-JS-24 | `reactions.trigger-header-lookup` |
 | R-JS-30 | `jbind.wrong-namespace-ignored` |
 | R-JS-31 | `jbind.docs-example-liquid`, `jbind.declaration-order`, `jbind.await`, `jbind.returned-promise-adopted` |
@@ -2607,8 +2775,12 @@ Requirement → cases (ids without the `javascript.` prefix):
 | R-JS-38 | `globals.host-io-absent`, `globals.other-host-apis-absent`, `reactions.trigger-save-plain-object-fails` |
 | R-JS-39 | `globals.dom-classes-present` |
 | R-JS-39a | `globals.crypto-subtle-digest` |
+| R-JS-39c | `wc1123.import-and-verify` |
+| R-JS-39d | `wc1123.password-hashing` |
 | R-JS-40 | `jbind.reads-resource-binding` |
 | R-JS-41 | `methods.return-scalars`, `slots.write-returns-function`, `slots.write-returns-cycle` |
+| R-JS-42 | `t1123.values-are-stored-as-iso` |
+| R-JS-43 | `t1123.types`, `t1123.differences` |
 | R-JS-51 | `slots.default-parse-failure`, `slots.default-shape-not-function`, `slots.validate-strict-mode-referenceerror`, `slots.write-returns-function`, `slots.import-bare-specifier`, `slots.import-http-url`, `slots.import-pagelove-host`, `slots.import-dynamic`, `slots.import-schema-without-type-attribute`, `slots.import-literal-pagelove-schema`, `slots.import-unknown-schema` |
 | R-JS-52 | `methods.readonly-mutation-fails-500`, `methods.return-text-node-500`, `methods.return-document-500`, `methods.return-fragment-500`, `methods.throw-500`, `methods.shape-failure-500`, `slots.default-parse-failure`, `slots.validate-strict-mode-referenceerror`, `slots.write-returns-function` |
 | R-JS-53 | `slots.validate-docs-example-hostname`, `slots.validate-plain-object-throw-is-generic`, `slots.validate-httpresponse-itemtype-key`, `reactions.trigger-docs-when-and-action`, `reactions.trigger-plain-object-is-error`, `reactions.trigger-itemtype-marker`, `reactions.trigger-default-status-500`, `reactions.trigger-body-and-headers`, `reactions.processor-docs-custom-404`, `reactions.processor-rethrow-with-headers` |

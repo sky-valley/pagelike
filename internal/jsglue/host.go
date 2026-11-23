@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/sky-valley/pagelike/internal/budget"
 	"github.com/sky-valley/pagelike/internal/jsrt"
 	"github.com/sky-valley/pagelike/internal/schema"
 	"github.com/sky-valley/pagelike/internal/sessel"
@@ -22,13 +23,26 @@ type host struct {
 	// result).
 	cx *sessel.Dict
 	// save performs the saves of the Pagelove global (nil: none).
-	save func(ctx context.Context, c *jsrt.SaveCall) error
+	save func(ctx context.Context, c *jsrt.SaveCall) (*jsrt.SaveResult, error)
+}
+
+// ChargeMemory implements jsrt.MemoryCharger: memory used outside the
+// JavaScript heap (Argon2's) counts against the request's memory budget,
+// and stays counted when it does not fit.
+func (h *host) ChargeMemory(ctx context.Context, n int64) error {
+	b := budget.From(ctx)
+	_, used, _ := b.Consumed()
+	b.AddJS(0, n)
+	if used+n > budget.DefaultMemory {
+		return fmt.Errorf("the request's memory budget is exhausted")
+	}
+	return nil
 }
 
 // Save implements jsrt.Saver.
-func (h *host) Save(ctx context.Context, c *jsrt.SaveCall) error {
+func (h *host) Save(ctx context.Context, c *jsrt.SaveCall) (*jsrt.SaveResult, error) {
 	if h.save == nil {
-		return fmt.Errorf("%s: saving is not available here", c.Verb)
+		return nil, fmt.Errorf("%s: saving is not available here", c.Verb)
 	}
 	return h.save(ctx, c)
 }

@@ -1,0 +1,122 @@
+# JavaScript area: WebCrypto signature checks (docs snapshot 2026-11-23; spec R-JS-39c).
+# The keys and signatures were made once with Go's standard library over the
+# message "hello pagelike".
+defaults:
+  area: "javascript"
+  evidence: "documented"
+  confidence: "high"
+  requires: ["server-js"]
+  live: true
+  site:
+    settings:
+      default_get: "allow"
+    rules:
+      - actor: "*"
+        resource: "${P}/*"
+        method: ["GET", "HEAD", "PUT", "POST", "DELETE", "MOVE"]
+        action: "Allow"
+cases:
+  - id: "javascript.wc1123.import-and-verify"
+    title: "crypto.subtle.importKey takes a public key and verify checks a signature with it"
+    feature: "WebCrypto"
+    source: "docs languages/javascript/server/webcrypto §Accepted keys, §Signature encoding, §Hash and salt length, §Error cases; base64 ('Uint8Array.fromHex, toHex, setFromBase64 and setFromHex are not available') (snapshot 2026-11-23)"
+    notes: "spec: R-JS-39c, R-JS-39b. Before this snapshot crypto.subtle had digest only."
+    steps:
+      - name: "PUT the page"
+        as: "anonymous"
+        request:
+          method: "PUT"
+          path: "${P}/j.html"
+          headers:
+            Content-Type: "text/html"
+          body: |
+            <!DOCTYPE html>
+            <html xmlns:j="https://pagelove.org/Binding/JavaScript" xmlns:p="https://pagelove.org/1.0"><body>
+            <main>
+            <div j:a="'A:' + await crypto.subtle.verify({name: 'ECDSA', hash: 'SHA-256'}, await crypto.subtle.importKey('spki', Uint8Array.fromBase64('MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEUbfovxMmmTDigJB9tatYY6v0fR5Lw9JsDeZcNJebQoUPtq3sd6ysRu1dty25E66PHbdf7y/ROGquGI6v4c9ulw=='), {name: 'ECDSA', namedCurve: 'P-256'}, false, ['verify']), Uint8Array.fromBase64('ddqkYTPqrUmzw0uCpxCn23JIbII2Mw/dUCbbP9kZlnwc0MsuFrg6yqqnkleCjsSXKyHcA7IZ+GE8wpNfJOiMMQ=='), Uint8Array.fromBase64('aGVsbG8gcGFnZWxpa2U='))"><p:stamp a></p:stamp></div>
+            <div j:b="'B:' + await crypto.subtle.verify({name: 'ECDSA', hash: 'SHA-256'}, await crypto.subtle.importKey('raw', Uint8Array.fromBase64('BFG36L8TJpkw4oCQfbWrWGOr9H0eS8PSbA3mXDSXm0KFD7at7HesrEbtXbctuROujx23X+8v0ThqrhiOr+HPbpc='), {name: 'ECDSA', namedCurve: 'P-256'}, false, ['verify']), Uint8Array.fromBase64('MEUCIQCb1Bs4QFPLCNtaF6aEPgSOvzTUSBs6KlauLIu/1clB9gIgCiDwg4NuBjl1qnvWngUkCM5W1XRveo8igFvBXPR4Y74='), Uint8Array.fromBase64('aGVsbG8gcGFnZWxpa2U='))"><p:stamp b></p:stamp></div>
+            <div j:c="'C:' + await crypto.subtle.verify({name: 'ECDSA', hash: 'SHA-384'}, await crypto.subtle.importKey('spki', Uint8Array.fromBase64('MHYwEAYHKoZIzj0CAQYFK4EEACIDYgAEthKouBGdDVpp0bRfQpEGQezvmLvr1XeWtHVT3cZFGUD35lPuXGl4Glti9LuBmsM0OaRj4+P0czdT8ZFmYyD2QR0qxXt4cadtKvoUqj7hUvizDss2Fr0DnpRjjZkINzGC'), {name: 'ECDSA', namedCurve: 'P-384'}, false, ['verify']), Uint8Array.fromBase64('cI3MQvTyC9x1so10ck+fdZFOztSVKcCIL5qesaDz7mR/eb0eUFI0dyQ9fHxp4mzbd9SHqTNjsBTsl/Ya60v/xpbaX+1xTlr3kz7A4xVlo7Cs4bBLtbnnNbdDgb0feIJc'), Uint8Array.fromBase64('aGVsbG8gcGFnZWxpa2U='))"><p:stamp c></p:stamp></div>
+            <div j:d="'D:' + await crypto.subtle.verify('RSASSA-PKCS1-v1_5', await crypto.subtle.importKey('spki', Uint8Array.fromBase64('MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAtmb0WbmKmrJ2Qvzs4MntUFpE4wWhAQqDy7sA+vQvrnkHyBLuVjZoR0fGZl1g6IfAl4rRjRyNmMEda8qkQflXauSXY/6N6ZcbdyahG4VR/q9iIyYCNlVX8T0xlBC2VFoW2fN928BFIlIt73LROwtIizxFHqQenDDU7zlpNYdi+gqM0Ls9i1FKOwuqMxOEKY1fVdlv9o2WOpfBwUcoKu7yPf7hH3xNfekRm9c9jEQBd7injJI8mJCSoUkezfu9BWVly9Wf6pzM3muKT1DK2CRWS5j2tTVB3SN60oWIjiVs3eaDg37wRdpzTbiqpBWUQJx+gOCEKu13fLTx4YHsFEYrSwIDAQAB'), {name: 'RSASSA-PKCS1-v1_5', hash: 'SHA-256'}, false, ['verify']), Uint8Array.fromBase64('Hjs83QfRPaecpUpT0nY2xEBAgYeOt5PB1iWou9fwD8/2wwbnFXNlLPR+E+fmEv9RI5Xr72hiIIZ1h0livTC+m2FpMY1dQ+uE8857HhPE2u6UV+v0KpE3IHX3dtiayVepqA9ppGjMd+5cTAkVOnpzxVIBwt2c0qAgXh0YMkZjKE2Y/t6HBu5UZpCRhOIwmzOOvZ/cVxVPkS4rFVS/DDtf8d32ojK3H6r8mIQmZ2ZWm95HHbBjpuLcbIVmCWaBYOBiQs9MNuITHrq//fz6QXYuY5ZKU0ckQf0Qthsb+W7Gd7hOeb7iwquCporFUakDC8ijl6QrtUMjRYg2Ybflyi9OJA=='), Uint8Array.fromBase64('aGVsbG8gcGFnZWxpa2U='))"><p:stamp d></p:stamp></div>
+            <div j:e="'E:' + await crypto.subtle.verify({name: 'RSA-PSS', saltLength: 32}, await crypto.subtle.importKey('spki', Uint8Array.fromBase64('MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAtmb0WbmKmrJ2Qvzs4MntUFpE4wWhAQqDy7sA+vQvrnkHyBLuVjZoR0fGZl1g6IfAl4rRjRyNmMEda8qkQflXauSXY/6N6ZcbdyahG4VR/q9iIyYCNlVX8T0xlBC2VFoW2fN928BFIlIt73LROwtIizxFHqQenDDU7zlpNYdi+gqM0Ls9i1FKOwuqMxOEKY1fVdlv9o2WOpfBwUcoKu7yPf7hH3xNfekRm9c9jEQBd7injJI8mJCSoUkezfu9BWVly9Wf6pzM3muKT1DK2CRWS5j2tTVB3SN60oWIjiVs3eaDg37wRdpzTbiqpBWUQJx+gOCEKu13fLTx4YHsFEYrSwIDAQAB'), {name: 'RSA-PSS', hash: 'SHA-256'}, false, ['verify']), Uint8Array.fromBase64('EZeMEG3Anp5swVJnbhlgl9fHKMvf+bOflkWI3q9NdkrI4EZwZucMstwtFEVn8VlbwFc3g8OksIW0v3IAP5wnbahd5X5TFXMw22alCu4UmmZJGVLx0gtofTEuK609gc8sF2FoJ9dpRV7v9hVQjl/2xeUGdwQqs653TZx9I1COkHY2REe37VKvtD4mpPrGTuV3eXFHMTrI9GRF8n88nASMnQYPPArRC+/sTsFKmY70iaAdV6JbJJyuEDNgDmf6TBpudEJCv2YObVCDAiCyUQR/ovI1kj0vm8Yx21frNMCXtM1DB0jDrqE5oEZvS5DG8tprdigtJC7Rfi8ZXd169WEs2g=='), Uint8Array.fromBase64('aGVsbG8gcGFnZWxpa2U='))"><p:stamp e></p:stamp></div>
+            <div j:f="'F:' + await crypto.subtle.verify('Ed25519', await crypto.subtle.importKey('raw', Uint8Array.fromBase64('jRGMxEtulvY8gf1pseMey5Hw9ku6UgHVWTDZzdcd+qE='), 'Ed25519', false, ['verify']), Uint8Array.fromBase64('ebC18D5a33zykFInfWgJUBhwxUVj0nEoR5HYlawGYu0MVbZVg/o4B4ZKb1WsHQTN9+/ZN+ka6g1n+Q3h+G3MBQ=='), Uint8Array.fromBase64('aGVsbG8gcGFnZWxpa2U=')) + await crypto.subtle.verify('Ed25519', await crypto.subtle.importKey('spki', Uint8Array.fromBase64('MCowBQYDK2VwAyEAjRGMxEtulvY8gf1pseMey5Hw9ku6UgHVWTDZzdcd+qE='), 'Ed25519', false, ['verify']), Uint8Array.fromBase64('ebC18D5a33zykFInfWgJUBhwxUVj0nEoR5HYlawGYu0MVbZVg/o4B4ZKb1WsHQTN9+/ZN+ka6g1n+Q3h+G3MBQ=='), new Uint8Array(3))"><p:stamp f></p:stamp></div>
+            <div j:g="'G:' + await ((p) => p.then(() => 'ok', (e) => e.name + (e instanceof DOMException ? '' : '!')))(crypto.subtle.importKey('spki', new Uint8Array([1, 2, 3]), {name: 'ECDSA', namedCurve: 'P-256'}, false, ['verify']))"><p:stamp g></p:stamp></div>
+            <div j:h="'H:' + await ((p) => p.then(() => 'ok', (e) => e.name + (e instanceof DOMException ? '' : '!')))(crypto.subtle.importKey('jwk', {}, {name: 'ECDSA', namedCurve: 'P-256'}, false, ['verify'])) + ',' + await ((p) => p.then(() => 'ok', (e) => e.name + (e instanceof DOMException ? '' : '!')))(crypto.subtle.importKey('spki', Uint8Array.fromBase64('MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEUbfovxMmmTDigJB9tatYY6v0fR5Lw9JsDeZcNJebQoUPtq3sd6ysRu1dty25E66PHbdf7y/ROGquGI6v4c9ulw=='), {name: 'ECDSA', namedCurve: 'P-521'}, false, ['verify'])) + ',' + await ((p) => p.then(() => 'ok', (e) => e.name + (e instanceof DOMException ? '' : '!')))(crypto.subtle.importKey('raw', Uint8Array.fromBase64('MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAtmb0WbmKmrJ2Qvzs4MntUFpE4wWhAQqDy7sA+vQvrnkHyBLuVjZoR0fGZl1g6IfAl4rRjRyNmMEda8qkQflXauSXY/6N6ZcbdyahG4VR/q9iIyYCNlVX8T0xlBC2VFoW2fN928BFIlIt73LROwtIizxFHqQenDDU7zlpNYdi+gqM0Ls9i1FKOwuqMxOEKY1fVdlv9o2WOpfBwUcoKu7yPf7hH3xNfekRm9c9jEQBd7injJI8mJCSoUkezfu9BWVly9Wf6pzM3muKT1DK2CRWS5j2tTVB3SN60oWIjiVs3eaDg37wRdpzTbiqpBWUQJx+gOCEKu13fLTx4YHsFEYrSwIDAQAB'), {name: 'RSA-PSS', hash: 'SHA-256'}, false, ['verify']))"><p:stamp h></p:stamp></div>
+            <div j:i="'I:' + await ((p) => p.then(() => 'ok', (e) => e.name + (e instanceof DOMException ? '' : '!')))(crypto.subtle.importKey('spki', Uint8Array.fromBase64('MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEUbfovxMmmTDigJB9tatYY6v0fR5Lw9JsDeZcNJebQoUPtq3sd6ysRu1dty25E66PHbdf7y/ROGquGI6v4c9ulw=='), {name: 'ECDSA'}, false, ['verify'])) + ',' + await ((p) => p.then(() => 'ok', (e) => e.name + (e instanceof DOMException ? '' : '!')))(crypto.subtle.importKey('spki', Uint8Array.fromBase64('MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEUbfovxMmmTDigJB9tatYY6v0fR5Lw9JsDeZcNJebQoUPtq3sd6ysRu1dty25E66PHbdf7y/ROGquGI6v4c9ulw=='), {name: 'ECDSA', namedCurve: 'P-256'}, false, ['sign'])) + ',' + await ((p) => p.then(() => 'ok', (e) => e.name + (e instanceof DOMException ? '' : '!')))(crypto.subtle.importKey('spki', Uint8Array.fromBase64('MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEUbfovxMmmTDigJB9tatYY6v0fR5Lw9JsDeZcNJebQoUPtq3sd6ysRu1dty25E66PHbdf7y/ROGquGI6v4c9ulw=='), {name: 'ECDSA', namedCurve: 'P-256'}, false, ['bogus'])) + ',' + await ((p) => p.then(() => 'ok', (e) => e.name + (e instanceof DOMException ? '' : '!')))(crypto.subtle.verify('Ed25519', {}, new Uint8Array(64), new Uint8Array(1)))"><p:stamp i></p:stamp></div>
+            <div j:k="'K:' + await (async () => { const k = await crypto.subtle.importKey('spki', Uint8Array.fromBase64('MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEUbfovxMmmTDigJB9tatYY6v0fR5Lw9JsDeZcNJebQoUPtq3sd6ysRu1dty25E66PHbdf7y/ROGquGI6v4c9ulw=='), {name: 'ECDSA', namedCurve: 'P-256'}, false, ['verify']); const r = (p) => p.then(() => 'ok', (e) => e.name + (e instanceof DOMException ? '' : '!')); return [await r(crypto.subtle.verify('Ed25519', k, new Uint8Array(64), new Uint8Array(1))), await r(crypto.subtle.verify({name: 'ECDSA', hash: 'SHA-384'}, k, new Uint8Array(64), new Uint8Array(1))), await r(crypto.subtle.verify({name: 'ECDSA'}, k, new Uint8Array(64), new Uint8Array(1))), k.type, k.extractable, k.algorithm.name, k.algorithm.namedCurve, k.usages.join('+')].join(','); })()"><p:stamp k></p:stamp></div>
+            <div j:m="'M:' + await (async () => { const k = await crypto.subtle.importKey('spki', Uint8Array.fromBase64('MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAtmb0WbmKmrJ2Qvzs4MntUFpE4wWhAQqDy7sA+vQvrnkHyBLuVjZoR0fGZl1g6IfAl4rRjRyNmMEda8qkQflXauSXY/6N6ZcbdyahG4VR/q9iIyYCNlVX8T0xlBC2VFoW2fN928BFIlIt73LROwtIizxFHqQenDDU7zlpNYdi+gqM0Ls9i1FKOwuqMxOEKY1fVdlv9o2WOpfBwUcoKu7yPf7hH3xNfekRm9c9jEQBd7injJI8mJCSoUkezfu9BWVly9Wf6pzM3muKT1DK2CRWS5j2tTVB3SN60oWIjiVs3eaDg37wRdpzTbiqpBWUQJx+gOCEKu13fLTx4YHsFEYrSwIDAQAB'), {name: 'RSA-PSS', hash: 'SHA-256'}, false, ['verify']); const r = (p) => p.then(() => 'ok', (e) => e.name + (e instanceof DOMException ? '' : '!')); return [await r(crypto.subtle.verify({name: 'RSA-PSS', saltLength: 20}, k, new Uint8Array(256), new Uint8Array(1))), await r(crypto.subtle.verify({name: 'RSA-PSS', saltLength: 1.5}, k, new Uint8Array(256), new Uint8Array(1))), await crypto.subtle.verify({name: 'RSA-PSS'}, k, Uint8Array.fromBase64('EZeMEG3Anp5swVJnbhlgl9fHKMvf+bOflkWI3q9NdkrI4EZwZucMstwtFEVn8VlbwFc3g8OksIW0v3IAP5wnbahd5X5TFXMw22alCu4UmmZJGVLx0gtofTEuK609gc8sF2FoJ9dpRV7v9hVQjl/2xeUGdwQqs653TZx9I1COkHY2REe37VKvtD4mpPrGTuV3eXFHMTrI9GRF8n88nASMnQYPPArRC+/sTsFKmY70iaAdV6JbJJyuEDNgDmf6TBpudEJCv2YObVCDAiCyUQR/ovI1kj0vm8Yx21frNMCXtM1DB0jDrqE5oEZvS5DG8tprdigtJC7Rfi8ZXd169WEs2g=='), Uint8Array.fromBase64('aGVsbG8gcGFnZWxpa2U='))].join(','); })()"><p:stamp m></p:stamp></div>
+            <div j:n="'N:' + [typeof Uint8Array.fromHex, typeof Uint8Array.prototype.toHex, typeof Uint8Array.prototype.setFromBase64, typeof Uint8Array.prototype.setFromHex].join(',')"><p:stamp n></p:stamp></div>
+            </main>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "GET the composed page"
+        as: "anonymous"
+        request:
+          method: "GET"
+          path: "${P}/j.html"
+          headers:
+            Range: "selector=main"
+        expect:
+          status: 206
+          body_contains:
+            - "A:true"
+            - "B:false"
+            - "C:true"
+            - "D:true"
+            - "E:true"
+            - "F:truefalse"
+            - "G:DataError"
+            - "H:NotSupportedError,NotSupportedError,NotSupportedError"
+            - "I:TypeError!,SyntaxError,TypeError!,TypeError!"
+            - "K:InvalidAccessError,NotSupportedError,TypeError!,public,false,ECDSA,P-256,verify"
+            - "M:NotSupportedError,TypeError!,true"
+            - "N:undefined,undefined,undefined,undefined"
+  - id: "javascript.wc1123.password-hashing"
+    title: "crypto.subtle.deriveBits hashes with Argon2, bcrypt, PBKDF2 and HKDF, and verify checks a stored bcrypt string"
+    feature: "WebCrypto"
+    source: "docs languages/javascript/server/password-hashing §Argon2, §bcrypt, §How long hashing takes, §Error cases; webcrypto §Error cases (snapshot 2026-11-23). Vectors: RFC 9106 section 5 (Argon2), RFC 5869 A.1 (HKDF), RFC 7914 section 11 (PBKDF2-HMAC-SHA-256, one iteration)"
+    notes: "spec: R-JS-39d."
+    steps:
+      - name: "PUT the page"
+        as: "anonymous"
+        request:
+          method: "PUT"
+          path: "${P}/j.html"
+          headers:
+            Content-Type: "text/html"
+          body: |
+            <!DOCTYPE html>
+            <html xmlns:j="https://pagelove.org/Binding/JavaScript" xmlns:p="https://pagelove.org/1.0"><body>
+            <main>
+            <div j:a="'A:' + ((b) => Array.from(new Uint8Array(b)).map((x) => x.toString(16).padStart(2, '0')).join(''))(await crypto.subtle.deriveBits({name: 'argon2ID', nonce: new Uint8Array(16).fill(2), parallelism: 4, memory: 32, passes: 3, secretValue: new Uint8Array(8).fill(3), associatedData: new Uint8Array(12).fill(4)}, await crypto.subtle.importKey('raw-secret', new Uint8Array(32).fill(1), 'Argon2id', false, ['deriveBits']), 256))"><p:stamp a></p:stamp></div>
+            <div j:b="'B:' + ((b) => Array.from(new Uint8Array(b)).map((x) => x.toString(16).padStart(2, '0')).join(''))(await crypto.subtle.deriveBits({name: 'Argon2d', nonce: new Uint8Array(16).fill(2), parallelism: 4, memory: 32, passes: 3, secretValue: new Uint8Array(8).fill(3), associatedData: new Uint8Array(12).fill(4)}, await crypto.subtle.importKey('raw-secret', new Uint8Array(32).fill(1), 'Argon2d', false, ['deriveBits']), 256))"><p:stamp b></p:stamp></div>
+            <div j:c="'C:' + await (async () => { const k = await crypto.subtle.importKey('raw-secret', new TextEncoder().encode('hunter2'), 'bcrypt', false, ['deriveBits', 'verify']); const bad = await crypto.subtle.importKey('raw-secret', new TextEncoder().encode('hunter3'), 'bcrypt', false, ['verify']); const made = new Uint8Array(await crypto.subtle.deriveBits({name: 'bcrypt', cost: 4, salt: new Uint8Array(16).fill(7)}, k)); const text = new TextDecoder().decode(made); return [made.length, text.slice(0, 7), await crypto.subtle.verify('bcrypt', k, made, new Uint8Array(0)), await crypto.subtle.verify('bcrypt', k, new TextEncoder().encode('$2a$04$TEd5l0poh5NRPDUiUQo0CefY//pMHWjOgrK0FiVO6p6fP1YJcgD0u'), new Uint8Array(0)), await crypto.subtle.verify('bcrypt', bad, new TextEncoder().encode('$2a$04$TEd5l0poh5NRPDUiUQo0CefY//pMHWjOgrK0FiVO6p6fP1YJcgD0u'), new Uint8Array(0))].join(','); })()"><p:stamp c></p:stamp></div>
+            <div j:d="'D:' + ((b) => Array.from(new Uint8Array(b)).map((x) => x.toString(16).padStart(2, '0')).join(''))(await crypto.subtle.deriveBits({name: 'PBKDF2', hash: 'SHA-256', salt: new TextEncoder().encode('salt'), iterations: '1'}, await crypto.subtle.importKey('raw', new TextEncoder().encode('password'), 'PBKDF2', false, ['deriveBits']), 256))"><p:stamp d></p:stamp></div>
+            <div j:e="'E:' + ((b) => Array.from(new Uint8Array(b)).map((x) => x.toString(16).padStart(2, '0')).join(''))(await crypto.subtle.deriveBits({name: 'HKDF', hash: 'SHA-256', salt: new Uint8Array(13).map((_, i) => i), info: new Uint8Array(10).map((_, i) => 0xf0 + i)}, await crypto.subtle.importKey('raw', new Uint8Array(22).fill(11), 'HKDF', false, ['deriveBits']), 336))"><p:stamp e></p:stamp></div>
+            <div j:f="'F:' + await (async () => { const r = (p) => p.then(() => 'ok', (e) => e.name + (e instanceof DOMException ? '' : '!')); const pw = new TextEncoder().encode('p'); return [await r(crypto.subtle.importKey('raw', pw, 'Argon2id', false, ['deriveBits'])), await r(crypto.subtle.importKey('raw-secret', pw, 'Argon2id', true, ['deriveBits'])), await r(crypto.subtle.importKey('raw-secret', pw, 'Argon2id', false, [])), await r(crypto.subtle.importKey('raw-secret', pw, 'Argon2id', false, ['verify'])), await r(crypto.subtle.importKey('raw-secret', pw, 'bcrypt', false, ['deriveKey']))].join(','); })()"><p:stamp f></p:stamp></div>
+            <div j:g="'G:' + await (async () => { const r = (p) => p.then(() => 'ok', (e) => e.name + (e instanceof DOMException ? '' : '!')); const k = await crypto.subtle.importKey('raw-secret', new TextEncoder().encode('p'), 'Argon2id', false, ['deriveBits']); const p = {name: 'Argon2id', nonce: new Uint8Array(16), parallelism: 1, memory: 8, passes: 1}; return [await r(crypto.subtle.deriveBits({...p, memory: undefined}, k, 256)), await r(crypto.subtle.deriveBits({...p, passes: -1}, k, 256)), await r(crypto.subtle.deriveBits({...p, nonce: 'x'}, k, 256)), await r(crypto.subtle.deriveBits({...p, memory: 262145}, k, 256)), await r(crypto.subtle.deriveBits({...p, nonce: new Uint8Array(4)}, k, 256)), await r(crypto.subtle.deriveBits(p, k, 20)), await r(crypto.subtle.deriveBits({...p, version: 16}, k, 256)), await r(crypto.subtle.deriveBits({...p, name: 'bcrypt'}, k, 256)), await r(crypto.subtle.deriveBits('ECDH', k, 256)), await r(crypto.subtle.verify('Argon2id', k, new Uint8Array(1), new Uint8Array(0))), await r(crypto.subtle.deriveBits(p, k, 256))].join(','); })()"><p:stamp g></p:stamp></div>
+            <div j:h="'H:' + await (async () => { const r = (p) => p.then(() => 'ok', (e) => e.name + (e instanceof DOMException ? '' : '!')); const k = await crypto.subtle.importKey('raw-secret', new TextEncoder().encode('p'), 'bcrypt', false, ['deriveBits', 'verify']); const s = new Uint8Array(16); return [await r(crypto.subtle.deriveBits({name: 'bcrypt', cost: 32, salt: s}, k)), await r(crypto.subtle.deriveBits({name: 'bcrypt', cost: 256, salt: s}, k)), await r(crypto.subtle.deriveBits({name: 'bcrypt', cost: 4, salt: s}, k, 256)), await r(crypto.subtle.deriveBits({name: 'bcrypt', cost: 31, salt: s}, k)), await r(crypto.subtle.verify('bcrypt', k, new TextEncoder().encode('$2x$04$TEd5l0poh5NRPDUiUQo0CefY//pMHWjOgrK0FiVO6p6fP1YJcgD0u'), new Uint8Array(0))), await r(crypto.subtle.verify('bcrypt', k, new TextEncoder().encode('$2a$04$TEd5l0poh5NRPDUiUQo0CefY//pMHWjOgrK0FiVO6p6fP1YJcgD0u'), new Uint8Array(1))), await r(crypto.subtle.verify('bcrypt', k, new TextEncoder().encode('nope'), new Uint8Array(0)))].join(','); })()"><p:stamp h></p:stamp></div>
+            <div j:i="'I:' + await (async () => { const r = (p) => p.then(() => 'ok', (e) => e.name + (e instanceof DOMException ? '' : '!')); const k = await crypto.subtle.importKey('raw', new TextEncoder().encode('p'), 'PBKDF2', false, ['deriveBits']); const p = {name: 'PBKDF2', hash: 'SHA-256', salt: new Uint8Array(8), iterations: 1}; return [await r(crypto.subtle.deriveBits({...p, iterations: 0}, k, 256)), await r(crypto.subtle.deriveBits({...p, iterations: -1}, k, 256)), await r(crypto.subtle.deriveBits({...p, iterations: undefined}, k, 256)), await r(crypto.subtle.deriveBits({...p, salt: undefined}, k, 256)), await r(crypto.subtle.deriveBits({...p, hash: 'MD5'}, k, 256)), await r(crypto.subtle.deriveBits(p, k)), await r(crypto.subtle.deriveBits(p, k, 12)), await r(crypto.subtle.deriveBits({...p, iterations: 4000000000}, k, 256))].join(','); })()"><p:stamp i></p:stamp></div>
+            </main>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "GET the composed page"
+        as: "anonymous"
+        request:
+          method: "GET"
+          path: "${P}/j.html"
+          headers:
+            Range: "selector=main"
+        expect:
+          status: 206
+          body_contains:
+            - "A:0d640df58d78766c08c037a34a8b53c9d01ef0452d75b65eb52520e96b01e659"
+            - "B:512b391b6f1162975371d30919734294f868e3be3984f3c1a13a4db9fabe4acb"
+            - "C:60,$2b$04$,true,true,false"
+            - "D:120fb6cffcf8b32c43e7225256c4f837a86548c92ccc35480805987cb70be17b"
+            - "E:3cb25f25faacd57a90434f64d0362f2a2d2d0a90cf1a5a4c5db02d56ecc4c5bf34007208d5b887185865"
+            - "F:NotSupportedError,SyntaxError,SyntaxError,SyntaxError,SyntaxError"
+            - "G:TypeError!,TypeError!,TypeError!,OperationError,OperationError,OperationError,OperationError,InvalidAccessError,NotSupportedError,NotSupportedError,ok"
+            - "H:OperationError,TypeError!,OperationError,OperationError,OperationError,OperationError,OperationError"
+            - "I:OperationError,TypeError!,TypeError!,TypeError!,NotSupportedError,OperationError,OperationError,OperationError"

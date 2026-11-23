@@ -298,6 +298,7 @@ func (e *Engine) putSelector(ctx context.Context, w *WriteCtx) (*Result, error) 
 	res.Header.Set("Content-Range", "selector "+op.Range.Selector)
 	res.Header.Set("Content-Type", markupType(w.Doc.ContentType))
 	res.Header.Set("ETag", etag)
+	res.Saved = firstElement(nodes)
 	writeHeaders(res.Header, stored)
 	if err := e.event(w, op.Path, sse.Mutation{Method: "PUT", Selector: op.Range.Selector, ETag: eventTag(stored), Body: frag}, dom.Elements(nodes)...); err != nil {
 		return nil, err
@@ -379,6 +380,7 @@ func (e *Engine) postSelector(ctx context.Context, w *WriteCtx) (*Result, error)
 	res.Header.Set("Content-Range", "selector "+op.Range.Selector)
 	res.Header.Set("Content-Type", markupType(w.Doc.ContentType))
 	res.Header.Set("ETag", FragmentETag(frag, stored.Version))
+	res.Saved = firstElement(inserted)
 	writeHeaders(res.Header, stored)
 	m := sse.Mutation{Method: "POST", Selector: op.Range.Selector, Body: frag, Placement: placement, ETag: eventTag(stored)}
 	if err := e.event(w, op.Path, m, dom.Elements(inserted)...); err != nil {

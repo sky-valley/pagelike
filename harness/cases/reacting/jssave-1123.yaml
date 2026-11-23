@@ -174,3 +174,353 @@ cases:
         as: anonymous
         request: {method: PUT, path: "${P}/d/x.html", headers: {Content-Type: text/html}, body: "<p>x</p>"}
         expect: {status: 418}
+  - id: reacting.jss1123.save-gives-back
+    title: "A save gives back what it saved: an instance that knows its address from PUT, the item without one from POST, true from DELETE"
+    feature: JavaScript saves
+    source: "docs languages/javascript/server/saving-data §What a save gives back, §PUT, §POST, §DELETE (snapshot 2026-11-23)"
+    notes: "spec: R-JS-23b. live: false because the schema type URL names the test host."
+    live: false
+    steps:
+      - name: a schema with a default and a key
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/schema.html"
+          headers: {Content-Type: text/html}
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+            <div hidden itemscope itemtype="https://pagelove.org/Schema">
+            <meta itemprop="type" content="https://pagelike.test${P}/Note">
+            <div itemprop="property" itemscope itemtype="https://pagelove.org/Property">
+            <meta itemprop="name" content="title">
+            <meta itemprop="type" content="https://schema.host/Text">
+            <meta itemprop="cardinality" content="1">
+            </div>
+            <div itemprop="property" itemscope itemtype="https://pagelove.org/Property">
+            <meta itemprop="name" content="state">
+            <meta itemprop="type" content="https://schema.host/Text">
+            <meta itemprop="cardinality" content="0..1">
+            <div itemprop="default" itemscope itemtype="https://pagelove.org/JavaScript/Module">
+            <script itemprop="source" type="module">
+            export default () => "open";
+            </script>
+            </div>
+            </div>
+            </div>
+            <ul id="log"></ul>
+            </body></html>
+        expect: {status: [200, 201, 204]}
+      - name: install the trigger
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/r/triggers.html"
+          headers: {Content-Type: text/html}
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+            <div hidden itemscope itemtype="https://pagelove.org/Trigger">
+              <meta itemprop="resource" content="${P}/d/*">
+              <meta itemprop="method" content="PUT">
+              <div itemprop="action" itemscope itemtype="https://pagelove.org/JavaScript/Module">
+                <script type="module" itemprop="source">
+                  import Note from "https://pagelike.test${P}/Note" with { type: "https://pagelove.org/Schema" };
+                  export default function(ctx) {
+                    const out = [];
+                    const tryIt = (f) => { try { out.push(String(f())); } catch (e) { out.push("Error " + e.message); } };
+                    const fresh = new Note({ title: "First" });
+                    tryIt(() => Pagelove.PUT(fresh));
+                    const saved = Pagelove.PUT(fresh, "${P}/n/first.html");
+                    out.push(saved instanceof Note, saved === fresh, saved.title, saved.state);
+                    saved.title = "Second thoughts";
+                    tryIt(() => Pagelove.PUT(saved) instanceof Note);
+                    const added = Pagelove.POST(new Note({ title: "Added" }), "${P}/n/list.html", "#list");
+                    out.push(added instanceof Note, added.state);
+                    tryIt(() => Pagelove.PUT(added));
+                    const plain = Pagelove.POST('<li itemscope itemtype="https://example.test/Thing"><b itemprop="name">N</b></li>', "${P}/n/list.html", "#list");
+                    out.push(plain.name, typeof Pagelove.POST("<li>x</li>", "${P}/n/list.html", "#list"));
+                    const inPlace = Pagelove.PUT(new Note({ title: "Swapped" }), "${P}/n/list.html", "#slot");
+                    inPlace.title = "Swapped twice";
+                    Pagelove.PUT(inPlace);
+                    tryIt(() => Pagelove.DELETE(saved));
+                    Pagelove.PUT("<p id='out'>" + out.join("|") + "</p>", "${P}/out.html");
+                  }
+                </script>
+              </div>
+            </div>
+            </body></html>
+        expect: {status: [200, 201, 204]}
+      - name: a list to add to
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/n/list.html"
+          headers: {Content-Type: text/html}
+          body: "<!DOCTYPE html>\n<html><body><ul id=\"list\"></ul><div id=\"slot\">x</div></body></html>\n"
+        expect: {status: [200, 201, 204]}
+      - name: a write that fires it
+        as: anonymous
+        request: {method: PUT, path: "${P}/d/x.html", headers: {Content-Type: text/html}, body: "<p>x</p>"}
+        expect: {status: [200, 201, 204]}
+      - name: what the saves gave back
+        as: anonymous
+        request: {method: GET, path: "${P}/out.html"}
+        expect:
+          status: 200
+          body_contains: ['Error PUT: Instance has no source path. Use PUT(instance, "/path.html")|true|false|First|open|true|true|open|Error PUT: Instance has no source path. Use PUT(instance, "/path.html")|N|undefined|true</p>']
+      - name: the instance saved again went back to its address
+        as: anonymous
+        request: {method: GET, path: "${P}/n/list.html"}
+        expect:
+          status: 200
+          body_contains: ['Swapped twice', 'Added']
+          body_not_contains: ['id="slot"']
+      - name: the deleted instance's document is gone
+        as: anonymous
+        request: {method: GET, path: "${P}/n/first.html"}
+        expect: {status: 404}
+  - id: reacting.jss1123.sessel-post
+    title: "A Sessel action adds an item with Pagelove.POST, placed like a client's POST, and catches a refused save"
+    feature: Sessel saves
+    source: "docs reference/reacting-to-changes/Trigger §Writing from triggers (snapshot 2026-11-23) ('In Sessel, Pagelove.POST(item, path, selector, placement) adds an item to a page … A refused save is an error you can catch')"
+    requires: [server-js, sessel]
+    notes: "spec: R-REACT-41b. Before this snapshot Sessel had only Pagelove.PUT and DELETE. The docs say a caught message starts 'runtime error: '; pagelike's caught message is the refusal alone."
+    steps:
+      - name: a page to add to
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/notes.html"
+          headers: {Content-Type: text/html}
+          body: "<!DOCTYPE html>\n<html><body><ul id=\"notes\"><li>Old</li></ul></body></html>\n"
+        expect: {status: [200, 201, 204]}
+      - name: install the trigger
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/r/triggers.html"
+          headers: {Content-Type: text/html}
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+            <div hidden itemscope itemtype="https://pagelove.org/Trigger">
+              <meta itemprop="resource" content="${P}/d/*">
+              <meta itemprop="method" content="PUT">
+              <div itemprop="action" itemscope itemtype="https://pagelove.org/Sessel">
+                <script itemprop="source" type="text/sessel">
+                  @schema Pagelove url("https://pagelove.org/1.0");
+                  Pagelove.POST(new li { "Last" }, "${P}/notes.html", "#notes");
+                  Pagelove.POST(new li { "First" }, "${P}/notes.html", "#notes", " Prepend ");
+                  Pagelove.POST(new p[id="tail"] { "tail" }, "${P}/notes.html");
+                  let refused = try { Pagelove.POST(new li { "x" }, "${P}/notes.html", "#nope"); "saved" } catch (e) { e.message };
+                  let typo = try { Pagelove.POST(new li { "x" }, "${P}/notes.html", "#notes", "apend"); "saved" } catch (e) { e.message };
+                  Pagelove.PUT(new p[id="out"] { refused + "|" + typo }, "${P}/out.html")
+                </script>
+              </div>
+            </div>
+            </body></html>
+        expect: {status: [200, 201, 204]}
+      - name: a write that fires it
+        as: anonymous
+        request: {method: PUT, path: "${P}/d/x.html", headers: {Content-Type: text/html}, body: "<p>x</p>"}
+        expect: {status: [200, 201, 204]}
+      - name: the items went where the placements say
+        as: anonymous
+        request: {method: GET, path: "${P}/notes.html"}
+        expect:
+          status: 200
+          body_contains: ['<ul id="notes"><li>First</li><li>Old</li><li>Last</li></ul>', '<p id="tail">tail</p>']
+      - name: the refusals were caught
+        as: anonymous
+        request: {method: GET, path: "${P}/out.html"}
+        expect:
+          status: 200
+          body_contains: ['POST returned 416 Range Not Satisfiable', '|POST: unknown placement "apend"; use append, prepend, before or after</p>']
+  - id: reacting.jss1123.methods-save
+    title: "A method an action calls saves too, whichever language either is written in"
+    feature: JavaScript saves
+    source: "docs languages/javascript/server/saving-data §Where you can save (snapshot 2026-11-23) ('Saves work in: a trigger or processor action, and any method it calls')"
+    requires: [server-js, sessel]
+    notes: "spec: R-JS-23b. live: false because the schema type URL names the test host."
+    live: false
+    steps:
+      - name: a schema with a JavaScript method and a Sessel method that save
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/schema.html"
+          headers: {Content-Type: text/html}
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+            <div hidden itemscope itemtype="https://pagelove.org/Schema">
+            <meta itemprop="type" content="https://pagelike.test${P}/Log">
+            <div itemprop="property" itemscope itemtype="https://pagelove.org/Method">
+            <meta itemprop="name" content="viaJs">
+            <meta itemprop="static" content="true">
+            <div itemprop="parameter" itemscope itemtype="https://pagelove.org/Parameter"><meta itemprop="name" content="what"><meta itemprop="type" content="https://schema.host/Text"></div>
+            <div itemprop="implementation" itemscope itemtype="https://pagelove.org/JavaScript/Module">
+            <script itemprop="source" type="module">
+            export default function (what) { Pagelove.POST("<li>js " + what + "</li>", "${P}/log.html", "#log"); return "js"; }
+            </script>
+            </div>
+            </div>
+            <div itemprop="property" itemscope itemtype="https://pagelove.org/Method">
+            <meta itemprop="name" content="viaSessel">
+            <meta itemprop="static" content="true">
+            <div itemprop="parameter" itemscope itemtype="https://pagelove.org/Parameter"><meta itemprop="name" content="what"><meta itemprop="type" content="https://schema.host/Text"></div>
+            <div itemprop="implementation" itemscope itemtype="https://pagelove.org/Sessel">
+            <script itemprop="source" type="text/sessel">
+            @schema Pagelove url("https://pagelove.org/1.0");
+            Pagelove.POST(new li { "sessel " + what }, "${P}/log.html", "#log");
+            "sessel"
+            </script>
+            </div>
+            </div>
+            </div>
+            </body></html>
+        expect: {status: [200, 201, 204]}
+      - name: the log
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/log.html"
+          headers: {Content-Type: text/html}
+          body: "<!DOCTYPE html>\n<html><body><ul id=\"log\"></ul></body></html>\n"
+        expect: {status: [200, 201, 204]}
+      - name: a Sessel action calling the JavaScript method, a JavaScript action calling the Sessel one
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/r/triggers.html"
+          headers: {Content-Type: text/html}
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+            <div hidden itemscope itemtype="https://pagelove.org/Trigger">
+              <meta itemprop="resource" content="${P}/d/*">
+              <meta itemprop="method" content="PUT">
+              <div itemprop="action" itemscope itemtype="https://pagelove.org/Sessel">
+                <script itemprop="source" type="text/sessel">
+                  @schema Log url("https://pagelike.test${P}/Log");
+                  Log.viaJs("from sessel")
+                </script>
+              </div>
+            </div>
+            <div hidden itemscope itemtype="https://pagelove.org/Trigger">
+              <meta itemprop="resource" content="${P}/d/*">
+              <meta itemprop="method" content="PUT">
+              <div itemprop="action" itemscope itemtype="https://pagelove.org/JavaScript/Module">
+                <script type="module" itemprop="source">
+                  import Log from "https://pagelike.test${P}/Log" with { type: "https://pagelove.org/Schema" };
+                  export default function () { Log.viaSessel("from js"); Log.viaJs("from js"); }
+                </script>
+              </div>
+            </div>
+            </body></html>
+        expect: {status: [200, 201, 204]}
+      - name: a write that fires both
+        as: anonymous
+        request: {method: PUT, path: "${P}/d/x.html", headers: {Content-Type: text/html}, body: "<p>x</p>"}
+        expect: {status: [200, 201, 204]}
+      - name: every method saved
+        as: anonymous
+        request: {method: GET, path: "${P}/log.html"}
+        expect:
+          status: 200
+          body_contains: ['<li>js from sessel</li><li>sessel from js</li><li>js from js</li>']
+  - id: reacting.jss1123.refused-in-gates-and-pages
+    title: "A method's save is refused in a when gate and while a page is built"
+    feature: JavaScript saves
+    source: "docs languages/javascript/server/saving-data §Where you can save (snapshot 2026-11-23) ('Each call throws an error that starts PUT: composition methods may not persist data' … 'every save throws an error that starts PUT: a when gate is read-only')"
+    requires: [server-js, sessel]
+    notes: "spec: R-JS-23b. live: false because the schema type URL names the test host."
+    live: false
+    steps:
+      - name: a schema whose method reports what a save throws
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/schema.html"
+          headers: {Content-Type: text/html}
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+            <div hidden itemscope itemtype="https://pagelove.org/Schema">
+            <meta itemprop="type" content="https://pagelike.test${P}/Log">
+            <div itemprop="property" itemscope itemtype="https://pagelove.org/Method">
+            <meta itemprop="name" content="attempt">
+            <meta itemprop="static" content="true">
+            <div itemprop="implementation" itemscope itemtype="https://pagelove.org/JavaScript/Module">
+            <script itemprop="source" type="module">
+            export default function () {
+              const out = [];
+              for (const f of [() => Pagelove.PUT("<p>x</p>", "${P}/side.html"), () => Pagelove.POST("<p>x</p>", "${P}/side.html"), () => Pagelove.DELETE("${P}/side.html")]) {
+                try { f(); out.push("saved"); } catch (e) { out.push(e.message); }
+              }
+              return out.join("|");
+            }
+            </script>
+            </div>
+            </div>
+            </div>
+            </body></html>
+        expect: {status: [200, 201, 204]}
+      - name: a page that calls it while it is built
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/page.html"
+          headers: {Content-Type: text/html}
+          body: |
+            <!DOCTYPE html>
+            <html xmlns:e="https://pagelove.org/Binding/Sessel" xmlns:pagelove="https://pagelove.org/1.0"><body>
+            <p id="r" e:r='@schema Log url("https://pagelike.test${P}/Log"); Log.attempt()' pagelove:template="text/liquid">{{ r }}</p>
+            </body></html>
+        expect: {status: [200, 201, 204]}
+      - name: the page shows the refusals
+        as: anonymous
+        request: {method: GET, path: "${P}/page.html"}
+        expect:
+          status: 200
+          body_contains: ['PUT: composition methods may not persist data|POST: composition methods may not persist data|DELETE: composition methods may not persist data']
+      - name: a trigger whose gate calls it and whose action records what it got
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/r/triggers.html"
+          headers: {Content-Type: text/html}
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+            <div hidden itemscope itemtype="https://pagelove.org/Trigger">
+              <meta itemprop="resource" content="${P}/d/*">
+              <meta itemprop="method" content="PUT">
+              <div itemprop="when" itemscope itemtype="https://pagelove.org/Sessel">
+                <script itemprop="source" type="text/sessel">
+                  @schema Log url("https://pagelike.test${P}/Log");
+                  Log.attempt().startsWith("PUT: a when gate is read-only")
+                </script>
+              </div>
+              <div itemprop="action" itemscope itemtype="https://pagelove.org/Sessel">
+                <script itemprop="source" type="text/sessel">
+                  @schema Pagelove url("https://pagelove.org/1.0");
+                  Pagelove.PUT(new p { "gate refused" }, "${P}/out.html")
+                </script>
+              </div>
+            </div>
+            </body></html>
+        expect: {status: [200, 201, 204]}
+      - name: a write that fires it
+        as: anonymous
+        request: {method: PUT, path: "${P}/d/x.html", headers: {Content-Type: text/html}, body: "<p>x</p>"}
+        expect: {status: [200, 201, 204]}
+      - name: the gate's method was refused and the action ran
+        as: anonymous
+        request: {method: GET, path: "${P}/out.html"}
+        expect: {status: 200, body_contains: ['gate refused']}
+      - name: nothing was saved by the refused calls
+        as: anonymous
+        request: {method: GET, path: "${P}/side.html"}
+        expect: {status: 404}

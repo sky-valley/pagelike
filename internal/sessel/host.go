@@ -2,11 +2,14 @@ package sessel
 
 import (
 	"context"
+	"errors"
 	"net/http"
 	"net/url"
 	"sort"
 	"strings"
 	"time"
+
+	"golang.org/x/net/html"
 )
 
 // Host is everything an evaluation needs from its environment. It is
@@ -42,6 +45,45 @@ type Writer interface {
 	Put(ctx context.Context, item *Element, path string) error
 	// Delete deletes the document at a path (String) or an element.
 	Delete(ctx context.Context, target Value) error
+}
+
+// Saver is a Writer that also performs the selector saves: Pagelove.POST
+// and the saves of server JavaScript (javascript R-JS-23b). verb is PUT,
+// POST or DELETE; item is a string of HTML or an *Element (nil for
+// DELETE); placement is append, prepend, before or after (POST). A refusal
+// is an error whose message is the verb, the status and the reason. It
+// gives back what was saved, or nil when there is nothing to hand back.
+type Saver interface {
+	Save(ctx context.Context, verb string, item any, path, selector string, hasSelector bool, placement string) (*Saved, error)
+}
+
+// Saved is what a save stored: its element and, for a PUT, the address the
+// same item can be saved at again (Path, and Selector when it replaced an
+// element).
+type Saved struct {
+	Node        *html.Node
+	Path        string
+	Selector    string
+	HasSelector bool
+}
+
+// NoSaves is the write provider of code that may not save: every save is
+// refused with the verb and Why ("PUT: a when gate is read-only").
+type NoSaves struct{ Why string }
+
+func (n NoSaves) refuse(verb string) *Error {
+	return &Error{Type: RuntimeErrorType, Message: verb + ": " + n.Why}
+}
+
+// Put implements Writer.
+func (n NoSaves) Put(context.Context, *Element, string) error { return n.refuse("PUT") }
+
+// Delete implements Writer.
+func (n NoSaves) Delete(context.Context, Value) error { return n.refuse("DELETE") }
+
+// Save implements Saver.
+func (n NoSaves) Save(_ context.Context, verb string, _ any, _, _ string, _ bool, _ string) (*Saved, error) {
+	return nil, errors.New(verb + ": " + n.Why)
 }
 
 // Env is the evaluation context of one program run (R-SESSEL-1): the

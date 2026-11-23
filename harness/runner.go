@@ -15,6 +15,7 @@ import (
 	"reflect"
 	"regexp"
 	"sort"
+	"strconv"
 	"strings"
 	"sync"
 	"time"
@@ -195,13 +196,20 @@ func (rn *run) fail(format string, args ...any) {
 	rn.mu.Unlock()
 }
 
-// Expand substitutes ${P}, ${HOST} and environment variables.
+// fillRE matches ${FILL:n}: n bytes of filler, for size-limit cases.
+var fillRE = regexp.MustCompile(`\$\{FILL:\d{1,7}\}`)
+
+// Expand substitutes ${P}, ${HOST}, ${FILL:n} and environment variables.
 func Expand(s string, env *Env) string {
 	if !strings.Contains(s, "${") {
 		return s
 	}
 	const esc = "\x00DOLLAR\x00"
 	s = strings.ReplaceAll(s, "$${", esc)
+	s = fillRE.ReplaceAllStringFunc(s, func(m string) string {
+		n, _ := strconv.Atoi(m[len("${FILL:") : len(m)-1])
+		return strings.Repeat("x", min(n, 4<<20))
+	})
 	s = strings.ReplaceAll(s, "${P}", env.Prefix)
 	s = strings.ReplaceAll(s, "${ORIGIN}", env.Origin)
 	s = strings.ReplaceAll(s, "${HOST}", env.PublicHost)

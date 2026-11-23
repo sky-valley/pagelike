@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## v0.4.0 — 2026-11-23
 
 Server-sent events (docs snapshot 2026-11-23):
 
@@ -46,16 +46,44 @@ Server JavaScript (docs snapshot 2026-11-23):
 - `closest` and `matches` take `:scope` as the element they are called on,
   and a child of a document fragment is no longer `:root`.
 - `NodeList` has `keys()`, `values()` and `entries()`.
+- `crypto.subtle.importKey` and `crypto.subtle.verify` check a signature
+  made elsewhere with an ECDSA (P-256, P-384), RSA or Ed25519 public key,
+  for passkeys and signed webhooks.
+- Server JavaScript has the `Temporal` global: the eight types and
+  `Temporal.Now`, on the date engine Sessel uses. A temporal value crosses
+  between Sessel and JavaScript as the matching type, and a returned `Date`
+  is stored as the instant it stands for (it was an empty dictionary).
+- `crypto.subtle.deriveBits` hashes passwords with Argon2 (id, i, d) and
+  bcrypt and derives bytes with PBKDF2 and HKDF; `verify` with `"bcrypt"`
+  checks a stored bcrypt string. Hashes share the server's hashing gate; a
+  busy refusal a script lets escape answers 503 with `Retry-After: 1`.
 - A JavaScript trigger or processor action saves with a global `Pagelove`
   object: `Pagelove.PUT`, `Pagelove.POST` (with a placement) and
   `Pagelove.DELETE`, each optionally on the element a selector matches. A
   refused save throws an error the action can catch.
+- A save gives back what it saved: an instance (with its schema defaults)
+  or a plain object of the item's properties. An instance a `PUT` gave back
+  knows its address, so `Pagelove.PUT(instance)` saves it there again and
+  `Pagelove.DELETE(instance)` deletes it.
+- A method an action calls saves too, in either language; a method's save
+  is refused in a `when` gate and while a page is built.
+- Sessel has `Pagelove.POST(item, path, selector, placement)`.
+- A JavaScript action can call a static Sessel method.
 
 Reactions (docs snapshot 2026-11-23):
 
 - A `when` written as plain text is a Sessel gate. A trigger with one used
   to be skipped, so its guard did not run.
+- A page that reads the values out of a copy of `Context` is served
+  `Cache-Control: private`.
 - A `when` gate is read-only: a save inside it fails the request.
+- Transition handler notifications are delivered at least once: a failed
+  delivery is tried again with growing delay, up to 36 attempts, and is
+  then parked for 30 days, holding up the later notifications for the same
+  item and destination. Deliveries used to be a single attempt.
+- A save whose notifications are too large (one over 256 KiB, a delivery
+  header over 64 KiB, over 1 MiB or 1,000 in all) is refused with 422 and
+  a `TransitionLimit` problem.
 - A transition handler's `when` may be plain text or a JavaScript module. A
   condition that fails now refuses the save (500, naming no handler)
   instead of quietly skipping the notification.
