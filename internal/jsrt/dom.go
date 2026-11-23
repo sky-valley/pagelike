@@ -706,10 +706,42 @@ func isNameByte(c byte) bool {
 	return c == '-' || c == '_' || c >= '0' && c <= '9' || c >= 'a' && c <= 'z' || c >= 'A' && c <= 'Z' || c >= 0x80
 }
 
-// queryRoot is the scope of querySelector(All) on n: the whole document n
-// belongs to (R-JS-71), or the subtree of its topmost ancestor when
-// detached.
-func queryRoot(n *html.Node) *html.Node { return rootOf(n) }
+// query is querySelector(All) on n (R-JS-71, docs snapshot 2026-11-23). On
+// a document it searches the whole document. On an element or a document
+// fragment it follows the DOM standard: only the receiver's descendants,
+// never the receiver, with the selector still matched against the whole
+// tree. :scope is the element; on a fragment it matches nothing. Template
+// contents are never searched.
+func (d *domState) query(n *html.Node, s *selector.Selector, first bool) []*html.Node {
+	if n.Type == html.DocumentNode && !d.isFrag(n) {
+		if first {
+			if m := s.MatchFirst(n); m != nil {
+				return []*html.Node{m}
+			}
+			return nil
+		}
+		return s.MatchAll(n)
+	}
+	if selector.IsTemplate(n) {
+		return nil
+	}
+	scope := n
+	if n.Type != html.ElementNode {
+		scope = &html.Node{Type: html.ElementNode} // matches no node of the tree
+	}
+	g := selector.BindScope(s.Group(), scope)
+	var out []*html.Node
+	for c := n.FirstChild; c != nil; c = c.NextSibling {
+		if first {
+			if m := selector.SelectFirst(c, g); m != nil {
+				return []*html.Node{m}
+			}
+			continue
+		}
+		out = append(out, selector.Select(c, g)...)
+	}
+	return out
+}
 
 // ------------------------------------------------------------ mutation
 
@@ -1256,11 +1288,14 @@ func (d *domState) do(code int, a []any) (any, error) {
 		if err != nil {
 			return nil, err
 		}
-		root := queryRoot(n)
+		found := d.query(n, s, code == opQS)
 		if code == opQS {
-			return d.handle(s.MatchFirst(root)), nil
+			if len(found) == 0 {
+				return d.handle(nil), nil
+			}
+			return d.handle(found[0]), nil
 		}
-		return handles(d, s.MatchAll(root)), nil
+		return handles(d, found), nil
 	case opByID:
 		id := toStr(arg(a, 1))
 		var found *html.Node

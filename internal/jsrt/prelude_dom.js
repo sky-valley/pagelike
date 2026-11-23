@@ -83,7 +83,10 @@ __pagelike.kernel.setDOMBuilder((K) => {
     get head() { return wrap(D1(OP.head, hOf(this))); }
     get body() { return wrap(D1(OP.body, hOf(this))); }
   }
-  class DocumentFragment extends Node {}
+  class DocumentFragment extends Node {
+    querySelector(s) { return wrap(D2(OP.qs, hOf(this), StringFn(s))); }
+    querySelectorAll(s) { return makeNodeList(D2(OP.qsa, hOf(this), StringFn(s))); }
+  }
   class DocumentType extends Node {}
   class ProcessingInstruction extends Node {}
   class CharacterData extends Node {
@@ -141,7 +144,6 @@ __pagelike.kernel.setDOMBuilder((K) => {
     querySelector(s) { return wrap(D2(OP.qs, hOf(this), StringFn(s))); }
     querySelectorAll(s) { return makeNodeList(D2(OP.qsa, hOf(this), StringFn(s))); }
     getElementsByTagNameNS(ns, local) { return makeNodeList(D3(OP.byTagNS, hOf(this), ns === "*" ? "*" : nsv(ns), StringFn(local))); }
-    getElementById(id) { return wrap(D2(OP.byId, hOf(this), StringFn(id))); }
     closest(s) { return wrap(D2(OP.closest, hOf(this), StringFn(s))); }
     matches(s) { return D2(OP.matches, hOf(this), StringFn(s)); }
     append(...nodes) { DN(OP.insertNodes, hOf(this), "append", toHandles(this, nodes)); }

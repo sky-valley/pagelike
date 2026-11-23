@@ -37,6 +37,10 @@ Schemas (docs snapshot 2026-11-23):
 Server JavaScript (docs snapshot 2026-11-23):
 
 - `btoa` and `atob` are available.
+- `querySelector` and `querySelectorAll` on an element or a fragment
+  search only its descendants, with `:scope` the element, as in a browser;
+  they used to scan the whole document. `getElementById` is on Document
+  only.
 
 Reactions (docs snapshot 2026-11-23):
 

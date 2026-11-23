@@ -1474,13 +1474,13 @@ cases:
         expect:
           status: 206
           body_contains: ["R:false|false|false|false|false|false|false|2|false|true|b"]
-  - id: "javascript.dom.element-query-scans-whole-document"
-    title: "querySelector(All) on an element scans the whole document; getElementsByTagNameNS is receiver-scoped"
-    feature: "DOM divergences"
-    source: "docs languages/javascript/server/dom/document §querySelector, §getElementsByTagNameNS; docs languages/javascript/server/dom §Divergences (snapshot 2026-09-28)"
+  - id: "javascript.dom.element-query-is-scoped"
+    title: "querySelector(All) on an element returns only its descendants, with :scope the element; the selector is matched against the whole tree"
+    feature: "DOM Document"
+    source: "docs languages/javascript/server/dom/document §querySelector, §querySelectorAll (snapshot 2026-11-23: 'Called on an element or a document fragment, it follows the DOM standard … it returns only the receiver's descendants, never the receiver itself … :scope means the receiver … a <template>'s content is never searched')"
     confidence: "high"
     live: true
-    notes: "spec: R-JS-71, R-JS-80."
+    notes: "spec: R-JS-71. Replaces element-query-scans-whole-document: the 2026-09-28 docs listed the whole-document scan as a divergence from browsers."
     steps:
       - name: "PUT the page (public plane; registers inline declarations)"
         as: "anonymous"
@@ -1506,9 +1506,10 @@ cases:
             const H = (x) => String(x).replace(/[<>"]/g, (c) => ({ '<': '[', '>': ']', '"': "'" })[c]);
             const tryName = (f) => { try { f(); return 'ok'; } catch (e) { return e.name + ':' + e.code; } };
             export default function () {
-            const d = new DOMParser().parseFromString('<ul id="a"><li>1</li></ul><ul id="b"><li>2</li><li>3</li></ul>', 'text/html');
+            const d = new DOMParser().parseFromString('<div><ul id="a"><li>1</li></ul><ul id="b"><li>2</li><li>3<ul><li>4</li></ul></li><template><li>t</li></template></ul></div>', 'text/html');
             const b = d.getElementById('b');
-            return 'R:' + S(b.querySelectorAll('li').length, b.querySelector('li').textContent, b.getElementsByTagNameNS('*', 'li').length, b.children.length, b.getElementsByTagNameNS('*', 'ul').length, d.getElementsByTagNameNS('*', 'ul').length);
+            const f = d.createDocumentFragment(); f.appendChild(d.createElement('p'));
+            return 'R:' + S(b.querySelectorAll('li').length, b.querySelector('li').textContent, b.querySelectorAll(':scope > li').length, b.querySelectorAll('div li').length, b.querySelectorAll('ul').length, b.querySelector('#b'), d.querySelectorAll('li').length, f.querySelectorAll('p').length, f.querySelectorAll(':scope > p').length, d.querySelector('template').querySelectorAll('li').length);
             }
             </script>
             </div>
@@ -1527,11 +1528,11 @@ cases:
             Range: "selector=main"
         expect:
           status: 206
-          body_contains: ["R:3|1|2|2|0|2"]
+          body_contains: ["R:3|2|2|3|1|null|4|1|0|0"]
   - id: "javascript.dom.get-element-by-id"
-    title: "getElementById matches the id literally and, on an element, searches its subtree"
+    title: "getElementById matches the id literally and is a member of Document only"
     feature: "DOM Document"
-    source: "docs languages/javascript/server/dom/document §getElementById; docs languages/javascript/server/dom §Divergences (snapshot 2026-09-28)"
+    source: "docs languages/javascript/server/dom/document §getElementById (snapshot 2026-11-23: 'It is a member of Document only, as in the browser, and searches the whole document'; the 2026-09-28 docs scoped it to an element receiver)"
     confidence: "medium"
     live: true
     notes: "spec: R-JS-65, R-JS-71."
@@ -1562,7 +1563,7 @@ cases:
             export default function () {
             const d = new DOMParser().parseFromString('<p id="a.b:c[1]">L</p><div id="w"><span id="in">i</span></div><span id="out">o</span>', 'text/html');
             const w = d.getElementById('w');
-            return 'R:' + S(d.getElementById('a.b:c[1]').textContent, d.getElementById('missing'), w.getElementById('in').textContent, w.getElementById('out'));
+            return 'R:' + S(d.getElementById('a.b:c[1]').textContent, d.getElementById('missing'), typeof w.getElementById, d.getElementById('in').textContent);
             }
             </script>
             </div>
@@ -1581,7 +1582,7 @@ cases:
             Range: "selector=main"
         expect:
           status: 206
-          body_contains: ["R:L|null|i|null"]
+          body_contains: ["R:L|null|undefined|i"]
   - id: "javascript.dom.namespace-pipe-selectors"
     title: "Namespace-pipe selectors: prefix|tag throws SyntaxError; *|tag is tag in any namespace; |tag is tag without a namespace"
     feature: "DOM selectors"

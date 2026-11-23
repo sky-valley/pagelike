@@ -101,7 +101,7 @@ func TestStandaloneElementValues(t *testing.T) {
 		return [e1, ro.querySelector("b").textContent, ro.querySelectorAll("*").length, rw.tagName, rw.firstElementChild.tagName, ro, rw];
 	}`})
 	l := res.Value.([]Value)
-	if l[0] != "NoModificationAllowedError" || l[1] != "1" || l[2] != int64(2) || l[3] != "TR" || l[4] != "TD" {
+	if l[0] != "NoModificationAllowedError" || l[1] != "1" || l[2] != int64(1) || l[3] != "TR" || l[4] != "TD" {
 		t.Errorf("got %v", l)
 	}
 	ro, rw := l[5].(*Element), l[6].(*Element)

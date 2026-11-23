@@ -1463,9 +1463,9 @@ like browsers (inferred).
 | `firstElementChild`, `lastElementChild` | element or `null` |
 | `childElementCount` | number |
 | `nextElementSibling`, `previousElementSibling` | element or `null` |
-| `querySelector(sel)`, `querySelectorAll(sel)` on an element | **scan the whole document** the element belongs to, not the element's subtree (a divergence); on a detached element or constructed subtree: the subtree rooted at its topmost ancestor (pagelike decision) |
+| `querySelector(sel)`, `querySelectorAll(sel)` on an element or a document fragment | the DOM standard (docs snapshot 2026-11-23; the 2026-09-28 docs scanned the whole document): only the receiver's descendants, never the receiver, in document order; the selector is still matched against the whole tree; `:scope` is the element and matches nothing on a fragment; a detached element searches its own subtree; `<template>` contents are never searched |
 | `getElementsByTagNameNS(ns, local)` on an element | the element's descendants only (receiver excluded) |
-| `getElementById(id)` on an element | the element's descendants (receiver excluded; pagelike decision) with the literal match of R-JS-65 |
+| `getElementById(id)` on an element | absent: it is a member of Document only and searches the whole document (docs snapshot 2026-11-23) |
 | `closest(sel)` | nearest inclusive ancestor matching, or `null`; `SyntaxError` on an invalid selector |
 | `matches(sel)` | boolean; `SyntaxError` on an invalid selector |
 | `append(...n)`, `prepend(...n)` | insert at the end / start of the children; string arguments become text nodes |
@@ -1737,9 +1737,8 @@ pagelike MUST reproduce each of these (they are observable to isomorphic
 bindings):
 
 1. Only listed members exist; others are `undefined` (R-JS-64).
-2. `querySelector`/`querySelectorAll` on an element scan the whole document
-   (R-JS-71); `getElementsByTagNameNS`, `closest`, `matches`, `getElementById`
-   and `children` are receiver-scoped.
+2. (Withdrawn by the 2026-11-23 docs: `querySelector`/`querySelectorAll` on
+   an element are scoped to its descendants, R-JS-71.)
 3. `children` and all query results are static `NodeList`s; there is no
    `HTMLCollection`.
 4. `tagName` upper-cased for no-namespace elements, verbatim for
@@ -1756,7 +1755,7 @@ bindings):
 11. Adopting a node from another document deep-copies it.
 12. `CharacterData.length` counts code points.
 13. `DOMException.prototype.toString` has the `DOMException: ` prefix.
-14. `getElementById` exists on elements and is subtree-scoped.
+14. (Withdrawn by the 2026-11-23 docs: `getElementById` is on Document only.)
 15. `XMLSerializer` produces HTML serialization.
 16. `id` and `className` are read-only.
 17. DOM operations are charged against the request budget (R-JS-58).
@@ -2568,7 +2567,7 @@ Requirement → cases (ids without the `javascript.` prefix):
 | R-JS-68 | `dom.names-and-node-types`, `dom.namespace-errors`, `dom.attributes-ns`, `dom.id-and-classname-read-only` |
 | R-JS-69 | `dom.inner-outer-adjacent-html` |
 | R-JS-70 | `dom.classlist` |
-| R-JS-71 | `dom.mutation-errors`, `dom.tree-operations`, `dom.insertion-conveniences`, `dom.closest-and-matches`, `dom.element-query-scans-whole-document`, `dom.get-element-by-id` |
+| R-JS-71 | `dom.mutation-errors`, `dom.tree-operations`, `dom.insertion-conveniences`, `dom.closest-and-matches`, `dom.element-query-is-scoped`, `dom.get-element-by-id` |
 | R-JS-72 | `dom.nodelist-static-snapshot` |
 | R-JS-73 | `dom.mutation-errors`, `dom.namespace-pipe-selectors` |
 | R-JS-74 | `methods.docs-js-method-element`, `dom.domparser-ignores-type` |
@@ -2577,7 +2576,7 @@ Requirement → cases (ids without the `javascript.` prefix):
 | R-JS-77 | `dom.namespace-errors`, `dom.mutation-errors`, `dom.inner-outer-adjacent-html` |
 | R-JS-78 | `dom.reflect-strings-and-urls`, `dom.reflect-booleans`, `dom.reflect-numbers`, `dom.reflect-enums`, `dom.crossorigin-nullable-enum`, `dom.textarea-value-reflects-attribute` |
 | R-JS-79 | `dom.unlisted-members-absent`, `dom.reflect-strings-and-urls`, `dom.reflect-numbers`, `dom.reflect-enums`, `dom.reflect-htmlelement-globals`, `dom.content-editable` |
-| R-JS-80 | `dom.element-query-scans-whole-document` |
+| R-JS-80 | `dom.element-query-is-scoped` |
 | R-JS-85 | `classes.import-class-behaviour`, `classes.static-method-this-is-class` |
 | R-JS-86 | `classes.import-class-behaviour`, `classes.map-schema-extends-map` |
 | R-JS-87 | `classes.default-constructs-instance` |
