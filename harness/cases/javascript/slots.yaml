@@ -967,13 +967,13 @@ cases:
         expect:
           status: 409
           body_contains: ["taken-by-itemtype"]
-  - id: "javascript.slots.schema-validate-this-is-string-context-null"
-    title: "Schema-level @validate: this is the serialized instance (a string) and the context argument is null"
+  - id: "javascript.slots.schema-validate-this-is-object"
+    title: "Schema-level @validate: this is an object of the instance's properties and the context argument is undefined"
     feature: "schema @validate"
-    source: "docs reference/modeling-data/Schema §JavaScript; docs languages/javascript/server/javascript-in-schemas §Slot semantics (snapshot 2026-09-28)"
+    source: "docs languages/javascript/server/javascript-in-schemas §Slot semantics; docs reference/modeling-data/Schema §JavaScript (snapshot 2026-11-23: 'this is the instance, as an object of its properties; the positional context argument is undefined for this slot')"
     confidence: "high"
     live: true
-    notes: "spec: R-JS-15."
+    notes: "spec: R-JS-15. Replaces schema-validate-this-is-string-context-null (2026-09-28 docs: a string and null)."
     steps:
       - name: "register declarations through the public plane (takes effect for the next request)"
         as: "anonymous"
@@ -995,7 +995,7 @@ cases:
             <div itemprop="@validate" itemscope itemtype="https://pagelove.org/JavaScript/Module">
             <script itemprop="source" type="module">
             export default function (context) {
-              return typeof this === 'string' && context === null && this.includes('itemprop="n"');
+              return typeof this === 'object' && context === undefined && this.n === 'x';
             }
             </script>
             </div>
@@ -1009,7 +1009,7 @@ cases:
             </div>
             <div itemprop="@validate" itemscope itemtype="https://pagelove.org/JavaScript/Module">
             <script itemprop="source" type="module">
-            export default function () { return typeof this !== 'string'; }
+            export default function () { return typeof this !== 'object'; }
             </script>
             </div>
             </div>

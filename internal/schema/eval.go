@@ -99,11 +99,9 @@ func sesselFailure(err error) error {
 func jsFailure(err error) error {
 	var tr *JSThrownResponse
 	if errors.As(err, &tr) {
-		st := tr.Status
-		if st == 0 {
-			st = http.StatusInternalServerError
-		}
-		return &thrownResponse{status: st, body: tr.Content(), headers: tr.Headers}
+		// A missing status stays 0: responseError answers 500 for it, and a
+		// validator turns it into the ordinary 422 (R-MOD-47).
+		return &thrownResponse{status: tr.Status, body: tr.Content(), headers: tr.Headers}
 	}
 	var bf *BindingFailure
 	if errors.As(err, &bf) {

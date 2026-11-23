@@ -32,10 +32,25 @@ const (
 )
 
 // itemType returns an element's itemtype attribute, trimmed of ASCII
-// whitespace: the whole value is the type (R-MOD-9, multi-token itemtypes
-// name no schema).
+// whitespace: the whole value, as written.
 func itemType(n *html.Node) string {
 	return dom.TrimHTMLSpace(dom.AttrOr(n, "itemtype", ""))
+}
+
+// itemTypes returns the types an element names, in the order written
+// (R-MOD-9: an itemtype can name several, separated by spaces).
+func itemTypes(n *html.Node) []string {
+	return strings.Fields(dom.AttrOr(n, "itemtype", ""))
+}
+
+// hasType reports whether t is one of the element's types.
+func hasType(n *html.Node, t string) bool {
+	for _, x := range itemTypes(n) {
+		if x == t {
+			return true
+		}
+	}
+	return false
 }
 
 // isItem reports whether n is an element with itemscope.
@@ -77,11 +92,26 @@ func propElements(item *html.Node, name string) []*html.Node {
 	return out
 }
 
-// walkProps visits the elements carrying itemprop within the item scope of
-// item (descendants outside nested items; itemref is not followed for
-// validation, pagelike decision).
+// walkProps visits the elements carrying itemprop that are properties of
+// item, by the microdata rule (R-MOD-17, docs snapshot 2026-11-23): its
+// descendants outside nested items, then the elements its itemref names,
+// wherever they are in the document, each with its own descendants.
+// Template contents are inert and hold no itemref target.
 func walkProps(item *html.Node, fn func(*html.Node)) {
+	seen := map[*html.Node]bool{item: true}
 	var walk func(n *html.Node)
+	visit := func(c *html.Node) {
+		if seen[c] {
+			return
+		}
+		seen[c] = true
+		if dom.HasAttr(c, "itemprop") {
+			fn(c)
+		}
+		if !isItem(c) {
+			walk(c)
+		}
+	}
 	walk = func(n *html.Node) {
 		for c := n.FirstChild; c != nil; c = c.NextSibling {
 			if c.Type != html.ElementNode {
@@ -90,15 +120,43 @@ func walkProps(item *html.Node, fn func(*html.Node)) {
 			if c.Data == "template" && c.Namespace == "" {
 				continue // inert contents
 			}
-			if dom.HasAttr(c, "itemprop") {
-				fn(c)
-			}
-			if !isItem(c) {
-				walk(c)
-			}
+			visit(c)
 		}
 	}
 	walk(item)
+	ids := strings.Fields(dom.AttrOr(item, "itemref", ""))
+	if len(ids) == 0 {
+		return
+	}
+	root := item
+	for root.Parent != nil {
+		root = root.Parent
+	}
+	for _, id := range ids {
+		if n := elementByID(root, id); n != nil {
+			visit(n)
+		}
+	}
+}
+
+// elementByID finds the first element with the id outside template
+// contents, in tree order.
+func elementByID(root *html.Node, id string) *html.Node {
+	for c := root.FirstChild; c != nil; c = c.NextSibling {
+		if c.Type != html.ElementNode {
+			continue
+		}
+		if v, ok := dom.Attr(c, "id"); ok && v == id {
+			return c
+		}
+		if c.Data == "template" && c.Namespace == "" {
+			continue
+		}
+		if n := elementByID(c, id); n != nil {
+			return n
+		}
+	}
+	return nil
 }
 
 // value is a property element's microdata value (R-MOD-19): attribute

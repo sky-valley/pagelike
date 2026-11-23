@@ -153,7 +153,37 @@ func moveSourceParent(w *engine.WriteCtx) *html.Node {
 
 // governed reports whether n is an instance of a registered schema.
 func (r *Registry) governed(n *html.Node) bool {
-	return isItem(n) && r.schemas[itemType(n)] != nil
+	return isItem(n) && len(r.governing(n)) > 0
+}
+
+// governing returns the schemas that govern an item: one for each of its
+// types that has a schema, in the order the types are written. A type with
+// no schema is skipped (R-MOD-9, docs snapshot 2026-11-23).
+func (r *Registry) governing(n *html.Node) []*Schema {
+	var out []*Schema
+	for _, t := range itemTypes(n) {
+		s := r.schemas[t]
+		if s == nil {
+			continue
+		}
+		dup := false
+		for _, x := range out {
+			dup = dup || x == s
+		}
+		if !dup {
+			out = append(out, s)
+		}
+	}
+	return out
+}
+
+// primary is the first governing schema: where one answer is needed (a
+// resolver, a default, the key) the first type wins.
+func (r *Registry) primary(n *html.Node) *Schema {
+	if g := r.governing(n); len(g) > 0 {
+		return g[0]
+	}
+	return nil
 }
 
 // affectedInstances returns the governed instances among the affected

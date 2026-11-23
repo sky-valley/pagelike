@@ -36,7 +36,7 @@ func ApplyRead(ctx context.Context, s *site.Site, snap *site.Snapshot, path stri
 	}
 	var todo []*html.Node
 	for _, n := range instancesUnder(root) {
-		s := reg.schemas[itemType(n)]
+		s := reg.primary(n)
 		if s == nil || s.eff == nil {
 			continue
 		}
@@ -59,7 +59,7 @@ func ApplyRead(ctx context.Context, s *site.Site, snap *site.Snapshot, path stri
 		if !attached(root, inst) {
 			continue
 		}
-		sc := reg.schemas[itemType(inst)]
+		sc := reg.primary(inst)
 		for _, pn := range sc.eff.propOrder {
 			ep := sc.eff.props[pn]
 			if len(ep.ReadChain) == 0 || ep.Decl.Computed != nil {

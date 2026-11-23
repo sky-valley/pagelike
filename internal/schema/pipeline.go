@@ -133,19 +133,20 @@ func (p *pass) run() error {
 	return nil
 }
 
-func (p *pass) schemaOf(inst *html.Node) *Schema { return p.reg.schemas[itemType(inst)] }
+func (p *pass) schemaOf(inst *html.Node) *Schema { return p.reg.primary(inst) }
 
 // eachProp calls fn for every effective property of every affected
 // instance whose schema loaded.
 func (p *pass) eachProp(fn func(inst *html.Node, s *Schema, ep *EffectiveProp) error) error {
 	for _, inst := range p.instances {
-		s := p.schemaOf(inst)
-		if s == nil || s.eff == nil {
-			continue
-		}
-		for _, pn := range s.eff.propOrder {
-			if err := fn(inst, s, s.eff.props[pn]); err != nil {
-				return err
+		for _, s := range p.reg.governing(inst) {
+			if s.eff == nil {
+				continue
+			}
+			for _, pn := range s.eff.propOrder {
+				if err := fn(inst, s, s.eff.props[pn]); err != nil {
+					return err
+				}
 			}
 		}
 	}
@@ -177,14 +178,47 @@ func unprocessable(vs []Violation) error {
 func (p *pass) loadErrors() error {
 	var vs []Violation
 	for _, inst := range p.instances {
-		s := p.schemaOf(inst)
-		if s.loadErr != "" {
-			vs = append(vs, Violation{Check: CheckSchema, ItemType: s.URL, Message: fmt.Sprintf("[%s]: %s", s.URL, s.loadErr)})
+		gov := p.reg.governing(inst)
+		for _, s := range gov {
+			if s.loadErr != "" {
+				vs = append(vs, Violation{Check: CheckSchema, ItemType: s.URL, Message: fmt.Sprintf("[%s]: %s", s.URL, s.loadErr)})
+				continue
+			}
+			vs = append(vs, s.eff.loadErrs...)
+		}
+		vs = append(vs, p.typeConflicts(gov)...)
+	}
+	return unprocessable(dedupe(vs))
+}
+
+// typeConflicts reports the properties two governing schemas declare with
+// types no value can satisfy together: the item is refused whatever it
+// holds (R-MOD-9, docs snapshot 2026-11-23).
+func (p *pass) typeConflicts(gov []*Schema) []Violation {
+	var vs []Violation
+	for i, a := range gov {
+		if a.eff == nil {
 			continue
 		}
-		vs = append(vs, s.eff.loadErrs...)
+		for _, b := range gov[i+1:] {
+			if b.eff == nil {
+				continue
+			}
+			for _, pn := range a.eff.propOrder {
+				bp := b.eff.props[pn]
+				if bp == nil {
+					continue
+				}
+				at, bt := a.eff.props[pn].Decl.Type, bp.Decl.Type
+				if p.reg.typesOverlap(at, bt) {
+					continue
+				}
+				vs = append(vs, Violation{Check: CheckType, ItemType: a.URL, Property: pn,
+					Message: fmt.Sprintf("[%s].%s and [%s].%s: no value can be both %s and %s", a.URL, pn, b.URL, pn, at, bt)})
+			}
+		}
 	}
-	return unprocessable(vs)
+	return vs
 }
 
 // Stage 1, the computed-property guard, is gone: PageLove stores a value
@@ -195,59 +229,62 @@ func (p *pass) loadErrors() error {
 
 func (p *pass) defaults() error {
 	for i, inst := range p.instances {
-		s := p.schemaOf(inst)
 		if voidElements[inst.Data] && inst.Namespace == "" {
 			continue // cannot hold property elements
 		}
-		var view map[string]any
-		for _, pn := range s.eff.propOrder {
-			ep := s.eff.props[pn]
-			if ep.Decl.Computed != nil || len(propElements(inst, pn)) > 0 {
-				continue
-			}
-			d := ep.Decl.Default
-			if d == nil && !ep.AutoKey {
-				continue
-			}
-			var nodes []*html.Node
-			switch {
-			case d == nil:
-				nodes = []*html.Node{newMeta(pn, randomKey())}
-			case d.Lang == LangStatic:
-				nodes = []*html.Node{newMeta(pn, d.Source)}
-			case d.Lang == LangSessel:
-				v, err := p.ev.runSessel(d, sesselEnv{})
-				if err != nil {
-					return p.defaultFailure(s, pn, err)
+		// The first type's default wins: a later type fills only what the
+		// earlier ones leave out (R-MOD-9).
+		for _, s := range p.reg.governing(inst) {
+			var view map[string]any
+			for _, pn := range s.eff.propOrder {
+				ep := s.eff.props[pn]
+				if ep.Decl.Computed != nil || len(propElements(inst, pn)) > 0 {
+					continue
 				}
-				if nodes, err = valueNodes(pn, v); err != nil {
-					return p.defaultFailure(s, pn, err)
+				d := ep.Decl.Default
+				if d == nil && !ep.AutoKey {
+					continue
 				}
-			case d.Lang == LangJS:
-				if view == nil {
-					view = p.reg.instanceView(s.URL, inst, "")
-				}
-				orig := dom.OuterHTML(inst)
-				res, err := p.ev.runJSSlot(d, &JSCall{Slot: JSSlotDefault, This: view, HasThis: true,
-					Args: []any{map[string]any{"document_html": p.html()}}, Document: orig, DocumentWritable: true})
-				if err != nil {
-					return p.defaultFailure(s, pn, err)
-				}
-				if res.Document != "" && res.Document != orig {
-					if n := p.replaceInstanceMarkup(inst, res.Document); n != nil {
-						inst = n
-						p.instances[i] = n
+				var nodes []*html.Node
+				switch {
+				case d == nil:
+					nodes = []*html.Node{newMeta(pn, randomKey())}
+				case d.Lang == LangStatic:
+					nodes = []*html.Node{newMeta(pn, d.Source)}
+				case d.Lang == LangSessel:
+					v, err := p.ev.runSessel(d, sesselEnv{})
+					if err != nil {
+						return p.defaultFailure(s, pn, err)
 					}
+					if nodes, err = valueNodes(pn, v); err != nil {
+						return p.defaultFailure(s, pn, err)
+					}
+				case d.Lang == LangJS:
+					if view == nil {
+						view = p.reg.instanceView(s.URL, inst, "")
+					}
+					orig := dom.OuterHTML(inst)
+					res, err := p.ev.runJSSlot(d, &JSCall{Slot: JSSlotDefault, This: view, HasThis: true,
+						Args: []any{map[string]any{"document_html": p.html()}}, Document: orig, DocumentWritable: true})
+					if err != nil {
+						return p.defaultFailure(s, pn, err)
+					}
+					if res.Document != "" && res.Document != orig {
+						if n := p.replaceInstanceMarkup(inst, res.Document); n != nil {
+							inst = n
+							p.instances[i] = n
+						}
+					}
+					if nodes, err = valueNodes(pn, fromJS(res.Value)); err != nil {
+						return p.defaultFailure(s, pn, err)
+					}
+				default:
+					return p.defaultFailure(s, pn, unknownLanguage(d))
 				}
-				if nodes, err = valueNodes(pn, fromJS(res.Value)); err != nil {
-					return p.defaultFailure(s, pn, err)
+				for _, n := range nodes {
+					setItemprop(n, pn)
+					p.appendChild(inst, n)
 				}
-			default:
-				return p.defaultFailure(s, pn, unknownLanguage(d))
-			}
-			for _, n := range nodes {
-				setItemprop(n, pn)
-				p.appendChild(inst, n)
 			}
 		}
 	}
@@ -362,16 +399,24 @@ func (p *pass) writes() error {
 		if inst == nil || !attached(p.after, inst) {
 			continue
 		}
-		s := p.schemaOf(inst)
-		for _, pn := range s.eff.propOrder {
-			ep := s.eff.props[pn]
-			for _, slot := range ep.WriteChain {
-				elems := propElements(inst, pn)
-				if len(elems) == 0 {
-					break
+		// The first type declaring a property supplies its resolvers
+		// (R-MOD-9).
+		done := map[string]bool{}
+		for _, s := range p.reg.governing(inst) {
+			for _, pn := range s.eff.propOrder {
+				if done[pn] {
+					continue
 				}
-				if err := p.writeStage(s, ep, inst, slot, elems); err != nil {
-					return err
+				done[pn] = true
+				ep := s.eff.props[pn]
+				for _, slot := range ep.WriteChain {
+					elems := propElements(inst, pn)
+					if len(elems) == 0 {
+						break
+					}
+					if err := p.writeStage(s, ep, inst, slot, elems); err != nil {
+						return err
+					}
 				}
 			}
 		}
@@ -390,6 +435,15 @@ func (p *pass) writeFailure(s *Schema, pn string, err error) error {
 	mk := func(f *BindingFailure) []Violation {
 		return []Violation{{Check: CheckWrite, ItemType: s.URL, Property: pn, Failure: f,
 			Message: fmt.Sprintf("[%s].%s: @write failed: %s", s.URL, pn, f.Message)}}
+	}
+	// A thrown response answers only with an error status; with no status
+	// or any other one it is a 422 holding one BindingFailure that does not
+	// name the property, so a refused write is never reported as a success
+	// (R-MOD-47, docs snapshot 2026-11-23).
+	if tr, ok := err.(*thrownResponse); ok && (tr.status < 400 || tr.status > 599) {
+		f := &BindingFailure{Variant: "threw", Message: tr.Error()}
+		return schemaError(http.StatusUnprocessableEntity, []Violation{{Check: CheckWrite, ItemType: s.URL, Failure: f,
+			Message: fmt.Sprintf("[%s]: @write failed: %s", s.URL, f.Message)}})
 	}
 	if e, ok := p.ev.fatal(err, true, mk); ok {
 		return e
@@ -720,7 +774,7 @@ func (p *pass) typeCheck(s *Schema, ep *EffectiveProp, elems []*html.Node) []Vio
 					Message: fmt.Sprintf("%sexpected an item of type %s, found a plain value", pre, t)})
 				continue
 			}
-			if it := itemType(e); !p.reg.IsA(it, t) || it == "" {
+			if it := itemType(e); !p.reg.anyIsA(e, t) {
 				vs = append(vs, Violation{Check: CheckType, ItemType: s.URL, Property: ep.Name,
 					Message: fmt.Sprintf("%sexpected an item of type %s, found an item of type %q", pre, t, it)})
 			}
@@ -731,15 +785,23 @@ func (p *pass) typeCheck(s *Schema, ep *EffectiveProp, elems []*html.Node) []Vio
 
 // ---------------------------------------------------------------- stage 5
 
-func (p *pass) validateFailure(s *Schema, pn string, err error, responses bool) (*errdoc.Error, Violation) {
+// validateFailure maps a validator's failure. A thrown HTTPResponse with an
+// error status (400 to 599) answers the request itself, at either level; one
+// with no status or any other status is the ordinary 422 violation, so a
+// refused write is never reported as a success (R-MOD-47, docs snapshot
+// 2026-11-23).
+func (p *pass) validateFailure(s *Schema, pn string, err error) (*errdoc.Error, Violation) {
 	mk := func(f *BindingFailure) []Violation {
 		return []Violation{p.validateViolation(s, pn, f)}
 	}
-	if e, ok := p.ev.fatal(err, responses, mk); ok {
-		return e, Violation{}
-	}
 	if tr, ok := err.(*thrownResponse); ok {
-		err = &BindingFailure{Language: URLSessel, Variant: "threw", Message: tr.Error()}
+		if tr.status >= 400 && tr.status <= 599 {
+			return responseError(tr.status, tr.body, tr.headers), Violation{}
+		}
+		return nil, p.validateViolation(s, pn, &BindingFailure{Language: URLSessel, Variant: "threw", Message: tr.Error()})
+	}
+	if e, ok := p.ev.fatal(err, false, mk); ok {
+		return e, Violation{}
 	}
 	return nil, p.validateViolation(s, pn, failureOf(err))
 }
@@ -757,25 +819,28 @@ func (p *pass) validateViolation(s *Schema, pn string, f *BindingFailure) Violat
 func (p *pass) propertyValidators() error {
 	var vs []Violation
 	err := p.eachProp(func(inst *html.Node, s *Schema, ep *EffectiveProp) error {
-		slot := ep.Decl.Validate
-		if slot == nil || ep.Decl.Computed != nil {
+		if len(ep.Validators) == 0 || ep.Decl.Computed != nil {
 			return nil
 		}
 		elems := propElements(inst, ep.Name)
 		if len(elems) == 0 {
 			return nil // runs only for properties with a value (R-MOD-45)
 		}
-		ok, err := p.runValidator(slot, JSSlotValidate, elems, ep)
-		if err != nil {
-			e, v := p.validateFailure(s, ep.Name, err, true)
-			if e != nil {
-				return e
+		// Every level of the chain runs, ancestor first, and every refusal
+		// is reported (docs snapshot 2026-11-23).
+		for _, slot := range ep.Validators {
+			ok, err := p.runValidator(slot, JSSlotValidate, elems, ep)
+			if err != nil {
+				e, v := p.validateFailure(s, ep.Name, err)
+				if e != nil {
+					return e
+				}
+				vs = append(vs, v)
+				continue
 			}
-			vs = append(vs, v)
-			return nil
-		}
-		if !ok {
-			vs = append(vs, p.validateViolation(s, ep.Name, nil))
+			if !ok {
+				vs = append(vs, p.validateViolation(s, ep.Name, nil))
+			}
 		}
 		return nil
 	})
@@ -798,7 +863,7 @@ func (p *pass) runValidator(slot *Slot, kind string, elems []*html.Node, ep *Eff
 		if err != nil {
 			return false, err
 		}
-		return sessel.Truthy(v), nil
+		return sesselAccepts(v), nil
 	case LangJS:
 		res, err := p.ev.runJSSlot(slot, &JSCall{Slot: kind, Args: []any{pipelineValue(ep.Decl.Cardinality, elems)}, Document: p.html()})
 		if err != nil {
@@ -807,6 +872,13 @@ func (p *pass) runValidator(slot *Slot, kind string, elems []*html.Node, ep *Eff
 		return jsTruthy(res.Value), nil
 	}
 	return false, unknownLanguage(slot)
+}
+
+// sesselAccepts: a Sessel validator accepts only with the Boolean true; 1,
+// "yes" and [] refuse (R-MOD-45, docs snapshot 2026-11-23).
+func sesselAccepts(v sessel.Value) bool {
+	b, ok := v.(bool)
+	return ok && b
 }
 
 // jsTruthy is JavaScript truthiness over the JSON-like value model.
@@ -833,20 +905,21 @@ func jsTruthy(v any) bool {
 func (p *pass) schemaValidators() error {
 	var vs []Violation
 	for _, inst := range p.instances {
-		s := p.schemaOf(inst)
-		for _, slot := range s.eff.validators {
-			ok, err := p.runSchemaValidator(slot, inst)
-			if err != nil {
-				e, v := p.validateFailure(s, "", err, false)
-				if e != nil {
-					return e
+		for _, s := range p.reg.governing(inst) {
+			for _, slot := range s.eff.validators {
+				ok, err := p.runSchemaValidator(slot, inst)
+				if err != nil {
+					e, v := p.validateFailure(s, "", err)
+					if e != nil {
+						return e
+					}
+					vs = append(vs, v)
+					break
 				}
-				vs = append(vs, v)
-				break
-			}
-			if !ok {
-				vs = append(vs, p.validateViolation(s, "", nil))
-				break
+				if !ok {
+					vs = append(vs, p.validateViolation(s, "", nil))
+					break
+				}
 			}
 		}
 	}
@@ -860,9 +933,9 @@ func (p *pass) runSchemaValidator(slot *Slot, inst *html.Node) (bool, error) {
 		if err != nil {
 			return false, err
 		}
-		return sessel.Truthy(v), nil
+		return sesselAccepts(v), nil
 	case LangJS:
-		res, err := p.ev.runJSSlot(slot, &JSCall{Slot: JSSlotSchemaValidate, This: dom.OuterHTML(inst), HasThis: true, Args: []any{nil}, Document: p.html()})
+		res, err := p.ev.runJSSlot(slot, &JSCall{Slot: JSSlotSchemaValidate, This: p.itemObject(inst), HasThis: true, Args: []any{JSUndefined{}}, Document: p.html()})
 		if err != nil {
 			return false, err
 		}
@@ -871,25 +944,58 @@ func (p *pass) runSchemaValidator(slot *Slot, inst *html.Node) (bool, error) {
 	return false, unknownLanguage(slot)
 }
 
+// itemObject is the instance a schema-level JavaScript validator gets as
+// this: each property a key, a property with more than one value an array, a
+// nested item an object of its own properties, and @type the item type
+// (R-MOD-46, docs snapshot 2026-11-23).
+func (p *pass) itemObject(inst *html.Node) map[string]any {
+	obj := map[string]any{"@type": itemType(inst)}
+	vals := map[string][]any{}
+	var order []string
+	walkProps(inst, func(n *html.Node) {
+		var v any
+		if isItem(n) {
+			v = p.itemObject(n)
+		} else if x := valueOf(n); !x.null {
+			v = x.s
+		}
+		for _, name := range strings.Fields(dom.AttrOr(n, "itemprop", "")) {
+			if _, ok := vals[name]; !ok {
+				order = append(order, name)
+			}
+			vals[name] = append(vals[name], v)
+		}
+	})
+	for _, name := range order {
+		if len(vals[name]) == 1 {
+			obj[name] = vals[name][0]
+		} else {
+			obj[name] = vals[name]
+		}
+	}
+	return obj
+}
+
 // ---------------------------------------------------------------- stage 7
 
 func (p *pass) groups() error {
 	var vs []Violation
 	for _, inst := range p.instances {
-		s := p.schemaOf(inst)
-		for _, g := range s.eff.groups {
-			present := 0
-			for _, m := range g.members {
-				if len(propElements(inst, m)) > 0 {
-					present++
+		for _, s := range p.reg.governing(inst) {
+			for _, g := range s.eff.groups {
+				present := 0
+				for _, m := range g.members {
+					if len(propElements(inst, m)) > 0 {
+						present++
+					}
 				}
+				card := g.decl.Cardinality
+				if cardinalityOK(card, present) {
+					continue
+				}
+				vs = append(vs, Violation{Check: CheckGroup, ItemType: s.URL, Property: strings.Join(g.members, " "),
+					Message: fmt.Sprintf("[%s]: group '%s' constraint violated: %s", s.URL, g.decl.Group, cardinalityDetail(card, present))})
 			}
-			card := g.decl.Cardinality
-			if cardinalityOK(card, present) {
-				continue
-			}
-			vs = append(vs, Violation{Check: CheckGroup, ItemType: s.URL, Property: strings.Join(g.members, " "),
-				Message: fmt.Sprintf("[%s]: group '%s' constraint violated: %s", s.URL, g.decl.Group, cardinalityDetail(card, present))})
 		}
 	}
 	return unprocessable(vs)

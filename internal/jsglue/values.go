@@ -188,6 +188,8 @@ func fromGo(v any) jsrt.Value {
 		return d
 	case int:
 		return int64(x)
+	case schema.JSUndefined:
+		return jsrt.Undefined{}
 	case sessel.List, *sessel.Dict, *sessel.Element, *sessel.SelectorValue:
 		return fromSesselLenient(x, nil)
 	}

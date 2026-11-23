@@ -89,6 +89,9 @@ type JSRunner interface {
 	Run(ctx context.Context, call *JSCall) (*JSResult, error)
 }
 
+// JSUndefined is the JavaScript undefined as a call argument.
+type JSUndefined struct{}
+
 // JSThrownResponse is a thrown plain object whose schema_url (or itemtype)
 // is https://pagelove.org/HTTPResponse.
 type JSThrownResponse struct {

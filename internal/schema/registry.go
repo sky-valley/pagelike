@@ -138,6 +138,7 @@ func (s *Slot) LanguageURL() string {
 type effective struct {
 	props      map[string]*EffectiveProp
 	propOrder  []string
+	groupOwner map[string]string // unique group → the highest type declaring a member
 	groups     []*effGroup
 	validators []*Slot // schema-level, ancestor-first
 	key        *EffectiveProp
@@ -149,9 +150,11 @@ type EffectiveProp struct {
 	Name         string
 	Decl         *PropDecl // most-derived declaration: scalar fields
 	Unique       bool      // union across the chain
+	UniqueOwner  string    // the highest type of the chain declaring unique=true
 	UniqueGroups []string  // union across the chain
 	Groups       []string  // union across the chain
 	WriteChain   []*Slot   // leaf → root
+	Validators   []*Slot   // @validate at every level, root → leaf (R-MOD-45)
 	ReadChain    []*Slot   // root → leaf
 	RefType      string    // valid reference target, when declared and valid
 	RefProp      string
@@ -537,7 +540,7 @@ func (r *Registry) resolveChain(s *Schema) {
 
 // effectiveOf merges the chain's members (R-MOD-11).
 func (r *Registry) effectiveOf(s *Schema) *effective {
-	e := &effective{props: map[string]*EffectiveProp{}}
+	e := &effective{props: map[string]*EffectiveProp{}, groupOwner: map[string]string{}}
 	// Walk root → leaf so that each level overrides the previous one.
 	for i := len(s.chain) - 1; i >= 0; i-- {
 		lvl := s.chain[i]
@@ -549,9 +552,20 @@ func (r *Registry) effectiveOf(s *Schema) *effective {
 				e.propOrder = append(e.propOrder, d.Name)
 			}
 			ep.Decl = d // most-derived supplies the scalar fields
+			if d.Unique && !ep.Unique {
+				ep.UniqueOwner = lvl.URL // root → leaf: the first is the highest
+			}
 			ep.Unique = ep.Unique || d.Unique
+			for _, g := range d.UniqueGroups {
+				if _, ok := e.groupOwner[g]; !ok {
+					e.groupOwner[g] = lvl.URL
+				}
+			}
 			ep.UniqueGroups = union(ep.UniqueGroups, d.UniqueGroups)
 			ep.Groups = union(ep.Groups, d.Groups)
+			if d.Validate != nil {
+				ep.Validators = append(ep.Validators, d.Validate)
+			}
 			if d.Write != nil {
 				ep.WriteChain = append([]*Slot{d.Write}, ep.WriteChain...) // leaf → root
 			}
@@ -601,14 +615,15 @@ func (r *Registry) effectiveOf(s *Schema) *effective {
 		e.groups = append(e.groups, eg)
 	}
 	// @key: own properties in document order first, then the parent's
-	// (R-MOD-33); honoured only with individual unique=true.
+	// (R-MOD-33); honoured only with individual unique=true and a declared
+	// cardinality of 1..1 (docs snapshot 2026-11-23).
 	for _, lvl := range s.chain {
 		for _, d := range lvl.Props {
 			if !d.Key {
 				continue
 			}
 			ep := e.props[d.Name]
-			if ep != nil && ep.Unique && ep.Decl.Computed == nil {
+			if ep != nil && ep.Unique && ep.Decl.Computed == nil && ep.Decl.Cardinality == "1..1" {
 				e.key = ep
 				break
 			}
@@ -623,7 +638,10 @@ func (r *Registry) effectiveOf(s *Schema) *effective {
 	// Compile failures of @validate reject every write (R-MOD-48).
 	for _, pn := range e.propOrder {
 		ep := e.props[pn]
-		if v := ep.Decl.Validate; v != nil && v.Lang == LangSessel {
+		for _, v := range ep.Validators {
+			if v.Lang != LangSessel {
+				continue
+			}
 			if err := v.compile(); err != nil {
 				e.loadErrs = append(e.loadErrs, Violation{Check: CheckValidate, ItemType: s.URL, Property: pn,
 					Message: fmt.Sprintf("[%s].%s: @validate does not compile: %v", s.URL, pn, err)})

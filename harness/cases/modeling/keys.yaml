@@ -308,3 +308,60 @@ cases:
         expect:
           status: 200
           body_contains: ["id=\"abc123\"", "content=\"abc123\""]
+  - id: modeling.keys.needs-cardinality-one
+    title: "@key on a property that is not declared 1..1 is ignored, so no key default is made"
+    area: modeling
+    feature: "primary key"
+    evidence: documented
+    source: "docs reference/modeling-data/Property §Primary key ('A keyed property must be declared cardinality: \"1..1\" … An omitted cardinality … does not qualify either', snapshot 2026-11-23)"
+    confidence: high
+    requires: []
+    live: true
+    notes: "spec: R-MOD-33, R-MOD-35."
+    site:
+      settings:
+        default_get: allow
+      rules:
+        - {actor: "*", resource: "${P}/*", method: [GET, HEAD, PUT], action: Allow}
+    steps:
+      - name: "a unique key with no declared cardinality"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/schema.html"
+          headers: {Content-Type: text/html}
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div hidden itemscope itemtype="https://pagelove.org/Schema">
+                <meta itemprop="type" content="https://pagelike.test${P}/Host">
+                <div itemprop="property" itemscope itemtype="https://pagelove.org/Property">
+                  <meta itemprop="name" content="hid">
+                  <meta itemprop="type" content="https://schema.host/Text">
+                  <meta itemprop="unique" content="true">
+                  <meta itemprop="@key" content="true">
+                </div>
+              </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "a host without hid is stored"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/h.html"
+          headers: {Content-Type: text/html}
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div itemscope itemtype="https://pagelike.test${P}/Host"><span itemprop="label">x</span></div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "no key value was generated"
+        as: author
+        plane: dav
+        request: {method: GET, path: "${P}/h.html"}
+        expect:
+          status: 200
+          body_not_contains: ['itemprop="hid"']

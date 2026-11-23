@@ -15,6 +15,25 @@ Server-sent events (docs snapshot 2026-11-23):
 - Writes made by triggers, processors and methods are streamed, naming the
   requester.
 
+Schemas (docs snapshot 2026-11-23):
+
+- A `unique` group is one shared set of values across its properties, not
+  a tuple; a value twice on one item is refused; subtypes share their
+  ancestor's scope; a conflict on another page no longer names the page.
+- An item whose `itemtype` names several types is governed by every one
+  that has a schema; the first type wins where one answer is needed, and
+  two schemas typing one property incompatibly refuse the item.
+- Elements an item names through `itemref` are its properties when it is
+  validated.
+- `@key` needs a declared cardinality of `1..1`.
+- A Sessel `@validate` accepts only with the Boolean `true`. A property's
+  validators at every level of the inheritance chain run.
+- A validator at either level may throw an HTTPResponse with a status of
+  400 to 599; any other status is the ordinary 422. The same holds for a
+  `@write`: a thrown 200 used to be answered as a success.
+- A schema-level JavaScript `@validate` gets the item as an object of its
+  properties, not its HTML.
+
 Liquid (docs snapshot 2026-11-23):
 
 - `request.body` is parsed by Content-Type: form fields (last value wins),

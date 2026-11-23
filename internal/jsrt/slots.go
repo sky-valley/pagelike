@@ -21,7 +21,8 @@ const (
 	// args = [value]; honours HTTPResponse.
 	SlotValidate Slot = "@validate"
 	// SlotSchemaValidate: schema-level `@validate` (R-JS-15). this = the
-	// serialized instance (string); args = [null].
+	// instance as an object of its properties; args = [undefined]; honours
+	// HTTPResponse (docs snapshot 2026-11-23).
 	SlotSchemaValidate Slot = "schema-@validate"
 	// SlotComputed: `@computed` (R-JS-16). this = instance view; args =
 	// [context].
@@ -67,7 +68,7 @@ var slotTable = map[Slot]slotSpec{
 	SlotRead:                {kind: "read", args: 1, doc: docReadOnly},
 	SlotWrite:               {kind: "write", args: 1, doc: docReadOnly, httpResponse: true},
 	SlotValidate:            {kind: "validate", args: 1, doc: docReadOnly, httpResponse: true},
-	SlotSchemaValidate:      {kind: "schema-@validate", args: 1, doc: docReadOnly},
+	SlotSchemaValidate:      {kind: "schema-@validate", args: 1, doc: docReadOnly, httpResponse: true},
 	SlotComputed:            {kind: "computed", args: 1, doc: docReadOnly},
 	SlotMethod:              {kind: "method", args: -1, doc: docReadOnly, context: true},
 	SlotDispatch:            {kind: "method", args: -1, doc: docReadOnly, context: true},
