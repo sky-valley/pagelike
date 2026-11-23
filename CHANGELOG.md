@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## v0.4.0 — 2026-11-23
 
 Server-sent events (docs snapshot 2026-11-23):
 
