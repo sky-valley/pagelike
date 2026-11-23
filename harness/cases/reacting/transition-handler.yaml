@@ -661,17 +661,17 @@ cases:
           body_contains: ["https://pagelove.org/Transition"]
           body_not_contains: ['"ignored"']
 
-  - id: reacting.th.at-most-once-no-retry
-    title: A failed delivery is not retried, even with retry set
+  - id: reacting.th.failed-delivery-is-retried
+    title: A failed delivery is tried again until it is answered 2xx
     feature: TransitionHandler (delivery)
     evidence: documented
-    source: "docs reference/reacting-to-changes/TransitionHandler §Delivery ('Delivery is at-most-once … retry on the action has no effect') (snapshot 2026-09-28)"
+    source: "docs reference/reacting-to-changes/TransitionHandler §Delivery (snapshot 2026-11-23) ('Delivery is at least once … a failed attempt is tried again with growing delay, up to 36 attempts')"
     confidence: high
     requires: [outbound-http]
-    live: true
-    notes: "spec: R-REACT-82. With retry honoured, a second attempt would arrive after 2 s."
+    live: false
+    notes: "spec: R-REACT-82. The 2026-09-28 docs said at most once and a single attempt; this snapshot supersedes them. live: false because the retry delay is not documented."
     steps:
-      - sink_config: {path: /once, responses: [500]}
+      - sink_config: {path: /once, responses: [500, 200]}
       - name: install a handler with retry 3
         as: anonymous
         request:
@@ -700,8 +700,105 @@ cases:
           headers: {Content-Type: text/html}
           body: '<!DOCTYPE html><html><body><div itemscope itemtype="https://pagelike.test${P}/Order"><meta itemprop="status" content="processing"></div></body></html>'
         expect: {status: [200, 201, 204]}
-      - sink_expect: {path: /once, within_ms: 5000}
-      - sink_expect_none: {path: /once, for_ms: 7000}
+      - sink_expect: {path: /once, within_ms: 5000, body_contains: ['content="processing"']}
+      - sink_expect: {path: /once, within_ms: 8000, body_contains: ['content="processing"']}
+      - sink_expect_none: {path: /once, for_ms: 3000}
+
+  - id: reacting.th.later-notifications-wait
+    title: A notification waits for the earlier ones of the same item and destination
+    feature: TransitionHandler (delivery)
+    evidence: documented
+    source: "docs reference/reacting-to-changes/TransitionHandler §Delivery, §Parked notifications (snapshot 2026-11-23) ('holds up the later notifications for the same item and destination')"
+    confidence: medium
+    requires: [outbound-http]
+    live: false
+    notes: "spec: R-REACT-82. live: false because the retry delay is not documented."
+    steps:
+      - sink_config: {path: /q, responses: [500, 200]}
+      - name: install a handler for two states
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/r/handlers.html"
+          headers: {Content-Type: text/html}
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+            <div itemscope itemtype="https://pagelove.org/TransitionHandler">
+              <meta itemprop="selector" content="[itemtype='https://pagelike.test${P}/Order']">
+              <meta itemprop="property" content="status">
+              <meta itemprop="becomes" content="processing">
+              <meta itemprop="becomes" content="shipped">
+              <div itemprop="action" itemscope itemtype="https://pagelove.org/HttpRequest">
+                <meta itemprop="url" content="${SINK}/q">
+              </div>
+            </div>
+            </body></html>
+        expect: {status: [200, 201, 204]}
+      - name: create an order at processing
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/orders/o.html"
+          headers: {Content-Type: text/html}
+          body: '<!DOCTYPE html><html><body><div itemscope itemtype="https://pagelike.test${P}/Order"><meta itemprop="status" content="processing"></div></body></html>'
+        expect: {status: [200, 201, 204]}
+      - sink_expect: {path: /q, within_ms: 5000, body_contains: ['content="processing"']}
+      - name: move it on while the first notification waits to be tried again
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/orders/o.html"
+          headers: {Content-Type: text/html}
+          body: '<!DOCTYPE html><html><body><div itemscope itemtype="https://pagelike.test${P}/Order"><meta itemprop="status" content="shipped"></div></body></html>'
+        expect: {status: [200, 201, 204]}
+      - sink_expect: {path: /q, within_ms: 8000, body_contains: ['content="processing"']}
+      - sink_expect: {path: /q, within_ms: 5000, body_contains: ['content="shipped"']}
+
+  - id: reacting.th.oversized-notification-refuses-save
+    title: A save that would owe a notification over 256 KiB is refused with a TransitionLimit problem
+    feature: TransitionHandler (limits)
+    evidence: documented
+    source: "docs reference/reacting-to-changes/TransitionHandler §Limits on what a save may notify (snapshot 2026-11-23)"
+    confidence: medium
+    requires: [outbound-http]
+    live: false
+    notes: "spec: R-REACT-86b. live: false because it would leave a large document behind if PageLove accepted it."
+    steps:
+      - name: install a handler
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/r/handlers.html"
+          headers: {Content-Type: text/html}
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+            <div itemscope itemtype="https://pagelove.org/TransitionHandler">
+              <meta itemprop="selector" content="[itemtype='https://pagelike.test${P}/Order']">
+              <meta itemprop="property" content="status">
+              <meta itemprop="becomes" content="processing">
+              <div itemprop="action" itemscope itemtype="https://pagelove.org/HttpRequest">
+                <meta itemprop="url" content="${SINK}/big">
+              </div>
+            </div>
+            </body></html>
+        expect: {status: [200, 201, 204]}
+      - name: an order too large to notify about
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/orders/big.html"
+          headers: {Content-Type: text/html}
+          body: '<!DOCTYPE html><html><body><div itemscope itemtype="https://pagelike.test${P}/Order"><meta itemprop="status" content="processing"><p itemprop="note">${FILL:300000}</p></div></body></html>'
+        expect:
+          status: 422
+          body_contains: ['itemtype="https://pagelove.org/Error/ValidationFailed"', 'A notification this write would send is larger than 262144 bytes, so nothing was saved.', 'itemtype="https://pagelove.org/Problem/TransitionLimit"', '<meta itemprop="limit" content="notification">', '<meta itemprop="max" content="262144">']
+      - name: nothing was saved
+        as: anonymous
+        request: {method: GET, path: "${P}/orders/big.html"}
+        expect: {status: 404}
+      - sink_expect_none: {path: /big, for_ms: 1500}
 
   - id: reacting.th.failed-delivery-does-not-affect-write
     title: A failed delivery never affects the write that fired it

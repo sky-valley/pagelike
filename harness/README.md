@@ -120,6 +120,8 @@ steps:
 
 ### Prefix and isolation
 
+`${FILL:n}` expands to n bytes of filler (for size-limit cases).
+
 `${P}` expands to a unique prefix per case run, e.g. `/_pl/rw-get-3f9a`. Cases
 must put every file and every rule `resource` under `${P}` unless they declare
 `root: true` (runs exclusively; live runs of root cases are opt-in). Locally

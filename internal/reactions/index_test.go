@@ -91,7 +91,7 @@ func TestHandlerAccepts(t *testing.T) {
 	if len(items) != 1 || !ix.handlers[0].accepts(items[0]) {
 		t.Fatalf("handler does not accept the order")
 	}
-	doc, _ := transitionDocument("/o.html", items[0], ix.types)
+	doc, _, _ := transitionDocument("/o.html", items[0], ix.types)
 	if !strings.Contains(doc, `content="[itemtype=&quot;https://t.test/Order&quot;]"`) {
 		t.Fatalf("selector: %s", doc)
 	}

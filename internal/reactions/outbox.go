@@ -25,7 +25,8 @@ const (
 	stateHeld     = "held"
 	statePending  = "pending"
 	stateInflight = "inflight" // a generic attempt is running
-	stateConsumed = "consumed" // a transition delivery was claimed: never sent again (R-REACT-82)
+	stateConsumed = "consumed" // a transition delivery claimed by a release that sent at most once
+	stateParked   = "parked"   // a transition notification that cannot be delivered: it holds up the later ones (R-REACT-82)
 	stateDone     = "done"
 	stateFailed   = "failed"
 )
@@ -39,6 +40,27 @@ const (
 	idleTimeout    = 30 * time.Second // a worker with nothing to deliver stops
 	maxConcurrent  = 16
 )
+
+// Transition notifications are delivered at least once (R-REACT-82, docs
+// snapshot 2026-11-23): up to 36 attempts with growing delay, then parked
+// for 30 days, then dropped.
+const (
+	transitionAttempts = 36
+	parkedFor          = 30 * 24 * time.Hour
+)
+
+// transitionBackoff is the delay before attempt k (k ≥ 2) of a transition
+// notification: min(2^(k-1) s, 1 h). The docs give no schedule.
+func transitionBackoff(k int) time.Duration {
+	if k > 12 {
+		return time.Hour
+	}
+	return time.Second << (k - 1)
+}
+
+// unblocked selects rows no earlier notification of the same item and
+// destination holds up (alias o).
+const unblocked = `(o.okey = '' OR NOT EXISTS (SELECT 1 FROM outbox b WHERE b.okey = o.okey AND b.id < o.id AND b.state IN ('held', 'pending', 'inflight', 'parked')))`
 
 // backoff is the delay before attempt k (k ≥ 2): min(2^(k-1) s, 30 s).
 func backoff(k int) time.Duration {
@@ -133,8 +155,8 @@ func insertTx(tx *store.Tx, reqs []*outRequest, state string) ([]int64, error) {
 		if err != nil {
 			return ids, err
 		}
-		res, err := tx.Exec(`INSERT INTO outbox(created_ms, kind, request, attempts, max_attempts, next_ms, state) VALUES (?,?,?,0,?,?,?)`,
-			tx.Now(), r.Kind, string(b), max(r.Attempts, 1), tx.Now(), state)
+		res, err := tx.Exec(`INSERT INTO outbox(created_ms, kind, request, attempts, max_attempts, next_ms, state, okey) VALUES (?,?,?,0,?,?,?,?)`,
+			tx.Now(), r.Kind, string(b), max(r.Attempts, 1), tx.Now(), state, r.Key)
 		if err != nil {
 			return ids, err
 		}
@@ -157,8 +179,8 @@ func (o *outbox) insert(ctx context.Context, s *site.Site, reqs []*outRequest) e
 			tx.Rollback()
 			return err
 		}
-		if _, err := tx.Exec(`INSERT INTO outbox(created_ms, kind, request, attempts, max_attempts, next_ms, state) VALUES (?,?,?,0,?,?,?)`,
-			now, r.Kind, string(b), max(r.Attempts, 1), now, statePending); err != nil {
+		if _, err := tx.Exec(`INSERT INTO outbox(created_ms, kind, request, attempts, max_attempts, next_ms, state, okey) VALUES (?,?,?,0,?,?,?,?)`,
+			now, r.Kind, string(b), max(r.Attempts, 1), now, statePending, r.Key); err != nil {
 			tx.Rollback()
 			return err
 		}
@@ -247,18 +269,19 @@ func (w *worker) run() {
 }
 
 // recover repairs rows left by a process that stopped mid-delivery:
-// requests held by a response that was never finished are released,
-// interrupted generic attempts are retried if attempts remain, and a
-// transition delivery that was claimed is never sent again (R-REACT-59,
-// R-REACT-82).
+// requests held by a response that was never finished are released, and
+// interrupted attempts are made again if attempts remain: a transition
+// notification is delivered at least once, so a restart may send it twice
+// (R-REACT-59, R-REACT-82). A row an earlier release claimed under its
+// at-most-once rule stays unsent.
 func (w *worker) recover() error {
 	start := w.o.started.UnixMilli()
 	now := time.Now().UnixMilli()
 	if _, err := w.db().Exec(`UPDATE outbox SET state = ?, next_ms = ? WHERE state = ? AND created_ms < ?`, statePending, now, stateHeld, start); err != nil {
 		return err
 	}
-	if _, err := w.db().Exec(`UPDATE outbox SET state = CASE WHEN attempts < max_attempts THEN ? ELSE ? END, next_ms = ? WHERE state = ? AND kind = ?`,
-		statePending, stateFailed, now, stateInflight, kindHTTP); err != nil {
+	if _, err := w.db().Exec(`UPDATE outbox SET state = CASE WHEN attempts < max_attempts THEN ? WHEN kind = ? THEN ? ELSE ? END, next_ms = CASE WHEN attempts >= max_attempts AND kind = ? THEN ? ELSE ? END WHERE state = ?`,
+		statePending, kindTransition, stateParked, stateFailed, kindTransition, now+parkedFor.Milliseconds(), now, stateInflight); err != nil {
 		return err
 	}
 	_, err := w.db().Exec(`UPDATE outbox SET state = ?, last_error = 'interrupted' WHERE state = ?`, stateFailed, stateConsumed)
@@ -269,7 +292,12 @@ func (w *worker) recover() error {
 // time of the next pending one.
 func (w *worker) due() ([]entry, int64, error) {
 	now := time.Now().UnixMilli()
-	rows, err := w.db().Query(`SELECT id, kind, request, attempts, max_attempts FROM outbox WHERE state = ? AND next_ms <= ? ORDER BY id LIMIT 64`, statePending, now)
+	// A parked notification is dropped 30 days after it parked; the ones
+	// queued behind it are then sent.
+	if _, err := w.db().Exec(`UPDATE outbox SET state = ?, last_error = last_error || ' (dropped after 30 days parked)' WHERE state = ? AND next_ms <= ?`, stateFailed, stateParked, now); err != nil {
+		return nil, 0, err
+	}
+	rows, err := w.db().Query(`SELECT o.id, o.kind, o.request, o.attempts, o.max_attempts FROM outbox o WHERE o.state = ? AND o.next_ms <= ? AND `+unblocked+` ORDER BY o.id LIMIT 64`, statePending, now)
 	if err != nil {
 		return nil, 0, err
 	}
@@ -292,20 +320,15 @@ func (w *worker) due() ([]entry, int64, error) {
 		return nil, 0, err
 	}
 	var next sql.NullInt64
-	if err := w.db().QueryRow(`SELECT MIN(next_ms) FROM outbox WHERE state = ?`, statePending).Scan(&next); err != nil {
+	if err := w.db().QueryRow(`SELECT MIN(o.next_ms) FROM outbox o WHERE o.state = ? AND `+unblocked, statePending).Scan(&next); err != nil {
 		return nil, 0, err
 	}
 	return out, next.Int64, nil
 }
 
-// claim marks an attempt as started before it is made: a transition
-// delivery is consumed here, so it can never be sent twice.
+// claim marks an attempt as started before it is made.
 func (w *worker) claim(e entry) bool {
-	st := stateInflight
-	if e.kind == kindTransition {
-		st = stateConsumed
-	}
-	res, err := w.db().Exec(`UPDATE outbox SET state = ?, attempts = attempts + 1 WHERE id = ? AND state = ?`, st, e.id, statePending)
+	res, err := w.db().Exec(`UPDATE outbox SET state = ?, attempts = attempts + 1 WHERE id = ? AND state = ?`, stateInflight, e.id, statePending)
 	if err != nil {
 		return false
 	}
@@ -316,20 +339,32 @@ func (w *worker) claim(e entry) bool {
 func (w *worker) deliver(e entry) {
 	attempt := e.attempts + 1
 	err := w.o.x.send(w.s, &e.req)
+	again := func(d time.Duration) {
+		next := time.Now().Add(d).UnixMilli()
+		w.db().Exec(`UPDATE outbox SET state = ?, next_ms = ?, last_error = ? WHERE id = ?`, statePending, next, err.Error(), e.id)
+	}
 	switch {
 	case err == nil:
 		w.db().Exec(`UPDATE outbox SET state = ?, last_error = '' WHERE id = ?`, stateDone, e.id)
-	case e.kind == kindHTTP && attempt < e.max:
-		next := time.Now().Add(backoff(attempt + 1)).UnixMilli()
-		w.db().Exec(`UPDATE outbox SET state = ?, next_ms = ?, last_error = ? WHERE id = ?`, statePending, next, err.Error(), e.id)
-		select {
-		case w.wake <- struct{}{}:
-		default:
-		}
+	case e.kind == kindTransition && attempt < e.max && !errors.Is(err, errRefusedDestination):
+		again(transitionBackoff(attempt + 1))
+	case e.kind == kindTransition:
+		// Out of attempts, or a destination that can never be sent to:
+		// parked, holding up the later ones for the same item and
+		// destination (R-REACT-82).
+		w.o.x.log.Warn("reactions: transition notification parked", "site", w.s.Name, "url", e.req.URL, "attempts", attempt, "err", err)
+		w.db().Exec(`UPDATE outbox SET state = ?, next_ms = ?, last_error = ? WHERE id = ?`, stateParked, time.Now().Add(parkedFor).UnixMilli(), err.Error(), e.id)
+	case attempt < e.max:
+		again(backoff(attempt + 1))
 	default:
-		// Abandoned: nothing is reported to the client (R-REACT-57/82).
+		// Abandoned: nothing is reported to the client (R-REACT-57).
 		w.o.x.log.Info("reactions: outbound request abandoned", "site", w.s.Name, "url", e.req.URL, "attempts", attempt, "err", err)
 		w.db().Exec(`UPDATE outbox SET state = ?, last_error = ? WHERE id = ?`, stateFailed, err.Error(), e.id)
+	}
+	// A finished delivery may unblock the next one for its item.
+	select {
+	case w.wake <- struct{}{}:
+	default:
 	}
 }
 

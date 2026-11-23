@@ -15,12 +15,15 @@ type outRequest struct {
 	Method   string      `json:"method"`
 	Header   [][2]string `json:"header"`
 	Body     []byte      `json:"body,omitempty"`
-	Attempts int         `json:"attempts"` // 1 + min(retry, 4); 1 for transitions
+	Attempts int         `json:"attempts"` // 1 + min(retry, 4); transitionAttempts for transitions
+	// Key orders a transition notification behind the earlier ones of the
+	// same item and destination (R-REACT-82); empty for other requests.
+	Key string `json:"key,omitempty"`
 }
 
 const (
 	kindHTTP       = "http"       // generic action: bounded retries (R-REACT-57)
-	kindTransition = "transition" // handler delivery: at most once (R-REACT-82)
+	kindTransition = "transition" // handler delivery: at least once, in order (R-REACT-82)
 )
 
 var outboundMethods = map[string]bool{"GET": true, "POST": true, "PUT": true, "DELETE": true, "PATCH": true}

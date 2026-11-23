@@ -3,6 +3,7 @@ package reactions
 import (
 	"context"
 	"errors"
+	"fmt"
 	"net/http"
 	"strings"
 	"time"
@@ -57,6 +58,7 @@ func (x *Reactions) afterWrite(ctx context.Context, w *engine.WriteCtx, res *eng
 		return nil
 	}
 	var reqs []*outRequest
+	var owed notified
 	for _, h := range ix.handlers {
 		for _, p := range cs.pairs {
 			if p.new == nil || !h.accepts(p.new) {
@@ -70,7 +72,7 @@ func (x *Reactions) afterWrite(ctx context.Context, w *engine.WriteCtx, res *eng
 			if soOK && so == vn[0] || !containsStr(h.becomes, vn[0]) {
 				continue
 			}
-			doc, bodyEl := transitionDocument(w.Op.Path, p.new, ix.types)
+			doc, bodyEl, sel := transitionDocument(w.Op.Path, p.new, ix.types)
 			if h.when != nil {
 				pass, err := x.handlerGate(ctx, w, h, doc, bodyEl)
 				if err != nil {
@@ -81,9 +83,16 @@ func (x *Reactions) afterWrite(ctx context.Context, w *engine.WriteCtx, res *eng
 				}
 			}
 			for _, a := range h.actions {
-				if r := x.delivery(st, w, a, doc); r != nil {
-					reqs = append(reqs, r)
+				r := x.delivery(st, w, a, doc)
+				if r == nil {
+					continue
 				}
+				r.Key = w.Op.Path + "\x00" + sel + "\x00" + r.Method + " " + r.URL
+				if err := owed.add(w.Op.Path, sel, r); err != nil {
+					x.log.Warn("reactions: a save's transition notifications pass a size limit; the save is refused", "handler", h.path, "path", w.Op.Path)
+					return err
+				}
+				reqs = append(reqs, r)
 			}
 		}
 	}
@@ -207,12 +216,12 @@ func (x *Reactions) delivery(st *reqState, w *engine.WriteCtx, a *httpAction, do
 		}
 		headers = append(headers, [2]string{hd.key, v})
 	}
-	return &outRequest{Kind: kindTransition, URL: target, Method: method, Header: headers, Body: []byte(doc), Attempts: 1}
+	return &outRequest{Kind: kindTransition, URL: target, Method: method, Header: headers, Body: []byte(doc), Attempts: transitionAttempts}
 }
 
 // transitionDocument renders the Transition document of a changed item
 // (R-REACT-81) and returns it with the delivered copy of the item.
-func transitionDocument(path string, item *html.Node, types *typeInfo) (string, *html.Node) {
+func transitionDocument(path string, item *html.Node, types *typeInfo) (string, *html.Node, string) {
 	t := firstType(item)
 	sel := `[itemtype="` + cssString(t) + `"]`
 	if k := types.keyOf(t); k != "" {
@@ -229,10 +238,68 @@ func transitionDocument(path string, item *html.Node, types *typeInfo) (string, 
 	b.WriteString(`    <meta itemprop="selector" content="` + attrEsc(sel) + `">` + "\n")
 	b.WriteString("    " + dom.OuterHTML(body) + "\n")
 	b.WriteString("  </body>\n</html>\n")
-	return b.String(), body
+	return b.String(), body, sel
 }
 
 // cssString escapes a value for a double-quoted CSS string.
 func cssString(s string) string {
 	return strings.NewReplacer(`\`, `\\`, `"`, `\"`).Replace(s)
+}
+
+// Limits on what one save may notify (R-REACT-86b, docs snapshot
+// 2026-11-23): the notifications are stored with the save, so they have a
+// size.
+const (
+	maxNotification    = 256 << 10 // delivery header and Transition document together
+	maxDeliveryHeader  = 64 << 10
+	maxNotifiedBytes   = 1 << 20
+	maxNotifiedPerSave = 1000
+)
+
+// notified totals the notifications a save owes.
+type notified struct {
+	count int
+	bytes int
+}
+
+// add counts one notification and refuses the save at the first limit it
+// reaches. The problem names no handler: the handler's page is another
+// page.
+func (n *notified) add(path, sel string, r *outRequest) error {
+	header := len(r.Method) + len(r.URL)
+	for _, kv := range r.Header {
+		header += len(kv[0]) + len(kv[1]) + 4
+	}
+	size := header + len(r.Body)
+	n.count++
+	n.bytes += size
+	switch {
+	case header > maxDeliveryHeader:
+		return transitionLimit(path, "header", maxDeliveryHeader, header, sel,
+			fmt.Sprintf("The delivery header of a notification this write would send is larger than %d bytes, so nothing was saved.", maxDeliveryHeader))
+	case size > maxNotification:
+		return transitionLimit(path, "notification", maxNotification, size, sel,
+			fmt.Sprintf("A notification this write would send is larger than %d bytes, so nothing was saved.", maxNotification))
+	case n.bytes > maxNotifiedBytes:
+		return transitionLimit(path, "save-bytes", maxNotifiedBytes, n.bytes, "",
+			fmt.Sprintf("The notifications this write would send are larger than %d bytes in all, so nothing was saved.", maxNotifiedBytes))
+	case n.count > maxNotifiedPerSave:
+		return transitionLimit(path, "save-count", maxNotifiedPerSave, n.count, "",
+			fmt.Sprintf("This write would send more than %d notifications, so nothing was saved.", maxNotifiedPerSave))
+	}
+	return nil
+}
+
+func transitionLimit(path, limit string, maxSize, size int, sel, msg string) error {
+	var b strings.Builder
+	b.WriteString("<!DOCTYPE html>\n<html><body>\n<article itemscope itemtype=\"https://pagelove.org/Error/ValidationFailed\">\n")
+	b.WriteString("  <meta itemprop=\"status\" content=\"422\">\n  <p itemprop=\"message\">" + msg + "</p>\n")
+	b.WriteString("  <meta itemprop=\"resource\" content=\"" + attrEsc(path) + "\">\n")
+	b.WriteString("  <div itemprop=\"problem\" itemscope itemtype=\"https://pagelove.org/Problem/TransitionLimit\">\n")
+	fmt.Fprintf(&b, "    <meta itemprop=\"limit\" content=\"%s\">\n    <meta itemprop=\"max\" content=\"%d\">\n    <meta itemprop=\"size\" content=\"%d\">\n", limit, maxSize, size)
+	if sel != "" {
+		b.WriteString("    <meta itemprop=\"selector\" content=\"" + attrEsc(sel) + "\">\n")
+	}
+	b.WriteString("  </div>\n</article>\n</body></html>\n")
+	return &errdoc.Error{Status: http.StatusUnprocessableEntity, Kind: "ValidationFailed", Message: msg, Document: b.String()}
 }

@@ -75,6 +75,13 @@ Reactions (docs snapshot 2026-11-23):
 - A `when` written as plain text is a Sessel gate. A trigger with one used
   to be skipped, so its guard did not run.
 - A `when` gate is read-only: a save inside it fails the request.
+- Transition handler notifications are delivered at least once: a failed
+  delivery is tried again with growing delay, up to 36 attempts, and is
+  then parked for 30 days, holding up the later notifications for the same
+  item and destination. Deliveries used to be a single attempt.
+- A save whose notifications are too large (one over 256 KiB, a delivery
+  header over 64 KiB, over 1 MiB or 1,000 in all) is refused with 422 and
+  a `TransitionLimit` problem.
 - A transition handler's `when` may be plain text or a JavaScript module. A
   condition that fails now refuses the save (500, naming no handler)
   instead of quietly skipping the notification.
