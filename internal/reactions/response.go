@@ -17,6 +17,9 @@ type thrown struct {
 // respondOutcome sends the response that ended a phase.
 func (x *Reactions) respondOutcome(w http.ResponseWriter, r *http.Request, st *reqState, o outcome) {
 	if o.thrown != nil {
+		if cw, ok := w.(*cacheWriter); ok {
+			cw.thrown = true
+		}
 		o.thrown.write(w, r)
 		return
 	}
@@ -100,4 +103,55 @@ func attrEsc(s string) string {
 // textEsc escapes text content.
 func textEsc(s string) string {
 	return strings.NewReplacer("&", "&amp;", "<", "&lt;", ">", "&gt;").Replace(s)
+}
+
+// cacheWriter keeps a GET or HEAD that a trigger or processor shaped out of
+// shared caches (docs GET-method §Caching, snapshot 2026-11-23; R-RW-155):
+// such a response is sent with Cache-Control: private, no-store, a 304
+// included, and a private max-age is rewritten. Only a thrown HTTPResponse
+// can opt back in, with its own public, max-age or s-maxage directive. A
+// response that sets a cookie never opts in.
+type cacheWriter struct {
+	http.ResponseWriter
+	st     *reqState
+	thrown bool // the response is a thrown HTTPResponse
+	done   bool
+}
+
+func (c *cacheWriter) WriteHeader(code int) {
+	if !c.done {
+		c.done = true
+		if c.st.shaped.Load() {
+			h := c.Header()
+			cc := strings.ToLower(h.Get("Cache-Control"))
+			if !c.thrown || h.Get("Set-Cookie") != "" || !sharedCacheable(cc) {
+				h.Set("Cache-Control", "private, no-store")
+			}
+		}
+	}
+	c.ResponseWriter.WriteHeader(code)
+}
+
+func (c *cacheWriter) Write(b []byte) (int, error) {
+	if !c.done {
+		c.WriteHeader(http.StatusOK)
+	}
+	return c.ResponseWriter.Write(b)
+}
+
+func (c *cacheWriter) Flush() {
+	if f, ok := c.ResponseWriter.(http.Flusher); ok {
+		f.Flush()
+	}
+}
+
+func (c *cacheWriter) Unwrap() http.ResponseWriter { return c.ResponseWriter }
+
+// sharedCacheable reports whether a Cache-Control value lets shared caches
+// store the response: public, s-maxage, or a max-age that is not private.
+func sharedCacheable(cc string) bool {
+	if strings.Contains(cc, "no-store") || strings.Contains(cc, "private") {
+		return false
+	}
+	return strings.Contains(cc, "public") || strings.Contains(cc, "s-maxage") || strings.Contains(cc, "max-age")
 }

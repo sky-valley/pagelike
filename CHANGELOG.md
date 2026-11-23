@@ -25,6 +25,12 @@ Reading and writing:
 - A POST whose body is only whitespace is 422.
 - A POST with no selector to a page that is not a template saves the body as
   the page instead of failing.
+- A GET a trigger or processor ran on is `Cache-Control: private, no-store`
+  unless a thrown HTTPResponse opts back in.
+- Byte ranges: several ranges come back as `multipart/byteranges`, HEAD
+  ignores `Range`, a weak `If-Range` never matches, unsatisfiable ranges get
+  an error item, and pages and files advertise `Accept-Ranges: selector,
+  bytes`.
 
 ## v0.3.0 — 2026-11-20
 

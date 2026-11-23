@@ -59,6 +59,9 @@ func (x *Reactions) Intercept(w http.ResponseWriter, r *http.Request, c *httpapi
 		st.arrival[st.target] = versionIn(snap, st.target)
 	}
 	st.hasSelector = rng.HasSelector()
+	if method == http.MethodGet || method == http.MethodHead {
+		w = &cacheWriter{ResponseWriter: w, st: st}
+	}
 	ctx = withState(ctx, st)
 	r = r.WithContext(ctx)
 	st.r = r

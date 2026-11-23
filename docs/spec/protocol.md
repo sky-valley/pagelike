@@ -1648,3 +1648,34 @@ and sends `bytes` where PageLove serves like a blob.
 **Harness note:** the runner now supports `$${…}` for literal Sessel `${…}`
 (§16's proposal). The Sessel cases use `${sel} from self`, because PageLove has
 no `Selector.execute()`.
+
+## Byte ranges (docs snapshot 2026-11-23)
+
+Shown missing by `harness/cases/protocol/byte-ranges.yaml` before the change.
+
+### R-PROTO-140 — `Accept-Ranges: selector, bytes` on pages and files
+- **Behavior:** every GET and HEAD of a page or stored file, and the 206 and 416
+  answers to a byte range, carry `Accept-Ranges: selector, bytes`.
+- **Source:** DOCS reference/protocol/Accept-Ranges. **Cases:** `protocol.bytes.*`.
+
+### R-PROTO-141 — Single and multiple byte ranges
+- **Behavior:** a GET of a whole page (cut from the final, composed and
+  processed bytes) or a file honours `bytes=`: one range is 206 with
+  `Content-Range`, several are 206 `multipart/byteranges` with a
+  `Content-Type` and `Content-Range` per part. A range ending past the end is
+  cut back; one starting past it is dropped. The whole resource is sent with
+  200 when the header is malformed, lists more than 16 ranges or 64 elements,
+  the body is empty, ranges overlap or are out of order, or the parts (plus
+  128 bytes each) are no smaller than the body. HEAD ignores `Range`.
+- **Source:** DOCS reference/protocol/Byte-Ranges. **Cases:** `protocol.bytes.file`, `protocol.bytes.page`.
+
+### R-PROTO-142 — An unsatisfiable byte range is 416
+- **Behavior:** when every range starts past the last byte, or asks for the
+  last 0 bytes: 416, `Content-Range: bytes */<length>`, an
+  `https://pagelove.org/Error/RangeNotSatisfiable` item.
+- **Source:** DOCS Byte-Ranges §When the range cannot be met. **Cases:** `protocol.bytes.file`.
+
+### R-PROTO-143 — If-Range needs a strong ETag
+- **Behavior:** a weak ETag in `If-Range`, or a weak current ETag (a composed
+  page), never matches, so the whole resource is sent.
+- **Source:** DOCS Byte-Ranges §Making a range conditional. **Cases:** `protocol.bytes.file`.

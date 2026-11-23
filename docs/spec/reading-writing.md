@@ -1679,3 +1679,12 @@ live observation, PageLove's newer docs are the evidence.
   not checked.
 - **Source:** DOCS reference/permissions/AuthorizationRule §resource.
 - **Cases:** `rw.s1123.canonical-path-400`.
+
+### R-RW-155 — A GET your own code shaped is not cached by shared caches
+- **Behavior:** a GET or HEAD that a trigger or processor ran on, or that a
+  thrown HTTPResponse answered, is sent with `Cache-Control: private,
+  no-store` (a `private, max-age` is rewritten). Only a thrown HTTPResponse can
+  opt back in, with its own `public`, `max-age` or `s-maxage`, and never when
+  the response sets a cookie (a visitor's first request sets their session
+  cookie).
+- **Source:** DOCS GET-method §Caching. **Cases:** `reacting.cache.*`.
