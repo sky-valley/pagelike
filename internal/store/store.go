@@ -55,10 +55,6 @@ type Event struct {
 	Data          string // SSE data payload (HTML microdata)
 	OriginSession string
 	OriginConn    string
-	// Also lists further document paths whose live subscribers receive the
-	// event (pages that include Path); not persisted.
-	Also []string
-
 	// Targets are the elements the change produced (for a removal: the
 	// element removed, in the tree it was removed from), attached by the
 	// writer so each stream can check read access to them at delivery
@@ -496,8 +492,22 @@ func (s *Site) Update(ctx context.Context, fn func(*Tx) error) ([]Event, error) 
 
 // EventsAfter returns retained events for path with seq > after, in order.
 func (s *Site) EventsAfter(ctx context.Context, path string, after int64) ([]Event, error) {
+	return s.EventsAfterPaths(ctx, []string{path}, after)
+}
+
+// EventsAfterPaths returns retained events for any of paths with
+// seq > after, in order (a composed page and its sources share one
+// site-wide sequence).
+func (s *Site) EventsAfterPaths(ctx context.Context, paths []string, after int64) ([]Event, error) {
+	if len(paths) == 0 {
+		return nil, nil
+	}
+	args := []any{after}
+	for _, p := range paths {
+		args = append(args, p)
+	}
 	rows, err := s.db.QueryContext(ctx, `SELECT seq, ts_ms, path, name, data, origin_session, origin_conn
-		FROM events WHERE path = ? AND seq > ? ORDER BY seq`, path, after)
+		FROM events WHERE seq > ? AND path IN (?`+strings.Repeat(", ?", len(paths)-1)+`) ORDER BY seq`, args...)
 	if err != nil {
 		return nil, err
 	}

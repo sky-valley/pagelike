@@ -52,6 +52,35 @@ type composer struct {
 	reqSDoc  *sessel.Document
 	sessions map[string]string // transient copies of this session for the document
 	setID    string            // id for the next element's start tag (@key instances)
+
+	// sources are the other stored documents the composition read content
+	// from: includes, stamped elements, binding matches (R-SSE-61).
+	sources map[string]struct{}
+}
+
+// read records path as a source of the composition.
+func (c *composer) read(path string) {
+	if path == "" || path == c.docPath {
+		return
+	}
+	if c.sources == nil {
+		c.sources = map[string]struct{}{}
+	}
+	c.sources[path] = struct{}{}
+}
+
+// readValue records the documents of the queried elements in v.
+func (c *composer) readValue(v sessel.Value) {
+	switch x := v.(type) {
+	case *sessel.Element:
+		if x != nil && x.Doc != nil {
+			c.read(x.Doc.Path)
+		}
+	case sessel.List:
+		for _, e := range x {
+			c.readValue(e)
+		}
+	}
 }
 
 // dispatch charges one unit of the composition budget (R-COMP-27).
@@ -515,6 +544,7 @@ func (c *composer) regionOf(d *sessel.Document) (*region, error) {
 	if d.Path == c.docPath && c.doc.snapRoot == d.Root {
 		return c.doc, nil
 	}
+	c.read(d.Path)
 	return docRegion(c.ctx, c.site, c.snap, d.Path)
 }
 

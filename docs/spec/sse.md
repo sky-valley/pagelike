@@ -802,3 +802,61 @@ locally (`prune_events`, capability `sse-control`), because PageLove resets
 only after pruning, which takes the 10-minute retention window
 (`sse.replay.expired-after-retention`, slow). Both retention cases pass
 locally.
+
+## 10. Changes documented 2026-11-23
+
+Shown missing by `harness/cases/sse/sweep-1123.yaml` before the change.
+
+### R-SSE-60 — Every mutation event names who made the change
+- **Behavior:** after `host` (and `correlation`), a
+  `<div itemprop="actor" itemscope itemtype="https://pagelove.org/Actor">`
+  with `kind` (`session` for a signed-in person, `anonymous` otherwise,
+  `system` for the platform's own tools) and, except for anonymous, `id`:
+  the sign-in id (the subject), never an email address or a name. On a
+  managed host the subject is the opaque identity the host was given.
+  Contribution removal by moderation is `system` / `moderation`. Authoring
+  writes emit no events, so `api-key` and `basic` never appear.
+- **Source:** DOCS Server-Sent-Events §Mutation event fields. **Cases:** `sse.s1123.actor-*`.
+
+### R-SSE-61 — A composed page's stream carries its sources' events
+- **Behavior:** subscribing to a page also delivers, unchanged, the events
+  of the documents its composition reads: includes at any depth, elements
+  stamped from other documents, documents a resource binding matches, and
+  documents of elements an expression binding returns. The sources are
+  worked out by composing the page as the subscriber's GET would, when the
+  stream opens and again whenever the site has changed (on each event, and
+  every 5 s). Writes a trigger, processor or method makes on someone's
+  behalf are streamed like any other and name the requester (superseding
+  the live 2026-09-29 silence); they are not echo-suppressed.
+- **Source:** DOCS Server-Sent-Events §Composed pages, §Changes made on someone's behalf.
+  **Cases:** `sse.s1123.nested-source`, `sse.s1123.binding-source`,
+  `sse.scope.include-not-propagated`, `sse.scope.trigger-side-effect-emits`.
+
+### R-SSE-62 — Source events need a rule granting read of the source
+- **Behavior:** a source's event is delivered only when a rule grants the
+  subscriber read of the source as a subscription (default GET never
+  does), and its elements pass the same per-element checks; otherwise it is
+  skipped silently.
+- **Source:** DOCS Server-Sent-Events §Composed pages. **Cases:** `sse.s1123.source-needs-rule`.
+
+### R-SSE-63 — Replay covers the sources
+- **Behavior:** `Last-Event-ID` replays the retained events of the page and
+  of its current sources. pagelike numbers events once per site, so its ids
+  keep the single-position form; PageLove's multi-position ids exist because
+  its histories are per document. Clients treat both as opaque.
+- **Source:** DOCS Server-Sent-Events §Reconnection. **Cases:** `sse.s1123.replay-source`.
+
+### R-SSE-65 — A write through a composed page is the origin's event
+- **Behavior:** a selector write that lands in an included document is
+  announced with the origin's path and the selector that matched there,
+  on the origin's stream and once on each page composed from it
+  (superseding the live 2026-09-28 announcement on the page's path).
+- **Source:** DOCS Server-Sent-Events §Composed pages. **Cases:** `sse.scope.write-through-event-on-origin`.
+
+### R-SSE-64 — A move between pages is two events with one correlation
+- **Behavior:** the source page's stream gets a DELETE (the selector that
+  named the element), the destination's a POST (the anchor, the placement,
+  the moved element as body). Both carry
+  `<meta itemprop="correlation" content="…">`, 32 random hex digits made
+  for that move; no other event carries one.
+- **Source:** DOCS Server-Sent-Events §A move between pages. **Cases:** `protocol.move-across.events`.

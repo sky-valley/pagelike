@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"net/http"
+	"sort"
 	"strings"
 	"sync"
 	"sync/atomic"
@@ -78,7 +79,6 @@ func init() { server.Extend(Register) }
 // and Router, selector-write routing (write-through, transient elements,
 // route URLs) and templated resource creation.
 func Register(s *server.Server) {
-	engine.EventAudience = includers
 	e := defaultEngine
 	s.Public.Compose = e.Compose
 	s.Public.Route = Route
@@ -106,7 +106,7 @@ func (e *Engine) Compose(ctx context.Context, s *site.Site, snap *site.Snapshot,
 	if err != nil {
 		return nil, err
 	}
-	comp := &engine.Composed{Root: root, Private: res.private, Header: http.Header{}}
+	comp := &engine.Composed{Root: root, Private: res.private, Header: http.Header{}, Sources: res.sources}
 	for k, v := range res.header {
 		comp.Header[k] = v
 	}
@@ -164,7 +164,8 @@ type result struct {
 	// provenance of the composed view, for selector writes
 	anchors []anchor
 	trans   []transRec
-	docPath string // stored path of the composed document
+	docPath string   // stored path of the composed document
+	sources []string // other documents read (composer.sources), sorted
 }
 
 // anchor records that the element starting at off in the composed text is
@@ -213,6 +214,10 @@ func (e *Engine) compose(ctx context.Context, s *site.Site, snap *site.Snapshot,
 	if err != nil {
 		return nil, err
 	}
+	for p := range c.sources {
+		out.sources = append(out.sources, p)
+	}
+	sort.Strings(out.sources)
 	return out, nil
 }
 

@@ -1,9 +1,11 @@
 // Package sse fans committed mutation events out to Server-Sent Events
 // subscribers of a site.
 //
-// Semantics (PageLove docs, Server-Sent Events, snapshot 2026-09-28;
+// Semantics (PageLove docs, Server-Sent Events, snapshot 2026-11-23;
 // docs/spec/sse.md):
-//   - a subscription covers exactly one document path;
+//   - a subscription covers its document path and the documents its
+//     composition reads (its sources, R-SSE-61), which the stream keeps up
+//     to date with Watch;
 //   - the first event on every stream is "pagelove-connection" carrying an
 //     opaque server-assigned connection token;
 //   - a mutation is never delivered back to its writer: with a
@@ -34,6 +36,7 @@ const (
 // Subscriber is one open stream.
 type Subscriber struct {
 	Path    string
+	sources []string // further paths watched (guarded by Broker.mu)
 	Session string
 	Conn    string
 	C       chan store.Event
@@ -44,6 +47,15 @@ type Subscriber struct {
 }
 
 func (s *Subscriber) drop() { s.once.Do(func() { close(s.Dropped) }) }
+
+func (s *Subscriber) isDropped() bool {
+	select {
+	case <-s.Dropped:
+		return true
+	default:
+		return false
+	}
+}
 
 // Received releases an event taken from C from the byte bound.
 func (s *Subscriber) Received(ev store.Event) { s.queued.Add(-int64(len(ev.Data))) }
@@ -81,12 +93,7 @@ func (b *Broker) SubscribeN(path, session string, n int) *Subscriber {
 	}
 	s := &Subscriber{Path: path, Session: session, Conn: NewToken(), C: make(chan store.Event, n), Dropped: make(chan struct{})}
 	b.mu.Lock()
-	m := b.subs[path]
-	if m == nil {
-		m = map[*Subscriber]struct{}{}
-		b.subs[path] = m
-	}
-	m[s] = struct{}{}
+	b.add(s, path)
 	b.mu.Unlock()
 	return s
 }
@@ -94,13 +101,49 @@ func (b *Broker) SubscribeN(path, session string, n int) *Subscriber {
 // Unsubscribe removes a stream.
 func (b *Broker) Unsubscribe(s *Subscriber) {
 	b.mu.Lock()
-	if m := b.subs[s.Path]; m != nil {
+	b.remove(s, s.Path)
+	for _, p := range s.sources {
+		b.remove(s, p)
+	}
+	s.sources = nil
+	b.mu.Unlock()
+}
+
+func (b *Broker) remove(s *Subscriber, path string) {
+	if m := b.subs[path]; m != nil {
 		delete(m, s)
 		if len(m) == 0 {
-			delete(b.subs, s.Path)
+			delete(b.subs, path)
 		}
 	}
-	b.mu.Unlock()
+}
+
+func (b *Broker) add(s *Subscriber, path string) {
+	m := b.subs[path]
+	if m == nil {
+		m = map[*Subscriber]struct{}{}
+		b.subs[path] = m
+	}
+	m[s] = struct{}{}
+}
+
+// Watch replaces the further document paths (a composed page's sources)
+// whose events reach s besides its own path's.
+func (b *Broker) Watch(s *Subscriber, sources []string) {
+	b.mu.Lock()
+	defer b.mu.Unlock()
+	for _, p := range s.sources {
+		if p != s.Path {
+			b.remove(s, p)
+		}
+	}
+	s.sources = nil
+	for _, p := range sources {
+		if p != s.Path {
+			b.add(s, p)
+			s.sources = append(s.sources, p)
+		}
+	}
 }
 
 // Suppressed reports whether ev must not be delivered to s (echo
@@ -125,30 +168,23 @@ func (b *Broker) Publish(events []store.Event) {
 	b.mu.Lock()
 	defer b.mu.Unlock()
 	for _, ev := range events {
-		seen := map[*Subscriber]bool{}
-		for _, p := range append([]string{ev.Path}, ev.Also...) {
-			for s := range b.subs[p] {
-				if seen[s] {
-					continue
-				}
-				seen[s] = true
-				if Suppressed(s, ev) {
-					continue
-				}
-				n := int64(len(ev.Data))
-				if s.queued.Load()+n > BufferBytes {
-					delete(b.subs[p], s)
-					s.drop()
-					continue
-				}
-				select {
-				case s.C <- ev:
-					s.queued.Add(n)
-				default:
-					// Slow consumer: disconnect; it will replay via Last-Event-ID.
-					delete(b.subs[p], s)
-					s.drop()
-				}
+		for s := range b.subs[ev.Path] {
+			if Suppressed(s, ev) || s.isDropped() {
+				continue
+			}
+			n := int64(len(ev.Data))
+			if s.queued.Load()+n > BufferBytes {
+				b.remove(s, ev.Path)
+				s.drop()
+				continue
+			}
+			select {
+			case s.C <- ev:
+				s.queued.Add(n)
+			default:
+				// Slow consumer: disconnect; it will replay via Last-Event-ID.
+				b.remove(s, ev.Path)
+				s.drop()
 			}
 		}
 	}

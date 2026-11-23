@@ -263,7 +263,7 @@ func TestMoveOrderAndEvents(t *testing.T) {
 		op   *engine.Op
 		want int
 	}{
-		{"cross-document before anything else", move("/nope.html", "selector=#a", "selector=#m; placement=append", "/other.html"), http.StatusNotImplemented},
+		{"another page without a MOVE grant there", move("/nope.html", "selector=#a", "selector=#m; placement=append", "/other.html"), http.StatusUnauthorized},
 		{"missing placement", move("/b.html", "selector=#a", "selector=#m", "/b.html"), http.StatusUnprocessableEntity},
 		{"empty source selector", move("/b.html", "selector=", "selector=#m; placement=append", "/b.html"), http.StatusUnprocessableEntity},
 		{"absent source, readable", move("/b.html", "selector=#zz", "selector=#m; placement=append", "/b.html"), http.StatusRequestedRangeNotSatisfiable},

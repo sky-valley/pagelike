@@ -20,6 +20,13 @@ type Mutation struct {
 	Body        string // mutated HTML fragment as stored; the whole document for a whole-document PUT; empty for DELETE
 	Placement   string // POST and MOVE only
 	Destination string // MOVE only: destination anchor selector
+	// Correlation ties the two events of an element move to another page
+	// (R-SSE-64); "" on every other event.
+	Correlation string
+	// ActorKind is who made the change (R-SSE-60): "session" (signed in),
+	// "anonymous" or "system"; "" omits the actor. ActorID is the sign-in
+	// id or the tool's name, never an email address or a display name.
+	ActorKind, ActorID string
 }
 
 // Render produces the Mutation microdata article used as SSE data
@@ -41,6 +48,17 @@ func (m Mutation) Render() string {
 	}
 	span("path", m.Path)
 	span("host", m.Host)
+	if m.Correlation != "" {
+		b.WriteString(`  <meta itemprop="correlation" content="` + escAttr(m.Correlation) + `">` + "\n")
+	}
+	if m.ActorKind != "" {
+		b.WriteString(`  <div itemprop="actor" itemscope itemtype="https://pagelove.org/Actor">` + "\n")
+		b.WriteString(`    <meta itemprop="kind" content="` + escAttr(m.ActorKind) + `">` + "\n")
+		if m.ActorID != "" {
+			b.WriteString(`    <meta itemprop="id" content="` + escAttr(m.ActorID) + `">` + "\n")
+		}
+		b.WriteString("  </div>\n")
+	}
 	b.WriteString(`  <div itemprop="body">` + m.Body + "</div>\n")
 	if m.Placement != "" {
 		span("placement", m.Placement)
@@ -63,6 +81,11 @@ func WholeDocument(data string) bool {
 // quoted ETag reads back verbatim in the raw payload too.
 func escText(s string) string {
 	return strings.NewReplacer("&", "&amp;", "<", "&lt;").Replace(s)
+}
+
+// escAttr escapes a double-quoted attribute value.
+func escAttr(s string) string {
+	return strings.NewReplacer("&", "&amp;", `"`, "&quot;").Replace(s)
 }
 
 // Reset reasons (docs/spec/sse.md R-SSE-33); no others are ever sent.

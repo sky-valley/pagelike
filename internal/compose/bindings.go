@@ -35,6 +35,7 @@ func (c *composer) resourceBinding(name, src string) (sessel.Value, error) {
 		if len(matches) == 0 {
 			continue
 		}
+		c.read(p)
 		d := h.Document(p)
 		if d == nil {
 			d = &sessel.Document{Path: p, Type: pd.Type, Root: pd.Root}
@@ -107,6 +108,7 @@ func (c *composer) sesselBinding(name, src string, sc *scope) (sessel.Value, err
 	if err != nil {
 		return nil, sesselError("e:"+name, err)
 	}
+	c.readValue(v)
 	return v, nil
 }
 
@@ -124,6 +126,7 @@ func (c *composer) jsBinding(n *html.Node, name, src string, sc *scope) (sessel.
 	if res.Private {
 		c.private = true
 	}
+	c.readValue(res.Value)
 	return res.Value, nil
 }
 

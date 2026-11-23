@@ -2,6 +2,26 @@
 
 ## Unreleased
 
+Server-sent events (docs snapshot 2026-11-23):
+
+- Every mutation event names who made the change (`actor`: kind and
+  sign-in id, never an email or a name).
+- A page's stream carries the events of the documents its composition
+  reads, through nested includes, stamps and bindings, and replays them
+  after `Last-Event-ID`. A source's events need a rule granting its read;
+  default GET is not enough.
+- A write through a composed page is announced as the origin document's
+  event.
+- Writes made by triggers, processors and methods are streamed, naming the
+  requester.
+
+MOVE:
+
+- An element can be moved to another page of the site in one step. The
+  source stream gets a DELETE and the destination stream a POST, with a
+  shared `correlation`.
+- An element MOVE answers with the moved element's ETag.
+
 Authorization hardening PageLove documented after the port (docs snapshot
 2026-11-23):
 

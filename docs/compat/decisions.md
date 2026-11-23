@@ -376,3 +376,14 @@ per-area specs under `docs/spec/` keep their own contradiction tables.
   existing Sessel cases now run as `author` and are `live: false`; the
   `.live` sibling of `protocol.query-dav.sessel-served` measures PageLove's
   415.
+
+### D-5 (2026-11-23) SSE follows the 2026-11-23 documentation
+
+- Claims: live 2026-09-28/29 showed a write through a composed page
+  announced on the page's path and no event for trigger side-effect writes;
+  the 2026-11-23 docs announce the former as the origin's event and stream
+  the latter, naming the requester.
+- Decision: follow the newer documentation (R-SSE-61, R-SSE-65).
+  `sse.scope.write-through-event-on-origin` and
+  `sse.scope.trigger-side-effect-emits` now assert it, citing the docs; a
+  later live run settles whether PageLove does it yet.

@@ -1701,3 +1701,23 @@ Shown missing by `harness/cases/protocol/byte-ranges.yaml` before the change.
   `javascript.query.javascript-body-405`, `protocol.options.accept-query`,
   `protocol.options.wildcard-document-expansion`,
   `protocol.query-dav.sessel-served` (+ `.live`).
+
+## MOVE between pages (docs snapshot 2026-11-23)
+
+### R-PROTO-145 — An element MOVE may name another page of the site
+- **Behavior:** with `Destination` naming another page, the element leaves
+  the source and lands at the `Destination-Range` anchor there, in one
+  step. It needs MOVE on both pages, DELETE on the source element and POST
+  at the anchor. It is carried out as a selector DELETE on the source and a
+  POST of the element's markup on the destination in one transaction, so
+  each page runs its own checks and a refusal by either changes neither.
+  A missing destination page or anchor is 404, a destination that is not
+  HTML is 422. `If-Match` conditions the source element. The answer is 204
+  with the moved element's ETag on the destination. Every element MOVE now
+  answers with the moved element's ETag, not the document's.
+  Supersedes R-PROTO-95's 501 (C-12).
+- **Not ported:** the 409 and retry behaviour under concurrent writes
+  (pagelike writes under one per-site lock), and the transaction-bytes
+  MoveLimit.
+- **Source:** DOCS reference/reading-and-writing/MOVE-method §Moving an
+  element to another page, §Authorization. **Cases:** `protocol.move-across.*`.

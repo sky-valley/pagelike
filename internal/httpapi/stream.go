@@ -83,7 +83,8 @@ func (p *Public) subscribe(w http.ResponseWriter, r *http.Request, rc *reqCtx, c
 		<-watched // never touch the connection after the handler returns
 	}()
 
-	st := &stream{p: p, r: r, rc: rc, docPath: docPath, sub: sub, w: w}
+	st := &stream{p: p, r: r, rc: rc, docPath: docPath, sub: sub, w: w, gen: -1}
+	st.refreshSources(ctx)
 	// A ": connected" comment, then the token event, with no id (R-SSE-6,
 	// live 2026-09-28).
 	if _, err := io.WriteString(w, sse.Connected); err != nil {
@@ -110,7 +111,7 @@ func (p *Public) subscribe(w http.ResponseWriter, r *http.Request, rc *reqCtx, c
 			// id is (live 2026-09-29: an id from 1970 replayed the
 			// document's events rather than resetting).
 			last = seq
-			evs, err := s.Store.EventsAfter(ctx, docPath, seq)
+			evs, err := s.Store.EventsAfterPaths(ctx, append([]string{docPath}, st.sources...), seq)
 			if err != nil {
 				return
 			}
@@ -128,6 +129,8 @@ func (p *Public) subscribe(w http.ResponseWriter, r *http.Request, rc *reqCtx, c
 
 	keepalive := time.NewTicker(KeepaliveInterval)
 	defer keepalive.Stop()
+	sourcesTick := time.NewTicker(SourcesInterval)
+	defer sourcesTick.Stop()
 	var sessionTick <-chan time.Time
 	if pr := rc.principal; pr != nil && pr.Authenticated && pr.Session != "" && !strings.HasPrefix(pr.Session, "dev-") {
 		t := time.NewTicker(SessionCheckInterval)
@@ -140,6 +143,8 @@ func (p *Public) subscribe(w http.ResponseWriter, r *http.Request, rc *reqCtx, c
 			return
 		case <-sub.Dropped:
 			return
+		case <-sourcesTick.C:
+			st.refreshSources(ctx)
 		case <-keepalive.C:
 			if _, err := w.Write([]byte(sse.Keepalive)); err != nil {
 				return
@@ -180,6 +185,56 @@ type stream struct {
 	docPath string
 	sub     *sse.Subscriber
 	w       http.ResponseWriter
+
+	// sources are the documents the page's composition reads (R-SSE-61),
+	// worked out for snapshot generation gen.
+	sources []string
+	gen     int64
+}
+
+// SourcesInterval is how often an open stream checks whether its page's
+// sources changed when no event has prompted it.
+const SourcesInterval = 5 * time.Second
+
+// sourcesTimeout bounds one composition that works the sources out.
+const sourcesTimeout = 2 * time.Second
+
+// refreshSources works out the page's sources again when the site changed
+// since they were last worked out, composing the page as the subscriber's
+// GET would, and watches them. A composition that fails keeps the sources
+// known so far.
+func (st *stream) refreshSources(ctx context.Context) {
+	if st.p.Compose == nil {
+		return
+	}
+	s := st.rc.site
+	snap, err := s.Index(ctx)
+	if err != nil || snap.Generation == st.gen {
+		return
+	}
+	doc, err := s.Store.Get(ctx, st.docPath)
+	if err != nil || doc.IsBlob() || !site.IsMarkup(doc.ContentType) {
+		st.gen = snap.Generation
+		st.setSources(nil)
+		return
+	}
+	cctx, cancel := context.WithTimeout(ctx, sourcesTimeout)
+	defer cancel()
+	op := st.p.readOp(st.r, st.rc, http.MethodGet, st.docPath, engine.Range{})
+	op.Header = op.Header.Clone()
+	op.Header.Del("Accept")
+	op.Accept = ""
+	comp, err := st.p.Compose(cctx, s, snap, doc, nil, op)
+	if err != nil {
+		return // retried on the next tick
+	}
+	st.gen = snap.Generation
+	st.setSources(comp.Sources)
+}
+
+func (st *stream) setSources(paths []string) {
+	st.sources = paths
+	st.rc.site.Broker.Watch(st.sub, paths)
 }
 
 // deliver writes ev unless echo suppression or read authorization withholds
@@ -189,6 +244,7 @@ func (st *stream) deliver(ctx context.Context, ev store.Event) bool {
 	if sse.Suppressed(st.sub, ev) {
 		return true
 	}
+	defer st.refreshSources(ctx) // an include may have come or gone
 	ok, keep := st.readable(ctx, ev)
 	if !keep {
 		return false
@@ -219,6 +275,17 @@ func (st *stream) readable(ctx context.Context, ev store.Event) (ok, keep bool) 
 	sreq.Subscribe = true
 	if !pol.Decide(sreq, nil).Allowed {
 		return false, false
+	}
+	if ev.Path != st.docPath {
+		// A source's events need a rule granting read of the source, as
+		// the subscription itself does: default GET never grants them
+		// (R-SSE-62). A source the subscriber may not read is skipped.
+		req = st.p.authzReq(st.r, st.rc, http.MethodGet, ev.Path)
+		sreq = req
+		sreq.Subscribe = true
+		if !pol.Decide(sreq, nil).Allowed {
+			return false, true
+		}
 	}
 	if sse.WholeDocument(ev.Data) {
 		return true, true

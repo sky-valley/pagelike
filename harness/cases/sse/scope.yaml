@@ -63,18 +63,17 @@ cases:
       - sse_close: {name: partial}
 
   - id: sse.scope.write-through-event-on-origin
-    title: A write addressed to an included element lands on the origin and is announced on the written page's stream only
+    title: A write addressed to an included element is announced as the origin's event, on the origin's stream and once on the page's
     area: sse
     feature: composed resources
-    evidence: live-observed
-    source: "harness/observations/live-2026-09-28/sse-scope-write-through-event-on-origin.json (the event, path page.html, reached the page's stream; none on the partial's); docs reference/composing-pages/Includes §Interaction with HTTP Document Mutation (snapshot 2026-09-28)"
+    evidence: documented
+    source: "docs reference/reading-and-writing/Server-Sent-Events §Composed pages (\"its event names the origin's path and the selector that matched there. Subscribers of the origin receive it … A page subscriber receives it once, with the origin's path\") (snapshot 2026-11-23); superseding harness/observations/live-2026-09-28/sse-scope-write-through-event-on-origin.json"
     confidence: high
     requires: []
     live: true
     notes: >-
-      The id keeps its original name; R-SSE-11/19 superseded (docs/compat/decisions.md). The
-      selector reported is the request's (Q12). Needs includes (composition), not yet
-      implemented in pagelike.
+      R-SSE-65. The 2026-11-23 docs supersede the 2026-09-28 observation (event on the page's
+      path only). The selector reported is the request's, which matched in the origin.
     site:
       files:
         - path: "${P}/partial.html"
@@ -107,9 +106,15 @@ cases:
           name: page
           event: mutation
           within_ms: 3000
-          data_microdata: {method: PUT, path: "${P}/page.html", selector: "header#nav"}
+          data_microdata: {method: PUT, path: "${P}/partial.html", selector: "header#nav"}
           data_contains: ["Nav via page"]
-      - sse_expect_none: {name: partial, event: mutation, for_ms: 1500}
+      - sse_expect:
+          name: partial
+          event: mutation
+          within_ms: 3000
+          data_microdata: {method: PUT, path: "${P}/partial.html", selector: "header#nav"}
+          data_contains: ["Nav via page"]
+      - sse_expect_none: {name: page, event: mutation, for_ms: 1500}
       - name: the origin received the write
         as: anonymous
         request: {method: GET, path: "${P}/partial.html"}
@@ -194,17 +199,16 @@ cases:
       - sse_close: {name: s1}
 
   - id: sse.scope.trigger-side-effect-emits
-    title: "A trigger's Pagelove.PUT side-effect write is not announced on the side document's stream"
+    title: "A trigger's Pagelove.PUT side-effect write is announced on the side document's stream, naming the requester"
     area: sse
     feature: trigger side-effect writes
-    evidence: live-observed
-    source: "harness/observations/live-2026-09-29-confirm/sse-scope-trigger-side-effect-emits.json (after a 61 s wait the trigger wrote side.html; the side stream got no event); docs reference/reacting-to-changes/Trigger §Side-effect writes (snapshot 2026-09-28); docs/spec/sse.md R-SSE-23"
+    evidence: documented
+    source: "docs reference/reading-and-writing/Server-Sent-Events §Changes made on someone's behalf (\"a document written by a trigger or processor, or by a method, names the person whose request ran it\") (snapshot 2026-11-23); superseding harness/observations/live-2026-09-29-confirm/sse-scope-trigger-side-effect-emits.json"
     confidence: medium
     requires: [sessel, slow]
     live: true
     notes: >-
-      The id keeps its original name. Probe Q11 settled against R-SSE-23 (docs/compat/decisions.md).
-      The trigger only matches PUT on doc.html, so the side write cannot re-trigger it. The first
+      R-SSE-61. The 2026-11-23 docs supersede the 2026-09-29 observation (no event). The trigger only matches PUT on doc.html, so the side write cannot re-trigger it. The first
       two live runs were inconclusive (the trigger had not taken effect a few seconds after upload,
       a harness artifact); the case waits 61 s after setup, as for transition constraints'
       documented propagation, and is therefore slow.
@@ -252,7 +256,12 @@ cases:
           body: "<h1>Triggered</h1>"
         expect: {status: 206}
       - sse_expect: {name: main, event: mutation, within_ms: 3000, data_microdata: {method: PUT, path: "${P}/doc.html"}}
-      - sse_expect_none: {name: side, event: mutation, for_ms: 3000}
+      - sse_expect:
+          name: side
+          event: mutation
+          within_ms: 3000
+          data_microdata: {method: PUT, path: "${P}/side.html"}
+          data_contains: ['<meta itemprop="kind" content="anonymous">']
       - name: the trigger wrote the side document
         as: anonymous
         request: {method: GET, path: "${P}/side.html"}

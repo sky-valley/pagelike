@@ -1,0 +1,162 @@
+# MOVE of an element to another page of the site (docs snapshot 2026-11-23).
+# Spec: docs/spec/protocol.md R-PROTO-145; docs/spec/sse.md R-SSE-64.
+defaults:
+  area: protocol
+  evidence: documented
+  source: "docs reference/reading-and-writing/MOVE-method §Moving an element to another page, §Authorization, §Error cases (snapshot 2026-11-23)"
+  confidence: high
+  site:
+    files:
+      - path: "${P}/board.html"
+        body: |
+          <!DOCTYPE html>
+          <html><body>
+          <section class="lane" id="lane-todo"><article class="card" id="card-1">One</article><article class="card" id="card-3">Three</article></section>
+          </body></html>
+      - path: "${P}/archive.html"
+        body: |
+          <!DOCTYPE html>
+          <html><body><section class="lane" id="lane-done"><article class="card" id="card-9">Nine</article></section></body></html>
+    rules:
+      - {actor: "*", resource: "${P}/*", method: [GET, MOVE, DELETE, POST], action: Allow}
+cases:
+  - id: protocol.move-across.moves
+    title: An element MOVE to another page takes it off the source and puts it at the destination anchor
+    feature: MOVE between pages
+    live: true
+    notes: "R-PROTO-145. 204; the ETag is the moved element's, as a GET of it on the destination returns."
+    steps:
+      - name: move the card to the archive
+        as: anonymous
+        request:
+          method: MOVE
+          path: "${P}/board.html"
+          headers:
+            Range: "selector=#card-3"
+            Destination: "${P}/archive.html"
+            Destination-Range: "selector=#lane-done; placement=prepend"
+        expect: {status: 204, headers_present: [ETag]}
+        capture: {move_etag: header.ETag}
+      - name: gone from the board
+        as: anonymous
+        request: {method: GET, path: "${P}/board.html"}
+        expect: {status: 200, body_not_contains: ['id="card-3"'], body_contains: ['id="card-1"']}
+      - name: first in the archive lane, with the ETag the MOVE sent
+        as: anonymous
+        request: {method: GET, path: "${P}/archive.html", headers: {Range: "selector=#lane-done > :first-child"}}
+        expect:
+          status: 206
+          body: '<article class="card" id="card-3">Three</article>'
+          etag_equals: "${move_etag}"
+
+  - id: protocol.move-across.events
+    title: A move to another page sends a DELETE on the source's stream and a POST on the destination's, with one correlation
+    feature: MOVE between pages
+    live: true
+    notes: "R-SSE-64."
+    steps:
+      - sse_open: {name: board, path: "${P}/board.html", as: anonymous}
+      - sse_open: {name: archive, path: "${P}/archive.html", as: anonymous}
+      - sse_expect: {name: board, event: pagelove-connection, within_ms: 3000}
+      - sse_expect: {name: archive, event: pagelove-connection, within_ms: 3000}
+      - name: move
+        as: anonymous
+        request:
+          method: MOVE
+          path: "${P}/board.html"
+          headers:
+            Range: "selector=#card-3"
+            Destination: "${P}/archive.html"
+            Destination-Range: "selector=#lane-done; placement=append"
+        expect: {status: 204}
+      - sse_expect:
+          name: board
+          event: mutation
+          within_ms: 3000
+          data_microdata: {method: DELETE, selector: "#card-3", path: "${P}/board.html"}
+          data_matches: '<meta itemprop="correlation" content="[0-9a-f]{32}">'
+          capture: {corr: 'data|regex:correlation" content="([0-9a-f]{32})"'}
+      - sse_expect:
+          name: archive
+          event: mutation
+          within_ms: 3000
+          data_microdata: {method: POST, selector: "#lane-done", placement: append, path: "${P}/archive.html"}
+          data_contains: ['<meta itemprop="correlation" content="${corr}">', 'id="card-3"']
+      - sse_close: {name: board}
+      - sse_close: {name: archive}
+
+  - id: protocol.move-across.missing-destination-404
+    title: An element move to a page that does not exist is 404 and changes nothing
+    feature: MOVE between pages
+    live: true
+    notes: "R-PROTO-145."
+    steps:
+      - name: move to nowhere
+        as: anonymous
+        request:
+          method: MOVE
+          path: "${P}/board.html"
+          headers:
+            Range: "selector=#card-3"
+            Destination: "${P}/nowhere.html"
+            Destination-Range: "selector=#lane-done; placement=append"
+        expect: {status: 404}
+      - name: source unchanged
+        as: anonymous
+        request: {method: GET, path: "${P}/board.html"}
+        expect: {status: 200, body_contains: ['id="card-3"']}
+
+  - id: protocol.move-across.missing-anchor-changes-nothing
+    title: An element move whose anchor is missing on the destination page is 404 and the source keeps the element
+    feature: MOVE between pages
+    live: true
+    notes: "R-PROTO-145: the move happens all at once or not at all."
+    steps:
+      - name: move to a missing anchor
+        as: anonymous
+        request:
+          method: MOVE
+          path: "${P}/board.html"
+          headers:
+            Range: "selector=#card-3"
+            Destination: "${P}/archive.html"
+            Destination-Range: "selector=#no-lane; placement=append"
+        expect: {status: 404}
+      - name: source unchanged
+        as: anonymous
+        request: {method: GET, path: "${P}/board.html"}
+        expect: {status: 200, body_contains: ['id="card-3"']}
+
+  - id: protocol.move-across.needs-move-on-destination
+    title: A move to another page needs a MOVE grant on the destination page too
+    feature: MOVE between pages
+    live: true
+    notes: "R-PROTO-145: MOVE on both pages, DELETE on the source element, POST at the anchor."
+    site:
+      files:
+        - path: "${P}/board.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body><section class="lane" id="lane-todo"><article class="card" id="card-3">Three</article></section></body></html>
+        - path: "${P}/archive.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body><section class="lane" id="lane-done"></section></body></html>
+      rules:
+        - {actor: "*", resource: "${P}/*", method: [GET, DELETE, POST], action: Allow}
+        - {actor: "*", resource: "${P}/board.html", method: [MOVE], action: Allow}
+    steps:
+      - name: no MOVE on the archive
+        as: anonymous
+        request:
+          method: MOVE
+          path: "${P}/board.html"
+          headers:
+            Range: "selector=#card-3"
+            Destination: "${P}/archive.html"
+            Destination-Range: "selector=#lane-done; placement=append"
+        expect: {status: 401}
+      - name: source unchanged
+        as: anonymous
+        request: {method: GET, path: "${P}/board.html"}
+        expect: {status: 200, body_contains: ['id="card-3"']}
