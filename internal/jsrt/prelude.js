@@ -420,6 +420,189 @@ const __pagelike = (() => {
       configurable: true, enumerable: false,
     });
   };
+  // ---------------------------------------------------------------- Temporal (R-JS-43)
+  // The Temporal global (docs snapshot 2026-11-23). The classes hold a
+  // value's type and text and nothing else: every constructor, static and
+  // method is one "temporal" request to the worker, which runs it on the
+  // date and time engine Sessel uses. Built on first use.
+  const RangeErrorFn = RangeError;
+  const BigIntFn = BigInt;
+  const DateFn = Date;
+  const dateGetTime = uncurry(Date.prototype.getTime);
+  const dateToISO = uncurry(Date.prototype.toISOString);
+  const isProtoOf = uncurry(Object.prototype.isPrototypeOf);
+  const SymToPrimitive = Symbol.toPrimitive;
+  const SymToStringTag = Symbol.toStringTag;
+  // An exact time is kept for the years 1678 to 2261 (R-JS-43).
+  const MIN_EXACT_MS = Date.UTC(1678, 0, 1);
+  const MAX_EXACT_MS = Date.UTC(2262, 0, 1);
+  let T = null;
+  const temporal = () => T || (T = buildTemporal());
+  const buildTemporal = () => {
+    const state = new WeakMap(); // Temporal object -> { k: type, s: text, f: getters or undefined }
+    const classes = ObjCreate(null);
+    const make = (k, s, f) => {
+      const o = ObjCreate(classes[k].prototype);
+      wmSet(state, o, { k, s, f });
+      return o;
+    };
+    const fix = (f) => {
+      for (const k of ObjKeys(f)) {
+        const v = f[k];
+        if (v !== null && typeof v === "object") f[k] = BigIntFn(v.$big);
+      }
+      return f;
+    };
+    const revive = (v) => {
+      if (v === null || typeof v !== "object") return v;
+      if (typeof v.$t === "string") return make(v.$t, v.s, fix(v.f));
+      if (typeof v.$big === "string") return BigIntFn(v.$big);
+      return fix(v);
+    };
+    const enc = (v, depth) => {
+      switch (typeof v) {
+        case "undefined": return null;
+        case "string": case "boolean": return v;
+        case "number": return NumberIsFinite(v) ? v : { $n: StringFn(v) };
+        case "bigint": return { $big: StringFn(v) };
+        case "symbol": return { $x: "symbol" };
+        case "function": return { $x: "function" };
+      }
+      if (v === null) return null;
+      const st = wmGet(state, v);
+      if (st !== undefined) return { $t: st.k, s: st.s };
+      const o = ObjCreate(null);
+      if (depth < 3) {
+        let n = 0;
+        for (const k in v) {
+          if (++n > 64) break;
+          const x = v[k];
+          if (x !== undefined) o[k] = enc(x, depth + 1);
+        }
+      }
+      return { $o: o };
+    };
+    const tsys = (k, m, s, a) => {
+      const args = [];
+      for (let i = 0; i < a.length; i++) arrayPush(args, enc(a[i], 0));
+      let out;
+      try {
+        out = sys("temporal", JSONstringify({ k, m, s, a: args }));
+      } catch (e) {
+        const msg = StringFn(e && e.message);
+        const i = msg.indexOf("|");
+        if (i > 0) throw new (msg.slice(0, i) === "RangeError" ? RangeErrorFn : TypeErrorFn)(msg.slice(i + 1));
+        throw e;
+      }
+      return revive(JSONparse(out));
+    };
+    // An object where an Instant is expected is read through its primitive
+    // value, which must be a string.
+    const instantArg = (v) => {
+      if (v === null || typeof v !== "object") return v;
+      const st = wmGet(state, v);
+      if (st !== undefined) return st.k === "Instant" || st.k === "ZonedDateTime" ? v : st.s;
+      let p = v;
+      const exotic = v[SymToPrimitive];
+      if (exotic !== undefined && exotic !== null) {
+        p = ReflectApply(exotic, v, ["string"]);
+      } else {
+        for (const name of ["toString", "valueOf"]) {
+          const f = v[name];
+          if (typeof f !== "function") continue;
+          const r = ReflectApply(f, v, []);
+          if (r === null || typeof r !== "object") { p = r; break; }
+        }
+      }
+      if (typeof p !== "string") throw new TypeErrorFn("an Instant is made from a string, an Instant or a ZonedDateTime");
+      return p;
+    };
+    const prep = (k, m, a) => {
+      if (k !== "Instant") return a;
+      if (m === "from" || m === "equals" || m === "until" || m === "since") a[0] = instantArg(a[0]);
+      if (m === "compare") { a[0] = instantArg(a[0]); a[1] = instantArg(a[1]); }
+      return a;
+    };
+    const hidden = (o, name, value) => ObjDefine(o, name, { value, writable: true, configurable: true, enumerable: false });
+    const define = (k, getters, methods, statics) => {
+      const self = (o) => {
+        const st = o !== null && typeof o === "object" ? wmGet(state, o) : undefined;
+        if (st === undefined || st.k !== k) throw new TypeErrorFn("this is not a Temporal." + k);
+        return st;
+      };
+      const C = class {
+        constructor(...a) {
+          // Reflect.construct with a new target that is not the type or a
+          // subclass of it is refused.
+          if (new.target !== C && !isProtoOf(C, new.target)) throw new TypeErrorFn("Temporal." + k + " is constructed as itself or a subclass");
+          wmSet(state, this, wmGet(state, tsys(k, "new", null, a)));
+        }
+      };
+      ObjDefine(C, "name", { value: k, configurable: true });
+      const P = C.prototype;
+      for (const g of getters) {
+        ObjDefine(P, g, {
+          get() {
+            const st = self(this);
+            if (st.f === undefined) st.f = tsys(k, "fields", st.s, []);
+            return st.f[g];
+          },
+          configurable: true, enumerable: false,
+        });
+      }
+      for (const m of methods) {
+        hidden(P, m, { [m](...a) { return tsys(k, m, self(this).s, prep(k, m, a)); } }[m]);
+      }
+      hidden(P, "toJSON", { toJSON() { return self(this).s; } }.toJSON);
+      hidden(P, "valueOf", { valueOf() { throw new TypeErrorFn("a Temporal." + k + " has no primitive value: compare with compare() or equals()"); } }.valueOf);
+      ObjDefine(P, SymToStringTag, { value: "Temporal." + k, configurable: true });
+      for (const m of statics) {
+        hidden(C, m, { [m](...a) { return tsys(k, m, null, prep(k, m, a)); } }[m]);
+      }
+      classes[k] = C;
+    };
+    const DATE = ["calendarId", "year", "month", "monthCode", "day", "dayOfWeek", "dayOfYear", "weekOfYear", "yearOfWeek",
+      "daysInWeek", "daysInMonth", "daysInYear", "monthsInYear", "inLeapYear"];
+    const TIME = ["hour", "minute", "second", "millisecond", "microsecond", "nanosecond"];
+    const TEXT = ["toString", "toLocaleString"];
+    const MATH = ["add", "subtract", "until", "since", "with", "equals"];
+    define("PlainDate", DATE, [...TEXT, ...MATH, "toPlainDateTime", "toZonedDateTime", "toPlainYearMonth", "toPlainMonthDay"], ["from", "compare"]);
+    define("PlainTime", TIME, [...TEXT, ...MATH], ["from", "compare"]);
+    define("PlainDateTime", [...DATE, ...TIME], [...TEXT, ...MATH, "toPlainDate", "toPlainTime", "toZonedDateTime"], ["from", "compare"]);
+    define("ZonedDateTime", [...DATE, ...TIME, "timeZoneId", "offset", "epochMilliseconds", "epochNanoseconds"],
+      [...TEXT, ...MATH, "withTimeZone", "toInstant", "toPlainDate", "toPlainTime", "toPlainDateTime"], ["from", "compare"]);
+    define("Instant", ["epochMilliseconds", "epochNanoseconds"], [...TEXT, "add", "subtract", "until", "since", "equals", "toZonedDateTimeISO"],
+      ["from", "compare", "fromEpochMilliseconds", "fromEpochNanoseconds"]);
+    define("Duration", ["years", "months", "weeks", "days", "hours", "minutes", "seconds", "milliseconds", "microseconds", "nanoseconds", "sign", "blank"],
+      [...TEXT, "with", "negated", "abs", "add", "subtract", "total"], ["from", "compare"]);
+    define("PlainYearMonth", ["calendarId", "year", "month", "monthCode", "daysInMonth", "daysInYear", "monthsInYear", "inLeapYear"],
+      [...TEXT, ...MATH, "toPlainDate"], ["from", "compare"]);
+    define("PlainMonthDay", ["calendarId", "monthCode", "day"], [...TEXT, "with", "equals", "toPlainDate"], ["from"]);
+    const Now = {};
+    for (const m of ["instant", "timeZoneId", "plainDateISO", "plainTimeISO", "plainDateTimeISO", "zonedDateTimeISO"]) {
+      hidden(Now, m, { [m](...a) { return tsys("Now", m, null, a); } }[m]);
+    }
+    ObjDefine(Now, SymToStringTag, { value: "Temporal.Now", configurable: true });
+    const ns = {};
+    for (const k of ObjKeys(classes)) hidden(ns, k, classes[k]);
+    hidden(ns, "Now", Now);
+    ObjDefine(ns, SymToStringTag, { value: "Temporal", configurable: true });
+    return {
+      ns, make,
+      stateOf: (o) => wmGet(state, o),
+      instantOfMs: (ms) => tsys("Instant", "fromEpochMilliseconds", null, [ms]),
+    };
+  };
+  ObjDefine(Date.prototype, "toTemporalInstant", {
+    value: { toTemporalInstant() {
+      const ms = dateGetTime(this);
+      if (ms !== ms) throw new RangeErrorFn("Invalid Date");
+      return temporal().instantOfMs(ms);
+    } }.toTemporalInstant,
+    writable: true, configurable: true, enumerable: false,
+  });
+  defineLazyGlobal("Temporal", () => temporal().ns);
+
   // ---------------------------------------------------------------- base64 (R-JS-39b)
   // btoa and atob as HTML defines them: btoa takes characters U+0000 to
   // U+00FF; atob is forgiving about ASCII white space and padding.
@@ -636,7 +819,7 @@ const __pagelike = (() => {
       case "element": return dom().wrap(inputHandles[v.$i]);
       case "instance": return makeInstance(v.$itemtype, v.$props, v.$entries);
       case "class": return mapGet(classes, v.$itemtype) ?? null;
-      case "date": return new Date(v.$ms);
+      case "temporal": return temporal().make(v.$k, v.$s, undefined);
       case "headers": return makeHeaders(v.$entries);
       case "request": return makeRequest(v.shared, v.private);
       case "dict": {
@@ -701,6 +884,18 @@ const __pagelike = (() => {
           const out = [];
           for (let i = 0; i < nl.length; i++) arrayPush(out, enc(D.wrap(nl[i]), level + 1));
           return out;
+        }
+        // A Temporal object crosses as its type and text, a Date as the
+        // Instant it stands for (R-JS-42).
+        if (T !== null) {
+          const st = T.stateOf(v);
+          if (st !== undefined) return { $type: "temporal", $k: st.k, $s: st.s };
+        }
+        if (v instanceof DateFn) {
+          const ms = dateGetTime(v);
+          if (ms !== ms) throw rt("an invalid Date cannot be returned");
+          if (ms < MIN_EXACT_MS || ms >= MAX_EXACT_MS) throw rt("a Date outside the years 1678 to 2261 cannot be returned");
+          return { $type: "temporal", $k: "Instant", $s: dateToISO(v) };
         }
         const C = wmGet(instanceClass, v);
         if (C !== undefined) {

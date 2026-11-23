@@ -855,8 +855,8 @@ implementations (j: is a dispatched `doesNotUnderstand`).
   `InternalError` exists (it is what stack overflow throws).
 - `Math.random()` and `Date.now()` / `new Date()` are allowed and are not made
   deterministic; the server's value is the stored one.
-- Not guaranteed: `Intl` (ECMA-402) and `Temporal`. pagelike does not provide
-  them (probe P-JS-6).
+- Not guaranteed: `Intl` (ECMA-402); pagelike does not provide it (probe
+  P-JS-6). `Temporal` is R-JS-43 since the 2026-11-23 docs.
 - Evidence: documented. Source: JSS §Supported language features.
   Confidence: high (listed), medium (the rest of the ECMAScript library),
   low (`Intl`, `Temporal`).
@@ -1055,20 +1055,90 @@ level 65 or deeper fails. Shared, non-cyclic references are allowed.
 
 ### R-JS-42: Temporal values and `Date`
 
-- A JavaScript `Date` returned from a binding does **not** become a temporal
-  value. It becomes a Dictionary of the Date object's own properties (normally
-  empty). Bindings that need a temporal value must return an ISO 8601 string.
-- A dombase Temporal passed into JavaScript: the docs say it "currently
-  unmarshalls" through the same Date-to-Map path. pagelike maps
-  `Temporal.Instant`, `ZonedDateTime`, `PlainDateTime` and `PlainDate` to a
-  JavaScript `Date` (UTC; a PlainDate is midnight UTC), and `PlainTime`,
-  `PlainYearMonth`, `PlainMonthDay` and `Duration` to their ISO 8601 string
-  (pagelike decision). Passing that Date back out yields the empty
-  Dictionary, as documented.
-- In practice schema values reach JavaScript as strings (property values are
-  text), so this only matters for values produced by Sessel.
-- Evidence: documented (Date → Map quirk, ISO advice). Source: JSS
-  §Marshalling. Confidence: high (Date out), low (Temporal in).
+Docs snapshot 2026-11-23 (supersedes the 2026-09-28 marshalling page, where
+a returned Date was an empty Dictionary and a temporal value reached
+JavaScript as a Date):
+
+| From | To | Becomes |
+|---|---|---|
+| Sessel temporal value (`this`, a context entry, an argument) | JavaScript | the matching `Temporal` object |
+| `Temporal` object returned or passed back | Sessel | the matching temporal value |
+| `Date` returned or passed back | Sessel | the `Temporal.Instant` it stands for |
+| an invalid `Date`, or one outside the years an exact time is kept for (R-JS-43) | Sessel | refused: `return-type` |
+
+- A stored value is written in its ISO 8601 form (`2026-10-30`,
+  `1970-01-01T00:00:00Z`); a `PlainMonthDay` is stored as `--09-30`, the
+  form Sessel writes, though its `toString()` gives `09-30`.
+- An object made with `Object.create(Temporal.PlainDate.prototype)` is not
+  a date: its getters throw a `TypeError` and it goes back as a plain map.
+- Not ported: the `search()` row of the docs' table (server JavaScript has
+  no `search()` here).
+- Evidence: documented. Source: docs languages/javascript/server/temporal
+  §Values that cross between Sessel and JavaScript (snapshot 2026-11-23).
+  Confidence: high. Cases: `javascript.t1123.values-are-stored-as-iso`;
+  `internal/jsrt/contract_test.go`.
+
+### R-JS-43: The `Temporal` global
+
+Server JavaScript has `Temporal`: `PlainDate`, `PlainTime`,
+`PlainDateTime`, `ZonedDateTime`, `Instant`, `Duration`, `PlainYearMonth`,
+`PlainMonthDay` and `Temporal.Now` (`instant`, `timeZoneId`,
+`plainDateISO`, `plainTimeISO`, `plainDateTimeISO`, `zonedDateTimeISO`; the
+server's zone is UTC), and `Date.prototype.toTemporalInstant()`. It runs on
+the date and time engine Sessel uses (`internal/sessel/temporal_script.go`).
+
+- Each type has the standard's constructor, `from`, `toString`, `toJSON`,
+  `toLocaleString` and, where the standard gives the type one, `compare`,
+  `equals`, `add`, `subtract`, `until`, `since`, `with` and the
+  conversions. `valueOf` throws a `TypeError`. An `Instant` refuses to add
+  years, months, weeks or days.
+- Where the docs say the server differs from a browser, pagelike follows
+  the docs:
+  - a duration's hours and smaller fields are one balanced length
+    (`{minutes: 90}` is `PT1H30M`); `Instant` differences are in hours;
+    `Duration.compare` gives 0 for durations equal once balanced;
+  - `ZonedDateTime.with` resolves a repeated hour to the earlier offset,
+    ignores `offset` and refuses a bag with only an offset;
+  - `from()`, `with()` and the conversions refuse an out-of-range field
+    (`overflow: "reject"` only); `add` and `subtract` clamp the day
+    (`"constrain"` only);
+  - years run from -9999 to 9999; a duration's years, months, weeks and
+    days fit 32 bits, its days and time are under 2^53 seconds, every
+    field is at most 2^53 - 1 and a duration field is a whole number;
+  - a `ZonedDateTime` string with an offset or `Z` and no zone takes that
+    offset as its zone (an offset with seconds is refused); a time zone
+    argument is a name, not an offset; a duration has a fraction only in
+    its seconds; a calendar other than ISO 8601 is refused;
+  - the fourth constructor argument of `PlainYearMonth` and
+    `PlainMonthDay` is checked and dropped;
+  - not available: `round`, `withCalendar`, `era`, `eraYear`, the rounding
+    and `largestUnit` options, the `toString` options, `disambiguation`
+    and `offset` options, `relativeTo`, a `ZonedDateTime` property bag,
+    `hoursInDay`, `offsetNanoseconds`, `startOfDay`, `withPlainTime`,
+    `getTimeZoneTransition`;
+  - `toLocaleString` takes `dateStyle` and `timeStyle` only, is medium by
+    default, treats `full` as `long`, writes the time with seconds when
+    both are given and a `Duration` as its ISO form.
+- Errors: a string that is not a date, time or duration, a field or value
+  out of range and an unsupported option are `RangeError`; a wrong
+  argument type, a bag missing a required field, a method on the wrong
+  type, a constructor without `new` and `new Temporal.Instant(1000)` are
+  `TypeError`. An object where an `Instant` is expected is read through
+  its primitive value.
+- pagelike's own limits (decision D-6):
+  - an exact time (`Instant`, `ZonedDateTime`) is kept for the years 1678
+    to 2261, the reach of the engine's 64-bit nanoseconds; outside it is a
+    `RangeError`;
+  - a duration's time fields together fit 64-bit nanoseconds (about 292
+    years);
+  - `Temporal.PlainDate.call(Temporal.PlainDate, …)` throws a `TypeError`,
+    as a browser does, where the docs say PageLove makes a date;
+  - `toLocaleString` writes English month names for `en` and `en-US` and
+    Sessel's numeric forms for other locales; it does not use ICU data.
+- Evidence: documented. Source: docs languages/javascript/server/temporal
+  (snapshot 2026-11-23). Confidence: high (the listed behaviour), low
+  (locale text). Cases: `javascript.t1123.types`,
+  `javascript.t1123.differences`; `internal/jsrt/temporal_test.go`.
 
 ---
 
@@ -2687,6 +2757,8 @@ Requirement → cases (ids without the `javascript.` prefix):
 | R-JS-39d | `wc1123.password-hashing` |
 | R-JS-40 | `jbind.reads-resource-binding` |
 | R-JS-41 | `methods.return-scalars`, `slots.write-returns-function`, `slots.write-returns-cycle` |
+| R-JS-42 | `t1123.values-are-stored-as-iso` |
+| R-JS-43 | `t1123.types`, `t1123.differences` |
 | R-JS-51 | `slots.default-parse-failure`, `slots.default-shape-not-function`, `slots.validate-strict-mode-referenceerror`, `slots.write-returns-function`, `slots.import-bare-specifier`, `slots.import-http-url`, `slots.import-pagelove-host`, `slots.import-dynamic`, `slots.import-schema-without-type-attribute`, `slots.import-literal-pagelove-schema`, `slots.import-unknown-schema` |
 | R-JS-52 | `methods.readonly-mutation-fails-500`, `methods.return-text-node-500`, `methods.return-document-500`, `methods.return-fragment-500`, `methods.throw-500`, `methods.shape-failure-500`, `slots.default-parse-failure`, `slots.validate-strict-mode-referenceerror`, `slots.write-returns-function` |
 | R-JS-53 | `slots.validate-docs-example-hostname`, `slots.validate-plain-object-throw-is-generic`, `slots.validate-httpresponse-itemtype-key`, `reactions.trigger-docs-when-and-action`, `reactions.trigger-plain-object-is-error`, `reactions.trigger-itemtype-marker`, `reactions.trigger-default-status-500`, `reactions.trigger-body-and-headers`, `reactions.processor-docs-custom-404`, `reactions.processor-rethrow-with-headers` |

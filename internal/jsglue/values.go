@@ -82,8 +82,8 @@ func fromSessel(v sessel.Value, reg *schema.Registry) (jsrt.Value, error) {
 	case *sessel.SelectorValue:
 		return x.Source, nil
 	}
-	if t := sessel.TypeName(v); strings.HasPrefix(t, "Temporal.") {
-		return jsrt.Temporal{Kind: strings.TrimPrefix(t, "Temporal."), ISO: sessel.TextOf(v)}, nil
+	if kind, text, ok := sessel.JSTemporalText(v); ok {
+		return jsrt.Temporal{Kind: kind, ISO: text}, nil
 	}
 	return nil, &errNoForm{sessel.TypeName(v)}
 }
@@ -193,6 +193,9 @@ func fromGo(v any) jsrt.Value {
 	case sessel.List, *sessel.Dict, *sessel.Element, *sessel.SelectorValue:
 		return fromSesselLenient(x, nil)
 	}
+	if kind, text, ok := sessel.JSTemporalText(v); ok {
+		return jsrt.Temporal{Kind: kind, ISO: text}
+	}
 	return v
 }
 
@@ -240,6 +243,12 @@ func toGo(v jsrt.Value) any {
 			return nil
 		}
 		return map[string]any{"$type": "element", "$html": instanceMarkup(x, "")}
+	case jsrt.Temporal:
+		// A Temporal object, or a Date as its Instant (R-JS-42).
+		if t, err := sessel.JSTemporalValue(x.Kind, x.ISO); err == nil {
+			return t
+		}
+		return x.ISO
 	}
 	return v
 }
@@ -297,6 +306,12 @@ func toSessel(v jsrt.Value, reg *schema.Registry) sessel.Value {
 			}
 		}
 		return nil
+	case jsrt.Temporal:
+		// A Temporal object, or a Date as its Instant (R-JS-42).
+		if t, err := sessel.JSTemporalValue(x.Kind, x.ISO); err == nil {
+			return t
+		}
+		return x.ISO
 	}
 	return sessel.FromGo(v)
 }

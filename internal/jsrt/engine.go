@@ -26,6 +26,7 @@ import (
 	"modernc.org/quickjs"
 
 	"github.com/sky-valley/pagelike/internal/dom"
+	"github.com/sky-valley/pagelike/internal/sessel"
 )
 
 //go:embed prelude.js
@@ -932,6 +933,17 @@ func (st *evalState) sys(op string, a []any) (any, error) {
 		}
 		h.Write(latin1Bytes(toStr(arg(a, 1))))
 		return hex.EncodeToString(h.Sum(nil)), nil
+	case "temporal":
+		// temporal(request JSON): one call of the Temporal global (R-JS-43).
+		out, err := sessel.JSTemporal([]byte(toStr(arg(a, 0))), time.Now())
+		if err != nil {
+			var te *sessel.JSTemporalError
+			if errors.As(err, &te) {
+				return nil, errors.New(te.Name + "|" + te.Message)
+			}
+			return nil, err
+		}
+		return string(out), nil
 	case "wc.import":
 		// wc.import(alg, curve, format, key)
 		_, err := parsePublicKey(toStr(arg(a, 0)), toStr(arg(a, 1)), toStr(arg(a, 2)), latin1Bytes(toStr(arg(a, 3))))

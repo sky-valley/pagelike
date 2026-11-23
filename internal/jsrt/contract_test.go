@@ -224,10 +224,12 @@ func TestReturnValueMarshalling(t *testing.T) {
 	if md, ok := m.(*Dict); !ok || strings.Join(md.Keys(), ",") != "1,k" {
 		t.Errorf("Map: %#v", m)
 	}
-	for _, k := range []string{"date", "err"} {
-		if v, _ := d.Get(k); v.(*Dict).Len() != 0 {
-			t.Errorf("%s: expected an empty dictionary (own enumerable properties), got %s", k, fmtValue(v))
-		}
+	if v, _ := d.Get("err"); v.(*Dict).Len() != 0 {
+		t.Errorf("err: expected an empty dictionary (own enumerable properties), got %s", fmtValue(v))
+	}
+	// A Date is the Instant it stands for (R-JS-42, docs snapshot 2026-11-23).
+	if v, _ := d.Get("date"); v.(Temporal).Kind != "Instant" {
+		t.Errorf("date: %s", fmtValue(v))
 	}
 	if strings.Join(d.Keys(), ",") != "n,u,t,i,f,neg,big,s,l,m,set,date,err,nested,shared,$type" {
 		t.Errorf("key order: %v", d.Keys())
@@ -340,18 +342,30 @@ func TestInputMarshalling(t *testing.T) {
 	if res.Value != true {
 		t.Errorf("null this: %v", res.Value)
 	}
-	// Temporal values (R-JS-42).
-	res = mustCall(t, CallRequest{Slot: SlotMethod, Source: `export default function (i, d, t, dur) {
-		return [i instanceof Date, i.toISOString(), d.toISOString(), t, dur, JSON.stringify(i instanceof Date ? {} : 0)].join("|"); }`,
+	// Temporal values arrive as Temporal objects and go back as their kind
+	// and text (R-JS-42, docs snapshot 2026-11-23).
+	res = mustCall(t, CallRequest{Slot: SlotMethod, Source: `export default function (i, d, t, dur, md) {
+		return [i instanceof Temporal.Instant, i.epochMilliseconds, d.add({ days: 1 }).toString(), t.hour, dur.total("minutes"), md.toString()].join("|"); }`,
 		Args: []Value{Temporal{Kind: "Instant", ISO: "2024-05-06T07:08:09.5Z"}, Temporal{Kind: "PlainDate", ISO: "2024-05-06"},
-			Temporal{Kind: "PlainTime", ISO: "07:08"}, Temporal{Kind: "Duration", ISO: "PT1H"}}})
-	if res.Value != "true|2024-05-06T07:08:09.500Z|2024-05-06T00:00:00.000Z|07:08|PT1H|{}" {
-		t.Errorf("temporal: %v", res.Value)
+			Temporal{Kind: "PlainTime", ISO: "07:08"}, Temporal{Kind: "Duration", ISO: "PT1H"}, Temporal{Kind: "PlainMonthDay", ISO: "--09-30"}}})
+	if res.Value != "true|1714979289500|2024-05-07|7|60|09-30" {
+		t.Errorf("temporal in: %v", res.Value)
 	}
-	// A returned Date is an empty dictionary.
-	res = mustCall(t, CallRequest{Slot: SlotMethod, Source: `export default (d) => d;`, Args: []Value{Temporal{Kind: "Instant", ISO: "2024-01-01T00:00:00Z"}}})
+	res = mustCall(t, CallRequest{Slot: SlotMethod, Source: `export default (d) => [d.add({ months: 1 }), new Date(0), Temporal.Duration.from({ minutes: 90 })];`,
+		Args: []Value{Temporal{Kind: "PlainDate", ISO: "2024-01-31"}}})
+	want := []Value{Temporal{Kind: "PlainDate", ISO: "2024-02-29"}, Temporal{Kind: "Instant", ISO: "1970-01-01T00:00:00.000Z"}, Temporal{Kind: "Duration", ISO: "PT1H30M"}}
+	if got, ok := res.Value.([]Value); !ok || len(got) != 3 || got[0] != want[0] || got[1] != want[1] || got[2] != want[2] {
+		t.Errorf("temporal out: %#v", res.Value)
+	}
+	// An invalid Date, or one outside the years an exact time is kept for,
+	// has no form.
+	for _, src := range []string{`export default () => new Date(NaN);`, `export default () => new Date(Date.UTC(9999, 0, 1));`} {
+		expectFailure(t, CallRequest{Slot: SlotMethod, Source: src}, VariantReturnType)
+	}
+	// An object with a Temporal prototype is not a Temporal value.
+	res = mustCall(t, CallRequest{Slot: SlotMethod, Source: `export default () => Object.create(Temporal.PlainDate.prototype);`})
 	if dd, ok := res.Value.(*Dict); !ok || dd.Len() != 0 {
-		t.Errorf("date out: %#v", res.Value)
+		t.Errorf("fake temporal out: %#v", res.Value)
 	}
 }
 

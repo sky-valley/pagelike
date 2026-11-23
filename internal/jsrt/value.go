@@ -9,7 +9,6 @@ import (
 	"sort"
 	"strconv"
 	"strings"
-	"time"
 
 	"golang.org/x/net/html"
 )
@@ -144,10 +143,11 @@ type Class struct {
 	Type string
 }
 
-// Temporal is a Sessel temporal value. Kind is one of Instant,
-// ZonedDateTime, PlainDateTime, PlainDate (these become a JavaScript Date,
-// UTC) or PlainTime, PlainYearMonth, PlainMonthDay, Duration (these become
-// their ISO string), R-JS-42.
+// Temporal is a Sessel temporal value: Kind is Instant, ZonedDateTime,
+// PlainDateTime, PlainDate, PlainTime, PlainYearMonth, PlainMonthDay or
+// Duration and ISO its text. JavaScript sees the matching Temporal object,
+// and a Temporal object (or a Date, as an Instant) comes back as one
+// (R-JS-42).
 type Temporal struct {
 	Kind string
 	ISO  string
@@ -517,36 +517,20 @@ func (e *valueEncoder) class(t string) error {
 	return nil
 }
 
-// temporal maps Temporal values per R-JS-42: date-like kinds become a Date
-// (epoch milliseconds), the others their ISO string.
+// temporal writes a Temporal value as its kind and text; JavaScript sees
+// the matching Temporal object (R-JS-42).
 func (e *valueEncoder) temporal(t Temporal) error {
 	switch t.Kind {
-	case "Instant", "ZonedDateTime", "PlainDateTime", "PlainDate":
-		ms, err := temporalMillis(t)
-		if err != nil {
-			return e.fail("temporal %s %q: %v", t.Kind, t.ISO, err)
-		}
-		fmt.Fprintf(&e.buf, `{"$type":"date","$ms":%d}`, ms)
-	case "PlainTime", "PlainYearMonth", "PlainMonthDay", "Duration":
-		writeJSONString(&e.buf, t.ISO)
+	case "Instant", "ZonedDateTime", "PlainDateTime", "PlainDate", "PlainTime", "PlainYearMonth", "PlainMonthDay", "Duration":
 	default:
 		return e.fail("unknown temporal kind %q", t.Kind)
 	}
+	e.buf.WriteString(`{"$type":"temporal","$k":`)
+	writeJSONString(&e.buf, t.Kind)
+	e.buf.WriteString(`,"$s":`)
+	writeJSONString(&e.buf, t.ISO)
+	e.buf.WriteByte('}')
 	return nil
-}
-
-func temporalMillis(t Temporal) (int64, error) {
-	s := t.ISO
-	if i := strings.IndexByte(s, '['); i >= 0 { // ZonedDateTime annotation
-		s = s[:i]
-	}
-	layouts := []string{time.RFC3339Nano, "2006-01-02T15:04:05.999999999", "2006-01-02T15:04", "2006-01-02"}
-	for _, l := range layouts {
-		if tm, err := time.Parse(l, s); err == nil {
-			return tm.UnixMilli(), nil
-		}
-	}
-	return 0, errors.New("not an ISO 8601 date-time")
 }
 
 func (e *valueEncoder) request(r *Request, depth int) error {
@@ -825,6 +809,12 @@ func untag(d *Dict, elems []resultElem) (Value, error) {
 			}
 		}
 		return inst, nil
+	case "temporal":
+		k, _ := d.Get("$k")
+		iso, _ := d.Get("$s")
+		ks, _ := k.(string)
+		is, _ := iso.(string)
+		return Temporal{Kind: ks, ISO: is}, nil
 	case "dict":
 		out := NewDict()
 		ev, _ := d.Get("$entries")

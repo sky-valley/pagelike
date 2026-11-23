@@ -49,6 +49,10 @@ Server JavaScript (docs snapshot 2026-11-23):
 - `crypto.subtle.importKey` and `crypto.subtle.verify` check a signature
   made elsewhere with an ECDSA (P-256, P-384), RSA or Ed25519 public key,
   for passkeys and signed webhooks.
+- Server JavaScript has the `Temporal` global: the eight types and
+  `Temporal.Now`, on the date engine Sessel uses. A temporal value crosses
+  between Sessel and JavaScript as the matching type, and a returned `Date`
+  is stored as the instant it stands for (it was an empty dictionary).
 - `crypto.subtle.deriveBits` hashes passwords with Argon2 (id, i, d) and
   bcrypt and derives bytes with PBKDF2 and HKDF; `verify` with `"bcrypt"`
   checks a stored bcrypt string. Hashes share the server's hashing gate; a
