@@ -103,9 +103,10 @@ func buildRule(path string, props []microdata.Prop) (Rule, bool) {
 			actions = append(actions, a)
 		}
 	}
-	if len(r.Actors) == 0 || len(r.Resources) == 0 || len(r.Methods) == 0 || len(actions) == 0 {
+	if len(actions) == 0 {
 		return Rule{}, false
 	}
+	incomplete := len(r.Actors) == 0 || len(r.Resources) == 0 || len(r.Methods) == 0
 	// Several actions: any deny wins (fail closed); otherwise every value
 	// must be "allow". Anything unrecognized disables the rule.
 	r.Effect = Allow
@@ -122,6 +123,25 @@ func buildRule(path string, props []microdata.Prop) (Rule, bool) {
 	}
 	if r.Effect == 0 {
 		return Rule{}, false
+	}
+	// A rule missing an actor, resource or method: an Allow grants nothing,
+	// a Deny is kept and the missing field matches everything, so it
+	// refuses broadly rather than letting a broader Allow through (docs
+	// AuthorizationRule §A rule with a missing actor, resource or method,
+	// snapshot 2026-11-23; R-PERM-121).
+	if incomplete {
+		if r.Effect != Deny {
+			return Rule{}, false
+		}
+		if len(r.Actors) == 0 {
+			r.Actors = []string{"*"}
+		}
+		if len(r.Resources) == 0 {
+			r.Resources = []string{"/*"}
+		}
+		if len(r.Methods) == 0 {
+			r.Methods = []string{"*"}
+		}
 	}
 	r.Selector = strings.Join(selectors, ", ")
 	// A MOVE rule must not carry a selector: an Allow is discarded in full,

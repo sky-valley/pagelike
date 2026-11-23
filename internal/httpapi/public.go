@@ -98,6 +98,17 @@ func (p *Public) Serve(w http.ResponseWriter, r *http.Request, s *site.Site) {
 		p.fail(w, r, rc, err)
 		return
 	}
+	if rc.principal != nil && rc.principal.Authenticated {
+		// A failed Group lookup refuses the request rather than letting a
+		// Deny that names the group be skipped (R-PERM-127).
+		if snap, err := s.Index(r.Context()); err == nil {
+			if gerr := snap.Policy.GroupFault(rc.principal); gerr != nil {
+				p.logger().Warn("group lookup failed", "err", gerr, "path", clean)
+				p.fail(w, r, rc, errdoc.New(http.StatusBadGateway, "GroupLookupFailed", "Group membership could not be looked up"))
+				return
+			}
+		}
+	}
 	if p.Intercept != nil {
 		p.Intercept.Intercept(w, r, p.call(r, rc, clean))
 		return

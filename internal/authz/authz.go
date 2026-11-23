@@ -83,9 +83,10 @@ type Group struct {
 	Source  string
 	// Includes, when set, decides membership instead of Members: the schema
 	// package binds a Group subtype's includes() method here. It is called
-	// only with a verified email (R-PERM-59) and must return false on error
-	// or exhausted budget (fail closed).
-	Includes func(email string) bool
+	// only with a verified email (R-PERM-59). An error (a failing method or
+	// exhausted budget) is a failed group lookup: the request is refused
+	// with 502 rather than treating the person as in no group (R-PERM-127).
+	Includes func(email string) (bool, error)
 }
 
 // Policy is a host's rule set at one write generation. It is immutable once
@@ -355,7 +356,7 @@ func (p *Policy) scopeOf(r *Rule, req *Request) (sc scope, text string, sel *sel
 	text = r.Selector
 	var err error
 	if isTemplated(text) {
-		text = trimASCII(substitute(text, req, identityQuote))
+		text = trimASCII(substitute(text, req, SelectorQuote))
 		if text != "" {
 			sel, err = p.compileSelector(text)
 		}

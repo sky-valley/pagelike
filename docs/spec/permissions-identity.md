@@ -211,6 +211,10 @@ authenticated ones, with an HTML body of type `https://pagelove.org/1.0/Error`.
   by analogy).
 - **Cases:** `authz.discovery.action-case-insensitive`, `authz.discovery.malformed-rule-ignored`.
 
+> **Superseded in part (docs snapshot 2026-11-23, R-PERM-121).** A Deny
+> missing its actor, resource or method is kept, the missing field matching
+> everything. An Allow missing one is still ignored.
+
 > **Refined by live observation (2026-09-28).** Case-insensitivity is
 > confirmed (with document-level rules). The action is **not** trimmed (see
 > R-PERM-2): a padded `allow` is unrecognized, and pagelike still honours a
@@ -537,6 +541,10 @@ The rule's tier is the highest tier among its matching values.
   medium (whole-document reads).
 - **Source:** D-AR §Matching model; POLLS:97.
 - **Cases:** `authz.selector.selector-rule-does-not-cover-whole-document`.
+
+> **Refined (docs snapshot 2026-11-23, R-PERM-124).** When an element Deny
+> applies to the requester, a whole-page PUT, MOVE or POST with no selector
+> is also checked against the elements it protects.
 
 ### R-PERM-27 — Resource-level rules also govern selector requests
 - **Behavior:** A rule without selector is a candidate for every key element in
@@ -1432,3 +1440,83 @@ siblings will start failing, which is the signal to drop them.
 | P-22 | 401. |
 | P-24 (XML) | Not honoured. |
 | P-28 | Rows merged on PageLove; kept split in pagelike. |
+
+## 22. Hardening documented after the port (docs snapshot 2026-11-23)
+
+PageLove rewrote its permissions reference between the port's snapshot
+(2026-09-28) and 2026-11-23. Each requirement below was first shown to be
+missing from pagelike by a failing case, except where noted.
+
+### R-PERM-120 — A value substituted into a selector is literal text
+- **Behavior:** A `${…}` value filled into a rule's selector cannot close a
+  quoted string, add a selector or change the selector's structure, quoted or
+  not. pagelike CSS-escapes it (`authz.SelectorQuote`).
+- **Evidence:** documented. **Source:** D-AR §A substituted value in a selector
+  is a literal.
+- **Cases:** `authz.harden.selector-value-literal`; unit `TestSelectorQuoteIsLiteral`.
+
+### R-PERM-121 — A Deny missing a field refuses broadly
+- **Behavior:** A Deny with no actor, resource or method (a blank or
+  whitespace-only value counts as missing) is kept: the missing actor is `*`,
+  resource `/*`, method `*`. An Allow missing one is ignored.
+- **Evidence:** documented. **Source:** D-AR §A rule with a missing actor,
+  resource or method.
+- **Cases:** `authz.harden.deny-blank-actor`, `authz.harden.deny-no-resource`,
+  `authz.harden.deny-no-method`, `authz.harden.allow-blank-field` (already held).
+
+### R-PERM-122 — An element Deny narrows a page-wide Allow for selector writes
+- **Behavior:** When a selector-scoped Deny applies to the requester (method,
+  actor and resource match), a selector write is also refused when the element
+  rules alone resolve to Deny for the element written, an element it sits
+  inside, or (except POST, which only adds to its container) an element inside
+  it. Against the element rules the page-wide allow is the least specific rule,
+  whatever its actor; a more specific element Allow frees an element; a tie
+  goes to deny. An element Allow does not open an element inside a denied one.
+- **Evidence:** documented. **Source:** D-AR §An element deny narrows a
+  page-wide allow.
+- **Cases:** `authz.narrow.selector-writes`, `authz.narrow.specific-actor`,
+  `authz.narrow.allow-inside-deny`.
+
+### R-PERM-123 — Writes that add a protected element
+- **Behavior:** A selector PUT, POST or element MOVE is refused when its result
+  adds or changes a protected element. pagelike compares the outermost
+  protected elements before and after the write (serialized, in order), the
+  same comparison as R-PERM-124.
+- **Evidence:** documented. **Source:** D-AR §Writes that add a protected element.
+- **Cases:** `authz.narrow.selector-writes`.
+
+### R-PERM-124 — Whole-page writes keep protected elements exactly
+- **Behavior:** A whole-page PUT (a new page starts from none; a file body
+  holds none), a POST with no selector (judged as a PUT of its body, before
+  composition) and a whole-page MOVE (the moved page must hold exactly the
+  destination's protected elements) are refused when they change, reorder,
+  remove or add a protected element. A whole-page DELETE is decided by the
+  rules alone. Refusals are 401/403.
+- **Evidence:** documented. **Source:** D-AR §Whole-page writes.
+- **Divergences:** pagelike applies writes under the site's write lock, so the
+  check and the save cannot race and no conditional save or 412 is needed. The
+  check runs after server triggers, so a change a trigger makes to a protected
+  element counts. A write routed from a composed page is authorized on that
+  page and not compared against the protected elements of its origin.
+- **Cases:** `authz.narrow.whole-page`.
+
+### R-PERM-125 — A substituted actor in an Allow matches only that name
+- **Behavior:** Already held at the port; the case guards it.
+- **Evidence:** documented. **Source:** D-AR §A substituted value in an actor of
+  an Allow rule. **Cases:** `authz.harden.actor-value-literal`.
+
+### R-PERM-126 — A Deny whose selector cannot be parsed covers the resource; subscribe needs a whole-page GET
+- **Behavior:** Already held at the port (R-PERM-29, R-PERM-45); the cases guard it.
+- **Cases:** `authz.harden.deny-bad-selector`, `authz.harden.sse-needs-page-get`.
+
+### R-PERM-127 — A failed group lookup refuses with 502
+- **Behavior:** When a group's `includes` method errors, runs out of budget or
+  panics for a signed-in requester, the request is refused with 502 Bad Gateway
+  and nothing is written. A failed lookup is never "in no group".
+- **Evidence:** documented. **Source:** DOCS reference/permissions/Group (§the
+  lookup failed).
+- **Cases:** `authz.harden.group-lookup-fails-closed`.
+
+> PageLove's docs now describe R-PERM-27/38's behaviour (a selector-scoped
+> Deny beats a page-wide Allow) as theirs. The `.live` siblings that record
+> the opposite (live 2026-09-28) stay until a live run confirms the change.

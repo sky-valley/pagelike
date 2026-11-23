@@ -134,8 +134,8 @@ func TestGroups(t *testing.T) {
 		t.Errorf("anonymous RoleList = %v", got)
 	}
 	// A schema hook binds includes().
-	p.Groups = append(p.Groups, Group{Name: "example-staff", Includes: func(e string) bool { return strings.HasSuffix(e, "@example.com") }})
-	p.Groups = append(p.Groups, Group{Name: "broken", Includes: func(string) bool { panic("boom") }})
+	p.Groups = append(p.Groups, Group{Name: "example-staff", Includes: func(e string) (bool, error) { return strings.HasSuffix(e, "@example.com"), nil }})
+	p.Groups = append(p.Groups, Group{Name: "broken", Includes: func(string) (bool, error) { panic("boom") }})
 	p.Rules = append(p.Rules, policyOf(t, true, rule("example-staff", "/s.html", "PUT", "", "Allow"), rule("broken", "/b.html", "PUT", "", "Allow")).Rules...)
 	if !allowed(p, bob, "PUT", "/s.html") || allowed(p, mallory, "PUT", "/s.html") {
 		t.Error("includes() must decide membership for verified emails only")
@@ -396,7 +396,7 @@ func TestHookContributesGroupSubtype(t *testing.T) {
 				continue
 			}
 			domain := trimASCII(it.Get("domain"))
-			g.Includes = func(email string) bool { return strings.HasSuffix(email, domain) }
+			g.Includes = func(email string) (bool, error) { return strings.HasSuffix(email, domain), nil }
 			p.Groups = append(p.Groups, g)
 		}
 	})

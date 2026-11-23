@@ -1,5 +1,20 @@
 # Changelog
 
+## Unreleased
+
+Authorization hardening PageLove documented after the port (docs snapshot
+2026-11-23):
+
+- A value substituted into a rule's selector is literal text and can no longer
+  add selectors or break out of a quoted string.
+- A Deny rule missing its actor, resource or method refuses broadly instead of
+  being dropped.
+- An element Deny narrows a page-wide Allow: selector writes to the protected
+  element, an element around it or inside it are refused, and whole-page PUT,
+  MOVE and POST must leave protected elements exactly as they were.
+- A failed group lookup (`includes` erroring or over budget) refuses the
+  request with 502 instead of treating the person as in no group.
+
 ## v0.3.0 — 2026-11-20
 
 - Build with Go 1.27.4 and current dependencies. Go 1.26.0 left 38

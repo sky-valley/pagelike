@@ -2,6 +2,7 @@ package schema
 
 import (
 	"context"
+	"fmt"
 	"log/slog"
 
 	"golang.org/x/net/html"
@@ -66,16 +67,16 @@ func (r *Registry) includesMethod(t string) *MethodDecl {
 	return nil
 }
 
-func (r *Registry) includesFunc(snap *site.Snapshot, t string, m *MethodDecl, path string, node *html.Node) func(string) bool {
-	return func(email string) (member bool) {
+func (r *Registry) includesFunc(snap *site.Snapshot, t string, m *MethodDecl, path string, node *html.Node) func(string) (bool, error) {
+	return func(email string) (member bool, err error) {
 		defer func() {
-			if recover() != nil {
-				member = false
+			if v := recover(); v != nil {
+				member, err = false, fmt.Errorf("includes() panicked: %v", v)
 			}
 		}()
 		pd := snap.Docs[path]
 		if pd == nil {
-			return false
+			return false, nil
 		}
 		self := sessel.Queried(node, &sessel.Document{Path: path, Type: pd.Type, Root: pd.Root})
 		if c := r.Class(t); c != nil {
@@ -84,8 +85,8 @@ func (r *Registry) includesFunc(snap *site.Snapshot, t string, m *MethodDecl, pa
 		ctx := context.Background()
 		switch m.Implementation.Lang {
 		case LangSessel:
-			if m.Implementation.compile() != nil {
-				return false
+			if err := m.Implementation.compile(); err != nil {
+				return false, err
 			}
 			vars := map[string]sessel.Value{"email": email}
 			if len(m.Params) > 0 {
@@ -93,13 +94,19 @@ func (r *Registry) includesFunc(snap *site.Snapshot, t string, m *MethodDecl, pa
 			}
 			v, err := m.Implementation.compiled.Eval(ctx, &sessel.Env{Host: newHost(nil, snap), Self: self, HasSelf: true,
 				Vars: vars, Budget: sessel.NewBudget()})
-			return err == nil && sessel.Truthy(v)
+			if err != nil {
+				return false, err
+			}
+			return sessel.Truthy(v), nil
 		case LangJS:
 			res, err := runJS(ctx, &JSCall{Slot: JSSlotMethod, Source: m.Implementation.Source, This: sessel.ToGo(self), HasThis: true,
 				Args: []any{email}, Classes: r, Receiver: self, Host: newHost(nil, snap), Budget: sessel.NewBudget()})
-			return err == nil && jsTruthy(res.Value)
+			if err != nil {
+				return false, err
+			}
+			return jsTruthy(res.Value), nil
 		}
-		return false
+		return false, nil
 	}
 }
 

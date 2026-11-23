@@ -51,6 +51,19 @@ func notHTML(d *store.Document) *errdoc.Error {
 	return errdoc.Problems(http.StatusUnprocessableEntity, "InvalidPath", "Selector operations require HTML documents, but %s has content type %s", d.Path, d.ContentType)
 }
 
+// parsedPage parses d as a page, or returns nil when d is absent or is
+// not stored as a page (a file holds no elements).
+func parsedPage(d *store.Document) *html.Node {
+	if !htmlDocument(d) {
+		return nil
+	}
+	n, err := site.ParseMarkup(d.ContentType, d.Body)
+	if err != nil {
+		return nil
+	}
+	return n
+}
+
 // htmlDocument reports whether selector operations apply to d.
 func htmlDocument(d *store.Document) bool {
 	return d != nil && !d.IsBlob() && site.IsMarkup(d.ContentType) && !site.IsXML(d.ContentType)
@@ -492,6 +505,12 @@ func (e *Engine) postCreate(ctx context.Context, w *WriteCtx) (*Result, error) {
 		return nil, missingDocument(op.Path)
 	}
 	if TemplateCreate != nil && site.IsMarkup(w.Doc.ContentType) && !w.Doc.IsBlob() {
+		// Judged like a whole-page PUT of the body to the request path,
+		// before the page is composed (R-PERM-124).
+		body, _ := site.ParseMarkup(ResolveContentType(op.Path, op.ContentType), op.Body)
+		if err := e.checkProtected(w, "POST", w.Before, body); err != nil {
+			return nil, err
+		}
 		return TemplateCreate(ctx, e, w)
 	}
 	return nil, errdoc.New(http.StatusNotImplemented, "NotImplemented", "POST without a selector range (resource creation) is not implemented for %s", op.Path)

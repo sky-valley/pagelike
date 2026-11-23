@@ -1,6 +1,7 @@
 package authz
 
 import (
+	"fmt"
 	"strings"
 
 	"github.com/sky-valley/pagelike/internal/identity"
@@ -29,6 +30,7 @@ type subject struct {
 	sub    string
 	email  string          // verified email, or ""
 	tokens map[string]bool // verified email, group names, OIDC roles (no built-ins)
+	fault  error           // a Group's includes() failed (R-PERM-127)
 	groups []string        // names of Group items that include the principal, policy order
 	roles  []string        // OIDC (or local account) roles, claim order
 }
@@ -45,7 +47,14 @@ func (p *Policy) subjectOf(pr *identity.Principal) *subject {
 		seen := map[string]bool{}
 		for i := range p.Groups {
 			g := &p.Groups[i]
-			if g.Name == "" || seen[g.Name] || !g.includes(pr.Email) {
+			if g.Name == "" || seen[g.Name] {
+				continue
+			}
+			in, err := g.includes(pr.Email)
+			if err != nil && s.fault == nil {
+				s.fault = err
+			}
+			if !in {
 				continue
 			}
 			seen[g.Name] = true
@@ -64,23 +73,31 @@ func (p *Policy) subjectOf(pr *identity.Principal) *subject {
 
 // includes applies the group's membership test to a verified email: the
 // subtype's includes() method when one is bound, otherwise exact equality
-// with a member value (R-PERM-58, R-PERM-60). A panicking includes() is
-// treated as "not a member" (fail closed).
-func (g *Group) includes(email string) (ok bool) {
+// with a member value (R-PERM-58, R-PERM-60). A failing or panicking
+// includes() is reported as an error, never as membership or its absence
+// (R-PERM-127).
+func (g *Group) includes(email string) (ok bool, err error) {
 	if g.Includes != nil {
 		defer func() {
-			if recover() != nil {
-				ok = false
+			if v := recover(); v != nil {
+				ok, err = false, fmt.Errorf("group %q: includes() panicked: %v", g.Name, v)
 			}
 		}()
 		return g.Includes(email)
 	}
 	for _, m := range g.Members {
 		if m == email {
-			return true
+			return true, nil
 		}
 	}
-	return false
+	return false, nil
+}
+
+// GroupFault reports whether looking up pr's Group memberships failed. A
+// request whose lookup failed is refused with 502 Bad Gateway, because a
+// Deny naming the group must never be skipped by a fault (R-PERM-127).
+func (p *Policy) GroupFault(pr *identity.Principal) error {
+	return p.subjectOf(pr).fault
 }
 
 // roleList is the principal's role list as composition sees it
