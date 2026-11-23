@@ -187,8 +187,11 @@ func (c *composer) include(n *html.Node, r *region, own *scope) error {
 	if h.req {
 		reg = c.reqDoc
 		c.private = true // the Request Document is per requester (R-COMP-121)
-	} else if reg, err = docRegion(c.ctx, c.site, c.snap, h.path); err != nil {
-		return err
+	} else {
+		c.read(h.path)
+		if reg, err = docRegion(c.ctx, c.site, c.snap, h.path); err != nil {
+			return err
+		}
 	}
 	if reg == nil {
 		return errdoc.New(http.StatusNotFound, KindIncludeMissing, "<%s selector=%q> matches nothing", n.Data, src)

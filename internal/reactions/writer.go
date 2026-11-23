@@ -95,9 +95,9 @@ func (wr *writer) op(method, path string) *engine.Op {
 	for _, k := range []string{"Range", "If-Match", "If-None-Match", "Content-Type", "Content-Length", "Pagelove-Connection"} {
 		h.Del(k)
 	}
-	// Quiet: PageLove streams no mutation event for a trigger's or
-	// processor's side-effect write (live 2026-09-29).
-	return &engine.Op{Plane: engine.Public, Method: method, Path: path, Principal: p, Host: st.call.Host, Header: h, Query: st.r.URL.Query(), Quiet: true}
+	// Its event is streamed like any other and names the requester
+	// (R-SSE-61, docs 2026-11-23, superseding the live 2026-09-29 silence).
+	return &engine.Op{Plane: engine.Public, Method: method, Path: path, Principal: p, Host: st.call.Host, Header: h, Query: st.r.URL.Query()}
 }
 
 func (wr *writer) run(ctx context.Context, fn string, op *engine.Op) error {

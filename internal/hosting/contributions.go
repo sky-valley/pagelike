@@ -142,10 +142,6 @@ func (h *Server) contributions(w http.ResponseWriter, r *http.Request, s *site.S
 func (h *Server) removeContribution(ctx context.Context, s *site.Site, id, owner string, moderator bool) error {
 	s.WriteMu.Lock()
 	defer s.WriteMu.Unlock()
-	snap, err := s.Index(ctx)
-	if err != nil {
-		return err
-	}
 	events, err := s.Store.Update(ctx, func(tx *store.Tx) error {
 		var c contribution
 		var removed int
@@ -205,10 +201,9 @@ func (h *Server) removeContribution(ctx context.Context, s *site.Site, id, owner
 					}
 				}
 			}
-			event := store.Event{Path: c.Path, Name: "mutation", Data: (sse.Mutation{Method: "DELETE", Path: c.Path, Host: s.Name + "." + h.cfg.Domain, Selector: c.Selector}).Render(), Targets: targets}
-			if engine.EventAudience != nil {
-				event.Also = engine.EventAudience(snap, c.Path)
-			}
+			// Removed by moderation: the platform's own tool made the change (R-SSE-60).
+			event := store.Event{Path: c.Path, Name: "mutation", Data: (sse.Mutation{Method: "DELETE", Path: c.Path, Host: s.Name + "." + h.cfg.Domain, Selector: c.Selector,
+				ActorKind: "system", ActorID: "moderation"}).Render(), Targets: targets}
 			if err := tx.AddEvent(event); err != nil {
 				return err
 			}

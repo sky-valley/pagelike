@@ -47,10 +47,6 @@ const (
 
 // Op is a write request.
 type Op struct {
-	// Quiet suppresses mutation events: side-effect writes of triggers and
-	// processors are not streamed by PageLove (live 2026-09-29, sse
-	// decisions); the write itself still commits and validates normally.
-	Quiet       bool
 	Plane       Plane
 	Method      string // PUT, POST, DELETE, MOVE, PATCH
 	Path        string // normalized absolute path
@@ -614,26 +610,29 @@ func eventTag(d *store.Document) string {
 	return strings.Trim(d.ETag, `"`)
 }
 
-// event records a mutation event in the transaction. PageLove streams only
-// the requests clients make on the application plane: authoring-plane
-// writes (live 2026-09-28) and side-effect writes of triggers and
-// processors (live 2026-09-29) emit none, superseding R-SSE-22/23.
+// event records a mutation event in the transaction. PageLove streams the
+// writes of the application plane, including those a trigger, processor or
+// method makes on someone's behalf (R-SSE-61, docs 2026-11-23); authoring-
+// plane writes emit none (live 2026-09-28).
 func (e *Engine) event(w *WriteCtx, path string, m sse.Mutation, targets ...*html.Node) error {
 	op := w.Op
-	if op.Plane == Authoring || op.Quiet || (w.sideEffect && !w.cascade) {
+	if op.Plane == Authoring {
 		return nil
 	}
-	if w.Via != "" {
+	if w.ViaSelector != "" && m.Selector != "" {
 		// A write through an included or stamped element is announced on
-		// the page it was addressed to, not on the origin document (live
-		// 2026-09-28, decisions.md sse.scope.write-through-event-on-origin).
-		path = w.Via
-		if w.ViaSelector != "" && m.Selector != "" {
-			m.Selector = w.ViaSelector
-		}
+		// the origin document with the selector that matched there, and
+		// reaches the pages composed from it as a source event (R-SSE-65,
+		// docs 2026-11-23, superseding the live 2026-09-28 announcement on
+		// the page).
+		m.Selector = w.ViaSelector
 	}
 	m.Path = path
 	m.Host = e.canonicalHost(w)
+	m.ActorKind, m.ActorID = "anonymous", ""
+	if pr := op.Principal; pr != nil && pr.Authenticated {
+		m.ActorKind, m.ActorID = "session", pr.Sub
+	}
 	session, conn := "", ""
 	if op.Principal != nil {
 		session = op.Principal.Session

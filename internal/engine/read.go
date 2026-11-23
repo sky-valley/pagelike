@@ -50,7 +50,11 @@ type Composed struct {
 	Root    *html.Node
 	Changed bool // composition altered the stored markup
 	Private bool // output depends on the requester (Cache-Control: private)
-	Status  int  // status override requested by the page (0 = default)
+	// Sources are the other stored documents the composition read content
+	// from (includes, stamped elements, binding matches, at any depth): a
+	// stream of the page carries their events too (R-SSE-61).
+	Sources []string
+	Status  int // status override requested by the page (0 = default)
 	Header  http.Header
 	// Body is the served markup when Changed. Composition splices its
 	// changes into the stored source, so untouched bytes stay verbatim

@@ -1,0 +1,271 @@
+# SSE changes PageLove documented after the port (docs snapshot 2026-11-23):
+# who made a change, composed-page source events, write-through events.
+# Spec: docs/spec/sse.md R-SSE-60..65.
+cases:
+  - id: sse.s1123.actor-session
+    title: A mutation event names the signed-in writer by sign-in id
+    area: sse
+    feature: mutation event fields (actor)
+    evidence: documented
+    source: "docs reference/reading-and-writing/Server-Sent-Events §Mutation event fields, actor (snapshot 2026-11-23)"
+    confidence: high
+    requires: []
+    live: true
+    notes: "R-SSE-60. Only the sign-in id is sent, never an email address or a name."
+    site:
+      files:
+        - path: "${P}/doc.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body><h1>One</h1></body></html>
+      rules:
+        - {actor: "*", resource: "${P}/*", method: [GET, PUT], action: Allow}
+    actors:
+      alice: {sub: alice, email: alice@example.com, email_verified: true, name: Alice A, roles: []}
+    steps:
+      - sse_open: {name: s1, path: "${P}/doc.html", as: anonymous}
+      - sse_expect: {name: s1, event: pagelove-connection, within_ms: 3000}
+      - name: alice writes
+        as: alice
+        request:
+          method: PUT
+          path: "${P}/doc.html"
+          headers: {Range: "selector=h1", Content-Type: "text/html"}
+          body: "<h1>Two</h1>"
+        expect: {status: 206}
+      - sse_expect:
+          name: s1
+          event: mutation
+          within_ms: 3000
+          data_contains:
+            - '<div itemprop="actor" itemscope itemtype="https://pagelove.org/Actor">'
+            - '<meta itemprop="kind" content="session">'
+            - '<meta itemprop="id" content="alice">'
+          data_not_contains: ["alice@example.com", "Alice A"]
+      - sse_close: {name: s1}
+
+  - id: sse.s1123.actor-anonymous
+    title: A mutation event by a visitor who is not signed in names kind anonymous and no id
+    area: sse
+    feature: mutation event fields (actor)
+    evidence: documented
+    source: "docs reference/reading-and-writing/Server-Sent-Events §Mutation event fields, actor (snapshot 2026-11-23)"
+    confidence: high
+    requires: []
+    live: true
+    notes: "R-SSE-60."
+    site:
+      files:
+        - path: "${P}/doc.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body><h1>One</h1></body></html>
+      rules:
+        - {actor: "*", resource: "${P}/*", method: [GET, PUT], action: Allow}
+    steps:
+      - sse_open: {name: s1, path: "${P}/doc.html", as: anonymous}
+      - sse_expect: {name: s1, event: pagelove-connection, within_ms: 3000}
+      - name: anonymous writes
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/doc.html"
+          headers: {Range: "selector=h1", Content-Type: "text/html"}
+          body: "<h1>Two</h1>"
+        expect: {status: 206}
+      - sse_expect:
+          name: s1
+          event: mutation
+          within_ms: 3000
+          data_contains: ['<meta itemprop="kind" content="anonymous">']
+          data_not_contains: ['itemprop="id"']
+      - sse_close: {name: s1}
+
+  - id: sse.s1123.source-needs-rule
+    title: A composed page's source events need a rule granting read of the source; default GET is not enough
+    area: sse
+    feature: composed pages
+    evidence: documented
+    source: "docs reference/reading-and-writing/Server-Sent-Events §Composed pages (\"a site that leaves documents readable by default still needs a rule for a source\") (snapshot 2026-11-23)"
+    confidence: high
+    requires: []
+    live: true
+    notes: "R-SSE-62."
+    site:
+      settings: {default_get: allow}
+      files:
+        - path: "${P}/partial.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body><header id="nav">Nav v1</header></body></html>
+        - path: "${P}/page.html"
+          body: |
+            <!DOCTYPE html>
+            <html xmlns:p="https://pagelove.org/1.0"><body>
+              <p:include resource="${P}/partial.html" selector="header#nav"></p:include>
+              <main><h1>Page</h1></main>
+            </body></html>
+      rules:
+        - {actor: "*", resource: "${P}/page.html", method: [GET], action: Allow}
+        - {actor: "*", resource: "${P}/partial.html", method: [PUT], action: Allow}
+    steps:
+      - sse_open: {name: page, path: "${P}/page.html", as: anonymous}
+      - sse_expect: {name: page, event: pagelove-connection, within_ms: 3000}
+      - name: the partial is readable by default
+        as: anonymous
+        request: {method: GET, path: "${P}/partial.html"}
+        expect: {status: 200}
+      - name: edit the partial
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/partial.html"
+          headers: {Range: "selector=header#nav", Content-Type: "text/html"}
+          body: '<header id="nav">Nav v2</header>'
+        expect: {status: 206}
+      - sse_expect_none: {name: page, event: mutation, for_ms: 1500}
+      - sse_close: {name: page}
+
+  - id: sse.s1123.nested-source
+    title: A page's stream carries events of documents included through any depth of nesting
+    area: sse
+    feature: composed pages
+    evidence: documented
+    source: "docs reference/reading-and-writing/Server-Sent-Events §Composed pages (\"through any depth of nesting\") (snapshot 2026-11-23)"
+    confidence: high
+    requires: []
+    live: true
+    notes: "R-SSE-61."
+    site:
+      files:
+        - path: "${P}/leaf.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body><p id="leaf">Leaf v1</p></body></html>
+        - path: "${P}/mid.html"
+          body: |
+            <!DOCTYPE html>
+            <html xmlns:p="https://pagelove.org/1.0"><body>
+              <section id="mid"><p:include resource="${P}/leaf.html" selector="#leaf"></p:include></section>
+            </body></html>
+        - path: "${P}/page.html"
+          body: |
+            <!DOCTYPE html>
+            <html xmlns:p="https://pagelove.org/1.0"><body>
+              <p:include resource="${P}/mid.html" selector="#mid"></p:include>
+            </body></html>
+      rules:
+        - {actor: "*", resource: "${P}/*", method: [GET, PUT], action: Allow}
+    steps:
+      - name: the page shows the leaf
+        as: anonymous
+        request: {method: GET, path: "${P}/page.html"}
+        expect: {status: 200, body_contains: ["Leaf v1"]}
+      - sse_open: {name: page, path: "${P}/page.html", as: anonymous}
+      - sse_expect: {name: page, event: pagelove-connection, within_ms: 3000}
+      - name: edit the leaf
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/leaf.html"
+          headers: {Range: "selector=#leaf", Content-Type: "text/html"}
+          body: '<p id="leaf">Leaf v2</p>'
+        expect: {status: 206}
+      - sse_expect:
+          name: page
+          event: mutation
+          within_ms: 3000
+          data_microdata: {method: PUT, path: "${P}/leaf.html", selector: "#leaf"}
+      - sse_close: {name: page}
+
+  - id: sse.s1123.binding-source
+    title: A page's stream carries events of documents its resource bindings read
+    area: sse
+    feature: composed pages
+    evidence: documented
+    source: "docs reference/reading-and-writing/Server-Sent-Events §Composed pages (\"includes, stamped content, and search results\") (snapshot 2026-11-23)"
+    confidence: medium
+    requires: []
+    live: true
+    notes: "R-SSE-61."
+    site:
+      files:
+        - path: "${P}/data.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body><ul><li class="score">7</li></ul></body></html>
+        - path: "${P}/page.html"
+          body: |
+            <!DOCTYPE html>
+            <html xmlns:p="https://pagelove.org/1.0" xmlns:r="https://pagelove.org/Binding/CSS"><body>
+              <p id="out" r:s="li.score" p:template="text/liquid">{% for x in s %}{{ x.textContent }}{% endfor %}</p>
+            </body></html>
+      rules:
+        - {actor: "*", resource: "${P}/*", method: [GET, POST], action: Allow}
+    steps:
+      - sse_open: {name: page, path: "${P}/page.html", as: anonymous}
+      - sse_expect: {name: page, event: pagelove-connection, within_ms: 3000}
+      - name: add a score to the data page
+        as: anonymous
+        request:
+          method: POST
+          path: "${P}/data.html"
+          headers: {Range: "selector=ul", Content-Type: "text/html"}
+          body: '<li class="score">9</li>'
+        expect: {status: [200, 201, 204, 206]}
+      - sse_expect:
+          name: page
+          event: mutation
+          within_ms: 3000
+          data_microdata: {method: POST, path: "${P}/data.html"}
+      - sse_close: {name: page}
+
+  - id: sse.s1123.replay-source
+    title: Last-Event-ID replay on a composed page includes its sources' events
+    area: sse
+    feature: composed pages
+    evidence: documented
+    source: "docs reference/reading-and-writing/Server-Sent-Events §Reconnection (\"The ID therefore records your position in each document separately\") (snapshot 2026-11-23)"
+    confidence: medium
+    requires: []
+    live: true
+    notes: "R-SSE-63. pagelike numbers events once per site, so one position covers every source."
+    site:
+      files:
+        - path: "${P}/partial.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body><header id="nav">Nav v1</header></body></html>
+        - path: "${P}/page.html"
+          body: |
+            <!DOCTYPE html>
+            <html xmlns:p="https://pagelove.org/1.0"><body>
+              <p:include resource="${P}/partial.html" selector="header#nav"></p:include>
+              <main><h1>Page</h1></main>
+            </body></html>
+      rules:
+        - {actor: "*", resource: "${P}/*", method: [GET, PUT], action: Allow}
+    steps:
+      - sse_open: {name: s1, path: "${P}/page.html", as: anonymous}
+      - sse_expect: {name: s1, event: pagelove-connection, within_ms: 3000}
+      - name: edit the page
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/page.html"
+          headers: {Range: "selector=h1", Content-Type: "text/html"}
+          body: "<h1>Seen</h1>"
+        expect: {status: 206}
+      - sse_expect: {name: s1, event: mutation, within_ms: 3000, data_contains: ["Seen"], capture: {evt1: id}}
+      - sse_close: {name: s1}
+      - name: missed edit of the partial
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/partial.html"
+          headers: {Range: "selector=header#nav", Content-Type: "text/html"}
+          body: '<header id="nav">Missed</header>'
+        expect: {status: 206}
+      - sse_open: {name: s2, path: "${P}/page.html", as: anonymous, last_event_id: "${evt1}"}
+      - sse_expect: {name: s2, event: mutation, within_ms: 3000, data_contains: ["Missed"], data_microdata: {path: "${P}/partial.html"}}
+      - sse_close: {name: s2}
