@@ -619,7 +619,10 @@ rendering (R-LIQ-56).
 | `query` | A hash of parsed query parameters: names and values URL-decoded, `+` as space. A repeated name becomes an array of strings. `{}` when there is no query. | documented [RD] (`request.query.*`); high / low (repeats) |
 | `headers` | A hash of request headers with lower-case names, including `authorization` and `cookie`. Repeated headers are joined with `, `. Hyphenated names need bracket access: `request.headers['accept-language']`. | documented [SSX] (`request.headers.*`), demo [SHOP-PART]:20; high / low (repeats) |
 | `params` | A hash of parameterized-route captures, percent-decoded. `{}` on non-route pages. | documented [PR] §Reading captured parameters (the Liquid example was lost in the scrape, C-15); high |
-| `body` | For an `application/x-www-form-urlencoded` body, a hash of decoded fields, with repeats as arrays. Otherwise the raw body as a string, `""` for requests without a body. | demo [POLL-TPL]:7-21, documented [RC] steps 1 and 3, [RD] §Fields (raw `body`), client [SKILL-OLD]:408-420; high (form) / low (other types) |
+| `body` | Parsed by the request's Content-Type (R-LIQ-66): a hash of fields for a form, the parsed value for JSON, the raw string for any other type, `{}` when there is no body. | documented [TPL] (snapshot 2026-11-23), [RC] §Reading form fields in the template; high |
+| `rawBody` | The unparsed body text; nil when there is no body (R-LIQ-67). | documented [TPL] (snapshot 2026-11-23); high |
+| `host` | The request's host (R-LIQ-67). | documented [TPL] (snapshot 2026-11-23); high |
+| `queryString` | The raw query string, without `?`; `""` when there is none (R-LIQ-67). | documented [TPL] (snapshot 2026-11-23); high |
 | `auth` | See R-LIQ-61. | |
 
 - Evidence: as listed.
@@ -672,6 +675,27 @@ Reading only `method`, `path`, `query` or `params` keeps the page shareable.
 name locally.
 - Evidence: inferred.
 - Confidence: medium.
+
+**R-LIQ-66 `request.body` parsing.** Superseded the earlier "raw string
+unless form" reading (docs snapshot 2026-11-23):
+- `application/x-www-form-urlencoded`: a hash of decoded fields. Trailing
+  whitespace of the body is removed first. A field sent more than once is its
+  last value.
+- `application/json`: the parsed value; objects keep their key order, integers
+  stay integers.
+- Any other type, or JSON that does not parse: the raw string.
+- No body, or an empty one: `{}`, so `request.body.x` is nil and
+  `request.body.size` is `0`.
+- Evidence: documented ([TPL] §Request object; [RC] §Reading form fields in
+  the template, snapshot 2026-11-23); unparsable JSON is inferred.
+- Confidence: high (form, JSON, empty), low (unparsable JSON).
+
+**R-LIQ-67 `rawBody`, `host`, `queryString`.** `request.rawBody` is the
+unparsed body text, nil without a body; `request.host` is the requested host;
+`request.queryString` is the raw query without `?`. `authentication` and
+`authn` are aliases of `auth` and make the page private like it (R-LIQ-64).
+- Evidence: documented ([TPL] §Request object, snapshot 2026-11-23).
+- Confidence: high.
 
 ---
 
@@ -1770,6 +1794,7 @@ unless stated otherwise. Each probe is a runnable harness case (§26).
 | `declaring.yaml` | R-LIQ-1…8: prefixes, namespace binding, inert unbound prefix, text outside hosts, unknown engine, `<html>` host, nested hosts |
 | `output.yaml` | R-LIQ-10…14, 30…34: host kept, attributes stripped, exact whitespace, trim markers, empty output, tables, `<title>`/attribute rendering, host attributes not rendered, xmlns stripping |
 | `bindings.yaml` | R-LIQ-40…59, 94: the worked people example, TeamMember sort and `@id`, `<body>` host, multi-valued route, missing properties, microdata value kinds, nested items, polls `@id` URL, `e:` count/sum, declaration order, scope, `j:`, stored templates seen raw, denied data rendered, empty bindings, descendant binding |
+| `body-1123.yaml` | R-LIQ-66, 67: JSON and form bodies, empty body, unparsable JSON, `rawBody`, `host`, `queryString` |
 | `request.yaml` | R-LIQ-60…65: debug JSON, method/path/query, custom header private, shop authorization header, route params, anonymous auth, bare names (plus a disputed case), form POST resource creation |
 | `tags.yaml` | R-LIQ-70…79: control flow, loops, `forloop`, `limit:`, filters in `if`, truthiness, `blank`/`empty`, `raw`, `include` refused, loop modifiers, numeric-string comparison |
 | `escaping.yaml` | R-LIQ-90…93: no autoescape (plus a disputed case), `escape` idempotence, data not re-evaluated |

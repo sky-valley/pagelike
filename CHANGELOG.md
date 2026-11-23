@@ -15,6 +15,13 @@ Server-sent events (docs snapshot 2026-11-23):
 - Writes made by triggers, processors and methods are streamed, naming the
   requester.
 
+Liquid (docs snapshot 2026-11-23):
+
+- `request.body` is parsed by Content-Type: form fields (last value wins),
+  parsed JSON, or the raw text; an empty body is `{}`.
+- New `request.rawBody`, `request.host` and `request.queryString`;
+  `request.authentication` and `request.authn` alias `request.auth`.
+
 MOVE:
 
 - An element can be moved to another page of the site in one step. The

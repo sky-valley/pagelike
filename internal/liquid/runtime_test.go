@@ -182,11 +182,11 @@ func TestRequest(t *testing.T) {
 			ContentType: "application/x-www-form-urlencoded; charset=utf-8", Body: []byte("title=A+%26+B&o=1&o=2"),
 		})
 		got := render(`{{ request.method }}|{{ request.path }}|{{ request.query.q }}|{{ request.query.t | join: "," }}|{{ request.query.x }}|[{{ request.query.e }}]|{{ request.headers.x-probe }}|{{ request.headers['accept-language'] }}|{{ request.params.slug }}|{{ request.params | json }}|{{ request.body.title }}|{{ request.body.o | join }}`, r)
-		want := `POST|/a b.html|a b|1,2|%zz|[]|1, 2|en|hi there|{"slug":"hi there","id":"7"}|A & B|1 2`
+		want := `POST|/a b.html|a b|1,2|%zz|[]|1, 2|en|hi there|{"slug":"hi there","id":"7"}|A & B|2` // a repeated form field is its last value
 		if got != want {
 			t.Errorf("members:\n got %s\nwant %s", got, want)
 		}
-		if got := render(`[{{ request.body }}]|{{ request.query | json }}|{{ request.params | json }}`, NewRequest(RequestData{Method: "GET"})); got != "[]|{}|{}" {
+		if got := render(`[{{ request.body }}]|{{ request.query | json }}|{{ request.params | json }}`, NewRequest(RequestData{Method: "GET"})); got != "[{}]|{}|{}" { // no body: an empty map
 			t.Errorf("empty request: %s", got)
 		}
 		if got := render(`{{ request.body }}`, NewRequest(RequestData{ContentType: "text/plain", Body: []byte("raw & text")})); got != "raw & text" {

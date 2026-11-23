@@ -1,0 +1,111 @@
+# Liquid request.body parsing and request.rawBody (docs snapshot 2026-11-23).
+# Spec: docs/spec/liquid.md R-LIQ-60, 66, 67.
+defaults:
+  area: liquid
+  evidence: documented
+  source: "docs languages/liquid/templating; reference/composing-pages/Resource-Creation §Reading form fields in the template (snapshot 2026-11-23)"
+  confidence: high
+  requires: [liquid]
+  site:
+    settings: {default_get: allow}
+    files:
+      - path: "${P}/templates/new.html"
+        body: |
+          <!DOCTYPE html>
+          <html xmlns:p="https://pagelove.org/1.0" p:template="text/liquid">
+          <head><base href="${P}/made/{{ request.body.slug | default: 'none' }}.html"></head>
+          <body>
+          <p id="title">[{{ request.body.title }}]</p>
+          <p id="size">size={{ request.body.size }}</p>
+          <p id="raw">raw={% if request.rawBody == nil %}NULL{% else %}{{ request.rawBody | escape }}{% endif %}</p>
+          <p id="host">host={{ request.host }}</p>
+          <p id="qs">qs={{ request.queryString }}</p>
+          </body>
+          </html>
+    rules:
+      - {actor: "*", resource: "${P}/*", method: [GET, HEAD], action: Allow}
+      - {actor: "*", resource: "${P}/templates/new.html", method: [POST], action: Allow}
+      - {actor: "*", resource: "${P}/made/*", method: [PUT], action: Allow}
+cases:
+  - id: liquid.body1123.json
+    title: A JSON body is parsed for request.body; request.rawBody is the text
+    feature: request.body
+    live: true
+    notes: "R-LIQ-66, R-LIQ-67."
+    steps:
+      - as: anonymous
+        request:
+          method: POST
+          path: "${P}/templates/new.html?x=1"
+          headers: {Content-Type: "application/json"}
+          body: '{"slug":"j","title":"From JSON"}'
+        expect: {status: 301}
+      - as: anonymous
+        request: {method: GET, path: "${P}/made/j.html"}
+        expect:
+          status: 200
+          body_contains: ["[From JSON]", 'raw={"slug":"j","title":"From JSON"}', "qs=x=1"]
+          body_matches: 'host=\S+'
+
+  - id: liquid.body1123.form-last-value
+    title: A form field sent twice is its last value, after trailing whitespace is removed from the body
+    feature: request.body
+    live: true
+    notes: "R-LIQ-66."
+    steps:
+      - as: anonymous
+        request:
+          method: POST
+          path: "${P}/templates/new.html"
+          headers: {Content-Type: "application/x-www-form-urlencoded"}
+          body: "slug=f&title=first&title=second\n"
+        expect: {status: 301}
+      - as: anonymous
+        request: {method: GET, path: "${P}/made/f.html"}
+        expect: {status: 200, body_contains: ["[second]"]}
+
+  - id: liquid.body1123.empty-is-empty-map
+    title: No body is an empty map for request.body and null for request.rawBody
+    feature: request.body
+    live: true
+    notes: "R-LIQ-66, R-LIQ-67."
+    steps:
+      - as: anonymous
+        request: {method: GET, path: "${P}/templates/new.html"}
+        expect:
+          status: 200
+          body_contains: ["[]", "size=0", "raw=NULL"]
+
+  - id: liquid.body1123.invalid-json-raw
+    title: A JSON body that does not parse stays the raw string
+    feature: request.body
+    live: true
+    notes: "R-LIQ-66."
+    evidence: inferred
+    source: "inferred from docs languages/liquid/templating (snapshot 2026-11-23): 'the raw string for any other type'; an unparsable JSON body is assumed to fall back the same way"
+    confidence: low
+    site:
+      settings: {default_get: allow}
+      files:
+        - path: "${P}/templates/new.html"
+          body: |
+            <!DOCTYPE html>
+            <html xmlns:p="https://pagelove.org/1.0" p:template="text/liquid">
+            <head><base href="${P}/made/bad.html"></head>
+            <body><p id="b">body={{ request.body | escape }}</p></body>
+            </html>
+      rules:
+        - {actor: "*", resource: "${P}/*", method: [GET, HEAD], action: Allow}
+        - {actor: "*", resource: "${P}/templates/new.html", method: [POST], action: Allow}
+        - {actor: "*", resource: "${P}/made/*", method: [PUT], action: Allow}
+    steps:
+      - as: anonymous
+        request:
+          method: POST
+          path: "${P}/templates/new.html"
+          headers: {Content-Type: "application/json"}
+          body: '{not json'
+        expect: {status: 301}
+      - as: anonymous
+        request: {method: GET, path: "${P}/made/bad.html"}
+        expect: {status: 200, body_contains: ["body={not json"]}
