@@ -45,16 +45,11 @@ func (ev *evaluator) classNamed(name string, sc *scope) (Value, bool) {
 	case Class:
 		return c, true
 	case *TypeNS:
-		// `new Selector {…}` builds a Selector only where the program
-		// imports it (@schema Selector url("https://pagelove.org/Selector"))
-		// or binds the name; otherwise it is an ordinary <selector> element,
-		// as on live PageLove (2026-09-29).
+		// Selector is a built-in name: `new Selector {…}` builds a Selector
+		// with or without an @schema import (docs snapshot 2026-11-23,
+		// superseding live 2026-09-29, where it built a <selector> element).
 		if c.Name == "Selector" {
-			_, declared := ev.decls[name]
-			_, bound := sc.lookup(name)
-			if declared || bound {
-				return c, true
-			}
+			return c, true
 		}
 	}
 	return nil, false

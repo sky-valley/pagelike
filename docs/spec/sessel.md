@@ -2340,3 +2340,92 @@ in live-capable cases (a live host holds other documents); they use
 | `bindings.yaml` | `e:` bindings rendered through `<p:stamp>` and Liquid (R-SESSEL-1, 371, 372) |
 | `reactions.yaml` | Sessel trigger/processor gates, `HTTPResponse`, header lookup (R-SESSEL-290..294) |
 | `expressions.yaml` | ≥ 300 pure expression tests (format documented in the file header) covering every method and syntax form |
+
+---
+
+## 23. Changes from the 2026-11-23 docs
+
+Each supersedes the earlier text it names. Cases: `expressions.yaml`
+`sessel.expr.s1123.*`.
+
+### R-SESSEL-377 — Computed `from` sources
+A `from` source is a single name, literal, selector or bracketed expression;
+anything longer goes in brackets (`from (request.params.slug)`). Its value
+may be a String (a path, or a glob with `*` or `?`) or a List of Strings
+(all of them; an empty List matches nothing). Anything else is a
+`TypeError` naming the type. The paths are checked as if typed.
+- **Evidence:** documented ([SYN] §Computed sources). **Confidence:** high.
+
+### R-SESSEL-378 — Typed property reads with a dot
+`el.name` on a queried element types text values: whole-number text is an
+Integer, other numeric text a Float, `true`/`false` a Boolean, anything else
+a String; a nested item is an Element (amends R-SESSEL-232).
+- **Evidence:** documented ([ELM] §Reading a property with a dot).
+  **Confidence:** high (rule), medium (exact numeric grammar).
+
+### R-SESSEL-379 — Property ownership
+`.microdata()`, `Sessel.properties` and `Sessel.stored` use the standard
+Microdata rule: properties inside wrapper elements and those named by
+`itemref` count; those inside a nested `itemscope` belong to the nested
+item. `.microdata()` on an element without `itemscope` reads the first item
+inside it, and is `null` when there is none (amends R-SESSEL-233).
+`Sessel.properties` lists distinct names in page order.
+- **Evidence:** documented ([ELM] §`.microdata()`; [TYP] §Reflection API).
+  **Confidence:** high.
+
+### R-SESSEL-380 — `Selector` is built in
+`new Selector { … }` builds a Selector with or without an `@schema` import
+(amends R-SESSEL-210; supersedes the live 2026-09-29 observation that it
+built a `<selector>` element).
+- **Evidence:** documented ([TYP] §Selector). **Confidence:** high.
+
+### R-SESSEL-381 — Budget errors are not caught
+Running out of the request's budget (time, operations, memory) never
+reaches a `catch` body: the request fails with its budget response. A
+`return` inside `try` returns from the enclosing lambda. A hash that would
+not finish in the time left is such an error (R-LIQ-184).
+- **Evidence:** documented ([SYN] §try/catch). **Confidence:** high.
+
+### R-SESSEL-382 — `null` in search criteria
+In `Class.search`, a Map with a `null` value matches nothing; in a List of
+Maps such a Map is left out and the others still count.
+- **Evidence:** documented ([TYP] §Map). **Confidence:** high.
+
+### R-SESSEL-383 — Method choice by argument count
+Among a schema's methods of one name, a call takes the method declaring at
+least as many parameters as it passes, with the fewest winning; parameter
+types are never looked at. A method the schema declares hides inherited
+ones of that name, whatever their parameter count; a schema declaring none
+inherits every method of that name from the nearest ancestor that does.
+Missing parameters are unbound (null inside `??`, `==`, `!=` and a ternary
+condition). With no candidate, the call finds no method. pagelike has no
+variadic methods, so the documented variadic fallback does not arise.
+- **Evidence:** documented ([MTH] §Overloading). **Confidence:** high.
+
+### R-SESSEL-384 — `Sessel.hasMethod(target, name, argCount)`
+True when a schema method `name` would be chosen for a call with
+`argCount` arguments under R-SESSEL-383: instance methods for an instance,
+static methods for a class value; `false` for any other value. A non-String
+name or an `argCount` that is not a non-negative Integer is a `TypeError`.
+- **Evidence:** documented ([TYP] §Reflection API). **Confidence:** high.
+
+### R-SESSEL-385 — Items with several types
+`itemtype="A B"` makes the item an instance of both: `A.search` and
+`B.search` find it, `isa` is true when any type is or inherits from the
+target, and when both types define a method the one written first runs;
+a method or property only a later type defines still works.
+- **Evidence:** documented ([QRY] §Items with several types).
+  **Confidence:** high.
+
+### R-SESSEL-386 — `Class.search` `from` option
+`Class.search(criteria, { from: source })` searches only the documents the
+source names, with the rules of a `from` clause (R-SESSEL-377). `from` may be
+written as a bare key; `isa` must still be quoted.
+- **Evidence:** documented ([QRY] §from; [TYP] example
+  `search({}, { from: "/other/o.html" })`). **Confidence:** high.
+
+### R-SESSEL-387 — `.attr(name)` matches any letter case
+In an HTML document `.attr(name)` matches the attribute name in any letter
+case (`.attr("viewbox")` finds `viewBox`); the part after an `xmlns:` prefix
+matches exactly. In an XML document names match exactly.
+- **Evidence:** documented ([QRY] §Reading values). **Confidence:** high.

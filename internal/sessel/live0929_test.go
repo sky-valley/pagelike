@@ -109,8 +109,9 @@ func TestStoredAndConstructedElements(t *testing.T) {
 			t.Errorf("%s:\n got %s\nwant %s", src, got, want)
 		}
 	}
+	// Selector is built in since the 2026-11-23 docs: no @schema needed.
 	v, err := eval(t, nil, `new Selector { "h1" }`)
-	if el, ok := v.(*sessel.Element); err != nil || !ok || el.Node.Data != "selector" {
+	if sv, ok := v.(*sessel.SelectorValue); err != nil || !ok || sv.Source != "h1" {
 		t.Errorf("new Selector without @schema: %v %v", v, err)
 	}
 }

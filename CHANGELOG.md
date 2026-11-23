@@ -28,6 +28,20 @@ Liquid (docs snapshot 2026-11-23):
   memory fairly between sites: a site may use half the hashing slots and
   512 MiB; a refusal answers 503 with `Retry-After: 1`.
 
+Sessel (docs snapshot 2026-11-23):
+
+- `from` takes a computed source: a bracketed expression giving a path, a
+  glob or a list of paths. `Class.search` takes a `from` option too.
+- Reading a property with a dot types its text (integers, floats,
+  booleans). `.microdata()` on a wrapper reads the first item inside it.
+- `new Selector { … }` needs no `@schema` import.
+- `try`/`catch` no longer catches running out of the request's budget.
+- Methods are chosen by argument count; `Sessel.hasMethod` asks whether a
+  call would find one.
+- An item may have several types: it is found by each, and the first
+  type's methods win.
+- A search Map with a `null` value matches nothing.
+
 MOVE:
 
 - An element can be moved to another page of the site in one step. The

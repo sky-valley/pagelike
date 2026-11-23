@@ -103,8 +103,8 @@ func hashMethod(r *run, s, name string, args []Value) (Value, error) {
 				}
 				iter = n
 			case "length":
-				if n < 4 || n > 1024 {
-					return nil, typeErr("argon2(): length must be 4..1024")
+				if n < 4 || n > 64 {
+					return nil, typeErr("argon2(): length must be 4..64")
 				}
 				length = n
 			default:

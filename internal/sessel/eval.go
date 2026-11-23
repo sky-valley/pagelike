@@ -432,7 +432,9 @@ func (ev *evaluator) eval(n node, sc *scope) (Value, error) {
 			return v, nil
 		}
 		e, ok := err.(*Error)
-		if !ok {
+		if !ok || e.Reason == ReasonBudget || e.Reason == ReasonTimeout {
+			// Running out of the request's budget never reaches the catch
+			// body (docs snapshot 2026-11-23).
 			return nil, err
 		}
 		return ev.evalBlock(x.catch, sc.bind(x.name, errorValue(e)))
@@ -1127,6 +1129,9 @@ func (ev *evaluator) member(v Value, name string, pos int) (Value, error) {
 type Call struct {
 	Ctx context.Context
 	ev  *evaluator
+
+	// from, when set, is the scope of a Class.search (its from option).
+	from *rootSet
 }
 
 // Host returns the evaluation's host (may be nil).

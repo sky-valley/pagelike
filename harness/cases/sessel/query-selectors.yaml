@@ -380,15 +380,15 @@ cases:
           body_json: [0, "9.5"]
 
   - id: sessel.query.sel.selector-type
-    title: The Selector type (imported with @schema) is inert until execute(); without @schema the name builds an element
+    title: The Selector type is inert until execute(), and is a built-in name that needs no @schema
     feature: Selector type
-    evidence: live-observed
-    source: "harness/observations/live-2026-09-29/sessel-query-sel-selector-type.json; harness/observations/live-2026-09-29-reconcile-sessel/sessel-query-probe-0929-mutation-and-sel.json (steps 8-10)"
+    evidence: documented
+    source: "docs languages/sessel/reference/types §Selector ('Selector is a built-in name, so new Selector { ... } needs no @schema declaration', snapshot 2026-11-23); harness/observations/live-2026-09-29/sessel-query-sel-selector-type.json (execute semantics)"
     live: false
     notes: >-
-      R-SESSEL-210. Live: `new Selector {…}` without `@schema Selector url("https://pagelove.org/Selector")` is a
-      <selector> element (so .execute() is "unknown function: execute"); with the import, execute() is `from self`
-      and execute(path) reaches nothing in a QUERY.
+      R-SESSEL-210. execute() is `from self` and execute(path) reaches nothing in a QUERY (live 2026-09-29).
+      Live 2026-09-29 built a <selector> element without the import; the 2026-11-23 docs make Selector built in,
+      which supersedes that observation.
     steps:
       - name: execute on a path and on self
         as: author
@@ -400,27 +400,16 @@ cases:
         expect:
           status: 200
           body_json: [0, Welcome, h1]
-      - name: without @schema, Selector is a tag name
+      - name: without @schema, Selector is still the built-in type
         as: author
         request:
           method: QUERY
           path: "${P}/doc.html"
           headers: {Content-Type: "text/sessel"}
-          body: 'new Selector { "h1" }'
+          body: 'let sel = new Selector { "h1" }; [sel.execute().count(), sel.toString()]'
         expect:
-          status: [200, 206]
-          header_matches: {Content-Type: '^text/html'}
-          body_html: '<selector>h1</selector>'
-      - name: so execute() is unknown
-        as: author
-        request:
-          method: QUERY
-          path: "${P}/doc.html"
-          headers: {Content-Type: "text/sessel"}
-          body: 'let sel = new Selector { "h1" }; sel.execute().count()'
-        expect:
-          status: 400
-          body_contains: [execute]
+          status: 200
+          body_json: [1, h1]
 
   - id: sessel.query.sel.prior-in-query
     title: In a QUERY there is no write in progress, so from prior finds nothing

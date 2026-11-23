@@ -386,7 +386,9 @@ cases:
     notes: >-
       Isolates sessel.query.new.setters-and-mutation step 2 and sessel.query.sel.selector-type. Sub-select results are
       stored (immutable) elements even under a constructed element; children() returns live mutable children.
-      Without @schema, `new Selector {…}` builds a <selector> element.
+      Live 2026-09-29 built a <selector> element for `new Selector {…}` without @schema (step 8 of the
+      observation); the 2026-11-23 docs make Selector built in, so that step was dropped
+      (sessel.query.sel.selector-type).
     site:
       files:
         - path: "${P}/doc.html"
@@ -474,17 +476,6 @@ cases:
         expect:
           status: 200
           body_json: [null, "type error: text(value) setter requires a constructed element, got element", 1]
-      - name: Selector without @schema
-        as: author
-        request:
-          method: QUERY
-          path: "${P}/doc.html"
-          headers: {Content-Type: "text/sessel"}
-          body: 'new Selector { "h1" }'
-        expect:
-          status: [200, 206]
-          header_matches: {Content-Type: '^text/html'}
-          body_html: '<selector>h1</selector>'
       - name: Selector with @schema, execute() and toString()
         as: author
         request:
