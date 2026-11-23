@@ -34,6 +34,10 @@ Schemas (docs snapshot 2026-11-23):
 - A schema-level JavaScript `@validate` gets the item as an object of its
   properties, not its HTML.
 
+Server JavaScript (docs snapshot 2026-11-23):
+
+- `btoa` and `atob` are available.
+
 Reactions (docs snapshot 2026-11-23):
 
 - A `when` written as plain text is a Sessel gate. A trigger with one used

@@ -841,7 +841,7 @@ The following MUST be absent (`typeof X === "undefined"`; using them is a
 | `setTimeout`, `setInterval` | documented |
 | `HTTPResponse` (as a constructor) | documented (JSS §Explaining why) |
 | `Pagelove` (the Sessel write API) | documented for trigger/processor actions (TRG §Writing from triggers) |
-| `clearTimeout`, `clearInterval`, `setImmediate`, `queueMicrotask`, `XMLHttpRequest`, `WebSocket`, `EventSource`, `module`, `exports`, `Buffer`, `Deno`, `Bun`, `window`, `self`, `navigator`, `location`, `localStorage`, `performance`, `console`, `structuredClone`, `URL`, `URLSearchParams`, `atob`, `btoa` | inferred ("no host I/O", "network and timers not available"; QuickJS defines none of these without the `std` helpers; pagelike decision for `console` and the Web utility classes) |
+| `clearTimeout`, `clearInterval`, `setImmediate`, `queueMicrotask`, `XMLHttpRequest`, `WebSocket`, `EventSource`, `module`, `exports`, `Buffer`, `Deno`, `Bun`, `window`, `self`, `navigator`, `location`, `localStorage`, `performance`, `console`, `structuredClone`, `URL`, `URLSearchParams` | inferred ("no host I/O", "network and timers not available"; QuickJS defines none of these without the `std` helpers; pagelike decision for `console` and the Web utility classes) |
 
 No host module (`qjs:std`, `qjs:os`, `pagelove:host`) can be imported
 (R-JS-9).
@@ -858,7 +858,19 @@ No host module (`qjs:std`, `qjs:os`, `pagelove:host`) can be imported
 | `document` | contexts that run against a document (A3 table) | R-JS-63 |
 | `Context` | method bodies (composition and cross-language calls), `j:` | R-JS-17, R-JS-18, R-JS-32 |
 | `request` | `j:` | R-JS-34 |
+| `btoa`, `atob` | every context | R-JS-39b |
 | `crypto` (`crypto.subtle.digest`, `crypto.getRandomValues`, `crypto.randomUUID`) and `TextEncoder`/`TextDecoder` | every context | R-JS-39a |
+
+**R-JS-39b (base64).** `btoa(binaryString)` and `atob(base64)` are the
+standard functions, in every context: `btoa` refuses a character above
+U+00FF and `atob` input that is not base64 with a `DOMException` named
+`InvalidCharacterError`; either called with no argument is a `TypeError`;
+`atob` ignores ASCII white space. `Uint8Array.fromBase64` and
+`Uint8Array.prototype.toBase64` (alphabets `base64` and `base64url`,
+`omitPadding`) come with the engine.
+- Evidence: documented. Source: docs languages/javascript/server/base64
+  (snapshot 2026-11-23; absent from the 2026-09-28 docs, where pagelike
+  left them undefined). Case: `javascript.g1123.btoa-atob`.
 
 **R-JS-39a (crypto).** JEB names `crypto.subtle` as an awaitable built-in a
 `j:` expression may use. pagelike provides `crypto.subtle.digest(alg, data)`

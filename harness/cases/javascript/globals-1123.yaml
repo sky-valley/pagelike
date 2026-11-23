@@ -1,0 +1,52 @@
+# JavaScript area: globals added by the 2026-11-23 docs (docs/spec/javascript.md R-JS-39b).
+defaults:
+  area: "javascript"
+  evidence: "documented"
+  confidence: "high"
+  requires: ["server-js"]
+  live: true
+  site:
+    settings:
+      default_get: "allow"
+    rules:
+      - actor: "*"
+        resource: "${P}/*"
+        method: ["GET", "HEAD", "PUT", "POST", "DELETE", "MOVE"]
+        action: "Allow"
+cases:
+  - id: "javascript.g1123.btoa-atob"
+    title: "btoa and atob are the standard base64 functions"
+    feature: "globals"
+    source: "docs languages/javascript/server/base64 (snapshot 2026-11-23) ('btoa(\"foobar\"); // \"Zm9vYmFy\" … atob(\"Zm9vYmFy\"); // \"foobar\"'; error cases: 'DOMException named InvalidCharacterError', 'called with no argument: TypeError')"
+    notes: "spec: R-JS-39b."
+    steps:
+      - name: "PUT the page"
+        as: "anonymous"
+        request:
+          method: "PUT"
+          path: "${P}/j.html"
+          headers:
+            Content-Type: "text/html"
+          body: |
+            <!DOCTYPE html>
+            <html xmlns:j="https://pagelove.org/Binding/JavaScript" xmlns:p="https://pagelove.org/1.0"><body>
+            <main>
+            <div j:a="'A:' + btoa('foobar') + ':' + atob('Zm9vYmFy') + ':' + atob(' Zm9v\nYg ') + ':' + btoa('') + ':' + atob('')"><p:stamp a></p:stamp></div>
+            <div j:b="'B:' + (() => { try { btoa('Ā'); return 'no'; } catch (e) { return e.name + (e instanceof DOMException); } })()"><p:stamp b></p:stamp></div>
+            <div j:c="'C:' + (() => { try { atob('a'); return 'no'; } catch (e) { return e.name; } })()"><p:stamp c></p:stamp></div>
+            <div j:d="'D:' + (() => { try { atob(); return 'no'; } catch (e) { return e instanceof TypeError; } })()"><p:stamp d></p:stamp></div>
+            <div j:e="'E:' + new TextEncoder().encode('é').toBase64() + ':' + Uint8Array.fromBase64('_-8', {alphabet: 'base64url'}).toBase64({alphabet: 'base64url', omitPadding: true})"><p:stamp e></p:stamp></div>
+            </main>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "GET the composed page"
+        as: "anonymous"
+        request:
+          method: "GET"
+          path: "${P}/j.html"
+          headers:
+            Range: "selector=main"
+        expect:
+          status: 206
+          body_contains: ["A:Zm9vYmFy:foobar:foob::", "B:InvalidCharacterErrortrue", "C:InvalidCharacterError", "D:true", "E:w6k=:_-8"]

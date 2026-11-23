@@ -16,13 +16,13 @@ import (
 var absentGlobals = []string{"fetch", "process", "require", "setTimeout", "setInterval", "HTTPResponse", "Pagelove",
 	"clearTimeout", "clearInterval", "setImmediate", "queueMicrotask", "XMLHttpRequest", "WebSocket", "EventSource",
 	"module", "exports", "Buffer", "Deno", "Bun", "window", "self", "navigator", "location", "localStorage", "performance",
-	"console", "structuredClone", "URL", "URLSearchParams", "atob", "btoa", "std", "os", "print", "scriptArgs", "gc",
+	"console", "structuredClone", "URL", "URLSearchParams", "std", "os", "print", "scriptArgs", "gc",
 	"Intl", "Temporal", "__pl_dom", "__pl_sys", "__pagelike_driver"}
 
 var presentGlobals = map[string]string{
 	"DOMException": "function", "DOMParser": "function", "XMLSerializer": "function", "Node": "function", "Element": "function",
 	"HTMLElement": "function", "HTMLAnchorElement": "function", "Document": "function", "crypto": "object", "TextEncoder": "function",
-	"TextDecoder": "function", "globalThis": "object", "Math": "object", "JSON": "object", "Map": "function", "Proxy": "function",
+	"TextDecoder": "function", "btoa": "function", "atob": "function", "globalThis": "object", "Math": "object", "JSON": "object", "Map": "function", "Proxy": "function",
 	"Reflect": "object", "BigInt": "function", "WeakRef": "function", "SharedArrayBuffer": "function", "InternalError": "function",
 	"escape": "function", "eval": "function", "Atomics": "object",
 }
@@ -82,7 +82,7 @@ func TestOnlyDocumentedGlobalsAreAdded(t *testing.T) {
 	}
 	documented := map[string]bool{"DOMException": true, "DOMParser": true, "XMLSerializer": true, "Node": true, "Document": true,
 		"DocumentFragment": true, "CharacterData": true, "Text": true, "Comment": true, "Element": true, "HTMLElement": true,
-		"NodeList": true, "DOMTokenList": true, "crypto": true, "TextEncoder": true, "TextDecoder": true, "document": true, "Context": true}
+		"NodeList": true, "DOMTokenList": true, "crypto": true, "TextEncoder": true, "TextDecoder": true, "btoa": true, "atob": true, "document": true, "Context": true}
 	for _, d := range ifaceTable {
 		documented[d.Name] = true
 	}
