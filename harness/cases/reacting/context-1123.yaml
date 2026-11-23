@@ -1,0 +1,72 @@
+# Reacting: Context.request after the 2026-11-23 docs (spec R-REACT-25, R-SESSEL-291).
+anchors:
+  open_rules: &open_rules
+    - {actor: "*", resource: "${P}/*", method: [GET, HEAD, PUT, POST, DELETE], action: Allow}
+  install: &install
+    name: install a trigger that reports what the body is
+    as: anonymous
+    request:
+      method: PUT
+      path: "${P}/r/triggers.html"
+      headers: {Content-Type: text/html}
+      body: |
+        <!DOCTYPE html>
+        <html><body>
+        <div hidden itemscope itemtype="https://pagelove.org/Trigger">
+          <meta itemprop="resource" content="${P}/d/*">
+          <meta itemprop="method" content="POST">
+          <div itemprop="action" itemscope itemtype="https://pagelove.org/Sessel">
+            <script itemprop="source" type="text/sessel">
+              @schema Context url("https://pagelove.org/Context");
+              @schema HTTPResponse url("https://pagelove.org/HTTPResponse");
+              let b = Context.request.body;
+              let who = (Context.request.headers["x-mode"] == "raw") ? Context.request.rawBody : b.name;
+              throw new HTTPResponse { status: 409, message: "got:" + who }
+            </script>
+          </div>
+        </div>
+        </body></html>
+    expect: {status: [200, 201, 204]}
+defaults:
+  area: reacting
+  feature: Context.request.body
+  evidence: documented
+  confidence: high
+  requires: [sessel]
+  live: true
+  site:
+    settings: {default_get: allow}
+    rules: *open_rules
+cases:
+  - id: reacting.ctx1123.form-body-is-a-map
+    title: "Context.request.body of a form post is a map of its fields, the last value winning"
+    source: "docs reference/reacting-to-changes/Trigger §Context (snapshot 2026-11-23) ('Request body, parsed by its content type: a map of fields for a form or multipart post, the parsed value for JSON, and the raw string for any other type')"
+    notes: "spec: R-REACT-25. The 2026-09-28 docs made body the raw string."
+    steps:
+      - *install
+      - name: a form post
+        as: anonymous
+        request: {method: POST, path: "${P}/d/x.html", headers: {Content-Type: application/x-www-form-urlencoded}, body: "name=first&name=ada+l"}
+        expect: {status: 409, body_contains: ["got:ada l"]}
+
+  - id: reacting.ctx1123.json-body-is-parsed
+    title: "Context.request.body of a JSON post is the parsed value"
+    source: "docs reference/reacting-to-changes/Trigger §Context (snapshot 2026-11-23) ('the parsed value for JSON')"
+    notes: "spec: R-REACT-25."
+    steps:
+      - *install
+      - name: a JSON post
+        as: anonymous
+        request: {method: POST, path: "${P}/d/x.html", headers: {Content-Type: application/json}, body: '{"name": "grace"}'}
+        expect: {status: 409, body_contains: ["got:grace"]}
+
+  - id: reacting.ctx1123.raw-body-is-text
+    title: "Context.request.rawBody is the unparsed text"
+    source: "docs reference/reacting-to-changes/Trigger §Context (snapshot 2026-11-23) ('Request body as unparsed text (null when there is no body)')"
+    notes: "spec: R-REACT-25."
+    steps:
+      - *install
+      - name: a JSON post read raw
+        as: anonymous
+        request: {method: POST, path: "${P}/d/x.html", headers: {Content-Type: application/json, X-Mode: raw}, body: '{"name": "grace"}'}
+        expect: {status: 409, body_contains: ['got:{"name": "grace"}']}

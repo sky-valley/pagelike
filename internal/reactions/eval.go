@@ -335,10 +335,11 @@ func (e *evalEnv) jsArg() map[string]any {
 		}
 		auth = map[string]any{"username": username(p), "claims": claimsOf(p), "role": roles, "roles": roles}
 	}
-	body, _ := st.req.Lookup("body").(string)
+	// ctx.request.body is parsed as Context.request.body is; rawBody is
+	// the unparsed text (docs snapshot 2026-11-23).
 	arg := map[string]any{"request": map[string]any{
 		"method": strings.ToUpper(st.method), "path": st.path, "host": st.call.Host,
-		"headers": headers, "query": q, "body": body, "auth": auth,
+		"headers": headers, "query": q, "body": sessel.ToGo(st.req.Lookup("body")), "rawBody": sessel.ToGo(st.req.Lookup("rawBody")), "auth": auth,
 	}}
 	if e.resp != nil {
 		h := map[string]any{}

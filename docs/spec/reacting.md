@@ -612,8 +612,8 @@ For each public-plane request (the steps before 3 belong to other areas):
 | `Context.request.path` | String | Percent-decoded request path without query (`/`, not `/index.html`, for a root request; the concrete URL for a routed request) |
 | `Context.request.headers` | Map | Request headers (R-REACT-23) |
 | `Context.request.query` | Map | Query parameters, name → first value, both percent-decoded. Absent parameter → `null` |
-| `Context.request.body` | String | Request body decoded as UTF-8 text. `""` when there is none. After a transformation it holds the transformed body (R-REACT-38) |
-| `Context.request.rawBody` | String | The body bytes as received, interpreted as UTF-8 without charset conversion. Equal to `body` for UTF-8 requests |
+| `Context.request.body` | Map, String, or any JSON value | The body parsed by its content type: a map of fields for a form or multipart post, the parsed value for JSON, the raw string for any other type; an empty map when there is none (docs snapshot 2026-11-23; cases `reacting.ctx1123.*`). After a transformation it reflects the transformed body (R-REACT-38) |
+| `Context.request.rawBody` | String | The unparsed text; `null` when there is no body |
 | `Context.request.auth` | Map or null | Not documented for Sessel. pagelike exposes the same object as JS `ctx.request.auth` (inferred superset, permissions R-PERM-74) |
 
   `Context.response` does not exist during triggers. Reading it is a runtime
@@ -692,7 +692,7 @@ For each public-plane request (the steps before 3 belong to other areas):
 - **Behavior:** `ctx.request` is a plain object: `method`, `path`, `headers`
   (lower-case keys with case-insensitive `get` behavior, R-REACT-23), `host`
   (the request `Host` without port), `query` (object, first values), `body`
-  (string), `auth`. `auth` is `null` for anonymous requests. For a signed-in
+  (parsed as `Context.request.body` is), `rawBody` (the text), `auth`. `auth` is `null` for anonymous requests. For a signed-in
   principal it is `{username, claims: {…}, role: [...], roles: [...]}`, the
   same contents as `request.auth` in composition (permissions R-PERM-74). In
   processors `ctx.response` is added: `status` (number), `body` (string, fully

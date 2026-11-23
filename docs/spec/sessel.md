@@ -1812,8 +1812,8 @@ composition/reaction pass:
 | `headers` | Dictionary | lower-case names; lookup case-insensitive (R-SESSEL-293) |
 | `query` | Dictionary | decoded query parameters (String values) |
 | `params` | Dictionary | parameterized-route captures (`request.params.id`) |
-| `body` | String | raw request body (reactions) |
-| `rawBody` | String | body as raw UTF-8 bytes (reactions) |
+| `body` | Dictionary, String or any JSON value | the body parsed by its content type: a map of fields for a form or multipart post (last value of a repeated field), the parsed value for JSON, the raw string otherwise; an empty map when there is no body (docs snapshot 2026-11-23; the raw string before) |
+| `rawBody` | String | the unparsed text; `null` when there is no body |
 | `auth` | Dictionary | `claims` (Dictionary of OIDC claims), `username` (the `sub`), `roles` (List) |
 For anonymous requests `request.auth.claims.email` and `request.auth.username`
 are `null` (falsy, no error). Reading `request.auth`/`headers` marks a composed

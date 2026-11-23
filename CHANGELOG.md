@@ -41,6 +41,9 @@ Reactions (docs snapshot 2026-11-23):
 - A transition handler's `when` may be plain text or a JavaScript module. A
   condition that fails now refuses the save (500, naming no handler)
   instead of quietly skipping the notification.
+- `Context.request.body` (and `ctx.request.body` in JavaScript) is parsed
+  by content type, as in Liquid; `rawBody` is the text, null without a
+  body.
 
 Liquid (docs snapshot 2026-11-23):
 
