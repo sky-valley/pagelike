@@ -1,0 +1,391 @@
+# Reacting: when gates after the 2026-11-23 docs (spec R-REACT-4, 17, 79).
+anchors:
+  open_rules: &open_rules
+    - {actor: "*", resource: "${P}/*", method: [GET, HEAD, PUT, POST, DELETE], action: Allow}
+defaults:
+  area: reacting
+  site:
+    settings: {default_get: allow}
+    rules: *open_rules
+cases:
+  - id: reacting.g1123.trigger-text-when-is-sessel
+    title: "A trigger when written as plain text is a Sessel gate"
+    feature: when gate
+    evidence: documented
+    source: "docs reference/reacting-to-changes/Trigger §when (snapshot 2026-11-23) ('A gate written as plain text used to be ignored … It is now a Sessel gate')"
+    confidence: high
+    requires: [sessel]
+    live: true
+    notes: "spec: R-REACT-17. Supersedes reacting.gates.malformed-when-skips-trigger (an inferred pagelike decision)."
+    steps:
+      - name: install the trigger
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/r/triggers.html"
+          headers: {Content-Type: text/html}
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+            <div hidden itemscope itemtype="https://pagelove.org/Trigger">
+              <meta itemprop="resource" content="${P}/d/*">
+              <meta itemprop="when" content='@schema Context url("https://pagelove.org/Context"); Context.request.method == "PUT"'>
+              <div itemprop="action" itemscope itemtype="https://pagelove.org/Sessel">
+                <script itemprop="source" type="text/sessel">
+                  @schema HTTPResponse url("https://pagelove.org/HTTPResponse");
+                  throw new HTTPResponse { status: 409, message: "text-gate" }
+                </script>
+              </div>
+            </div>
+            </body></html>
+        expect: {status: [200, 201, 204]}
+      - name: PUT passes the gate
+        as: anonymous
+        request: {method: PUT, path: "${P}/d/x.html", headers: {Content-Type: text/html}, body: "<p>x</p>"}
+        expect: {status: 409, body_contains: ["text-gate"]}
+      - name: GET fails the gate
+        as: anonymous
+        request: {method: GET, path: "${P}/d/x.html"}
+        expect: {status: 404}
+
+  - id: reacting.g1123.trigger-text-when-in-element
+    title: "The plain text can be the text of any element, trimmed"
+    feature: when gate
+    evidence: documented
+    source: "docs reference/reacting-to-changes/Trigger §when (snapshot 2026-11-23) ('or the text of any other element, such as <span itemprop=\"when\">…</span>. … Leading and trailing white space is ignored')"
+    confidence: high
+    requires: [sessel]
+    live: true
+    notes: "spec: R-REACT-17."
+    steps:
+      - name: install the trigger
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/r/triggers.html"
+          headers: {Content-Type: text/html}
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+            <div hidden itemscope itemtype="https://pagelove.org/Trigger">
+              <meta itemprop="resource" content="${P}/d/*">
+              <span itemprop="when">  false  </span>
+              <div itemprop="action" itemscope itemtype="https://pagelove.org/Sessel">
+                <script itemprop="source" type="text/sessel">
+                  @schema HTTPResponse url("https://pagelove.org/HTTPResponse");
+                  throw new HTTPResponse { status: 409, message: "never" }
+                </script>
+              </div>
+            </div>
+            </body></html>
+        expect: {status: [200, 201, 204]}
+      - name: the gate is falsy, the trigger is skipped
+        as: anonymous
+        request: {method: PUT, path: "${P}/d/x.html", headers: {Content-Type: text/html}, body: "<p>x</p>"}
+        expect: {status: [200, 201, 204]}
+
+  - id: reacting.g1123.trigger-empty-text-when-is-no-gate
+    title: "Empty plain text means the trigger has no gate"
+    feature: when gate
+    evidence: documented
+    source: "docs reference/reacting-to-changes/Trigger §when (snapshot 2026-11-23) ('Empty plain text, or text that is only white space, means there is no gate, so the trigger fires whenever its declarative filters match')"
+    confidence: high
+    requires: [sessel]
+    live: true
+    notes: "spec: R-REACT-17."
+    steps:
+      - name: install the trigger
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/r/triggers.html"
+          headers: {Content-Type: text/html}
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+            <div hidden itemscope itemtype="https://pagelove.org/Trigger">
+              <meta itemprop="resource" content="${P}/d/*">
+              <meta itemprop="when" content="  ">
+              <div itemprop="action" itemscope itemtype="https://pagelove.org/Sessel">
+                <script itemprop="source" type="text/sessel">
+                  @schema HTTPResponse url("https://pagelove.org/HTTPResponse");
+                  throw new HTTPResponse { status: 409, message: "no-gate" }
+                </script>
+              </div>
+            </div>
+            </body></html>
+        expect: {status: [200, 201, 204]}
+      - name: the trigger fires
+        as: anonymous
+        request: {method: PUT, path: "${P}/d/x.html", headers: {Content-Type: text/html}, body: "<p>x</p>"}
+        expect: {status: 409, body_contains: ["no-gate"]}
+
+  - id: reacting.g1123.trigger-invalid-text-when-fails-request
+    title: "Plain text that is not valid Sessel fails the request instead of skipping the trigger"
+    feature: when gate
+    evidence: documented
+    source: "docs reference/reacting-to-changes/Trigger §when (snapshot 2026-11-23) ('Text that is not valid Sessel … does not skip the trigger. The request fails with status 500 … and a TriggerError document whose phase is when, and the request's own save does not happen')"
+    confidence: high
+    requires: [sessel]
+    live: true
+    notes: "spec: R-REACT-17, R-REACT-34. pagelike keeps its own error item for a failed trigger (R-REACT-34), so only the status and the refused save are asserted."
+    steps:
+      - name: install the trigger
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/r/triggers.html"
+          headers: {Content-Type: text/html}
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+            <div hidden itemscope itemtype="https://pagelove.org/Trigger">
+              <meta itemprop="resource" content="${P}/d/*">
+              <meta itemprop="method" content="PUT"><meta itemprop="when" content="this is ((( not sessel">
+              <div itemprop="action" itemscope itemtype="https://pagelove.org/Sessel">
+                <script itemprop="source" type="text/sessel">
+                  @schema HTTPResponse url("https://pagelove.org/HTTPResponse");
+                  throw new HTTPResponse { status: 409, message: "never" }
+                </script>
+              </div>
+            </div>
+            </body></html>
+        expect: {status: [200, 201, 204]}
+      - name: the request fails
+        as: anonymous
+        request: {method: PUT, path: "${P}/d/x.html", headers: {Content-Type: text/html}, body: "<p>x</p>"}
+        expect: {status: 500, body_contains: ["itemscope"]}
+      - name: nothing was written
+        as: anonymous
+        request: {method: GET, path: "${P}/d/x.html"}
+        expect: {status: 404}
+
+  - id: reacting.g1123.handler-gate-error-refuses-save
+    title: "A handler condition that fails refuses the save with a 500 that names no handler"
+    feature: "TransitionHandler (when)"
+    evidence: documented
+    source: "docs reference/reacting-to-changes/TransitionHandler §When a condition cannot be judged (snapshot 2026-11-23) ('A save that fires a handler whose condition fails is refused, and nothing is stored … a 500 that does not name the handler … Before this behaviour, a condition that failed skipped its handler and the save went ahead')"
+    confidence: high
+    requires: [outbound-http, sessel]
+    live: true
+    notes: "spec: R-REACT-79. Supersedes reacting.th.when-gate-error-no-delivery (2026-09-28 docs)."
+    steps:
+      - name: install the handler
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/r/handlers.html"
+          headers: {Content-Type: text/html}
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+            <div itemscope itemtype="https://pagelove.org/TransitionHandler">
+              <meta itemprop="selector" content="[itemtype='https://pagelike.test${P}/Order']">
+              <meta itemprop="property" content="status">
+              <meta itemprop="becomes" content="processing">
+              <div itemprop="when" itemscope itemtype="https://pagelove.org/Sessel"><script itemprop="source" type="text/sessel">"abc".Integer() > 0</script></div>
+              <div itemprop="action" itemscope itemtype="https://pagelove.org/HttpRequest">
+                <meta itemprop="url" content="${SINK}/erroring">
+              </div>
+            </div>
+            </body></html>
+        expect: {status: [200, 201, 204]}
+      - name: the save is refused
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/orders/o.html"
+          headers: {Content-Type: text/html}
+          body: '<!DOCTYPE html><html><body><div itemscope itemtype="https://pagelike.test${P}/Order"><meta itemprop="status" content="processing"></div></body></html>'
+        expect: {status: 500, body_contains: ["https://pagelove.org/Problem/TransitionGateFailed"], body_not_contains: ["handlers.html", "Integer"]}
+      - sink_expect_none: {path: /erroring, for_ms: 2000}
+      - name: nothing was stored
+        as: anonymous
+        request: {method: GET, path: "${P}/orders/o.html"}
+        expect: {status: 404}
+
+  - id: reacting.g1123.handler-text-when
+    title: "A handler condition can be written as plain text"
+    feature: "TransitionHandler (when)"
+    evidence: documented
+    source: "docs reference/reacting-to-changes/TransitionHandler §The when condition (snapshot 2026-11-23) ('A Sessel condition can also be written as plain text')"
+    confidence: high
+    requires: [outbound-http, sessel]
+    live: true
+    notes: "spec: R-REACT-79."
+    steps:
+      - name: install the handler
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/r/handlers.html"
+          headers: {Content-Type: text/html}
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+            <div itemscope itemtype="https://pagelove.org/TransitionHandler">
+              <meta itemprop="selector" content="[itemtype='https://pagelike.test${P}/Order']">
+              <meta itemprop="property" content="status">
+              <meta itemprop="becomes" content="processing">
+              <meta itemprop="when" content='self.path == "${P}/orders/a.html"'>
+              <div itemprop="action" itemscope itemtype="https://pagelove.org/HttpRequest">
+                <meta itemprop="url" content="${SINK}/text">
+              </div>
+            </div>
+            </body></html>
+        expect: {status: [200, 201, 204]}
+      - name: an order in b.html (condition false)
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/orders/b.html"
+          headers: {Content-Type: text/html}
+          body: '<!DOCTYPE html><html><body><div itemscope itemtype="https://pagelike.test${P}/Order"><meta itemprop="status" content="processing"></div></body></html>'
+        expect: {status: [200, 201, 204]}
+      - sink_expect_none: {path: /text, for_ms: 2000}
+      - name: an order in a.html (condition true)
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/orders/a.html"
+          headers: {Content-Type: text/html}
+          body: '<!DOCTYPE html><html><body><div itemscope itemtype="https://pagelike.test${P}/Order"><meta itemprop="status" content="processing"></div></body></html>'
+        expect: {status: [200, 201, 204]}
+      - sink_expect: {path: /text, within_ms: 5000, body_contains: ['content="${P}/orders/a.html"']}
+
+  - id: reacting.g1123.handler-empty-text-when-never-fires
+    title: "A handler with an empty plain-text condition is malformed and never fires"
+    feature: "TransitionHandler (when)"
+    evidence: documented
+    source: "docs reference/reacting-to-changes/TransitionHandler §The when condition (snapshot 2026-11-23) ('malformed condition: the handler never fires … A condition is malformed when it is empty plain text')"
+    confidence: high
+    requires: [outbound-http]
+    live: true
+    notes: "spec: R-REACT-79."
+    steps:
+      - name: install the handler
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/r/handlers.html"
+          headers: {Content-Type: text/html}
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+            <div itemscope itemtype="https://pagelove.org/TransitionHandler">
+              <meta itemprop="selector" content="[itemtype='https://pagelike.test${P}/Order']">
+              <meta itemprop="property" content="status">
+              <meta itemprop="becomes" content="processing">
+              <meta itemprop="when" content="">
+              <div itemprop="action" itemscope itemtype="https://pagelove.org/HttpRequest">
+                <meta itemprop="url" content="${SINK}/empty">
+              </div>
+            </div>
+            </body></html>
+        expect: {status: [200, 201, 204]}
+      - name: the save goes ahead
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/orders/o.html"
+          headers: {Content-Type: text/html}
+          body: '<!DOCTYPE html><html><body><div itemscope itemtype="https://pagelike.test${P}/Order"><meta itemprop="status" content="processing"></div></body></html>'
+        expect: {status: [200, 201, 204]}
+      - sink_expect_none: {path: /empty, for_ms: 2000}
+
+  - id: reacting.g1123.handler-js-when
+    title: "A handler condition can be a JavaScript module called with the Transition item"
+    feature: "TransitionHandler (when)"
+    evidence: documented
+    source: "docs reference/reacting-to-changes/TransitionHandler §The when condition (snapshot 2026-11-23) ('In JavaScript the condition is a module whose default export is called with the Transition item as this and as its first argument')"
+    confidence: high
+    requires: [outbound-http, server-js]
+    live: true
+    notes: "spec: R-REACT-79. Supersedes reacting.th.js-gate-never-fires (2026-09-28 docs: a JavaScript gate was malformed)."
+    steps:
+      - name: install the handler
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/r/handlers.html"
+          headers: {Content-Type: text/html}
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+            <div itemscope itemtype="https://pagelove.org/TransitionHandler">
+              <meta itemprop="selector" content="[itemtype='https://pagelike.test${P}/Order']">
+              <meta itemprop="property" content="status">
+              <meta itemprop="becomes" content="processing">
+              <div itemprop="when" itemscope itemtype="https://pagelove.org/JavaScript/Module"><script type="module" itemprop="source">export default function (transition) { return transition.path === "${P}/orders/a.html"; }</script></div>
+              <div itemprop="action" itemscope itemtype="https://pagelove.org/HttpRequest">
+                <meta itemprop="url" content="${SINK}/js">
+              </div>
+            </div>
+            </body></html>
+        expect: {status: [200, 201, 204]}
+      - name: an order in b.html (condition false)
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/orders/b.html"
+          headers: {Content-Type: text/html}
+          body: '<!DOCTYPE html><html><body><div itemscope itemtype="https://pagelike.test${P}/Order"><meta itemprop="status" content="processing"></div></body></html>'
+        expect: {status: [200, 201, 204]}
+      - sink_expect_none: {path: /js, for_ms: 2000}
+      - name: an order in a.html (condition true)
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/orders/a.html"
+          headers: {Content-Type: text/html}
+          body: '<!DOCTYPE html><html><body><div itemscope itemtype="https://pagelike.test${P}/Order"><meta itemprop="status" content="processing"></div></body></html>'
+        expect: {status: [200, 201, 204]}
+      - sink_expect: {path: /js, within_ms: 5000, body_contains: ['content="${P}/orders/a.html"']}
+
+  - id: reacting.g1123.trigger-gate-is-read-only
+    title: "A when gate cannot save: Pagelove.PUT inside it fails the request"
+    feature: when gate
+    evidence: documented
+    source: "docs reference/reacting-to-changes/Trigger §when (snapshot 2026-11-23) ('A gate is read-only … Pagelove.PUT() and Pagelove.DELETE() fail inside a gate, and the request fails with an error saying the gate is read-only')"
+    confidence: high
+    requires: [sessel]
+    live: true
+    notes: "spec: R-REACT-17. Before this snapshot pagelike let a gate save."
+    steps:
+      - name: install a trigger whose gate saves
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/r/triggers.html"
+          headers: {Content-Type: text/html}
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+            <div hidden itemscope itemtype="https://pagelove.org/Trigger">
+              <meta itemprop="resource" content="${P}/d/*">
+              <meta itemprop="method" content="PUT">
+              <div itemprop="when" itemscope itemtype="https://pagelove.org/Sessel">
+                <script itemprop="source" type="text/sessel">
+                  @schema Pagelove url("https://pagelove.org/1.0");
+                  Pagelove.PUT(new div[id="side"] { "x" }, "${P}/side.html");
+                  true
+                </script>
+              </div>
+              <div itemprop="action" itemscope itemtype="https://pagelove.org/Sessel">
+                <script itemprop="source" type="text/sessel">1</script>
+              </div>
+            </div>
+            </body></html>
+        expect: {status: [200, 201, 204]}
+      - name: the request fails
+        as: anonymous
+        request: {method: PUT, path: "${P}/d/x.html", headers: {Content-Type: text/html}, body: "<p>x</p>"}
+        expect: {status: 500, body_contains: ["cannot save"]}
+      - name: the gate saved nothing
+        as: anonymous
+        request: {method: GET, path: "${P}/side.html"}
+        expect: {status: 404}
+      - name: and the request's own save did not happen
+        as: anonymous
+        request: {method: GET, path: "${P}/d/x.html"}
+        expect: {status: 404}

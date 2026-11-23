@@ -208,7 +208,7 @@ func requestOf(rd *sessel.Dict) *jsrt.Request {
 	r := &jsrt.Request{Method: sessel.TextOf(rd.Lookup("method")), Path: sessel.TextOf(rd.Lookup("path"))}
 	r.Query = stringDict(rd.Lookup("query"))
 	r.Params = stringDict(rd.Lookup("params"))
-	if b, ok := rd.Lookup("body").(string); ok && b != "" {
+	if b, ok := rd.Lookup("rawBody").(string); ok && b != "" { // the text; Context.request.body is parsed
 		r.Body = b
 	}
 	hs := &jsrt.Headers{}

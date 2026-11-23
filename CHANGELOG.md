@@ -34,6 +34,31 @@ Schemas (docs snapshot 2026-11-23):
 - A schema-level JavaScript `@validate` gets the item as an object of its
   properties, not its HTML.
 
+Server JavaScript (docs snapshot 2026-11-23):
+
+- `btoa` and `atob` are available.
+- `querySelector` and `querySelectorAll` on an element or a fragment
+  search only its descendants, with `:scope` the element, as in a browser;
+  they used to scan the whole document. `getElementById` is on Document
+  only.
+- `element.microdata()` returns the first microdata item at or under an
+  element as a plain object.
+- `closest` and `matches` take `:scope` as the element they are called on,
+  and a child of a document fragment is no longer `:root`.
+- `NodeList` has `keys()`, `values()` and `entries()`.
+
+Reactions (docs snapshot 2026-11-23):
+
+- A `when` written as plain text is a Sessel gate. A trigger with one used
+  to be skipped, so its guard did not run.
+- A `when` gate is read-only: a save inside it fails the request.
+- A transition handler's `when` may be plain text or a JavaScript module. A
+  condition that fails now refuses the save (500, naming no handler)
+  instead of quietly skipping the notification.
+- `Context.request.body` (and `ctx.request.body` in JavaScript) is parsed
+  by content type, as in Liquid; `rawBody` is the text, null without a
+  body.
+
 Liquid (docs snapshot 2026-11-23):
 
 - `request.body` is parsed by Content-Type: form fields (last value wins),

@@ -103,7 +103,7 @@ const __pagelike = (() => {
     byId: 40, byTagNS: 41, closest: 42, matches: 43, createElement: 44, createElementNS: 45, createText: 46,
     createComment: 47, createFragment: 48, docElement: 49, head: 50, body: 51, parse: 52, serialize: 53,
     insertNodes: 54, remove: 55, firstEl: 56, lastEl: 57, nextEl: 58, prevEl: 59, elCount: 60, nodeType: 61,
-    hasChildren: 62, parentEl: 63,
+    hasChildren: 62, parentEl: 63, microdata: 64,
   };
 
   // ---------------------------------------------------------------- nodes (R-JS-64..73)
@@ -119,7 +119,7 @@ const __pagelike = (() => {
     domLoading = true;
     try { sys("dom"); } finally { domLoading = false; }
     if (domBuilder === null) throw new InternalErrorFn("the server DOM failed to load");
-    return domBuilder({ DOM, D1, D2, D3, D4, DN, OP, KEY, DOMException, TypeErrorFn, InternalErrorFn, ObjDefine, ObjCreate, StringFn, NumberFn, NumberIsFinite, MathTrunc, MathMax, MathMin, arrayPush, strLower, wmGet, wmSet, call });
+    return domBuilder({ JSONparse, DOM, D1, D2, D3, D4, DN, OP, KEY, DOMException, TypeErrorFn, InternalErrorFn, ObjDefine, ObjCreate, StringFn, NumberFn, NumberIsFinite, MathTrunc, MathMax, MathMin, arrayPush, strLower, wmGet, wmSet, call });
   };
 
   // ---------------------------------------------------------------- crypto, TextEncoder/Decoder (R-JS-39a)
@@ -205,7 +205,55 @@ const __pagelike = (() => {
       configurable: true, enumerable: false,
     });
   };
-  const globals = { DOMException, crypto, TextEncoder, TextDecoder };
+  // ---------------------------------------------------------------- base64 (R-JS-39b)
+  // btoa and atob as HTML defines them: btoa takes characters U+0000 to
+  // U+00FF; atob is forgiving about ASCII white space and padding.
+  const B64 = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
+  const charCode = uncurry(String.prototype.charCodeAt);
+  const fromCharCode = String.fromCharCode;
+  const B64REV = ObjCreate(null);
+  for (let i = 0; i < 64; i++) B64REV[B64[i]] = i;
+  const badChars = (what) => new DOMException(what, "InvalidCharacterError");
+  function btoa(data) {
+    if (arguments.length === 0) throw new TypeErrorFn("btoa requires 1 argument");
+    const str = StringFn(data);
+    let out = "";
+    for (let i = 0; i < str.length; i += 3) {
+      const n = str.length - i;
+      const a = charCode(str, i), b = n > 1 ? charCode(str, i + 1) : 0, c = n > 2 ? charCode(str, i + 2) : 0;
+      if (a > 255 || b > 255 || c > 255) throw badChars("The string to be encoded contains characters outside of the Latin1 range.");
+      out += B64[a >> 2] + B64[((a & 3) << 4) | (b >> 4)] + (n > 1 ? B64[((b & 15) << 2) | (c >> 6)] : "=") + (n > 2 ? B64[c & 63] : "=");
+    }
+    return out;
+  }
+  function atob(data) {
+    if (arguments.length === 0) throw new TypeErrorFn("atob requires 1 argument");
+    const src = StringFn(data);
+    let str = "";
+    for (let i = 0; i < src.length; i++) {
+      const ch = src[i];
+      if (ch !== " " && ch !== "\t" && ch !== "\n" && ch !== "\f" && ch !== "\r") str += ch;
+    }
+    if (str.length % 4 === 0 && str.length > 0) {
+      if (str[str.length - 1] === "=") str = str.slice(0, -1);
+      if (str[str.length - 1] === "=") str = str.slice(0, -1);
+    }
+    if (str.length % 4 === 1) throw badChars("The string to be decoded is not correctly encoded.");
+    let out = "", buf = 0, bits = 0;
+    for (let i = 0; i < str.length; i++) {
+      const v = B64REV[str[i]];
+      if (v === undefined) throw badChars("The string to be decoded is not correctly encoded.");
+      buf = ((buf << 6) | v) & 0xffffff;
+      bits += 6;
+      if (bits >= 8) {
+        bits -= 8;
+        out += fromCharCode((buf >> bits) & 255);
+      }
+    }
+    return out;
+  }
+
+  const globals = { DOMException, crypto, TextEncoder, TextDecoder, btoa, atob };
   for (const k of ObjKeys(globals)) defineGlobal(k, globals[k]);
   for (const name of ["DOMParser", "XMLSerializer", "Node", "Document", "DocumentFragment", "CharacterData", "Text",
     "Comment", "Element", "HTMLElement", "NodeList", "DOMTokenList"]) defineLazyGlobal(name, () => dom().classNamed(name));

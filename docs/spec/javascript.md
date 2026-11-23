@@ -841,7 +841,7 @@ The following MUST be absent (`typeof X === "undefined"`; using them is a
 | `setTimeout`, `setInterval` | documented |
 | `HTTPResponse` (as a constructor) | documented (JSS §Explaining why) |
 | `Pagelove` (the Sessel write API) | documented for trigger/processor actions (TRG §Writing from triggers) |
-| `clearTimeout`, `clearInterval`, `setImmediate`, `queueMicrotask`, `XMLHttpRequest`, `WebSocket`, `EventSource`, `module`, `exports`, `Buffer`, `Deno`, `Bun`, `window`, `self`, `navigator`, `location`, `localStorage`, `performance`, `console`, `structuredClone`, `URL`, `URLSearchParams`, `atob`, `btoa` | inferred ("no host I/O", "network and timers not available"; QuickJS defines none of these without the `std` helpers; pagelike decision for `console` and the Web utility classes) |
+| `clearTimeout`, `clearInterval`, `setImmediate`, `queueMicrotask`, `XMLHttpRequest`, `WebSocket`, `EventSource`, `module`, `exports`, `Buffer`, `Deno`, `Bun`, `window`, `self`, `navigator`, `location`, `localStorage`, `performance`, `console`, `structuredClone`, `URL`, `URLSearchParams` | inferred ("no host I/O", "network and timers not available"; QuickJS defines none of these without the `std` helpers; pagelike decision for `console` and the Web utility classes) |
 
 No host module (`qjs:std`, `qjs:os`, `pagelove:host`) can be imported
 (R-JS-9).
@@ -858,7 +858,19 @@ No host module (`qjs:std`, `qjs:os`, `pagelove:host`) can be imported
 | `document` | contexts that run against a document (A3 table) | R-JS-63 |
 | `Context` | method bodies (composition and cross-language calls), `j:` | R-JS-17, R-JS-18, R-JS-32 |
 | `request` | `j:` | R-JS-34 |
+| `btoa`, `atob` | every context | R-JS-39b |
 | `crypto` (`crypto.subtle.digest`, `crypto.getRandomValues`, `crypto.randomUUID`) and `TextEncoder`/`TextDecoder` | every context | R-JS-39a |
+
+**R-JS-39b (base64).** `btoa(binaryString)` and `atob(base64)` are the
+standard functions, in every context: `btoa` refuses a character above
+U+00FF and `atob` input that is not base64 with a `DOMException` named
+`InvalidCharacterError`; either called with no argument is a `TypeError`;
+`atob` ignores ASCII white space. `Uint8Array.fromBase64` and
+`Uint8Array.prototype.toBase64` (alphabets `base64` and `base64url`,
+`omitPadding`) come with the engine.
+- Evidence: documented. Source: docs languages/javascript/server/base64
+  (snapshot 2026-11-23; absent from the 2026-09-28 docs, where pagelike
+  left them undefined). Case: `javascript.g1123.btoa-atob`.
 
 **R-JS-39a (crypto).** JEB names `crypto.subtle` as an awaitable built-in a
 `j:` expression may use. pagelike provides `crypto.subtle.digest(alg, data)`
@@ -1451,9 +1463,9 @@ like browsers (inferred).
 | `firstElementChild`, `lastElementChild` | element or `null` |
 | `childElementCount` | number |
 | `nextElementSibling`, `previousElementSibling` | element or `null` |
-| `querySelector(sel)`, `querySelectorAll(sel)` on an element | **scan the whole document** the element belongs to, not the element's subtree (a divergence); on a detached element or constructed subtree: the subtree rooted at its topmost ancestor (pagelike decision) |
+| `querySelector(sel)`, `querySelectorAll(sel)` on an element or a document fragment | the DOM standard (docs snapshot 2026-11-23; the 2026-09-28 docs scanned the whole document): only the receiver's descendants, never the receiver, in document order; the selector is still matched against the whole tree; `:scope` is the element and matches nothing on a fragment; a detached element searches its own subtree; `<template>` contents are never searched |
 | `getElementsByTagNameNS(ns, local)` on an element | the element's descendants only (receiver excluded) |
-| `getElementById(id)` on an element | the element's descendants (receiver excluded; pagelike decision) with the literal match of R-JS-65 |
+| `getElementById(id)` on an element | absent: it is a member of Document only and searches the whole document (docs snapshot 2026-11-23) |
 | `closest(sel)` | nearest inclusive ancestor matching, or `null`; `SyntaxError` on an invalid selector |
 | `matches(sel)` | boolean; `SyntaxError` on an invalid selector |
 | `append(...n)`, `prepend(...n)` | insert at the end / start of the children; string arguments become text nodes |
@@ -1474,11 +1486,38 @@ All mutators are guarded (R-JS-61).
   reflected, and removing nodes while iterating does not shorten it.
 - Members: `length`; `item(i)` (negative or out of range → `null`). Iterable
   (`for…of`, spread, `Array.from`).
-- Not documented: index access (`list[0]`), `forEach`, `entries`, `keys`,
-  `values`. pagelike provides numeric index access and `forEach` (browser
+- `forEach(callback, thisArg)`, `keys()`, `values()` and `entries()`
+  (docs snapshot 2026-11-23). The global `NodeList` is the constructor, so
+  `list instanceof NodeList` holds; `new NodeList()` throws.
+- Not documented: index access (`list[0]`). pagelike provides it (browser
   compatibility for isomorphic code; pagelike decision; probe P-JS-14).
 - Evidence: documented. Source: DNL. Confidence: high (members), low
   (index access).
+
+### R-JS-71b: `:scope` and `:root` in `closest` and `matches`
+
+- `closest(selector)` tests every inclusive ancestor with the receiver as
+  `:scope`, so `child.closest(":not(:scope)")` is the parent. In
+  `matches(selector)`, `:scope` is the element itself.
+- An element is `:root` only when its parent is the document. A detached
+  element, an element in a detached tree and a child of a document fragment
+  are not `:root`.
+- Evidence: documented (docs snapshot 2026-11-23, DOM Element §closest,
+  §matches). Confidence: medium.
+
+### R-JS-72b: `element.microdata()`
+
+- A PageLove addition on every server-side element, stored or script-made.
+  Returns the first microdata item at or under the element as a plain
+  object, or `null` when the element holds no item.
+- `@type` holds the item's itemtype and is absent when it has none. Each
+  property is a key: one value gives the value, several give an array in
+  document order. A nested item is an object. `itemref` is followed.
+- It only reads, so it works on a read-only element, and counts against the
+  evaluation's budget.
+- Evidence: documented (docs snapshot 2026-11-23, DOM Element §Microdata).
+  Key order (`@type`, then properties in document order) is inferred.
+  Confidence: medium.
 
 ### R-JS-73: Selectors in the DOM API
 
@@ -1725,9 +1764,8 @@ pagelike MUST reproduce each of these (they are observable to isomorphic
 bindings):
 
 1. Only listed members exist; others are `undefined` (R-JS-64).
-2. `querySelector`/`querySelectorAll` on an element scan the whole document
-   (R-JS-71); `getElementsByTagNameNS`, `closest`, `matches`, `getElementById`
-   and `children` are receiver-scoped.
+2. (Withdrawn by the 2026-11-23 docs: `querySelector`/`querySelectorAll` on
+   an element are scoped to its descendants, R-JS-71.)
 3. `children` and all query results are static `NodeList`s; there is no
    `HTMLCollection`.
 4. `tagName` upper-cased for no-namespace elements, verbatim for
@@ -1744,7 +1782,7 @@ bindings):
 11. Adopting a node from another document deep-copies it.
 12. `CharacterData.length` counts code points.
 13. `DOMException.prototype.toString` has the `DOMException: ` prefix.
-14. `getElementById` exists on elements and is subtree-scoped.
+14. (Withdrawn by the 2026-11-23 docs: `getElementById` is on Document only.)
 15. `XMLSerializer` produces HTML serialization.
 16. `id` and `className` are read-only.
 17. DOM operations are charged against the request budget (R-JS-58).
@@ -2556,8 +2594,10 @@ Requirement → cases (ids without the `javascript.` prefix):
 | R-JS-68 | `dom.names-and-node-types`, `dom.namespace-errors`, `dom.attributes-ns`, `dom.id-and-classname-read-only` |
 | R-JS-69 | `dom.inner-outer-adjacent-html` |
 | R-JS-70 | `dom.classlist` |
-| R-JS-71 | `dom.mutation-errors`, `dom.tree-operations`, `dom.insertion-conveniences`, `dom.closest-and-matches`, `dom.element-query-scans-whole-document`, `dom.get-element-by-id` |
+| R-JS-71 | `dom.mutation-errors`, `dom.tree-operations`, `dom.insertion-conveniences`, `dom.closest-and-matches`, `dom.element-query-is-scoped`, `dom.get-element-by-id` |
 | R-JS-72 | `dom.nodelist-static-snapshot` |
+| R-JS-71b | `dom.scope-root-nodelist` |
+| R-JS-72b | `dom.microdata` |
 | R-JS-73 | `dom.mutation-errors`, `dom.namespace-pipe-selectors` |
 | R-JS-74 | `methods.docs-js-method-element`, `dom.domparser-ignores-type` |
 | R-JS-75 | `dom.xmlserializer` |
@@ -2565,7 +2605,7 @@ Requirement → cases (ids without the `javascript.` prefix):
 | R-JS-77 | `dom.namespace-errors`, `dom.mutation-errors`, `dom.inner-outer-adjacent-html` |
 | R-JS-78 | `dom.reflect-strings-and-urls`, `dom.reflect-booleans`, `dom.reflect-numbers`, `dom.reflect-enums`, `dom.crossorigin-nullable-enum`, `dom.textarea-value-reflects-attribute` |
 | R-JS-79 | `dom.unlisted-members-absent`, `dom.reflect-strings-and-urls`, `dom.reflect-numbers`, `dom.reflect-enums`, `dom.reflect-htmlelement-globals`, `dom.content-editable` |
-| R-JS-80 | `dom.element-query-scans-whole-document` |
+| R-JS-80 | `dom.element-query-is-scoped` |
 | R-JS-85 | `classes.import-class-behaviour`, `classes.static-method-this-is-class` |
 | R-JS-86 | `classes.import-class-behaviour`, `classes.map-schema-extends-map` |
 | R-JS-87 | `classes.default-constructs-instance` |

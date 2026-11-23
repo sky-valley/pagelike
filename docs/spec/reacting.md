@@ -215,7 +215,6 @@ The contradictions that do exist are between pages, or between docs and code
   D-TRIG §action ("a trigger with neither is skipped"); D-TC §Taking effect.
   **Confidence:** high (whole-item skip), low (action-level granularity).
 - **Cases:** `reacting.discovery.no-action-skipped`,
-  `reacting.gates.malformed-when-skips-trigger`,
   `reacting.tc.missing-property-ignored`.
 
 ### R-REACT-4a — Serving-path writes check the platform schema of reaction items
@@ -522,8 +521,16 @@ For each public-plane request (the steps before 3 belong to other areas):
 ## 4. Gates and actions
 
 ### R-REACT-17 — `when`
-- **Behavior:** Optional. The value must be a Sessel or JavaScript/Module item
-  (R-REACT-3). Evaluate it after the declarative filters match:
+- **Behavior:** Optional. The value is a Sessel or JavaScript/Module item
+  (R-REACT-3), or **plain text**, which is Sessel source (the `content` of a
+  `meta`, or the text of any other element, trimmed). Empty plain text means
+  no gate. Plain text that does not compile, or that fails when it runs, fails
+  the request like any gate error (R-REACT-34); it never skips the trigger.
+  (Docs snapshot 2026-11-23; before it pagelike skipped a trigger with a
+  plain-text gate.) A gate is **read-only**: `Pagelove.PUT` and
+  `Pagelove.DELETE` fail inside a Sessel gate and the request fails (before
+  this snapshot pagelike let a gate save). Evaluate it after the declarative
+  filters match:
   - Sessel: the program's final expression is the result. It is falsy per
     Sessel truthiness: `false`, `null`, `0`, `0.0`, `""`, `[]`, `{}`.
   - JavaScript: call the module's default export with `ctx` (R-REACT-25). The
@@ -542,7 +549,7 @@ For each public-plane request (the steps before 3 belong to other areas):
   D-PROC §when; D-SES §Truthiness; D-JSS §Errors (variants).
   **Confidence:** high (documented), low (JS truthiness for `[]`/`{}`, several
   gates).
-- **Cases:** `reacting.gates.*`.
+- **Cases:** `reacting.gates.*`, `reacting.g1123.trigger-*`.
 
 - **Live 2026-09-29:** a serving-path write refuses a second `when`
   (R-REACT-4a); the AND rule applies to items stored over WebDAV. PageLove
@@ -608,8 +615,8 @@ For each public-plane request (the steps before 3 belong to other areas):
 | `Context.request.path` | String | Percent-decoded request path without query (`/`, not `/index.html`, for a root request; the concrete URL for a routed request) |
 | `Context.request.headers` | Map | Request headers (R-REACT-23) |
 | `Context.request.query` | Map | Query parameters, name → first value, both percent-decoded. Absent parameter → `null` |
-| `Context.request.body` | String | Request body decoded as UTF-8 text. `""` when there is none. After a transformation it holds the transformed body (R-REACT-38) |
-| `Context.request.rawBody` | String | The body bytes as received, interpreted as UTF-8 without charset conversion. Equal to `body` for UTF-8 requests |
+| `Context.request.body` | Map, String, or any JSON value | The body parsed by its content type: a map of fields for a form or multipart post, the parsed value for JSON, the raw string for any other type; an empty map when there is none (docs snapshot 2026-11-23; cases `reacting.ctx1123.*`). After a transformation it reflects the transformed body (R-REACT-38) |
+| `Context.request.rawBody` | String | The unparsed text; `null` when there is no body |
 | `Context.request.auth` | Map or null | Not documented for Sessel. pagelike exposes the same object as JS `ctx.request.auth` (inferred superset, permissions R-PERM-74) |
 
   `Context.response` does not exist during triggers. Reading it is a runtime
@@ -688,7 +695,7 @@ For each public-plane request (the steps before 3 belong to other areas):
 - **Behavior:** `ctx.request` is a plain object: `method`, `path`, `headers`
   (lower-case keys with case-insensitive `get` behavior, R-REACT-23), `host`
   (the request `Host` without port), `query` (object, first values), `body`
-  (string), `auth`. `auth` is `null` for anonymous requests. For a signed-in
+  (parsed as `Context.request.body` is), `rawBody` (the text), `auth`. `auth` is `null` for anonymous requests. For a signed-in
   principal it is `{username, claims: {…}, role: [...], roles: [...]}`, the
   same contents as `request.auth` in composition (permissions R-PERM-74). In
   processors `ctx.response` is added: `status` (number), `body` (string, fully
@@ -1587,16 +1594,29 @@ and each watched property p:
 - **Cases:** `reacting.th.*`.
 
 ### R-REACT-79 — The `when` gate
-- **Behavior:** Optional, **Sessel only**, evaluated against the Transition
-  document. `self` is the Transition item, so `self.path`, `self.selector`
-  and `self.body` read its properties (cross-area Sessel element property
-  access). `Context.request` and `Context.response` are not available. Absent:
-  always deliver. Falsy: no delivery. Evaluation error: no delivery for that
-  handler, and the committed write is unaffected. **Malformed** gate (not a
-  Sessel item, including a JavaScript/Module item, or no `source`): the handler
-  **never fires** (fails closed).
-- **Evidence:** documented. **Source:** D-TH §The `when` gate. **Confidence:** high.
-- **Cases:** `reacting.th.when-gate-*`, `reacting.th.js-gate-never-fires`.
+- **Behavior:** Optional, written in Sessel (an item, or plain text) or as a
+  JavaScript/Module item, evaluated against the Transition document before
+  the save commits. In Sessel `self` is the Transition item, so `self.path`,
+  `self.selector` and `self.body` read its properties. A JavaScript module's
+  default export is called with an object holding `path`, `selector` and
+  `body` (pagelike: as its first argument only, not as `this`).
+  `Context.request` and `Context.response` are not available. Both languages
+  are judged by Sessel's truthiness.
+  - Absent: always deliver. Falsy: no delivery, and the save goes ahead.
+  - **An error**, including a JavaScript exception or a condition that does not
+    compile: the save is **refused and nothing is stored**. Running out of
+    budget keeps its 503. Anything else answers 500 with an
+    `https://pagelove.org/Error/Internal` item holding an
+    `https://pagelove.org/Problem/TransitionGateFailed` problem, the fixed
+    message and the written resource. It names no handler and repeats nothing
+    the condition said; the server log names the handler.
+  - **Malformed** condition (empty plain text, an item that is neither Sessel
+    nor JavaScript/Module, or no `source`): the handler **never fires** (fails
+    closed).
+- **Evidence:** documented. **Source:** D-TH §The `when` condition, §When a
+  condition cannot be judged (snapshot 2026-11-23; the 2026-09-28 docs were
+  Sessel-only and skipped the handler on an error). **Confidence:** high.
+- **Cases:** `reacting.th.when-gate-path`, `reacting.g1123.handler-*`.
 
 ### R-REACT-80 — Action restrictions
 - **Behavior:** Each `action` must be an HttpRequest. A handler declaring a

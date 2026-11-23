@@ -160,8 +160,14 @@ func NewRequest(method, path string, header http.Header, query url.Values, param
 		p.Set(k, params[k])
 	}
 	r.Set("params", p)
-	r.Set("body", string(body))
-	r.Set("rawBody", string(body))
+	// body is parsed by its content type; rawBody is the unparsed text,
+	// null when there is no body (docs snapshot 2026-11-23).
+	r.Set("body", ParseBody(header.Get("Content-Type"), body))
+	if len(body) == 0 {
+		r.Set("rawBody", nil)
+	} else {
+		r.Set("rawBody", string(body))
+	}
 	if auth == nil {
 		auth = NewAuth("", nil, nil)
 	}

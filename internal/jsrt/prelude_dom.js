@@ -4,7 +4,7 @@
 // separate bytecode the first time a binding touches the DOM; the core
 // prelude hands it its kernel. /*IFACES*/ is replaced with ifaces.go data.
 __pagelike.kernel.setDOMBuilder((K) => {
-  const { DOM, D1, D2, D3, D4, DN, OP, KEY, DOMException, TypeErrorFn, InternalErrorFn, ObjDefine, ObjCreate, StringFn, NumberFn, NumberIsFinite, MathTrunc, MathMax, MathMin, arrayPush, strLower, wmGet, wmSet, call } = K;
+  const { JSONparse, DOM, D1, D2, D3, D4, DN, OP, KEY, DOMException, TypeErrorFn, InternalErrorFn, ObjDefine, ObjCreate, StringFn, NumberFn, NumberIsFinite, MathTrunc, MathMax, MathMin, arrayPush, strLower, wmGet, wmSet, call } = K;
   const IFACES = /*IFACES*/[];
   const cache = [];
   let hOf; // node → handle, -1 for anything else
@@ -83,7 +83,10 @@ __pagelike.kernel.setDOMBuilder((K) => {
     get head() { return wrap(D1(OP.head, hOf(this))); }
     get body() { return wrap(D1(OP.body, hOf(this))); }
   }
-  class DocumentFragment extends Node {}
+  class DocumentFragment extends Node {
+    querySelector(s) { return wrap(D2(OP.qs, hOf(this), StringFn(s))); }
+    querySelectorAll(s) { return makeNodeList(D2(OP.qsa, hOf(this), StringFn(s))); }
+  }
   class DocumentType extends Node {}
   class ProcessingInstruction extends Node {}
   class CharacterData extends Node {
@@ -115,6 +118,8 @@ __pagelike.kernel.setDOMBuilder((K) => {
     get namespaceURI() { return D1(OP.nsURI, hOf(this)); }
     get id() { return D2(OP.getAttr, hOf(this), "id") ?? ""; }
     get className() { return D2(OP.getAttr, hOf(this), "class") ?? ""; }
+    // R-JS-72b: the first microdata item at or under the element, or null.
+    microdata() { const j = D1(OP.microdata, hOf(this)); return j === null ? null : JSONparse(j); }
     getAttribute(n) { return D2(OP.getAttr, hOf(this), StringFn(n)); }
     hasAttribute(n) { return D2(OP.hasAttr, hOf(this), StringFn(n)); }
     setAttribute(n, v) { D3(OP.setAttr, hOf(this), StringFn(n), StringFn(v)); }
@@ -141,7 +146,6 @@ __pagelike.kernel.setDOMBuilder((K) => {
     querySelector(s) { return wrap(D2(OP.qs, hOf(this), StringFn(s))); }
     querySelectorAll(s) { return makeNodeList(D2(OP.qsa, hOf(this), StringFn(s))); }
     getElementsByTagNameNS(ns, local) { return makeNodeList(D3(OP.byTagNS, hOf(this), ns === "*" ? "*" : nsv(ns), StringFn(local))); }
-    getElementById(id) { return wrap(D2(OP.byId, hOf(this), StringFn(id))); }
     closest(s) { return wrap(D2(OP.closest, hOf(this), StringFn(s))); }
     matches(s) { return D2(OP.matches, hOf(this), StringFn(s)); }
     append(...nodes) { DN(OP.insertNodes, hOf(this), "append", toHandles(this, nodes)); }
@@ -327,11 +331,14 @@ __pagelike.kernel.setDOMBuilder((K) => {
       const hs = this.#hs;
       for (let i = 0; i < hs.length; i++) call.call(cb, thisArg, wrap(hs[i]), i, this);
     }
-    [Symbol.iterator]() {
-      const hs = this.#hs;
+    static #iter(hs, pick) {
       let i = 0;
-      return { next: () => (i < hs.length ? { value: wrap(hs[i++]), done: false } : { value: undefined, done: true }), [Symbol.iterator]() { return this; } };
+      return { next: () => (i < hs.length ? { value: pick(i++), done: false } : { value: undefined, done: true }), [Symbol.iterator]() { return this; } };
     }
+    [Symbol.iterator]() { const hs = this.#hs; return NodeList.#iter(hs, (i) => wrap(hs[i])); }
+    values() { const hs = this.#hs; return NodeList.#iter(hs, (i) => wrap(hs[i])); }
+    keys() { return NodeList.#iter(this.#hs, (i) => i); }
+    entries() { const hs = this.#hs; return NodeList.#iter(hs, (i) => [i, wrap(hs[i])]); }
   }
   const makeNodeList = (hs) => new NodeList(KEY, hs);
 

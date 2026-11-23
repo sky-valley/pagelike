@@ -1,6 +1,7 @@
 package jsrt
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
 	"strings"
@@ -10,6 +11,7 @@ import (
 	"golang.org/x/net/html/atom"
 
 	"github.com/sky-valley/pagelike/internal/dom"
+	"github.com/sky-valley/pagelike/internal/microdata"
 	"github.com/sky-valley/pagelike/internal/selector"
 	"github.com/sky-valley/pagelike/internal/xmldom"
 )
@@ -619,6 +621,9 @@ func (d *domState) compile(sel string) (*selector.Selector, error) {
 		d.selOpts.Pseudo[noNamespacePseudo] = func(*selector.PseudoContext) (selector.Sel, error) {
 			return noNamespace{d}, nil
 		}
+		d.selOpts.Pseudo["root"] = func(*selector.PseudoContext) (selector.Sel, error) {
+			return docRoot{d}, nil
+		}
 	}
 	s, err := selector.CompileOptions(src, d.selOpts)
 	if err != nil {
@@ -632,6 +637,27 @@ func (d *domState) compile(sel string) (*selector.Selector, error) {
 const noNamespacePseudo = "-pagelike-no-namespace"
 
 // noNamespace matches elements without a namespace (the "|" prefix).
+// docRoot is :root in the server DOM (R-JS-71, docs snapshot 2026-11-23):
+// an element is :root only when its parent is the document, so a child of
+// a document fragment is not. Of several top-level elements only the first
+// is the root (LO-15).
+type docRoot struct{ d *domState }
+
+func (m docRoot) Match(n *html.Node) bool {
+	if n.Type != html.ElementNode || n.Parent == nil || n.Parent.Type != html.DocumentNode || m.d.isFrag(n.Parent) {
+		return false
+	}
+	for c := n.PrevSibling; c != nil; c = c.PrevSibling {
+		if c.Type == html.ElementNode {
+			return false
+		}
+	}
+	return true
+}
+func (docRoot) Specificity() selector.Specificity { return selector.Specificity{0, 1, 0} }
+func (docRoot) PseudoElement() string             { return "" }
+func (docRoot) String() string                    { return ":root" }
+
 type noNamespace struct{ d *domState }
 
 func (m noNamespace) Match(n *html.Node) bool {
@@ -706,10 +732,42 @@ func isNameByte(c byte) bool {
 	return c == '-' || c == '_' || c >= '0' && c <= '9' || c >= 'a' && c <= 'z' || c >= 'A' && c <= 'Z' || c >= 0x80
 }
 
-// queryRoot is the scope of querySelector(All) on n: the whole document n
-// belongs to (R-JS-71), or the subtree of its topmost ancestor when
-// detached.
-func queryRoot(n *html.Node) *html.Node { return rootOf(n) }
+// query is querySelector(All) on n (R-JS-71, docs snapshot 2026-11-23). On
+// a document it searches the whole document. On an element or a document
+// fragment it follows the DOM standard: only the receiver's descendants,
+// never the receiver, with the selector still matched against the whole
+// tree. :scope is the element; on a fragment it matches nothing. Template
+// contents are never searched.
+func (d *domState) query(n *html.Node, s *selector.Selector, first bool) []*html.Node {
+	if n.Type == html.DocumentNode && !d.isFrag(n) {
+		if first {
+			if m := s.MatchFirst(n); m != nil {
+				return []*html.Node{m}
+			}
+			return nil
+		}
+		return s.MatchAll(n)
+	}
+	if selector.IsTemplate(n) {
+		return nil
+	}
+	scope := n
+	if n.Type != html.ElementNode {
+		scope = &html.Node{Type: html.ElementNode} // matches no node of the tree
+	}
+	g := selector.BindScope(s.Group(), scope)
+	var out []*html.Node
+	for c := n.FirstChild; c != nil; c = c.NextSibling {
+		if first {
+			if m := selector.SelectFirst(c, g); m != nil {
+				return []*html.Node{m}
+			}
+			continue
+		}
+		out = append(out, selector.Select(c, g)...)
+	}
+	return out
+}
 
 // ------------------------------------------------------------ mutation
 
@@ -923,6 +981,7 @@ const (
 	opNodeType
 	opHasChildren
 	opParentEl
+	opMicrodata
 )
 
 // op is the __pl_dom host function: op(code, handle, args…).
@@ -993,6 +1052,8 @@ func (d *domState) do(code int, a []any) (any, error) {
 			return d.handle(n.Parent), nil
 		}
 		return -1, nil
+	case opMicrodata:
+		return microdataJSON(n), nil
 	case opFirst:
 		return d.handle(n.FirstChild), nil
 	case opLast:
@@ -1256,11 +1317,14 @@ func (d *domState) do(code int, a []any) (any, error) {
 		if err != nil {
 			return nil, err
 		}
-		root := queryRoot(n)
+		found := d.query(n, s, code == opQS)
 		if code == opQS {
-			return d.handle(s.MatchFirst(root)), nil
+			if len(found) == 0 {
+				return d.handle(nil), nil
+			}
+			return d.handle(found[0]), nil
 		}
-		return handles(d, s.MatchAll(root)), nil
+		return handles(d, found), nil
 	case opByID:
 		id := toStr(arg(a, 1))
 		var found *html.Node
@@ -1311,8 +1375,11 @@ func (d *domState) do(code int, a []any) (any, error) {
 		if err != nil {
 			return nil, err
 		}
+		// Every ancestor is tested with the receiver as :scope (docs
+		// snapshot 2026-11-23).
+		g := selector.BindScope(s.Group(), n)
 		for e := n; e != nil; e = e.Parent {
-			if e.Type == html.ElementNode && s.Matches(e) {
+			if e.Type == html.ElementNode && g.Match(e) {
 				return d.handle(e), nil
 			}
 		}
@@ -1322,7 +1389,7 @@ func (d *domState) do(code int, a []any) (any, error) {
 		if err != nil {
 			return nil, err
 		}
-		return s.Matches(n), nil
+		return n.Type == html.ElementNode && selector.BindScope(s.Group(), n).Match(n), nil
 	case opCreateElement:
 		tag := toStr(arg(a, 1))
 		if !validName(tag) {
@@ -1655,3 +1722,70 @@ func outerHTML(n *html.Node) string { return dom.OuterHTML(n) }
 func renderDocument(n *html.Node) string { return string(dom.Render(n)) }
 
 func isXMLNode(n *html.Node) bool { return xmldom.IsXML(n) }
+
+// microdataJSON is element.microdata() (R-JS-72b; docs snapshot
+// 2026-11-23): the first item at or under n as JSON, or nil when n holds
+// none. "@type" is the itemtype, absent without one; a property with one
+// value gives the value, with several an array in document order; a nested
+// item is an object; itemref is followed.
+func microdataJSON(n *html.Node) any {
+	var first *html.Node
+	dom.Walk(n, func(x *html.Node) bool {
+		if first == nil && microdata.IsItem(x) {
+			first = x
+		}
+		return first == nil
+	})
+	if first == nil {
+		return nil
+	}
+	var b strings.Builder
+	writeItemJSON(&b, microdata.Parse(first))
+	return b.String()
+}
+
+func writeItemJSON(b *strings.Builder, it *microdata.Item) {
+	b.WriteByte('{')
+	sep := ""
+	if t := strings.TrimSpace(dom.AttrOr(it.Node, "itemtype", "")); t != "" {
+		b.WriteString(`"@type":` + jsonString(t))
+		sep = ","
+	}
+	done := map[string]bool{}
+	for _, p := range it.Props {
+		if done[p.Name] {
+			continue
+		}
+		done[p.Name] = true
+		var vals []microdata.Prop
+		for _, q := range it.Props {
+			if q.Name == p.Name {
+				vals = append(vals, q)
+			}
+		}
+		b.WriteString(sep + jsonString(p.Name) + ":")
+		sep = ","
+		if len(vals) > 1 {
+			b.WriteByte('[')
+		}
+		for i, v := range vals {
+			if i > 0 {
+				b.WriteByte(',')
+			}
+			if v.Item != nil {
+				writeItemJSON(b, v.Item)
+			} else {
+				b.WriteString(jsonString(v.Value))
+			}
+		}
+		if len(vals) > 1 {
+			b.WriteByte(']')
+		}
+	}
+	b.WriteByte('}')
+}
+
+func jsonString(s string) string {
+	out, _ := json.Marshal(s)
+	return string(out)
+}
