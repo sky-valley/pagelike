@@ -186,8 +186,19 @@ type CallRequest struct {
 // Pagelove global (R-JS-23b).
 type Saver interface {
 	// Save performs one Pagelove.PUT, POST or DELETE. A returned error is
-	// thrown into JavaScript as an Error with its message.
-	Save(ctx context.Context, call *SaveCall) error
+	// thrown into JavaScript as an Error with its message. The result is
+	// what the save hands back; nil hands back nothing.
+	Save(ctx context.Context, call *SaveCall) (*SaveResult, error)
+}
+
+// SaveResult is what a save gives back: the saved item (an *Instance, a
+// *Dict of an unregistered item's properties, or nil) and, for a PUT, the
+// address it can be saved at again.
+type SaveResult struct {
+	Value       Value
+	Path        string
+	Selector    string
+	HasSelector bool
 }
 
 // SaveCall is one save made by JavaScript.

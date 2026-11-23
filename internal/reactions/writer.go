@@ -88,10 +88,15 @@ func (wr *writer) Delete(ctx context.Context, target sessel.Value) error {
 // (inside the page's body without a selector), DELETE removes the document
 // or the matched element. A refusal is an error whose message is the verb,
 // the status and the reason.
-func (wr *writer) Save(ctx context.Context, verb string, item any, path, sel string, hasSel bool, placement string) error {
+//
+// It gives back what it saved: the element a selector save wrote, or the
+// item of a whole document (its root element when that is an item, else
+// the first element of its body), with the address a PUT can be repeated
+// at. A POST has no address: where its element ends up is not known.
+func (wr *writer) Save(ctx context.Context, verb string, item any, path, sel string, hasSel bool, placement string) (*JSSaved, error) {
 	p, err := engine.NormalizePath(path)
 	if err != nil {
-		return jsSaveError(verb, err)
+		return nil, jsSaveError(verb, err)
 	}
 	op := wr.op(verb, p)
 	if verb != http.MethodDelete {
@@ -100,11 +105,11 @@ func (wr *writer) Save(ctx context.Context, verb string, item any, path, sel str
 			op.Body = []byte(it)
 		case *sessel.Element:
 			if it == nil || it.Node == nil {
-				return fmt.Errorf("TypeError: Pagelove.%s() takes a schema instance, a string of HTML or a DOM element", verb)
+				return nil, fmt.Errorf("TypeError: Pagelove.%s() takes a schema instance, a string of HTML or a DOM element", verb)
 			}
 			op.Body = []byte(serialize(it, false, wr.setKeyID))
 		default:
-			return fmt.Errorf("TypeError: Pagelove.%s() takes a schema instance, a string of HTML or a DOM element", verb)
+			return nil, fmt.Errorf("TypeError: Pagelove.%s() takes a schema instance, a string of HTML or a DOM element", verb)
 		}
 		op.ContentType = "text/html"
 	}
@@ -117,10 +122,58 @@ func (wr *writer) Save(ctx context.Context, verb string, item any, path, sel str
 	case hasSel:
 		op.Range = engine.ParseRange("selector=" + sel)
 	}
-	if err := wr.runRaw(ctx, "Pagelove."+verb, op); err != nil {
-		return jsSaveError(verb, err)
+	res, err := wr.runRaw(ctx, "Pagelove."+verb, op)
+	if err != nil {
+		return nil, jsSaveError(verb, err)
 	}
-	return nil
+	if verb == http.MethodDelete || res == nil {
+		return nil, nil
+	}
+	return savedItem(res, verb, p, hasSel), nil
+}
+
+// savedItem finds what a save stored. A failure to find it is no error:
+// the save counts and the script gets undefined.
+func savedItem(res *engine.Result, verb, path string, hasSel bool) (out *JSSaved) {
+	defer func() {
+		if recover() != nil {
+			out = nil
+		}
+	}()
+	if verb == http.MethodPost || hasSel {
+		n := res.Saved
+		if n == nil {
+			return nil
+		}
+		out = &JSSaved{Node: n}
+		if verb == http.MethodPut {
+			root := n
+			for root.Parent != nil {
+				root = root.Parent
+			}
+			out.Path, out.Selector, out.HasSelector = path, selector.Path(root, n), true
+		}
+		return out
+	}
+	if !strings.Contains(strings.ToLower(res.Header.Get("Content-Type")), "html") {
+		return nil
+	}
+	doc, err := dom.Parse(res.Body)
+	if err != nil || doc == nil {
+		return nil
+	}
+	n := dom.DocumentElement(doc)
+	if n == nil {
+		return nil
+	}
+	if !dom.HasAttr(n, "itemscope") {
+		kids := dom.ElementChildren(dom.Body(doc))
+		if len(kids) == 0 {
+			return nil
+		}
+		n = kids[0]
+	}
+	return &JSSaved{Node: n, Path: path}
 }
 
 // jsSaveError words a refused JavaScript save: "POST returned 416 Range Not
@@ -158,7 +211,7 @@ func (wr *writer) op(method, path string) *engine.Op {
 }
 
 func (wr *writer) run(ctx context.Context, fn string, op *engine.Op) error {
-	if err := wr.runRaw(ctx, fn, op); err != nil {
+	if _, err := wr.runRaw(ctx, fn, op); err != nil {
 		if _, ok := err.(*sessel.Error); ok {
 			return err
 		}
@@ -168,12 +221,12 @@ func (wr *writer) run(ctx context.Context, fn string, op *engine.Op) error {
 }
 
 // runRaw performs a side-effect write and returns the pipeline's own error.
-func (wr *writer) runRaw(ctx context.Context, fn string, op *engine.Op) error {
+func (wr *writer) runRaw(ctx context.Context, fn string, op *engine.Op) (*engine.Result, error) {
 	st := wr.st
 	st.mu.Lock()
 	if st.writes >= MaxSideEffects {
 		st.mu.Unlock()
-		return &sessel.Error{Type: sessel.RuntimeErrorType, Message: fmt.Sprintf("%s: more than %d side-effect writes in one request", fn, MaxSideEffects)}
+		return nil, &sessel.Error{Type: sessel.RuntimeErrorType, Message: fmt.Sprintf("%s: more than %d side-effect writes in one request", fn, MaxSideEffects)}
 	}
 	st.writes++
 	st.sideDepth++
@@ -184,7 +237,7 @@ func (wr *writer) runRaw(ctx context.Context, fn string, op *engine.Op) error {
 	st.mu.Unlock()
 	st.settle(err == nil)
 	if err != nil {
-		return err
+		return nil, err
 	}
 	st.mu.Lock()
 	_, tracked := st.arrival[op.Path]
@@ -204,7 +257,7 @@ func (wr *writer) runRaw(ctx context.Context, fn string, op *engine.Op) error {
 	if wr.env != nil {
 		wr.env.refresh(ctx) // later evaluations see the write
 	}
-	return nil
+	return res, nil
 }
 
 // types is the requesting site's type information (for @key emission).

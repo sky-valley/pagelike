@@ -135,6 +135,9 @@ func (c *composer) jsBinding(n *html.Node, name, src string, sc *scope) (sessel.
 func (c *composer) sesselHost() *query.Host {
 	if c.host == nil {
 		c.host = query.NewHost(c.site, c.snap)
+		// Code run while a page is built may not save (javascript
+		// R-JS-23b, docs snapshot 2026-11-23).
+		c.host.WriteProvider = sessel.NoSaves{Why: "composition methods may not persist data"}
 	}
 	return c.host
 }

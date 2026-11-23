@@ -61,6 +61,14 @@ Server JavaScript (docs snapshot 2026-11-23):
   object: `Pagelove.PUT`, `Pagelove.POST` (with a placement) and
   `Pagelove.DELETE`, each optionally on the element a selector matches. A
   refused save throws an error the action can catch.
+- A save gives back what it saved: an instance (with its schema defaults)
+  or a plain object of the item's properties. An instance a `PUT` gave back
+  knows its address, so `Pagelove.PUT(instance)` saves it there again and
+  `Pagelove.DELETE(instance)` deletes it.
+- A method an action calls saves too, in either language; a method's save
+  is refused in a `when` gate and while a page is built.
+- Sessel has `Pagelove.POST(item, path, selector, placement)`.
+- A JavaScript action can call a static Sessel method.
 
 Reactions (docs snapshot 2026-11-23):
 

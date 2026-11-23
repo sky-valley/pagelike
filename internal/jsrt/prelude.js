@@ -38,6 +38,7 @@ const __pagelike = (() => {
   const wmGet = uncurry(WeakMap.prototype.get);
   const wmSet = uncurry(WeakMap.prototype.set);
   const wmHas = uncurry(WeakMap.prototype.has);
+  const wmDelete = uncurry(WeakMap.prototype.delete);
   const mapGet = uncurry(Map.prototype.get);
   const mapSet = uncurry(Map.prototype.set);
   const mapHas = uncurry(Map.prototype.has);
@@ -989,13 +990,40 @@ const __pagelike = (() => {
     }
   };
   const optSelector = (s) => (s === null || s === undefined ? null : StringFn(s));
+  // Where an instance a PUT gave back was saved: { path, selector|null }.
+  // Only those instances have an address; an item a POST added has none,
+  // so saving it again cannot replace the container it went into.
+  const savedAt = new WeakMap();
+  // What a save gives back. Handing the item back never fails a save
+  // that worked: anything that goes wrong here gives undefined.
+  const givenBack = (reply, keepAddress) => {
+    if (typeof reply !== "string") return undefined;
+    try {
+      const r = JSONparse(reply);
+      const v = decodeWith(r.value, r.handles);
+      if (v === null || v === undefined) return undefined;
+      if (keepAddress && typeof r.path === "string" && wmHas(instanceClass, v)) {
+        wmSet(savedAt, v, { path: r.path, selector: typeof r.selector === "string" ? r.selector : null });
+      }
+      return v;
+    } catch (e) {
+      return undefined;
+    }
+  };
   const Pagelove = {
     PUT(item, path, selector) {
       const elems = [];
       const payload = saveItem("PUT", item, elems);
-      if (typeof path !== "string") throw new ErrorFn('PUT: Instance has no source path. Use PUT(instance, "/path.html")');
-      sys("save", "PUT", payload, JSONstringify(elems), path, optSelector(selector), "");
-      return undefined;
+      let sel = optSelector(selector);
+      if (typeof path !== "string") {
+        // Only a string counts as a path: without one the instance goes
+        // back where it came from.
+        const at = wmGet(savedAt, item);
+        if (!at) throw new ErrorFn('PUT: Instance has no source path. Use PUT(instance, "/path.html")');
+        path = at.path;
+        sel = at.selector;
+      }
+      return givenBack(sys("save", "PUT", payload, JSONstringify(elems), path, sel, ""), true);
     },
     POST(item, path, selector, placement) {
       const elems = [];
@@ -1011,12 +1039,23 @@ const __pagelike = (() => {
       if (sel === null && (p === "before" || p === "after")) {
         throw new ErrorFn('POST: placement "' + p + '" needs a selector; with no selector the item goes inside the page\'s body');
       }
-      sys("save", "POST", payload, JSONstringify(elems), path, sel, p);
-      return undefined;
+      return givenBack(sys("save", "POST", payload, JSONstringify(elems), path, sel, p), false);
     },
     DELETE(target, selector) {
-      if (typeof target !== "string") throw new TypeErrorFn("Pagelove.DELETE() takes a path");
-      sys("save", "DELETE", "", "[]", target, optSelector(selector), "");
+      const sel = optSelector(selector);
+      if (typeof target !== "string") {
+        const at = target !== null && typeof target === "object" ? wmGet(savedAt, target) : undefined;
+        if (!at) {
+          if (target !== null && typeof target === "object" && wmHas(instanceClass, target)) {
+            throw new ErrorFn('DELETE: Instance has no source path. Use DELETE("/path.html")');
+          }
+          throw new TypeErrorFn("Pagelove.DELETE() takes a path or an instance a save gave back");
+        }
+        sys("save", "DELETE", "", "[]", at.path, at.selector, "");
+        wmDelete(savedAt, target);
+        return true;
+      }
+      sys("save", "DELETE", "", "[]", target, sel, "");
       return true;
     },
   };

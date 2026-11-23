@@ -1018,7 +1018,15 @@ func (st *evalState) sys(op string, a []any) (any, error) {
 		if r.Error != "" {
 			return nil, errors.New(r.Error)
 		}
-		return nil, nil
+		if r.Value == "" {
+			return nil, nil
+		}
+		// Handing the item back never fails a save that worked.
+		out, err := st.replyJSON(r)
+		if err != nil {
+			return nil, nil
+		}
+		return out, nil
 	case "context":
 		name := toStr(arg(a, 0))
 		deleted, _ := arg(a, 3).(bool)
@@ -1075,10 +1083,15 @@ func (st *evalState) replyJSON(r *replyMsg) (string, error) {
 		Deleted bool   `json:"deleted"`
 	}
 	out := struct {
-		Value   string   `json:"value"`
-		Handles []int    `json:"handles"`
-		Context []ctxOut `json:"context"`
-	}{Value: r.Value, Handles: hs}
+		Value    string   `json:"value"`
+		Handles  []int    `json:"handles"`
+		Context  []ctxOut `json:"context"`
+		Path     string   `json:"path,omitempty"`
+		Selector *string  `json:"selector,omitempty"`
+	}{Value: r.Value, Handles: hs, Path: r.Name}
+	if r.HasSelector {
+		out.Selector = &r.Selector
+	}
 	if out.Value == "" {
 		out.Value = "null"
 	}

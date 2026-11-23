@@ -40,22 +40,14 @@ func (reactionsRunner) CallDefault(ctx context.Context, call *reactions.JSCall) 
 		reg = schema.For(call.Snap)
 	}
 	h := &host{reg: reg}
-	if call.Saver != nil {
-		h.save = func(ctx context.Context, c *jsrt.SaveCall) error {
-			var item any
-			switch it := c.Item.(type) {
-			case nil:
-			case string:
-				item = it
-			default:
-				el, _ := toSessel(it, reg).(*sessel.Element)
-				if el == nil {
-					return fmt.Errorf("TypeError: Pagelove.%s() takes a schema instance, a string of HTML or a DOM element", c.Verb)
-				}
-				item = el
-			}
-			return call.Saver.Save(ctx, c.Verb, item, c.Path, c.Selector, c.HasSelector, c.Placement)
+	if call.Host != nil {
+		h.sessel = call.Host
+		if call.Budget != nil {
+			h.budget = call.Budget.Sessel()
 		}
+	}
+	if call.Saver != nil {
+		h.save = saveVia(call.Saver, reg)
 	}
 	req := jsrt.CallRequest{Source: call.Source, Slot: slot, Host: h, Saves: call.Saver != nil, Args: []jsrt.Value{reactionContext(call.Arg)}}
 	if call.Budget != nil {
@@ -131,4 +123,43 @@ func section(m map[string]any) *jsrt.Dict {
 		}
 	}
 	return d
+}
+
+// saveVia performs the saves of a Pagelove global through sv and hands
+// back what each stored (R-JS-23b).
+func saveVia(sv sessel.Saver, reg *schema.Registry) func(context.Context, *jsrt.SaveCall) (*jsrt.SaveResult, error) {
+	return func(ctx context.Context, c *jsrt.SaveCall) (*jsrt.SaveResult, error) {
+		var item any
+		switch it := c.Item.(type) {
+		case nil:
+		case string:
+			item = it
+		default:
+			el, _ := toSessel(it, reg).(*sessel.Element)
+			if el == nil {
+				return nil, fmt.Errorf("TypeError: Pagelove.%s() takes a schema instance, a string of HTML or a DOM element", c.Verb)
+			}
+			item = el
+		}
+		saved, err := sv.Save(ctx, c.Verb, item, c.Path, c.Selector, c.HasSelector, c.Placement)
+		if err != nil || saved == nil {
+			return nil, err
+		}
+		v := savedValue(reg, saved.Node, saved.Path)
+		if v == nil {
+			return nil, nil
+		}
+		return &jsrt.SaveResult{Value: v, Path: saved.Path, Selector: saved.Selector, HasSelector: saved.HasSelector}, nil
+	}
+}
+
+// methodSaver is the saver of a JavaScript method body: the write provider
+// of the Sessel host it runs for, when that performs selector saves. A
+// method saves wherever a Sessel method in the same place could.
+func methodSaver(sh sessel.Host) sessel.Saver {
+	if sh == nil {
+		return nil
+	}
+	sv, _ := sh.Writer().(sessel.Saver)
+	return sv
 }

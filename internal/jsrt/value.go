@@ -809,6 +809,10 @@ func untag(d *Dict, elems []resultElem) (Value, error) {
 			}
 		}
 		return inst, nil
+	case "class":
+		// The receiver of a static method call: the class itself, which
+		// has no value form. A static Sessel body runs without self.
+		return nil, nil
 	case "temporal":
 		k, _ := d.Get("$k")
 		iso, _ := d.Get("$s")

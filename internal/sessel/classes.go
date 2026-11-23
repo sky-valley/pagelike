@@ -700,7 +700,7 @@ func (ev *evaluator) classMember(cls Class, name string) (Value, error) {
 	return nil, typeErr("class %s has no static member %q", cls.Name(), name)
 }
 
-// platformMethod implements Pagelove.GET/PUT/DELETE (R-SESSEL-295).
+// platformMethod implements Pagelove.GET/PUT/POST/DELETE (R-SESSEL-295).
 func (ev *evaluator) platformMethod(name string, args []Value) (Value, bool, error) {
 	h := ev.r.host
 	switch name {
@@ -746,6 +746,59 @@ func (ev *evaluator) platformMethod(name string, args []Value) (Value, bool, err
 				return nil, true, e
 			}
 			return nil, true, runtimeErr("Pagelove.PUT(%s): %v", p, err)
+		}
+		return nil, true, nil
+	case "POST":
+		// Pagelove.POST(item, path, selector, placement): the item is added
+		// like a client's POST (docs snapshot 2026-11-23, Trigger §Writing
+		// from triggers); placement is checked as JavaScript's is.
+		if len(args) < 2 || len(args) > 4 {
+			return nil, true, typeErr("Pagelove.POST() takes an item, a path, and optionally a selector and a placement")
+		}
+		var item any
+		switch it := args[0].(type) {
+		case *Element:
+			item = it
+		case string:
+			item = it
+		default:
+			return nil, true, typeErr("Pagelove.POST() takes an Element, an Instance or a String of HTML, not %s", TypeName(args[0]))
+		}
+		p, ok := args[1].(string)
+		if !ok {
+			return nil, true, typeErr("Pagelove.POST() takes a String path, not %s", TypeName(args[1]))
+		}
+		sel, hasSel := "", false
+		if len(args) > 2 && args[2] != nil {
+			if sel, hasSel = args[2].(string); !hasSel {
+				return nil, true, typeErr("Pagelove.POST() takes a String selector, not %s", TypeName(args[2]))
+			}
+		}
+		placement := "append"
+		if len(args) > 3 && args[3] != nil {
+			raw, ok := args[3].(string)
+			if !ok {
+				return nil, true, typeErr("Pagelove.POST's placement must be a string")
+			}
+			placement = strings.ToLower(strings.TrimSpace(raw))
+			switch placement {
+			case "append", "prepend", "before", "after":
+			default:
+				return nil, true, runtimeErr("POST: unknown placement %q; use append, prepend, before or after", raw)
+			}
+		}
+		if !hasSel && (placement == "before" || placement == "after") {
+			return nil, true, runtimeErr("POST: placement %q needs a selector; with no selector the item goes inside the page's body", placement)
+		}
+		sv, _ := writerOf(h).(Saver)
+		if sv == nil {
+			return nil, true, &Error{Type: RuntimeErrorType, Message: "Pagelove.POST is not available here (no write provider)", Reason: ReasonNoWriter}
+		}
+		if _, err := sv.Save(ev.r.ctx, "POST", item, ev.resolvePath(p), sel, hasSel, placement); err != nil {
+			if e, ok := err.(*Error); ok {
+				return nil, true, e
+			}
+			return nil, true, runtimeErr("%v", err)
 		}
 		return nil, true, nil
 	case "DELETE":

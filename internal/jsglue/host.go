@@ -23,7 +23,7 @@ type host struct {
 	// result).
 	cx *sessel.Dict
 	// save performs the saves of the Pagelove global (nil: none).
-	save func(ctx context.Context, c *jsrt.SaveCall) error
+	save func(ctx context.Context, c *jsrt.SaveCall) (*jsrt.SaveResult, error)
 }
 
 // ChargeMemory implements jsrt.MemoryCharger: memory used outside the
@@ -40,9 +40,9 @@ func (h *host) ChargeMemory(ctx context.Context, n int64) error {
 }
 
 // Save implements jsrt.Saver.
-func (h *host) Save(ctx context.Context, c *jsrt.SaveCall) error {
+func (h *host) Save(ctx context.Context, c *jsrt.SaveCall) (*jsrt.SaveResult, error) {
 	if h.save == nil {
-		return fmt.Errorf("%s: saving is not available here", c.Verb)
+		return nil, fmt.Errorf("%s: saving is not available here", c.Verb)
 	}
 	return h.save(ctx, c)
 }

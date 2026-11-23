@@ -77,6 +77,10 @@ type Result struct {
 	Header http.Header
 	Body   []byte
 	Events []store.Event
+	// Saved is the first element a selector PUT or POST wrote, in the tree
+	// that was stored: what a script's save hands back (javascript
+	// R-JS-23b). It never reaches a client.
+	Saved *html.Node
 }
 
 // Hooks are extension points filled in by higher-level packages. Each list

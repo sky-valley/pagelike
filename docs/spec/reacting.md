@@ -979,6 +979,20 @@ For each public-plane request (the steps before 3 belong to other areas):
   `reacting.jss1123.refused-save-throws`,
   `reacting.jss1123.js-gate-has-no-pagelove`.
 
+### R-REACT-41b — Sessel `Pagelove.POST`
+- **Behavior:** `Pagelove.POST(item, path, selector, placement)` adds an
+  item (an element, an instance or a string of HTML) to the document at
+  `path`, as a client's POST would: `placement` is `append` (default),
+  `prepend`, `before` or `after`, in any case with spaces ignored; without
+  a selector the item goes inside the page's body. An unknown placement is
+  an error and nothing is posted. A refused save is an error `try … catch`
+  catches, whose message is the verb, the status and the reason (`POST
+  returned 416 Range Not Satisfiable: …`). The docs say a caught Sessel
+  message starts `runtime error: `; pagelike's is the refusal alone.
+- **Evidence:** documented (docs snapshot 2026-11-23, Trigger §Writing from
+  triggers, Processor §Writing from processors). **Confidence:** medium.
+- **Cases:** `reacting.jss1123.sessel-post`.
+
 ### R-REACT-42 — Transient elements
 - **Behavior:** Triggers "can write to transient elements". The mechanism is
   not documented. pagelike applies a `Pagelove.PUT` whose target is a document

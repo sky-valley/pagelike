@@ -129,6 +129,10 @@ type replyMsg struct {
 	Value    string            `json:"value,omitempty"`
 	Elements []wireElem        `json:"elements,omitempty"`
 	Context  []wireCtxIn       `json:"context,omitempty"`
+	// A save's address (R-JS-23b): Name is its path.
+	Name        string `json:"name,omitempty"`
+	Selector    string `json:"selector,omitempty"`
+	HasSelector bool   `json:"hasSelector,omitempty"`
 }
 
 type wireCtxIn struct {

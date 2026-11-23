@@ -46,7 +46,10 @@ func (composeRunner) Method(ctx context.Context, m *compose.JSMethod) (*compose.
 		reg = schema.For(m.Snap)
 	}
 	h := &host{reg: reg, cx: m.Context}
-	req := jsrt.CallRequest{Source: m.Source, Slot: jsrt.SlotDispatch, Host: h, Context: contextValue(m.Context, reg)}
+	// A method run while a page is built has a Pagelove object whose every
+	// save is refused (R-JS-23b).
+	h.save = saveVia(sessel.NoSaves{Why: "composition methods may not persist data"}, reg)
+	req := jsrt.CallRequest{Source: m.Source, Slot: jsrt.SlotDispatch, Host: h, Saves: true, Context: contextValue(m.Context, reg)}
 	if m.Self != nil && m.Self.Node != nil {
 		req.This = &jsrt.Element{Node: m.Self.Node, Source: m.DocPath}
 		req.Document = &jsrt.Document{Node: m.Self.Node, Source: m.DocPath}

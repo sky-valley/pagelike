@@ -637,8 +637,8 @@ are allowed. `retry` cannot be an expression.
 ### R-JS-23b: Saving from JavaScript (`Pagelove.PUT`, `POST`, `DELETE`)
 
 - A trigger or processor action (and `otherwise`) has a global `Pagelove`
-  object; nothing is imported. A JavaScript `when` gate, a `j:` binding and
-  schema bindings have none.
+  object; nothing is imported, and so has a method body (see below). A
+  JavaScript `when` gate, a `j:` binding and schema bindings have none.
 - `Pagelove.PUT(item, path)` saves the whole document at `path`, creating
   it; `Pagelove.PUT(item, path, selector)` replaces the element `selector`
   matches. `Pagelove.POST(item, path, selector, placement)` adds the item:
@@ -659,11 +659,33 @@ are allowed. `retry` cannot be an expression.
   event is streamed. A refused save throws an `Error` the code can catch,
   whose message is the verb, the status and the reason: `POST returned 416
   Range Not Satisfiable: …`. Uncaught, it fails the action.
-- pagelike differences: `PUT` and `POST` give back `undefined` (the docs
-  allow that outcome; an instance is not handed back with its address);
-  `PUT(instance)` without a path always throws `PUT: Instance has no source
-  path`; a Sessel method called from the action cannot save; saves from
-  resolvers and the 3-deep nested-save limit are not implemented.
+- Every save gives back what it saved. An item whose outer element has
+  `itemscope` and an `itemtype` comes back as an instance of its class when
+  the site has a schema for the type (with the `@default`s the save filled
+  in), else as a plain object of its properties; other HTML gives back
+  `undefined`. A whole-document save gives back the document's item: its
+  root element when that is an item, else the first element of its body.
+  If the item cannot be handed back the save still counts and the call
+  gives back `undefined`; it never throws.
+- An instance a `PUT` gave back knows its address (the path, and the
+  element it replaced). `Pagelove.PUT(instance)` with anything but a string
+  as the path saves it there again, and `Pagelove.DELETE(instance)` deletes
+  it. Any other instance throws `PUT: Instance has no source path. Use
+  PUT(instance, "/path.html")`. An item a `POST` added has no address, so a
+  second save cannot replace the container it went into.
+- A method saves wherever a Sessel method in its place could: a JavaScript
+  method body has the `Pagelove` object when the code that called it may
+  save (an action, or a Sessel or JavaScript method an action calls), and a
+  Sessel method a JavaScript action calls saves too. In a `when` gate a
+  method's saves throw `PUT: a when gate is read-only …`, and while a page
+  is built `PUT: composition methods may not persist data` (the verb is the
+  one called), which is also what a Sessel method gets there.
+- pagelike differences: saves from `@read` and `@write` resolvers are not
+  implemented (they would write on a reader's behalf without a permission
+  check; a save here is always made as the requesting principal), nor is
+  the 3-deep nested-save limit that goes with them. `DELETE` of an instance
+  with no address throws `DELETE: Instance has no source path` (inferred
+  wording).
 - Evidence: documented (docs snapshot 2026-11-23, JavaScript §Saving data).
   Confidence: medium.
 
@@ -2740,7 +2762,7 @@ Requirement → cases (ids without the `javascript.` prefix):
 | R-JS-19 | `methods.dnu-element-form`, `methods.dnu-attribute-form` |
 | R-JS-21 | `reactions.trigger-docs-when-and-action`, `reactions.trigger-ctx-request-shape`, `reactions.trigger-when-truthiness`, `reactions.trigger-return-value-discarded`, `reactions.trigger-save-plain-object-fails` |
 | R-JS-22 | `reactions.processor-docs-custom-404`, `reactions.processor-rethrow-with-headers`, `reactions.processor-response-assignment-ignored` |
-| R-JS-23b | `reacting.jss1123.action-saves`, `reacting.jss1123.refused-save-throws`, `reacting.jss1123.js-gate-has-no-pagelove`, `reactions.trigger-save-plain-object-fails` |
+| R-JS-23b | `reacting.jss1123.action-saves`, `reacting.jss1123.refused-save-throws`, `reacting.jss1123.js-gate-has-no-pagelove`, `reacting.jss1123.save-gives-back`, `reacting.jss1123.methods-save`, `reacting.jss1123.refused-in-gates-and-pages`, `reactions.trigger-save-plain-object-fails` |
 | R-JS-24 | `reactions.trigger-header-lookup` |
 | R-JS-30 | `jbind.wrong-namespace-ignored` |
 | R-JS-31 | `jbind.docs-example-liquid`, `jbind.declaration-order`, `jbind.await`, `jbind.returned-promise-adopted` |
