@@ -414,6 +414,9 @@ func (rn *run) do(ctx context.Context, as, plane string, req *Request) (*respons
 		method = http.MethodGet
 	}
 	u := strings.TrimSuffix(base, "/") + escapeKeepQuery(p)
+	if req.RawPath {
+		u = strings.TrimSuffix(base, "/") + p
+	}
 	hr, err := http.NewRequestWithContext(ctx, method, u, strings.NewReader(body))
 	if err != nil {
 		return nil, err

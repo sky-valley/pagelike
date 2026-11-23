@@ -15,6 +15,17 @@ Authorization hardening PageLove documented after the port (docs snapshot
 - A failed group lookup (`includes` erroring or over budget) refuses the
   request with 502 instead of treating the person as in no group.
 
+Reading and writing:
+
+- Request paths must be canonical (no `//`, `.` segments, backslashes or
+  needless percent-escapes); others are 400 InvalidPath before any rule runs.
+- A Range header naming more than one `selector=` is 400.
+- POST placement is parsed strictly; anything but `; placement=<keyword>` is
+  ignored and the body appended.
+- A POST whose body is only whitespace is 422.
+- A POST with no selector to a page that is not a template saves the body as
+  the page instead of failing.
+
 ## v0.3.0 — 2026-11-20
 
 - Build with Go 1.27.4 and current dependencies. Go 1.26.0 left 38

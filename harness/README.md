@@ -72,6 +72,7 @@ steps:
       path: ${P}/doc.html
       headers: {Range: "selector=h1"}
       body: ""                       # string; or body_file
+      raw_path: false                # true: send path as written, not percent-encoded
     expect:
       status: 206                    # int or list of acceptable ints
       headers:                       # exact match after normalization (case-insensitive names)

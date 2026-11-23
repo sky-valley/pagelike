@@ -93,6 +93,10 @@ func (p *Public) Serve(w http.ResponseWriter, r *http.Request, s *site.Site) {
 		p.pagelikeAPI(w, r, rc)
 		return
 	}
+	if err := engine.CheckCanonical(rawPath(r)); err != nil {
+		p.fail(w, r, rc, err)
+		return
+	}
 	clean, err := engine.NormalizePath(r.URL.Path)
 	if err != nil {
 		p.fail(w, r, rc, err)
@@ -542,6 +546,11 @@ func destinationPath(r *http.Request) (string, error) {
 	if u.Path == "" {
 		return "/", nil
 	}
+	// The Destination's path, query and fragment dropped, must be
+	// canonical like the request path (R-RW-154).
+	if err := engine.CheckCanonical(u.EscapedPath()); err != nil {
+		return "", err
+	}
 	return u.Path, nil
 }
 
@@ -611,4 +620,15 @@ func isLoopback(r *http.Request) bool {
 
 func htmlAttr(s string) string {
 	return strings.NewReplacer("&", "&amp;", `"`, "&quot;", "<", "&lt;").Replace(s)
+}
+
+// rawPath is the request path as the client sent it, still percent-encoded.
+func rawPath(r *http.Request) string {
+	if u := r.RequestURI; strings.HasPrefix(u, "/") {
+		if i := strings.IndexAny(u, "?#"); i >= 0 {
+			u = u[:i]
+		}
+		return u
+	}
+	return r.URL.EscapedPath()
 }

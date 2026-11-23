@@ -487,8 +487,14 @@ func checkRequest(op *Op) error {
 		// An unknown POST placement is an append (live 2026-09-28,
 		// superseding R-RW-71); postSelector maps it.
 		if op.Method != "DELETE" && dom.TrimHTMLSpace(string(op.Body)) == "" {
-			// Compat decision (spec R-RW-67, Q-3): nothing to write.
-			return errdoc.New(http.StatusBadRequest, "EmptyBody", "a selector %s needs markup in the request body", op.Method)
+			// Compat decision (spec R-RW-67, Q-3): nothing to write. A
+			// POST is 422: a body of only whitespace creates no element
+			// (docs POST-method, snapshot 2026-11-23; R-RW-152).
+			status := http.StatusBadRequest
+			if op.Method == "POST" {
+				status = http.StatusUnprocessableEntity
+			}
+			return errdoc.New(status, "EmptyBody", "a selector %s needs markup in the request body", op.Method)
 		}
 	case op.Range.Present():
 		// Only selector ranges address part of a document on writes; any
