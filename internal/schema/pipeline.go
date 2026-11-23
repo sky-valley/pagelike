@@ -133,19 +133,20 @@ func (p *pass) run() error {
 	return nil
 }
 
-func (p *pass) schemaOf(inst *html.Node) *Schema { return p.reg.schemas[itemType(inst)] }
+func (p *pass) schemaOf(inst *html.Node) *Schema { return p.reg.primary(inst) }
 
 // eachProp calls fn for every effective property of every affected
 // instance whose schema loaded.
 func (p *pass) eachProp(fn func(inst *html.Node, s *Schema, ep *EffectiveProp) error) error {
 	for _, inst := range p.instances {
-		s := p.schemaOf(inst)
-		if s == nil || s.eff == nil {
-			continue
-		}
-		for _, pn := range s.eff.propOrder {
-			if err := fn(inst, s, s.eff.props[pn]); err != nil {
-				return err
+		for _, s := range p.reg.governing(inst) {
+			if s.eff == nil {
+				continue
+			}
+			for _, pn := range s.eff.propOrder {
+				if err := fn(inst, s, s.eff.props[pn]); err != nil {
+					return err
+				}
 			}
 		}
 	}
@@ -177,14 +178,47 @@ func unprocessable(vs []Violation) error {
 func (p *pass) loadErrors() error {
 	var vs []Violation
 	for _, inst := range p.instances {
-		s := p.schemaOf(inst)
-		if s.loadErr != "" {
-			vs = append(vs, Violation{Check: CheckSchema, ItemType: s.URL, Message: fmt.Sprintf("[%s]: %s", s.URL, s.loadErr)})
+		gov := p.reg.governing(inst)
+		for _, s := range gov {
+			if s.loadErr != "" {
+				vs = append(vs, Violation{Check: CheckSchema, ItemType: s.URL, Message: fmt.Sprintf("[%s]: %s", s.URL, s.loadErr)})
+				continue
+			}
+			vs = append(vs, s.eff.loadErrs...)
+		}
+		vs = append(vs, p.typeConflicts(gov)...)
+	}
+	return unprocessable(dedupe(vs))
+}
+
+// typeConflicts reports the properties two governing schemas declare with
+// types no value can satisfy together: the item is refused whatever it
+// holds (R-MOD-9, docs snapshot 2026-11-23).
+func (p *pass) typeConflicts(gov []*Schema) []Violation {
+	var vs []Violation
+	for i, a := range gov {
+		if a.eff == nil {
 			continue
 		}
-		vs = append(vs, s.eff.loadErrs...)
+		for _, b := range gov[i+1:] {
+			if b.eff == nil {
+				continue
+			}
+			for _, pn := range a.eff.propOrder {
+				bp := b.eff.props[pn]
+				if bp == nil {
+					continue
+				}
+				at, bt := a.eff.props[pn].Decl.Type, bp.Decl.Type
+				if p.reg.typesOverlap(at, bt) {
+					continue
+				}
+				vs = append(vs, Violation{Check: CheckType, ItemType: a.URL, Property: pn,
+					Message: fmt.Sprintf("[%s].%s and [%s].%s: no value can be both %s and %s", a.URL, pn, b.URL, pn, at, bt)})
+			}
+		}
 	}
-	return unprocessable(vs)
+	return vs
 }
 
 // Stage 1, the computed-property guard, is gone: PageLove stores a value
@@ -195,59 +229,62 @@ func (p *pass) loadErrors() error {
 
 func (p *pass) defaults() error {
 	for i, inst := range p.instances {
-		s := p.schemaOf(inst)
 		if voidElements[inst.Data] && inst.Namespace == "" {
 			continue // cannot hold property elements
 		}
-		var view map[string]any
-		for _, pn := range s.eff.propOrder {
-			ep := s.eff.props[pn]
-			if ep.Decl.Computed != nil || len(propElements(inst, pn)) > 0 {
-				continue
-			}
-			d := ep.Decl.Default
-			if d == nil && !ep.AutoKey {
-				continue
-			}
-			var nodes []*html.Node
-			switch {
-			case d == nil:
-				nodes = []*html.Node{newMeta(pn, randomKey())}
-			case d.Lang == LangStatic:
-				nodes = []*html.Node{newMeta(pn, d.Source)}
-			case d.Lang == LangSessel:
-				v, err := p.ev.runSessel(d, sesselEnv{})
-				if err != nil {
-					return p.defaultFailure(s, pn, err)
+		// The first type's default wins: a later type fills only what the
+		// earlier ones leave out (R-MOD-9).
+		for _, s := range p.reg.governing(inst) {
+			var view map[string]any
+			for _, pn := range s.eff.propOrder {
+				ep := s.eff.props[pn]
+				if ep.Decl.Computed != nil || len(propElements(inst, pn)) > 0 {
+					continue
 				}
-				if nodes, err = valueNodes(pn, v); err != nil {
-					return p.defaultFailure(s, pn, err)
+				d := ep.Decl.Default
+				if d == nil && !ep.AutoKey {
+					continue
 				}
-			case d.Lang == LangJS:
-				if view == nil {
-					view = p.reg.instanceView(s.URL, inst, "")
-				}
-				orig := dom.OuterHTML(inst)
-				res, err := p.ev.runJSSlot(d, &JSCall{Slot: JSSlotDefault, This: view, HasThis: true,
-					Args: []any{map[string]any{"document_html": p.html()}}, Document: orig, DocumentWritable: true})
-				if err != nil {
-					return p.defaultFailure(s, pn, err)
-				}
-				if res.Document != "" && res.Document != orig {
-					if n := p.replaceInstanceMarkup(inst, res.Document); n != nil {
-						inst = n
-						p.instances[i] = n
+				var nodes []*html.Node
+				switch {
+				case d == nil:
+					nodes = []*html.Node{newMeta(pn, randomKey())}
+				case d.Lang == LangStatic:
+					nodes = []*html.Node{newMeta(pn, d.Source)}
+				case d.Lang == LangSessel:
+					v, err := p.ev.runSessel(d, sesselEnv{})
+					if err != nil {
+						return p.defaultFailure(s, pn, err)
 					}
+					if nodes, err = valueNodes(pn, v); err != nil {
+						return p.defaultFailure(s, pn, err)
+					}
+				case d.Lang == LangJS:
+					if view == nil {
+						view = p.reg.instanceView(s.URL, inst, "")
+					}
+					orig := dom.OuterHTML(inst)
+					res, err := p.ev.runJSSlot(d, &JSCall{Slot: JSSlotDefault, This: view, HasThis: true,
+						Args: []any{map[string]any{"document_html": p.html()}}, Document: orig, DocumentWritable: true})
+					if err != nil {
+						return p.defaultFailure(s, pn, err)
+					}
+					if res.Document != "" && res.Document != orig {
+						if n := p.replaceInstanceMarkup(inst, res.Document); n != nil {
+							inst = n
+							p.instances[i] = n
+						}
+					}
+					if nodes, err = valueNodes(pn, fromJS(res.Value)); err != nil {
+						return p.defaultFailure(s, pn, err)
+					}
+				default:
+					return p.defaultFailure(s, pn, unknownLanguage(d))
 				}
-				if nodes, err = valueNodes(pn, fromJS(res.Value)); err != nil {
-					return p.defaultFailure(s, pn, err)
+				for _, n := range nodes {
+					setItemprop(n, pn)
+					p.appendChild(inst, n)
 				}
-			default:
-				return p.defaultFailure(s, pn, unknownLanguage(d))
-			}
-			for _, n := range nodes {
-				setItemprop(n, pn)
-				p.appendChild(inst, n)
 			}
 		}
 	}
@@ -362,16 +399,24 @@ func (p *pass) writes() error {
 		if inst == nil || !attached(p.after, inst) {
 			continue
 		}
-		s := p.schemaOf(inst)
-		for _, pn := range s.eff.propOrder {
-			ep := s.eff.props[pn]
-			for _, slot := range ep.WriteChain {
-				elems := propElements(inst, pn)
-				if len(elems) == 0 {
-					break
+		// The first type declaring a property supplies its resolvers
+		// (R-MOD-9).
+		done := map[string]bool{}
+		for _, s := range p.reg.governing(inst) {
+			for _, pn := range s.eff.propOrder {
+				if done[pn] {
+					continue
 				}
-				if err := p.writeStage(s, ep, inst, slot, elems); err != nil {
-					return err
+				done[pn] = true
+				ep := s.eff.props[pn]
+				for _, slot := range ep.WriteChain {
+					elems := propElements(inst, pn)
+					if len(elems) == 0 {
+						break
+					}
+					if err := p.writeStage(s, ep, inst, slot, elems); err != nil {
+						return err
+					}
 				}
 			}
 		}
@@ -720,7 +765,7 @@ func (p *pass) typeCheck(s *Schema, ep *EffectiveProp, elems []*html.Node) []Vio
 					Message: fmt.Sprintf("%sexpected an item of type %s, found a plain value", pre, t)})
 				continue
 			}
-			if it := itemType(e); !p.reg.IsA(it, t) || it == "" {
+			if it := itemType(e); !p.reg.anyIsA(e, t) {
 				vs = append(vs, Violation{Check: CheckType, ItemType: s.URL, Property: ep.Name,
 					Message: fmt.Sprintf("%sexpected an item of type %s, found an item of type %q", pre, t, it)})
 			}
@@ -851,20 +896,21 @@ func jsTruthy(v any) bool {
 func (p *pass) schemaValidators() error {
 	var vs []Violation
 	for _, inst := range p.instances {
-		s := p.schemaOf(inst)
-		for _, slot := range s.eff.validators {
-			ok, err := p.runSchemaValidator(slot, inst)
-			if err != nil {
-				e, v := p.validateFailure(s, "", err)
-				if e != nil {
-					return e
+		for _, s := range p.reg.governing(inst) {
+			for _, slot := range s.eff.validators {
+				ok, err := p.runSchemaValidator(slot, inst)
+				if err != nil {
+					e, v := p.validateFailure(s, "", err)
+					if e != nil {
+						return e
+					}
+					vs = append(vs, v)
+					break
 				}
-				vs = append(vs, v)
-				break
-			}
-			if !ok {
-				vs = append(vs, p.validateViolation(s, "", nil))
-				break
+				if !ok {
+					vs = append(vs, p.validateViolation(s, "", nil))
+					break
+				}
 			}
 		}
 	}
@@ -926,20 +972,21 @@ func (p *pass) itemObject(inst *html.Node) map[string]any {
 func (p *pass) groups() error {
 	var vs []Violation
 	for _, inst := range p.instances {
-		s := p.schemaOf(inst)
-		for _, g := range s.eff.groups {
-			present := 0
-			for _, m := range g.members {
-				if len(propElements(inst, m)) > 0 {
-					present++
+		for _, s := range p.reg.governing(inst) {
+			for _, g := range s.eff.groups {
+				present := 0
+				for _, m := range g.members {
+					if len(propElements(inst, m)) > 0 {
+						present++
+					}
 				}
+				card := g.decl.Cardinality
+				if cardinalityOK(card, present) {
+					continue
+				}
+				vs = append(vs, Violation{Check: CheckGroup, ItemType: s.URL, Property: strings.Join(g.members, " "),
+					Message: fmt.Sprintf("[%s]: group '%s' constraint violated: %s", s.URL, g.decl.Group, cardinalityDetail(card, present))})
 			}
-			card := g.decl.Cardinality
-			if cardinalityOK(card, present) {
-				continue
-			}
-			vs = append(vs, Violation{Check: CheckGroup, ItemType: s.URL, Property: strings.Join(g.members, " "),
-				Message: fmt.Sprintf("[%s]: group '%s' constraint violated: %s", s.URL, g.decl.Group, cardinalityDetail(card, present))})
 		}
 	}
 	return unprocessable(vs)

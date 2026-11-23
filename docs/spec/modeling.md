@@ -227,16 +227,24 @@ Property items may be wrapped in non-item containers such as `<ul>`, and that ha
 
 ### R-MOD-9 — Governed-type matching
 
-An element is an **instance of schema S** when it has `itemscope` and its `itemtype` value, trimmed,
-equals S's `type` exactly (case-sensitive). Instances may be top-level items or nested items. Items
-whose itemtype names no registered schema are stored **unchanged, without any checks**. The same holds
-for undeclared properties on governed items (R-MOD-17).
+An element is an **instance of schema S** when it has `itemscope` and one of the types its `itemtype`
+names, separated by spaces, equals S's `type` exactly (case-sensitive). Items none of whose types has a
+registered schema are stored **unchanged, without any checks**. The same holds for undeclared properties
+on governed items (R-MOD-17).
 
-- Multiple whitespace-separated itemtype tokens: PageLove behavior is unknown. **pagelike decision**:
-  compare the whole trimmed attribute value, so a multi-token itemtype matches no schema. This mirrors
-  exact-match usage in beta-js (`pagelove.mjs@c204746:256`) and in shape examples. Probe P-MOD-5.
-- Evidence: documented (no-schema pass-through). Source: docs reference/modeling-data/Schema §When to
-  reach for it. Confidence: high / low (multi-token).
+- Items with several types (docs snapshot 2026-11-23; before it pagelike compared the whole attribute
+  value, so such an item matched no schema): every type that has a schema governs the item, in the
+  order written, and a type with no schema is skipped. Every schema must pass.
+- Where one answer is needed the first type wins: the default, the resolvers of a property, the key.
+  A later type supplies only what the earlier ones leave out.
+- Two governing schemas that declare one property with types no value satisfies together (Integer and
+  Date) refuse every write of the item with 422 SchemaViolation naming both schemas and the property.
+  Text, String and unchecked types never conflict; Integer, Number and FloatingPoint overlap; enums
+  overlap when they share a value, and with a primitive when one of their values is valid for it.
+- Lookups by type (uniqueness, references) count any of an item's types. Selectors keep their CSS
+  meaning: `[itemtype="T"]` matches the whole value.
+- Evidence: documented. Source: docs reference/modeling-data/Schema §When to reach for it, §Items with
+  several types (snapshot 2026-11-23). Confidence: high. Cases: `modeling.multi1123.*`.
 
 ### R-MOD-10 — Parent chain
 
@@ -1579,6 +1587,7 @@ requirements it pins (`spec: R-MOD-…`).
 | `keys.yaml` | 6 | R-MOD-33..35 |
 | `uniqueness.yaml` | 9 | R-MOD-30, 32 |
 | `uniqueness-1123.yaml` | 7 | R-MOD-30, 31 as of the 2026-11-23 docs (groups as one value set, descendants in scope, no path disclosed) |
+| `multitype-1123.yaml` | 5 | R-MOD-9 as of the 2026-11-23 docs (items with several types) |
 | `validators-1123.yaml` | 9 | R-MOD-45..47 as of the 2026-11-23 docs |
 | `references.yaml` | 16 | R-MOD-37..43 |
 | `computed.yaml` | 4 | R-MOD-44 |

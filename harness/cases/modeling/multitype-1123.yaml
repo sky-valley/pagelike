@@ -1,0 +1,265 @@
+# Modeling: items with several types, after the 2026-11-23 docs. Spec: docs/spec/modeling.md R-MOD-9.
+defaults:
+  area: modeling
+  feature: items with several types
+  evidence: documented
+  confidence: high
+  requires: []
+  live: true
+  site:
+    settings: {default_get: allow}
+    rules:
+      - {actor: "*", resource: "${P}/*", method: [GET, HEAD, PUT, POST, DELETE], action: Allow}
+cases:
+  - id: modeling.multi1123.schemaless-type-skipped
+    title: "A type with no schema is skipped and the other type governs the item"
+    source: "docs reference/modeling-data/Schema §Items with several types (snapshot 2026-11-23) ('Every type that has a schema governs the item. A type with no schema … is skipped')"
+    notes: "R-MOD-9."
+    steps:
+      - name: "schema"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/schema.html"
+          headers: {Content-Type: text/html}
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div hidden itemscope itemtype="https://pagelove.org/Schema"><meta itemprop="type" content="https://pagelike.test${P}/Game"><div itemprop="property" itemscope itemtype="https://pagelove.org/Property"><meta itemprop="name" content="name"><meta itemprop="cardinality" content="1..1"></div></div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "missing the required name"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/a.html"
+          headers: {Content-Type: text/html}
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div itemscope itemtype="javascript:Game https://pagelike.test${P}/Game"></div>
+            </body></html>
+        expect:
+          status: 422
+      - name: "with it"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/b.html"
+          headers: {Content-Type: text/html}
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div itemscope itemtype="javascript:Game https://pagelike.test${P}/Game"><meta itemprop="name" content="x"></div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+
+  - id: modeling.multi1123.every-schema-must-pass
+    title: "An item must satisfy every governing schema in full"
+    source: "docs reference/modeling-data/Schema §Items with several types (snapshot 2026-11-23) ('Every schema must pass. The order never makes Pagelove accept a value')"
+    notes: "R-MOD-9."
+    steps:
+      - name: "schema"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/schema.html"
+          headers: {Content-Type: text/html}
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div hidden itemscope itemtype="https://pagelove.org/Schema"><meta itemprop="type" content="https://pagelike.test${P}/Lenient"><div itemprop="property" itemscope itemtype="https://pagelove.org/Property"><meta itemprop="name" content="n"><meta itemprop="cardinality" content="0..1"></div></div>
+              <div hidden itemscope itemtype="https://pagelove.org/Schema"><meta itemprop="type" content="https://pagelike.test${P}/Strict"><div itemprop="property" itemscope itemtype="https://pagelove.org/Property"><meta itemprop="name" content="n"><meta itemprop="type" content="https://schema.host/Integer"><meta itemprop="cardinality" content="1..1"></div></div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "passes the first type only"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/a.html"
+          headers: {Content-Type: text/html}
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div itemscope itemtype="https://pagelike.test${P}/Lenient https://pagelike.test${P}/Strict"><meta itemprop="n" content="abc"></div>
+            </body></html>
+        expect:
+          status: 422
+          body_contains: ['Strict']
+      - name: "passes both"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/b.html"
+          headers: {Content-Type: text/html}
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div itemscope itemtype="https://pagelike.test${P}/Lenient https://pagelike.test${P}/Strict"><meta itemprop="n" content="4"></div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+
+  - id: modeling.multi1123.type-conflict-refused
+    title: "Two schemas declaring one property with types no value satisfies together refuse every write"
+    source: "docs reference/modeling-data/Schema §Items with several types (snapshot 2026-11-23) ('Pagelove refuses the write with a 422 and a SchemaViolation that names both schemas and the property. It refuses even when the value would pass one of them')"
+    notes: "R-MOD-9."
+    steps:
+      - name: "schema"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/schema.html"
+          headers: {Content-Type: text/html}
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div hidden itemscope itemtype="https://pagelove.org/Schema"><meta itemprop="type" content="https://pagelike.test${P}/I"><div itemprop="property" itemscope itemtype="https://pagelove.org/Property"><meta itemprop="name" content="when"><meta itemprop="type" content="https://schema.host/Integer"><meta itemprop="cardinality" content="0..1"></div></div>
+              <div hidden itemscope itemtype="https://pagelove.org/Schema"><meta itemprop="type" content="https://pagelike.test${P}/D"><div itemprop="property" itemscope itemtype="https://pagelove.org/Property"><meta itemprop="name" content="when"><meta itemprop="type" content="https://schema.host/Date"><meta itemprop="cardinality" content="0..1"></div></div>
+              <div hidden itemscope itemtype="https://pagelove.org/Schema"><meta itemprop="type" content="https://pagelike.test${P}/N"><div itemprop="property" itemscope itemtype="https://pagelove.org/Property"><meta itemprop="name" content="when"><meta itemprop="type" content="https://schema.host/Number"><meta itemprop="cardinality" content="0..1"></div></div>
+              <div hidden itemscope itemtype="https://pagelove.org/Schema"><meta itemprop="type" content="https://pagelike.test${P}/X"><div itemprop="property" itemscope itemtype="https://pagelove.org/Property"><meta itemprop="name" content="when"><meta itemprop="type" content="https://schema.host/Text"><meta itemprop="cardinality" content="0..1"></div></div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "an Integer that passes one"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/a.html"
+          headers: {Content-Type: text/html}
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div itemscope itemtype="https://pagelike.test${P}/I https://pagelike.test${P}/D"><meta itemprop="when" content="4"></div>
+            </body></html>
+        expect:
+          status: 422
+          body_contains: ['/I', '/D', 'when']
+      - name: "without the property the conflict still refuses"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/b.html"
+          headers: {Content-Type: text/html}
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div itemscope itemtype="https://pagelike.test${P}/I https://pagelike.test${P}/D"></div>
+            </body></html>
+        expect:
+          status: 422
+          body_contains: ['/I', '/D', 'when']
+      - name: "Integer and Number overlap"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/c.html"
+          headers: {Content-Type: text/html}
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div itemscope itemtype="https://pagelike.test${P}/I https://pagelike.test${P}/N"><meta itemprop="when" content="4"></div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "Text never conflicts"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/d.html"
+          headers: {Content-Type: text/html}
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div itemscope itemtype="https://pagelike.test${P}/X https://pagelike.test${P}/D"><meta itemprop="when" content="2026-01-02"></div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+
+  - id: modeling.multi1123.first-type-default-wins
+    title: "Where one answer is needed the first type wins: the default"
+    source: "docs reference/modeling-data/Schema §Items with several types (snapshot 2026-11-23) ('Where Pagelove has to pick one answer, the first type wins. That covers … which default fills a missing property')"
+    notes: "R-MOD-9."
+    steps:
+      - name: "schema"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/schema.html"
+          headers: {Content-Type: text/html}
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div hidden itemscope itemtype="https://pagelove.org/Schema"><meta itemprop="type" content="https://pagelike.test${P}/A"><div itemprop="property" itemscope itemtype="https://pagelove.org/Property"><meta itemprop="name" content="n"><meta itemprop="cardinality" content="0..1"><meta itemprop="default" content="from-a"></div></div>
+              <div hidden itemscope itemtype="https://pagelove.org/Schema"><meta itemprop="type" content="https://pagelike.test${P}/B"><div itemprop="property" itemscope itemtype="https://pagelove.org/Property"><meta itemprop="name" content="n"><meta itemprop="cardinality" content="0..1"><meta itemprop="default" content="from-b"></div><div itemprop="property" itemscope itemtype="https://pagelove.org/Property"><meta itemprop="name" content="m"><meta itemprop="cardinality" content="0..1"><meta itemprop="default" content="only-b"></div></div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "neither property given"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/a.html"
+          headers: {Content-Type: text/html}
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div itemscope itemtype="https://pagelike.test${P}/A https://pagelike.test${P}/B"></div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "the first type supplies n, the later one only what is left out"
+        as: anonymous
+        request: {method: GET, path: "${P}/a.html"}
+        expect:
+          status: 200
+          body_contains: ['from-a', 'only-b']
+
+  - id: modeling.multi1123.unique-any-type-counts
+    title: "Uniqueness finds an item that carries the type among others"
+    source: "docs reference/modeling-data/Schema §Items with several types (snapshot 2026-11-23) ('Where Pagelove looks something up by type, any of an item's types counts')"
+    notes: "R-MOD-9."
+    steps:
+      - name: "schema"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/schema.html"
+          headers: {Content-Type: text/html}
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div hidden itemscope itemtype="https://pagelove.org/Schema"><meta itemprop="type" content="https://pagelike.test${P}/U"><div itemprop="property" itemscope itemtype="https://pagelove.org/Property"><meta itemprop="name" content="slug"><meta itemprop="cardinality" content="0..1"><meta itemprop="unique" content="true"></div></div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "a plain item"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/a.html"
+          headers: {Content-Type: text/html}
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div itemscope itemtype="https://pagelike.test${P}/U"><meta itemprop="slug" content="s1"></div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "an item with a second type holding the same value"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/b.html"
+          headers: {Content-Type: text/html}
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div itemscope itemtype="urn:other https://pagelike.test${P}/U"><meta itemprop="slug" content="s1"></div>
+            </body></html>
+        expect:
+          status: 422
+          body_contains: ['niqueness']

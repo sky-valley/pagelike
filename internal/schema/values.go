@@ -32,10 +32,25 @@ const (
 )
 
 // itemType returns an element's itemtype attribute, trimmed of ASCII
-// whitespace: the whole value is the type (R-MOD-9, multi-token itemtypes
-// name no schema).
+// whitespace: the whole value, as written.
 func itemType(n *html.Node) string {
 	return dom.TrimHTMLSpace(dom.AttrOr(n, "itemtype", ""))
+}
+
+// itemTypes returns the types an element names, in the order written
+// (R-MOD-9: an itemtype can name several, separated by spaces).
+func itemTypes(n *html.Node) []string {
+	return strings.Fields(dom.AttrOr(n, "itemtype", ""))
+}
+
+// hasType reports whether t is one of the element's types.
+func hasType(n *html.Node, t string) bool {
+	for _, x := range itemTypes(n) {
+		if x == t {
+			return true
+		}
+	}
+	return false
 }
 
 // isItem reports whether n is an element with itemscope.

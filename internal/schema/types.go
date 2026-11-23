@@ -173,3 +173,57 @@ func quoteList(vals []string) string {
 	}
 	return strings.Join(q, ", ")
 }
+
+// primitiveSamples are values valid for each checked primitive, used to
+// decide whether two declared types can be satisfied together.
+var primitiveSamples = map[string][]string{
+	TypeURL:           {"https://a.example/"},
+	TypeNumber:        {"1", "1.5"},
+	TypeFloatingPoint: {"1", "1.5"},
+	TypeInteger:       {"1"},
+	TypeBoolean:       {"true", "false"},
+	TypeDateTime:      {"2026-01-02T03:04:05Z"},
+	TypeDate:          {"2026-01-02"},
+	TypeCardinal:      {"0..1"},
+}
+
+// typesOverlap reports whether some value satisfies both declared types
+// (R-MOD-9): Text, String and types that are not checked accept every
+// value; Integer, Number and FloatingPoint overlap; two enums overlap when
+// they share a value, and an enum overlaps a primitive when one of its
+// values is valid for it.
+func (r *Registry) typesOverlap(a, b string) bool {
+	if a == b {
+		return true
+	}
+	ea, eb := r.enums[a], r.enums[b]
+	open := func(t string, e *Enum) bool {
+		return t == "" || t == TypeText || t == TypeString || (e == nil && !isPrimitive(t))
+	}
+	if open(a, ea) || open(b, eb) {
+		return true
+	}
+	valid := func(t string, e *Enum, v string) bool {
+		if e != nil {
+			return containsString(e.Values, v)
+		}
+		return checkPrimitive(t, v)
+	}
+	samples := func(t string, e *Enum) []string {
+		if e != nil {
+			return e.Values
+		}
+		return primitiveSamples[t]
+	}
+	for _, v := range samples(a, ea) {
+		if valid(b, eb, v) {
+			return true
+		}
+	}
+	for _, v := range samples(b, eb) {
+		if valid(a, ea, v) {
+			return true
+		}
+	}
+	return false
+}
