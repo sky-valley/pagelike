@@ -49,6 +49,10 @@ Server JavaScript (docs snapshot 2026-11-23):
 - `crypto.subtle.importKey` and `crypto.subtle.verify` check a signature
   made elsewhere with an ECDSA (P-256, P-384), RSA or Ed25519 public key,
   for passkeys and signed webhooks.
+- `crypto.subtle.deriveBits` hashes passwords with Argon2 (id, i, d) and
+  bcrypt and derives bytes with PBKDF2 and HKDF; `verify` with `"bcrypt"`
+  checks a stored bcrypt string. Hashes share the server's hashing gate; a
+  busy refusal a script lets escape answers 503 with `Retry-After: 1`.
 - A JavaScript trigger or processor action saves with a global `Pagelove`
   object: `Pagelove.PUT`, `Pagelove.POST` (with a placement) and
   `Pagelove.DELETE`, each optionally on the element a selector matches. A

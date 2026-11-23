@@ -71,3 +71,52 @@ cases:
             - "K:InvalidAccessError,NotSupportedError,TypeError!,public,false,ECDSA,P-256,verify"
             - "M:NotSupportedError,TypeError!,true"
             - "N:undefined,undefined,undefined,undefined"
+  - id: "javascript.wc1123.password-hashing"
+    title: "crypto.subtle.deriveBits hashes with Argon2, bcrypt, PBKDF2 and HKDF, and verify checks a stored bcrypt string"
+    feature: "WebCrypto"
+    source: "docs languages/javascript/server/password-hashing §Argon2, §bcrypt, §How long hashing takes, §Error cases; webcrypto §Error cases (snapshot 2026-11-23). Vectors: RFC 9106 section 5 (Argon2), RFC 5869 A.1 (HKDF), RFC 7914 section 11 (PBKDF2-HMAC-SHA-256, one iteration)"
+    notes: "spec: R-JS-39d."
+    steps:
+      - name: "PUT the page"
+        as: "anonymous"
+        request:
+          method: "PUT"
+          path: "${P}/j.html"
+          headers:
+            Content-Type: "text/html"
+          body: |
+            <!DOCTYPE html>
+            <html xmlns:j="https://pagelove.org/Binding/JavaScript" xmlns:p="https://pagelove.org/1.0"><body>
+            <main>
+            <div j:a="'A:' + ((b) => Array.from(new Uint8Array(b)).map((x) => x.toString(16).padStart(2, '0')).join(''))(await crypto.subtle.deriveBits({name: 'argon2ID', nonce: new Uint8Array(16).fill(2), parallelism: 4, memory: 32, passes: 3, secretValue: new Uint8Array(8).fill(3), associatedData: new Uint8Array(12).fill(4)}, await crypto.subtle.importKey('raw-secret', new Uint8Array(32).fill(1), 'Argon2id', false, ['deriveBits']), 256))"><p:stamp a></p:stamp></div>
+            <div j:b="'B:' + ((b) => Array.from(new Uint8Array(b)).map((x) => x.toString(16).padStart(2, '0')).join(''))(await crypto.subtle.deriveBits({name: 'Argon2d', nonce: new Uint8Array(16).fill(2), parallelism: 4, memory: 32, passes: 3, secretValue: new Uint8Array(8).fill(3), associatedData: new Uint8Array(12).fill(4)}, await crypto.subtle.importKey('raw-secret', new Uint8Array(32).fill(1), 'Argon2d', false, ['deriveBits']), 256))"><p:stamp b></p:stamp></div>
+            <div j:c="'C:' + await (async () => { const k = await crypto.subtle.importKey('raw-secret', new TextEncoder().encode('hunter2'), 'bcrypt', false, ['deriveBits', 'verify']); const bad = await crypto.subtle.importKey('raw-secret', new TextEncoder().encode('hunter3'), 'bcrypt', false, ['verify']); const made = new Uint8Array(await crypto.subtle.deriveBits({name: 'bcrypt', cost: 4, salt: new Uint8Array(16).fill(7)}, k)); const text = new TextDecoder().decode(made); return [made.length, text.slice(0, 7), await crypto.subtle.verify('bcrypt', k, made, new Uint8Array(0)), await crypto.subtle.verify('bcrypt', k, new TextEncoder().encode('$2a$04$TEd5l0poh5NRPDUiUQo0CefY//pMHWjOgrK0FiVO6p6fP1YJcgD0u'), new Uint8Array(0)), await crypto.subtle.verify('bcrypt', bad, new TextEncoder().encode('$2a$04$TEd5l0poh5NRPDUiUQo0CefY//pMHWjOgrK0FiVO6p6fP1YJcgD0u'), new Uint8Array(0))].join(','); })()"><p:stamp c></p:stamp></div>
+            <div j:d="'D:' + ((b) => Array.from(new Uint8Array(b)).map((x) => x.toString(16).padStart(2, '0')).join(''))(await crypto.subtle.deriveBits({name: 'PBKDF2', hash: 'SHA-256', salt: new TextEncoder().encode('salt'), iterations: '1'}, await crypto.subtle.importKey('raw', new TextEncoder().encode('password'), 'PBKDF2', false, ['deriveBits']), 256))"><p:stamp d></p:stamp></div>
+            <div j:e="'E:' + ((b) => Array.from(new Uint8Array(b)).map((x) => x.toString(16).padStart(2, '0')).join(''))(await crypto.subtle.deriveBits({name: 'HKDF', hash: 'SHA-256', salt: new Uint8Array(13).map((_, i) => i), info: new Uint8Array(10).map((_, i) => 0xf0 + i)}, await crypto.subtle.importKey('raw', new Uint8Array(22).fill(11), 'HKDF', false, ['deriveBits']), 336))"><p:stamp e></p:stamp></div>
+            <div j:f="'F:' + await (async () => { const r = (p) => p.then(() => 'ok', (e) => e.name + (e instanceof DOMException ? '' : '!')); const pw = new TextEncoder().encode('p'); return [await r(crypto.subtle.importKey('raw', pw, 'Argon2id', false, ['deriveBits'])), await r(crypto.subtle.importKey('raw-secret', pw, 'Argon2id', true, ['deriveBits'])), await r(crypto.subtle.importKey('raw-secret', pw, 'Argon2id', false, [])), await r(crypto.subtle.importKey('raw-secret', pw, 'Argon2id', false, ['verify'])), await r(crypto.subtle.importKey('raw-secret', pw, 'bcrypt', false, ['deriveKey']))].join(','); })()"><p:stamp f></p:stamp></div>
+            <div j:g="'G:' + await (async () => { const r = (p) => p.then(() => 'ok', (e) => e.name + (e instanceof DOMException ? '' : '!')); const k = await crypto.subtle.importKey('raw-secret', new TextEncoder().encode('p'), 'Argon2id', false, ['deriveBits']); const p = {name: 'Argon2id', nonce: new Uint8Array(16), parallelism: 1, memory: 8, passes: 1}; return [await r(crypto.subtle.deriveBits({...p, memory: undefined}, k, 256)), await r(crypto.subtle.deriveBits({...p, passes: -1}, k, 256)), await r(crypto.subtle.deriveBits({...p, nonce: 'x'}, k, 256)), await r(crypto.subtle.deriveBits({...p, memory: 262145}, k, 256)), await r(crypto.subtle.deriveBits({...p, nonce: new Uint8Array(4)}, k, 256)), await r(crypto.subtle.deriveBits(p, k, 20)), await r(crypto.subtle.deriveBits({...p, version: 16}, k, 256)), await r(crypto.subtle.deriveBits({...p, name: 'bcrypt'}, k, 256)), await r(crypto.subtle.deriveBits('ECDH', k, 256)), await r(crypto.subtle.verify('Argon2id', k, new Uint8Array(1), new Uint8Array(0))), await r(crypto.subtle.deriveBits(p, k, 256))].join(','); })()"><p:stamp g></p:stamp></div>
+            <div j:h="'H:' + await (async () => { const r = (p) => p.then(() => 'ok', (e) => e.name + (e instanceof DOMException ? '' : '!')); const k = await crypto.subtle.importKey('raw-secret', new TextEncoder().encode('p'), 'bcrypt', false, ['deriveBits', 'verify']); const s = new Uint8Array(16); return [await r(crypto.subtle.deriveBits({name: 'bcrypt', cost: 32, salt: s}, k)), await r(crypto.subtle.deriveBits({name: 'bcrypt', cost: 256, salt: s}, k)), await r(crypto.subtle.deriveBits({name: 'bcrypt', cost: 4, salt: s}, k, 256)), await r(crypto.subtle.deriveBits({name: 'bcrypt', cost: 31, salt: s}, k)), await r(crypto.subtle.verify('bcrypt', k, new TextEncoder().encode('$2x$04$TEd5l0poh5NRPDUiUQo0CefY//pMHWjOgrK0FiVO6p6fP1YJcgD0u'), new Uint8Array(0))), await r(crypto.subtle.verify('bcrypt', k, new TextEncoder().encode('$2a$04$TEd5l0poh5NRPDUiUQo0CefY//pMHWjOgrK0FiVO6p6fP1YJcgD0u'), new Uint8Array(1))), await r(crypto.subtle.verify('bcrypt', k, new TextEncoder().encode('nope'), new Uint8Array(0)))].join(','); })()"><p:stamp h></p:stamp></div>
+            <div j:i="'I:' + await (async () => { const r = (p) => p.then(() => 'ok', (e) => e.name + (e instanceof DOMException ? '' : '!')); const k = await crypto.subtle.importKey('raw', new TextEncoder().encode('p'), 'PBKDF2', false, ['deriveBits']); const p = {name: 'PBKDF2', hash: 'SHA-256', salt: new Uint8Array(8), iterations: 1}; return [await r(crypto.subtle.deriveBits({...p, iterations: 0}, k, 256)), await r(crypto.subtle.deriveBits({...p, iterations: -1}, k, 256)), await r(crypto.subtle.deriveBits({...p, iterations: undefined}, k, 256)), await r(crypto.subtle.deriveBits({...p, salt: undefined}, k, 256)), await r(crypto.subtle.deriveBits({...p, hash: 'MD5'}, k, 256)), await r(crypto.subtle.deriveBits(p, k)), await r(crypto.subtle.deriveBits(p, k, 12)), await r(crypto.subtle.deriveBits({...p, iterations: 4000000000}, k, 256))].join(','); })()"><p:stamp i></p:stamp></div>
+            </main>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "GET the composed page"
+        as: "anonymous"
+        request:
+          method: "GET"
+          path: "${P}/j.html"
+          headers:
+            Range: "selector=main"
+        expect:
+          status: 206
+          body_contains:
+            - "A:0d640df58d78766c08c037a34a8b53c9d01ef0452d75b65eb52520e96b01e659"
+            - "B:512b391b6f1162975371d30919734294f868e3be3984f3c1a13a4db9fabe4acb"
+            - "C:60,$2b$04$,true,true,false"
+            - "D:120fb6cffcf8b32c43e7225256c4f837a86548c92ccc35480805987cb70be17b"
+            - "E:3cb25f25faacd57a90434f64d0362f2a2d2d0a90cf1a5a4c5db02d56ecc4c5bf34007208d5b887185865"
+            - "F:NotSupportedError,SyntaxError,SyntaxError,SyntaxError,SyntaxError"
+            - "G:TypeError!,TypeError!,TypeError!,OperationError,OperationError,OperationError,OperationError,InvalidAccessError,NotSupportedError,NotSupportedError,ok"
+            - "H:OperationError,TypeError!,OperationError,OperationError,OperationError,OperationError,OperationError"
+            - "I:OperationError,TypeError!,TypeError!,TypeError!,NotSupportedError,OperationError,OperationError,OperationError"

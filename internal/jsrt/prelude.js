@@ -162,7 +162,25 @@ const __pagelike = (() => {
     }
   };
   const KEY_USAGES = ["encrypt", "decrypt", "sign", "verify", "deriveKey", "deriveBits", "wrapKey", "unwrapKey"];
-  const ALG_NAMES = ["ECDSA", "RSASSA-PKCS1-v1_5", "RSA-PSS", "Ed25519"];
+  const ALG_NAMES = ["ECDSA", "RSASSA-PKCS1-v1_5", "RSA-PSS", "Ed25519", "Argon2id", "Argon2i", "Argon2d", "bcrypt", "PBKDF2", "HKDF"];
+  // Secret-key algorithms (R-JS-39d) and the usages their keys may have.
+  const ARGON = ["Argon2id", "Argon2i", "Argon2d"];
+  const secretUsages = (name) => (name === "bcrypt" ? ["deriveBits", "verify"]
+    : ARGON.includes(name) || name === "PBKDF2" || name === "HKDF" ? ["deriveBits", "deriveKey"] : null);
+  const U32 = 4294967295;
+  // uint reads a WebIDL [EnforceRange] unsigned number: a missing, negative,
+  // non-numeric or too large value is a TypeError; a fraction is cut.
+  const uint = (v, what, max) => {
+    if (v === undefined || v === null) throw new TypeErrorFn(what + " is required");
+    const n = MathTrunc(NumberFn(v));
+    if (!NumberIsFinite(n) || n < 0 || n > max) throw new TypeErrorFn(what + " must be a number from 0 to " + max);
+    return n;
+  };
+  const needBytes = (v, what) => {
+    if (v === undefined || v === null) throw new TypeErrorFn(what + " is required");
+    return bytesOf(v);
+  };
+  const opError = (m) => new DOMException(m, "OperationError");
   const HASH_NAMES = ["SHA-1", "SHA-256", "SHA-384", "SHA-512"];
   const HASH_BYTES = { "SHA-1": 20, "SHA-256": 32, "SHA-384": 48, "SHA-512": 64 };
   const canonName = (list, n) => {
@@ -224,6 +242,18 @@ const __pagelike = (() => {
   const importKey = (format, keyData, algorithm, extractable, usages) => {
     const { name, o } = algOf(algorithm);
     const use = usagesOf(usages);
+    const allowed = secretUsages(name);
+    if (allowed !== null) {
+      const sfmt = StringFn(format);
+      const sformats = name === "PBKDF2" || name === "HKDF" ? ["raw", "raw-secret"] : ["raw-secret"];
+      if (!sformats.includes(sfmt)) throw new DOMException("a " + name + " key is imported as " + sformats.join(" or "), "NotSupportedError");
+      if (extractable) throw new DOMException("a " + name + " key cannot be extractable", "SyntaxError");
+      if (use.length === 0) throw new DOMException("a " + name + " key needs a usage", "SyntaxError");
+      for (const u of use) {
+        if (!allowed.includes(u)) throw new DOMException("a " + name + " key can only have the usages " + allowed.join(" and "), "SyntaxError");
+      }
+      return new CryptoKey(KEY, { type: "secret", extractable: false, algorithm: { name }, usages: use, data: latin1(bytesOf(keyData)) });
+    }
     const algo = { name };
     let curve = "";
     if (name === "ECDSA") {
@@ -246,9 +276,17 @@ const __pagelike = (() => {
   };
   const verifySig = (algorithm, key, signature, data) => {
     const { name, o } = algOf(algorithm);
+    if (name !== "bcrypt" && secretUsages(name) !== null) throw new DOMException(name + " does not verify", "NotSupportedError");
     const k = keyOf(key);
     if (k.algorithm.name !== name) throw new DOMException("the key was imported for " + k.algorithm.name, "InvalidAccessError");
     if (!k.usages.includes("verify")) throw new DOMException("the key does not have the verify usage", "InvalidAccessError");
+    if (name === "bcrypt") {
+      // The stored $2a$, $2b$ or $2y$ string is the signature; the password
+      // is the key, so the data must be empty.
+      const stored = latin1(bytesOf(signature));
+      if (bytesOf(data).length !== 0) throw opError("bcrypt verify takes no data: the password comes from the key");
+      return csys("wc.pwhash", JSONstringify({ alg: "bcrypt-verify", password: btoa(k.data), stored: btoa(stored) }));
+    }
     let hash = "";
     if (name === "ECDSA") {
       hash = hashOf(o, "ECDSA");
@@ -266,6 +304,55 @@ const __pagelike = (() => {
     const sig = latin1(bytesOf(signature));
     return csys("wc.verify", name, k.algorithm.namedCurve || "", hash, k.format, k.data, sig, latin1(bytesOf(data)));
   };
+  const deriveBits = (algorithm, key, length) => {
+    const { name, o } = algOf(algorithm);
+    if (secretUsages(name) === null) throw new DOMException(name + " does not derive bits", "NotSupportedError");
+    const k = keyOf(key);
+    if (k.algorithm.name !== name) throw new DOMException("the key was imported for " + k.algorithm.name, "InvalidAccessError");
+    if (!k.usages.includes("deriveBits")) throw new DOMException("the key does not have the deriveBits usage", "InvalidAccessError");
+    const noLength = length === undefined || length === null;
+    if (name === "bcrypt") {
+      const salt = needBytes(o.salt, "salt");
+      const cost = uint(o.cost, "cost", 255);
+      if (!noLength && uint(length, "length", U32) !== 480) throw opError("bcrypt gives 480 bits: leave out the length or pass 480");
+      if (salt.length !== 16) throw opError("the bcrypt salt is 16 bytes");
+      if (cost < 4 || cost > 31) throw opError("the bcrypt cost is from 4 to 31");
+      return fromHex(csys("wc.pwhash", JSONstringify({ alg: name, password: btoa(k.data), salt: btoa(latin1(salt)), cost }))).buffer;
+    }
+    if (ARGON.includes(name)) {
+      const nonce = needBytes(o.nonce, "nonce");
+      const lanes = uint(o.parallelism, "parallelism", U32);
+      const memory = uint(o.memory, "memory", U32);
+      const passes = uint(o.passes, "passes", U32);
+      const version = o.version === undefined ? 19 : uint(o.version, "version", 255);
+      const secret = o.secretValue === undefined ? null : bytesOf(o.secretValue);
+      const ad = o.associatedData === undefined ? null : bytesOf(o.associatedData);
+      if (noLength) throw opError("Argon2 needs a length in bits");
+      const bits = uint(length, "length", U32);
+      if (bits % 8 !== 0 || bits < 32 || bits > 524288) throw opError("the length is a multiple of 8 from 32 to 524288 bits");
+      if (version !== 19) throw opError("the only Argon2 version is 19");
+      if (nonce.length < 8) throw opError("the nonce is at least 8 bytes");
+      if (lanes < 1 || lanes > 255) throw opError("parallelism is from 1 to 255");
+      if (passes < 1) throw opError("passes is 1 or more");
+      if (memory < 8 * lanes || memory > 262144) throw opError("memory is at least 8 KiB for each lane and at most 262144 KiB");
+      if (ad !== null && ad.length > 32) throw opError("associatedData is at most 32 bytes");
+      const job = { alg: name, password: btoa(k.data), salt: btoa(latin1(nonce)), passes, memory, lanes, length: bits / 8 };
+      if (secret !== null) job.secret = btoa(latin1(secret));
+      if (ad !== null) job.data = btoa(latin1(ad));
+      return fromHex(csys("wc.pwhash", JSONstringify(job))).buffer;
+    }
+    // PBKDF2 and HKDF read their parameters as browsers do.
+    const hash = hashOf(o, name);
+    const salt = needBytes(o.salt, "salt");
+    let info = "";
+    let iterations = 0;
+    if (name === "HKDF") info = latin1(needBytes(o.info, "info"));
+    else iterations = uint(o.iterations, "iterations", U32);
+    if (noLength) throw opError(name + " needs a length in bits");
+    const bits = uint(length, "length", U32);
+    if (bits % 8 !== 0) throw opError("the length is a multiple of 8");
+    return fromHex(csys("wc.derive", name, hash, k.data, latin1(salt), info, iterations, bits / 8)).buffer;
+  };
   const promised = (f) => (...a) => {
     try {
       return PromiseResolve(f(...a));
@@ -276,6 +363,7 @@ const __pagelike = (() => {
   const subtle = {
     importKey: promised(importKey),
     verify: promised(verifySig),
+    deriveBits: promised(deriveBits),
     digest(alg, data) {
       try {
         let name = typeof alg === "string" ? alg : alg && alg.name;

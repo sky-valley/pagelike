@@ -61,6 +61,13 @@ func serveCallback(ctx context.Context, host Host, cb *cbMsg) *replyMsg {
 			r.Context = append(r.Context, in)
 		}
 		r.Elements = enc.elems
+	case "pwhash":
+		v, err := servePwhash(ctx, host, cb.Value)
+		if err != nil {
+			r.Error = err.Error()
+			return r
+		}
+		r.Value = v
 	case "save":
 		sv, ok := host.(Saver)
 		if host == nil || !ok {

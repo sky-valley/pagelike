@@ -909,7 +909,7 @@ U+00FF and `atob` input that is not base64 with a `DOMException` named
 (SHA-1, SHA-256, SHA-384, SHA-512; returns `Promise<ArrayBuffer>`),
 `crypto.getRandomValues(typedArray)` and `crypto.randomUUID()`, plus
 `TextEncoder`/`TextDecoder` (UTF-8 only), which a digest of a string needs.
-`importKey` and `verify` are R-JS-39c. Other `crypto.subtle` methods are
+`importKey` and `verify` are R-JS-39c, `deriveBits` R-JS-39d. Other `crypto.subtle` methods are
 absent.
 - Contradiction C-JS-6: JSS §Explaining why says "the only global the sandbox
   defines is `DOMException`"; DOM pages document `DOMParser`, `XMLSerializer`,
@@ -955,6 +955,45 @@ with it; both return promises.
 - Evidence: documented. Source: docs languages/javascript/server/webcrypto
   (snapshot 2026-11-23). Confidence: high. Cases:
   `javascript.wc1123.import-and-verify`; `internal/jsrt/webcrypto_test.go`.
+
+
+**R-JS-39d (password hashing and key derivation).**
+`crypto.subtle.deriveBits(algorithm, key, length)` hashes a password with
+Argon2 or bcrypt and derives bytes with PBKDF2 or HKDF; `verify` with
+`"bcrypt"` checks a password against a stored bcrypt string. The password
+is imported with `importKey("raw-secret", bytes, name, false, usages)`
+(`"raw"` also for PBKDF2 and HKDF); such a key is never extractable.
+
+| Algorithm | Parameters | `length` (bits) | Usages |
+|---|---|---|---|
+| `Argon2id`, `Argon2i`, `Argon2d` | `nonce` (8 bytes or more), `parallelism` (1 to 255), `memory` (KiB, 8 for each lane up to 262144), `passes` (1 or more); optional `version` (19 only), `secretValue`, `associatedData` (32 bytes at most) | a multiple of 8 from 32 to 524288 | `deriveBits`, `deriveKey` |
+| `bcrypt` | `cost` (4 to 31), `salt` (16 bytes) | none; the result is the 60-byte `$2b$` string | `deriveBits`, `verify` |
+| `PBKDF2` | `hash`, `salt`, `iterations` (1 or more) | a multiple of 8 | `deriveBits`, `deriveKey` |
+| `HKDF` | `hash`, `salt`, `info` | a multiple of 8, at most 255 hash blocks | `deriveBits`, `deriveKey` |
+
+- bcrypt hashes the first 72 bytes of the password. `verify("bcrypt", key,
+  stored, ignored)` reads the cost and salt from `stored` (`$2a$`, `$2b$` or
+  `$2y$`) and answers `true` or `false`; a malformed string or the legacy
+  `$2x$` form rejects with `OperationError`.
+- Argon2 and bcrypt run under the hashing gate Sessel and Liquid share
+  (R-LIQ-184): a hash estimated to outlast the request's remaining time, a
+  server at its concurrent hashes or a site at its share rejects with
+  `OperationError`, the busy ones with a message ending "try again
+  shortly". A script may catch it; uncaught, the request answers 503 with
+  `Retry-After: 1`. Argon2's memory counts against the request's memory
+  budget. PBKDF2 whose iterations would outlast the remaining time rejects
+  with `OperationError`.
+- Errors: a parameter outside its range is `OperationError`; a missing or
+  non-numeric parameter is a `TypeError`; an unknown algorithm or hash is
+  `NotSupportedError`; a usage the algorithm does not have, or
+  `extractable: true`, is `SyntaxError`; a key of another algorithm, or one
+  without the `deriveBits` usage, is `InvalidAccessError`.
+- Not ported: `deriveKey` (no key kind to derive into is described).
+- Evidence: documented. Source: docs languages/javascript/server/
+  password-hashing and webcrypto (snapshot 2026-11-23). Confidence: high;
+  the time estimates are pagelike's own. Cases:
+  `javascript.wc1123.password-hashing`; `internal/argon2x`,
+  `internal/pwhash`, `internal/jsglue/busy_test.go`.
 
 ---
 
@@ -2645,6 +2684,7 @@ Requirement → cases (ids without the `javascript.` prefix):
 | R-JS-39 | `globals.dom-classes-present` |
 | R-JS-39a | `globals.crypto-subtle-digest` |
 | R-JS-39c | `wc1123.import-and-verify` |
+| R-JS-39d | `wc1123.password-hashing` |
 | R-JS-40 | `jbind.reads-resource-binding` |
 | R-JS-41 | `methods.return-scalars`, `slots.write-returns-function`, `slots.write-returns-cycle` |
 | R-JS-51 | `slots.default-parse-failure`, `slots.default-shape-not-function`, `slots.validate-strict-mode-referenceerror`, `slots.write-returns-function`, `slots.import-bare-specifier`, `slots.import-http-url`, `slots.import-pagelove-host`, `slots.import-dynamic`, `slots.import-schema-without-type-attribute`, `slots.import-literal-pagelove-schema`, `slots.import-unknown-schema` |

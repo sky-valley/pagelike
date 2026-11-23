@@ -2,10 +2,13 @@ package jsglue
 
 import (
 	"context"
+	"strings"
 	"sync"
 	"sync/atomic"
 
 	"github.com/sky-valley/pagelike/internal/budget"
+	"github.com/sky-valley/pagelike/internal/errdoc"
+	"github.com/sky-valley/pagelike/internal/hashgate"
 	"github.com/sky-valley/pagelike/internal/jsrt"
 )
 
@@ -109,4 +112,13 @@ func evalExpression(ctx context.Context, req jsrt.ExprRequest) (*jsrt.Result, *j
 		charge(b, fail.Stats)
 	}
 	return res, fail
+}
+
+// busyRefusal is the 503 with Retry-After: 1 of a script that let a busy
+// password-hashing refusal escape (R-JS-39d); nil for any other failure.
+func busyRefusal(f *jsrt.Failure) *errdoc.Error {
+	if f == nil || f.Variant != jsrt.VariantThrew || f.Response != nil || !strings.HasSuffix(f.Message, jsrt.HashBusySuffix) {
+		return nil
+	}
+	return hashgate.Busy("a script's hash was refused")
 }

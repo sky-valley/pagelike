@@ -63,6 +63,9 @@ func (reactionsRunner) CallDefault(ctx context.Context, call *reactions.JSCall) 
 	}
 	res, f := callModule(ctx, req)
 	if f != nil {
+		if ed := busyRefusal(f); ed != nil {
+			return nil, ed
+		}
 		if r := f.Response; r != nil {
 			return nil, &reactions.ThrownResponse{Status: r.Status, Message: r.Message, HasMessage: r.Message != "", Body: r.Body, HasBody: true, Headers: r.Headers}
 		}

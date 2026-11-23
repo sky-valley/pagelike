@@ -101,6 +101,9 @@ func receiver(v sessel.Value, reg *schema.Registry) (jsrt.Value, *jsrt.Document)
 // schemaFailure maps a jsrt failure onto the schema error model: a thrown
 // HTTPResponse the slot honours (R-JS-53), else a BindingFailure (R-JS-50).
 func schemaFailure(f *jsrt.Failure) error {
+	if ed := busyRefusal(f); ed != nil {
+		return ed
+	}
 	if f.Response != nil {
 		return &schema.JSThrownResponse{Status: f.Response.Status, Message: f.Response.Message, Body: f.Response.Body, HasBody: true, Headers: f.Response.Headers}
 	}

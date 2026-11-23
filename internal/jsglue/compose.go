@@ -81,6 +81,9 @@ func composeResult(res *jsrt.Result, reg *schema.Registry) *compose.JSResult {
 // R-JS-52): 503 for budget exhaustion (R-JS-57), else 500; the Error
 // document carries the BindingFailure item.
 func composeFailure(what string, f *jsrt.Failure) error {
+	if ed := busyRefusal(f); ed != nil {
+		return ed
+	}
 	status, kind := http.StatusInternalServerError, compose.KindComposition
 	if f.Budget() {
 		status, kind = http.StatusServiceUnavailable, compose.KindBudget

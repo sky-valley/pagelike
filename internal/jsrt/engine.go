@@ -940,6 +940,18 @@ func (st *evalState) sys(op string, a []any) (any, error) {
 		// wc.verify(alg, curve, hash, format, key, signature, data)
 		return verifySignature(toStr(arg(a, 0)), toStr(arg(a, 1)), toStr(arg(a, 2)), toStr(arg(a, 3)),
 			latin1Bytes(toStr(arg(a, 4))), latin1Bytes(toStr(arg(a, 5))), latin1Bytes(toStr(arg(a, 6))))
+	case "wc.derive":
+		// wc.derive(alg, hash, key, salt, info, iterations, bytes)
+		iter, _ := toInt(arg(a, 5))
+		n, _ := toInt(arg(a, 6))
+		rem := time.Hour
+		if !st.deadline.IsZero() {
+			rem = time.Until(st.deadline)
+		}
+		return derive(toStr(arg(a, 0)), toStr(arg(a, 1)), latin1Bytes(toStr(arg(a, 2))), latin1Bytes(toStr(arg(a, 3))),
+			latin1Bytes(toStr(arg(a, 4))), int64(iter), n, rem)
+	case "wc.pwhash":
+		return st.pwhash(toStr(arg(a, 0)))
 	case "random":
 		n, _ := toInt(arg(a, 0))
 		if n < 0 || n > 65536 {
