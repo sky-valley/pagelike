@@ -293,53 +293,6 @@ cases:
           body: "h1"
         expect: {status: 404}
 
-  - id: protocol.query-edge.415-unsupported-type
-    title: A public-plane QUERY that is not text/css-selector is the Sessel path, authorized as QUERY, then 400
-    area: protocol
-    feature: QUERY errors (public plane)
-    evidence: live-observed
-    source: "harness/observations/live-2026-09-28/protocol-query-edge-415-unsupported-type.json (text/plain without a QUERY grant: 401); protocol-query-sessel-415-unsupported-type.json (with a grant: 400 'QUERY method requires Content-Type: text/sessel', no Accept-Query); docs reference/protocol/QUERY intro (snapshot 2026-09-28) claims 415"
-    confidence: high
-    requires: []
-    live: true
-    notes: "The id keeps its original name; R-PROTO-42/43's 415 with Accept-Query is superseded (docs/compat/decisions.md)."
-    site:
-      files:
-        - path: "${P}/doc.html"
-          body: |
-            <!DOCTYPE html>
-            <html><body><h1>Open</h1></body></html>
-        - path: "${P}/q.html"
-          body: |
-            <!DOCTYPE html>
-            <html><body><h1>Queryable</h1></body></html>
-      rules:
-        - {actor: "*", resource: "${P}/*", method: [GET], action: Allow}
-        - {actor: "*", resource: "${P}/q.html", method: [QUERY], action: Allow}
-    steps:
-      - name: text/plain without a QUERY grant
-        as: anonymous
-        request:
-          method: QUERY
-          path: "${P}/doc.html"
-          headers: {Content-Type: "text/plain"}
-          body: "h1"
-        expect:
-          status: 401
-          headers_absent: [Accept-Query]
-      - name: text/plain with a QUERY grant
-        as: anonymous
-        request:
-          method: QUERY
-          path: "${P}/q.html"
-          headers: {Content-Type: "text/plain"}
-          body: "h1"
-        expect:
-          status: 400
-          headers_absent: [Accept-Query]
-          header_matches: {Content-Type: "^text/html$"}
-          body_contains: ['<p itemprop="description">QUERY method requires Content-Type: text/sessel</p>']
-
   - id: protocol.query-edge.422-invalid-selector
     title: Public-plane css QUERY with an unparseable selector is 416, like a GET
     area: protocol

@@ -30,14 +30,6 @@ import (
 // parameterized route template (supplied by the composition layer).
 type Router func(snap *site.Snapshot, reqPath string) (storedPath string, params map[string]string, ok bool)
 
-// QueryHandler evaluates a QUERY body of a given content type (e.g. Sessel).
-// For text/sessel the public plane has already authorized the request as
-// method QUERY on its path (docs/spec/protocol.md R-PROTO-74), rejected an
-// empty body (400) and a missing target (404); op.Path is the request path
-// (a directory path keeps its trailing slash, leaving self unbound) and
-// op.Method is "QUERY".
-type QueryHandler func(ctx context.Context, s *site.Site, snap *site.Snapshot, op *engine.ReadOp, body []byte, w http.ResponseWriter) error
-
 // Public serves the public plane of every site.
 type Public struct {
 	// ResolvePrincipal and CheckSession let a managed host bind its identity
@@ -47,7 +39,6 @@ type Public struct {
 	Engine           *engine.Engine
 	Compose          engine.Composer
 	Route            Router
-	Queries          map[string]QueryHandler // extra QUERY content types
 	Log              *slog.Logger
 	// TrustProxy honours X-Forwarded-Proto for cookie security decisions.
 	TrustProxy bool

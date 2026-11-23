@@ -22,12 +22,13 @@ import (
 
 func init() { server.Extend(Register) }
 
-// Register installs the text/sessel QUERY handler on a server's public plane.
+// Register installs the text/sessel QUERY handler on a server's authoring
+// plane. The public plane does not run client-supplied code: it answers a
+// Sessel QUERY with 405 (docs reference/protocol/QUERY, snapshot
+// 2026-11-23; R-PROTO-144). The authoring plane is the trusted caller
+// PageLove's database serves it to.
 func Register(s *server.Server) {
-	if s.Public.Queries == nil {
-		return
-	}
-	s.Public.Queries["text/sessel"] = Handle
+	s.Dav.SesselQuery = Handle
 }
 
 // Handle evaluates a `QUERY … Content-Type: text/sessel` request
@@ -56,9 +57,11 @@ func Handle(ctx context.Context, s *site.Site, snap *site.Snapshot, op *engine.R
 	if isDir {
 		authPath = target
 	}
-	req := authz.Request{Principal: op.Principal, Method: "QUERY", Path: authPath, Header: op.Header, Query: op.Query}
-	if !snap.Policy.Decide(req, nil).Allowed {
-		return engine.Denied(op.Principal, authPath)
+	if op.Plane != engine.Authoring {
+		req := authz.Request{Principal: op.Principal, Method: "QUERY", Path: authPath, Header: op.Header, Query: op.Query}
+		if !snap.Policy.Decide(req, nil).Allowed {
+			return engine.Denied(op.Principal, authPath)
+		}
 	}
 	src := strings.TrimSpace(string(body))
 	if src == "" {

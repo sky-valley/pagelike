@@ -15,7 +15,7 @@ import (
 )
 
 // Accept-Query values per plane (R-PROTO-42).
-const publicAcceptQuery = "text/css-selector, text/sessel"
+const publicAcceptQuery = "text/css-selector"
 
 // htmlTyped decides from the path alone whether OPTIONS should advertise
 // selector ranges (R-PROTO-25): directories, .html/.htm and extension-less
@@ -29,11 +29,12 @@ func htmlTyped(p string) bool {
 }
 
 // Method sets reported by OPTIONS (docs/spec/protocol.md R-PROTO-12/13), in
-// the canonical Allow order. MOVE and PATCH apply to whole documents only;
-// QUERY is reported only when a rule names it explicitly (a wildcard grant
-// never contributes it). OPTIONS itself is always appended.
+// the canonical Allow order. MOVE applies to whole documents only; PATCH is
+// not a method PageLove serves (docs AuthorizationRule §method, snapshot
+// 2026-11-23). QUERY is reported only when a rule names it explicitly (a
+// wildcard grant never contributes it). OPTIONS itself is always appended.
 var (
-	docMethods  = []string{"GET", "HEAD", "PUT", "DELETE", "POST", "MOVE", "PATCH", "QUERY"}
+	docMethods  = []string{"GET", "HEAD", "PUT", "DELETE", "POST", "MOVE", "QUERY"}
 	elemMethods = []string{"GET", "HEAD", "PUT", "DELETE", "POST", "QUERY"}
 )
 
@@ -210,10 +211,15 @@ func (p *Public) query(w http.ResponseWriter, r *http.Request, rc *reqCtx, clean
 		p.queryCSS(w, r, rc, clean)
 		return
 	}
-	// Anything else is the Sessel path, authorized as QUERY, and a body
-	// that is not text/sessel is then 400 (live 2026-09-28, superseding
-	// the documented 415 with Accept-Query, R-PROTO-43).
-	p.querySessel(w, r, rc, clean, strings.ToLower(ct) == "text/sessel")
+	// Anything else is refused before it reaches a document: the public
+	// plane does not run client-supplied Sessel or JavaScript (docs
+	// reference/protocol/QUERY, snapshot 2026-11-23; R-PROTO-144).
+	w.Header().Set("Allow", "GET, HEAD, PUT, POST, DELETE, MOVE, OPTIONS, QUERY")
+	w.Header().Set("Accept-Query", publicAcceptQuery)
+	e := errdoc.New(http.StatusMethodNotAllowed, "MethodNotAllowed", "the public site answers QUERY only with Content-Type: text/css-selector")
+	e.ItemType = "https://pagelove.org/Error/MethodNotAllowed"
+	e.Shape = errdoc.ShapeProblems
+	p.fail(w, r, rc, e)
 }
 
 func (p *Public) queryCSS(w http.ResponseWriter, r *http.Request, rc *reqCtx, clean string) {
@@ -261,55 +267,4 @@ func (p *Public) queryCSS(w http.ResponseWriter, r *http.Request, rc *reqCtx, cl
 		return
 	}
 	p.respond(w, r, rc, res, engine.Range{})
-}
-
-// querySessel checks what every Sessel QUERY needs before evaluation and
-// hands the request to the registered text/sessel handler (R-PROTO-74/75,
-// as reconciled with live PageLove 2026-09-28): it is authorized as method
-// QUERY on the request path, never by read access or the default-GET mode;
-// then a body that is not text/sessel is 400, an empty program 422, and a
-// missing target 404 (a directory URL means its index document, whose
-// absence is 404 too). Without a Sessel engine the answer is 501.
-func (p *Public) querySessel(w http.ResponseWriter, r *http.Request, rc *reqCtx, clean string, sessel bool) {
-	ctx := r.Context()
-	body, err := p.readBody(w, r, rc)
-	if err != nil {
-		p.fail(w, r, rc, err)
-		return
-	}
-	snap, err := rc.site.Index(ctx)
-	if err != nil {
-		p.fail(w, r, rc, err)
-		return
-	}
-	docPath := engine.DocPath(clean)
-	if !snap.Policy.Decide(p.authzReq(r, rc, "QUERY", docPath), nil).Allowed {
-		p.fail(w, r, rc, engine.Denied(rc.principal, docPath))
-		return
-	}
-	if !sessel {
-		p.fail(w, r, rc, errdoc.Read(http.StatusBadRequest, "UnsupportedQueryType", "QUERY method requires Content-Type: text/sessel"))
-		return
-	}
-	if strings.TrimSpace(string(body)) == "" {
-		p.fail(w, r, rc, errdoc.Read(http.StatusUnprocessableEntity, "EmptyQuery", "Invalid path: QUERY method requires a body containing the sessel expression"))
-		return
-	}
-	if _, err := rc.site.Store.Get(ctx, docPath); err != nil {
-		if err == store.ErrNotFound {
-			err = engine.MissingDocument(docPath)
-		}
-		p.fail(w, r, rc, err)
-		return
-	}
-	h := p.Queries["text/sessel"]
-	if h == nil {
-		p.fail(w, r, rc, errdoc.New(http.StatusNotImplemented, "NotImplemented", "Sessel queries are not available on this server"))
-		return
-	}
-	op := p.readOp(r, rc, "QUERY", docPath, engine.ParseRange(r.Header.Get("Range")))
-	op.Target = clean // a directory target leaves self unbound (R-PROTO-71)
-	if err := h(ctx, rc.site, snap, op, body, w); err != nil {
-		p.fail(w, r, rc, err)
-	}
 }

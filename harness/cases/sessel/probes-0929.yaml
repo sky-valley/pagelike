@@ -10,7 +10,7 @@ cases:
   - id: sessel.query.probe-0929.from-and-path
     title: "Probe: a Sessel QUERY sees only its target document (from sources, bare selectors, provenance)"
     feature: from clause
-    live: true
+    live: false
     source: "live 2026-09-29 probe (harness/observations/live-2026-09-29-reconcile-sessel/sessel-query-probe-0929-from-and-path.json)"
     notes: >-
       Isolates sessel.query.sel.from-path, from-self-list, sub-select-provenance and element-getters step 1.
@@ -30,7 +30,7 @@ cases:
         - {actor: "*", resource: "${P}/*", method: [GET, QUERY, PUT], action: Allow}
     steps:
       - name: path of a self element
-        as: anonymous
+        as: author
         request:
           method: QUERY
           path: "${P}/doc.html"
@@ -49,7 +49,7 @@ cases:
         expect:
           status: [200, 201, 204]
       - name: from path variants
-        as: anonymous
+        as: author
         request:
           method: QUERY
           path: "${P}/doc.html"
@@ -59,7 +59,7 @@ cases:
           status: 200
           body_json: [0, 0, 0, 0, 0, 0, 0, 0]
       - name: site-wide paths
-        as: anonymous
+        as: author
         request:
           method: QUERY
           path: "${P}/doc.html"
@@ -69,7 +69,7 @@ cases:
           status: 200
           body_json: [[Welcome-q0929, null]]
       - name: glob element path and document
-        as: anonymous
+        as: author
         request:
           method: QUERY
           path: "${P}/doc.html"
@@ -79,7 +79,7 @@ cases:
           status: 200
           body_json: [null, null, null]
       - name: element as a from source and sub-select provenance
-        as: anonymous
+        as: author
         request:
           method: QUERY
           path: "${P}/doc.html"
@@ -89,7 +89,7 @@ cases:
           status: 200
           body_json: [0, 2, null, 0]
       - name: path of a self element of a public-plane document
-        as: anonymous
+        as: author
         request:
           method: QUERY
           path: "${P}/pub.html"
@@ -99,7 +99,7 @@ cases:
           status: 200
           body_json: [null, null, null]
       - name: self, document, multi-source and block-level from
-        as: anonymous
+        as: author
         request:
           method: QUERY
           path: "${P}/doc.html"
@@ -109,7 +109,7 @@ cases:
           status: 200
           body_json: [null, 0, 1, 0, 1]
       - name: microdata of a self element has no @id
-        as: anonymous
+        as: author
         request:
           method: QUERY
           path: "${P}/doc.html"
@@ -119,7 +119,7 @@ cases:
           status: 200
           body_json: [Product, W, null]
       - name: Pagelove.GET of another document
-        as: anonymous
+        as: author
         request:
           method: QUERY
           path: "${P}/doc.html"
@@ -129,7 +129,7 @@ cases:
           status: 400
           body_contains: ["unknown function: GET"]
       - name: expressions of the reconciled query-selectors cases
-        as: anonymous
+        as: author
         request:
           method: QUERY
           path: "${P}/doc.html"
@@ -139,7 +139,7 @@ cases:
           status: 200
           body_json: [[], 0, [en, Welcome-q0929, 0], [null, Welcome-q0929]]
       - name: sum over a glob that reaches nothing
-        as: anonymous
+        as: author
         request:
           method: QUERY
           path: "${P}/doc.html"
@@ -152,7 +152,7 @@ cases:
   - id: sessel.query.probe-0929.values
     title: "Probe: Float text forms, arithmetic type errors, Temporal accessor methods, empty text()"
     feature: numbers
-    live: true
+    live: false
     source: "live 2026-09-29 probe (harness/observations/live-2026-09-29-reconcile-sessel/sessel-query-probe-0929-values.json)"
     notes: >-
       Isolates sessel.query.values.integer-and-float-division, try-catch-message, temporal-format and
@@ -168,7 +168,7 @@ cases:
         - {actor: "*", resource: "${P}/*", method: [GET, QUERY], action: Allow}
     steps:
       - name: float text forms
-        as: anonymous
+        as: author
         request:
           method: QUERY
           path: "${P}/doc.html"
@@ -178,7 +178,7 @@ cases:
           status: 200
           body: '["42","42",42.0,100.0,"2.5","0.30000000000000004","2.5","42,1"]'
       - name: float extremes
-        as: anonymous
+        as: author
         request:
           method: QUERY
           path: "${P}/doc.html"
@@ -188,7 +188,7 @@ cases:
           status: 200
           body: '["10000000000000000","0.00000015","-0",1e+16,1.5e-7]'
       - name: float JSON thresholds
-        as: anonymous
+        as: author
         request:
           method: QUERY
           path: "${P}/doc.html"
@@ -198,7 +198,7 @@ cases:
           status: 200
           body: '[1000000000000000.0,0.0001,0.00001,1e-6,2500000000000000.0]'
       - name: float as constructed text
-        as: anonymous
+        as: author
         request:
           method: QUERY
           path: "${P}/doc.html"
@@ -208,7 +208,7 @@ cases:
           status: [200, 206]
           body_html: '<p>42</p>'
       - name: String + Integer
-        as: anonymous
+        as: author
         request:
           method: QUERY
           path: "${P}/doc.html"
@@ -218,7 +218,7 @@ cases:
           status: 200
           body_json: [TypeError, "type error: cannot use 'a' in arithmetic"]
       - name: Integer + String
-        as: anonymous
+        as: author
         request:
           method: QUERY
           path: "${P}/doc.html"
@@ -228,7 +228,7 @@ cases:
           status: 200
           body_json: [TypeError, "type error: cannot use 'a' in arithmetic"]
       - name: numeric String + Integer
-        as: anonymous
+        as: author
         request:
           method: QUERY
           path: "${P}/doc.html"
@@ -238,7 +238,7 @@ cases:
           status: 200
           body_json: [TypeError, "type error: cannot use '5' in arithmetic"]
       - name: String * Integer
-        as: anonymous
+        as: author
         request:
           method: QUERY
           path: "${P}/doc.html"
@@ -248,7 +248,7 @@ cases:
           status: 200
           body_json: [TypeError, "type error: cannot use 'a' in arithmetic"]
       - name: Boolean + Integer
-        as: anonymous
+        as: author
         request:
           method: QUERY
           path: "${P}/doc.html"
@@ -258,7 +258,7 @@ cases:
           status: 200
           body_json: [TypeError, "type error: cannot use 'true' in arithmetic"]
       - name: List + Integer
-        as: anonymous
+        as: author
         request:
           method: QUERY
           path: "${P}/doc.html"
@@ -268,7 +268,7 @@ cases:
           status: 200
           body_json: [TypeError, "type error: cannot use '1' in arithmetic"]
       - name: two-item List + Integer
-        as: anonymous
+        as: author
         request:
           method: QUERY
           path: "${P}/doc.html"
@@ -278,7 +278,7 @@ cases:
           status: 200
           body_json: [TypeError, "type error: cannot use '1, b' in arithmetic"]
       - name: Dictionary + Integer
-        as: anonymous
+        as: author
         request:
           method: QUERY
           path: "${P}/doc.html"
@@ -288,7 +288,7 @@ cases:
           status: 200
           body_json: [TypeError, "type error: cannot use '{\"a\":1}' in arithmetic"]
       - name: String + Boolean
-        as: anonymous
+        as: author
         request:
           method: QUERY
           path: "${P}/doc.html"
@@ -298,7 +298,7 @@ cases:
           status: 200
           body_json: [TypeError, "type error: cannot use 'a' in arithmetic"]
       - name: numeric String * numeric String
-        as: anonymous
+        as: author
         request:
           method: QUERY
           path: "${P}/doc.html"
@@ -308,7 +308,7 @@ cases:
           status: 200
           body_json: [TypeError, "type error: cannot use '5' in arithmetic"]
       - name: division by zero message
-        as: anonymous
+        as: author
         request:
           method: QUERY
           path: "${P}/doc.html"
@@ -318,7 +318,7 @@ cases:
           status: 200
           body_json: [RuntimeError, "division by zero"]
       - name: PlainDate accessor methods
-        as: anonymous
+        as: author
         request:
           method: QUERY
           path: "${P}/doc.html"
@@ -328,7 +328,7 @@ cases:
           status: 200
           body_json: [2026, 3, 23, 1, 82, 13, 31, 365, false]
       - name: PlainDateTime accessor methods
-        as: anonymous
+        as: author
         request:
           method: QUERY
           path: "${P}/doc.html"
@@ -338,7 +338,7 @@ cases:
           status: 200
           body_json: [2026, 3, 23, 14, 30, 45]
       - name: Duration accessor method
-        as: anonymous
+        as: author
         request:
           method: QUERY
           path: "${P}/doc.html"
@@ -348,7 +348,7 @@ cases:
           status: 200
           body_json: [1, 2, 3]
       - name: PlainDate weekday name format
-        as: anonymous
+        as: author
         request:
           method: QUERY
           path: "${P}/doc.html"
@@ -358,7 +358,7 @@ cases:
           status: 200
           body_json: Monday
       - name: empty text and value
-        as: anonymous
+        as: author
         request:
           method: QUERY
           path: "${P}/doc.html"
@@ -368,7 +368,7 @@ cases:
           status: 200
           body_json: ["", "", null, "", null, ""]
       - name: whitespace in text and value
-        as: anonymous
+        as: author
         request:
           method: QUERY
           path: "${P}/doc.html"
@@ -381,7 +381,7 @@ cases:
   - id: sessel.query.probe-0929.mutation-and-selector
     title: "Probe: mutable references for insertBefore, sub-select results of constructed trees, the Selector type"
     feature: element setters
-    live: true
+    live: false
     source: "live 2026-09-29 probe (harness/observations/live-2026-09-29-reconcile-sessel/sessel-query-probe-0929-mutation-and-sel.json)"
     notes: >-
       Isolates sessel.query.new.setters-and-mutation step 2 and sessel.query.sel.selector-type. Sub-select results are
@@ -401,7 +401,7 @@ cases:
         - {actor: "*", resource: "${P}/*", method: [GET, QUERY], action: Allow}
     steps:
       - name: insertBefore a child from children()
-        as: anonymous
+        as: author
         request:
           method: QUERY
           path: "${P}/doc.html"
@@ -415,7 +415,7 @@ cases:
           status: 200
           body_json: "<li>a</li><li>b</li><li>c</li>"
       - name: insertBefore a sub-selected reference (caught)
-        as: anonymous
+        as: author
         request:
           method: QUERY
           path: "${P}/doc.html"
@@ -425,7 +425,7 @@ cases:
           status: 200
           body_json: [TypeError, "type error: insertBefore() reference must be a mutable child element, not a stored element"]
       - name: setter on a sub-selected element of a constructed tree
-        as: anonymous
+        as: author
         request:
           method: QUERY
           path: "${P}/doc.html"
@@ -435,7 +435,7 @@ cases:
           status: 400
           body_contains: ["type error: text(value) setter requires a constructed element, got element"]
       - name: remove on a sub-selected element (docs example)
-        as: anonymous
+        as: author
         request:
           method: QUERY
           path: "${P}/doc.html"
@@ -445,7 +445,7 @@ cases:
           status: 200
           body_json: "<p>Hello</p>"
       - name: replaceWith on a sub-selected element (docs example)
-        as: anonymous
+        as: author
         request:
           method: QUERY
           path: "${P}/doc.html"
@@ -455,7 +455,7 @@ cases:
           status: 400
           body_contains: ["type error: replaceWith() cannot be used on stored (immutable) elements"]
       - name: setter on a child from children()
-        as: anonymous
+        as: author
         request:
           method: QUERY
           path: "${P}/doc.html"
@@ -465,7 +465,7 @@ cases:
           status: 200
           body_json: "<p>y</p>"
       - name: remove and setter on a queried element
-        as: anonymous
+        as: author
         request:
           method: QUERY
           path: "${P}/doc.html"
@@ -475,7 +475,7 @@ cases:
           status: 200
           body_json: [null, "type error: text(value) setter requires a constructed element, got element", 1]
       - name: Selector without @schema
-        as: anonymous
+        as: author
         request:
           method: QUERY
           path: "${P}/doc.html"
@@ -486,7 +486,7 @@ cases:
           header_matches: {Content-Type: '^text/html'}
           body_html: '<selector>h1</selector>'
       - name: Selector with @schema, execute() and toString()
-        as: anonymous
+        as: author
         request:
           method: QUERY
           path: "${P}/doc.html"
@@ -496,7 +496,7 @@ cases:
           status: 200
           body_json: [1, h1]
       - name: Selector with @schema, positional CSS, execute(path)
-        as: anonymous
+        as: author
         request:
           method: QUERY
           path: "${P}/doc.html"

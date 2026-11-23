@@ -32,6 +32,14 @@ Reading and writing:
   an error item, and pages and files advertise `Accept-Ranges: selector,
   bytes`.
 
+QUERY (breaking):
+
+- The public site runs no client-supplied query code. A `text/sessel`,
+  `text/javascript`, `multipart/query`, other or untyped QUERY is 405 with
+  `Accept-Query: text/css-selector`; a selector QUERY still works. Sessel
+  QUERY moved to the authoring plane, which needs the authoring key.
+- A wildcard method grant no longer lists PATCH in `Allow`.
+
 ## v0.3.0 — 2026-11-20
 
 - Build with Go 1.27.4 and current dependencies. Go 1.26.0 left 38

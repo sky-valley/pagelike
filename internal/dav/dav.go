@@ -46,13 +46,17 @@ type Handler struct {
 	Engine  *engine.Engine
 	Control *control.DB
 	Log     *slog.Logger
+	// SesselQuery evaluates a text/sessel QUERY (internal/query). Only the
+	// authoring plane, a trusted caller, runs client-supplied programs
+	// (R-PROTO-144).
+	SesselQuery func(ctx context.Context, s *site.Site, snap *site.Snapshot, op *engine.ReadOp, body []byte, w http.ResponseWriter) error
 }
 
 // davMethods are the methods the authoring plane implements.
 const davMethods = "OPTIONS, GET, HEAD, PUT, DELETE, MKCOL, PROPFIND, PROPPATCH, MOVE, COPY, LOCK, UNLOCK, QUERY"
 
 // acceptQuery is the only query type the authoring plane serves (R-PROTO-44).
-const acceptQuery = "text/css-selector"
+const acceptQuery = "text/css-selector, text/sessel"
 
 // Serve handles one authoring request for site s.
 func (h *Handler) Serve(w http.ResponseWriter, r *http.Request, s *site.Site) {
@@ -523,6 +527,40 @@ func quotedHash(kind, s string) string {
 	return `"` + kind + ":" + hex.EncodeToString(sum[:]) + `"`
 }
 
+// querySessel evaluates a text/sessel QUERY against the target document
+// (R-PROTO-70..85, R-PROTO-144). The authoring key authorizes it.
+func (h *Handler) querySessel(w http.ResponseWriter, r *http.Request, s *site.Site, p string) {
+	ctx := r.Context()
+	body, err := engine.ReadBody(w, r, s.Settings().MaxBodyBytes)
+	if err != nil {
+		h.fail(w, r, err)
+		return
+	}
+	snap, err := s.Index(ctx)
+	if err != nil {
+		h.fail(w, r, err)
+		return
+	}
+	docPath := engine.DocPath(p)
+	if strings.TrimSpace(string(body)) == "" {
+		h.fail(w, r, errdoc.Read(http.StatusUnprocessableEntity, "EmptyQuery", "Invalid path: QUERY method requires a body containing the sessel expression"))
+		return
+	}
+	if _, err := s.Store.Get(ctx, docPath); err != nil {
+		if err == store.ErrNotFound {
+			err = engine.MissingDocument(docPath)
+		}
+		h.fail(w, r, err)
+		return
+	}
+	op := &engine.ReadOp{Plane: engine.Authoring, Method: "QUERY", Path: docPath, Target: p,
+		Range: engine.ParseRange(r.Header.Get("Range")), Accept: r.Header.Get("Accept"),
+		Header: r.Header, Query: r.URL.Query(), RawQuery: r.URL.RawQuery, Host: r.Host}
+	if err := h.SesselQuery(ctx, s, snap, op, body, w); err != nil {
+		h.fail(w, r, err)
+	}
+}
+
 // query implements authoring-plane QUERY (text/css-selector) over the raw
 // stored markup, with host, subtree or single-document scope selected by
 // the target URI; the answer is always multipart (R-PROTO-50..57). Checks
@@ -530,7 +568,11 @@ func quotedHash(kind, s string) string {
 func (h *Handler) query(w http.ResponseWriter, r *http.Request, s *site.Site, p string) {
 	ctx := r.Context()
 	ct, _, _ := mime.ParseMediaType(r.Header.Get("Content-Type"))
-	if !strings.EqualFold(ct, acceptQuery) {
+	if strings.EqualFold(ct, "text/sessel") && h.SesselQuery != nil {
+		h.querySessel(w, r, s, p)
+		return
+	}
+	if !strings.EqualFold(ct, "text/css-selector") {
 		w.Header().Set("Accept-Query", acceptQuery)
 		h.fail(w, r, queryError(http.StatusUnsupportedMediaType, "QUERY requires Content-Type: %s", acceptQuery))
 		return

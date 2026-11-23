@@ -44,7 +44,7 @@ func New(cfg Config, sites *site.Registry, ctl *control.DB, log *slog.Logger) *S
 	eng := &engine.Engine{Domain: cfg.Domain}
 	s := &Server{
 		Cfg: cfg, Sites: sites, Control: ctl, Engine: eng, Log: log,
-		Public: &httpapi.Public{Engine: eng, Log: log, TrustProxy: cfg.TrustProxy, DevAuth: cfg.DevAuth, Queries: map[string]httpapi.QueryHandler{}},
+		Public: &httpapi.Public{Engine: eng, Log: log, TrustProxy: cfg.TrustProxy, DevAuth: cfg.DevAuth},
 		Dav:    &dav.Handler{Engine: eng, Control: ctl, Log: log},
 	}
 	for _, f := range extensions {

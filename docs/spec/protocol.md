@@ -1679,3 +1679,25 @@ Shown missing by `harness/cases/protocol/byte-ranges.yaml` before the change.
 - **Behavior:** a weak ETag in `If-Range`, or a weak current ETag (a composed
   page), never matches, so the whole resource is sent.
 - **Source:** DOCS Byte-Ranges §Making a range conditional. **Cases:** `protocol.bytes.file`.
+
+## QUERY on the public site (docs snapshot 2026-11-23)
+
+### R-PROTO-144 — The public site answers only the CSS-selector QUERY
+- **Behavior:** a public QUERY whose body is `text/sessel`, `text/javascript`,
+  `multipart/query`, any other type, or has no `Content-Type` is `405 Method
+  Not Allowed` before authorization or evaluation, with `Allow` (still listing
+  QUERY), `Accept-Query: text/css-selector` and an
+  `https://pagelove.org/Error/MethodNotAllowed` item. Public OPTIONS advertises
+  `Accept-Query: text/css-selector`. This supersedes R-PROTO-43's Sessel path
+  and R-PROTO-74's grant for the public site: client-supplied code never runs
+  there. A wildcard grant now expands to GET, HEAD, PUT, DELETE, POST, MOVE
+  (no PATCH) on a whole document.
+- **Divergence:** PageLove serves Sessel only from its database, to trusted
+  callers, and its authoring server answers `415`. pagelike has no separate
+  database endpoint, so its authoring plane (authoring key only) answers
+  `text/sessel` QUERY in the database's place (decisions D-4).
+- **Source:** DOCS reference/protocol/QUERY §CSS-selector mode, §Sessel mode;
+  OPTIONS-method. **Cases:** `protocol.query-public.non-css-405`,
+  `javascript.query.javascript-body-405`, `protocol.options.accept-query`,
+  `protocol.options.wildcard-document-expansion`,
+  `protocol.query-dav.sessel-served` (+ `.live`).

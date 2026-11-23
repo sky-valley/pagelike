@@ -456,16 +456,49 @@ cases:
           status: 415
           header_matches: {Accept-Query: 'text/css-selector'}
 
-  - id: protocol.query-dav.415-sessel-not-served
-    title: The authoring plane does not serve text/sessel queries
+  - id: protocol.query-dav.sessel-served
+    title: The authoring plane answers text/sessel queries for the key holder
+    area: protocol
+    feature: QUERY (authoring plane)
+    evidence: documented
+    source: "docs reference/protocol/QUERY §Sessel mode (\"Send it to the database (dombase core) directly. The public site answers 405\") (snapshot 2026-11-23)"
+    confidence: medium
+    requires: [webdav]
+    live: false
+    notes: >-
+      R-PROTO-144. PageLove serves Sessel only from its database, to trusted callers; pagelike has no
+      separate database endpoint, so its authoring plane (authoring key only) stands in for it.
+      PageLove's own authoring server answers 415 (sibling .live; docs/compat/decisions.md D-4).
+    site:
+      files:
+        - path: "${P}/doc.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body><h1>Benji</h1></body></html>
+    steps:
+      - name: sessel on dav
+        as: author
+        plane: dav
+        request:
+          method: QUERY
+          path: "${P}/doc.html"
+          headers: {Content-Type: "text/sessel"}
+          body: "1 + 1"
+        expect:
+          status: 200
+          body: "2"
+
+  - id: protocol.query-dav.sessel-served.live
+    title: Live PageLove's authoring plane does not serve text/sessel queries
     area: protocol
     feature: QUERY errors (authoring plane)
-    evidence: inferred
-    source: "docs reference/protocol/QUERY intro (text/sessel is \"Served by the edge proxy\") (snapshot 2026-09-28)"
+    status: live-divergence
+    evidence: documented
+    source: "docs reference/protocol/QUERY §Sessel mode (\"the authoring server answers 415 Unsupported Media Type\") (snapshot 2026-11-23)"
     confidence: medium
     requires: [webdav]
     live: true
-    notes: R-PROTO-43/44.
+    notes: "Measures a deliberate divergence (docs/compat/decisions.md D-4). Runs only against --target live."
     site:
       files:
         - path: "${P}/doc.html"

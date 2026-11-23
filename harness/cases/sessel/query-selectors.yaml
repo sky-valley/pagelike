@@ -42,11 +42,11 @@ cases:
     evidence: live-observed
     source: "harness/observations/live-2026-09-29/sessel-query-sel-from-self-list.json; harness/observations/live-2026-09-29-reconcile-sessel/sessel-query-probe-0929-from-and-path.json (steps 1, 4)"
     confidence: high
-    live: true
+    live: false
     notes: R-SESSEL-200, R-SESSEL-224. Live answers path() null for every element of a QUERY (adopt-live; the docs' "/team/benji.html" provenance holds in bindings and triggers).
     steps:
       - name: count and provenance
-        as: anonymous
+        as: author
         request:
           method: QUERY
           path: "${P}/doc.html"
@@ -61,11 +61,11 @@ cases:
     title: A single queried element result is served as text/html outer HTML
     feature: selector literals
     source: "docs reference/protocol/QUERY §Sessel mode; languages/sessel/learn/collections §Accessing elements (snapshot 2026-09-28)"
-    live: true
+    live: false
     notes: R-SESSEL-370 / R-PROTO-72 (200 vs 206 is C-7).
     steps:
       - name: first h1
-        as: anonymous
+        as: author
         request:
           method: QUERY
           path: "${P}/doc.html"
@@ -81,11 +81,11 @@ cases:
     feature: context variables
     evidence: live-observed
     source: "docs languages/sessel/learn/querying §self and prior (snapshot 2026-09-28); harness/observations/live-2026-09-29-reconcile-sessel/sessel-query-probe-0929-from-and-path.json (steps 8, 11)"
-    live: true
+    live: false
     notes: R-SESSEL-208. The third value was 1 (documented); live answers 0 because only `from self` reaches a QUERY's document.
     steps:
       - name: root attributes and sub-select
-        as: anonymous
+        as: author
         request:
           method: QUERY
           path: "${P}/doc.html"
@@ -101,14 +101,14 @@ cases:
     evidence: live-observed
     source: "harness/observations/live-2026-09-29/sessel-query-sel-from-path.json; harness/observations/live-2026-09-29-reconcile-sessel/sessel-query-probe-0929-from-and-path.json (step 3)"
     confidence: high
-    live: true
+    live: false
     notes: >-
       R-SESSEL-205. Documented: the other document's h1 ("Nike", "Cap"). Live: nothing, for literal, relative,
       extensionless and glob paths and for documents written on either plane (adopt-live: QUERY is authorized on
       its target only, so it reads nothing else).
     steps:
       - name: literal path
-        as: anonymous
+        as: author
         request:
           method: QUERY
           path: "${P}/doc.html"
@@ -118,7 +118,7 @@ cases:
           status: 200
           body_json: null
       - name: path from a variable
-        as: anonymous
+        as: author
         request:
           method: QUERY
           path: "${P}/doc.html"
@@ -128,7 +128,7 @@ cases:
           status: 200
           body_json: null
       - name: missing document gives an empty list
-        as: anonymous
+        as: author
         request:
           method: QUERY
           path: "${P}/doc.html"
@@ -144,11 +144,11 @@ cases:
     evidence: live-observed
     source: "harness/observations/live-2026-09-29-reconcile-sessel/sessel-query-probe-0929-from-and-path.json (steps 3, 12)"
     confidence: high
-    live: true
+    live: false
     notes: R-SESSEL-144, R-SESSEL-206. Documented 125 across documents; a QUERY sees only its target (live 2026-09-29). Glob aggregation works in bindings (comp.eb.count-sum).
     steps:
       - name: sum of prices
-        as: anonymous
+        as: author
         request:
           method: QUERY
           path: "${P}/doc.html"
@@ -164,11 +164,11 @@ cases:
     evidence: live-observed
     source: "harness/observations/live-2026-09-29-reconcile-sessel/sessel-query-probe-0929-from-and-path.json (steps 3, 11)"
     confidence: high
-    live: true
+    live: false
     notes: R-SESSEL-204 (SP-13 stays open for stored programs). The in-process order test is sessel.expr.* in expressions.yaml.
     steps:
       - name: h1 texts in path order
-        as: anonymous
+        as: author
         request:
           method: QUERY
           path: "${P}/doc.html"
@@ -184,11 +184,11 @@ cases:
     evidence: live-observed
     source: "harness/observations/live-2026-09-29-reconcile-sessel/sessel-query-probe-0929-from-and-path.json (steps 8, 11)"
     confidence: high
-    live: true
+    live: false
     notes: R-SESSEL-68, R-SESSEL-207. The documented unions (3, 2, Nike, [Welcome, Nike]) hold for stored programs; a QUERY sees only its target (live 2026-09-29).
     steps:
       - name: inline multi-source
-        as: anonymous
+        as: author
         request:
           method: QUERY
           path: "${P}/doc.html"
@@ -198,7 +198,7 @@ cases:
           status: 200
           body_json: 0
       - name: block-level multi-source
-        as: anonymous
+        as: author
         request:
           method: QUERY
           path: "${P}/doc.html"
@@ -211,7 +211,7 @@ cases:
           status: 200
           body_json: 0
       - name: explicit from overrides the block scope
-        as: anonymous
+        as: author
         request:
           method: QUERY
           path: "${P}/doc.html"
@@ -221,7 +221,7 @@ cases:
           status: 200
           body_json: [null, Welcome]
       - name: self plus a path
-        as: anonymous
+        as: author
         request:
           method: QUERY
           path: "${P}/doc.html"
@@ -237,13 +237,13 @@ cases:
     evidence: live-observed
     source: "harness/observations/live-2026-09-29-reconcile-sessel/sessel-query-probe-0929-from-and-path.json (steps 4, 11)"
     confidence: high
-    live: true
+    live: false
     notes: >-
       R-SESSEL-204; protocol C-10. Documented: the whole site ("By default, a selector queries across the entire site"),
       which still holds in bindings (comp.eb.count-sum). A QUERY is confined to its target (live 2026-09-29).
     steps:
       - name: bare selector sees only the target
-        as: anonymous
+        as: author
         request:
           method: QUERY
           path: "${P}/doc.html"
@@ -258,11 +258,11 @@ cases:
     feature: expression embedding
     source: "docs languages/sessel/learn/querying §Expressions inside selectors (snapshot 2026-09-28)"
     confidence: high
-    live: true
+    live: false
     notes: R-SESSEL-202.
     steps:
       - name: variable in :equals()
-        as: anonymous
+        as: author
         request:
           method: QUERY
           path: "${P}/doc.html"
@@ -272,7 +272,7 @@ cases:
           status: 200
           body_json: 1
       - name: quoted literal
-        as: anonymous
+        as: author
         request:
           method: QUERY
           path: "${P}/doc.html"
@@ -282,7 +282,7 @@ cases:
           status: 200
           body_json: active
       - name: extended pseudo-classes
-        as: anonymous
+        as: author
         request:
           method: QUERY
           path: "${P}/doc.html"
@@ -297,11 +297,11 @@ cases:
     feature: sub-select
     evidence: live-observed
     source: "harness/observations/live-2026-09-29/sessel-query-sel-sub-select-provenance.json; harness/observations/live-2026-09-29-reconcile-sessel/sessel-query-probe-0929-from-and-path.json (step 6)"
-    live: true
+    live: false
     notes: R-SESSEL-205, R-SESSEL-211, R-SESSEL-212. Documented [[a, b], 2, <path>]; live [[a, b], 0, null] (adopt-live).
     steps:
       - name: sub-select
-        as: anonymous
+        as: author
         request:
           method: QUERY
           path: "${P}/doc.html"
@@ -316,13 +316,13 @@ cases:
     feature: element getters
     evidence: live-observed
     source: "harness/observations/live-2026-09-29/sessel-query-sel-element-getters.json; harness/observations/live-2026-09-29-reconcile-sessel/sessel-query-probe-0929-from-and-path.json (step 5); harness/observations/live-2026-09-29-reconcile-sessel/sessel-query-probe-0929-values.json (steps 20, 21)"
-    live: true
+    live: false
     notes: >-
       R-SESSEL-221..225. Live: document() of an element from another path is unreachable in a QUERY (null), and
       text() of an element without text is "" (not null); a stored element's text is whitespace-collapsed and trimmed.
     steps:
       - name: selector and document
-        as: anonymous
+        as: author
         request:
           method: QUERY
           path: "${P}/doc.html"
@@ -332,7 +332,7 @@ cases:
           status: 200
           body_json: ["#main > h1:nth-child(1)", null]
       - name: microdata values
-        as: anonymous
+        as: author
         request:
           method: QUERY
           path: "${P}/doc.html"
@@ -347,11 +347,11 @@ cases:
     feature: element getters
     evidence: live-observed
     source: "docs languages/sessel/reference/element §.microdata() (snapshot 2026-09-28); harness/observations/live-2026-09-29-reconcile-sessel/sessel-query-probe-0929-from-and-path.json (step 9)"
-    live: true
+    live: false
     notes: R-SESSEL-233 (key order and list shapes not asserted). @id needs provenance, which a QUERY's elements lack (live 2026-09-29).
     steps:
       - name: item map
-        as: anonymous
+        as: author
         request:
           method: QUERY
           path: "${P}/doc.html"
@@ -365,11 +365,11 @@ cases:
     title: Selectors do not enter <template>; .content() makes its content queryable
     feature: element getters
     source: "docs languages/sessel/reference/element §.content() (snapshot 2026-09-28)"
-    live: true
+    live: false
     notes: R-SESSEL-201 (inert boundary), R-SESSEL-229.
     steps:
       - name: inert and content
-        as: anonymous
+        as: author
         request:
           method: QUERY
           path: "${P}/doc.html"
@@ -384,14 +384,14 @@ cases:
     feature: Selector type
     evidence: live-observed
     source: "harness/observations/live-2026-09-29/sessel-query-sel-selector-type.json; harness/observations/live-2026-09-29-reconcile-sessel/sessel-query-probe-0929-mutation-and-sel.json (steps 8-10)"
-    live: true
+    live: false
     notes: >-
       R-SESSEL-210. Live: `new Selector {…}` without `@schema Selector url("https://pagelove.org/Selector")` is a
       <selector> element (so .execute() is "unknown function: execute"); with the import, execute() is `from self`
       and execute(path) reaches nothing in a QUERY.
     steps:
       - name: execute on a path and on self
-        as: anonymous
+        as: author
         request:
           method: QUERY
           path: "${P}/doc.html"
@@ -401,7 +401,7 @@ cases:
           status: 200
           body_json: [0, Welcome, h1]
       - name: without @schema, Selector is a tag name
-        as: anonymous
+        as: author
         request:
           method: QUERY
           path: "${P}/doc.html"
@@ -412,7 +412,7 @@ cases:
           header_matches: {Content-Type: '^text/html'}
           body_html: '<selector>h1</selector>'
       - name: so execute() is unknown
-        as: anonymous
+        as: author
         request:
           method: QUERY
           path: "${P}/doc.html"
@@ -428,11 +428,11 @@ cases:
     evidence: inferred
     source: "docs languages/sessel/learn/querying §self and prior (snapshot 2026-09-28)"
     confidence: low
-    live: true
+    live: false
     notes: R-SESSEL-205, R-SESSEL-208 (SP-26).
     steps:
       - name: from prior
-        as: anonymous
+        as: author
         request:
           method: QUERY
           path: "${P}/doc.html"

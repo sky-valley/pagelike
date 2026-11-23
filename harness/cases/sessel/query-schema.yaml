@@ -39,7 +39,7 @@ cases:
     notes: R-SESSEL-283.
     steps:
       - name: all, AND, OR, empty OR, isa
-        as: anonymous
+        as: author
         request:
           method: QUERY
           path: "${P}/configs.html"
@@ -66,7 +66,7 @@ cases:
     notes: R-SESSEL-283, R-SESSEL-12.
     steps:
       - name: unknown option
-        as: anonymous
+        as: author
         request:
           method: QUERY
           path: "${P}/configs.html"
@@ -76,7 +76,7 @@ cases:
           status: 200
           body_json: TypeError
       - name: unquoted isa key is a parse error
-        as: anonymous
+        as: author
         request:
           method: QUERY
           path: "${P}/configs.html"
@@ -92,7 +92,7 @@ cases:
     notes: R-SESSEL-284..287.
     steps:
       - name: property access, isa and construction
-        as: anonymous
+        as: author
         request:
           method: QUERY
           path: "${P}/configs.html"
@@ -119,7 +119,7 @@ cases:
     notes: R-SESSEL-288.
     steps:
       - name: includes()
-        as: anonymous
+        as: author
         request:
           method: QUERY
           path: "${P}/configs.html"
@@ -133,11 +133,11 @@ cases:
     title: The Sessel reflection schema reads raw itemprops, property names and itemtype
     feature: reflection
     source: "docs languages/sessel/reference/types §Reflection API (snapshot 2026-09-28)"
-    live: true
+    live: false
     notes: R-SESSEL-289. Needs no user schema, so it is live-safe.
     steps:
       - name: stored, properties, schemaOf
-        as: anonymous
+        as: author
         request:
           method: QUERY
           path: "${P}/configs.html"
@@ -154,11 +154,11 @@ cases:
     title: A constructed instance is an itemscope element whose scalar properties are element children
     feature: instances
     source: "docs languages/sessel/reference/types §Instance (snapshot 2026-09-28)"
-    live: true
+    live: false
     notes: R-SESSEL-285. Construction of an undeclared URL needs no schema registry.
     steps:
       - name: parent of a scalar child
-        as: anonymous
+        as: author
         request:
           method: QUERY
           path: "${P}/configs.html"

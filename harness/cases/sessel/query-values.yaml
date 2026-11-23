@@ -23,11 +23,11 @@ cases:
     feature: operators
     source: "docs languages/sessel/reference/syntax §Operator precedence (snapshot 2026-09-28)"
     confidence: high
-    live: true
+    live: false
     notes: R-SESSEL-41, R-SESSEL-97.
     steps:
       - name: 1 + 2 * 3
-        as: anonymous
+        as: author
         request:
           method: QUERY
           path: "${P}/doc.html"
@@ -43,11 +43,11 @@ cases:
     feature: numbers
     evidence: live-observed
     source: "harness/observations/live-2026-09-29/sessel-query-values-integer-and-float-di.json; harness/observations/live-2026-09-29-reconcile-sessel/sessel-query-probe-0929-values.json (steps 1-4)"
-    live: true
+    live: false
     notes: R-SESSEL-81, R-SESSEL-92. The docs' "42.0" text form is superseded (SP-7 settled); JSON keeps 42.0.
     steps:
       - name: division kinds
-        as: anonymous
+        as: author
         request:
           method: QUERY
           path: "${P}/doc.html"
@@ -62,11 +62,11 @@ cases:
     feature: strings
     source: "docs languages/sessel/reference/syntax §String interpolation (snapshot 2026-09-28)"
     confidence: high
-    live: true
+    live: false
     notes: R-SESSEL-14, R-SESSEL-32.
     steps:
       - name: interpolate
-        as: anonymous
+        as: author
         request:
           method: QUERY
           path: "${P}/doc.html"
@@ -81,11 +81,11 @@ cases:
     feature: dictionaries
     source: "docs languages/sessel/reference/dictionary §Property assignment (snapshot 2026-09-28)"
     confidence: high
-    live: true
+    live: false
     notes: R-SESSEL-71, R-SESSEL-182.
     steps:
       - name: build a dictionary
-        as: anonymous
+        as: author
         request:
           method: QUERY
           path: "${P}/doc.html"
@@ -104,11 +104,11 @@ cases:
     feature: lists
     source: "docs languages/sessel/learn/collections §Filtering, §Reducing (snapshot 2026-09-28)"
     confidence: high
-    live: true
+    live: false
     notes: R-SESSEL-146, R-SESSEL-148, R-SESSEL-158.
     steps:
       - name: sum of items above 5
-        as: anonymous
+        as: author
         request:
           method: QUERY
           path: "${P}/doc.html"
@@ -124,11 +124,11 @@ cases:
     evidence: live-observed
     source: "harness/observations/live-2026-09-29/sessel-query-values-try-catch-message.json; harness/observations/live-2026-09-29-reconcile-sessel/sessel-query-probe-0929-values.json (steps 5-15)"
     confidence: high
-    live: true
+    live: false
     notes: R-SESSEL-80, R-SESSEL-341, R-SESSEL-343. The docs' "Cannot add String and Integer" is superseded.
     steps:
       - name: message
-        as: anonymous
+        as: author
         request:
           method: QUERY
           path: "${P}/doc.html"
@@ -138,7 +138,7 @@ cases:
           status: 200
           body_json: "Error: type error: cannot use 'a' in arithmetic"
       - name: type of division by zero
-        as: anonymous
+        as: author
         request:
           method: QUERY
           path: "${P}/doc.html"
@@ -148,7 +148,7 @@ cases:
           status: 200
           body_json: "RuntimeError"
       - name: null propagation is not an error
-        as: anonymous
+        as: author
         request:
           method: QUERY
           path: "${P}/doc.html"
@@ -162,11 +162,11 @@ cases:
     title: An uncaught RuntimeError (division by zero) is a 500
     feature: errors
     source: "docs reference/protocol/QUERY §Sessel mode Errors; languages/sessel/reference/syntax §Try/Catch (snapshot 2026-09-28)"
-    live: true
+    live: false
     notes: R-SESSEL-344 / R-PROTO-75 ("Expression raised a runtime error" → 500).
     steps:
       - name: 1 / 0
-        as: anonymous
+        as: author
         request:
           method: QUERY
           path: "${P}/doc.html"
@@ -179,11 +179,11 @@ cases:
     feature: errors
     source: "docs reference/protocol/QUERY §Sessel mode Errors (snapshot 2026-09-28)"
     confidence: low
-    live: true
+    live: false
     notes: SC-19 — the 400/500 boundary is not pinned down; recommended mapping is 400 (R-SESSEL-344). Probe SP-15.
     steps:
       - name: String + Integer
-        as: anonymous
+        as: author
         request:
           method: QUERY
           path: "${P}/doc.html"
@@ -191,7 +191,7 @@ cases:
           body: '"a" + 1'
         expect: {status: [400, 500]}
       - name: unresolved variable
-        as: anonymous
+        as: author
         request:
           method: QUERY
           path: "${P}/doc.html"
@@ -203,11 +203,11 @@ cases:
     title: '"5.0".Integer() raises a TypeError'
     feature: coercion
     source: "docs languages/sessel/reference/number §How numbers arise; string §.Integer() (snapshot 2026-09-28)"
-    live: true
+    live: false
     notes: Winning side of SC-1 (R-SESSEL-94).
     steps:
       - name: caught type
-        as: anonymous
+        as: author
         request:
           method: QUERY
           path: "${P}/doc.html"
@@ -223,11 +223,11 @@ cases:
     source: "docs languages/sessel/reference/types §Type coercion (snapshot 2026-09-28)"
     confidence: low
     status: disputed
-    live: true
+    live: false
     notes: Losing side of SC-1.
     steps:
       - name: null result
-        as: anonymous
+        as: author
         request:
           method: QUERY
           path: "${P}/doc.html"
@@ -242,11 +242,11 @@ cases:
     feature: crypto
     source: "docs languages/sessel/reference/string §.sha256() (snapshot 2026-09-28)"
     confidence: high
-    live: true
+    live: false
     notes: R-SESSEL-118.
     steps:
       - name: hash hello
-        as: anonymous
+        as: author
         request:
           method: QUERY
           path: "${P}/doc.html"
@@ -261,11 +261,11 @@ cases:
     feature: random
     source: "docs languages/sessel/reference/string §String.random (snapshot 2026-09-28)"
     confidence: high
-    live: true
+    live: false
     notes: R-SESSEL-122.
     steps:
       - name: random
-        as: anonymous
+        as: author
         request:
           method: QUERY
           path: "${P}/doc.html"
@@ -280,14 +280,14 @@ cases:
     feature: temporal
     evidence: live-observed
     source: "docs languages/sessel/reference/temporal §PlainDate §Formatting (snapshot 2026-09-28); harness/observations/live-2026-09-29/sessel-query-values-temporal-format.json; harness/observations/live-2026-09-29-reconcile-sessel/sessel-query-probe-0929-values.json (steps 16-18)"
-    live: true
+    live: false
     notes: >-
       R-SESSEL-301, R-SESSEL-310; the ISO JSON encoding of a Temporal value is inferred (R-SESSEL-97). Live answers
       accessors only as zero-argument methods (d.dayOfWeek()); the documented property form (d.dayOfWeek) is null
       live and kept by pagelike (keep-standard, sessel.query.values.temporal-format.live).
     steps:
       - name: format
-        as: anonymous
+        as: author
         request:
           method: QUERY
           path: "${P}/doc.html"
@@ -304,11 +304,11 @@ cases:
     evidence: live-observed
     source: "harness/observations/live-2026-09-29/sessel-query-values-temporal-format.json; harness/observations/live-2026-09-29-reconcile-sessel/sessel-query-values-temporal-format-live.json"
     confidence: high
-    live: true
+    live: false
     notes: "Measures a deliberate divergence (docs/compat/decisions-2026-09-29/sessel.md, keep-standard): pagelike keeps the documented date.year / date.dayOfWeek properties. Runs only against --target live."
     steps:
       - name: accessor properties
-        as: anonymous
+        as: author
         request:
           method: QUERY
           path: "${P}/doc.html"
@@ -324,11 +324,11 @@ cases:
     evidence: inferred
     source: "docs reference/composing-pages/Expression-Binding §Examples (\"Sum: 100.0\") (snapshot 2026-09-28)"
     confidence: low
-    live: true
+    live: false
     notes: R-SESSEL-97 SHOULD; probe SP-7. The JSON value equals 100 either way.
     steps:
       - name: 100.0
-        as: anonymous
+        as: author
         request:
           method: QUERY
           path: "${P}/doc.html"
@@ -345,11 +345,11 @@ cases:
     evidence: inferred
     source: "docs languages/sessel/reference/syntax §Context variables (snapshot 2026-09-28)"
     confidence: low
-    live: true
+    live: false
     notes: R-SESSEL-1 (request is bound in QUERY is a pagelike inference).
     steps:
       - name: request fields
-        as: anonymous
+        as: author
         request:
           method: QUERY
           path: "${P}/doc.html"
