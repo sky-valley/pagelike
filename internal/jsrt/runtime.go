@@ -270,7 +270,7 @@ func (rt *Runtime) CallModule(ctx context.Context, req CallRequest) (*Result, *F
 	if spec.args >= 0 && len(req.Args) != spec.args {
 		return nil, &Failure{Variant: VariantInternal, Message: fmt.Sprintf("slot %s takes %d argument(s), got %d", req.Slot, spec.args, len(req.Args))}
 	}
-	msg := &callMsg{Source: req.Source, Kind: spec.kind, ArgCount: spec.args, DocMode: spec.doc, HasContext: spec.context, HTTPResp: spec.httpResponse, Schemas: req.Schemas}
+	msg := &callMsg{Source: req.Source, Kind: spec.kind, ArgCount: spec.args, DocMode: spec.doc, HasContext: spec.context, HTTPResp: spec.httpResponse, Schemas: req.Schemas, Saves: req.Saves}
 	b := newBuilder(req.Document)
 	if f := b.doc(msg, spec); f != nil {
 		return nil, f

@@ -2,12 +2,14 @@ package jsglue
 
 import (
 	"context"
+	"fmt"
 	"strings"
 
 	"github.com/sky-valley/pagelike/internal/budget"
 	"github.com/sky-valley/pagelike/internal/jsrt"
 	"github.com/sky-valley/pagelike/internal/reactions"
 	"github.com/sky-valley/pagelike/internal/schema"
+	"github.com/sky-valley/pagelike/internal/sessel"
 )
 
 // reactionsRunner implements reactions.JSRunner: trigger and processor
@@ -37,7 +39,25 @@ func (reactionsRunner) CallDefault(ctx context.Context, call *reactions.JSCall) 
 	if call.Snap != nil {
 		reg = schema.For(call.Snap)
 	}
-	req := jsrt.CallRequest{Source: call.Source, Slot: slot, Host: &host{reg: reg}, Args: []jsrt.Value{reactionContext(call.Arg)}}
+	h := &host{reg: reg}
+	if call.Saver != nil {
+		h.save = func(ctx context.Context, c *jsrt.SaveCall) error {
+			var item any
+			switch it := c.Item.(type) {
+			case nil:
+			case string:
+				item = it
+			default:
+				el, _ := toSessel(it, reg).(*sessel.Element)
+				if el == nil {
+					return fmt.Errorf("TypeError: Pagelove.%s() takes a schema instance, a string of HTML or a DOM element", c.Verb)
+				}
+				item = el
+			}
+			return call.Saver.Save(ctx, c.Verb, item, c.Path, c.Selector, c.HasSelector, c.Placement)
+		}
+	}
+	req := jsrt.CallRequest{Source: call.Source, Slot: slot, Host: h, Saves: call.Saver != nil, Args: []jsrt.Value{reactionContext(call.Arg)}}
 	if call.Budget != nil {
 		ctx = budget.With(ctx, call.Budget)
 	}

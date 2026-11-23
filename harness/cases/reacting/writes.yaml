@@ -295,47 +295,6 @@ cases:
           body_contains: ["second-transform"]
           body_not_contains: ["first-transform", "original"]
 
-  - id: reacting.writes.js-action-has-no-write-provider
-    title: A JavaScript action cannot call Pagelove.PUT; the attempt is a runtime error and writes nothing
-    feature: side-effect writes (JavaScript)
-    evidence: documented
-    source: "docs reference/reacting-to-changes/Trigger §Writing from triggers ('a Sessel-only capability … without a write provider') (snapshot 2026-09-28)"
-    confidence: low
-    requires: [server-js]
-    live: true
-    notes: "spec: R-REACT-41, R-REACT-34. No write is documented; the ReferenceError and 500 are inferred."
-    steps:
-      - name: install a JS action that tries to write
-        as: anonymous
-        request:
-          method: PUT
-          path: "${P}/r/triggers.html"
-          headers: {Content-Type: text/html}
-          body: |
-            <!DOCTYPE html>
-            <html><body>
-            <div hidden itemscope itemtype="https://pagelove.org/Trigger">
-              <meta itemprop="resource" content="${P}/d/*">
-              <meta itemprop="method" content="PUT">
-              <div itemprop="action" itemscope itemtype="https://pagelove.org/JavaScript/Module">
-                <script type="module" itemprop="source">
-                  export default function(ctx) {
-                    Pagelove.PUT({ name: "js-write" }, "${P}/side/js.html");
-                  }
-                </script>
-              </div>
-            </div>
-            </body></html>
-        expect: {status: [200, 201, 204]}
-      - name: the request fails
-        as: anonymous
-        request: {method: PUT, path: "${P}/d/x.html", headers: {Content-Type: text/html}, body: "<p>x</p>"}
-        expect: {status: 500}
-      - name: nothing was written
-        as: anonymous
-        request: {method: GET, path: "${P}/side/js.html"}
-        expect: {status: 404}
-
   - id: reacting.writes.pagelove-delete
     title: Pagelove.DELETE(path) deletes a document as a side effect
     feature: side-effect writes

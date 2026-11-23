@@ -61,6 +61,26 @@ func serveCallback(ctx context.Context, host Host, cb *cbMsg) *replyMsg {
 			r.Context = append(r.Context, in)
 		}
 		r.Elements = enc.elems
+	case "save":
+		sv, ok := host.(Saver)
+		if host == nil || !ok {
+			r.Error = cb.Method + ": saving is not available here"
+			return r
+		}
+		c := &SaveCall{Verb: cb.Method, Path: cb.Name, Selector: cb.Selector, HasSelector: cb.HasSelector, Placement: cb.Placement}
+		if cb.Value != "" {
+			v, err := decodeValue([]byte(cb.Value), cb.Elements)
+			if err != nil {
+				r.Error = "bad save: " + err.Error()
+				return r
+			}
+			if list, _ := v.([]Value); len(list) == 1 {
+				c.Item = list[0]
+			}
+		}
+		if err := sv.Save(ctx, c); err != nil {
+			r.Error = err.Error()
+		}
 	case "context":
 		w := ContextWrite{Name: cb.Name, Deleted: cb.Deleted}
 		if !cb.Deleted {

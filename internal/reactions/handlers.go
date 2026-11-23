@@ -136,7 +136,7 @@ func (x *Reactions) handlerGate(ctx context.Context, w *engine.WriteCtx, h *hand
 	if h.when.lang == langJS {
 		it := microdata.Parse(body)
 		arg := map[string]any{"path": propText(it, "path"), "selector": propText(it, "selector"), "body": dom.OuterHTML(bodyEl)}
-		v, err := runJS(ctx, w.Site, w.Snap, SlotTriggerWhen, h.when.source, arg)
+		v, err := runJS(ctx, w.Site, w.Snap, SlotTriggerWhen, h.when.source, arg, nil)
 		if err != nil {
 			return false, err
 		}

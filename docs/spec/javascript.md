@@ -600,10 +600,8 @@ as its microdata serialization (R-JS-60).
   selection). A thrown error in `when` fails the request like an action error.
 - `action`/`otherwise`: the return value is discarded. Only a thrown
   HTTPResponse (R-JS-53) or an error has an effect.
-- JavaScript actions have **no** `Pagelove` global: `Pagelove.PUT` /
-  `Pagelove.DELETE` are Sessel-only. Referencing `Pagelove` is a
-  `ReferenceError`, which fails the request. Writes from JavaScript go through
-  an outbound HttpRequest action instead.
+- JavaScript actions save with the `Pagelove` global (R-JS-23b). A `when`
+  gate has no `Pagelove` object.
 - A runtime error that is not an HTTPResponse fails the request with an HTML
   Microdata error document (status 500, pagelike decision for the number).
 - Evidence: documented. Source: TRG §when, §action, §Context, §Chain
@@ -635,6 +633,39 @@ failure (pagelike decision). Mixed Sessel/JavaScript properties on one action
 are allowed. `retry` cannot be an expression.
 - Evidence: documented. Source: HREQ §Static vs dynamic properties, §Retry;
   TRG §Static vs dynamic properties. Confidence: high (form), low (timing).
+
+### R-JS-23b: Saving from JavaScript (`Pagelove.PUT`, `POST`, `DELETE`)
+
+- A trigger or processor action (and `otherwise`) has a global `Pagelove`
+  object; nothing is imported. A JavaScript `when` gate, a `j:` binding and
+  schema bindings have none.
+- `Pagelove.PUT(item, path)` saves the whole document at `path`, creating
+  it; `Pagelove.PUT(item, path, selector)` replaces the element `selector`
+  matches. `Pagelove.POST(item, path, selector, placement)` adds the item:
+  `placement` is `append` (default), `prepend`, `before` or `after`, in any
+  case with spaces ignored; without a selector the item goes inside the
+  page's body. `Pagelove.DELETE(path)` deletes the document and
+  `Pagelove.DELETE(path, selector)` the matched element; it gives back
+  `true`.
+- `item` is a string of HTML, a DOM element (saved as its outerHTML) or a
+  schema instance (its `@key` becomes the element's id). Anything else
+  throws a `TypeError`.
+- An unknown placement throws `POST: unknown placement "<value>"; use
+  append, prepend, before or after`; a placement that is not a string throws
+  a `TypeError`; `before`/`after` without a selector throw. Nothing is
+  posted.
+- A save is the request a client would make, as the requesting principal:
+  authorization, schemas, shape constraints and cardinality apply, and its
+  event is streamed. A refused save throws an `Error` the code can catch,
+  whose message is the verb, the status and the reason: `POST returned 416
+  Range Not Satisfiable: …`. Uncaught, it fails the action.
+- pagelike differences: `PUT` and `POST` give back `undefined` (the docs
+  allow that outcome; an instance is not handed back with its address);
+  `PUT(instance)` without a path always throws `PUT: Instance has no source
+  path`; a Sessel method called from the action cannot save; saves from
+  resolvers and the 3-deep nested-save limit are not implemented.
+- Evidence: documented (docs snapshot 2026-11-23, JavaScript §Saving data).
+  Confidence: medium.
 
 ### R-JS-24: Header objects
 
@@ -2561,8 +2592,9 @@ Requirement → cases (ids without the `javascript.` prefix):
 | R-JS-17 | `classes.method-greet-via-query`, `classes.method-instance-receiver-no-document`, `classes.static-method-this-is-class` |
 | R-JS-18 | `methods.docs-js-method-element`, `methods.params-positional-by-declaration`, `methods.absent-parameter-is-null`, `methods.async-body`, `methods.document-scoped-to-host`, `methods.readonly-mutation-fails-500`, `methods.this-is-host-element`, `methods.context-scoped-to-host-subtree`, `methods.attribute-form-replaces-host` |
 | R-JS-19 | `methods.dnu-element-form`, `methods.dnu-attribute-form` |
-| R-JS-21 | `reactions.trigger-docs-when-and-action`, `reactions.trigger-ctx-request-shape`, `reactions.trigger-when-truthiness`, `reactions.trigger-return-value-discarded`, `reactions.trigger-no-pagelove-global` |
+| R-JS-21 | `reactions.trigger-docs-when-and-action`, `reactions.trigger-ctx-request-shape`, `reactions.trigger-when-truthiness`, `reactions.trigger-return-value-discarded`, `reactions.trigger-save-plain-object-fails` |
 | R-JS-22 | `reactions.processor-docs-custom-404`, `reactions.processor-rethrow-with-headers`, `reactions.processor-response-assignment-ignored` |
+| R-JS-23b | `reacting.jss1123.action-saves`, `reacting.jss1123.refused-save-throws`, `reacting.jss1123.js-gate-has-no-pagelove`, `reactions.trigger-save-plain-object-fails` |
 | R-JS-24 | `reactions.trigger-header-lookup` |
 | R-JS-30 | `jbind.wrong-namespace-ignored` |
 | R-JS-31 | `jbind.docs-example-liquid`, `jbind.declaration-order`, `jbind.await`, `jbind.returned-promise-adopted` |
@@ -2572,7 +2604,7 @@ Requirement → cases (ids without the `javascript.` prefix):
 | R-JS-35 | `jbind.interleave-with-sessel`, `jbind.reads-resource-binding` |
 | R-JS-36 | `jbind.later-binding-not-in-scope`, `jbind.parse-error-500`, `jbind.throw-500`, `jbind.reject-500`, `jbind.unknown-identifier-500` |
 | R-JS-37 | `globals.ecmascript-builtins`, `globals.nondeterminism-allowed`, `globals.es2020-syntax-in-modules`, `slots.default-timestamp-docs-example` |
-| R-JS-38 | `globals.host-io-absent`, `globals.other-host-apis-absent`, `reactions.trigger-no-pagelove-global` |
+| R-JS-38 | `globals.host-io-absent`, `globals.other-host-apis-absent`, `reactions.trigger-save-plain-object-fails` |
 | R-JS-39 | `globals.dom-classes-present` |
 | R-JS-39a | `globals.crypto-subtle-digest` |
 | R-JS-40 | `jbind.reads-resource-binding` |

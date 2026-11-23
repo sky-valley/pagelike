@@ -555,6 +555,54 @@ const __pagelike = (() => {
     applyContext(writes);
     return decodeWith(reply.value, reply.handles);
   };
+  // The Pagelove global of code that may save (R-JS-23b; docs snapshot
+  // 2026-11-23, saving-data). A refused save throws an Error whose message
+  // is the verb, the status and the reason.
+  const PLACEMENTS = ["append", "prepend", "before", "after"];
+  const saveItem = (verb, item, elems) => {
+    const t = typeof item;
+    if (t !== "string" && (item === null || t !== "object")) {
+      throw new TypeErrorFn("Pagelove." + verb + "() takes a schema instance, a string of HTML or a DOM element");
+    }
+    try {
+      return JSONstringify([marshalOut(item, elems)]);
+    } catch (e) {
+      if (e instanceof ReturnTypeError) throw new TypeErrorFn("Pagelove." + verb + "() takes a schema instance, a string of HTML or a DOM element");
+      throw e;
+    }
+  };
+  const optSelector = (s) => (s === null || s === undefined ? null : StringFn(s));
+  const Pagelove = {
+    PUT(item, path, selector) {
+      const elems = [];
+      const payload = saveItem("PUT", item, elems);
+      if (typeof path !== "string") throw new ErrorFn('PUT: Instance has no source path. Use PUT(instance, "/path.html")');
+      sys("save", "PUT", payload, JSONstringify(elems), path, optSelector(selector), "");
+      return undefined;
+    },
+    POST(item, path, selector, placement) {
+      const elems = [];
+      const payload = saveItem("POST", item, elems);
+      if (typeof path !== "string") throw new TypeErrorFn("Pagelove.POST() takes a path");
+      let p = "append";
+      if (placement !== null && placement !== undefined) {
+        if (typeof placement !== "string") throw new TypeErrorFn("Pagelove.POST's placement must be a string");
+        p = strLower(placement).trim();
+        if (!PLACEMENTS.includes(p)) throw new ErrorFn('POST: unknown placement "' + placement + '"; use append, prepend, before or after');
+      }
+      const sel = optSelector(selector);
+      if (sel === null && (p === "before" || p === "after")) {
+        throw new ErrorFn('POST: placement "' + p + '" needs a selector; with no selector the item goes inside the page\'s body');
+      }
+      sys("save", "POST", payload, JSONstringify(elems), path, sel, p);
+      return undefined;
+    },
+    DELETE(target, selector) {
+      if (typeof target !== "string") throw new TypeErrorFn("Pagelove.DELETE() takes a path");
+      sys("save", "DELETE", "", "[]", target, optSelector(selector), "");
+      return true;
+    },
+  };
   const writeBack = (name, value, deleted) => {
     let json = "";
     const elems = [];
@@ -599,6 +647,7 @@ const __pagelike = (() => {
     if (cfg.interfaces) defineInterfaceGlobals();
     if (cfg.doc >= 0) defineLazyGlobal("document", () => dom().wrap(cfg.doc));
     if (cfg.request !== "") defineLazyGlobal("request", getRequest);
+    if (cfg.saves) defineGlobal("Pagelove", Pagelove);
     if (cfg.hasContext) {
       buildContext = () => {
         let init;

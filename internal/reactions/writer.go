@@ -2,6 +2,7 @@ package reactions
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"net/http"
 	"strings"
@@ -80,6 +81,62 @@ func (wr *writer) Delete(ctx context.Context, target sessel.Value) error {
 	return &sessel.Error{Type: sessel.TypeErrorType, Message: fmt.Sprintf("Pagelove.DELETE() takes a path or an element, not %s", sessel.TypeName(target))}
 }
 
+// Save implements JSSaver: the Pagelove global of a JavaScript action
+// (R-JS-23b; docs snapshot 2026-11-23, saving-data). A save is the request
+// a client would make: PUT stores the whole document at path or replaces
+// the element selector matches, POST adds the item next to or inside it
+// (inside the page's body without a selector), DELETE removes the document
+// or the matched element. A refusal is an error whose message is the verb,
+// the status and the reason.
+func (wr *writer) Save(ctx context.Context, verb string, item any, path, sel string, hasSel bool, placement string) error {
+	p, err := engine.NormalizePath(path)
+	if err != nil {
+		return jsSaveError(verb, err)
+	}
+	op := wr.op(verb, p)
+	if verb != http.MethodDelete {
+		switch it := item.(type) {
+		case string:
+			op.Body = []byte(it)
+		case *sessel.Element:
+			if it == nil || it.Node == nil {
+				return fmt.Errorf("TypeError: Pagelove.%s() takes a schema instance, a string of HTML or a DOM element", verb)
+			}
+			op.Body = []byte(serialize(it, false, wr.setKeyID))
+		default:
+			return fmt.Errorf("TypeError: Pagelove.%s() takes a schema instance, a string of HTML or a DOM element", verb)
+		}
+		op.ContentType = "text/html"
+	}
+	switch {
+	case verb == http.MethodPost:
+		if !hasSel {
+			sel = "body"
+		}
+		op.Range = engine.ParseRange("selector=" + sel + "; placement=" + placement)
+	case hasSel:
+		op.Range = engine.ParseRange("selector=" + sel)
+	}
+	if err := wr.runRaw(ctx, "Pagelove."+verb, op); err != nil {
+		return jsSaveError(verb, err)
+	}
+	return nil
+}
+
+// jsSaveError words a refused JavaScript save: "POST returned 416 Range Not
+// Satisfiable: <reason>".
+func jsSaveError(verb string, err error) error {
+	var e *errdoc.Error
+	if errors.As(err, &e) {
+		msg := fmt.Sprintf("%s returned %d %s", verb, e.Status, errdoc.StatusText(e.Status))
+		if e.Message != "" {
+			msg += ": " + e.Message
+		}
+		return errors.New(msg)
+	}
+	return fmt.Errorf("%s: %s", verb, strings.TrimPrefix(err.Error(), "RuntimeError: "))
+}
+
 // op builds a side-effect write made as the requesting principal. It
 // carries no session or connection, so its event reaches the originator
 // too (sse R-SSE-23).
@@ -101,6 +158,17 @@ func (wr *writer) op(method, path string) *engine.Op {
 }
 
 func (wr *writer) run(ctx context.Context, fn string, op *engine.Op) error {
+	if err := wr.runRaw(ctx, fn, op); err != nil {
+		if _, ok := err.(*sessel.Error); ok {
+			return err
+		}
+		return writeError(fn, op.Path, err)
+	}
+	return nil
+}
+
+// runRaw performs a side-effect write and returns the pipeline's own error.
+func (wr *writer) runRaw(ctx context.Context, fn string, op *engine.Op) error {
 	st := wr.st
 	st.mu.Lock()
 	if st.writes >= MaxSideEffects {
@@ -116,7 +184,7 @@ func (wr *writer) run(ctx context.Context, fn string, op *engine.Op) error {
 	st.mu.Unlock()
 	st.settle(err == nil)
 	if err != nil {
-		return writeError(fn, op.Path, err)
+		return err
 	}
 	st.mu.Lock()
 	_, tracked := st.arrival[op.Path]

@@ -188,7 +188,13 @@ func (e *evalEnv) code(ctx context.Context, slot, lang, src string) (sessel.Valu
 		}
 		return sessel.Eval(ctx, src, env)
 	case langJS:
-		return runJS(ctx, e.st.site, e.snap(), slot, src, e.jsArg())
+		// An action saves with the Pagelove global; a gate has none
+		// (R-JS-23b, docs snapshot 2026-11-23).
+		var saver JSSaver
+		if slot != SlotTriggerWhen && slot != SlotProcessorWhen {
+			saver = &writer{x: e.x, st: e.st, env: e}
+		}
+		return runJS(ctx, e.st.site, e.snap(), slot, src, e.jsArg(), saver)
 	}
 	return nil, fmt.Errorf("unsupported language")
 }
@@ -387,7 +393,7 @@ func (e *evalEnv) bindings(ctx context.Context) (map[string]sessel.Value, error)
 			env := &sessel.Env{Host: e.host, Context: e.st.cctx, Request: e.st.req, Vars: vars, Budget: budget.From(ctx).Sessel()}
 			v, err = sessel.Eval(ctx, b.src, env)
 		case "js":
-			v, err = runJS(ctx, e.st.site, e.snap(), SlotBinding, "export default function(ctx) { return ("+b.src+"); }", e.jsArg())
+			v, err = runJS(ctx, e.st.site, e.snap(), SlotBinding, "export default function(ctx) { return ("+b.src+"); }", e.jsArg(), nil)
 		}
 		if err != nil {
 			e.verr = fmt.Errorf("binding %s: %w", b.name, err)
