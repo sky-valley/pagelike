@@ -46,6 +46,9 @@ Server JavaScript (docs snapshot 2026-11-23):
 - `closest` and `matches` take `:scope` as the element they are called on,
   and a child of a document fragment is no longer `:root`.
 - `NodeList` has `keys()`, `values()` and `entries()`.
+- `crypto.subtle.importKey` and `crypto.subtle.verify` check a signature
+  made elsewhere with an ECDSA (P-256, P-384), RSA or Ed25519 public key,
+  for passkeys and signed webhooks.
 - A JavaScript trigger or processor action saves with a global `Pagelove`
   object: `Pagelove.PUT`, `Pagelove.POST` (with a placement) and
   `Pagelove.DELETE`, each optionally on the element a selector matches. A

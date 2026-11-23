@@ -148,7 +148,134 @@ const __pagelike = (() => {
     if (r === ERR) throw new ErrorFn(SYS("err"));
     return r;
   };
+  // WebCrypto public keys and signature checks (R-JS-39c; docs snapshot
+  // 2026-11-23). A failure is a DOMException named for its cause; a wrong
+  // argument type is a TypeError, as in browsers.
+  const csys = (...a) => {
+    try {
+      return sys(...a);
+    } catch (e) {
+      const m = StringFn(e && e.message);
+      const i = m.indexOf("|");
+      if (i > 0) throw new DOMException(m.slice(i + 1), m.slice(0, i));
+      throw e;
+    }
+  };
+  const KEY_USAGES = ["encrypt", "decrypt", "sign", "verify", "deriveKey", "deriveBits", "wrapKey", "unwrapKey"];
+  const ALG_NAMES = ["ECDSA", "RSASSA-PKCS1-v1_5", "RSA-PSS", "Ed25519"];
+  const HASH_NAMES = ["SHA-1", "SHA-256", "SHA-384", "SHA-512"];
+  const HASH_BYTES = { "SHA-1": 20, "SHA-256": 32, "SHA-384": 48, "SHA-512": 64 };
+  const canonName = (list, n) => {
+    const up = StringFn(n).toUpperCase();
+    for (const k of list) if (k.toUpperCase() === up) return k;
+    return null;
+  };
+  // algOf reads an AlgorithmIdentifier: a name, or an object with a name.
+  const algOf = (alg) => {
+    let o = {};
+    let n = alg;
+    if (typeof alg !== "string") {
+      if (alg === null || typeof alg !== "object") throw new TypeErrorFn("the algorithm must be a name or an object with a name");
+      o = alg;
+      n = alg.name;
+      if (n === undefined) throw new TypeErrorFn("the algorithm has no name");
+    }
+    const name = canonName(ALG_NAMES, n);
+    if (name === null) throw new DOMException("Unrecognized algorithm name", "NotSupportedError");
+    return { name, o };
+  };
+  const hashOf = (o, what) => {
+    let h = o.hash;
+    if (h === undefined || h === null) throw new TypeErrorFn(what + " needs a hash");
+    if (typeof h === "object") h = h.name;
+    const name = canonName(HASH_NAMES, h);
+    if (name === null) throw new DOMException("Unrecognized hash name", "NotSupportedError");
+    return name;
+  };
+  const usagesOf = (usages) => {
+    if (usages === null || typeof usages !== "object" || typeof usages[Symbol.iterator] !== "function") {
+      throw new TypeErrorFn("the key usages must be a list");
+    }
+    const out = [];
+    for (const u of usages) {
+      if (typeof u !== "string" || !KEY_USAGES.includes(u)) throw new TypeErrorFn("'" + StringFn(u) + "' is not a key usage");
+      if (!out.includes(u)) arrayPush(out, u);
+    }
+    return out;
+  };
+  let keyState;
+  class CryptoKey {
+    #s;
+    constructor(key, s) {
+      if (key !== KEY) throw new TypeErrorFn("Illegal constructor");
+      this.#s = s;
+    }
+    static { keyState = (k) => (k !== null && typeof k === "object" && #s in k ? k.#s : null); }
+    get type() { return this.#s.type; }
+    get extractable() { return this.#s.extractable; }
+    get algorithm() { return { ...this.#s.algorithm }; }
+    get usages() { return [...this.#s.usages]; }
+  }
+  const keyOf = (k) => {
+    const s = keyState(k);
+    if (s === null) throw new TypeErrorFn("the key is not a CryptoKey made by crypto.subtle");
+    return s;
+  };
+  const importKey = (format, keyData, algorithm, extractable, usages) => {
+    const { name, o } = algOf(algorithm);
+    const use = usagesOf(usages);
+    const algo = { name };
+    let curve = "";
+    if (name === "ECDSA") {
+      if (o.namedCurve === undefined || o.namedCurve === null) throw new TypeErrorFn("ECDSA needs a namedCurve");
+      curve = StringFn(o.namedCurve);
+      if (curve !== "P-256" && curve !== "P-384") throw new DOMException("only the curves P-256 and P-384 are supported", "NotSupportedError");
+      algo.namedCurve = curve;
+    } else if (name !== "Ed25519") {
+      const h = hashOf(o, name);
+      if (h === "SHA-1") throw new DOMException("RSA signatures use SHA-256, SHA-384 or SHA-512", "NotSupportedError");
+      algo.hash = { name: h };
+    }
+    const fmt = StringFn(format);
+    const formats = name === "ECDSA" || name === "Ed25519" ? ["spki", "raw"] : ["spki"];
+    if (!formats.includes(fmt)) throw new DOMException("a " + name + " public key is imported as " + formats.join(" or "), "NotSupportedError");
+    for (const u of use) if (u !== "verify") throw new DOMException("a public key can only have the verify usage", "SyntaxError");
+    const data = latin1(bytesOf(keyData));
+    csys("wc.import", name, curve, fmt, data);
+    return new CryptoKey(KEY, { type: "public", extractable: !!extractable, algorithm: algo, usages: use, format: fmt, data });
+  };
+  const verifySig = (algorithm, key, signature, data) => {
+    const { name, o } = algOf(algorithm);
+    const k = keyOf(key);
+    if (k.algorithm.name !== name) throw new DOMException("the key was imported for " + k.algorithm.name, "InvalidAccessError");
+    if (!k.usages.includes("verify")) throw new DOMException("the key does not have the verify usage", "InvalidAccessError");
+    let hash = "";
+    if (name === "ECDSA") {
+      hash = hashOf(o, "ECDSA");
+      if (hash !== (k.algorithm.namedCurve === "P-256" ? "SHA-256" : "SHA-384")) {
+        throw new DOMException("ECDSA " + k.algorithm.namedCurve + " is supported with its own hash only", "NotSupportedError");
+      }
+    } else if (name !== "Ed25519") {
+      hash = k.algorithm.hash.name;
+      if (name === "RSA-PSS" && o.saltLength !== undefined) {
+        const n = o.saltLength;
+        if (typeof n !== "number" || !NumberIsFinite(n) || n < 0 || MathTrunc(n) !== n) throw new TypeErrorFn("saltLength must be a non-negative whole number");
+        if (n !== HASH_BYTES[hash]) throw new DOMException("RSA-PSS supports only a salt as long as the hash", "NotSupportedError");
+      }
+    }
+    const sig = latin1(bytesOf(signature));
+    return csys("wc.verify", name, k.algorithm.namedCurve || "", hash, k.format, k.data, sig, latin1(bytesOf(data)));
+  };
+  const promised = (f) => (...a) => {
+    try {
+      return PromiseResolve(f(...a));
+    } catch (e) {
+      return PromiseReject(e);
+    }
+  };
   const subtle = {
+    importKey: promised(importKey),
+    verify: promised(verifySig),
     digest(alg, data) {
       try {
         let name = typeof alg === "string" ? alg : alg && alg.name;
@@ -253,6 +380,13 @@ const __pagelike = (() => {
     return out;
   }
 
+  // Only the documented base64 helpers of Uint8Array exist (R-JS-39b; docs
+  // snapshot 2026-11-23: fromHex, toHex, setFromBase64 and setFromHex are
+  // not available).
+  delete Uint8Array.fromHex;
+  delete Uint8Array.prototype.toHex;
+  delete Uint8Array.prototype.setFromBase64;
+  delete Uint8Array.prototype.setFromHex;
   const globals = { DOMException, crypto, TextEncoder, TextDecoder, btoa, atob };
   for (const k of ObjKeys(globals)) defineGlobal(k, globals[k]);
   for (const name of ["DOMParser", "XMLSerializer", "Node", "Document", "DocumentFragment", "CharacterData", "Text",

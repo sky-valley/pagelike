@@ -932,6 +932,14 @@ func (st *evalState) sys(op string, a []any) (any, error) {
 		}
 		h.Write(latin1Bytes(toStr(arg(a, 1))))
 		return hex.EncodeToString(h.Sum(nil)), nil
+	case "wc.import":
+		// wc.import(alg, curve, format, key)
+		_, err := parsePublicKey(toStr(arg(a, 0)), toStr(arg(a, 1)), toStr(arg(a, 2)), latin1Bytes(toStr(arg(a, 3))))
+		return nil, err
+	case "wc.verify":
+		// wc.verify(alg, curve, hash, format, key, signature, data)
+		return verifySignature(toStr(arg(a, 0)), toStr(arg(a, 1)), toStr(arg(a, 2)), toStr(arg(a, 3)),
+			latin1Bytes(toStr(arg(a, 4))), latin1Bytes(toStr(arg(a, 5))), latin1Bytes(toStr(arg(a, 6))))
 	case "random":
 		n, _ := toInt(arg(a, 0))
 		if n < 0 || n > 65536 {

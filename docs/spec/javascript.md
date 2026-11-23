@@ -898,7 +898,8 @@ U+00FF and `atob` input that is not base64 with a `DOMException` named
 `InvalidCharacterError`; either called with no argument is a `TypeError`;
 `atob` ignores ASCII white space. `Uint8Array.fromBase64` and
 `Uint8Array.prototype.toBase64` (alphabets `base64` and `base64url`,
-`omitPadding`) come with the engine.
+`omitPadding`) come with the engine. `Uint8Array.fromHex`, `toHex`,
+`setFromBase64` and `setFromHex` are not available.
 - Evidence: documented. Source: docs languages/javascript/server/base64
   (snapshot 2026-11-23; absent from the 2026-09-28 docs, where pagelike
   left them undefined). Case: `javascript.g1123.btoa-atob`.
@@ -908,7 +909,8 @@ U+00FF and `atob` input that is not base64 with a `DOMException` named
 (SHA-1, SHA-256, SHA-384, SHA-512; returns `Promise<ArrayBuffer>`),
 `crypto.getRandomValues(typedArray)` and `crypto.randomUUID()`, plus
 `TextEncoder`/`TextDecoder` (UTF-8 only), which a digest of a string needs.
-Other `crypto.subtle` methods are absent.
+`importKey` and `verify` are R-JS-39c. Other `crypto.subtle` methods are
+absent.
 - Contradiction C-JS-6: JSS §Explaining why says "the only global the sandbox
   defines is `DOMException`"; DOM pages document `DOMParser`, `XMLSerializer`,
   `Node` and the node classes as available, and JEB mentions `crypto.subtle`.
@@ -918,6 +920,41 @@ Other `crypto.subtle` methods are absent.
 - Evidence: documented (DOM globals), inferred (crypto details, encoders).
   Source: DOM §Interfaces and instanceof; DPARSE; DEX; JEB §Sessel or
   JavaScript?. Confidence: high (DOM), low (crypto shape).
+
+**R-JS-39c (public keys and signature checks).**
+`crypto.subtle.importKey(format, keyData, algorithm, extractable, usages)`
+imports a public key made elsewhere and
+`crypto.subtle.verify(algorithm, key, signature, data)` checks a signature
+with it; both return promises.
+
+| Algorithm | `algorithm` | Formats | Signature |
+|---|---|---|---|
+| ECDSA | `{name: "ECDSA", namedCurve: "P-256"}` or `"P-384"` | `spki`, `raw` (uncompressed point) | r then s, 64 or 96 bytes |
+| RSASSA-PKCS1-v1_5 | `{name, hash: "SHA-256"}` (or SHA-384, SHA-512) | `spki`, modulus 2048 to 8192 bits | as long as the modulus |
+| RSA-PSS | as above | `spki` | salt as long as the hash |
+| Ed25519 | `"Ed25519"` | `spki`, `raw` (32 bytes) | 64 bytes |
+
+- Each ECDSA curve verifies with its own hash only (SHA-256 with P-256,
+  SHA-384 with P-384); `verify` needs the hash. RSA-PSS takes only a salt as
+  long as the hash; `saltLength` may be left out.
+- A signature that does not match or is in the wrong form (an ASN.1 DER
+  ECDSA signature, a wrong length) is `false`, not an error.
+- A failure rejects with a `DOMException`: `DataError` for a malformed key
+  (not DER, trailing bytes, a compressed point, a point off the curve, an
+  SPKI for another curve or algorithm, an RSA modulus outside 2048 to 8192
+  bits, an even modulus or exponent, an Ed25519 key that is not a point);
+  `NotSupportedError` for another curve, JWK, raw RSA, an ECDSA hash that
+  does not match the curve or another RSA-PSS salt length; `SyntaxError` for
+  a usage other than `verify`; `InvalidAccessError` for `verify` with an
+  algorithm other than the key's. A wrong argument type rejects with a
+  `TypeError`: a key that `crypto.subtle` did not make, a missing
+  `namedCurve` or hash, a usage that is not a key usage, a `saltLength` that
+  is not a non-negative whole number.
+- Not ported: `generateKey`, `sign`, `deriveKey` and the other key kinds the
+  docs name without describing.
+- Evidence: documented. Source: docs languages/javascript/server/webcrypto
+  (snapshot 2026-11-23). Confidence: high. Cases:
+  `javascript.wc1123.import-and-verify`; `internal/jsrt/webcrypto_test.go`.
 
 ---
 
@@ -2607,6 +2644,7 @@ Requirement → cases (ids without the `javascript.` prefix):
 | R-JS-38 | `globals.host-io-absent`, `globals.other-host-apis-absent`, `reactions.trigger-save-plain-object-fails` |
 | R-JS-39 | `globals.dom-classes-present` |
 | R-JS-39a | `globals.crypto-subtle-digest` |
+| R-JS-39c | `wc1123.import-and-verify` |
 | R-JS-40 | `jbind.reads-resource-binding` |
 | R-JS-41 | `methods.return-scalars`, `slots.write-returns-function`, `slots.write-returns-cycle` |
 | R-JS-51 | `slots.default-parse-failure`, `slots.default-shape-not-function`, `slots.validate-strict-mode-referenceerror`, `slots.write-returns-function`, `slots.import-bare-specifier`, `slots.import-http-url`, `slots.import-pagelove-host`, `slots.import-dynamic`, `slots.import-schema-without-type-attribute`, `slots.import-literal-pagelove-schema`, `slots.import-unknown-schema` |
