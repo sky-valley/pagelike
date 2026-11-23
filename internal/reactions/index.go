@@ -409,6 +409,15 @@ func parseRule(path string, order int, n *html.Node, it *microdata.Item, process
 		switch p.Name {
 		case "when":
 			v := readValue(p)
+			if p.Item == nil {
+				// Plain text is the Sessel source of the gate; empty text
+				// means no gate (R-REACT-17, docs snapshot 2026-11-23).
+				src := strings.TrimSpace(v.text)
+				if src == "" {
+					continue
+				}
+				v = &value{lang: langSessel, source: src}
+			}
 			if v.lang != langSessel && v.lang != langJS || strings.TrimSpace(v.source) == "" {
 				return nil // a malformed gate skips the item (R-REACT-4)
 			}
@@ -567,8 +576,13 @@ func parseHandler(path string, it *microdata.Item, ext selector.ExtOptions) *han
 		switch p.Name {
 		case "when":
 			v := readValue(p)
-			if v.lang != langSessel || strings.TrimSpace(v.source) == "" {
-				return nil // a malformed gate fails closed (R-REACT-79)
+			if p.Item == nil {
+				// Plain text is Sessel source; empty text is a mistake
+				// here (R-REACT-79, docs snapshot 2026-11-23).
+				v = &value{lang: langSessel, source: v.text}
+			}
+			if v.lang != langSessel && v.lang != langJS || strings.TrimSpace(v.source) == "" {
+				return nil // a malformed condition fails closed (R-REACT-79)
 			}
 			h.when = v
 		case "action":

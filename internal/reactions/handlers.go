@@ -2,6 +2,8 @@ package reactions
 
 import (
 	"context"
+	"errors"
+	"net/http"
 	"strings"
 	"time"
 
@@ -10,6 +12,8 @@ import (
 	"github.com/sky-valley/pagelike/internal/budget"
 	"github.com/sky-valley/pagelike/internal/dom"
 	"github.com/sky-valley/pagelike/internal/engine"
+	"github.com/sky-valley/pagelike/internal/errdoc"
+	"github.com/sky-valley/pagelike/internal/microdata"
 	"github.com/sky-valley/pagelike/internal/query"
 	"github.com/sky-valley/pagelike/internal/sessel"
 )
@@ -17,7 +21,8 @@ import (
 // afterWrite is the engine AfterWrite hook. Inside the write's transaction
 // it records the requests the trigger phase queued (so they are durable
 // with the write, R-REACT-59) and the deliveries of transition handlers
-// (R-REACT-78). It never fails the write: nothing a handler does can.
+// (R-REACT-78). Delivery never fails the write; a handler condition that
+// cannot be judged refuses it before it commits (R-REACT-79).
 func (x *Reactions) afterWrite(ctx context.Context, w *engine.WriteCtx, res *engine.Result) error {
 	st := stateFrom(ctx)
 	state := statePending
@@ -66,8 +71,14 @@ func (x *Reactions) afterWrite(ctx context.Context, w *engine.WriteCtx, res *eng
 				continue
 			}
 			doc, bodyEl := transitionDocument(w.Op.Path, p.new, ix.types)
-			if h.when != nil && !x.handlerGate(ctx, w, h, doc, bodyEl) {
-				continue
+			if h.when != nil {
+				pass, err := x.handlerGate(ctx, w, h, doc, bodyEl)
+				if err != nil {
+					return x.gateFailed(w, h, err)
+				}
+				if !pass {
+					continue
+				}
 			}
 			for _, a := range h.actions {
 				if r := x.delivery(st, w, a, doc); r != nil {
@@ -106,28 +117,56 @@ func (h *handler) accepts(n *html.Node) bool {
 	return false
 }
 
-// handlerGate evaluates a handler's Sessel when gate against the
-// Transition item (R-REACT-79): falsy or failing means no delivery.
-func (x *Reactions) handlerGate(ctx context.Context, w *engine.WriteCtx, h *handler, doc string, _ *html.Node) bool {
+// handlerGate evaluates a handler's when condition against the Transition
+// item (R-REACT-79): Sessel sees it as self, a JavaScript module gets it as
+// its first argument. The result is judged by Sessel's rule in both
+// languages. An error means the condition cannot be judged.
+func (x *Reactions) handlerGate(ctx context.Context, w *engine.WriteCtx, h *handler, doc string, bodyEl *html.Node) (bool, error) {
 	root, err := dom.Parse([]byte(doc))
 	if err != nil {
-		return false
+		return false, err
 	}
 	body := dom.Body(root)
 	if body == nil {
 		body = dom.DocumentElement(root) // documents need not have a body (LO-15)
 	}
 	if body == nil {
-		return false
+		return false, errors.New("the Transition document has no item")
+	}
+	if h.when.lang == langJS {
+		it := microdata.Parse(body)
+		arg := map[string]any{"path": propText(it, "path"), "selector": propText(it, "selector"), "body": dom.OuterHTML(bodyEl)}
+		v, err := runJS(ctx, w.Site, w.Snap, SlotTriggerWhen, h.when.source, arg)
+		if err != nil {
+			return false, err
+		}
+		return sessel.Truthy(v), nil
 	}
 	d := &sessel.Document{Root: root}
 	env := &sessel.Env{Host: query.NewHost(w.Site, w.Snap), Self: sessel.Queried(body, d), HasSelf: true, Budget: budget.From(ctx).Sessel()}
 	v, err := sessel.Eval(ctx, h.when.source, env)
 	if err != nil {
-		x.log.Info("reactions: transition handler gate failed", "err", err, "handler", h.path)
-		return false
+		return false, err
 	}
-	return sessel.Truthy(v)
+	return sessel.Truthy(v), nil
+}
+
+// gateFailed refuses a save whose handler condition could not be judged
+// (R-REACT-79, docs snapshot 2026-11-23): running out of budget keeps its
+// 503; anything else is a 500 that names no handler and repeats nothing the
+// condition said, because that can hold data the writer may not read. The
+// log names the handler.
+func (x *Reactions) gateFailed(w *engine.WriteCtx, h *handler, err error) error {
+	x.log.Warn("reactions: transition handler condition failed; the save is refused", "err", err, "handler", h.path, "path", w.Op.Path)
+	if ed := runtimeError(h.when.lang, err); ed.Status == http.StatusServiceUnavailable {
+		return ed
+	}
+	const msg = "The when condition of a transition handler could not be evaluated, so nothing was saved."
+	doc := "<!DOCTYPE html>\n<html><body>\n<article itemscope itemtype=\"https://pagelove.org/Error/Internal\">\n" +
+		"  <meta itemprop=\"status\" content=\"500\">\n  <p itemprop=\"message\">" + msg + "</p>\n" +
+		"  <meta itemprop=\"resource\" content=\"" + attrEsc(w.Op.Path) + "\">\n" +
+		"  <div itemprop=\"problem\" itemscope itemtype=\"https://pagelove.org/Problem/TransitionGateFailed\"></div>\n</article>\n</body></html>\n"
+	return &errdoc.Error{Status: http.StatusInternalServerError, Kind: "TransitionGateFailed", Message: msg, Document: doc}
 }
 
 // delivery builds one handler delivery: static url, method and headers;

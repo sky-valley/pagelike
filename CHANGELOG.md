@@ -34,6 +34,14 @@ Schemas (docs snapshot 2026-11-23):
 - A schema-level JavaScript `@validate` gets the item as an object of its
   properties, not its HTML.
 
+Reactions (docs snapshot 2026-11-23):
+
+- A `when` written as plain text is a Sessel gate. A trigger with one used
+  to be skipped, so its guard did not run.
+- A transition handler's `when` may be plain text or a JavaScript module. A
+  condition that fails now refuses the save (500, naming no handler)
+  instead of quietly skipping the notification.
+
 Liquid (docs snapshot 2026-11-23):
 
 - `request.body` is parsed by Content-Type: form fields (last value wins),

@@ -373,43 +373,6 @@ cases:
         request: {method: GET, path: "${P}/d/x.html"}
         expect: {status: 404}
 
-  - id: reacting.gates.malformed-when-skips-trigger
-    title: A when that is plain text (not a Sessel or JavaScript item) makes the trigger malformed, so it is skipped
-    feature: malformed items
-    evidence: inferred
-    source: "spec R-REACT-4/R-REACT-17, pagelike decision; docs Trigger §Error handling ('it is skipped')"
-    confidence: low
-    requires: [sessel]
-    live: true
-    notes: "Skipping a malformed guard fails open; see spec R-REACT-4."
-    steps:
-      - name: install a trigger with a text gate
-        as: anonymous
-        request:
-          method: PUT
-          path: "${P}/r/triggers.html"
-          headers: {Content-Type: text/html}
-          body: |
-            <!DOCTYPE html>
-            <html><body>
-            <div hidden itemscope itemtype="https://pagelove.org/Trigger">
-              <meta itemprop="resource" content="${P}/d/*">
-              <meta itemprop="method" content="PUT">
-              <meta itemprop="when" content="true">
-              <div itemprop="action" itemscope itemtype="https://pagelove.org/Sessel">
-                <script itemprop="source" type="text/sessel">
-                  @schema HTTPResponse url("https://pagelove.org/HTTPResponse");
-                  throw new HTTPResponse { status: 409, message: "text-gate-fired" }
-                </script>
-              </div>
-            </div>
-            </body></html>
-        expect: {status: [200, 201, 204]}
-      - name: the trigger is skipped and the write proceeds
-        as: anonymous
-        request: {method: PUT, path: "${P}/d/x.html", headers: {Content-Type: text/html}, body: "<p>x</p>"}
-        expect: {status: [200, 201, 204]}
-
   - id: reacting.gates.several-when-all-must-pass
     title: A serving-path write storing a trigger with two when values is refused (422, platform schema Handler.when 0..1)
     feature: when gate

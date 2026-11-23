@@ -37,7 +37,7 @@ func TestDiscovery(t *testing.T) {
 </body></html>`,
 		"/a.html": `<html><body>
 <div hidden itemscope itemtype="https://pagelove.org/Schema"><meta itemprop="type" content="https://t.test/Guard"><meta itemprop="parent" content="https://pagelove.org/Trigger"></div>
-<div itemscope itemtype="https://t.test/Guard"><div itemprop="otherwise" itemscope itemtype="https://pagelove.org/Sessel"><script itemprop="source">1</script></div><meta itemprop="when" content="true"></div>
+<div itemscope itemtype="https://t.test/Guard"><div itemprop="otherwise" itemscope itemtype="https://pagelove.org/Sessel"><script itemprop="source">1</script></div><div itemprop="when" itemscope itemtype="https://t.test/NotCode"></div></div>
 <div itemscope itemtype="https://t.test/Guard"><div itemprop="action" itemscope itemtype="https://pagelove.org/HTTPRequest"><meta itemprop="url" content="/hook"></div></div>
 <div itemscope itemtype="https://pagelove.org/TransitionHandler"><meta itemprop="selector" content=".order, [itemtype='https://t.test/Order']"><meta itemprop="property" content="status"><meta itemprop="becomes" content="processing"><div itemprop="action" itemscope itemtype="https://pagelove.org/HttpRequest"><meta itemprop="url" content="/x"></div></div>
 <div itemscope itemtype="https://pagelove.org/TransitionHandler"><meta itemprop="selector" content=".order"><meta itemprop="property" content="status"><meta itemprop="becomes" content="processing"><div itemprop="action" itemscope itemtype="https://pagelove.org/HttpRequest"><meta itemprop="url" content="/x"></div></div>
