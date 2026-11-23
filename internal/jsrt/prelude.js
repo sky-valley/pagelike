@@ -103,7 +103,7 @@ const __pagelike = (() => {
     byId: 40, byTagNS: 41, closest: 42, matches: 43, createElement: 44, createElementNS: 45, createText: 46,
     createComment: 47, createFragment: 48, docElement: 49, head: 50, body: 51, parse: 52, serialize: 53,
     insertNodes: 54, remove: 55, firstEl: 56, lastEl: 57, nextEl: 58, prevEl: 59, elCount: 60, nodeType: 61,
-    hasChildren: 62, parentEl: 63,
+    hasChildren: 62, parentEl: 63, microdata: 64,
   };
 
   // ---------------------------------------------------------------- nodes (R-JS-64..73)
@@ -119,7 +119,7 @@ const __pagelike = (() => {
     domLoading = true;
     try { sys("dom"); } finally { domLoading = false; }
     if (domBuilder === null) throw new InternalErrorFn("the server DOM failed to load");
-    return domBuilder({ DOM, D1, D2, D3, D4, DN, OP, KEY, DOMException, TypeErrorFn, InternalErrorFn, ObjDefine, ObjCreate, StringFn, NumberFn, NumberIsFinite, MathTrunc, MathMax, MathMin, arrayPush, strLower, wmGet, wmSet, call });
+    return domBuilder({ JSONparse, DOM, D1, D2, D3, D4, DN, OP, KEY, DOMException, TypeErrorFn, InternalErrorFn, ObjDefine, ObjCreate, StringFn, NumberFn, NumberIsFinite, MathTrunc, MathMax, MathMin, arrayPush, strLower, wmGet, wmSet, call });
   };
 
   // ---------------------------------------------------------------- crypto, TextEncoder/Decoder (R-JS-39a)

@@ -41,6 +41,8 @@ Server JavaScript (docs snapshot 2026-11-23):
   search only its descendants, with `:scope` the element, as in a browser;
   they used to scan the whole document. `getElementById` is on Document
   only.
+- `element.microdata()` returns the first microdata item at or under an
+  element as a plain object.
 
 Reactions (docs snapshot 2026-11-23):
 

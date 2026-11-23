@@ -1492,6 +1492,20 @@ All mutators are guarded (R-JS-61).
 - Evidence: documented. Source: DNL. Confidence: high (members), low
   (index access).
 
+### R-JS-72b: `element.microdata()`
+
+- A PageLove addition on every server-side element, stored or script-made.
+  Returns the first microdata item at or under the element as a plain
+  object, or `null` when the element holds no item.
+- `@type` holds the item's itemtype and is absent when it has none. Each
+  property is a key: one value gives the value, several give an array in
+  document order. A nested item is an object. `itemref` is followed.
+- It only reads, so it works on a read-only element, and counts against the
+  evaluation's budget.
+- Evidence: documented (docs snapshot 2026-11-23, DOM Element §Microdata).
+  Key order (`@type`, then properties in document order) is inferred.
+  Confidence: medium.
+
 ### R-JS-73: Selectors in the DOM API
 
 - Every selector argument is parsed with pagelike's selector engine
@@ -2569,6 +2583,7 @@ Requirement → cases (ids without the `javascript.` prefix):
 | R-JS-70 | `dom.classlist` |
 | R-JS-71 | `dom.mutation-errors`, `dom.tree-operations`, `dom.insertion-conveniences`, `dom.closest-and-matches`, `dom.element-query-is-scoped`, `dom.get-element-by-id` |
 | R-JS-72 | `dom.nodelist-static-snapshot` |
+| R-JS-72b | `dom.microdata` |
 | R-JS-73 | `dom.mutation-errors`, `dom.namespace-pipe-selectors` |
 | R-JS-74 | `methods.docs-js-method-element`, `dom.domparser-ignores-type` |
 | R-JS-75 | `dom.xmlserializer` |

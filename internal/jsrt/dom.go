@@ -1,6 +1,7 @@
 package jsrt
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
 	"strings"
@@ -10,6 +11,7 @@ import (
 	"golang.org/x/net/html/atom"
 
 	"github.com/sky-valley/pagelike/internal/dom"
+	"github.com/sky-valley/pagelike/internal/microdata"
 	"github.com/sky-valley/pagelike/internal/selector"
 	"github.com/sky-valley/pagelike/internal/xmldom"
 )
@@ -955,6 +957,7 @@ const (
 	opNodeType
 	opHasChildren
 	opParentEl
+	opMicrodata
 )
 
 // op is the __pl_dom host function: op(code, handle, args…).
@@ -1025,6 +1028,8 @@ func (d *domState) do(code int, a []any) (any, error) {
 			return d.handle(n.Parent), nil
 		}
 		return -1, nil
+	case opMicrodata:
+		return microdataJSON(n), nil
 	case opFirst:
 		return d.handle(n.FirstChild), nil
 	case opLast:
@@ -1690,3 +1695,70 @@ func outerHTML(n *html.Node) string { return dom.OuterHTML(n) }
 func renderDocument(n *html.Node) string { return string(dom.Render(n)) }
 
 func isXMLNode(n *html.Node) bool { return xmldom.IsXML(n) }
+
+// microdataJSON is element.microdata() (R-JS-72b; docs snapshot
+// 2026-11-23): the first item at or under n as JSON, or nil when n holds
+// none. "@type" is the itemtype, absent without one; a property with one
+// value gives the value, with several an array in document order; a nested
+// item is an object; itemref is followed.
+func microdataJSON(n *html.Node) any {
+	var first *html.Node
+	dom.Walk(n, func(x *html.Node) bool {
+		if first == nil && microdata.IsItem(x) {
+			first = x
+		}
+		return first == nil
+	})
+	if first == nil {
+		return nil
+	}
+	var b strings.Builder
+	writeItemJSON(&b, microdata.Parse(first))
+	return b.String()
+}
+
+func writeItemJSON(b *strings.Builder, it *microdata.Item) {
+	b.WriteByte('{')
+	sep := ""
+	if t := strings.TrimSpace(dom.AttrOr(it.Node, "itemtype", "")); t != "" {
+		b.WriteString(`"@type":` + jsonString(t))
+		sep = ","
+	}
+	done := map[string]bool{}
+	for _, p := range it.Props {
+		if done[p.Name] {
+			continue
+		}
+		done[p.Name] = true
+		var vals []microdata.Prop
+		for _, q := range it.Props {
+			if q.Name == p.Name {
+				vals = append(vals, q)
+			}
+		}
+		b.WriteString(sep + jsonString(p.Name) + ":")
+		sep = ","
+		if len(vals) > 1 {
+			b.WriteByte('[')
+		}
+		for i, v := range vals {
+			if i > 0 {
+				b.WriteByte(',')
+			}
+			if v.Item != nil {
+				writeItemJSON(b, v.Item)
+			} else {
+				b.WriteString(jsonString(v.Value))
+			}
+		}
+		if len(vals) > 1 {
+			b.WriteByte(']')
+		}
+	}
+	b.WriteByte('}')
+}
+
+func jsonString(s string) string {
+	out, _ := json.Marshal(s)
+	return string(out)
+}

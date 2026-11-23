@@ -4,7 +4,7 @@
 // separate bytecode the first time a binding touches the DOM; the core
 // prelude hands it its kernel. /*IFACES*/ is replaced with ifaces.go data.
 __pagelike.kernel.setDOMBuilder((K) => {
-  const { DOM, D1, D2, D3, D4, DN, OP, KEY, DOMException, TypeErrorFn, InternalErrorFn, ObjDefine, ObjCreate, StringFn, NumberFn, NumberIsFinite, MathTrunc, MathMax, MathMin, arrayPush, strLower, wmGet, wmSet, call } = K;
+  const { JSONparse, DOM, D1, D2, D3, D4, DN, OP, KEY, DOMException, TypeErrorFn, InternalErrorFn, ObjDefine, ObjCreate, StringFn, NumberFn, NumberIsFinite, MathTrunc, MathMax, MathMin, arrayPush, strLower, wmGet, wmSet, call } = K;
   const IFACES = /*IFACES*/[];
   const cache = [];
   let hOf; // node → handle, -1 for anything else
@@ -118,6 +118,8 @@ __pagelike.kernel.setDOMBuilder((K) => {
     get namespaceURI() { return D1(OP.nsURI, hOf(this)); }
     get id() { return D2(OP.getAttr, hOf(this), "id") ?? ""; }
     get className() { return D2(OP.getAttr, hOf(this), "class") ?? ""; }
+    // R-JS-72b: the first microdata item at or under the element, or null.
+    microdata() { const j = D1(OP.microdata, hOf(this)); return j === null ? null : JSONparse(j); }
     getAttribute(n) { return D2(OP.getAttr, hOf(this), StringFn(n)); }
     hasAttribute(n) { return D2(OP.hasAttr, hOf(this), StringFn(n)); }
     setAttribute(n, v) { D3(OP.setAttr, hOf(this), StringFn(n), StringFn(v)); }
