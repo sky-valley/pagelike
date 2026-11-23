@@ -65,6 +65,10 @@ type Op struct {
 	Destination      string // destination path (already reduced from a URL)
 	DestinationRange Range
 	Overwrite        string // whole-document MOVE: "F" refuses to replace
+
+	// Correlation ties the two events of an element move to another page
+	// (R-SSE-64); set on the two writes that make the move.
+	Correlation string
 }
 
 // Result is a write outcome.
@@ -629,6 +633,7 @@ func (e *Engine) event(w *WriteCtx, path string, m sse.Mutation, targets ...*htm
 	}
 	m.Path = path
 	m.Host = e.canonicalHost(w)
+	m.Correlation = op.Correlation
 	m.ActorKind, m.ActorID = "anonymous", ""
 	if pr := op.Principal; pr != nil && pr.Authenticated {
 		m.ActorKind, m.ActorID = "session", pr.Sub

@@ -15,6 +15,13 @@ Server-sent events (docs snapshot 2026-11-23):
 - Writes made by triggers, processors and methods are streamed, naming the
   requester.
 
+MOVE:
+
+- An element can be moved to another page of the site in one step. The
+  source stream gets a DELETE and the destination stream a POST, with a
+  shared `correlation`.
+- An element MOVE answers with the moved element's ETag.
+
 Authorization hardening PageLove documented after the port (docs snapshot
 2026-11-23):
 

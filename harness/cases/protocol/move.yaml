@@ -260,50 +260,6 @@ cases:
             Destination-Range: "selector=#lane-done; placement=sideways"
         expect: {status: 422}
 
-  - id: protocol.move.cross-document-501
-    title: An element move whose Destination names another document is 501 MoveCrossResource and writes nothing
-    area: protocol
-    feature: MOVE validation
-    evidence: documented
-    source: "docs reference/reading-and-writing/MOVE-method §Error cases (snapshot 2026-09-28)"
-    confidence: high
-    requires: []
-    live: true
-    notes: R-PROTO-95, C-12.
-    site:
-      files:
-        - path: "${P}/board.html"
-          body: *board
-        - path: "${P}/other.html"
-          body: |
-            <!DOCTYPE html>
-            <html><body><section class="lane" id="lane-done"></section></body></html>
-      rules: *broad
-    steps:
-      - name: cross-document element move
-        as: anonymous
-        request:
-          method: MOVE
-          path: "${P}/board.html"
-          headers:
-            Range: "selector=#card-3"
-            Destination: "${P}/other.html"
-            Destination-Range: "selector=#lane-done; placement=append"
-        expect:
-          status: 501
-          body_contains: ["MoveCrossResource"]
-      - name: source unchanged
-        as: anonymous
-        request:
-          method: GET
-          path: "${P}/board.html"
-          headers: {Range: "selector=#lane-todo"}
-        expect: {status: 206, body_contains: ['id="card-3"']}
-      - name: destination unchanged
-        as: anonymous
-        request: {method: GET, path: "${P}/other.html"}
-        expect: {status: 200, body_not_contains: ["card-3"]}
-
   - id: protocol.move.source-absent-416
     title: A source selector that matches nothing is 416
     area: protocol

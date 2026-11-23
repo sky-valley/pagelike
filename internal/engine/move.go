@@ -2,6 +2,9 @@ package engine
 
 import (
 	"context"
+	"crypto/rand"
+	"encoding/hex"
+	"errors"
 	"net/http"
 	"strings"
 
@@ -10,14 +13,15 @@ import (
 	"github.com/sky-valley/pagelike/internal/dom"
 	"github.com/sky-valley/pagelike/internal/errdoc"
 	"github.com/sky-valley/pagelike/internal/sse"
+	"github.com/sky-valley/pagelike/internal/store"
 )
 
 // move implements the MOVE method (PageLove docs, MOVE method;
 // docs/spec/protocol.md §9, reconciled with live PageLove 2026-09-28).
 // Conditions are checked in the order of the spec's error table
 // (R-PROTO-99): reserved namespace → incomplete requests (422
-// MoveMissingHeaders) → cross-document element moves (501) → an unusable
-// destination selector (422) → the document-level MOVE grant → missing
+// MoveMissingHeaders) → an unusable destination selector (422) → a move to
+// another page (moveAcross, R-PROTO-145) → the document-level MOVE grant → missing
 // document (404) → selector ranges on a blob (422) → absent source (416;
 // an unparsable source selector matches nothing) or anchor (404), reported
 // only to actors who may read the page and hold the DELETE (source) or
@@ -49,12 +53,12 @@ func (e *Engine) move(ctx context.Context, w *WriteCtx) (*Result, error) {
 	if !ValidPlacement(placement) {
 		return nil, incomplete
 	}
-	if DocPath(dest) != op.Path {
-		return nil, errdoc.Problems(http.StatusNotImplemented, "MoveCrossResource", "Cross-resource MOVE is not supported")
-	}
 	dstSel, err := op.DestinationRange.CheckSelector()
 	if err != nil {
 		return nil, errdoc.Problems(http.StatusUnprocessableEntity, "InvalidPath", "Invalid destination selector: invalid selector '%s': %s", op.DestinationRange.Selector, err.(*errdoc.Error).Message)
+	}
+	if DocPath(dest) != op.Path {
+		return e.moveAcross(ctx, w, DocPath(dest))
 	}
 	// An unparsable source selector matches nothing (live: 416).
 	srcSel, _ := op.Range.CheckSelector()
@@ -159,10 +163,13 @@ func (e *Engine) move(ctx context.Context, w *WriteCtx) (*Result, error) {
 	if err != nil {
 		return nil, err
 	}
+	// The ETag is the moved element's, as a GET of it returns straight
+	// after the move (docs 2026-11-23, superseding the document's tag).
+	moved := servedAfter(stored, after)(s2)
 	res := &Result{Status: http.StatusNoContent, Header: http.Header{}}
-	res.Header.Set("ETag", stored.ETag)
 	writeHeaders(res.Header, stored)
-	m := sse.Mutation{Method: "MOVE", Selector: op.Range.Selector, ETag: eventTag(stored), Body: servedAfter(stored, after)(s2),
+	res.Header.Set("ETag", FragmentETag(moved, stored.Version))
+	m := sse.Mutation{Method: "MOVE", Selector: op.Range.Selector, ETag: eventTag(stored), Body: moved,
 		Placement: placement, Destination: op.DestinationRange.Selector}
 	if err := e.event(w, op.Path, m, s2); err != nil {
 		return nil, err
@@ -258,4 +265,93 @@ func (e *Engine) moveDocument(ctx context.Context, w *WriteCtx, dest string) (*R
 	res.Header.Set("ETag", stored.ETag)
 	writeHeaders(res.Header, stored)
 	return e.after(ctx, w, res)
+}
+
+// moveAcross moves an element to another page of the site (R-PROTO-145,
+// docs 2026-11-23): MOVE must be granted on both pages, then the move is a
+// selector DELETE of the source element and a POST of its markup at the
+// destination anchor, in one transaction, so each page runs its own checks
+// (authorization, preconditions, validation, protected elements) and either
+// refusal leaves both pages as they were. The two events share a fresh
+// correlation (R-SSE-64). If-Match conditions the source element only.
+func (e *Engine) moveAcross(ctx context.Context, w *WriteCtx, dest string) (*Result, error) {
+	op := w.Op
+	if err := e.authorize(w, "MOVE", nil); err != nil {
+		return nil, err
+	}
+	if op.Plane == Public {
+		req := w.authzReq("MOVE")
+		req.Path = dest
+		if !w.Snap.Policy.Decide(req, nil).Allowed {
+			return nil, Denied(op.Principal, op.Path)
+		}
+	}
+	if w.Doc == nil {
+		return nil, missingDocument(op.Path)
+	}
+	if w.Before == nil || (op.Plane == Public && !htmlDocument(w.Doc)) {
+		return nil, notHTML(w.Doc)
+	}
+	dd, err := w.Tx.Get(dest)
+	if errors.Is(err, store.ErrNotFound) {
+		return nil, errdoc.Problems(http.StatusNotFound, "NotFound", "Destination document not found: %s", dest)
+	}
+	if err != nil {
+		return nil, err
+	}
+	if !htmlDocument(dd) {
+		return nil, notHTML(dd)
+	}
+	srcSel, _ := op.Range.CheckSelector()
+	var src *html.Node
+	if srcSel != nil {
+		src = srcSel.MatchFirst(w.Before)
+	}
+	if src == nil {
+		if op.Plane == Public && (!e.canRead(w) || !e.docGrants(w, "DELETE")) {
+			return nil, Denied(op.Principal, op.Path)
+		}
+		return nil, errdoc.NoMatch(op.Range.Selector)
+	}
+	if src.Parent == nil || src.Parent.Type != html.ElementNode {
+		return nil, errdoc.Problems(http.StatusUnprocessableEntity, "InvalidPath", "Invalid MOVE: the document root cannot be moved")
+	}
+	markup := w.servedBefore(src)
+	corr := newCorrelation()
+
+	del := *op
+	del.Method, del.Destination, del.DestinationRange, del.Body, del.Correlation = "DELETE", "", Range{}, nil, corr
+	if _, err := e.apply(ctx, &WriteCtx{Site: w.Site, Snap: w.Snap, Tx: w.Tx, Op: &del, Engine: e}); err != nil {
+		return nil, err
+	}
+	post := *op
+	post.Method, post.Path, post.Range, post.Destination, post.DestinationRange = "POST", dest, op.DestinationRange, "", Range{}
+	post.Body, post.ContentType, post.IfMatch, post.IfNoneMatch, post.Correlation = []byte(markup), "text/html", "", "", corr
+	post.Header = op.Header.Clone()
+	for _, k := range []string{"If-Match", "If-None-Match", "Range", "Destination", "Destination-Range"} {
+		post.Header.Del(k)
+	}
+	r, err := e.apply(ctx, &WriteCtx{Site: w.Site, Snap: w.Snap, Tx: w.Tx, Op: &post, Engine: e})
+	if err != nil {
+		var ed *errdoc.Error
+		if errors.As(err, &ed) && ed.Status == http.StatusRequestedRangeNotSatisfiable {
+			return nil, errdoc.Problems(http.StatusNotFound, "NotFound", "Destination element not found: %s", op.DestinationRange.Selector)
+		}
+		return nil, err
+	}
+	// 204, tagged as the moved element in its new place.
+	res := &Result{Status: http.StatusNoContent, Header: http.Header{}}
+	for _, k := range []string{"ETag", "Last-Modified"} {
+		if v := r.Header.Get(k); v != "" {
+			res.Header.Set(k, v)
+		}
+	}
+	return res, nil
+}
+
+// newCorrelation is an opaque value naming one move between pages.
+func newCorrelation() string {
+	var b [16]byte
+	rand.Read(b[:])
+	return hex.EncodeToString(b[:])
 }

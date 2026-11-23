@@ -853,5 +853,10 @@ Shown missing by `harness/cases/sse/sweep-1123.yaml` before the change.
   (superseding the live 2026-09-28 announcement on the page's path).
 - **Source:** DOCS Server-Sent-Events §Composed pages. **Cases:** `sse.scope.write-through-event-on-origin`.
 
-R-SSE-64 (the `correlation` of an element move to another page) arrives
-with cross-page MOVE.
+### R-SSE-64 — A move between pages is two events with one correlation
+- **Behavior:** the source page's stream gets a DELETE (the selector that
+  named the element), the destination's a POST (the anchor, the placement,
+  the moved element as body). Both carry
+  `<meta itemprop="correlation" content="…">`, 32 random hex digits made
+  for that move; no other event carries one.
+- **Source:** DOCS Server-Sent-Events §A move between pages. **Cases:** `protocol.move-across.events`.
