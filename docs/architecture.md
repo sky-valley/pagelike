@@ -94,6 +94,9 @@ microdata item drops (see `docs/decisions/0002-liquid.md`).
   calls, Context write-back) go over the same pipe.
 - Sessel and Liquid run in-process under per-request budgets (ops, time,
   memory) shared across one request.
+- Password hashes (bcrypt, Argon2) take a slot of `internal/hashgate`, which
+  shares the server's cores and Argon2 memory between sites: no site gets
+  more than half.
 - Each site is a separate database; every graph query is scoped to one site.
   Resource bindings see the whole site (PageLove's trusted-author model) but
   never another site.

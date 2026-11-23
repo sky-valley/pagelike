@@ -2024,8 +2024,8 @@
 - id: sessel.expr.val.member-access-property
   context_html: *item
   expr: '[${#widget}.first().name, ${#widget}.first().price, ${[itemscope]}.last().tag, ${#widget}.first().missing]'
-  expect_json: ["Widget", "29.99", ["a", "b"], null]
-  source: "[PRP] §Reading a multi-valued property (selector route); [SYN] §Destructuring (message dispatch)"
+  expect_json: ["Widget", 29.99, ["a", "b"], null]
+  source: "[PRP] §Reading a multi-valued property (selector route); [SYN] §Destructuring (message dispatch); [ELM] §Reading a property with a dot (numeric text reads as a number, snapshot 2026-11-23)"
   confidence: medium
 - id: sessel.expr.val.provenance-path
   context_html: *item
@@ -2274,12 +2274,14 @@
   evidence: inferred
   confidence: low
   source: "[TYP] §Selector; spec R-SESSEL-88"
-- id: sessel.expr.selector.bare-name-is-element
-  expr: 'new Selector { "h1" }'
-  expect_html: '<selector>h1</selector>'
-  evidence: live-observed
-  source: "live 2026-09-29 (harness/observations/live-2026-09-29-reconcile-sessel/sessel-query-probe-0929-mutation-and-sel.json)"
-  notes: Without @schema Selector, `Selector` is an ordinary tag name (R-SESSEL-210).
+- id: sessel.expr.selector.bare-name-is-builtin
+  expr: '(new Selector { "h1" }).toString()'
+  expect_json: "h1"
+  source: "[TYP] §Selector ('Selector is a built-in name', snapshot 2026-11-23)"
+  notes: >-
+    R-SESSEL-210. Live 2026-09-29 built a <selector> element without @schema
+    (harness/observations/live-2026-09-29-reconcile-sessel/sessel-query-probe-0929-mutation-and-sel.json);
+    the newer docs supersede it.
 - id: sessel.expr.new.text
   expr: 'new p { text: "Hello, World" }'
   expect_html: '<p>Hello, World</p>'
@@ -3443,3 +3445,130 @@
   expect_json: "8 April 2026"
   source: "[RTD] §Formatting a date on read (SC-6)"
   confidence: low
+# ---- docs snapshot 2026-11-23 (sessel sweep) ----
+- id: sessel.expr.s1123.attr-any-case
+  context_html: '<!DOCTYPE html><html><body><svg id="s" viewBox="0 0 1 1" xmlns:xlink="http://www.w3.org/1999/xlink"></svg></body></html>'
+  expr: '[${#s}.first().attr("viewbox"), ${#s}.first().attr("VIEWBOX")]'
+  expect_json: ["0 0 1 1", "0 0 1 1"]
+  source: "[QRY] §Reading values (.attr: 'The name matches in any letter case', snapshot 2026-11-23)"
+- id: sessel.expr.s1123.from-computed-string
+  context_html: '<!DOCTYPE html><html><body><a class="nav" href="/b.html">b</a></body></html>'
+  site:
+    - {path: /b.html, body: '<!DOCTYPE html><html><body><li>one</li><li>two</li></body></html>'}
+  expr: 'let p = "/b" + ".html"; [(${li} from p).count(), (${li} from (${a.nav}.first().attr("href"))).count()]'
+  expect_json: [2, 2]
+  source: "[SYN] §Computed sources (snapshot 2026-11-23)"
+- id: sessel.expr.s1123.from-computed-list
+  context_html: '<!DOCTYPE html><html><body></body></html>'
+  site:
+    - {path: /a.html, body: '<!DOCTYPE html><html><body><li>a</li></body></html>'}
+    - {path: /b.html, body: '<!DOCTYPE html><html><body><li>b</li><li>c</li></body></html>'}
+  expr: '[(${li} from ["/a.html", "/b.html"]).count(), (${li} from []).count(), (${li} from ("/" + "*.html")).count()]'
+  expect_json: [3, 0, 3]
+  source: "[SYN] §Computed sources (snapshot 2026-11-23)"
+- id: sessel.expr.s1123.from-computed-type-error
+  context_html: '<!DOCTYPE html><html><body></body></html>'
+  expr: 'let n = 4; ${li} from n'
+  expect_error: TypeError
+  source: "[SYN] §Computed sources ('Anything else, a number for instance, is a type error', snapshot 2026-11-23)"
+- id: sessel.expr.s1123.parent-after-remove
+  expr: 'let x = new div#x { new span { } }; let c = x.children().first(); x.empty(); c.parent()'
+  expect_json: null
+  source: "[ELM] §.parent() (dropped children, snapshot 2026-11-23)"
+- id: sessel.expr.s1123.parent-after-sethtml
+  expr: 'let x = new div#x { new span { } }; let c = x.children().first(); x.setHTML("<b>n</b>"); [c.parent(), c.outerHTML()]'
+  expect_json: [null, "<span></span>"]
+  source: "[ELM] §.setHTML() (snapshot 2026-11-23)"
+- id: sessel.expr.s1123.dot-property-typed
+  context_html: '<!DOCTYPE html><html><body><div id="p" itemscope itemtype="https://example.com/P"><div class="w"><meta itemprop="qty" content="3"><meta itemprop="price" content="2.5"><meta itemprop="ok" content="true"><span itemprop="name">N</span></div></div></body></html>'
+  expr: 'let p = ${#p}.first(); [p.qty + 1, p.price * 2, p.ok == true, p.name, p.qty.String()]'
+  expect_json: [4, 5, true, "N", "3"]
+  source: "[ELM] §Reading a property with a dot (snapshot 2026-11-23)"
+- id: sessel.expr.s1123.microdata-first-item-inside
+  context_html: '<!DOCTYPE html><html><body><section id="w"><div itemscope itemtype="https://example.com/P"><span itemprop="name">A</span></div></section></body></html>'
+  expr: '${#w}.first().microdata().name'
+  expect_json: "A"
+  source: "[ELM] §.microdata() ('For any other element, .microdata() reads the first item inside it', snapshot 2026-11-23)"
+- id: sessel.expr.s1123.microdata-ownership
+  context_html: '<!DOCTYPE html><html><body><div id="o" itemscope itemtype="https://example.com/O" itemref="extra"><div><span itemprop="name">Outer</span></div><div itemprop="child" itemscope itemtype="https://example.com/C"><span itemprop="name">Inner</span></div></div><p id="extra" itemprop="note">ref</p></body></html>'
+  expr: 'let m = ${#o}.first().microdata(); [m.name, m.note, m.child.name]'
+  expect_json: ["Outer", "ref", "Inner"]
+  source: "[ELM] §.microdata() (wrappers, itemref, nested items, snapshot 2026-11-23)"
+- id: sessel.expr.s1123.properties-owned
+  context_html: '<!DOCTYPE html><html><body><div id="o" itemscope itemtype="https://example.com/O" itemref="extra"><div><span itemprop="name">Outer</span></div><div itemprop="child" itemscope itemtype="https://example.com/C"><span itemprop="name">Inner</span><span itemprop="deep">x</span></div><span itemprop="name">Again</span></div><p id="extra" itemprop="note">ref</p></body></html>'
+  expr: '@schema Sessel url("https://pagelove.org/Sessel"); Sessel.properties(${#o}.first())'
+  expect_json: ["name", "child", "note"]
+  source: "[TYP] §Sessel.properties (distinct, page order, wrappers, itemref, not nested; snapshot 2026-11-23)"
+- id: sessel.expr.s1123.selector-builtin
+  context_html: '<!DOCTYPE html><html><body><p class="x">1</p><p class="x">2</p></body></html>'
+  expr: '(new Selector { "p.x" }).execute().count()'
+  expect_json: 2
+  confidence: medium
+  source: "[TYP] §Selector ('Selector is a built-in name, so new Selector { ... } needs no @schema declaration', snapshot 2026-11-23)"
+- id: sessel.expr.s1123.argon2-length-range
+  expr: 'try { "pw".argon2({ length: 65 }) } catch (e) { e.type }'
+  expect_json: TypeError
+  source: "[STR] §.argon2() (length 4 to 64, snapshot 2026-11-23)"
+- id: sessel.expr.s1123.try-does-not-catch-budget
+  expr: 'try { "pw".bcrypt({ cost: 31 }) } catch (e) { "caught" }'
+  expect_error: RuntimeError
+  source: "[SYN] §try/catch ('Two things never reach the catch body: running out of the request's budget', snapshot 2026-11-23)"
+- id: sessel.expr.s1123.return-inside-try
+  expr: '[1, 2].map(x => { try { return x * 2; } catch (e) { 0 } })'
+  expect_json: [2, 4]
+  source: "[SYN] §try/catch ('a return inside the try body, which returns from the enclosing lambda', snapshot 2026-11-23)"
+- id: sessel.expr.s1123.map-null-matches-nothing
+  context_html: '<!DOCTYPE html><html><body><div itemscope itemtype="https://example.com/T"><span itemprop="name">a</span></div></body></html>'
+  expr: '@schema T url("https://example.com/T"); [T.search({ name: null }).count(), T.search([{ name: null }, { name: "a" }]).count()]'
+  expect_json: [0, 1]
+  source: "[TYP] §Map search predicates ('A null value matches nothing … a Map with a null value is left out', snapshot 2026-11-23)"
+- id: sessel.expr.s1123.overload-by-arg-count
+  site: &overloads
+    - path: /system/schemas.html
+      body: |-
+        <!DOCTYPE html><html><body>
+        <div itemscope itemtype="https://pagelove.org/Schema"><meta itemprop="type" content="https://example.com/Greeter"><meta itemprop="name" content="Greeter">
+        <div itemprop="property" itemscope itemtype="https://pagelove.org/Method"><meta itemprop="name" content="hi"><div itemprop="implementation" itemscope itemtype="https://pagelove.org/Sessel"><script itemprop="source" type="text/sessel">"none"</script></div></div>
+        <div itemprop="property" itemscope itemtype="https://pagelove.org/Method"><meta itemprop="name" content="hi"><div itemprop="parameter" itemscope itemtype="https://pagelove.org/Parameter"><meta itemprop="name" content="a"></div><div itemprop="parameter" itemscope itemtype="https://pagelove.org/Parameter"><meta itemprop="name" content="b"></div><div itemprop="implementation" itemscope itemtype="https://pagelove.org/Sessel"><script itemprop="source" type="text/sessel">"two:" + a + (b ?? "-")</script></div></div>
+        </div>
+        </body></html>
+    - path: /data/g.html
+      body: '<!DOCTYPE html><html><body><div id="g" itemscope itemtype="https://example.com/Greeter"></div></body></html>'
+  expr: '@schema Greeter url("https://example.com/Greeter"); let g = Greeter.search().first(); [g.hi(), g.hi("x"), g.hi("x", "y")]'
+  expect_json: ["none", "two:x-", "two:xy"]
+  source: "[MTH] §Overloading ('Selection looks at the number of arguments only … the one with the fewest parameters wins', snapshot 2026-11-23)"
+- id: sessel.expr.s1123.has-method
+  site: *overloads
+  expr: '@schema Sessel url("https://pagelove.org/Sessel"); @schema Greeter url("https://example.com/Greeter"); let g = Greeter.search().first(); [Sessel.hasMethod(g, "hi", 0), Sessel.hasMethod(g, "hi", 2), Sessel.hasMethod(g, "hi", 3), Sessel.hasMethod(g, "bye", 0), Sessel.hasMethod("text", "hi", 0)]'
+  expect_json: [true, true, false, false, false]
+  source: "[TYP] §Sessel.hasMethod (snapshot 2026-11-23)"
+- id: sessel.expr.s1123.has-method-type-error
+  expr: '@schema Sessel url("https://pagelove.org/Sessel"); Sessel.hasMethod(null, 4, 0)'
+  expect_error: TypeError
+  source: "[TYP] §Sessel.hasMethod ('A name that is not a string … is a type error', snapshot 2026-11-23)"
+- id: sessel.expr.s1123.multi-type-item
+  site:
+    - path: /system/schemas.html
+      body: |-
+        <!DOCTYPE html><html><body>
+        <div itemscope itemtype="https://pagelove.org/Schema"><meta itemprop="type" content="https://example.com/Game"><meta itemprop="name" content="Game">
+        <div itemprop="property" itemscope itemtype="https://pagelove.org/Method"><meta itemprop="name" content="label"><div itemprop="implementation" itemscope itemtype="https://pagelove.org/Sessel"><script itemprop="source" type="text/sessel">"game"</script></div></div>
+        </div>
+        <div itemscope itemtype="https://pagelove.org/Schema"><meta itemprop="type" content="https://example.com/Toy"><meta itemprop="name" content="Toy">
+        <div itemprop="property" itemscope itemtype="https://pagelove.org/Method"><meta itemprop="name" content="label"><div itemprop="implementation" itemscope itemtype="https://pagelove.org/Sessel"><script itemprop="source" type="text/sessel">"toy"</script></div></div>
+        <div itemprop="property" itemscope itemtype="https://pagelove.org/Method"><meta itemprop="name" content="squeak"><div itemprop="implementation" itemscope itemtype="https://pagelove.org/Sessel"><script itemprop="source" type="text/sessel">"squeak"</script></div></div>
+        </div>
+        </body></html>
+    - path: /data/g.html
+      body: '<!DOCTYPE html><html><body><div id="g" itemscope itemtype="https://example.com/Game https://example.com/Toy"><span itemprop="name">g</span></div></body></html>'
+  expr: '@schema Game url("https://example.com/Game"); @schema Toy url("https://example.com/Toy"); let g = Game.search({}).first(); [Game.search({}).count(), Toy.search({}).count(), g.label(), g.squeak(), g isa Toy]'
+  expect_json: [1, 1, "game", "squeak", true]
+  source: "[QRY] §Items with several types ('Game.search({}) finds it … isa is true when any of the types … the type written first runs. A method only a later type defines still works', snapshot 2026-11-23)"
+- id: sessel.expr.s1123.search-from-option
+  context_html: '<!DOCTYPE html><html><body></body></html>'
+  site:
+    - {path: /a/x.html, body: '<!DOCTYPE html><html><body><div itemscope itemtype="https://example.com/T"><span itemprop="name">a</span></div></body></html>'}
+    - {path: /b/y.html, body: '<!DOCTYPE html><html><body><div itemscope itemtype="https://example.com/T"><span itemprop="name">b</span></div></body></html>'}
+  expr: '@schema T url("https://example.com/T"); [T.search({}).count(), T.search({}, { from: "/a/*" }).map(t => t.name), T.search({}, { from: ["/a/x.html", "/b/y.html"] }).count()]'
+  expect_json: [2, ["a"], 2]
+  source: "[QRY] §from ('Class.search … its from option follows the same rules as a from clause', snapshot 2026-11-23)"

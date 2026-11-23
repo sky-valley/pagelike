@@ -9,6 +9,7 @@ import (
 
 	"github.com/sky-valley/pagelike/internal/budget"
 	"github.com/sky-valley/pagelike/internal/errdoc"
+	"github.com/sky-valley/pagelike/internal/hashgate"
 	"github.com/sky-valley/pagelike/internal/query"
 	"github.com/sky-valley/pagelike/internal/sessel"
 	"github.com/sky-valley/pagelike/internal/site"
@@ -389,6 +390,9 @@ func (e *evalEnv) bindings(ctx context.Context) (map[string]sessel.Value, error)
 // (501 without a JavaScript runtime) with an error document that embeds a
 // BindingFailure item.
 func runtimeError(lang string, err error) *errdoc.Error {
+	if ed := hashgate.Refused(err); ed != nil {
+		return ed // a refused password hash (R-LIQ-184)
+	}
 	language := TypeSessel
 	if lang == langJS {
 		language = TypeJavaScript

@@ -1,6 +1,7 @@
 package sessel
 
 import (
+	"context"
 	"crypto/hmac"
 	"crypto/rand"
 	"crypto/sha256"
@@ -18,6 +19,8 @@ import (
 	"golang.org/x/crypto/argon2"
 	"golang.org/x/crypto/bcrypt"
 	"golang.org/x/text/unicode/norm"
+
+	"github.com/sky-valley/pagelike/internal/hashgate"
 )
 
 // hashMethod implements .sha256(), .hmac_sha256(key), .bcrypt([options])
@@ -63,9 +66,15 @@ func hashMethod(r *run, s, name string, args []Value) (Value, error) {
 		}
 		// bcrypt cannot be interrupted: refuse costs that cannot finish
 		// within the remaining time budget (cost 10 ≈ 50 ms, doubling).
-		if err := r.affordable(50 * time.Millisecond << max(cost-10, 0)); err != nil {
+		est := hashgate.BcryptEstimate(cost)
+		if err := r.affordable(est); err != nil {
 			return nil, err
 		}
+		release, err := r.hashSlot(0, est)
+		if err != nil {
+			return nil, err
+		}
+		defer release()
 		h, err := bcrypt.GenerateFromPassword(pw, cost)
 		if err != nil {
 			return nil, runtimeErr("bcrypt(): %v", err)
@@ -94,8 +103,8 @@ func hashMethod(r *run, s, name string, args []Value) (Value, error) {
 				}
 				iter = n
 			case "length":
-				if n < 4 || n > 1024 {
-					return nil, typeErr("argon2(): length must be 4..1024")
+				if n < 4 || n > 64 {
+					return nil, typeErr("argon2(): length must be 4..64")
 				}
 				length = n
 			default:
@@ -105,9 +114,15 @@ func hashMethod(r *run, s, name string, args []Value) (Value, error) {
 		if err := r.alloc(int(mem) << 10); err != nil {
 			return nil, err
 		}
-		if err := r.affordable(time.Duration(mem*iter) * time.Microsecond); err != nil {
+		est := hashgate.Argon2Estimate(mem, iter)
+		if err := r.affordable(est); err != nil {
 			return nil, err
 		}
+		release, err := r.hashSlot(mem, est)
+		if err != nil {
+			return nil, err
+		}
+		defer release()
 		salt := make([]byte, 16)
 		if _, err := rand.Read(salt); err != nil {
 			return nil, runtimeErr("argon2(): %v", err)
@@ -130,6 +145,17 @@ func (r *run) affordable(est time.Duration) error {
 		return &Error{Type: RuntimeErrorType, Message: fmt.Sprintf("budget exhausted: the operation needs about %v, more than the remaining time budget", est), Reason: ReasonTimeout}
 	}
 	return nil
+}
+
+// hashSlot takes a slot of the shared hashing gate. A refusal is an
+// *errdoc.Error (503, Retry-After: 1), which no try/catch catches: the
+// request fails (R-LIQ-184, R-SESSEL-118..121).
+func (r *run) hashSlot(memKiB int64, est time.Duration) (func(), error) {
+	ctx := r.ctx
+	if ctx == nil {
+		ctx = context.Background()
+	}
+	return hashgate.Default().Acquire(ctx, memKiB, est, r.budget.Deadline)
 }
 
 func optionsArg(name string, args []Value) (*Dict, error) {

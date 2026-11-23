@@ -122,6 +122,9 @@ func (b *Budget) fail(err error) error {
 	return b.Err()
 }
 
+// Deadline is when the budget's time axis runs out.
+func (b *Budget) Deadline() time.Time { return b.start.Add(b.limits.Time) }
+
 // Usage reports consumption so far.
 func (b *Budget) Usage() Usage {
 	return Usage{Work: b.work.Load(), Memory: b.mem.Load(), Elapsed: time.Since(b.start)}

@@ -743,7 +743,10 @@ func (p *parser) parseDict() node {
 		switch {
 		case p.tok.kind == tString:
 			key = literalString(p.tok)
-		case p.tok.kind == tIdent && !reserved[p.tok.text]:
+		case p.tok.kind == tIdent && (!reserved[p.tok.text] || p.tok.text == "from"):
+			// from is a bare key in the documented search option
+			// `{ from: "/other/o.html" }` (docs snapshot 2026-11-23); isa
+			// must still be quoted.
 			key = p.tok.text
 		case p.tok.kind == tIdent:
 			p.fail(p.tok.pos, "%q is a reserved word; quote it to use it as a key", p.tok.text)

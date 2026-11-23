@@ -1,6 +1,7 @@
 package sessel
 
 import (
+	"regexp"
 	"strconv"
 	"strings"
 
@@ -176,12 +177,18 @@ func propValue(owner *Element, n *html.Node) Value {
 }
 
 // elementProperty implements member access on a plain element
-// (R-SESSEL-232): none → null, one → its value, several → a List.
+// (R-SESSEL-232): none → null, one → its value, several → a List. Text
+// values are typed: whole numbers read as Integers, other numbers as
+// Floats, true and false as Booleans (docs snapshot 2026-11-23).
 func (ev *evaluator) elementProperty(el *Element, name string) Value {
 	var vals List
 	for _, p := range itemProps(el.Node) {
 		if p.name == name {
-			vals = append(vals, propValue(el, p.node))
+			v := propValue(el, p.node)
+			if s, ok := v.(string); ok {
+				v = typedText(s)
+			}
+			vals = append(vals, v)
 		}
 	}
 	switch len(vals) {
@@ -191,6 +198,30 @@ func (ev *evaluator) elementProperty(el *Element, name string) Value {
 		return vals[0]
 	}
 	return vals
+}
+
+var (
+	intText   = regexp.MustCompile(`^[-+]?[0-9]+$`)
+	floatText = regexp.MustCompile(`^[-+]?([0-9]+\.?[0-9]*|\.[0-9]+)([eE][-+]?[0-9]+)?$`)
+)
+
+// typedText reads a property's text as the value it spells (R-SESSEL-232).
+func typedText(s string) Value {
+	switch {
+	case s == "true":
+		return true
+	case s == "false":
+		return false
+	case intText.MatchString(s):
+		if n, err := strconv.ParseInt(s, 10, 64); err == nil {
+			return n
+		}
+	case floatText.MatchString(s):
+		if f, err := strconv.ParseFloat(s, 64); err == nil {
+			return f
+		}
+	}
+	return s
 }
 
 // microdata implements .microdata(); a DocumentOnly program sees no
@@ -210,7 +241,12 @@ func collapseSpace(s string) string { return strings.Join(strings.Fields(s), " "
 func microdataDict(el *Element) Value {
 	n := el.Node
 	if !hasAttr(n, "itemscope") {
-		return nil
+		// Any other element reads the first item inside it (docs snapshot
+		// 2026-11-23).
+		if n = firstItemIn(n); n == nil {
+			return nil
+		}
+		el = el.derive(n)
 	}
 	d := NewDict()
 	if t := strings.Fields(attrOr(n, "itemtype", "")); len(t) > 0 {
@@ -626,4 +662,20 @@ func parseDocument(s string) (Value, error) {
 		body.AppendChild(c)
 	}
 	return &Element{Node: body, Mutable: true}, nil
+}
+
+// firstItemIn is the first itemscope element below n in tree order.
+func firstItemIn(n *html.Node) *html.Node {
+	for c := n.FirstChild; c != nil; c = c.NextSibling {
+		if c.Type != html.ElementNode {
+			continue
+		}
+		if hasAttr(c, "itemscope") {
+			return c
+		}
+		if f := firstItemIn(c); f != nil {
+			return f
+		}
+	}
+	return nil
 }

@@ -3,10 +3,14 @@ package liquid
 import (
 	"bytes"
 	"context"
+	"errors"
+	"net/http"
 	"regexp"
 	"strings"
 	"testing"
 	"time"
+
+	"github.com/sky-valley/pagelike/internal/hashgate"
 )
 
 // Filter semantics from docs/spec/liquid.md §11–§18 beyond the docs'
@@ -149,9 +153,13 @@ func TestSecurityAndRandomFilters(t *testing.T) {
 	if out := render(`{{ "pw" | bcrypt: 4 }}`); !regexp.MustCompile(`^\$2b\$04\$.{53}$`).MatchString(out) {
 		t.Errorf("bcrypt: %q", out)
 	}
+	// bcrypt reads only the first 72 bytes (R-LIQ-181, docs 2026-11-23).
+	long, err := e.Render(context.Background(), `{{ s | bcrypt: 4 }}`, M{"s": strings.Repeat("x", 73)}, nil)
+	if err != nil || !regexp.MustCompile(`^\$2b\$04\$.{53}$`).MatchString(long) {
+		t.Errorf("bcrypt of 73 bytes: %q %v", long, err)
+	}
 	for _, tpl := range []string{
 		`{{ "pw" | bcrypt: 3 }}`, `{{ "pw" | bcrypt: 17 }}`, `{{ "pw" | bcrypt: "x" }}`,
-		`{{ s | bcrypt: 4 }}`,
 		`{{ "pw" | argon2: memory: 4 }}`, `{{ "pw" | argon2: time: 11 }}`, `{{ "pw" | argon2: length: 65 }}`,
 		`{{ "pw" | argon2: memory: 262145 }}`, `{{ "pw" | argon2: format: "x" }}`,
 		`{{ "pw" | argon2: format: "raw", salt: "short" }}`, `{{ "pw" | argon2: pepper: 1 }}`,
@@ -235,5 +243,28 @@ func TestNowIsPerRequest(t *testing.T) {
 	c, _ := e.Render(context.Background(), `{{ "now" | date: "%H" }}`, nil, nil)
 	if a1 != a2 || a1 == c {
 		t.Errorf("one instant per request: %s %s, another request %s", a1, a2, c)
+	}
+}
+
+// A site that already uses its share of the hashing slots is refused at
+// once, and the refusal fails the whole render with 503 and Retry-After: 1,
+// even inside {{ }} (R-LIQ-184).
+func TestHashingRefusedFailsTheRender(t *testing.T) {
+	site := new(int)
+	ctx := hashgate.WithSite(context.Background(), site)
+	far := time.Now().Add(time.Hour)
+	for {
+		rel, err := hashgate.Default().Acquire(ctx, 0, 0, far)
+		if err != nil {
+			break
+		}
+		defer rel()
+	}
+	for _, tpl := range []string{`{{ "pw" | bcrypt: 4 }}`, `<a href="{{ "pw" | argon2: memory: 64, time: 1 }}">x</a>`} {
+		_, err := New(Options{}).Render(ctx, tpl, nil, nil)
+		var le *Error
+		if !errors.As(err, &le) || le.Status() != http.StatusServiceUnavailable || le.ErrDoc().Headers.Get("Retry-After") != "1" {
+			t.Errorf("%s: want a 503 render failure with Retry-After: 1, got %v", tpl, err)
+		}
 	}
 }

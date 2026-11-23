@@ -2,6 +2,8 @@ package liquid
 
 import (
 	"bytes"
+	"encoding/json"
+	"fmt"
 	"io"
 	"mime"
 	"mime/multipart"
@@ -75,7 +77,9 @@ func NewRequest(d RequestData) *Request {
 	h := NewHash()
 	h.Set("method", strings.ToUpper(d.Method))
 	h.Set("path", d.Path)
+	h.Set("host", d.Host)
 	h.Set("query", parseQuery(d.RawQuery))
+	h.Set("queryString", d.RawQuery)
 	h.Set("headers", headerHash(d.Header, d.Host))
 	params := NewHash()
 	for _, p := range d.Params {
@@ -83,6 +87,9 @@ func NewRequest(d RequestData) *Request {
 	}
 	h.Set("params", params)
 	h.Set("body", bodyValue(d.ContentType, d.Body))
+	if len(d.Body) > 0 {
+		h.Set("rawBody", string(d.Body)) // absent (nil) without a body (R-LIQ-67)
+	}
 	h.Set("auth", authHash(d.Auth))
 	return &Request{h: h}
 }
@@ -110,6 +117,10 @@ func (r *Request) Private() bool { return r.private.Load() }
 
 // get reads a member, recording private reads.
 func (r *Request) get(key string) (any, bool) {
+	switch key {
+	case "authentication", "authn":
+		key = "auth" // aliases (docs 2026-11-23)
+	}
 	if key == "auth" || key == "headers" {
 		r.private.Store(true)
 	}
@@ -219,16 +230,99 @@ func headerHash(hdr http.Header, host string) *Hash {
 }
 
 func bodyValue(contentType string, body []byte) any {
+	if len(body) == 0 {
+		return NewHash() // no body: an empty map (R-LIQ-66)
+	}
 	mt, params, _ := mime.ParseMediaType(contentType)
 	switch mt {
 	case "application/x-www-form-urlencoded":
-		return parseQuery(string(body))
+		return formFields(strings.TrimRight(string(body), " \t\r\n"))
+	case "application/json":
+		if v, ok := jsonValue(body); ok {
+			return v
+		}
 	case "multipart/form-data":
 		if h, ok := multipartFields(body, params["boundary"]); ok {
 			return h
 		}
 	}
 	return string(body)
+}
+
+// formFields decodes a form body: a field sent more than once is its last
+// value (R-LIQ-66; a query string keeps every value, R-LIQ-60).
+func formFields(raw string) *Hash {
+	h := NewHash()
+	for raw != "" {
+		var part string
+		part, raw, _ = strings.Cut(raw, "&")
+		if part == "" {
+			continue
+		}
+		name, value, _ := strings.Cut(part, "=")
+		h.Set(unescapeForm(name), unescapeForm(value))
+	}
+	return h
+}
+
+// jsonValue decodes a JSON document, objects as key-ordered hashes.
+func jsonValue(b []byte) (any, bool) {
+	dec := json.NewDecoder(bytes.NewReader(b))
+	dec.UseNumber()
+	v, err := jsonNext(dec)
+	if err != nil {
+		return nil, false
+	}
+	if _, err := dec.Token(); err != io.EOF {
+		return nil, false // trailing data
+	}
+	return v, true
+}
+
+func jsonNext(dec *json.Decoder) (any, error) {
+	t, err := dec.Token()
+	if err != nil {
+		return nil, err
+	}
+	switch x := t.(type) {
+	case json.Delim:
+		switch x {
+		case '{':
+			h := NewHash()
+			for dec.More() {
+				k, err := dec.Token()
+				if err != nil {
+					return nil, err
+				}
+				v, err := jsonNext(dec)
+				if err != nil {
+					return nil, err
+				}
+				h.Set(k.(string), v)
+			}
+			_, err := dec.Token()
+			return h, err
+		case '[':
+			arr := []any{}
+			for dec.More() {
+				v, err := jsonNext(dec)
+				if err != nil {
+					return nil, err
+				}
+				arr = append(arr, v)
+			}
+			_, err := dec.Token()
+			return arr, err
+		}
+		return nil, fmt.Errorf("unexpected %v", x)
+	case json.Number:
+		if i, err := x.Int64(); err == nil {
+			return int(i), nil
+		}
+		f, err := x.Float64()
+		return f, err
+	}
+	return t, nil
 }
 
 // multipartFields returns the text fields of a multipart/form-data body;

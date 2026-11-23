@@ -138,6 +138,14 @@ func (c *Call) chain(cls Class) []Class {
 
 // PropertyOf finds the most-derived declaration of name in cls's chain.
 func (c *Call) PropertyOf(cls Class, name string) *Property {
+	if mc, ok := cls.(*multiClass); ok {
+		for _, k := range mc.all {
+			if p := c.PropertyOf(k, name); p != nil {
+				return p
+			}
+		}
+		return nil
+	}
 	for _, k := range c.chain(cls) {
 		if p := k.Property(name); p != nil {
 			return p
@@ -283,7 +291,9 @@ func propertyNodes(n *html.Node, name string) []*html.Node {
 // class's items across the whole site, in path then tree order. With isa
 // the type test is :isa(URL) and each Instance keeps its actual class.
 func SearchInstances(c *Call, cls Class, criteria []map[string]string, isa bool) (List, error) {
-	base := "[itemscope][itemtype=" + cssString(cls.URL()) + "]"
+	// itemtype may name several types; any one of them matches (docs
+	// snapshot 2026-11-23, "Items with several types").
+	base := "[itemscope][itemtype~=" + cssString(cls.URL()) + "]"
 	if isa {
 		base = "[itemscope]:isa(" + cssString(cls.URL()) + ")"
 	}
@@ -308,9 +318,11 @@ func SearchInstances(c *Call, cls Class, criteria []map[string]string, isa bool)
 	if err != nil {
 		return nil, err
 	}
-	roots, err := c.ev.siteRoots()
-	if err != nil {
-		return nil, err
+	roots := c.from
+	if roots == nil {
+		if roots, err = c.ev.siteRoots(); err != nil {
+			return nil, err
+		}
 	}
 	found, err := c.ev.matchRoots(sel, roots)
 	if err != nil {
@@ -319,15 +331,48 @@ func SearchInstances(c *Call, cls Class, criteria []map[string]string, isa bool)
 	for _, v := range found {
 		el := v.(*Element)
 		el.Class = cls
-		if isa {
-			if t := strings.TrimSpace(attrOr(el.Node, "itemtype", "")); t != "" && t != cls.URL() {
-				if actual, err := c.ev.lookupClass(t); err == nil && actual != nil {
-					el.Class = actual
-				}
+		types := strings.Fields(attrOr(el.Node, "itemtype", ""))
+		if len(types) > 1 {
+			el.Class = c.itemClass(types, cls)
+		} else if isa && len(types) == 1 && types[0] != cls.URL() {
+			if actual, err := c.ev.lookupClass(types[0]); err == nil && actual != nil {
+				el.Class = actual
 			}
 		}
 	}
 	return found, nil
+}
+
+// multiClass is the class of an item with several types: the first type
+// it names answers for the item, and a method or property only a later
+// type defines still works (docs snapshot 2026-11-23, "Items with several
+// types").
+type multiClass struct {
+	Class
+	all []Class
+}
+
+// itemClass is the class of an item whose itemtype names several types;
+// types without a schema are skipped, and fallback stands in when none has
+// one.
+func (c *Call) itemClass(types []string, fallback Class) Class {
+	var all []Class
+	for _, t := range types {
+		if t == fallback.URL() {
+			all = append(all, fallback)
+			continue
+		}
+		if k, err := c.ev.lookupClass(t); err == nil && k != nil {
+			all = append(all, k)
+		}
+	}
+	switch len(all) {
+	case 0:
+		return fallback
+	case 1:
+		return all[0]
+	}
+	return &multiClass{Class: all[0], all: all}
 }
 
 func sortStrings(s []string) {
@@ -419,6 +464,14 @@ func (ev *evaluator) setInstanceProperty(el *Element, name string, v Value) erro
 // findMethod finds a method by name through the chain (most-derived wins),
 // preferring the overload whose parameter count matches argc.
 func (c *Call) findMethod(cls Class, name string, static bool, argc int) *Method {
+	if mc, ok := cls.(*multiClass); ok {
+		for _, k := range mc.all {
+			if m := c.findMethod(k, name, static, argc); m != nil {
+				return m
+			}
+		}
+		return nil
+	}
 	for _, k := range c.chain(cls) {
 		var cands []*Method
 		for _, m := range k.Methods() {
@@ -429,12 +482,16 @@ func (c *Call) findMethod(cls Class, name string, static bool, argc int) *Method
 		if len(cands) == 0 {
 			continue
 		}
+		// Selection looks at the argument count only: among the methods
+		// declaring at least argc parameters, the one with the fewest wins
+		// (docs snapshot 2026-11-23, reference/modeling-data/Methods).
+		var best *Method
 		for _, m := range cands {
-			if len(m.Params) == argc {
-				return m
+			if len(m.Params) >= argc && (best == nil || len(m.Params) < len(best.Params)) {
+				best = m
 			}
 		}
-		return cands[0]
+		return best
 	}
 	return nil
 }
@@ -531,10 +588,14 @@ func (ev *evaluator) search(cls Class, args []Value) (Value, error) {
 		return nil, typeErr("search() takes criteria and options")
 	}
 	var criteria []map[string]string
+	// A Map with a null value matches nothing; in a list of Maps it is left
+	// out (docs snapshot 2026-11-23).
 	conv := func(d *Dict) (map[string]string, error) {
 		m := map[string]string{}
 		for _, k := range d.Keys() {
 			switch v := d.Lookup(k).(type) {
+			case nil:
+				return nil, nil
 			case string, int64, float64, bool:
 				m[k] = TextOf(v)
 			default:
@@ -548,11 +609,12 @@ func (ev *evaluator) search(cls Class, args []Value) (Value, error) {
 		case nil:
 		case *Dict:
 			m, err := conv(x)
-			if err != nil {
-				return nil, err
+			if err != nil || m == nil {
+				return List{}, err
 			}
 			criteria = append(criteria, m)
 		case List:
+			kept := 0
 			for _, it := range x {
 				d, ok := it.(*Dict)
 				if !ok {
@@ -562,30 +624,47 @@ func (ev *evaluator) search(cls Class, args []Value) (Value, error) {
 				if err != nil {
 					return nil, err
 				}
-				criteria = append(criteria, m)
+				if m != nil {
+					criteria = append(criteria, m)
+					kept++
+				}
+			}
+			if len(x) > 0 && kept == 0 {
+				return List{}, nil
 			}
 		default:
 			return nil, typeErr("search(): criteria must be a Dictionary or a List, not %s", TypeName(args[0]))
 		}
 	}
 	isa := false
+	call := &Call{Ctx: ev.r.ctx, ev: ev}
 	if len(args) == 2 && args[1] != nil {
 		opts, ok := args[1].(*Dict)
 		if !ok {
 			return nil, typeErr("search(): options must be a Dictionary")
 		}
 		for _, k := range opts.Keys() {
-			if k != "isa" {
+			switch k {
+			case "isa":
+				b, ok := opts.Lookup(k).(bool)
+				if !ok {
+					return nil, typeErr("search(): option \"isa\" must be a Boolean")
+				}
+				isa = b
+			case "from":
+				// The from option follows the rules of a from clause
+				// (docs snapshot 2026-11-23).
+				rs := &rootSet{}
+				if err := ev.addRoots(rs, opts.Lookup(k)); err != nil {
+					return nil, err
+				}
+				call.from = rs
+			default:
 				return nil, typeErr("search(): unknown option %q", k)
 			}
-			b, ok := opts.Lookup(k).(bool)
-			if !ok {
-				return nil, typeErr("search(): option \"isa\" must be a Boolean")
-			}
-			isa = b
 		}
 	}
-	return cls.Search(&Call{Ctx: ev.r.ctx, ev: ev}, criteria, isa)
+	return cls.Search(call, criteria, isa)
 }
 
 // classMember implements Class.name without parentheses: a static method
@@ -748,6 +827,32 @@ func (ev *evaluator) reflectionMethod(name string, args []Value) (Value, bool, e
 			}
 		}
 		return out, true, nil
+	case "hasMethod":
+		// Sessel.hasMethod(target, name, argCount) (docs snapshot
+		// 2026-11-23): would a call with argCount arguments find a schema
+		// method? Instance methods for an instance, static ones for a class.
+		if len(args) != 3 {
+			return nil, true, typeErr("Sessel.hasMethod() takes a target, a name and an argument count")
+		}
+		mname, ok := args[1].(string)
+		if !ok {
+			return nil, true, typeErr("Sessel.hasMethod(): the name must be a String, not %s", TypeName(args[1]))
+		}
+		argc, ok := args[2].(int64)
+		if !ok || argc < 0 {
+			return nil, true, typeErr("Sessel.hasMethod(): the argument count must be a non-negative Integer")
+		}
+		c := &Call{Ctx: ev.r.ctx, ev: ev}
+		switch t := args[0].(type) {
+		case *Element:
+			if t.Class == nil {
+				return false, true, nil
+			}
+			return c.findMethod(t.Class, mname, false, int(argc)) != nil, true, nil
+		case Class:
+			return c.findMethod(t, mname, true, int(argc)) != nil, true, nil
+		}
+		return false, true, nil
 	case "schemaOf":
 		e, err := el()
 		if err != nil || e == nil {

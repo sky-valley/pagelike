@@ -13,6 +13,7 @@ import (
 	"github.com/sky-valley/pagelike/internal/dom"
 	"github.com/sky-valley/pagelike/internal/engine"
 	"github.com/sky-valley/pagelike/internal/errdoc"
+	"github.com/sky-valley/pagelike/internal/hashgate"
 	"github.com/sky-valley/pagelike/internal/identity"
 	"github.com/sky-valley/pagelike/internal/server"
 	"github.com/sky-valley/pagelike/internal/sessel"
@@ -136,6 +137,9 @@ func authOf(p *identity.Principal) *sessel.Dict {
 
 // evalError maps an evaluation failure to a status (R-SESSEL-344).
 func evalError(err error) error {
+	if ed := hashgate.Refused(err); ed != nil {
+		return ed // a refused password hash (R-LIQ-184)
+	}
 	e, ok := sessel.AsError(err)
 	if !ok {
 		if errors.Is(err, context.Canceled) || errors.Is(err, context.DeadlineExceeded) {

@@ -11,6 +11,7 @@ import (
 	"github.com/sky-valley/pagelike/internal/budget"
 	"github.com/sky-valley/pagelike/internal/dom"
 	"github.com/sky-valley/pagelike/internal/errdoc"
+	"github.com/sky-valley/pagelike/internal/hashgate"
 	"github.com/sky-valley/pagelike/internal/query"
 	"github.com/sky-valley/pagelike/internal/sessel"
 	"github.com/sky-valley/pagelike/internal/site"
@@ -70,6 +71,9 @@ func (e *unavailable) Error() string    { return e.f.Error() }
 
 // sesselFailure classifies a Sessel error.
 func sesselFailure(err error) error {
+	if ed := hashgate.Refused(err); ed != nil {
+		return ed // a refused password hash fails the request (R-LIQ-184)
+	}
 	if r, ok := sessel.ResponseOf(err); ok {
 		return &thrownResponse{status: r.Status, body: r.HTMLBody(), headers: r.Headers}
 	}
@@ -201,6 +205,8 @@ func failureOf(err error) *BindingFailure {
 // the request's error; ok is false for ordinary failures.
 func (ev *evaluator) fatal(err error, responses bool, vs func(f *BindingFailure) []Violation) (*errdoc.Error, bool) {
 	switch e := err.(type) {
+	case *errdoc.Error:
+		return e, true
 	case *thrownResponse:
 		if responses {
 			return responseError(e.status, e.body, e.headers), true
