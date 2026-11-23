@@ -129,19 +129,24 @@ func (p *pass) references(view *hostView) []UniqueViolation {
 	return vs
 }
 
-// uniqueIndex maps a type and property (or composite group) to the
-// instances holding each value (or value tuple).
+// uniqueIndex maps a scope (the declaring type and a property or group)
+// to the instances holding each value.
 type uniqueIndex map[string]map[string][]instRef
 
-func (ix uniqueIndex) holders(view *hostView, t, key string, values func(*html.Node) []string) map[string][]instRef {
-	k := t + "\x00" + key
+// holders indexes the values every instance of owner's type, or of a type
+// beneath it, holds (docs snapshot 2026-11-23: uniqueness covers the
+// declaring type and every type beneath it).
+func (ix uniqueIndex) holders(view *hostView, owner, key string, values func(t string, n *html.Node) []string) map[string][]instRef {
+	k := owner + "\x00" + key
 	if m, ok := ix[k]; ok {
 		return m
 	}
 	m := map[string][]instRef{}
-	for _, in := range view.ofType(t) {
-		for _, v := range dedupStrings(values(in.node)) {
-			m[v] = append(m[v], in)
+	for _, t := range view.reg.isaTypes(owner) {
+		for _, in := range view.ofType(t) {
+			for _, v := range dedupStrings(values(t, in.node)) {
+				m[v] = append(m[v], in)
+			}
 		}
 	}
 	ix[k] = m
@@ -160,35 +165,52 @@ func dedupStrings(in []string) []string {
 	return out
 }
 
-// tuples returns every combination of the members' values on inst, joined
-// by NUL; nil when a member has no value (R-MOD-31: no participation).
-func tuples(inst *html.Node, members []string) []string {
-	combos := []string{""}
-	for i, m := range members {
-		vals := dedupStrings(valueStrings(propElements(inst, m)))
-		if len(vals) == 0 {
-			return nil
+// repeated returns the values that occur more than once in vals.
+func repeated(vals []string) []string {
+	n := map[string]int{}
+	var out []string
+	for _, v := range vals {
+		if n[v]++; n[v] == 2 {
+			out = append(out, v)
 		}
-		var next []string
-		for _, c := range combos {
-			for _, v := range vals {
-				if i == 0 {
-					next = append(next, v)
-				} else {
-					next = append(next, c+"\x00"+v)
-				}
-			}
-		}
-		combos = next
 	}
-	return combos
+	return out
 }
 
-// uniqueness checks individual and composite uniqueness of the affected
-// instances. Messages follow PageLove (live 2026-09-29), except that a
-// value held in another document does not name that document: PageLove
-// appends " at '<path>'", which would disclose a document the writer may
-// not be allowed to read (R-MOD-72, keep-documented-security).
+// groupValues are the values an instance of type t holds in unique group
+// g: those of every member property, each value on its own.
+func (r *Registry) groupValues(t, g string, n *html.Node) []string {
+	s := r.Schema(t)
+	if s == nil {
+		return nil
+	}
+	var out []string
+	for _, pn := range s.eff.propOrder {
+		if containsString(s.eff.props[pn].UniqueGroups, g) {
+			out = append(out, valueStrings(propElements(n, pn))...)
+		}
+	}
+	return out
+}
+
+func containsString(list []string, s string) bool {
+	for _, x := range list {
+		if x == s {
+			return true
+		}
+	}
+	return false
+}
+
+// uniqueness checks individual and group uniqueness of the affected
+// instances (R-MOD-30, R-MOD-31; docs snapshot 2026-11-23):
+//   - a unique property's value may be held by one item of the declaring
+//     type or a type beneath it, and only once on that item;
+//   - the member properties of a group share one set of values, with the
+//     same two rules, owned by the highest type declaring a member.
+//
+// A value held on another page is reported as "at 'another page'": the
+// error never names a page other than the one asked for.
 func (p *pass) uniqueness(view *hostView) []UniqueViolation {
 	ix := uniqueIndex{}
 	var out []UniqueViolation
@@ -203,61 +225,65 @@ func (p *pass) uniqueness(view *hostView) []UniqueViolation {
 	for _, inst := range p.instances {
 		s := p.schemaOf(inst)
 		t := s.URL
-		groups := map[string][]string{}
 		var groupOrder []string
 		for _, pn := range s.eff.propOrder {
 			ep := s.eff.props[pn]
-			for _, g := range ep.UniqueGroups {
-				if _, ok := groups[g]; !ok {
-					groupOrder = append(groupOrder, g)
-				}
-				groups[g] = append(groups[g], pn)
-			}
+			groupOrder = union(groupOrder, ep.UniqueGroups)
 			if !ep.Unique {
 				continue
 			}
 			name := pn
-			h := ix.holders(view, t, "p:"+name, func(n *html.Node) []string { return valueStrings(propElements(n, name)) })
-			for _, v := range dedupStrings(valueStrings(propElements(inst, pn))) {
+			sel, constraint := fmt.Sprintf("[itemprop='%s']", pn), "unique("+pn+")"
+			own := valueStrings(propElements(inst, pn))
+			for _, v := range repeated(own) {
+				add(UniqueViolation{Kind: LineUniqueness, Selector: sel, Constraint: constraint, ItemType: t, Property: pn, Value: v,
+					Message: fmt.Sprintf("Uniqueness violation: item '%s' in '%s' holds this value more than once for property '%s'", itemIndexPath(inst), p.op.Path, pn)})
+			}
+			h := ix.holders(view, ep.UniqueOwner, "p:"+name, func(_ string, n *html.Node) []string { return valueStrings(propElements(n, name)) })
+			for _, v := range dedupStrings(own) {
 				elsewhere, first := p.conflict(h[v], inst)
 				var msg string
 				switch {
 				case elsewhere:
-					msg = fmt.Sprintf("Uniqueness violation: value already exists for property '%s'", pn)
+					msg = fmt.Sprintf("Uniqueness violation: value already exists for property '%s' at 'another page'", pn)
 				case first != nil:
 					msg = fmt.Sprintf("Uniqueness violation: another item in '%s' already claims this value for property '%s' (first claimed by item '%s')",
 						p.op.Path, pn, itemIndexPath(first))
 				default:
 					continue
 				}
-				add(UniqueViolation{Kind: LineUniqueness, Selector: fmt.Sprintf("[itemprop='%s']", pn), Constraint: "unique(" + pn + ")",
-					ItemType: t, Property: pn, Value: v, Message: msg})
+				add(UniqueViolation{Kind: LineUniqueness, Selector: sel, Constraint: constraint, ItemType: t, Property: pn, Value: v, Message: msg})
 			}
 		}
 		for _, g := range groupOrder {
-			members := groups[g]
-			h := ix.holders(view, t, "g:"+g, func(n *html.Node) []string { return tuples(n, members) })
-			// PageLove names the members in alphabetical order.
-			sorted := append([]string(nil), members...)
-			sort.Strings(sorted)
-			sels := make([]string, len(sorted))
-			for i, m := range sorted {
-				sels[i] = fmt.Sprintf("[itemprop='%s']", m)
+			group := g
+			var sels []string
+			for _, pn := range s.eff.propOrder {
+				if containsString(s.eff.props[pn].UniqueGroups, g) {
+					sels = append(sels, fmt.Sprintf("[itemprop='%s']", pn))
+				}
 			}
-			for _, tu := range tuples(inst, members) {
-				elsewhere, first := p.conflict(h[tu], inst)
+			sort.Strings(sels)
+			sel, constraint := strings.Join(sels, ", "), "unique-group("+g+")"
+			own := view.reg.groupValues(t, g, inst)
+			for _, v := range repeated(own) {
+				add(UniqueViolation{Kind: LineUniqueness, Selector: sel, Constraint: constraint, ItemType: t, Property: g, Value: v,
+					Message: fmt.Sprintf("Uniqueness violation: item '%s' in '%s' holds this value more than once in group '%s'", itemIndexPath(inst), p.op.Path, g)})
+			}
+			h := ix.holders(view, s.eff.groupOwner[g], "g:"+g, func(ht string, n *html.Node) []string { return view.reg.groupValues(ht, group, n) })
+			for _, v := range dedupStrings(own) {
+				elsewhere, first := p.conflict(h[v], inst)
 				var msg string
 				switch {
 				case elsewhere:
-					msg = fmt.Sprintf("Composite uniqueness violation: value combination already exists for properties '%s'", strings.Join(sorted, ", "))
+					msg = fmt.Sprintf("Uniqueness violation: value already exists in group '%s' at 'another page'", g)
 				case first != nil:
-					msg = fmt.Sprintf("Composite uniqueness violation: another item in '%s' already claims this value combination for properties '%s' (first claimed by item '%s')",
-						p.op.Path, strings.Join(sorted, ", "), itemIndexPath(first))
+					msg = fmt.Sprintf("Uniqueness violation: another item in '%s' already claims this value in group '%s' (first claimed by item '%s')",
+						p.op.Path, g, itemIndexPath(first))
 				default:
 					continue
 				}
-				add(UniqueViolation{Kind: LineUniqueness, Selector: strings.Join(sels, ", "), Constraint: "unique-group(" + g + ")",
-					ItemType: t, Property: strings.Join(members, ", "), Value: strings.Join(strings.Split(tu, "\x00"), ", "), Message: msg})
+				add(UniqueViolation{Kind: LineUniqueness, Selector: sel, Constraint: constraint, ItemType: t, Property: g, Value: v, Message: msg})
 			}
 		}
 	}

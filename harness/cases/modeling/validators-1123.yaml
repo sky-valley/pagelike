@@ -1,0 +1,379 @@
+# Modeling: validators after the 2026-11-23 docs. Spec: docs/spec/modeling.md R-MOD-45..47.
+defaults:
+  area: modeling
+  feature: validators
+  evidence: documented
+  confidence: high
+  requires: []
+  live: true
+  site:
+    settings: {default_get: allow}
+    rules:
+      - {actor: "*", resource: "${P}/*", method: [GET, HEAD, PUT, POST, DELETE], action: Allow}
+cases:
+  - id: modeling.val1123.sessel-needs-boolean-true
+    title: "A Sessel @validate must return the Boolean true: 1 is refused"
+    source: "docs reference/modeling-data/Property §@validate (snapshot 2026-11-23) ('Sessel refused 1, \"yes\" and [] with 422')"
+    notes: "R-MOD-45."
+    steps:
+      - name: "schema"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/schema.html"
+          headers: {Content-Type: text/html}
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div hidden itemscope itemtype="https://pagelove.org/Schema"><meta itemprop="type" content="https://pagelike.test${P}/A"><div itemprop="property" itemscope itemtype="https://pagelove.org/Property"><meta itemprop="name" content="n"><meta itemprop="cardinality" content="0..1"><div itemprop="@validate" itemscope itemtype="https://pagelove.org/Sessel"><script itemprop="source" type="text/sessel">1</script></div></div></div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "a truthy non-Boolean refuses"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/a.html"
+          headers: {Content-Type: text/html}
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div itemscope itemtype="https://pagelike.test${P}/A"><meta itemprop="n" content="x"></div>
+            </body></html>
+        expect:
+          status: 422
+          body_contains: ['@validate']
+
+  - id: modeling.val1123.js-truthy-accepts
+    title: "A JavaScript @validate accepts any truthy value"
+    source: "docs reference/modeling-data/Property §@validate (snapshot 2026-11-23) ('JavaScript validators returning those values accepted')"
+    notes: "R-MOD-45."
+    requires: [server-js]
+    steps:
+      - name: "schema"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/schema.html"
+          headers: {Content-Type: text/html}
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div hidden itemscope itemtype="https://pagelove.org/Schema"><meta itemprop="type" content="https://pagelike.test${P}/A"><div itemprop="property" itemscope itemtype="https://pagelove.org/Property"><meta itemprop="name" content="n"><meta itemprop="cardinality" content="0..1"><div itemprop="@validate" itemscope itemtype="https://pagelove.org/JavaScript/Module"><script itemprop="source" type="module">export default function (v) { return 1; }</script></div></div></div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "truthy accepts"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/a.html"
+          headers: {Content-Type: text/html}
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div itemscope itemtype="https://pagelike.test${P}/A"><meta itemprop="n" content="x"></div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+
+  - id: modeling.val1123.sees-surrounding-document
+    title: "A property validator sees the surrounding document through parent()"
+    source: "docs reference/modeling-data/Property §@validate (snapshot 2026-11-23) ('A Sessel validator sees the surrounding document')"
+    notes: "R-MOD-45."
+    steps:
+      - name: "schema"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/schema.html"
+          headers: {Content-Type: text/html}
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div hidden itemscope itemtype="https://pagelove.org/Schema"><meta itemprop="type" content="https://pagelike.test${P}/A"><div itemprop="property" itemscope itemtype="https://pagelove.org/Property"><meta itemprop="name" content="n"><meta itemprop="cardinality" content="0..1"><div itemprop="@validate" itemscope itemtype="https://pagelove.org/Sessel"><script itemprop="source" type="text/sessel">self.first().parent().attr("data-ok") == "yes"</script></div></div></div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "the enclosing item carries the attribute"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/a.html"
+          headers: {Content-Type: text/html}
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div data-ok="yes" itemscope itemtype="https://pagelike.test${P}/A"><meta itemprop="n" content="x"></div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "without it the write is refused"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/b.html"
+          headers: {Content-Type: text/html}
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div itemscope itemtype="https://pagelike.test${P}/A"><meta itemprop="n" content="x"></div>
+            </body></html>
+        expect:
+          status: 422
+          body_contains: ['@validate']
+
+  - id: modeling.val1123.schema-level-sees-parent
+    title: "A schema-level validator sees the element around the item"
+    source: "docs reference/modeling-data/Schema §Schema-level @validate (snapshot 2026-11-23) ('parent() returns the element that encloses the item')"
+    notes: "R-MOD-46."
+    steps:
+      - name: "schema"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/schema.html"
+          headers: {Content-Type: text/html}
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div hidden itemscope itemtype="https://pagelove.org/Schema"><meta itemprop="type" content="https://pagelike.test${P}/A"><div itemprop="property" itemscope itemtype="https://pagelove.org/Property"><meta itemprop="name" content="n"><meta itemprop="cardinality" content="0..1"></div><div itemprop="@validate" itemscope itemtype="https://pagelove.org/Sessel"><script itemprop="source" type="text/sessel">self.parent().attr("id") == "list"</script></div></div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "inside the list"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/a.html"
+          headers: {Content-Type: text/html}
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <section id="list"><div itemscope itemtype="https://pagelike.test${P}/A"><meta itemprop="n" content="x"></div></section>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "outside it"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/b.html"
+          headers: {Content-Type: text/html}
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div itemscope itemtype="https://pagelike.test${P}/A"><meta itemprop="n" content="x"></div>
+            </body></html>
+        expect:
+          status: 422
+          body_contains: ['@validate']
+
+  - id: modeling.val1123.chain-runs-every-level
+    title: "A property @validate at every level of the chain runs, ancestor first"
+    source: "docs reference/modeling-data/Property §@validate (snapshot 2026-11-23) ('the property's @validate at every level of the chain runs … A child's validator does not replace its parent's')"
+    notes: "R-MOD-45, R-MOD-11."
+    steps:
+      - name: "schema"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/schema.html"
+          headers: {Content-Type: text/html}
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div hidden itemscope itemtype="https://pagelove.org/Schema"><meta itemprop="type" content="https://pagelike.test${P}/Base"><div itemprop="property" itemscope itemtype="https://pagelove.org/Property"><meta itemprop="name" content="n"><meta itemprop="cardinality" content="0..1"><div itemprop="@validate" itemscope itemtype="https://pagelove.org/Sessel"><script itemprop="source" type="text/sessel">self.first().value().startsWith("a")</script></div></div></div>
+              <div hidden itemscope itemtype="https://pagelove.org/Schema"><meta itemprop="type" content="https://pagelike.test${P}/Leaf"><meta itemprop="parent" content="https://pagelike.test${P}/Base"><div itemprop="property" itemscope itemtype="https://pagelove.org/Property"><meta itemprop="name" content="n"><meta itemprop="cardinality" content="0..1"><div itemprop="@validate" itemscope itemtype="https://pagelove.org/Sessel"><script itemprop="source" type="text/sessel">self.first().value().endsWith("z")</script></div></div></div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "passes both"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/a.html"
+          headers: {Content-Type: text/html}
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div itemscope itemtype="https://pagelike.test${P}/Leaf"><meta itemprop="n" content="abz"></div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "fails the parent's rule only"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/b.html"
+          headers: {Content-Type: text/html}
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div itemscope itemtype="https://pagelike.test${P}/Leaf"><meta itemprop="n" content="bz"></div>
+            </body></html>
+        expect:
+          status: 422
+          body_contains: ['@validate']
+      - name: "fails the child's rule only"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/c.html"
+          headers: {Content-Type: text/html}
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div itemscope itemtype="https://pagelike.test${P}/Leaf"><meta itemprop="n" content="ab"></div>
+            </body></html>
+        expect:
+          status: 422
+          body_contains: ['@validate']
+
+  - id: modeling.val1123.sessel-throws-response
+    title: "A Sessel @validate may throw an HTTPResponse with its own status and message"
+    source: "docs reference/modeling-data/Property §@validate (snapshot 2026-11-23) ('A validator in either language may throw an HTTPResponse to refuse a value with its own status, message, body and headers')"
+    notes: "R-MOD-47."
+    steps:
+      - name: "schema"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/schema.html"
+          headers: {Content-Type: text/html}
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div hidden itemscope itemtype="https://pagelove.org/Schema"><meta itemprop="type" content="https://pagelike.test${P}/A"><div itemprop="property" itemscope itemtype="https://pagelove.org/Property"><meta itemprop="name" content="n"><meta itemprop="cardinality" content="0..1"><div itemprop="@validate" itemscope itemtype="https://pagelove.org/Sessel"><script itemprop="source" type="text/sessel">@schema HTTPResponse url("https://pagelove.org/HTTPResponse"); throw new HTTPResponse { status: 409, message: "taken" }</script></div></div></div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "the thrown status answers"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/a.html"
+          headers: {Content-Type: text/html}
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div itemscope itemtype="https://pagelike.test${P}/A"><meta itemprop="n" content="x"></div>
+            </body></html>
+        expect:
+          status: 409
+          body_contains: ['taken']
+
+  - id: modeling.val1123.thrown-success-status-is-422
+    title: "A thrown HTTPResponse with a status outside 400 to 599 is the ordinary 422"
+    source: "docs reference/modeling-data/Property §@validate (snapshot 2026-11-23) ('A thrown response with no status, or any other status, gets the ordinary 422 violation')"
+    notes: "R-MOD-47."
+    requires: [server-js]
+    steps:
+      - name: "schema"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/schema.html"
+          headers: {Content-Type: text/html}
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div hidden itemscope itemtype="https://pagelove.org/Schema"><meta itemprop="type" content="https://pagelike.test${P}/A"><div itemprop="property" itemscope itemtype="https://pagelove.org/Property"><meta itemprop="name" content="n"><meta itemprop="cardinality" content="0..1"><div itemprop="@validate" itemscope itemtype="https://pagelove.org/JavaScript/Module"><script itemprop="source" type="module">export default function (v) { throw { schema_url: "https://pagelove.org/HTTPResponse", status: 200, message: "fine" }; }</script></div></div></div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "never reported as a success"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/a.html"
+          headers: {Content-Type: text/html}
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div itemscope itemtype="https://pagelike.test${P}/A"><meta itemprop="n" content="x"></div>
+            </body></html>
+        expect:
+          status: 422
+          body_contains: ['@validate']
+
+  - id: modeling.val1123.schema-level-throws-response
+    title: "A schema-level @validate may throw an HTTPResponse too"
+    source: "docs reference/modeling-data/Schema §Schema-level @validate (snapshot 2026-11-23) (error table: '@validate throws an HTTPResponse with an error status (400 to 599): That status, message, body and headers, in either language')"
+    notes: "R-MOD-46, R-MOD-47."
+    requires: [server-js]
+    steps:
+      - name: "schema"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/schema.html"
+          headers: {Content-Type: text/html}
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div hidden itemscope itemtype="https://pagelove.org/Schema"><meta itemprop="type" content="https://pagelike.test${P}/A"><div itemprop="property" itemscope itemtype="https://pagelove.org/Property"><meta itemprop="name" content="n"><meta itemprop="cardinality" content="0..1"></div><div itemprop="@validate" itemscope itemtype="https://pagelove.org/JavaScript/Module"><script itemprop="source" type="module">export default function () { throw { schema_url: "https://pagelove.org/HTTPResponse", status: 403, message: "not yours" }; }</script></div></div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "the thrown status answers"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/a.html"
+          headers: {Content-Type: text/html}
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div itemscope itemtype="https://pagelike.test${P}/A"><meta itemprop="n" content="x"></div>
+            </body></html>
+        expect:
+          status: 403
+          body_contains: ['not yours']
+
+  - id: modeling.val1123.schema-level-js-this-is-object
+    title: "Schema-level JS @validate: this is an object of the item properties"
+    source: "docs reference/modeling-data/Schema §Schema-level @validate (snapshot 2026-11-23) ('The instance arrives as an object of its properties … @type holds the item type'; example 'return new Date(this.endDate) > new Date(this.startDate)')"
+    notes: "R-MOD-46. Supersedes modeling.validators.schema-level-js-this-is-html (2026-09-28 docs: this was the serialized HTML)."
+    requires: [server-js]
+    steps:
+      - name: "schema"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/schema.html"
+          headers: {Content-Type: text/html}
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div hidden itemscope itemtype="https://pagelove.org/Schema"><meta itemprop="type" content="https://pagelike.test${P}/Ev"><div itemprop="property" itemscope itemtype="https://pagelove.org/Property"><meta itemprop="name" content="startDate"><meta itemprop="cardinality" content="0..1"></div><div itemprop="property" itemscope itemtype="https://pagelove.org/Property"><meta itemprop="name" content="endDate"><meta itemprop="cardinality" content="0..1"></div><div itemprop="property" itemscope itemtype="https://pagelove.org/Property"><meta itemprop="name" content="tag"><meta itemprop="cardinality" content="0..n"></div><div itemprop="@validate" itemscope itemtype="https://pagelove.org/JavaScript/Module"><script itemprop="source" type="module">export default function () { return new Date(this.endDate) > new Date(this.startDate) && Array.isArray(this.tag) && this["@type"].endsWith("/Ev"); }</script></div></div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "end after start"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/a.html"
+          headers: {Content-Type: text/html}
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div itemscope itemtype="https://pagelike.test${P}/Ev"><meta itemprop="startDate" content="2026-01-01"><meta itemprop="endDate" content="2026-01-02"><meta itemprop="tag" content="a"><meta itemprop="tag" content="b"></div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "end before start"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/b.html"
+          headers: {Content-Type: text/html}
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div itemscope itemtype="https://pagelike.test${P}/Ev"><meta itemprop="startDate" content="2026-01-03"><meta itemprop="endDate" content="2026-01-02"><meta itemprop="tag" content="a"><meta itemprop="tag" content="b"></div>
+            </body></html>
+        expect:
+          status: 422
+          body_contains: ['@validate']

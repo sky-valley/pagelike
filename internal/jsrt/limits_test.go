@@ -283,8 +283,8 @@ func TestHTTPResponse(t *testing.T) {
 	if !ok || f.Response.Body != "body-wins" || len(f.Response.Headers) != 2 || f.Response.Headers[0] != [2]string{"X-From", "yes"} {
 		t.Fatalf("body/headers: %+v", f.Response)
 	}
-	// Not honoured outside @write, @validate and actions.
-	for _, slot := range []Slot{SlotRead, SlotComputed, SlotSchemaValidate, SlotTriggerWhen} {
+	// Not honoured outside @write, both @validate slots and actions.
+	for _, slot := range []Slot{SlotRead, SlotComputed, SlotTriggerWhen} {
 		if f, ok := throwWith(slot, `{ schema_url: "https://pagelove.org/HTTPResponse", status: 409, message: "m" }`); ok || f.Variant != VariantThrew {
 			t.Errorf("%s honoured HTTPResponse", slot)
 		}

@@ -731,15 +731,23 @@ func (p *pass) typeCheck(s *Schema, ep *EffectiveProp, elems []*html.Node) []Vio
 
 // ---------------------------------------------------------------- stage 5
 
-func (p *pass) validateFailure(s *Schema, pn string, err error, responses bool) (*errdoc.Error, Violation) {
+// validateFailure maps a validator's failure. A thrown HTTPResponse with an
+// error status (400 to 599) answers the request itself, at either level; one
+// with no status or any other status is the ordinary 422 violation, so a
+// refused write is never reported as a success (R-MOD-47, docs snapshot
+// 2026-11-23).
+func (p *pass) validateFailure(s *Schema, pn string, err error) (*errdoc.Error, Violation) {
 	mk := func(f *BindingFailure) []Violation {
 		return []Violation{p.validateViolation(s, pn, f)}
 	}
-	if e, ok := p.ev.fatal(err, responses, mk); ok {
-		return e, Violation{}
-	}
 	if tr, ok := err.(*thrownResponse); ok {
-		err = &BindingFailure{Language: URLSessel, Variant: "threw", Message: tr.Error()}
+		if tr.status >= 400 && tr.status <= 599 {
+			return responseError(tr.status, tr.body, tr.headers), Violation{}
+		}
+		return nil, p.validateViolation(s, pn, &BindingFailure{Language: URLSessel, Variant: "threw", Message: tr.Error()})
+	}
+	if e, ok := p.ev.fatal(err, false, mk); ok {
+		return e, Violation{}
 	}
 	return nil, p.validateViolation(s, pn, failureOf(err))
 }
@@ -757,25 +765,28 @@ func (p *pass) validateViolation(s *Schema, pn string, f *BindingFailure) Violat
 func (p *pass) propertyValidators() error {
 	var vs []Violation
 	err := p.eachProp(func(inst *html.Node, s *Schema, ep *EffectiveProp) error {
-		slot := ep.Decl.Validate
-		if slot == nil || ep.Decl.Computed != nil {
+		if len(ep.Validators) == 0 || ep.Decl.Computed != nil {
 			return nil
 		}
 		elems := propElements(inst, ep.Name)
 		if len(elems) == 0 {
 			return nil // runs only for properties with a value (R-MOD-45)
 		}
-		ok, err := p.runValidator(slot, JSSlotValidate, elems, ep)
-		if err != nil {
-			e, v := p.validateFailure(s, ep.Name, err, true)
-			if e != nil {
-				return e
+		// Every level of the chain runs, ancestor first, and every refusal
+		// is reported (docs snapshot 2026-11-23).
+		for _, slot := range ep.Validators {
+			ok, err := p.runValidator(slot, JSSlotValidate, elems, ep)
+			if err != nil {
+				e, v := p.validateFailure(s, ep.Name, err)
+				if e != nil {
+					return e
+				}
+				vs = append(vs, v)
+				continue
 			}
-			vs = append(vs, v)
-			return nil
-		}
-		if !ok {
-			vs = append(vs, p.validateViolation(s, ep.Name, nil))
+			if !ok {
+				vs = append(vs, p.validateViolation(s, ep.Name, nil))
+			}
 		}
 		return nil
 	})
@@ -798,7 +809,7 @@ func (p *pass) runValidator(slot *Slot, kind string, elems []*html.Node, ep *Eff
 		if err != nil {
 			return false, err
 		}
-		return sessel.Truthy(v), nil
+		return sesselAccepts(v), nil
 	case LangJS:
 		res, err := p.ev.runJSSlot(slot, &JSCall{Slot: kind, Args: []any{pipelineValue(ep.Decl.Cardinality, elems)}, Document: p.html()})
 		if err != nil {
@@ -807,6 +818,13 @@ func (p *pass) runValidator(slot *Slot, kind string, elems []*html.Node, ep *Eff
 		return jsTruthy(res.Value), nil
 	}
 	return false, unknownLanguage(slot)
+}
+
+// sesselAccepts: a Sessel validator accepts only with the Boolean true; 1,
+// "yes" and [] refuse (R-MOD-45, docs snapshot 2026-11-23).
+func sesselAccepts(v sessel.Value) bool {
+	b, ok := v.(bool)
+	return ok && b
 }
 
 // jsTruthy is JavaScript truthiness over the JSON-like value model.
@@ -837,7 +855,7 @@ func (p *pass) schemaValidators() error {
 		for _, slot := range s.eff.validators {
 			ok, err := p.runSchemaValidator(slot, inst)
 			if err != nil {
-				e, v := p.validateFailure(s, "", err, false)
+				e, v := p.validateFailure(s, "", err)
 				if e != nil {
 					return e
 				}
@@ -860,15 +878,47 @@ func (p *pass) runSchemaValidator(slot *Slot, inst *html.Node) (bool, error) {
 		if err != nil {
 			return false, err
 		}
-		return sessel.Truthy(v), nil
+		return sesselAccepts(v), nil
 	case LangJS:
-		res, err := p.ev.runJSSlot(slot, &JSCall{Slot: JSSlotSchemaValidate, This: dom.OuterHTML(inst), HasThis: true, Args: []any{nil}, Document: p.html()})
+		res, err := p.ev.runJSSlot(slot, &JSCall{Slot: JSSlotSchemaValidate, This: p.itemObject(inst), HasThis: true, Args: []any{JSUndefined{}}, Document: p.html()})
 		if err != nil {
 			return false, err
 		}
 		return jsTruthy(res.Value), nil
 	}
 	return false, unknownLanguage(slot)
+}
+
+// itemObject is the instance a schema-level JavaScript validator gets as
+// this: each property a key, a property with more than one value an array, a
+// nested item an object of its own properties, and @type the item type
+// (R-MOD-46, docs snapshot 2026-11-23).
+func (p *pass) itemObject(inst *html.Node) map[string]any {
+	obj := map[string]any{"@type": itemType(inst)}
+	vals := map[string][]any{}
+	var order []string
+	walkProps(inst, func(n *html.Node) {
+		var v any
+		if isItem(n) {
+			v = p.itemObject(n)
+		} else if x := valueOf(n); !x.null {
+			v = x.s
+		}
+		for _, name := range strings.Fields(dom.AttrOr(n, "itemprop", "")) {
+			if _, ok := vals[name]; !ok {
+				order = append(order, name)
+			}
+			vals[name] = append(vals[name], v)
+		}
+	})
+	for _, name := range order {
+		if len(vals[name]) == 1 {
+			obj[name] = vals[name][0]
+		} else {
+			obj[name] = vals[name]
+		}
+	}
+	return obj
 }
 
 // ---------------------------------------------------------------- stage 7

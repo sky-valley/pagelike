@@ -262,13 +262,13 @@ Let the chain be `[root, …, leaf]`.
 | Member | Rule | Evidence |
 |---|---|---|
 | Properties | Union by `name`. For a name declared at several levels, the **most-derived declaration** supplies the scalar fields (`type`, `cardinality`, `default`, `references`, `cascade`, `@key`, `@validate`, `@computed`, `description`). A field the child omits is **not** inherited from the parent (whole-declaration override). | documented ("Child declarations override parent declarations by `name`"); whole-override is inferred, low. Probe P-MOD-39 |
-| `unique` | Union across the chain: if any level marks the name `unique` (or gives it a composite group), it applies to the leaf. | documented |
+| `unique` | Union across the chain: if any level marks the name `unique` (or puts it in a group), it applies to the leaf. The scope is the declaring type and its descendants (R-MOD-30). | documented |
 | `group` membership | Union across the chain for each property name. | documented (GroupConstraint §Inheritance) |
 | Group constraints | Keyed by group name. The most-derived constraint for a group wins, and parent constraints apply unless the child declares the same group. | documented |
 | `@write` resolvers | Every level that declares one for the name runs, **child-first** (leaf → root). | documented |
 | `@read` resolvers | Every level runs, **ancestor-first** (root → leaf). | documented |
 | Schema-level `@validate` | Every level's schema-level validator runs, **ancestor-first**, and all must return truthy. | documented (Schema §Inheritance) |
-| Property-level `@validate` | **Most-derived only**. There is no chaining. | documented (Property §Validators, JS §Chaining order) |
+| Property-level `@validate` | Every level that declares one for the name runs, **ancestor-first**, whatever its language; the value must pass all, and every refusal is reported. | documented (Property §@validate, snapshot 2026-11-23; the 2026-09-28 docs said most-derived only) |
 | `default` | Most-derived default for the name wins. | documented |
 | `@key` | The schema's own properties first (document order, first wins), then the parent's, and so on (R-MOD-33). | documented |
 | Methods | By name, most-derived wins (a subtype group can override `includes()`). | documented (permissions/Group §Custom membership) |
@@ -644,51 +644,43 @@ decision**: 422 SchemaViolation, `check` `default`, carrying a nested `BindingFa
 
 ### R-MOD-30 — Individual uniqueness
 
-`<meta itemprop="unique" content="true">`: no two instances **of the same governed type** on the host
-may share a value for the property. The comparison is across all documents and within the same document.
+`<meta itemprop="unique" content="true">`: no two instances may share a value for the property. The
+comparison is across all documents of the host and within the same document.
 
-- Scope is per exact itemtype. Uniqueness is "scoped per host and per type, so two different types can
-  share a value without conflict". An inherited `unique` applies to the leaf type. pagelike compares
-  instances whose itemtype equals the leaf type exactly, so subtype instances are not compared with
-  supertype instances (inferred, low. Probe P-MOD-19).
+- Scope: the type that declares `unique` and every type descending from it are one scope, so a subtype
+  instance conflicts with a supertype instance. Unrelated types can share a value. (Docs snapshot
+  2026-11-23; before it pagelike compared exact itemtypes only.)
 - Values are microdata values (R-MOD-19) compared as exact, verbatim strings after `@write`. For
-  multi-valued properties, any shared value between two different instances is a conflict. Duplicate
-  values inside one instance are not a uniqueness conflict (pagelike decision). A text-content element
-  with empty text has a null value and never conflicts ("empty text is treated as absent", Sessel Element
-  reference). A `content=""` attribute value is the string `""` and is compared like any other value
-  (pagelike decision, low).
+  multi-valued properties, any shared value between two different instances is a conflict, and the same
+  value twice on one instance is refused too. A text-content element with empty text has a null value
+  and never conflicts. A `content=""` attribute value is the string `""` and is compared like any other
+  value (pagelike decision, low).
 - Only values held by **affected instances** are checked, against all other instances host-wide
   (committed state plus the rest of this write). Re-writing an instance with its own unchanged value is not
   a conflict. Deleting an instance frees its values for reuse.
 - Enforcement is atomic with the commit: concurrent duplicates cannot both succeed.
 - Violation: **422**, ConstraintViolation envelope (R-MOD-72). The body contains the word "uniqueness"
-  (demo apps match `/uniqueness/i` on the 422 text).
-- Evidence: documented + demo-source. Sources: docs reference/modeling-data/Property §Uniqueness;
-  docs languages/sessel/reference/element §`.value()` (the value used by uniqueness and reference constraints);
-  recipes/linking-related-data §Unique constraints, §When to use; recipes/composite-uniqueness;
-  demo-apps/demo-01-event/schema/event.html@c4dd883:35-45 and app.js:54 (duplicate RSVP in the same
-  list, 422 matching /uniqueness/i); demo-03 app.js@c4dd883:105-137 (claim, release by selector DELETE,
-  re-claim); docs TransitionConstraint §The 422 body ("the same shape as uniqueness violations").
-  Confidence: high (core), medium (envelope), low (subtype scope, empties).
+  (demo apps match `/uniqueness/i` on the 422 text). A conflict with another document says
+  `at 'another page'` and never names it, so the message does not disclose a path the writer may not
+  read (docs snapshot 2026-11-23).
+- Evidence: documented + demo-source. Sources: docs reference/modeling-data/Property §Uniqueness
+  (snapshot 2026-11-23); docs languages/sessel/reference/element §`.value()`;
+  demo-apps/demo-01-event/schema/event.html@c4dd883:35-45 and app.js:54; demo-03 app.js@c4dd883:105-137.
+  Confidence: high (core), medium (envelope), low (empties).
+- Cases: `modeling.uniq1123.*`.
 
-### R-MOD-31 — Composite uniqueness
+### R-MOD-31 — Uniqueness groups
 
-A `unique` value other than `"true"` is a **group name**. The properties of a schema sharing the group
-name form a composite key: the **tuple** of their values must be unique among instances of the type,
-while individual values may repeat. A property may carry both `true` and a group, and several groups.
+A `unique` value other than `"true"` is a **group name**. The properties sharing the name hold **one
+shared set of values**: a value held under any member by one instance cannot be held under any member by
+another, and one instance cannot hold it twice across the members. A property may carry both `true` and a
+group, and several groups. The scope is the highest type declaring a member, with its descendants.
 
-- pagelike decisions: groups are per schema (after inheritance). An instance missing a member value
-  does not participate in that group's check (SQL NULL semantics). For multi-valued members, each
-  combination is compared (low confidence).
-- Worked example (documented): (alice, acme) accepted, (alice, globex) accepted, (bob, acme) accepted,
-  a second (alice, acme) rejected with 422.
-- Evidence: documented. Source: docs reference/modeling-data/Property §Uniqueness;
-  recipes/composite-uniqueness §A worked example. Confidence: high (documented example), low (absent
-  members).
-- Contradiction: demo-apps schemas avoid composite groups because they were "verified broken on this
-  host" (demo-04-accountability/schema/checkin.html@c4dd883:6-8; demo-02 reaction.html:6-7), while the
-  docs and pagelove-dev SKILL.md@b489923:289-291 describe them as supported. Decision (§19 C15):
-  implement per docs. The live case `modeling.uniqueness.composite-recipe` settles it.
+- This replaces the composite (tuple) reading of the 2026-09-28 docs and its recipe, which the
+  2026-11-23 snapshot no longer describes; a tuple rule is written as a schema-level `@validate` or a
+  derived key property instead.
+- Evidence: documented. Source: docs reference/modeling-data/Property §Uniqueness (snapshot 2026-11-23).
+  Confidence: high.
 
 ### R-MOD-32 — Uniqueness during cascades and selector writes
 
@@ -705,7 +697,8 @@ writes. A `POST` that appends a duplicate into a list fails with 422 and appends
 
 | Condition | Behaviour |
 |---|---|
-| `@key: "true"` and `unique` contains `"true"` on the same property | honoured |
+| `@key: "true"`, `unique` contains `"true"` and the declared `cardinality` is `1..1` on the same property | honoured |
+| `@key: "true"` with any other cardinality, or none declared | ignored (docs snapshot 2026-11-23; case `modeling.keys.needs-cardinality-one`) |
 | `@key: "true"` without individual `unique: "true"` (including composite-only) | ignored (the schema loads fine) |
 | several honoured `@key` on one schema | document order: the first wins |
 | no own `@key`, parent has one | the parent's applies |
@@ -867,40 +860,46 @@ changes. The 409 is documented for DELETE, and extended to value-changing PUT/PO
 ### R-MOD-45 — Property-level `@validate`
 
 - Runs on affected instances for properties with **at least one value** (pagelike decision), after
-  defaults, `@write` and the structural checks. Only the most-derived declaration runs.
-- Sessel: `self` is the **list of the property's value elements** (e.g.
-  `self.all((el) => el.text().matches("^[^@]+@[^@]+\\.[^@]+$"))`).
+  defaults, `@write` and the structural checks. Every level of the chain that declares one runs,
+  ancestor-first, and every refusal is reported (R-MOD-11).
+- Sessel: `self` is the **list of the property's value elements**, which stay in their document, so
+  `parent()` reaches the surrounding item. The result must be the Boolean `true`: `1`, `"yes"` and `[]`
+  refuse.
 - JS: the first positional argument is the property value. That is a string for single-valued reads and
-  an array for explicit `0..n`/`1..n` (pagelike decision, following R-MOD-20).
-- The result must be truthy. Falsy, a thrown error, or a non-`true` Sessel result gives 422
-  SchemaViolation, `check` `@validate`. Throwing an HTTPResponse-shaped object (R-MOD-47) chooses the
-  status and message instead.
-- Evidence: documented. Source: docs reference/modeling-data/Property §Validators, §Error cases;
-  javascript-in-schemas §Slot semantics. Confidence: high (contract), low (absent-property skip).
+  an array for explicit `0..n`/`1..n` (pagelike decision, following R-MOD-20). Any truthy result accepts.
+- A refusal or a thrown error gives 422 SchemaViolation, `check` `@validate`. Throwing an HTTPResponse
+  (R-MOD-47) chooses the status and message instead.
+- Evidence: documented. Source: docs reference/modeling-data/Property §@validate, §Error cases (snapshot
+  2026-11-23); javascript-in-schemas §Slot semantics. Confidence: high (contract), low (absent-property
+  skip). Cases: `modeling.val1123.*`.
 
 ### R-MOD-46 — Schema-level `@validate`
 
-- Sessel: `self` is the instance element, and `self.microdata()` gives all properties. JS: `this` is the
-  **serialized instance HTML string**, and the positional `context` is `null`, so the `function` form is
-  required.
-- Every level of the chain runs, ancestor-first, and all must be truthy. Failure gives 422 `check`
+- Sessel: `self` is the instance element in its document, and `self.microdata()` gives all properties.
+  The result must be the Boolean `true`.
+- JS: `this` is the instance as **an object of its properties**: each property a key, a property with
+  more than one value an array, a nested item an object of its own properties, and `@type` the item type.
+  The positional `context` is `undefined`, so the `function` form is required. (Docs snapshot 2026-11-23;
+  the 2026-09-28 docs passed the serialized HTML and `null`.)
+- Every level of the chain runs, ancestor-first, and all must accept. Failure gives 422 `check`
   `@validate`.
 - It runs after cardinality, type and property-level `@validate` have passed, and before group constraints.
 - Evidence: documented. Source: docs reference/modeling-data/Schema §Schema-level @validate,
-  §Inheritance. Confidence: high (contract), medium (order; see §19 C1).
+  §Inheritance (snapshot 2026-11-23). Confidence: high (contract), medium (order; see §19 C1).
 
 ### R-MOD-47 — Refusing with a chosen response
 
-In a JS property `@validate` or `@write`, throwing a **plain object** with
-`schema_url` (or `itemtype`) = `https://pagelove.org/HTTPResponse`, plus `status` and `message` (and
-optionally `body` and `headers`), makes the response that status. The body is `body`, or `message` when
-`body` is absent (the Trigger semantics, reactions area). `new HTTPResponse(…)` in JS raises a
-`ReferenceError`. That is an ordinary failure, so the client gets the **standard** rejection. Any other
-thrown value is an ordinary failure too. A Sessel `throw new HTTPResponse { status: …, message: … }`
-behaves the same way (inferred from Trigger).
+A validator at either level, in either language, and a `@write`, may throw an HTTPResponse: in JS a
+**plain object** with `schema_url` (or `itemtype`) = `https://pagelove.org/HTTPResponse`, plus `status`
+and `message` (and optionally `body` and `headers`); in Sessel `throw new HTTPResponse { … }`. The
+response takes that status. The body is `body`, or `message` when `body` is absent.
 
-- Evidence: documented. Source: docs javascript-in-schemas §Explaining why a value was rejected;
-  reference/reacting-to-changes/Trigger (HTTPResponse fields). Confidence: high (JS), medium (Sessel).
+- From a validator the status must be **400 to 599**. A thrown response with no status, or any other
+  status, is the ordinary 422 `@validate` violation, so a refused write is never reported as a success.
+- `new HTTPResponse(…)` in JS raises a `ReferenceError`, an ordinary failure. Any other thrown value is
+  an ordinary failure too.
+- Evidence: documented. Source: docs reference/modeling-data/Property §@validate, Schema §Error cases
+  (snapshot 2026-11-23); javascript-in-schemas §Explaining why a value was rejected. Confidence: high.
 
 ### R-MOD-48 — Compile failures
 
@@ -1320,6 +1319,10 @@ restrict, the status is 409, the description is `Referential constraints violate
 - Evidence: documented (the shape is shared) + demo-source (the text matches `/uniqueness/i`); inferred
   (field values). Source: TransitionConstraint §The 422 body; demo-apps app.js files (e.g.
   demo-01-event/app.js@c4dd883:54). Confidence: medium / low.
+- **Docs snapshot 2026-11-23:** a conflict on another document reads `…value already exists for
+  property 'slug' at 'another page'` (a group: `…in group 'g' at 'another page'`), and a value an item
+  holds twice reads `item '…' in '<path>' holds this value more than once …`. The composite wording
+  below is retired with composite groups (R-MOD-31).
 - **live 2026-09-29 (superseded, adopt-live except the path):** PageLove answers the bare problems item
   `https://dombase.pagelove.team/ns/error/ConstraintViolation` whose one message is `Constraint violation:
   1 violation(s):` followed by `  - [uniqueness] [itemprop='slug'] (unique(slug)): Uniqueness violation:
@@ -1567,17 +1570,19 @@ requirements it pins (`spec: R-MOD-…`).
 | File | Cases | Covers |
 |---|---|---|
 | `discovery.yaml` | 9 | R-MOD-2, 4, 5, 8, 9 (host-wide discovery, registration timing, 60 s WebDAV bound, `<template>`, no-type schemas) |
-| `inheritance.yaml` | 10 | R-MOD-10, 11 (parent props, override, unknown parent, cycles, unique/validator/default merge rules) |
+| `inheritance.yaml` | 8 | R-MOD-10, 11 (parent props, override, unknown parent, cycles, unique/validator/default merge rules) |
 | `cardinality.yaml` | 15 | R-MOD-13, 14, 17, 18, 26 (four cardinalities, nested scope, selector PUT/POST/DELETE, MOVE) |
 | `types.yaml` | 22 | R-MOD-19, 21, 22, 25 (every primitive with documented valid/invalid values, value extraction, grammar edges) |
 | `enums.yaml` | 4 | R-MOD-23 |
 | `nested.yaml` | 5 | R-MOD-14, 24 |
 | `defaults.yaml` | 10 | R-MOD-27..29 |
-| `keys.yaml` | 4 | R-MOD-33..35 |
-| `uniqueness.yaml` | 13 | R-MOD-30..32 (including the documented composite recipe; one `.live` sibling, 2026-09-29) |
+| `keys.yaml` | 6 | R-MOD-33..35 |
+| `uniqueness.yaml` | 9 | R-MOD-30, 32 |
+| `uniqueness-1123.yaml` | 7 | R-MOD-30, 31 as of the 2026-11-23 docs (groups as one value set, descendants in scope, no path disclosed) |
+| `validators-1123.yaml` | 9 | R-MOD-45..47 as of the 2026-11-23 docs |
 | `references.yaml` | 16 | R-MOD-37..43 |
 | `computed.yaml` | 4 | R-MOD-44 |
-| `validators.yaml` | 11 | R-MOD-45..48, stage order (R-MOD-15) |
+| `validators.yaml` | 10 | R-MOD-45..48, stage order (R-MOD-15) |
 | `resolvers.yaml` | 15 | R-MOD-49..52 |
 | `groups.yaml` | 9 | R-MOD-54..57 |
 | `methods.yaml` | 3 | R-MOD-58..60 |

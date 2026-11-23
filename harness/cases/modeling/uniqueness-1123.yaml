@@ -1,0 +1,478 @@
+# Modeling: uniqueness after the 2026-11-23 docs. A group is one shared set of values (it used to be a
+# composite key), a value may not repeat on one item, and uniqueness covers the declaring type and every type
+# beneath it. Spec: docs/spec/modeling.md R-MOD-30, R-MOD-31.
+defaults:
+  area: modeling
+  feature: uniqueness
+  evidence: documented
+  confidence: high
+  requires: []
+  live: true
+  site:
+    settings: {default_get: allow}
+    rules:
+      - {actor: "*", resource: "${P}/*", method: [GET, HEAD, PUT, POST, DELETE], action: Allow}
+cases:
+  - id: modeling.uniq1123.group-shared-set
+    title: "A unique group is one set of values across its member properties (docs Host recipe)"
+    source: "docs recipes/composite-uniqueness §A worked example; reference/modeling-data/Property §Uniqueness (snapshot 2026-11-23)"
+    notes: "R-MOD-31."
+    steps:
+      - name: "register the schema"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/schema.html"
+          headers: {Content-Type: text/html}
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div hidden itemscope itemtype="https://pagelove.org/Schema">
+                <meta itemprop="type" content="https://pagelike.test${P}/Host">
+                <li itemprop="property" itemscope itemtype="https://pagelove.org/Property"><meta itemprop="name" content="hostname"><meta itemprop="cardinality" content="1..1"><meta itemprop="unique" content="unique-host-names"></li>
+                <li itemprop="property" itemscope itemtype="https://pagelove.org/Property"><meta itemprop="name" content="alias"><meta itemprop="cardinality" content="0..n"><meta itemprop="unique" content="unique-host-names"></li>
+              </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "host A"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/a.html"
+          headers: {Content-Type: text/html}
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div itemscope itemtype="https://pagelike.test${P}/Host"><meta itemprop="hostname" content="x.example"></div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "host B with an alias"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/b.html"
+          headers: {Content-Type: text/html}
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div itemscope itemtype="https://pagelike.test${P}/Host"><meta itemprop="hostname" content="y.example"><meta itemprop="alias" content="www.y.example"></div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "host C's alias is host A's hostname"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/c.html"
+          headers: {Content-Type: text/html}
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div itemscope itemtype="https://pagelike.test${P}/Host"><meta itemprop="hostname" content="z.example"><meta itemprop="alias" content="x.example"></div>
+            </body></html>
+        expect:
+          status: 422
+          body_contains: ["unique-group(unique-host-names)", "Uniqueness violation: value already exists in group 'unique-host-names' at 'another page'"]
+          body_not_contains: ["a.html"]
+      - name: "host B saved again with its own values"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/b.html"
+          headers: {Content-Type: text/html}
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div itemscope itemtype="https://pagelike.test${P}/Host"><meta itemprop="hostname" content="y.example"><meta itemprop="alias" content="www.y.example"></div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+
+  - id: modeling.uniq1123.group-twice-on-one-item
+    title: "A value may not appear twice in a group on one item"
+    source: "docs recipes/composite-uniqueness §A worked example (hosts D and E, snapshot 2026-11-23)"
+    notes: "R-MOD-31."
+    steps:
+      - name: "register the schema"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/schema.html"
+          headers: {Content-Type: text/html}
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div hidden itemscope itemtype="https://pagelove.org/Schema">
+                <meta itemprop="type" content="https://pagelike.test${P}/Host">
+                <li itemprop="property" itemscope itemtype="https://pagelove.org/Property"><meta itemprop="name" content="hostname"><meta itemprop="cardinality" content="1..1"><meta itemprop="unique" content="unique-host-names"></li>
+                <li itemprop="property" itemscope itemtype="https://pagelove.org/Property"><meta itemprop="name" content="alias"><meta itemprop="cardinality" content="0..n"><meta itemprop="unique" content="unique-host-names"></li>
+              </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "two equal aliases"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/d.html"
+          headers: {Content-Type: text/html}
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div itemscope itemtype="https://pagelike.test${P}/Host"><meta itemprop="hostname" content="w.example"><meta itemprop="alias" content="a.example"><meta itemprop="alias" content="a.example"></div>
+            </body></html>
+        expect:
+          status: 422
+          body_contains: ["unique-group(unique-host-names)"]
+      - name: "an alias equal to its own hostname"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/e.html"
+          headers: {Content-Type: text/html}
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div itemscope itemtype="https://pagelike.test${P}/Host"><meta itemprop="hostname" content="v.example"><meta itemprop="alias" content="v.example"></div>
+            </body></html>
+        expect:
+          status: 422
+          body_contains: ["unique-group(unique-host-names)"]
+
+  - id: modeling.uniq1123.repeat-on-one-item
+    title: "A unique property may hold several values on one item, but not the same value twice"
+    source: "docs reference/modeling-data/Property §Uniqueness and cardinality are different rules (snapshot 2026-11-23)"
+    notes: "R-MOD-30. Supersedes the pagelike decision that a repeat inside one item was no conflict."
+    steps:
+      - name: "register the schema"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/schema.html"
+          headers: {Content-Type: text/html}
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div hidden itemscope itemtype="https://pagelove.org/Schema">
+                <meta itemprop="type" content="https://pagelike.test${P}/Person">
+                <li itemprop="property" itemscope itemtype="https://pagelove.org/Property"><meta itemprop="name" content="email"><meta itemprop="cardinality" content="0..n"><meta itemprop="unique" content="true"></li>
+              </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "two different addresses"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/a.html"
+          headers: {Content-Type: text/html}
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div itemscope itemtype="https://pagelike.test${P}/Person"><meta itemprop="email" content="a@example.com"><meta itemprop="email" content="b@example.com"></div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "the same address twice"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/r.html"
+          headers: {Content-Type: text/html}
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div itemscope itemtype="https://pagelike.test${P}/Person"><meta itemprop="email" content="c@example.com"><meta itemprop="email" content="c@example.com"></div>
+            </body></html>
+        expect:
+          status: 422
+          body_contains: ["unique(email)", "Uniqueness violation"]
+      - name: "another person claims one of the addresses"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/o.html"
+          headers: {Content-Type: text/html}
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div itemscope itemtype="https://pagelike.test${P}/Person"><meta itemprop="email" content="b@example.com"></div>
+            </body></html>
+        expect:
+          status: 422
+          body_contains: ["Uniqueness violation: value already exists for property 'email' at 'another page'"]
+          body_not_contains: ["a.html"]
+
+  - id: modeling.uniq1123.covers-subtypes
+    title: "A unique property is unique across the declaring type and every type beneath it"
+    source: "docs reference/modeling-data/Property §Uniqueness covers every type beneath the one that declares it (snapshot 2026-11-23)"
+    notes: "R-MOD-30. Supersedes modeling.inheritance.unique-scoped-to-leaf-type (inferred from the 2026-09-28 docs)."
+    steps:
+      - name: "register the schema"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/schema.html"
+          headers: {Content-Type: text/html}
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div hidden itemscope itemtype="https://pagelove.org/Schema">
+                <meta itemprop="type" content="https://pagelike.test${P}/Organization">
+                <li itemprop="property" itemscope itemtype="https://pagelove.org/Property"><meta itemprop="name" content="regno"><meta itemprop="cardinality" content="1..1"><meta itemprop="unique" content="true"></li>
+              </div>
+              <div hidden itemscope itemtype="https://pagelove.org/Schema">
+                <meta itemprop="type" content="https://pagelike.test${P}/Charity">
+                <meta itemprop="parent" content="https://pagelike.test${P}/Organization">
+              </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "an organisation"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/a.html"
+          headers: {Content-Type: text/html}
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div itemscope itemtype="https://pagelike.test${P}/Organization"><meta itemprop="regno" content="12345"></div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "a charity with the same number"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/c.html"
+          headers: {Content-Type: text/html}
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div itemscope itemtype="https://pagelike.test${P}/Charity"><meta itemprop="regno" content="12345"></div>
+            </body></html>
+        expect:
+          status: 422
+          body_contains: ["unique(regno)", "at 'another page'"]
+          body_not_contains: ["a.html"]
+      - name: "a charity with its own number"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/c.html"
+          headers: {Content-Type: text/html}
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div itemscope itemtype="https://pagelike.test${P}/Charity"><meta itemprop="regno" content="777"></div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "a second charity with that number"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/c2.html"
+          headers: {Content-Type: text/html}
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div itemscope itemtype="https://pagelike.test${P}/Charity"><meta itemprop="regno" content="777"></div>
+            </body></html>
+        expect:
+          status: 422
+          body_contains: ["unique(regno)"]
+
+  - id: modeling.uniq1123.group-owner-is-highest-type
+    title: "A group belongs to the highest type declaring a member, and covers the types beneath it"
+    source: "docs reference/modeling-data/Property §A group belongs to the highest type that declares it (snapshot 2026-11-23)"
+    notes: "R-MOD-31."
+    steps:
+      - name: "register the schema"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/schema.html"
+          headers: {Content-Type: text/html}
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div hidden itemscope itemtype="https://pagelove.org/Schema">
+                <meta itemprop="type" content="https://pagelike.test${P}/Base">
+                <li itemprop="property" itemscope itemtype="https://pagelove.org/Property"><meta itemprop="name" content="hostname"><meta itemprop="cardinality" content="0..1"><meta itemprop="unique" content="names"></li>
+              </div>
+              <div hidden itemscope itemtype="https://pagelove.org/Schema">
+                <meta itemprop="type" content="https://pagelike.test${P}/Trial">
+                <meta itemprop="parent" content="https://pagelike.test${P}/Base">
+                <li itemprop="property" itemscope itemtype="https://pagelove.org/Property"><meta itemprop="name" content="alias"><meta itemprop="cardinality" content="0..n"><meta itemprop="unique" content="names"></li>
+              </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "a base host"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/a.html"
+          headers: {Content-Type: text/html}
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div itemscope itemtype="https://pagelike.test${P}/Base"><meta itemprop="hostname" content="x.example"></div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "a trial host's alias is the base host's hostname"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/t.html"
+          headers: {Content-Type: text/html}
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div itemscope itemtype="https://pagelike.test${P}/Trial"><meta itemprop="hostname" content="t.example"><meta itemprop="alias" content="x.example"></div>
+            </body></html>
+        expect:
+          status: 422
+          body_contains: ["unique-group(names)", "at 'another page'"]
+          body_not_contains: ["a.html"]
+
+  - id: modeling.uniq1123.sibling-groups-are-separate
+    title: "Sibling types that each declare a member of a same-named group have separate groups"
+    source: "docs reference/modeling-data/Property §A group belongs to the highest type that declares it ('they have two separate groups', snapshot 2026-11-23)"
+    notes: "R-MOD-31."
+    steps:
+      - name: "register the schema"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/schema.html"
+          headers: {Content-Type: text/html}
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div hidden itemscope itemtype="https://pagelove.org/Schema">
+                <meta itemprop="type" content="https://pagelike.test${P}/Root">
+              </div>
+              <div hidden itemscope itemtype="https://pagelove.org/Schema">
+                <meta itemprop="type" content="https://pagelike.test${P}/Left">
+                <meta itemprop="parent" content="https://pagelike.test${P}/Root">
+                <li itemprop="property" itemscope itemtype="https://pagelove.org/Property"><meta itemprop="name" content="name"><meta itemprop="cardinality" content="0..1"><meta itemprop="unique" content="names"></li>
+              </div>
+              <div hidden itemscope itemtype="https://pagelove.org/Schema">
+                <meta itemprop="type" content="https://pagelike.test${P}/Right">
+                <meta itemprop="parent" content="https://pagelike.test${P}/Root">
+                <li itemprop="property" itemscope itemtype="https://pagelove.org/Property"><meta itemprop="name" content="name"><meta itemprop="cardinality" content="0..1"><meta itemprop="unique" content="names"></li>
+              </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "left"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/a.html"
+          headers: {Content-Type: text/html}
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div itemscope itemtype="https://pagelike.test${P}/Left"><meta itemprop="name" content="n"></div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "right with the same value"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/b.html"
+          headers: {Content-Type: text/html}
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div itemscope itemtype="https://pagelike.test${P}/Right"><meta itemprop="name" content="n"></div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "a second left with the value"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/c.html"
+          headers: {Content-Type: text/html}
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div itemscope itemtype="https://pagelike.test${P}/Left"><meta itemprop="name" content="n"></div>
+            </body></html>
+        expect:
+          status: 422
+          body_contains: ["unique-group(names)"]
+
+  - id: modeling.uniq1123.individual-and-group
+    title: "A property can take part in both individual and group uniqueness"
+    source: "docs reference/modeling-data/Property §Uniqueness (unique: true and a group on one property, snapshot 2026-11-23)"
+    notes: "R-MOD-30, R-MOD-31."
+    steps:
+      - name: "register the schema"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/schema.html"
+          headers: {Content-Type: text/html}
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div hidden itemscope itemtype="https://pagelove.org/Schema">
+                <meta itemprop="type" content="https://pagelike.test${P}/Host">
+                <li itemprop="property" itemscope itemtype="https://pagelove.org/Property"><meta itemprop="name" content="hostname"><meta itemprop="cardinality" content="1..1"><meta itemprop="unique" content="true"><meta itemprop="unique" content="host-names"></li>
+                <li itemprop="property" itemscope itemtype="https://pagelove.org/Property"><meta itemprop="name" content="alias"><meta itemprop="cardinality" content="0..n"><meta itemprop="unique" content="host-names"></li>
+              </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "host A"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/a.html"
+          headers: {Content-Type: text/html}
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div itemscope itemtype="https://pagelike.test${P}/Host"><meta itemprop="hostname" content="x.example"></div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "same hostname"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/b.html"
+          headers: {Content-Type: text/html}
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div itemscope itemtype="https://pagelike.test${P}/Host"><meta itemprop="hostname" content="x.example"></div>
+            </body></html>
+        expect:
+          status: 422
+          body_contains: ["unique(hostname)"]
+      - name: "alias equal to that hostname"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/c.html"
+          headers: {Content-Type: text/html}
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div itemscope itemtype="https://pagelike.test${P}/Host"><meta itemprop="hostname" content="c.example"><meta itemprop="alias" content="x.example"></div>
+            </body></html>
+        expect:
+          status: 422
+          body_contains: ["unique-group(host-names)"]
+

@@ -400,26 +400,26 @@ func TestUniqueness(t *testing.T) {
 		return x + `</div>`
 	}
 	f.ok("PUT", "/1.html", "", page(m("alice", "acme", "s1")))
-	f.ok("PUT", "/2.html", "", page(m("alice", "globex", "")))
-	// PageLove's ConstraintViolation problems item (live 2026-09-29):
-	// composite members in alphabetical order, no path of the other
-	// document (withheld: keep-documented-security).
-	e := f.refused(422, "PUT", "/3.html", "", page(m("alice", "acme", "")),
+	f.ok("PUT", "/2.html", "", page(m("bob", "globex", "")))
+	// A group is one set of values across its members (docs 2026-11-23):
+	// carol's org is alice's user. The other page is never named.
+	e := f.refused(422, "PUT", "/3.html", "", page(m("carol", "alice", "")),
 		`<div itemscope itemtype="https://dombase.pagelove.team/ns/error/ConstraintViolation"><ul itemprop="problems"><li itemprop="problem"><span itemprop="message">Constraint violation: 1 violation(s):`+
-			"\n  - [uniqueness] [itemprop='org'], [itemprop='user'] (unique-group(pair)): Composite uniqueness violation: value combination already exists for properties 'org, user'</span></li></ul></div>")
+			"\n  - [uniqueness] [itemprop='org'], [itemprop='user'] (unique-group(pair)): Uniqueness violation: value already exists in group 'pair' at 'another page'</span></li></ul></div>")
 	if e.MediaType() != "text/html" || e.Kind != schema.ProblemConstraint {
 		t.Errorf("media type %q, kind %q", e.MediaType(), e.Kind)
 	}
-	f.ok("PUT", "/4.html", "", page(m("bob", "", "")+m("bob", "", "")))
+	// A value twice on one item, across members.
+	f.refused(422, "PUT", "/4.html", "", page(m("dan", "dan", "")), "holds this value more than once in group 'pair'")
 	// Two items of the written document: the first claimer is named.
 	f.refused(422, "PUT", "/5.html", "", page(m("c", "", "s2")+m("d", "", "s2")),
 		"[uniqueness] [itemprop='slug'] (unique(slug)): Uniqueness violation: another item in '/5.html' already claims this value for property 'slug' (first claimed by item '0.2.0.1')")
-	e = f.refused(422, "PUT", "/6.html", "", page(m("e", "", "s1")), "Uniqueness violation: value already exists for property 'slug'")
+	e = f.refused(422, "PUT", "/6.html", "", page(m("e", "", "s1")), "Uniqueness violation: value already exists for property 'slug' at 'another page'")
 	if strings.Contains(e.Document, "/1.html") {
 		t.Errorf("the other document's path is disclosed:\n%s", e.Document)
 	}
 	// Only the first violation is reported.
-	if e = f.refused(422, "PUT", "/7.html", "", page(m("alice", "acme", "s1"))); !strings.Contains(e.Document, "1 violation(s)") || strings.Count(e.Document, "[uniqueness]") != 1 {
+	if e = f.refused(422, "PUT", "/7.html", "", page(m("alice", "x", "s1"))); !strings.Contains(e.Document, "1 violation(s)") || strings.Count(e.Document, "[uniqueness]") != 1 {
 		t.Errorf("more than the first violation:\n%s", e.Document)
 	}
 	f.ok("PUT", "/1.html", "", page(m("alice", "acme", "s1")+"<p>edited</p>")) // own value

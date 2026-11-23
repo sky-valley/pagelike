@@ -439,9 +439,12 @@ arguments.
 
 ### R-JS-15: Schema-level `@validate`
 
-- **`this`**: the serialized instance, the outer HTML of the instance element
-  as it will be stored (after defaults and `@write`), as a primitive string.
-  **Argument**: `null` (explicitly `null`, not `undefined`; one argument).
+- **`this`**: the instance as an object of its properties (after defaults and
+  `@write`): each property a key, several values an array, a nested item an
+  object, `@type` the item type. **Argument**: `undefined` (docs snapshot
+  2026-11-23; the 2026-09-28 docs passed the serialized HTML and `null`).
+- A thrown HTTPResponse with a status of 400 to 599 answers the request
+  (modeling R-MOD-47).
 - Truthy accepts; falsy or thrown rejects: 422 SchemaViolation, check
   `@validate`, schema-level message prefix `[<itemtype>]: ` (modeling R-MOD-46,
   R-MOD-70).
@@ -2497,7 +2500,7 @@ write" (`modeling.resolvers.js-write-trim-lower`), "Format on read"
 (`modeling.validators.property-js`), the postcode `@write` refusal
 (`modeling.resolvers.js-write-httpresponse-postcode`), `new HTTPResponse`
 being a ReferenceError (`modeling.validators.js-new-httpresponse-is-generic-rejection`),
-the schema-level JavaScript validator (`modeling.validators.schema-level-js-this-is-html`),
+the schema-level JavaScript validator (`modeling.val1123.schema-level-js-this-is-object`),
 mixed-language chains (`modeling.resolvers.mixed-language-chain`), and the
 `threw`/`shape`/`import-not-allowed`/`unknown-language` variants
 (`modeling.errors.binding-failure-*`). Client documentation examples run in a
@@ -2515,7 +2518,7 @@ Requirement → cases (ids without the `javascript.` prefix):
 | R-JS-9 | `slots.import-bare-specifier`, `slots.import-http-url`, `slots.import-pagelove-host`, `slots.import-dynamic`, `slots.import-schema-without-type-attribute`, `slots.import-literal-pagelove-schema`, `slots.import-unknown-schema`, `classes.import-class-behaviour` |
 | R-JS-11 | `slots.default-fresh-context`, `slots.default-context-document-html`, `slots.default-timestamp-docs-example`, `slots.default-document-writable`, `classes.default-constructs-instance` |
 | R-JS-14 | `slots.validate-docs-example-hostname`, `slots.validate-truthy-accepts`, `slots.validate-async`, `slots.validate-sees-default` |
-| R-JS-15 | `slots.schema-validate-this-is-string-context-null` |
+| R-JS-15 | `slots.schema-validate-this-is-object` |
 | R-JS-16 | `classes.computed-via-query` |
 | R-JS-17 | `classes.method-greet-via-query`, `classes.method-instance-receiver-no-document`, `classes.static-method-this-is-class` |
 | R-JS-18 | `methods.docs-js-method-element`, `methods.params-positional-by-declaration`, `methods.absent-parameter-is-null`, `methods.async-body`, `methods.document-scoped-to-host`, `methods.readonly-mutation-fails-500`, `methods.this-is-host-element`, `methods.context-scoped-to-host-subtree`, `methods.attribute-form-replaces-host` |
