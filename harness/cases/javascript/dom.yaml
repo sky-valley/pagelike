@@ -1639,6 +1639,68 @@ cases:
         expect:
           status: 206
           body_contains: ["R:{'@type':'https://example.com/Note','text':'hi','tag':['a','b'],'author':{'name':'N'},'extra':'E'}|hi|null|false|v|undefined"]
+  - id: "javascript.dom.scope-root-nodelist"
+    title: "closest and matches bind :scope to the receiver and :root needs a document parent; NodeList has keys, values and entries"
+    feature: "DOM Element"
+    source: "docs languages/javascript/server/dom/element §closest, §matches and dom/nodelist (snapshot 2026-11-23)"
+    confidence: "medium"
+    live: true
+    notes: "spec: R-JS-71b, R-JS-72."
+    steps:
+      - name: "PUT the page (public plane; registers inline declarations)"
+        as: "anonymous"
+        request:
+          method: "PUT"
+          path: "${P}/probe.html"
+          headers:
+            Content-Type: "text/html"
+          body: |
+            <!DOCTYPE html>
+            <html xmlns:t="https://pagelike.test${P}/Dscoperoot"><body>
+            <main>
+            <t:probe></t:probe>
+            </main>
+            <div hidden itemscope itemtype="https://pagelove.org/Schema">
+            <meta itemprop="type" content="https://pagelike.test${P}/Dscoperoot">
+            <ul>
+            <li itemprop="property" itemscope itemtype="https://pagelove.org/Method">
+            <meta itemprop="name" content="probe">
+            <div itemprop="implementation" itemscope itemtype="https://pagelove.org/JavaScript/Module">
+            <script itemprop="source" type="module">
+            const S = (...a) => a.map(String).join('|');
+            const H = (x) => String(x).replace(/[<>"]/g, (c) => ({ '<': '[', '>': ']', '"': "'" })[c]);
+            const tryName = (f) => { try { f(); return 'ok'; } catch (e) { return e.name + ':' + e.code; } };
+            export default function () {
+            const d = new DOMParser().parseFromString('<div id="o"><div id="p"><span id="c">x</span></div></div>', 'text/html');
+            const c = d.getElementById('c');
+            const loose = d.createElement('section');
+            loose.innerHTML = '<i>y</i>';
+            const frag = d.createDocumentFragment();
+            const inFrag = d.createElement('b');
+            frag.appendChild(inFrag);
+            const list = d.querySelectorAll('div');
+            return 'R:' + S(c.closest(':not(:scope)').id, c.closest('div:not(:scope)').id, d.getElementById('p').closest('div:not(:scope)').id, c.matches(':scope'), c.matches('div > :scope'),
+              d.documentElement.matches(':root'), c.closest(':root').id, loose.matches(':root'), loose.firstChild.closest(':root'), inFrag.matches(':root'),
+              [...list.keys()].join(','), [...list.values()].map((n) => n.id).join(','), [...list.entries()].map(([k, n]) => k + n.id).join(','), list instanceof NodeList);
+            }
+            </script>
+            </div>
+            </li>
+            </ul>
+            </div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "GET <main>: the method result is inserted as text"
+        as: "anonymous"
+        request:
+          method: "GET"
+          path: "${P}/probe.html"
+          headers:
+            Range: "selector=main"
+        expect:
+          status: 206
+          body_contains: ["R:p|p|o|true|true|true|o|false|null|false|0,1|o,p|0o,1p|true"]
   - id: "javascript.dom.namespace-pipe-selectors"
     title: "Namespace-pipe selectors: prefix|tag throws SyntaxError; *|tag is tag in any namespace; |tag is tag without a namespace"
     feature: "DOM selectors"

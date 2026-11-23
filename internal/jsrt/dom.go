@@ -621,6 +621,9 @@ func (d *domState) compile(sel string) (*selector.Selector, error) {
 		d.selOpts.Pseudo[noNamespacePseudo] = func(*selector.PseudoContext) (selector.Sel, error) {
 			return noNamespace{d}, nil
 		}
+		d.selOpts.Pseudo["root"] = func(*selector.PseudoContext) (selector.Sel, error) {
+			return docRoot{d}, nil
+		}
 	}
 	s, err := selector.CompileOptions(src, d.selOpts)
 	if err != nil {
@@ -634,6 +637,27 @@ func (d *domState) compile(sel string) (*selector.Selector, error) {
 const noNamespacePseudo = "-pagelike-no-namespace"
 
 // noNamespace matches elements without a namespace (the "|" prefix).
+// docRoot is :root in the server DOM (R-JS-71, docs snapshot 2026-11-23):
+// an element is :root only when its parent is the document, so a child of
+// a document fragment is not. Of several top-level elements only the first
+// is the root (LO-15).
+type docRoot struct{ d *domState }
+
+func (m docRoot) Match(n *html.Node) bool {
+	if n.Type != html.ElementNode || n.Parent == nil || n.Parent.Type != html.DocumentNode || m.d.isFrag(n.Parent) {
+		return false
+	}
+	for c := n.PrevSibling; c != nil; c = c.PrevSibling {
+		if c.Type == html.ElementNode {
+			return false
+		}
+	}
+	return true
+}
+func (docRoot) Specificity() selector.Specificity { return selector.Specificity{0, 1, 0} }
+func (docRoot) PseudoElement() string             { return "" }
+func (docRoot) String() string                    { return ":root" }
+
 type noNamespace struct{ d *domState }
 
 func (m noNamespace) Match(n *html.Node) bool {
@@ -1351,8 +1375,11 @@ func (d *domState) do(code int, a []any) (any, error) {
 		if err != nil {
 			return nil, err
 		}
+		// Every ancestor is tested with the receiver as :scope (docs
+		// snapshot 2026-11-23).
+		g := selector.BindScope(s.Group(), n)
 		for e := n; e != nil; e = e.Parent {
-			if e.Type == html.ElementNode && s.Matches(e) {
+			if e.Type == html.ElementNode && g.Match(e) {
 				return d.handle(e), nil
 			}
 		}
@@ -1362,7 +1389,7 @@ func (d *domState) do(code int, a []any) (any, error) {
 		if err != nil {
 			return nil, err
 		}
-		return s.Matches(n), nil
+		return n.Type == html.ElementNode && selector.BindScope(s.Group(), n).Match(n), nil
 	case opCreateElement:
 		tag := toStr(arg(a, 1))
 		if !validName(tag) {

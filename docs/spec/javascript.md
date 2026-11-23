@@ -1486,11 +1486,24 @@ All mutators are guarded (R-JS-61).
   reflected, and removing nodes while iterating does not shorten it.
 - Members: `length`; `item(i)` (negative or out of range → `null`). Iterable
   (`for…of`, spread, `Array.from`).
-- Not documented: index access (`list[0]`), `forEach`, `entries`, `keys`,
-  `values`. pagelike provides numeric index access and `forEach` (browser
+- `forEach(callback, thisArg)`, `keys()`, `values()` and `entries()`
+  (docs snapshot 2026-11-23). The global `NodeList` is the constructor, so
+  `list instanceof NodeList` holds; `new NodeList()` throws.
+- Not documented: index access (`list[0]`). pagelike provides it (browser
   compatibility for isomorphic code; pagelike decision; probe P-JS-14).
 - Evidence: documented. Source: DNL. Confidence: high (members), low
   (index access).
+
+### R-JS-71b: `:scope` and `:root` in `closest` and `matches`
+
+- `closest(selector)` tests every inclusive ancestor with the receiver as
+  `:scope`, so `child.closest(":not(:scope)")` is the parent. In
+  `matches(selector)`, `:scope` is the element itself.
+- An element is `:root` only when its parent is the document. A detached
+  element, an element in a detached tree and a child of a document fragment
+  are not `:root`.
+- Evidence: documented (docs snapshot 2026-11-23, DOM Element §closest,
+  §matches). Confidence: medium.
 
 ### R-JS-72b: `element.microdata()`
 
@@ -2583,6 +2596,7 @@ Requirement → cases (ids without the `javascript.` prefix):
 | R-JS-70 | `dom.classlist` |
 | R-JS-71 | `dom.mutation-errors`, `dom.tree-operations`, `dom.insertion-conveniences`, `dom.closest-and-matches`, `dom.element-query-is-scoped`, `dom.get-element-by-id` |
 | R-JS-72 | `dom.nodelist-static-snapshot` |
+| R-JS-71b | `dom.scope-root-nodelist` |
 | R-JS-72b | `dom.microdata` |
 | R-JS-73 | `dom.mutation-errors`, `dom.namespace-pipe-selectors` |
 | R-JS-74 | `methods.docs-js-method-element`, `dom.domparser-ignores-type` |

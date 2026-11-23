@@ -331,11 +331,14 @@ __pagelike.kernel.setDOMBuilder((K) => {
       const hs = this.#hs;
       for (let i = 0; i < hs.length; i++) call.call(cb, thisArg, wrap(hs[i]), i, this);
     }
-    [Symbol.iterator]() {
-      const hs = this.#hs;
+    static #iter(hs, pick) {
       let i = 0;
-      return { next: () => (i < hs.length ? { value: wrap(hs[i++]), done: false } : { value: undefined, done: true }), [Symbol.iterator]() { return this; } };
+      return { next: () => (i < hs.length ? { value: pick(i++), done: false } : { value: undefined, done: true }), [Symbol.iterator]() { return this; } };
     }
+    [Symbol.iterator]() { const hs = this.#hs; return NodeList.#iter(hs, (i) => wrap(hs[i])); }
+    values() { const hs = this.#hs; return NodeList.#iter(hs, (i) => wrap(hs[i])); }
+    keys() { return NodeList.#iter(this.#hs, (i) => i); }
+    entries() { const hs = this.#hs; return NodeList.#iter(hs, (i) => [i, wrap(hs[i])]); }
   }
   const makeNodeList = (hs) => new NodeList(KEY, hs);
 

@@ -43,6 +43,9 @@ Server JavaScript (docs snapshot 2026-11-23):
   only.
 - `element.microdata()` returns the first microdata item at or under an
   element as a plain object.
+- `closest` and `matches` take `:scope` as the element they are called on,
+  and a child of a document fragment is no longer `:root`.
+- `NodeList` has `keys()`, `values()` and `entries()`.
 
 Reactions (docs snapshot 2026-11-23):
 
