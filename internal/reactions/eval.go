@@ -180,12 +180,26 @@ func (e *evalEnv) code(ctx context.Context, slot, lang, src string) (sessel.Valu
 		if err != nil {
 			return nil, err
 		}
+		if (slot == SlotTriggerWhen || slot == SlotProcessorWhen) && e.host != nil {
+			// A gate is read-only (R-REACT-17, docs snapshot 2026-11-23).
+			ro := *e.host
+			ro.WriteProvider = readOnlyGate{}
+			env.Host = &ro
+		}
 		return sessel.Eval(ctx, src, env)
 	case langJS:
 		return runJS(ctx, e.st.site, e.snap(), slot, src, e.jsArg())
 	}
 	return nil, fmt.Errorf("unsupported language")
 }
+
+// readOnlyGate refuses the saves of a when gate.
+type readOnlyGate struct{}
+
+var errGateReadOnly = &sessel.Error{Type: sessel.RuntimeErrorType, Message: "a when gate is read-only and cannot save; put writes in the action or otherwise"}
+
+func (readOnlyGate) Put(context.Context, *sessel.Element, string) error { return errGateReadOnly }
+func (readOnlyGate) Delete(context.Context, sessel.Value) error         { return errGateReadOnly }
 
 // value evaluates a property value to a string (R-REACT-3, R-REACT-55): a
 // null result counts as absent, other values use their string form.

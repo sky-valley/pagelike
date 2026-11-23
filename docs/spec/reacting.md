@@ -527,7 +527,10 @@ For each public-plane request (the steps before 3 belong to other areas):
   no gate. Plain text that does not compile, or that fails when it runs, fails
   the request like any gate error (R-REACT-34); it never skips the trigger.
   (Docs snapshot 2026-11-23; before it pagelike skipped a trigger with a
-  plain-text gate.) Evaluate it after the declarative filters match:
+  plain-text gate.) A gate is **read-only**: `Pagelove.PUT` and
+  `Pagelove.DELETE` fail inside a Sessel gate and the request fails (before
+  this snapshot pagelike let a gate save). Evaluate it after the declarative
+  filters match:
   - Sessel: the program's final expression is the result. It is falsy per
     Sessel truthiness: `false`, `null`, `0`, `0.0`, `""`, `[]`, `{}`.
   - JavaScript: call the module's default export with `ctx` (R-REACT-25). The

@@ -38,6 +38,7 @@ Reactions (docs snapshot 2026-11-23):
 
 - A `when` written as plain text is a Sessel gate. A trigger with one used
   to be skipped, so its guard did not run.
+- A `when` gate is read-only: a save inside it fails the request.
 - A transition handler's `when` may be plain text or a JavaScript module. A
   condition that fails now refuses the save (500, naming no handler)
   instead of quietly skipping the notification.

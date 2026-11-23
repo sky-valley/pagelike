@@ -341,3 +341,51 @@ cases:
           body: '<!DOCTYPE html><html><body><div itemscope itemtype="https://pagelike.test${P}/Order"><meta itemprop="status" content="processing"></div></body></html>'
         expect: {status: [200, 201, 204]}
       - sink_expect: {path: /js, within_ms: 5000, body_contains: ['content="${P}/orders/a.html"']}
+
+  - id: reacting.g1123.trigger-gate-is-read-only
+    title: "A when gate cannot save: Pagelove.PUT inside it fails the request"
+    feature: when gate
+    evidence: documented
+    source: "docs reference/reacting-to-changes/Trigger §when (snapshot 2026-11-23) ('A gate is read-only … Pagelove.PUT() and Pagelove.DELETE() fail inside a gate, and the request fails with an error saying the gate is read-only')"
+    confidence: high
+    requires: [sessel]
+    live: true
+    notes: "spec: R-REACT-17. Before this snapshot pagelike let a gate save."
+    steps:
+      - name: install a trigger whose gate saves
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/r/triggers.html"
+          headers: {Content-Type: text/html}
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+            <div hidden itemscope itemtype="https://pagelove.org/Trigger">
+              <meta itemprop="resource" content="${P}/d/*">
+              <meta itemprop="method" content="PUT">
+              <div itemprop="when" itemscope itemtype="https://pagelove.org/Sessel">
+                <script itemprop="source" type="text/sessel">
+                  @schema Pagelove url("https://pagelove.org/1.0");
+                  Pagelove.PUT(new div[id="side"] { "x" }, "${P}/side.html");
+                  true
+                </script>
+              </div>
+              <div itemprop="action" itemscope itemtype="https://pagelove.org/Sessel">
+                <script itemprop="source" type="text/sessel">1</script>
+              </div>
+            </div>
+            </body></html>
+        expect: {status: [200, 201, 204]}
+      - name: the request fails
+        as: anonymous
+        request: {method: PUT, path: "${P}/d/x.html", headers: {Content-Type: text/html}, body: "<p>x</p>"}
+        expect: {status: 500, body_contains: ["cannot save"]}
+      - name: the gate saved nothing
+        as: anonymous
+        request: {method: GET, path: "${P}/side.html"}
+        expect: {status: 404}
+      - name: and the request's own save did not happen
+        as: anonymous
+        request: {method: GET, path: "${P}/d/x.html"}
+        expect: {status: 404}
