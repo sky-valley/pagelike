@@ -29,7 +29,8 @@ Schemas (docs snapshot 2026-11-23):
 - A Sessel `@validate` accepts only with the Boolean `true`. A property's
   validators at every level of the inheritance chain run.
 - A validator at either level may throw an HTTPResponse with a status of
-  400 to 599; any other status is the ordinary 422.
+  400 to 599; any other status is the ordinary 422. The same holds for a
+  `@write`: a thrown 200 used to be answered as a success.
 - A schema-level JavaScript `@validate` gets the item as an object of its
   properties, not its HTML.
 

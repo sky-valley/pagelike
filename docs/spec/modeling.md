@@ -910,6 +910,9 @@ response takes that status. The body is `body`, or `message` when `body` is abse
 
 - From a validator the status must be **400 to 599**. A thrown response with no status, or any other
   status, is the ordinary 422 `@validate` violation, so a refused write is never reported as a success.
+- From a `@write` the same range applies: with no status, or any other status, the answer is 422
+  SchemaViolation holding one BindingFailure that does not name the property, and nothing is stored
+  (Resolvers §Error cases). Before this snapshot pagelike answered a thrown 200 as a success.
 - `new HTTPResponse(…)` in JS raises a `ReferenceError`, an ordinary failure. Any other thrown value is
   an ordinary failure too.
 - Evidence: documented. Source: docs reference/modeling-data/Property §@validate, Schema §Error cases
@@ -1594,7 +1597,7 @@ requirements it pins (`spec: R-MOD-…`).
 | `uniqueness.yaml` | 9 | R-MOD-30, 32 |
 | `uniqueness-1123.yaml` | 7 | R-MOD-30, 31 as of the 2026-11-23 docs (groups as one value set, descendants in scope, no path disclosed) |
 | `multitype-1123.yaml` | 6 | R-MOD-9, R-MOD-14 as of the 2026-11-23 docs (items with several types, itemref) |
-| `validators-1123.yaml` | 9 | R-MOD-45..47 as of the 2026-11-23 docs |
+| `validators-1123.yaml` | 10 | R-MOD-45..47 as of the 2026-11-23 docs (validators, and a `@write` thrown status) |
 | `references.yaml` | 16 | R-MOD-37..43 |
 | `computed.yaml` | 4 | R-MOD-44 |
 | `validators.yaml` | 10 | R-MOD-45..48, stage order (R-MOD-15) |

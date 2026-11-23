@@ -377,3 +377,43 @@ cases:
         expect:
           status: 422
           body_contains: ['@validate']
+
+  - id: modeling.val1123.write-thrown-success-status-is-422
+    title: "A @write that throws an HTTPResponse with a status outside 400 to 599 is a 422 SchemaViolation"
+    feature: resolvers
+    source: "docs reference/modeling-data/Resolvers §Error cases (snapshot 2026-11-23) ('A @write expression throws an HTTPResponse with no status, or any other status: 422 with a SchemaViolation document. It holds one BindingFailure describing the throw … The request's own write is not stored')"
+    notes: "R-MOD-47, R-MOD-49."
+    requires: [server-js]
+    steps:
+      - name: "schema"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/schema.html"
+          headers: {Content-Type: text/html}
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div hidden itemscope itemtype="https://pagelove.org/Schema"><meta itemprop="type" content="https://pagelike.test${P}/A"><div itemprop="property" itemscope itemtype="https://pagelove.org/Property"><meta itemprop="name" content="n"><meta itemprop="cardinality" content="0..1"><div itemprop="@write" itemscope itemtype="https://pagelove.org/JavaScript/Module"><script itemprop="source" type="module">export default function (v) { throw { schema_url: "https://pagelove.org/HTTPResponse", status: 200, message: "fine" }; }</script></div></div></div>
+            </body></html>
+        expect:
+          status: [200, 201, 204]
+      - name: "a thrown 200 is not a success"
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/a.html"
+          headers: {Content-Type: text/html}
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+              <div itemscope itemtype="https://pagelike.test${P}/A"><meta itemprop="n" content="x"></div>
+            </body></html>
+        expect:
+          status: 422
+          body_contains: ['BindingFailure']
+      - name: "nothing was stored"
+        as: anonymous
+        request: {method: GET, path: "${P}/a.html"}
+        expect:
+          status: 404

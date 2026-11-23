@@ -436,6 +436,15 @@ func (p *pass) writeFailure(s *Schema, pn string, err error) error {
 		return []Violation{{Check: CheckWrite, ItemType: s.URL, Property: pn, Failure: f,
 			Message: fmt.Sprintf("[%s].%s: @write failed: %s", s.URL, pn, f.Message)}}
 	}
+	// A thrown response answers only with an error status; with no status
+	// or any other one it is a 422 holding one BindingFailure that does not
+	// name the property, so a refused write is never reported as a success
+	// (R-MOD-47, docs snapshot 2026-11-23).
+	if tr, ok := err.(*thrownResponse); ok && (tr.status < 400 || tr.status > 599) {
+		f := &BindingFailure{Variant: "threw", Message: tr.Error()}
+		return schemaError(http.StatusUnprocessableEntity, []Violation{{Check: CheckWrite, ItemType: s.URL, Failure: f,
+			Message: fmt.Sprintf("[%s]: @write failed: %s", s.URL, f.Message)}})
+	}
 	if e, ok := p.ev.fatal(err, true, mk); ok {
 		return e
 	}
