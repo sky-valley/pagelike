@@ -832,7 +832,10 @@ Confidence: medium (status of the refusal).
 
 **R-RW-76 Concurrency.** Appends are additive: concurrent selector POSTs to
 the same anchor all succeed and all land (each is applied against the latest
-committed version under the site write lock). A conditional POST
+committed version under the site write lock). On a site with Triggers the
+turn starts before the trigger phase, so a Trigger that checks what is stored
+(a quota, a uniqueness check) sees every write it raced with (case
+`reacting.quota-1124.burst-holds`). A conditional POST
 (`If-Match`) whose tag is no longer current is `412` and is not applied.
 beta-js never sends `If-Match` on POST ([BJS-P]:265).
 Evidence: documented ([POST] §Concurrency), client-source. Confidence: high.

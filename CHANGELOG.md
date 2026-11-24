@@ -1,5 +1,14 @@
 # Changelog
 
+## Unreleased
+
+Fixes:
+
+- A Trigger's checks hold under simultaneous writes. Public writes on a site
+  with Triggers now take turns from the trigger phase through the write, so
+  a Trigger always reads the writes it raced with. Six simultaneous POSTs
+  against a Trigger quota of two used to store four.
+
 ## v0.4.0 — 2026-11-23
 
 Server-sent events (docs snapshot 2026-11-23):
