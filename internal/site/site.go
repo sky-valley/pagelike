@@ -136,6 +136,11 @@ type Site struct {
 
 	// WriteMu serializes every mutation of the site.
 	WriteMu sync.Mutex
+	// TriggerMu serializes public write requests on a site that has
+	// Triggers, from the trigger phase through the core write, so a
+	// Trigger always reads the writes it raced with (R-RW-76, R-REACT-18).
+	// Side-effect writes inside it take WriteMu, never TriggerMu.
+	TriggerMu sync.Mutex
 
 	settingsMu   sync.RWMutex
 	settings     Settings

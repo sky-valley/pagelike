@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"strconv"
 	"strings"
+	"sync"
 
 	"github.com/sky-valley/pagelike/internal/authz"
 	"github.com/sky-valley/pagelike/internal/engine"
@@ -33,6 +34,26 @@ func (x *Reactions) Intercept(w http.ResponseWriter, r *http.Request, c *httpapi
 	}
 	method := r.Method
 	write := isWrite(method)
+	// A Trigger that counts or checks what is stored decides on the state
+	// its core write commits onto: simultaneous writes take turns from the
+	// trigger phase through the core write (R-RW-76). Every write on a site
+	// with Triggers takes a turn, matched or not, so none lands between
+	// another request's checks and its write. The turn starts once the body
+	// is read, so a slow upload holds up no one, and ends before processors.
+	var once sync.Once
+	locked := false
+	lock := func() {
+		if write && len(ix.triggers) > 0 {
+			s.TriggerMu.Lock()
+			locked = true
+		}
+	}
+	unlock := func() {
+		if locked {
+			once.Do(s.TriggerMu.Unlock)
+		}
+	}
+	defer unlock()
 	paths := candidatePaths(c.Path)
 	trig := filterRules(ix.triggers, method, paths)
 	var proc []*rule
@@ -41,6 +62,7 @@ func (x *Reactions) Intercept(w http.ResponseWriter, r *http.Request, c *httpapi
 	}
 	transitions := write && (len(ix.constraints) > 0 || len(ix.handlers) > 0)
 	if len(trig) == 0 && len(proc) == 0 && !transitions {
+		lock()
 		c.Next(w, r)
 		return
 	}
@@ -75,6 +97,7 @@ func (x *Reactions) Intercept(w http.ResponseWriter, r *http.Request, c *httpapi
 		}
 		st.body, bodyRead = body, true
 	}
+	lock()
 	st.req = sessel.NewRequest(method, c.Path, contextHeaders(r), r.URL.Query(), nil, st.body, authOf(c.Principal))
 	st.cctx = sessel.NewContext(st.req)
 
@@ -99,6 +122,7 @@ func (x *Reactions) Intercept(w http.ResponseWriter, r *http.Request, c *httpapi
 	if len(proc) == 0 {
 		sw := &statusWriter{ResponseWriter: w}
 		c.Next(sw, core)
+		unlock()
 		x.finish(ctx, st, sw.status)
 		return
 	}
@@ -110,6 +134,7 @@ func (x *Reactions) Intercept(w http.ResponseWriter, r *http.Request, c *httpapi
 	}
 	buf := newBuffer()
 	c.Next(buf, coreReq)
+	unlock()
 	x.settleCore(st, buf.code())
 	st.mu.Lock()
 	st.phase = phaseProcessors

@@ -1,0 +1,70 @@
+# Reacting: a Trigger's quota holds under simultaneous writes (R-RW-76, R-REACT-18).
+# A Trigger that counts what is already stored must see every earlier write it
+# raced with, or a burst slips past the limit.
+anchors:
+  open_rules: &open_rules
+    - {actor: "*", resource: "${P}/*", method: [GET, HEAD, PUT, POST, DELETE], action: Allow}
+  append: &append
+    as: anonymous
+    request:
+      method: POST
+      path: "${P}/d/lines.html"
+      headers: {Content-Type: text/html, Range: "selector=#lines"}
+      body: "<li>line</li>"
+    expect: {status: [206, 429]}
+defaults:
+  area: reacting
+  site:
+    settings: {default_get: allow}
+    rules: *open_rules
+cases:
+  - id: reacting.quota-1124.burst-holds
+    title: Six simultaneous POSTs against a Trigger quota of two leave exactly two
+    feature: Trigger (concurrency)
+    evidence: documented
+    source: "docs reference/reading-and-writing/POST-method §Concurrency (each append applies against the latest committed version); reference/reacting-to-changes/Trigger §Chain termination (snapshot 2026-11-23)"
+    confidence: high
+    requires: [sessel]
+    live: true
+    notes: "spec: R-RW-76, R-REACT-18. Found by the bit-state docs evals: six parallel POSTs against a quota of two left four. Each request may be accepted or refused; the stored count is what is checked."
+    site:
+      settings: {default_get: allow}
+      rules: *open_rules
+      files:
+        - path: "${P}/d/lines.html"
+          body: |
+            <!DOCTYPE html>
+            <html><body><ol id="lines"></ol></body></html>
+    steps:
+      - name: install a Trigger that refuses a third line
+        as: anonymous
+        request:
+          method: PUT
+          path: "${P}/r/triggers.html"
+          headers: {Content-Type: text/html}
+          body: |
+            <!DOCTYPE html>
+            <html><body>
+            <div itemscope itemtype="https://pagelove.org/Trigger">
+              <meta itemprop="resource" content="${P}/d/lines.html">
+              <meta itemprop="method" content="POST">
+              <div itemprop="action" itemscope itemtype="https://pagelove.org/Sessel">
+                <script itemprop="source" type="text/sessel">
+                  @schema HTTPResponse url("https://pagelove.org/HTTPResponse");
+                  if (($${#lines > li} from "${P}/d/lines.html").count() >= 2) {
+                    throw new HTTPResponse { status: 429, message: "Two lines." }
+                  }
+                </script>
+              </div>
+            </div>
+            </body></html>
+        expect: {status: [200, 201, 204]}
+      - parallel: [*append, *append, *append, *append, *append, *append]
+      - name: the second line is stored
+        as: anonymous
+        request: {method: GET, path: "${P}/d/lines.html", headers: {Range: "selector=#lines > li:nth-child(2)"}}
+        expect: {status: 206}
+      - name: no third line is stored
+        as: anonymous
+        request: {method: GET, path: "${P}/d/lines.html", headers: {Range: "selector=#lines > li:nth-child(3)"}}
+        expect: {status: 416}
